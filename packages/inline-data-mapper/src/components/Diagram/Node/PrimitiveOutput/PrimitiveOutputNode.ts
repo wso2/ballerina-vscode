@@ -148,31 +148,6 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
             }
         });
 
-        if (query) {
-            const { inputs: queryInputs, output: queryOutput} = query;
-
-            const inputNode = findInputNode(queryInputs[0], this);
-            let inPort: InputOutputPortModel;
-            if (inputNode) {
-                inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
-            }
-
-            const [_, mappedOutPort] = getOutputPort(this, `${queryOutput}.HEADER`);
-
-            if (inPort && mappedOutPort) {
-                const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
-
-                lm.setTargetPort(mappedOutPort);
-                lm.setSourcePort(inPort);
-                inPort.addLinkedPort(mappedOutPort);
-
-                lm.addLabel(new ExpressionLabelModel({
-                    isQuery: true
-                }));
-
-                this.getModel().addAll(lm as any);
-            }
-        }
     }
 
     async deleteField(mapping: Mapping) {
