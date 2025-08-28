@@ -48,7 +48,10 @@ const stateMachine = createMachine<MachineContext>(
                         projectStructure: (context, event) => event.payload,
                     }),
                     () => {
-                        commands.executeCommand("BI.project-explorer.refresh");
+                        // Use queueMicrotask to ensure context is updated before command execution
+                        queueMicrotask(() => {
+                            commands.executeCommand("BI.project-explorer.refresh");
+                        });
                     }
                 ]
             },
@@ -62,33 +65,31 @@ const stateMachine = createMachine<MachineContext>(
                 ]
             },
             SWITCH_PROJECT: {
-                target: "swtich_project"
+                target: "switch_project"
             }
         },
         states: {
-            swtich_project: {
+            switch_project: {
                 invoke: {
                     src: checkForProjects,
                     onDone: [
                         {
-                            target: "fetchProjectStructure",
-                            actions: assign({
-                                isBI: (context, event) => event.data.isBI,
-                                projectUri: (context, event) => event.data.projectPath,
-                                scope: (context, event) => event.data.scope,
-                                org: (context, event) => event.data.orgName,
-                                package: (context, event) => event.data.packageName,
-                            })
+                            target: "viewActive.viewReady",
+                            actions: [
+                                assign({
+                                    isBI: (context, event) => event.data.isBI,
+                                    projectUri: (context, event) => event.data.projectPath,
+                                    scope: (context, event) => event.data.scope,
+                                    org: (context, event) => event.data.orgName,
+                                    package: (context, event) => event.data.packageName,
+                                }),
+                                async (context, event) => {
+                                    await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
+                                    notifyCurrentWebview();
+                                }
+                            ]
                         }
                     ],
-                }
-            },
-            reload_project: {
-                invoke: {
-                    src: "fetchProjectStructure",
-                    onDone: {
-                        target: "fetchProjectStructure",
-                    }
                 }
             },
             initialize: {
@@ -185,11 +186,6 @@ const stateMachine = createMachine<MachineContext>(
                 }
             },
             extensionReady: {
-                invoke: {
-                    src: (context, event) => {
-                        return commands.executeCommand("BI.project-explorer.refresh");
-                    }
-                },
                 on: {
                     OPEN_VIEW: {
                         target: "viewActive",
