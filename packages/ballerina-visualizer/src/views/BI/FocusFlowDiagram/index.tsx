@@ -55,6 +55,7 @@ import {
     calculateExpressionOffsets,
     updateLineRange,
 } from "../../../utils/bi";
+import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
 import { NodePosition } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
@@ -587,33 +588,24 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         setConnectionView(SidePanelView.CONNECTION_SELECT);
     };
 
-    const handleSelectConnection = (nodeId: string, metadata?: any) => {
-        console.log(">>> on select create new connection", { nodeId, metadata });
-        const { node } = metadata as { node: AvailableNode };
-
+    const handleSelectConnection = async (nodeId: string, metadata?: any) => {
         setShowProgressIndicator(true);
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current?.startLine || { line: 0, offset: 0 },
-                filePath: model?.fileName,
-                id: node.codedata,
-            })
-            .then((response) => {
-                nodeTemplateRef.current = response.flowNode;
-                nodeTemplateRef.current.metadata = node.metadata;
-                switch (nodeId) {
-                    case "MODEL_PROVIDER":
-                    case "CLASS_INIT":
-                        setSelectedConnectionKind('MODEL_PROVIDER');
-                        break;
-                }
-                setConnectionView(SidePanelView.CONNECTION_CREATE);
-            })
-            .finally(() => {
-                setShowProgressIndicator(false);
-            });
+        try {
+            const { flowNode, connectionKind } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                targetRef.current,
+                model?.fileName,
+                rpcClient
+            );
+
+            nodeTemplateRef.current = flowNode;
+            setSelectedConnectionKind(connectionKind as ConnectionKind);
+            setConnectionView(SidePanelView.CONNECTION_CREATE);
+        } finally {
+            setShowProgressIndicator(false);
+        }
     };
 
     const handleUpdateNodeWithConnection = async (selectedNode: FlowNode) => {
