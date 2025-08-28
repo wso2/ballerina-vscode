@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "arr2.m2",
+  "targetField": "arr2",
   "model": {
     "inputs": [
       {
@@ -30,82 +30,112 @@
         "name": "arr1",
         "typeName": "simpleTypeArr",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-268419592"
-      },
-      {
-        "member": {
-          "fields": [],
-          "id": "m2Item",
-          "name": "<m2ItemItem>",
-          "typeName": "MyType2",
-          "kind": "record",
-          "ref": "802102543"
-        },
-        "id": "m2Item",
-        "name": "m2Item",
-        "typeName": "MyType2[]",
-        "kind": "array",
-        "focusExpression": "arr1.m2",
-        "ref": "802102543"
       }
     ],
     "output": {
-      "member": {
-        "member": {
-          "fields": [],
-          "id": "m2",
-          "name": "<m2ItemItem>",
-          "typeName": "MyType2",
-          "kind": "record",
-          "ref": "802102543"
-        },
-        "id": "m2",
-        "name": "<m2Item>",
-        "typeName": "MyType2[]",
-        "kind": "array",
-        "ref": "802102543"
-      },
-      "id": "m2",
-      "name": "m2",
-      "typeName": "MyType2[][]",
-      "kind": "array",
-      "ref": "802102543"
+      "fields": [],
+      "id": "arr2",
+      "name": "arr2",
+      "typeName": "simpleTypeArr",
+      "kind": "record",
+      "ref": "-268419592"
     },
     "mappings": [
       {
-        "output": "m2",
+        "output": "arr2.m2",
         "inputs": [
-          "m2Item"
+          "arr1.m2"
         ],
-        "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem",
+        "expression": "from var m2Item in arr1.m2\n            select from var m2ItemItem in m2Item\n                select m2ItemItem",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": true,
         "isFunctionCall": false
+      },
+      {
+        "output": "arr2.a1",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      },
+      {
+        "output": "arr2.b2",
+        "inputs": [],
+        "expression": "[[]]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "arr2.b2.0",
+                "inputs": [],
+                "expression": "[]",
+                "diagnostics": [],
+                "elements": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "output": "arr2.m0.k",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      },
+      {
+        "output": "arr2.m0.l",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      },
+      {
+        "output": "arr2.m0.i",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "arr2.m1",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      },
+      {
+        "output": "arr2.b0",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "arr2.a0",
+        "inputs": [],
+        "expression": "0",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "arr2.b1",
+        "inputs": [],
+        "expression": "[]\n",
+        "diagnostics": [],
+        "elements": []
       }
     ],
-    "query": {
-      "output": "m2",
-      "inputs": [
-        "arr1.m2"
-      ],
-      "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "m2Item",
-          "type": "MyType2[]",
-          "expression": "arr1.m2"
-        }
-      },
-      "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem"
-        }
-      }
-    },
     "refs": {
       "-842473667": {
         "fields": [

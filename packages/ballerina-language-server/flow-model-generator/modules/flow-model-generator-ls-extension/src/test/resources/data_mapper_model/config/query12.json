@@ -26,65 +26,35 @@
     "inputs": [
       {
         "member": {
-          "fields": [
-            {
-              "id": "myTypes1.0.name1",
-              "variableName": "name1",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "myTypes1.0.i",
-              "variableName": "i",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "myTypes1.0",
-          "variableName": "<myTypes1Item>",
+          "fields": [],
+          "id": "myTypes1",
+          "name": "<myTypes1Item>",
           "typeName": "MyType",
           "kind": "record",
-          "optional": false
+          "ref": "2079019383"
         },
         "id": "myTypes1",
-        "variableName": "myTypes1",
+        "name": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "2079019383"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "id": "myTypes2.name1",
-            "variableName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "myTypes2.i",
-            "variableName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "myTypes2",
-        "variableName": "<myTypes2Item>",
+        "name": "<myTypes2Item>",
         "typeName": "MyType",
         "kind": "record",
-        "optional": false
+        "ref": "2079019383"
       },
       "id": "myTypes2",
-      "variableName": "myTypes2",
+      "name": "myTypes2",
       "typeName": "MyType[]",
       "kind": "array",
-      "optional": false
+      "ref": "2079019383"
     },
     "mappings": [
       {
@@ -98,6 +68,28 @@
         "isQueryExpression": true,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "id": "name1",
+            "name": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    }
   }
 }

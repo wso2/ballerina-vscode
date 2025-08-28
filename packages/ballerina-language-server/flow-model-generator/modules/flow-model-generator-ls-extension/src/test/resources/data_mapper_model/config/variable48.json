@@ -25,630 +25,55 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "arr1.a0",
-            "variableName": "a0",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "member": {
-              "id": "arr1.a1.0",
-              "variableName": "<a1Item>",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            },
-            "id": "arr1.a1",
-            "variableName": "a1",
-            "typeName": "int[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "id": "arr1.b0",
-            "variableName": "b0",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "member": {
-              "id": "arr1.b1.0",
-              "variableName": "<b1Item>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "arr1.b1",
-            "variableName": "b1",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "member": {
-              "member": {
-                "id": "arr1.b2.0.0",
-                "variableName": "<b2ItemItem>",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              "id": "arr1.b2.0",
-              "variableName": "<b2Item>",
-              "typeName": "string[]",
-              "kind": "array",
-              "optional": false
-            },
-            "id": "arr1.b2",
-            "variableName": "b2",
-            "typeName": "string[][]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "member": {
-                  "id": "arr1.m0.k.0",
-                  "variableName": "<kItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "arr1.m0.k",
-                "variableName": "k",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              },
-              {
-                "member": {
-                  "fields": [
-                    {
-                      "member": {
-                        "fields": [
-                          {
-                            "id": "arr1.m0.l.0.arr.0.p",
-                            "variableName": "p",
-                            "typeName": "int",
-                            "kind": "int",
-                            "optional": false
-                          },
-                          {
-                            "fields": [
-                              {
-                                "id": "arr1.m0.l.0.arr.0.q.r",
-                                "variableName": "r",
-                                "typeName": "int",
-                                "kind": "int",
-                                "optional": false
-                              }
-                            ],
-                            "id": "arr1.m0.l.0.arr.0.q",
-                            "variableName": "q",
-                            "typeName": "record",
-                            "kind": "record",
-                            "optional": false
-                          }
-                        ],
-                        "id": "arr1.m0.l.0.arr.0",
-                        "variableName": "<arrItem>",
-                        "typeName": "record",
-                        "kind": "record",
-                        "optional": false
-                      },
-                      "id": "arr1.m0.l.0.arr",
-                      "variableName": "arr",
-                      "typeName": "record[]",
-                      "kind": "array",
-                      "optional": false
-                    },
-                    {
-                      "fields": [
-                        {
-                          "fields": [
-                            {
-                              "id": "arr1.m0.l.0.Aa.Bb.Ccc",
-                              "variableName": "Ccc",
-                              "typeName": "int",
-                              "kind": "int",
-                              "optional": false
-                            }
-                          ],
-                          "id": "arr1.m0.l.0.Aa.Bb",
-                          "variableName": "Bb",
-                          "typeName": "record",
-                          "kind": "record",
-                          "optional": false
-                        }
-                      ],
-                      "id": "arr1.m0.l.0.Aa",
-                      "variableName": "Aa",
-                      "typeName": "record",
-                      "kind": "record",
-                      "optional": false
-                    }
-                  ],
-                  "id": "arr1.m0.l.0",
-                  "variableName": "<lItem>",
-                  "typeName": "MyType2",
-                  "kind": "record",
-                  "optional": false
-                },
-                "id": "arr1.m0.l",
-                "variableName": "l",
-                "typeName": "MyType2[]",
-                "kind": "array",
-                "optional": false
-              },
-              {
-                "id": "arr1.m0.i",
-                "variableName": "i",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              }
-            ],
-            "id": "arr1.m0",
-            "variableName": "m0",
-            "typeName": "MyType",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "member": {
-                    "id": "arr1.m1.0.k.0",
-                    "variableName": "<kItem>",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  "id": "arr1.m1.0.k",
-                  "variableName": "k",
-                  "typeName": "string[]",
-                  "kind": "array",
-                  "optional": false
-                },
-                {
-                  "member": {
-                    "fields": [
-                      {
-                        "member": {
-                          "fields": [
-                            {
-                              "id": "arr1.m1.0.l.0.arr.0.p",
-                              "variableName": "p",
-                              "typeName": "int",
-                              "kind": "int",
-                              "optional": false
-                            },
-                            {
-                              "fields": [
-                                {
-                                  "id": "arr1.m1.0.l.0.arr.0.q.r",
-                                  "variableName": "r",
-                                  "typeName": "int",
-                                  "kind": "int",
-                                  "optional": false
-                                }
-                              ],
-                              "id": "arr1.m1.0.l.0.arr.0.q",
-                              "variableName": "q",
-                              "typeName": "record",
-                              "kind": "record",
-                              "optional": false
-                            }
-                          ],
-                          "id": "arr1.m1.0.l.0.arr.0",
-                          "variableName": "<arrItem>",
-                          "typeName": "record",
-                          "kind": "record",
-                          "optional": false
-                        },
-                        "id": "arr1.m1.0.l.0.arr",
-                        "variableName": "arr",
-                        "typeName": "record[]",
-                        "kind": "array",
-                        "optional": false
-                      },
-                      {
-                        "fields": [
-                          {
-                            "fields": [
-                              {
-                                "id": "arr1.m1.0.l.0.Aa.Bb.Ccc",
-                                "variableName": "Ccc",
-                                "typeName": "int",
-                                "kind": "int",
-                                "optional": false
-                              }
-                            ],
-                            "id": "arr1.m1.0.l.0.Aa.Bb",
-                            "variableName": "Bb",
-                            "typeName": "record",
-                            "kind": "record",
-                            "optional": false
-                          }
-                        ],
-                        "id": "arr1.m1.0.l.0.Aa",
-                        "variableName": "Aa",
-                        "typeName": "record",
-                        "kind": "record",
-                        "optional": false
-                      }
-                    ],
-                    "id": "arr1.m1.0.l.0",
-                    "variableName": "<lItem>",
-                    "typeName": "MyType2",
-                    "kind": "record",
-                    "optional": false
-                  },
-                  "id": "arr1.m1.0.l",
-                  "variableName": "l",
-                  "typeName": "MyType2[]",
-                  "kind": "array",
-                  "optional": false
-                },
-                {
-                  "id": "arr1.m1.0.i",
-                  "variableName": "i",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                }
-              ],
-              "id": "arr1.m1.0",
-              "variableName": "<m1Item>",
-              "typeName": "MyType",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "arr1.m1",
-            "variableName": "m1",
-            "typeName": "MyType[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "member": {
-              "member": {
-                "fields": [
-                  {
-                    "member": {
-                      "fields": [
-                        {
-                          "id": "arr1.m2.0.0.arr.0.p",
-                          "variableName": "p",
-                          "typeName": "int",
-                          "kind": "int",
-                          "optional": false
-                        },
-                        {
-                          "fields": [
-                            {
-                              "id": "arr1.m2.0.0.arr.0.q.r",
-                              "variableName": "r",
-                              "typeName": "int",
-                              "kind": "int",
-                              "optional": false
-                            }
-                          ],
-                          "id": "arr1.m2.0.0.arr.0.q",
-                          "variableName": "q",
-                          "typeName": "record",
-                          "kind": "record",
-                          "optional": false
-                        }
-                      ],
-                      "id": "arr1.m2.0.0.arr.0",
-                      "variableName": "<arrItem>",
-                      "typeName": "record",
-                      "kind": "record",
-                      "optional": false
-                    },
-                    "id": "arr1.m2.0.0.arr",
-                    "variableName": "arr",
-                    "typeName": "record[]",
-                    "kind": "array",
-                    "optional": false
-                  },
-                  {
-                    "fields": [
-                      {
-                        "fields": [
-                          {
-                            "id": "arr1.m2.0.0.Aa.Bb.Ccc",
-                            "variableName": "Ccc",
-                            "typeName": "int",
-                            "kind": "int",
-                            "optional": false
-                          }
-                        ],
-                        "id": "arr1.m2.0.0.Aa.Bb",
-                        "variableName": "Bb",
-                        "typeName": "record",
-                        "kind": "record",
-                        "optional": false
-                      }
-                    ],
-                    "id": "arr1.m2.0.0.Aa",
-                    "variableName": "Aa",
-                    "typeName": "record",
-                    "kind": "record",
-                    "optional": false
-                  }
-                ],
-                "id": "arr1.m2.0.0",
-                "variableName": "<m2ItemItem>",
-                "typeName": "MyType2",
-                "kind": "record",
-                "optional": false
-              },
-              "id": "arr1.m2.0",
-              "variableName": "<m2Item>",
-              "typeName": "MyType2[]",
-              "kind": "array",
-              "optional": false
-            },
-            "focusedMemberId": "m2Item",
-            "id": "arr1.m2",
-            "variableName": "m2",
-            "typeName": "MyType2[][]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "arr1",
-        "variableName": "arr1",
+        "name": "arr1",
         "typeName": "simpleTypeArr",
         "kind": "record",
         "category": "variable",
-        "optional": false
+        "ref": "-268419592"
       },
       {
         "member": {
-          "fields": [
-            {
-              "member": {
-                "fields": [
-                  {
-                    "id": "m2Item.0.arr.0.p",
-                    "variableName": "p",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  },
-                  {
-                    "fields": [
-                      {
-                        "id": "m2Item.0.arr.0.q.r",
-                        "variableName": "r",
-                        "typeName": "int",
-                        "kind": "int",
-                        "optional": false
-                      }
-                    ],
-                    "id": "m2Item.0.arr.0.q",
-                    "variableName": "q",
-                    "typeName": "record",
-                    "kind": "record",
-                    "optional": false
-                  }
-                ],
-                "id": "m2Item.0.arr.0",
-                "variableName": "<arrItem>",
-                "typeName": "record",
-                "kind": "record",
-                "optional": false
-              },
-              "id": "m2Item.0.arr",
-              "variableName": "arr",
-              "typeName": "record[]",
-              "kind": "array",
-              "optional": false
-            },
-            {
-              "fields": [
-                {
-                  "fields": [
-                    {
-                      "id": "m2Item.0.Aa.Bb.Ccc",
-                      "variableName": "Ccc",
-                      "typeName": "int",
-                      "kind": "int",
-                      "optional": false
-                    }
-                  ],
-                  "id": "m2Item.0.Aa.Bb",
-                  "variableName": "Bb",
-                  "typeName": "record",
-                  "kind": "record",
-                  "optional": false
-                }
-              ],
-              "id": "m2Item.0.Aa",
-              "variableName": "Aa",
-              "typeName": "record",
-              "kind": "record",
-              "optional": false
-            }
-          ],
-          "id": "m2Item.0",
-          "variableName": "<m2ItemItem>",
+          "fields": [],
+          "id": "m2Item",
+          "name": "<m2ItemItem>",
           "typeName": "MyType2",
           "kind": "record",
-          "optional": false
+          "ref": "802102543"
         },
-        "focusedMemberId": "m2ItemItem",
         "id": "m2Item",
-        "variableName": "m2Item",
+        "name": "m2Item",
         "typeName": "MyType2[]",
         "kind": "array",
         "category": "variable",
-        "isFocused": true,
-        "optional": false
+        "focusExpression": "arr1.m2",
+        "ref": "802102543"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "m2ItemItem.arr.0.p",
-                  "variableName": "p",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                },
-                {
-                  "fields": [
-                    {
-                      "id": "m2ItemItem.arr.0.q.r",
-                      "variableName": "r",
-                      "typeName": "int",
-                      "kind": "int",
-                      "optional": false
-                    }
-                  ],
-                  "id": "m2ItemItem.arr.0.q",
-                  "variableName": "q",
-                  "typeName": "record",
-                  "kind": "record",
-                  "optional": false
-                }
-              ],
-              "id": "m2ItemItem.arr.0",
-              "variableName": "<arrItem>",
-              "typeName": "record",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "m2ItemItem.arr",
-            "variableName": "arr",
-            "typeName": "record[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "fields": [
-                  {
-                    "id": "m2ItemItem.Aa.Bb.Ccc",
-                    "variableName": "Ccc",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  }
-                ],
-                "id": "m2ItemItem.Aa.Bb",
-                "variableName": "Bb",
-                "typeName": "record",
-                "kind": "record",
-                "optional": false
-              }
-            ],
-            "id": "m2ItemItem.Aa",
-            "variableName": "Aa",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "m2ItemItem",
-        "variableName": "m2ItemItem",
+        "name": "m2ItemItem",
         "typeName": "MyType2",
         "kind": "record",
-        "isFocused": true,
-        "optional": false
+        "focusExpression": "m2Item",
+        "ref": "802102543"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "0.arr.p",
-                  "variableName": "p",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                },
-                {
-                  "fields": [
-                    {
-                      "id": "0.arr.q.r",
-                      "variableName": "r",
-                      "typeName": "int",
-                      "kind": "int",
-                      "optional": false
-                    }
-                  ],
-                  "id": "0.arr.q",
-                  "variableName": "q",
-                  "typeName": "record",
-                  "kind": "record",
-                  "optional": false
-                }
-              ],
-              "id": "0.arr",
-              "variableName": "<arrItem>",
-              "typeName": "record",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "0.arr",
-            "variableName": "arr",
-            "typeName": "record[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "fields": [
-              {
-                "fields": [
-                  {
-                    "id": "0.Aa.Bb.Ccc",
-                    "variableName": "Ccc",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  }
-                ],
-                "id": "0.Aa.Bb",
-                "variableName": "Bb",
-                "typeName": "record",
-                "kind": "record",
-                "optional": false
-              }
-            ],
-            "id": "0.Aa",
-            "variableName": "Aa",
-            "typeName": "record",
-            "kind": "record",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "0",
-        "variableName": "<0Item>",
+        "name": "<0Item>",
         "typeName": "MyType2",
         "kind": "record",
-        "optional": false
+        "ref": "802102543"
       },
       "id": "0",
-      "variableName": "0",
+      "name": "0",
       "typeName": "MyType2[]",
       "kind": "array",
-      "optional": false
+      "ref": "802102543"
     },
     "mappings": [
       {
@@ -682,6 +107,257 @@
         "properties": {
           "expression": "m2ItemItem"
         }
+      }
+    },
+    "refs": {
+      "-842473667": {
+        "fields": [
+          {
+            "member": {
+              "id": "k",
+              "name": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "k",
+            "name": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "l",
+              "name": "<lItem>",
+              "typeName": "MyType2",
+              "kind": "record",
+              "ref": "802102543"
+            },
+            "id": "l",
+            "name": "l",
+            "typeName": "MyType2[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "802102543"
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      },
+      "429276051": {
+        "fields": [
+          {
+            "fields": [],
+            "id": "Bb",
+            "name": "Bb",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "293955111"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1012320595": {
+        "fields": [
+          {
+            "id": "p",
+            "name": "p",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "id": "q",
+            "name": "q",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1137921160"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "293955111": {
+        "fields": [
+          {
+            "id": "Ccc",
+            "name": "Ccc",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-268419592": {
+        "fields": [
+          {
+            "id": "a0",
+            "name": "a0",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "id": "a1",
+              "name": "<a1Item>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "id": "a1",
+            "name": "a1",
+            "typeName": "int[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "id": "b0",
+            "name": "b0",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "id": "b1",
+              "name": "<b1Item>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "id": "b1",
+            "name": "b1",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "member": {
+                "id": "b2",
+                "name": "<b2ItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "id": "b2",
+              "name": "<b2Item>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "id": "b2",
+            "name": "b2",
+            "typeName": "string[][]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "id": "m0",
+            "name": "m0",
+            "typeName": "MyType",
+            "kind": "record",
+            "optional": false,
+            "ref": "-842473667"
+          },
+          {
+            "member": {
+              "fields": [],
+              "id": "m1",
+              "name": "<m1Item>",
+              "typeName": "MyType",
+              "kind": "record",
+              "ref": "-842473667"
+            },
+            "id": "m1",
+            "name": "m1",
+            "typeName": "MyType[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-842473667"
+          },
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "id": "m2",
+                "name": "<m2ItemItem>",
+                "typeName": "MyType2",
+                "kind": "record",
+                "ref": "802102543"
+              },
+              "id": "m2",
+              "name": "<m2Item>",
+              "typeName": "MyType2[]",
+              "kind": "array",
+              "ref": "802102543"
+            },
+            "id": "m2",
+            "name": "m2",
+            "typeName": "MyType2[][]",
+            "kind": "array",
+            "optional": false,
+            "ref": "802102543"
+          }
+        ],
+        "typeName": "simpleTypeArr",
+        "kind": "record"
+      },
+      "802102543": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "id": "arr",
+              "name": "<arrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1012320595"
+            },
+            "id": "arr",
+            "name": "arr",
+            "typeName": "[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1012320595"
+          },
+          {
+            "fields": [],
+            "id": "Aa",
+            "name": "Aa",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "429276051"
+          }
+        ],
+        "typeName": "MyType2",
+        "kind": "record"
+      },
+      "-1137921160": {
+        "fields": [
+          {
+            "id": "r",
+            "name": "r",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
       }
     }
   }

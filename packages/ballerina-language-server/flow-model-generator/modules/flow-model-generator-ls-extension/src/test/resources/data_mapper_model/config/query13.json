@@ -26,174 +26,76 @@
     "inputs": [
       {
         "member": {
-          "fields": [
-            {
-              "id": "myTypes1.0.name1",
-              "variableName": "name1",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "myTypes1.0.i",
-              "variableName": "i",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "myTypes1.0",
-          "variableName": "<myTypes1Item>",
+          "fields": [],
+          "id": "myTypes1",
+          "name": "<myTypes1Item>",
           "typeName": "MyType",
           "kind": "record",
-          "optional": false
+          "ref": "2079019383"
         },
         "id": "myTypes1",
-        "variableName": "myTypes1",
+        "name": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "2079019383"
       },
       {
         "member": {
-          "fields": [
-            {
-              "id": "myTypes2.0.name1",
-              "variableName": "name1",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "myTypes2.0.i",
-              "variableName": "i",
-              "typeName": "int",
-              "kind": "int",
-              "optional": false
-            }
-          ],
-          "id": "myTypes2.0",
-          "variableName": "<myTypes2Item>",
+          "fields": [],
+          "id": "myTypes2",
+          "name": "<myTypes2Item>",
           "typeName": "MyType",
           "kind": "record",
-          "optional": false
+          "ref": "2079019383"
         },
         "id": "myTypes2",
-        "variableName": "myTypes2",
+        "name": "myTypes2",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "2079019383"
       },
       {
         "member": {
           "member": {
-            "fields": [
-              {
-                "id": "myTypes3.0.0.name1",
-                "variableName": "name1",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              {
-                "id": "myTypes3.0.0.i",
-                "variableName": "i",
-                "typeName": "int",
-                "kind": "int",
-                "optional": false
-              }
-            ],
-            "id": "myTypes3.0.0",
-            "variableName": "<myTypes3ItemItem>",
+            "fields": [],
+            "id": "myTypes3",
+            "name": "<myTypes3ItemItem>",
             "typeName": "MyType",
             "kind": "record",
-            "optional": false
+            "ref": "2079019383"
           },
-          "id": "myTypes3.0",
-          "variableName": "<myTypes3Item>",
+          "id": "myTypes3",
+          "name": "<myTypes3Item>",
           "typeName": "MyType[]",
           "kind": "array",
-          "optional": false
+          "ref": "2079019383"
         },
         "id": "myTypes3",
-        "variableName": "myTypes3",
+        "name": "myTypes3",
         "typeName": "MyType[][]",
         "kind": "array",
         "category": "local-variable",
-        "optional": false
+        "ref": "2079019383"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "member": {
-                "fields": [
-                  {
-                    "id": "types.t.0.0.name1",
-                    "variableName": "name1",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "types.t.0.0.i",
-                    "variableName": "i",
-                    "typeName": "int",
-                    "kind": "int",
-                    "optional": false
-                  }
-                ],
-                "id": "types.t.0.0",
-                "variableName": "<tItemItem>",
-                "typeName": "MyType",
-                "kind": "record",
-                "optional": false
-              },
-              "id": "types.t.0",
-              "variableName": "<tItem>",
-              "typeName": "MyType[]",
-              "kind": "array",
-              "optional": false
-            },
-            "id": "types.t",
-            "variableName": "t",
-            "typeName": "MyType[][]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
+        "fields": [],
         "id": "types",
-        "variableName": "types",
+        "name": "types",
         "typeName": "Types",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-1223228350"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "0.name1",
-          "variableName": "name1",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "0.i",
-          "variableName": "i",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
+      "fields": [],
       "id": "0",
-      "variableName": "0",
-      "typeName": "record",
+      "name": "0",
+      "typeName": "record {|string name1; int i;|}",
       "kind": "record",
-      "optional": false
+      "ref": "-353186209"
     },
     "mappings": [
       {
@@ -205,6 +107,77 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "id": "name1",
+            "name": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      },
+      "-1223228350": {
+        "fields": [
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "id": "t",
+                "name": "<tItemItem>",
+                "typeName": "MyType",
+                "kind": "record",
+                "ref": "2079019383"
+              },
+              "id": "t",
+              "name": "<tItem>",
+              "typeName": "MyType[]",
+              "kind": "array",
+              "ref": "2079019383"
+            },
+            "id": "t",
+            "name": "t",
+            "typeName": "MyType[][]",
+            "kind": "array",
+            "optional": false,
+            "ref": "2079019383"
+          }
+        ],
+        "typeName": "Types",
+        "kind": "record"
+      },
+      "-353186209": {
+        "fields": [
+          {
+            "id": "name1",
+            "name": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "id": "i",
+            "name": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "record {|string name1; int i;|}",
+        "kind": "record"
+      }
+    }
   }
 }
