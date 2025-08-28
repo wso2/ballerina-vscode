@@ -26,7 +26,7 @@ import { convertToHelperPaneVariable, filterHelperPaneVariables } from "../../..
 
 type SuggestionsPageProps = {
     fileName: string;
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     defaultValue: string;
     onChange: (value: string) => void;
 };
@@ -46,10 +46,10 @@ export const SuggestionsPage = ({ fileName, targetLineRange, defaultValue, onCha
                 .getBIDiagramRpcClient()
                 .getVisibleVariableTypes({
                     filePath: fileName,
-                    position: {
+                    position: targetLineRange ? {
                         line: targetLineRange.startLine.line,
                         offset: targetLineRange.startLine.offset
-                    }
+                    } : undefined
                 })
                 .then((response) => {
                     if (response.categories?.length) {

@@ -72,7 +72,7 @@ interface TypeEditorState {
 interface FormProps {
     fileName: string;
     fields: FormField[];
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     projectPath?: string;
     submitText?: string;
     cancelText?: string;
@@ -244,7 +244,7 @@ export function FormGeneratorNew(props: FormProps) {
                         filePath: fileName,
                         context: {
                             expression: value,
-                            startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                            startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
                             lineOffset: lineOffset,
                             offset: charOffset,
                             codedata: undefined,
@@ -314,7 +314,7 @@ export function FormGeneratorNew(props: FormProps) {
                 if (!types.length) {
                     const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
-                        position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                        position: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
                         ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
                     });
 
@@ -397,7 +397,7 @@ export function FormGeneratorNew(props: FormProps) {
                             filePath: fileName,
                             context: {
                                 expression: expression,
-                                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                                startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
                                 lineOffset: 0,
                                 offset: 0,
                                 codedata: field.codedata,
@@ -443,7 +443,7 @@ export function FormGeneratorNew(props: FormProps) {
         return getHelperPane({
             fieldKey: fieldKey,
             fileName: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
@@ -485,7 +485,7 @@ export function FormGeneratorNew(props: FormProps) {
             valueTypeConstraint: valueTypeConstraint,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             currentType: currentType,
             currentCursorPosition: currentCursorPosition,
             helperPaneHeight: typeHelperHeight,
@@ -604,7 +604,7 @@ export function FormGeneratorNew(props: FormProps) {
             filePath: fileName,
             context: {
                 expression: value,
-                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: undefined,
