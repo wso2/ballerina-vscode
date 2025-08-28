@@ -107,6 +107,7 @@
           "description": "Collection to iterate"
         },
         "valueType": "ACTION_OR_EXPRESSION",
+        "valueTypeConstraint": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json",
         "value": "",
         "placeholder": "[]",
         "optional": false,
