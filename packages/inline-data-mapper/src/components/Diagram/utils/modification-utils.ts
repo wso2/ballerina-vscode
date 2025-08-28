@@ -131,18 +131,17 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	const outputPortModel = targetPort as InputOutputPortModel;
 
 	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
-	const outputId = outputPortModel.attributes.fieldFQN;
+	const output = outputPortModel.attributes.fieldFQN;
 	const lastView = context.views[context.views.length - 1];
 	const viewId = lastView?.targetField || null;
 	const name  = context.views[0]?.targetField;
 
 	const mapping: Mapping = {
-		output: "OUTPUT",// TODO: Remove this once the API is updated, currently output is embedded in to targetField
+		output: output,
 		expression: input
 	};
-	const targetField = getTargetField(viewId, outputId); // TODO: Remove this once the API is updated
 
-	await context?.convertToQuery(mapping, clauseType, targetField, name);
+	await context?.convertToQuery(mapping, clauseType, viewId, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

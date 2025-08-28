@@ -177,7 +177,6 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
 		
-		if(fieldFQN.endsWith('>')) fieldFQN = fieldFQN.split('.').slice(0, -1).join('.');
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
 			portName, isArray, field.isDeepNested, mapping, mappings, fieldFQN);
@@ -201,12 +200,20 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		});
 		this.addPort(outputPort);
 
-		this.processFieldKind({
+		this.processOutputFieldKind({
 			...attributes,
 			parentId: fieldFQN,
 			parent: outputPort,
 			hidden: isCollapsed || hidden
 		});
+	}
+
+	protected processOutputFieldKind(attributes: OutputPortAttributes) {
+		if (attributes.field?.kind === TypeKind.Record) {
+			this.processRecordField(attributes);
+		} else if (attributes.field?.kind === TypeKind.Array) {
+			this.processArrayField(attributes);
+		}
 	}
 
 	protected addPortsForHeader(attributes: HeaderPortAttributes): InputOutputPortModel {
@@ -373,14 +380,6 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			});
 		}
 		return attributes.hidden ? 0 : numberOfFields;
-	}
-
-	private processFieldKind(attributes: OutputPortAttributes) {
-		if (attributes.field?.kind === TypeKind.Record) {
-			this.processRecordField(attributes);
-		} else if (attributes.field?.kind === TypeKind.Array) {
-			this.processArrayField(attributes);
-		}
 	}
 
 	private processRecordField(attributes: OutputPortAttributes) {
