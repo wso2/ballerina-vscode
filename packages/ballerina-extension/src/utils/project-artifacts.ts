@@ -71,6 +71,13 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
             timestamp: Date.now()
         });
         StateMachine.updateProjectStructure({ ...currentProjectStructure }); // Update the project structure and refresh the tree
+    } else {
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Publish a notification to the artifact handler
+        notificationHandler.publish(ArtifactsUpdated.method, {
+            data: [],
+            timestamp: Date.now()
+        });
     }
 }
 
