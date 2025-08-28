@@ -42,7 +42,7 @@ type FunctionsPageProps = {
     fieldKey: string;
     anchorRef: RefObject<HTMLDivElement>;
     fileName: string;
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     onClose: () => void;
     onChange: (insertText: CompletionInsertText) => void;
     updateImports: (key: string, imports: {[key: string]: string}) => void;
@@ -70,7 +70,7 @@ export const FunctionsPage = ({
             rpcClient
                 .getBIDiagramRpcClient()
                 .search({
-                    position: targetLineRange,
+                    position: targetLineRange ? targetLineRange : undefined,
                     filePath: fileName,
                     queryMap: {
                         q: searchText.trim(),
