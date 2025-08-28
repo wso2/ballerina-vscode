@@ -11,7 +11,7 @@
       },
       "endLine": {
         "line": 13,
-        "offset": 89
+        "offset": 90
       }
     },
     "sourceCode": ""
@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "xxxx.xxx.0",
+  "targetField": "types.t.0",
   "model": {
     "inputs": [
       {

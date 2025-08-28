@@ -170,42 +170,42 @@
               "member": {
                 "fields": [
                   {
-                    "id": "xxxx.xxx.0.0.name1",
+                    "id": "types.t.0.0.name1",
                     "variableName": "name1",
                     "typeName": "string",
                     "kind": "string",
                     "optional": false
                   },
                   {
-                    "id": "xxxx.xxx.0.0.i",
+                    "id": "types.t.0.0.i",
                     "variableName": "i",
                     "typeName": "int",
                     "kind": "int",
                     "optional": false
                   }
                 ],
-                "id": "xxxx.xxx.0.0",
-                "variableName": "<xxxItemItem>",
+                "id": "types.t.0.0",
+                "variableName": "<tItemItem>",
                 "typeName": "MyType",
                 "kind": "record",
                 "optional": false
               },
-              "id": "xxxx.xxx.0",
-              "variableName": "<xxxItem>",
+              "id": "types.t.0",
+              "variableName": "<tItem>",
               "typeName": "MyType[]",
               "kind": "array",
               "optional": false
             },
-            "id": "xxxx.xxx",
-            "variableName": "xxx",
+            "id": "types.t",
+            "variableName": "t",
             "typeName": "MyType[][]",
             "kind": "array",
             "optional": false
           }
         ],
-        "id": "xxxx",
-        "variableName": "xxxx",
-        "typeName": "XXX",
+        "id": "types",
+        "variableName": "types",
+        "typeName": "Types",
         "kind": "record",
         "category": "variable",
         "optional": false
