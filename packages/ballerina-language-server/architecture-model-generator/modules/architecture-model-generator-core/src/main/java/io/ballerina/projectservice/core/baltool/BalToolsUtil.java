@@ -99,9 +99,6 @@ public final class BalToolsUtil {
     private static final String GENCACHE_COMMAND = "gencache";
     private static final String TOOL_COMMAND = "tool";
 
-    private static final String ANY_PLATFORM = "any";
-
-
     private static final List<String> options = Arrays.asList(VERSION_OPTION, VERSION_SHORT_OPTION, HELP_OPTION,
             HELP_SHORT_OPTION, DEBUG_OPTION);
     private static final List<String> coreCommands = Arrays.asList(

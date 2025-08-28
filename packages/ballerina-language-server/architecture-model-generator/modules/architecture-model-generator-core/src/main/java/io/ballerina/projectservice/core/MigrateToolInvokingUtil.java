@@ -53,11 +53,17 @@ public class MigrateToolInvokingUtil {
             if (invoke instanceof Map<?, ?> mapResult) {
                 return transformToolExecutionResult(mapResult);
             }
-            throw new RuntimeException("Unexpected return type from migration method: " + invoke.getClass());
+            return new ToolExecutionResult.Builder()
+                    .error("Unexpected return type from migration method: " + invoke.getClass())
+                    .build();
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Error invoking migration method", e);
+            return new ToolExecutionResult.Builder()
+                    .error("Error invoking migration method: " + e.getMessage())
+                    .build();
         } catch (IOException e) {
-            throw new RuntimeException("Error closing class loader", e);
+            return new ToolExecutionResult.Builder()
+                    .error("Error closing class loader: " + e.getMessage())
+                    .build();
         }
     }
 

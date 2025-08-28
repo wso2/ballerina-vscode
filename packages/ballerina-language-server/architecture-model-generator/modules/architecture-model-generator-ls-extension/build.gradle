@@ -81,21 +81,6 @@ def pullBallerinaTool(String orgName, String toolName, String toolDirName, Strin
         group = "ballerinaTools"
         description = "Pulls Ballerina tool ${toolName}${version ? " version ${version}" : ""} if not present"
 
-        def userHome = System.getProperty("user.home")
-        def centralRepoDir = new File(userHome, ".ballerina/repositories/central.ballerina.io/bala/${orgName}")
-        def pkgDir = new File(centralRepoDir, toolDirName)
-        def versionDir = version ? new File(pkgDir, version) : null
-
-        onlyIf {
-            if (pkgDir.exists()) {
-                if (version) {
-                    return !versionDir.exists()
-                }
-                return false
-            }
-            return true
-        }
-
         def balPullCommand = "bal tool pull ${toolName}${version ? ':' + version : ''}"
         if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
             commandLine 'cmd', '/c', balPullCommand
