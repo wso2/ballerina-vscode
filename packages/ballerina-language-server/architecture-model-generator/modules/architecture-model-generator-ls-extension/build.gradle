@@ -76,7 +76,7 @@ task unpackStdLibs() {
     }
 }
 
-def pullBallerinaTool(String orgName, String toolName, String toolDirName, String version = null) {
+def pullBallerinaTool(String toolName, String version = null) {
     tasks.register("tool_pull${toolName}_${version ? version : 'latest'}", Exec) {
         group = "ballerinaTools"
         description = "Pulls Ballerina tool ${toolName}${version ? " version ${version}" : ""} if not present"
@@ -88,9 +88,20 @@ def pullBallerinaTool(String orgName, String toolName, String toolDirName, Strin
             commandLine '/bin/sh', '-c', balPullCommand
         }
 
+        ignoreExitValue = true
+        standardOutput = new ByteArrayOutputStream()
+
         doLast {
             if (executionResult.get().exitValue != 0) {
-                throw new GradleException("Failed to pull Ballerina tool: ${toolName}")
+                def outputMessage = standardOutput.toString().trim()
+                if (outputMessage && outputMessage.contains('is already available')) {
+                    return
+                }
+
+                // Optionally throw an exception to fail the build
+                throw new GradleException("Tool ${toolName} failed to pull")
+            } else {
+                println "Successfully pulled Ballerina tool '${toolName}'"
             }
         }
     }
@@ -128,7 +139,7 @@ test {
     }
 }
 
-test.dependsOn pullBallerinaTool('wso2', 'migrate-tibco', 'tool_migrate_tibco', migrateTibcoVersion)
+test.dependsOn pullBallerinaTool('migrate-tibco', migrateTibcoVersion)
 
 ext.moduleName = 'io.ballerina.architecturemodelgenerator.extension'
 
