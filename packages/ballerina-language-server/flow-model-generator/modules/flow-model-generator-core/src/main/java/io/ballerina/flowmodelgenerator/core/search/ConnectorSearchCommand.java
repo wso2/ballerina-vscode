@@ -88,14 +88,6 @@ public class ConnectorSearchCommand extends SearchCommand {
         Category.Builder localCategoryBuilder = rootBuilder.stepIn("Local", null, null);
         localConnectors.forEach(connection -> localCategoryBuilder.node(generateAvailableNode(connection, true)));
 
-        // Add organization connectors to default view if any exist
-        List<SearchResult> organizationConnectors = getOrganizationConnectors("");
-        if (!organizationConnectors.isEmpty()) {
-            Category.Builder organizationCategoryBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-            organizationConnectors.forEach(
-                    connection -> organizationCategoryBuilder.node(generateAvailableNode(connection)));
-        }
-
         Map<String, List<SearchResult>> categories = fetchPopularItems();
         for (Map.Entry<String, List<SearchResult>> entry : categories.entrySet()) {
             Category.Builder categoryBuilder = rootBuilder.stepIn(entry.getKey(), null, null);
@@ -108,12 +100,8 @@ public class ConnectorSearchCommand extends SearchCommand {
     @Override
     protected List<Item> search() {
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-
-        // Get organization connectors (searchCentral flag is checked inside the method)
+        searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         List<SearchResult> organizationConnectors = getOrganizationConnectors(query);
-        searchResults.addAll(organizationConnectors);
-
-        buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
 
@@ -125,19 +113,25 @@ public class ConnectorSearchCommand extends SearchCommand {
      */
     private List<SearchResult> getOrganizationConnectors(String searchQuery) {
         List<SearchResult> organizationConnectors = new ArrayList<>();
-
-        if (currentOrg == null || currentOrg.isEmpty()) {
-            return organizationConnectors;
-        }
-
         CentralAPI centralClient = RemoteCentral.getInstance();
         Map<String, String> queryMap = new HashMap<>();
+        boolean success = false;
+        if (centralClient.hasAuthorizedAccess()) {
+            queryMap.put("user-packages", "true");
+            success = true;
+        }
+        if (currentOrg != null && !currentOrg.isEmpty()) {
+            queryMap.put("org", currentOrg);
+            success = true;
+        }
+        if (!success) {
+            return organizationConnectors;
+        }
         if (!searchQuery.isEmpty()) {
             queryMap.put("q", searchQuery);
         }
         queryMap.put("limit", String.valueOf(limit));
         queryMap.put("offset", String.valueOf(offset));
-        queryMap.put("org", currentOrg);
         ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
         if (connectorsResponse != null && connectorsResponse.connectors() != null) {
             for (Connector connector : connectorsResponse.connectors()) {
@@ -152,6 +146,7 @@ public class ConnectorSearchCommand extends SearchCommand {
                 organizationConnectors.add(searchResult);
             }
         }
+        organizationConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return organizationConnectors;
     }
 
@@ -168,21 +163,6 @@ public class ConnectorSearchCommand extends SearchCommand {
             defaultView.put(category.getKey(), searchResults);
         }
         return defaultView;
-    }
-
-    private void buildLibraryNodes(List<SearchResult> connectorSearchList) {
-        Category.Builder currentOrgConnectorsBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
-        Category.Builder availableConnectorsBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
-
-        for (SearchResult searchResult : connectorSearchList) {
-            Category.Builder builder;
-            if (searchResult.fromCurrentOrg()) {
-                builder = currentOrgConnectorsBuilder;
-            } else {
-                builder = availableConnectorsBuilder;
-            }
-            builder.node(generateAvailableNode(searchResult));
-        }
     }
 
     private static AvailableNode generateAvailableNode(SearchResult searchResult) {
