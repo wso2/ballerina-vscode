@@ -89,7 +89,8 @@ const classes = {
 enum ActionType {
     ADD_VIEW,
     SWITCH_VIEW,
-    EDIT_VIEW
+    EDIT_VIEW,
+    RESET_VIEW
 }
 
 type ViewAction = {
@@ -112,6 +113,8 @@ function viewsReducer(state: View[], action: ViewAction) {
             return state.slice(0, action.payload.index + 1);
         case ActionType.EDIT_VIEW:
             return [...state.slice(0, state.length - 1), action.payload.view];
+        case ActionType.RESET_VIEW:
+            return [action.payload.view];
         default:
             return state;
     }
@@ -171,6 +174,10 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         resetSearchStore();
     }, [resetSearchStore]);
 
+    const resetView = useCallback((newData: View) => {
+        dispatch({ type: ActionType.RESET_VIEW, payload: { view: newData } });
+    }, [resetSearchStore]);
+
     useEffect(() => {
         const lastView = views[views.length - 1];
         handleView(lastView.targetField, !!lastView?.subMappingInfo);
@@ -183,6 +190,16 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
 
     useEffect(() => {
         generateNodes(model);
+
+        const prevRootViewId = views[0].label;
+        const newRootViewId = model.rootViewId;
+
+        if (prevRootViewId !== newRootViewId) {
+            resetView({
+                label: model.rootViewId,
+                targetField: name
+            });
+        }
     }, [model]);
 
     useEffect(() => {
