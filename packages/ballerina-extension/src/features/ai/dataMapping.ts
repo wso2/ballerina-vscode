@@ -76,7 +76,7 @@ async function getUpdatedFunctionSource(
     );
     fs.cpSync(projectRoot, tempDir, { recursive: true });
     const tempTestFilePath = path.join(tempDir, "temp.bal");
-    writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
+    await writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
 
     const fileUri = Uri.file(tempTestFilePath).toString();
     const st = (await langClient.getSyntaxTree({

@@ -241,10 +241,6 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
 
     const convertToQuery = async (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => {
         try {
-            const a = viewId.split(".");
-            const b = mapping.output.split(".");
-            const targetField = [...a, ...b.slice(1)].join(".");
-            console.log(">>> [Inline Data Mapper] targetField:", targetField);
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
