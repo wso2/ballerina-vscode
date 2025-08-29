@@ -527,7 +527,7 @@ public final class Utils {
         return annots;
     }
 
-    public static int addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
+    public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
                                                     List<TextEdit> edits) {
         Token serviceKeyword = serviceNode.serviceKeyword();
 
@@ -540,7 +540,7 @@ public final class Utils {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), annotEdit));
             }
-            return annots.size();
+            return;
         }
         NodeList<AnnotationNode> annotations = metadata.get().annotations();
         if (annotations.isEmpty()) { // metadata is present but no annotations
@@ -548,7 +548,7 @@ public final class Utils {
                 annotEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
             }
-            return annots.size();
+            return;
         }
 
         // first annotation end line range
@@ -561,11 +561,7 @@ public final class Utils {
         LineRange range = LineRange.from(serviceKeyword.lineRange().fileName(),
                 firstAnnotationEndLinePos, lastAnnotationEndLinePos);
 
-        if (!annotEdit.isEmpty()) {
-            edits.add(new TextEdit(toRange(range), annotEdit));
-        }
-
-        return annots.size();
+        edits.add(new TextEdit(toRange(range), annotEdit));
     }
 
     public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
