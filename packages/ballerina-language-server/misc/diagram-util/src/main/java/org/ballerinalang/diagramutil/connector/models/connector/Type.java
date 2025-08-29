@@ -484,7 +484,8 @@ public class Type {
         recordTypeSymbol.fieldDescriptors().forEach((name, field) -> {
             Type subType = fromSemanticSymbol(field.typeDescriptor(), documentationMap, semanticModel);
             if (subType != null) {
-                subType.setName(name);
+                String nameUsed = field.getName().orElse(name);
+                subType.setName(nameUsed);
                 subType.setOptional(field.isOptional());
                 subType.setDefaultable(field.hasDefaultValue());
                 subType.setDocumentation(documentationMap.get(name));
