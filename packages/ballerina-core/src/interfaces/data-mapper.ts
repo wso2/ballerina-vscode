@@ -116,7 +116,7 @@ export interface ExpandedDMModel {
     subMappings?: IOType[];
     mappings: Mapping[];
     source: string;
-    view: string;
+    rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
 }

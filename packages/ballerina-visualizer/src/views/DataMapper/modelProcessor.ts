@@ -234,7 +234,8 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
  */
 export function expandDMModel(
     model: DMModel,
-    options: ExpandOptions = {}
+    options: ExpandOptions = {},
+    rootViewId: string
 ): ExpandedDMModel {
     const {
         processInputs = true,
@@ -256,6 +257,6 @@ export function expandDMModel(
         mappings: model.mappings,
         query: model.query,
         source: "",
-        view: ""
+        rootViewId
     };
 }

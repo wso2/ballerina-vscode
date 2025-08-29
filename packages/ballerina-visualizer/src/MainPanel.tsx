@@ -343,7 +343,7 @@ const MainPanel = () => {
                             <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.identifier}
+                                name={value?.dataMapperMetadata?.name}
                                 projectUri={value.projectUri}
                                 position={position}
                                 reusable
@@ -355,7 +355,7 @@ const MainPanel = () => {
                             <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.dataMapperMetadata?.name}
+                                name={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
