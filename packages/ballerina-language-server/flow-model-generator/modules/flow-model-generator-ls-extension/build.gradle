@@ -113,6 +113,8 @@ test.dependsOn rootProject.pullBallerinaModule('mysql', ballerinaxMysqlVersion)
 test.dependsOn rootProject.pullBallerinaModule('wso2.controlplane', ballerinaxWso2ControlplaneVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.pinecone', ballerinaxAiPineconeVersion)
 test.dependsOn rootProject.pullBallerinaModule('ai.devant', ballerinaxAiDevantVersion)
+test.dependsOn rootProject.pullBallerinaModule('ai', "1.5.0", ballerinaAiVersion)
+
 
 
 // TODO: Re-enable this once the `np` module is available on central
