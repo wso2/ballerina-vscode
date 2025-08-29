@@ -96,7 +96,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const handleDelete = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }
