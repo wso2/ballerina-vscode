@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -36,14 +36,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "users4",
-        "name": "<users4Item>",
+        "name": "users4",
+        "displayName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
         "ref": "-1258898922"
       },
-      "id": "users4",
       "name": "users4",
+      "displayName": "users4",
       "typeName": "User4[]",
       "kind": "array",
       "ref": "-1258898922"
@@ -136,15 +136,15 @@
       "-539589308": {
         "fields": [
           {
-            "id": "account",
             "name": "account",
+            "displayName": "account",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "balance",
             "name": "balance",
+            "displayName": "balance",
             "typeName": "decimal",
             "kind": "decimal",
             "optional": false
@@ -157,8 +157,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "user5",
             "name": "user5",
+            "displayName": "user5",
             "typeName": "User5",
             "kind": "record",
             "optional": false,
@@ -167,14 +167,14 @@
           {
             "member": {
               "fields": [],
-              "id": "users6",
-              "name": "<users6Item>",
+              "name": "users6",
+              "displayName": "<users6Item>",
               "typeName": "User6",
               "kind": "record",
               "ref": "-539589308"
             },
-            "id": "users6",
             "name": "users6",
+            "displayName": "users6",
             "typeName": "User6[]",
             "kind": "array",
             "optional": false,
@@ -187,8 +187,8 @@
       "-699535980": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -201,13 +201,13 @@
         "fields": [
           {
             "member": {
-              "id": "u",
-              "name": "<uItem>",
+              "name": "u",
+              "displayName": "<uItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "u",
             "name": "u",
+            "displayName": "u",
             "typeName": "string[]",
             "kind": "array",
             "optional": false

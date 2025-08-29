@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "param",
         "name": "param",
+        "displayName": "param",
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
@@ -34,8 +34,8 @@
       },
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
@@ -44,8 +44,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "u",
       "name": "u",
+      "displayName": "u",
       "typeName": "User",
       "kind": "record",
       "ref": "677675252"
@@ -55,22 +55,22 @@
       "-1673315977": {
         "fields": [
           {
-            "id": "city",
             "name": "city",
+            "displayName": "city",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "state",
             "name": "state",
+            "displayName": "state",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "zipCode",
             "name": "zipCode",
+            "displayName": "zipCode",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -82,22 +82,22 @@
       "-1686583489": {
         "fields": [
           {
-            "id": "accountNumber",
             "name": "accountNumber",
+            "displayName": "accountNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "balance",
             "name": "balance",
+            "displayName": "balance",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "id": "lastTransaction",
             "name": "lastTransaction",
+            "displayName": "lastTransaction",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -109,15 +109,15 @@
       "1387857683": {
         "fields": [
           {
-            "id": "email",
             "name": "email",
+            "displayName": "email",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "primaryPhone",
             "name": "primaryPhone",
+            "displayName": "primaryPhone",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -129,29 +129,29 @@
       "1012789572": {
         "fields": [
           {
-            "id": "street",
             "name": "street",
+            "displayName": "street",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "city",
             "name": "city",
+            "displayName": "city",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "state",
             "name": "state",
+            "displayName": "state",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "postalCode",
             "name": "postalCode",
+            "displayName": "postalCode",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -163,16 +163,16 @@
       "1965861305": {
         "fields": [
           {
-            "id": "fullName",
             "name": "fullName",
+            "displayName": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "contactDetails",
             "name": "contactDetails",
+            "displayName": "contactDetails",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -180,8 +180,8 @@
           },
           {
             "fields": [],
-            "id": "location",
             "name": "location",
+            "displayName": "location",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -189,16 +189,16 @@
           },
           {
             "fields": [],
-            "id": "accountInfo",
             "name": "accountInfo",
+            "displayName": "accountInfo",
             "typeName": "",
             "kind": "record",
             "optional": false,
             "ref": "1255890909"
           },
           {
-            "id": "transactionDate",
             "name": "transactionDate",
+            "displayName": "transactionDate",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -210,38 +210,38 @@
       "-656952594": {
         "fields": [
           {
-            "id": "firstName",
             "name": "firstName",
+            "displayName": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "lastName",
             "name": "lastName",
+            "displayName": "lastName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "email",
             "name": "email",
+            "displayName": "email",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "address",
             "name": "address",
+            "displayName": "address",
             "typeName": "",
             "kind": "record",
             "optional": false,
             "ref": "1012789572"
           },
           {
-            "id": "phoneNumber",
             "name": "phoneNumber",
+            "displayName": "phoneNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -253,15 +253,15 @@
       "1255890909": {
         "fields": [
           {
-            "id": "accountNumber",
             "name": "accountNumber",
+            "displayName": "accountNumber",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "balance",
             "name": "balance",
+            "displayName": "balance",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -274,8 +274,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "customer",
             "name": "customer",
+            "displayName": "customer",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -283,8 +283,8 @@
           },
           {
             "fields": [],
-            "id": "account",
             "name": "account",
+            "displayName": "account",
             "typeName": "",
             "kind": "record",
             "optional": false,

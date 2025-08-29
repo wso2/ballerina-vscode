@@ -27,14 +27,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "finalNote",
-        "name": "<finalNoteItem>",
+        "name": "finalNote",
+        "displayName": "<finalNoteItem>",
         "typeName": "FinalNote",
         "kind": "record",
         "ref": "-163075825"
       },
-      "id": "finalNote",
       "name": "finalNote",
+      "displayName": "finalNote",
       "typeName": "FinalNote[]",
       "kind": "array",
       "ref": "-163075825"
@@ -56,15 +56,15 @@
       "897207248": {
         "fields": [
           {
-            "id": "sampleTypeName",
             "name": "sampleTypeName",
+            "displayName": "sampleTypeName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "sampleTypeCode",
             "name": "sampleTypeCode",
+            "displayName": "sampleTypeCode",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -76,16 +76,16 @@
       "-163075825": {
         "fields": [
           {
-            "id": "finalNote",
             "name": "finalNote",
+            "displayName": "finalNote",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "progressNote",
             "name": "progressNote",
+            "displayName": "progressNote",
             "typeName": "ProgressNote",
             "kind": "record",
             "optional": false,
@@ -98,16 +98,16 @@
       "1030185792": {
         "fields": [
           {
-            "id": "note",
             "name": "note",
+            "displayName": "note",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "sampleRecord",
             "name": "sampleRecord",
+            "displayName": "sampleRecord",
             "typeName": "SampleRecord",
             "kind": "record",
             "optional": false,
@@ -120,16 +120,16 @@
       "-757648111": {
         "fields": [
           {
-            "id": "sampleRecordName",
             "name": "sampleRecordName",
+            "displayName": "sampleRecordName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "recordType",
             "name": "recordType",
+            "displayName": "recordType",
             "typeName": "SampleType",
             "kind": "record",
             "optional": false,

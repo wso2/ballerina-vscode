@@ -26,8 +26,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "u",
         "name": "u",
+        "displayName": "u",
         "typeName": "User",
         "kind": "record",
         "category": "variable",
@@ -35,8 +35,8 @@
       },
       {
         "fields": [],
-        "id": "secondaryPhonesItem",
         "name": "secondaryPhonesItem",
+        "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
@@ -46,14 +46,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "phoneNumbers",
-        "name": "<phoneNumbersItem>",
+        "name": "phoneNumbers",
+        "displayName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
         "ref": "297170993"
       },
-      "id": "phoneNumbers",
       "name": "phoneNumbers",
+      "displayName": "phoneNumbers",
       "typeName": "SecondaryPhonesX[]",
       "kind": "array",
       "ref": "297170993"
@@ -134,8 +134,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "info",
             "name": "info",
+            "displayName": "info",
             "typeName": "Info",
             "kind": "record",
             "optional": false,
@@ -148,15 +148,15 @@
       "-1392347127": {
         "fields": [
           {
-            "id": "code",
             "name": "code",
+            "displayName": "code",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "number",
             "name": "number",
+            "displayName": "number",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -169,26 +169,26 @@
         "fields": [
           {
             "member": {
-              "id": "secondaryPhones",
-              "name": "<secondaryPhonesItem>",
+              "name": "secondaryPhones",
+              "displayName": "<secondaryPhonesItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "secondaryPhones",
             "name": "secondaryPhones",
+            "displayName": "secondaryPhones",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
           },
           {
             "member": {
-              "id": "emails",
-              "name": "<emailsItem>",
+              "name": "emails",
+              "displayName": "<emailsItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "emails",
             "name": "emails",
+            "displayName": "emails",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -196,18 +196,18 @@
           {
             "member": {
               "member": {
-                "id": "addresses",
-                "name": "<addressesItemItem>",
+                "name": "addresses",
+                "displayName": "<addressesItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },
-              "id": "addresses",
-              "name": "<addressesItem>",
+              "name": "addresses",
+              "displayName": "<addressesItem>",
               "typeName": "string[]",
               "kind": "array"
             },
-            "id": "addresses",
             "name": "addresses",
+            "displayName": "addresses",
             "typeName": "string[][]",
             "kind": "array",
             "optional": false
@@ -219,22 +219,22 @@
       "297170993": {
         "fields": [
           {
-            "id": "code",
             "name": "code",
+            "displayName": "code",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "number",
             "name": "number",
+            "displayName": "number",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "email",
             "name": "email",
+            "displayName": "email",
             "typeName": "string",
             "kind": "string",
             "optional": false

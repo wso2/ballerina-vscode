@@ -234,7 +234,7 @@ public class DataMapManager {
         List<MappingPort> subMappingPorts = null;
         if (expressionNode == null) {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
-            inputPorts.sort(Comparator.comparing(mt -> mt.id));
+            inputPorts.sort(Comparator.comparing(mt -> mt.name));
             return gson.toJsonTree(new Model(inputPorts, refOutputPort, new ArrayList<>(), null, references));
         } else if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
@@ -245,7 +245,7 @@ public class DataMapManager {
                     .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
             inputPorts = getQueryInputPorts(symbols, enumPorts, references);
-            inputPorts.sort(Comparator.comparing(mt -> mt.id));
+            inputPorts.sort(Comparator.comparing(mt -> mt.name));
 
             List<String> inputs = new ArrayList<>();
             ExpressionNode expression = fromClauseNode.expression();
@@ -303,7 +303,7 @@ public class DataMapManager {
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
         } else if (expressionNode.kind() == SyntaxKind.LET_EXPRESSION) {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
-            inputPorts.sort(Comparator.comparing(mt -> mt.id));
+            inputPorts.sort(Comparator.comparing(mt -> mt.name));
             LetExpressionNode letExpressionNode = (LetExpressionNode) expressionNode;
             subMappingPorts = new ArrayList<>();
             for (LetVariableDeclarationNode letVarDeclaration : letExpressionNode.letVarDeclarations()) {
@@ -318,7 +318,7 @@ public class DataMapManager {
             }
         } else {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
-            inputPorts.sort(Comparator.comparing(mt -> mt.id));
+            inputPorts.sort(Comparator.comparing(mt -> mt.name));
         }
 
         inputPorts = removeParentPort(node, inputPorts);
@@ -375,7 +375,7 @@ public class DataMapManager {
         String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
         List<MappingPort> newInputPorts = new ArrayList<>();
         for (MappingPort inputPort : inputPorts) {
-            if (!inputPort.name.equals(varName)) {
+            if (!inputPort.displayName.equals(varName)) {
                 newInputPorts.add(inputPort);
             }
         }
@@ -384,7 +384,7 @@ public class DataMapManager {
 
     private void setFocusExpressionForInputPort(List<MappingPort> inputPorts, String id, String expression) {
         for (MappingPort port : inputPorts) {
-            if (port.name.equals(id)) {
+            if (port.displayName.equals(id)) {
                 port.setFocusExpression(expression);
                 return;
             }
@@ -944,8 +944,8 @@ public class DataMapManager {
                 if (type instanceof RefArrayType arrayType) {
                     MappingPort memberPort = getRefMappingPort(id, getItemName(name), arrayType.elementType,
                             visitedTypes, references);
-                    if (memberPort != null && memberPort.name == null) {
-                        memberPort.name = getItemName(name);
+                    if (memberPort != null && memberPort.displayName == null) {
+                        memberPort.displayName = getItemName(name);
                     }
                     MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
                             memberPort.typeName + "[]", "array", type.hashCode);
@@ -2298,8 +2298,8 @@ public class DataMapManager {
     }
 
     private static class MappingPort {
-        String id;
         String name;
+        String displayName;
         String typeName;
         String kind;
         String category;
@@ -2318,24 +2318,24 @@ public class DataMapManager {
             this.typeName = typeName;
         }
 
-        MappingPort(String id, String name, String typeName, String kind, Boolean optional) {
-            this.id = id;
+        MappingPort(String name, String displayName, String typeName, String kind, Boolean optional) {
             this.name = name;
+            this.displayName = displayName;
             this.typeName = typeName;
             this.kind = kind;
             this.optional = optional;
         }
 
-        MappingPort(String id, String name, String typeName, String kind) {
-            this.id = id;
+        MappingPort(String name, String displayName, String typeName, String kind) {
             this.name = name;
+            this.displayName = displayName;
             this.typeName = typeName;
             this.kind = kind;
         }
 
-        MappingPort(String id, String name, String typeName, String kind, String reference) {
-            this.id = id;
+        MappingPort(String name, String displayName, String typeName, String kind, String reference) {
             this.name = name;
+            this.displayName = displayName;
             this.typeName = typeName;
             this.kind = kind;
             this.ref = reference;
@@ -2353,12 +2353,12 @@ public class DataMapManager {
             this.kind = kind;
         }
 
-        String getName() {
-            return this.name;
+        String getDisplayName() {
+            return this.displayName;
         }
 
-        void setName(String name) {
-            this.name = name;
+        void setDisplayName(String displayName) {
+            this.displayName = displayName;
         }
 
         void setIsRecursive(Boolean isRecursive) {
@@ -2394,20 +2394,20 @@ public class DataMapManager {
     private static class MappingRecordPort extends MappingPort {
         List<MappingPort> fields = new ArrayList<>();
 
-        MappingRecordPort(String id, String name, String typeName, String kind) {
-            super(id, name, typeName, kind);
+        MappingRecordPort(String name, String displayName, String typeName, String kind) {
+            super(name, displayName, typeName, kind);
         }
 
-        MappingRecordPort(String id, String name, String typeName, String kind, String reference) {
-            super(id, name, typeName, kind, reference);
+        MappingRecordPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
         }
 
-        MappingRecordPort(String id, String name, String typeName, String kind, Boolean optional) {
-            super(id, name, typeName, kind, optional);
+        MappingRecordPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort) {
-            super(mappingRecordPort.id, mappingRecordPort.name, mappingRecordPort.typeName,
+            super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
                     mappingRecordPort.kind, mappingRecordPort.ref);
         }
 
@@ -2421,12 +2421,12 @@ public class DataMapManager {
     private static class MappingArrayPort extends MappingPort {
         MappingPort member;
 
-        MappingArrayPort(String id, String name, String typeName, String kind, Boolean optional) {
-            super(id, name, typeName, kind, optional);
+        MappingArrayPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
         }
 
-        MappingArrayPort(String id, String name, String typeName, String kind, String reference) {
-            super(id, name, typeName, kind, reference);
+        MappingArrayPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
         }
 
         void setMember(MappingPort member) {
@@ -2441,24 +2441,24 @@ public class DataMapManager {
     private static class MappingEnumPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingEnumPort(String id, String name, String typeName, String kind, Boolean optional) {
-            super(id, name, typeName, kind, optional);
+        MappingEnumPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
         }
 
-        MappingEnumPort(String id, String name, String typeName, String kind, String reference) {
-            super(id, name, typeName, kind, reference);
+        MappingEnumPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
         }
     }
 
     private static class MappingUnionPort extends MappingPort {
         List<MappingPort> members = new ArrayList<>();
 
-        MappingUnionPort(String id, String name, String typeName, String kind, Boolean optional) {
-            super(id, name, typeName, kind, optional);
+        MappingUnionPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
         }
 
-        MappingUnionPort(String id, String name, String typeName, String kind, String reference) {
-            super(id, name, typeName, kind, reference);
+        MappingUnionPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
         }
     }
 
@@ -2489,7 +2489,7 @@ public class DataMapManager {
                 if (enumPort instanceof DataMapManager.MappingEnumPort mappingEnumPort) {
                     for (DataMapManager.MappingPort member : mappingEnumPort.members) {
                         if (member.typeName.equals(source) && member.kind.equals(source)) {
-                            source = member.id;
+                            source = member.name;
                             break;
                         }
                     }

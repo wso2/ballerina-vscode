@@ -24,8 +24,8 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
@@ -33,14 +33,14 @@
       {
         "member": {
           "fields": [],
-          "id": "credentials",
-          "name": "<credentialsItem>",
+          "name": "credentials",
+          "displayName": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record",
           "ref": "1085256861"
         },
-        "id": "credentials",
         "name": "credentials",
+        "displayName": "credentials",
         "typeName": "Credentials[]",
         "kind": "array",
         "category": "local-variable",
@@ -49,14 +49,14 @@
       {
         "member": {
           "fields": [],
-          "id": "userInfo",
-          "name": "<userInfoItem>",
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-1418772512"
         },
-        "id": "userInfo",
         "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "local-variable",
@@ -65,8 +65,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "student",
       "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "-312915975"
@@ -129,15 +129,15 @@
       "-1418772512": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -149,8 +149,8 @@
       "-312915975": {
         "fields": [
           {
-            "id": "id",
             "name": "id",
+            "displayName": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -158,22 +158,22 @@
           {
             "member": {
               "fields": [],
-              "id": "credentials",
-              "name": "<credentialsItem>",
+              "name": "credentials",
+              "displayName": "<credentialsItem>",
               "typeName": "Credentials",
               "kind": "record",
               "ref": "1085256861"
             },
-            "id": "credentials",
             "name": "credentials",
+            "displayName": "credentials",
             "typeName": "Credentials[]",
             "kind": "array",
             "optional": false,
             "ref": "1085256861"
           },
           {
-            "id": "length",
             "name": "length",
+            "displayName": "length",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -185,15 +185,15 @@
       "1085256861": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

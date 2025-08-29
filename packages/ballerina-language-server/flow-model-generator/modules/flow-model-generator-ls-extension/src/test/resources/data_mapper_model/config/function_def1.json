@@ -26,8 +26,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "input",
         "name": "input",
+        "displayName": "input",
         "typeName": "Input",
         "kind": "record",
         "category": "parameter",
@@ -36,8 +36,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "transform1",
       "name": "transform1",
+      "displayName": "transform1",
       "typeName": "Output",
       "kind": "record",
       "ref": "-1514999486"
@@ -59,8 +59,8 @@
       "-1514999486": {
         "fields": [
           {
-            "id": "fullName",
             "name": "fullName",
+            "displayName": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": true
@@ -73,8 +73,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "user",
             "name": "user",
+            "displayName": "user",
             "typeName": "User",
             "kind": "record",
             "optional": true,
@@ -87,8 +87,8 @@
       "-1064739742": {
         "fields": [
           {
-            "id": "firstName",
             "name": "firstName",
+            "displayName": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false

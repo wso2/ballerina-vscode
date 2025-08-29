@@ -25,16 +25,16 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "myStudent",
         "name": "myStudent",
+        "displayName": "myStudent",
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
@@ -42,8 +42,8 @@
       },
       {
         "fields": [],
-        "id": "student1",
         "name": "student1",
+        "displayName": "student1",
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
@@ -52,8 +52,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "student2",
       "name": "student2",
+      "displayName": "student2",
       "typeName": "Student",
       "kind": "record",
       "ref": "196591409"
@@ -134,15 +134,15 @@
       "-1418772512": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -155,13 +155,13 @@
         "fields": [
           {
             "member": {
-              "id": "username",
-              "name": "<usernameItem>",
+              "name": "username",
+              "displayName": "<usernameItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -170,27 +170,27 @@
             "members": [
               {
                 "fields": [],
-                "id": "password",
                 "name": "password",
+                "displayName": "password",
                 "typeName": "UserInfo",
                 "kind": "record",
                 "ref": "-1418772512"
               },
               {
                 "member": {
-                  "id": "password",
-                  "name": "<passwordItem>",
+                  "name": "password",
+                  "displayName": "<passwordItem>",
                   "typeName": "string",
                   "kind": "string"
                 },
-                "id": "password",
                 "name": "password",
+                "displayName": "password",
                 "typeName": "string[]",
                 "kind": "array"
               }
             ],
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "",
             "kind": "union",
             "optional": false,

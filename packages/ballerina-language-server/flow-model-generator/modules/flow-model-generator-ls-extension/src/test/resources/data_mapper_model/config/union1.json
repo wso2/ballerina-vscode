@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "dog",
         "name": "dog",
+        "displayName": "dog",
         "typeName": "Dog",
         "kind": "record",
         "category": "local-variable",
@@ -34,8 +34,8 @@
       },
       {
         "fields": [],
-        "id": "elephant",
         "name": "elephant",
+        "displayName": "elephant",
         "typeName": "Elephant",
         "kind": "record",
         "category": "local-variable",
@@ -44,8 +44,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "animalType",
       "name": "animalType",
+      "displayName": "animalType",
       "typeName": "AnimalType",
       "kind": "record",
       "ref": "880769318"
@@ -58,23 +58,23 @@
             "members": [
               {
                 "fields": [],
-                "id": "animal",
                 "name": "animal",
+                "displayName": "animal",
                 "typeName": "Dog",
                 "kind": "record",
                 "ref": "-27067364"
               },
               {
                 "fields": [],
-                "id": "animal",
                 "name": "animal",
+                "displayName": "animal",
                 "typeName": "Elephant",
                 "kind": "record",
                 "ref": "252136892"
               }
             ],
-            "id": "animal",
             "name": "animal",
+            "displayName": "animal",
             "typeName": "Animal",
             "kind": "union",
             "optional": false,
@@ -87,15 +87,15 @@
       "252136892": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "cast",
             "name": "cast",
+            "displayName": "cast",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -107,15 +107,15 @@
       "-27067364": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "breed",
             "name": "breed",
+            "displayName": "breed",
             "typeName": "string",
             "kind": "string",
             "optional": false
