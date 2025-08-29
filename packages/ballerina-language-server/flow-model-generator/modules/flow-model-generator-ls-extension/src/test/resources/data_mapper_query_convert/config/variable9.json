@@ -1,44 +1,44 @@
 {
-  "source": "variable1_1.bal",
+  "source": "variable1_2.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable1_1.bal",
+      "fileName": "variable1_2.bal",
       "startLine": {
-        "line": 31,
+        "line": 39,
         "offset": 12
       },
       "endLine": {
-        "line": 31,
-        "offset": 105
+        "line": 39,
+        "offset": 117
       }
     },
     "sourceCode": ""
   },
   "mapping": {
-    "output": "credentials",
+    "output": "stores.credentials.username",
     "inputs": [],
     "expression": "bank.userInfo",
     "diagnostics": []
   },
   "propertyKey": "expression",
-  "targetField": "stores.credentials",
+  "targetField": "stores",
   "clauseType": "select",
   "output": {
-    "variable1_1.bal": [
+    "variable1_2.bal": [
       {
         "range": {
           "start": {
-            "line": 31,
-            "character": 90
+            "line": 39,
+            "character": 101
           },
           "end": {
-            "line": 31,
-            "character": 103
+            "line": 39,
+            "character": 114
           }
         },
-        "newText": "from var userInfoItem in bank.userInfo select {username: \"\", password: \"\"}"
+        "newText": "from var userInfoItem in bank.userInfo select {username: \"\"}"
       }
     ]
   }

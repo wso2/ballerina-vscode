@@ -6,24 +6,41 @@
     "lineRange": {
       "fileName": "query7.bal",
       "startLine": {
-        "line": 11,
+        "line": 13,
         "offset": 4
       },
       "endLine": {
-        "line": 11,
-        "offset": 56
+        "line": 13,
+        "offset": 90
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 11,
+    "line": 13,
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "myTypes2.0",
+  "targetField": "types.t.0",
   "model": {
     "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "myType3",
+          "displayName": "<myType3Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myType3",
+        "displayName": "myType3",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "focusExpression": "myTypes3",
+        "ref": "2079019383"
+      },
       {
         "member": {
           "fields": [],
@@ -41,37 +58,76 @@
         "ref": "2079019383"
       },
       {
+        "member": {
+          "fields": [],
+          "name": "myTypes2",
+          "displayName": "<myTypes2Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myTypes2",
+        "displayName": "myTypes2",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "myTypes3",
+            "displayName": "<myTypes3ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "ref": "2079019383"
+          },
+          "name": "myTypes3",
+          "displayName": "<myTypes3Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "ref": "2079019383"
+        },
+        "name": "myTypes3",
+        "displayName": "myTypes3",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "2079019383"
+      },
+      {
         "fields": [],
-        "name": "x",
-        "displayName": "x",
+        "name": "y",
+        "displayName": "y",
         "typeName": "MyType",
         "kind": "record",
-        "focusExpression": "myTypes1",
+        "focusExpression": "myType3",
         "ref": "2079019383"
       }
     ],
     "output": {
       "member": {
         "fields": [],
-        "name": "myTypes2",
-        "displayName": "<myTypes2Item>",
+        "name": "0",
+        "displayName": "<0Item>",
         "typeName": "MyType",
         "kind": "record",
         "ref": "2079019383"
       },
-      "name": "myTypes2",
-      "displayName": "myTypes2",
+      "name": "0",
+      "displayName": "0",
       "typeName": "MyType[]",
       "kind": "array",
       "ref": "2079019383"
     },
     "mappings": [
       {
-        "output": "myTypes2",
+        "output": "0",
         "inputs": [
-          "x"
+          "y"
         ],
-        "expression": "x",
+        "expression": "y",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
@@ -79,23 +135,23 @@
       }
     ],
     "query": {
-      "output": "myTypes2",
+      "output": "0",
       "inputs": [
-        "myTypes1"
+        "myType3"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "x",
+          "name": "y",
           "type": "MyType",
-          "expression": "myTypes1"
+          "expression": "myType3"
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "x"
+          "expression": "y"
         }
       }
     },

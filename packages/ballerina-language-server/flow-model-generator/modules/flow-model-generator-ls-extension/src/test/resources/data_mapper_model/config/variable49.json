@@ -1,0 +1,361 @@
+{
+  "source": "variable31.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable31.bal",
+      "startLine": {
+        "line": 33,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 44,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 33,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "arr2.m2",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "arr1",
+        "displayName": "arr1",
+        "typeName": "simpleTypeArr",
+        "kind": "record",
+        "category": "variable",
+        "ref": "-268419592"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "m2Item",
+          "displayName": "<m2ItemItem>",
+          "typeName": "MyType2",
+          "kind": "record",
+          "ref": "802102543"
+        },
+        "name": "m2Item",
+        "displayName": "m2Item",
+        "typeName": "MyType2[]",
+        "kind": "array",
+        "focusExpression": "arr1.m2",
+        "ref": "802102543"
+      }
+    ],
+    "output": {
+      "member": {
+        "member": {
+          "fields": [],
+          "name": "m2",
+          "displayName": "<m2ItemItem>",
+          "typeName": "MyType2",
+          "kind": "record",
+          "ref": "802102543"
+        },
+        "name": "m2",
+        "displayName": "<m2Item>",
+        "typeName": "MyType2[]",
+        "kind": "array",
+        "ref": "802102543"
+      },
+      "name": "m2",
+      "displayName": "m2",
+      "typeName": "MyType2[][]",
+      "kind": "array",
+      "ref": "802102543"
+    },
+    "mappings": [
+      {
+        "output": "m2",
+        "inputs": [
+          "m2Item"
+        ],
+        "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "m2",
+      "inputs": [
+        "arr1.m2"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "m2Item",
+          "type": "MyType2[]",
+          "expression": "arr1.m2"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem"
+        }
+      }
+    },
+    "refs": {
+      "-842473667": {
+        "fields": [
+          {
+            "member": {
+              "name": "k",
+              "displayName": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "k",
+            "displayName": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "l",
+              "displayName": "<lItem>",
+              "typeName": "MyType2",
+              "kind": "record",
+              "ref": "802102543"
+            },
+            "name": "l",
+            "displayName": "l",
+            "typeName": "MyType2[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "802102543"
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      },
+      "429276051": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "Bb",
+            "displayName": "Bb",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "293955111"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1012320595": {
+        "fields": [
+          {
+            "name": "p",
+            "displayName": "p",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "q",
+            "displayName": "q",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1137921160"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "293955111": {
+        "fields": [
+          {
+            "name": "Ccc",
+            "displayName": "Ccc",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-268419592": {
+        "fields": [
+          {
+            "name": "a0",
+            "displayName": "a0",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "a1",
+              "displayName": "<a1Item>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "name": "a1",
+            "displayName": "a1",
+            "typeName": "int[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "b0",
+            "displayName": "b0",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "b1",
+              "displayName": "<b1Item>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "b1",
+            "displayName": "b1",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "member": {
+                "name": "b2",
+                "displayName": "<b2ItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "name": "b2",
+              "displayName": "<b2Item>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "name": "b2",
+            "displayName": "b2",
+            "typeName": "string[][]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "m0",
+            "displayName": "m0",
+            "typeName": "MyType",
+            "kind": "record",
+            "optional": false,
+            "ref": "-842473667"
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "m1",
+              "displayName": "<m1Item>",
+              "typeName": "MyType",
+              "kind": "record",
+              "ref": "-842473667"
+            },
+            "name": "m1",
+            "displayName": "m1",
+            "typeName": "MyType[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-842473667"
+          },
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "name": "m2",
+                "displayName": "<m2ItemItem>",
+                "typeName": "MyType2",
+                "kind": "record",
+                "ref": "802102543"
+              },
+              "name": "m2",
+              "displayName": "<m2Item>",
+              "typeName": "MyType2[]",
+              "kind": "array",
+              "ref": "802102543"
+            },
+            "name": "m2",
+            "displayName": "m2",
+            "typeName": "MyType2[][]",
+            "kind": "array",
+            "optional": false,
+            "ref": "802102543"
+          }
+        ],
+        "typeName": "simpleTypeArr",
+        "kind": "record"
+      },
+      "802102543": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "arr",
+              "displayName": "<arrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1012320595"
+            },
+            "name": "arr",
+            "displayName": "arr",
+            "typeName": "[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1012320595"
+          },
+          {
+            "fields": [],
+            "name": "Aa",
+            "displayName": "Aa",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "429276051"
+          }
+        ],
+        "typeName": "MyType2",
+        "kind": "record"
+      },
+      "-1137921160": {
+        "fields": [
+          {
+            "name": "r",
+            "displayName": "r",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      }
+    }
+  }
+}

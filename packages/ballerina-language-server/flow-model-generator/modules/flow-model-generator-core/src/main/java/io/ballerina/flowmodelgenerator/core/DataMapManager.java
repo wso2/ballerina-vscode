@@ -151,6 +151,7 @@ public class DataMapManager {
     public static final String BOOLEAN = "boolean";
     public static final String STRING = "string";
     public static final String PIPE = "|";
+    public static final String ZERO = "0";
     private final Document document;
     private final Gson gson = new Gson();
 
@@ -236,7 +237,9 @@ public class DataMapManager {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
             inputPorts.sort(Comparator.comparing(mt -> mt.name));
             return gson.toJsonTree(new Model(inputPorts, refOutputPort, new ArrayList<>(), null, references));
-        } else if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
+        }
+
+        if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION && !targetNode.isRootView) {
             QueryExpressionNode queryExpressionNode = (QueryExpressionNode) targetNode.expressionNode();
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
@@ -329,8 +332,12 @@ public class DataMapManager {
             generateRecordVariableDataMapping(expressionNode, mappings, name, semanticModel,
                     functionDocument, enumPorts);
         } else if (typeDescKind == TypeDescKind.ARRAY) {
-            generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
-                    functionDocument, enumPorts);
+            if (targetNode.isRootView) {
+                genRootQueryMapping(expressionNode, name, mappings, semanticModel, enumPorts);
+            } else {
+                generateArrayVariableDataMapping(expressionNode, mappings, name, semanticModel,
+                        functionDocument, enumPorts);
+            }
         } else {
             if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
                 genMapping((QueryExpressionNode) expressionNode, mappings, name, semanticModel, functionDocument,
@@ -436,15 +443,22 @@ public class DataMapManager {
         }
 
         if (optInitializer.isEmpty()) {
-            return new TargetNode(typeSymbol, name, null);
+            return new TargetNode(typeSymbol, name, null, false);
         }
 
         ExpressionNode initializer = optInitializer.get();
         if (targetField == null) {
-            return new TargetNode(typeSymbol, name, initializer);
+            return new TargetNode(typeSymbol, name, initializer, false);
         }
 
         String[] fieldSplits = targetField.split(DOT);
+        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            if (fieldSplits.length == 1) {
+                return new TargetNode(typeSymbol, name, initializer, true);
+            } else if (fieldSplits.length == 2 && fieldSplits[1].equals("0")) {
+                return new TargetNode(typeSymbol, name, initializer, false);
+            }
+        }
         for (int i = 1; i < fieldSplits.length; i++) {
             String field = fieldSplits[i];
             typeSymbol = CommonUtils.getRawType(typeSymbol);
@@ -487,15 +501,14 @@ public class DataMapManager {
             }
             if (field.matches("\\d+")) {
                 int index = Integer.parseInt(field);
-                if (expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
-                    return null;
+                if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpressionNode = (ListConstructorExpressionNode) expr;
+                    SeparatedNodeList<Node> expressions = listCtrExpressionNode.expressions();
+                    if (index >= expressions.size()) {
+                        return null;
+                    }
+                    expr = (ExpressionNode) expressions.get(index);
                 }
-                ListConstructorExpressionNode listCtrExpressionNode = (ListConstructorExpressionNode) expr;
-                SeparatedNodeList<Node> expressions = listCtrExpressionNode.expressions();
-                if (index >= expressions.size()) {
-                    return null;
-                }
-                expr = (ExpressionNode) expressions.get(index);
             } else {
                 if (expr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
                     return null;
@@ -514,10 +527,10 @@ public class DataMapManager {
             }
         }
 
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], expr);
+        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], expr, false);
     }
 
-    private record TargetNode(TypeSymbol typeSymbol, String name, ExpressionNode expressionNode) {
+    private record TargetNode(TypeSymbol typeSymbol, String name, ExpressionNode expressionNode, boolean isRootView) {
     }
 
     private Map<String, SpecificFieldNode> convertMappingFieldsToMap(MappingConstructorExpressionNode mappingCtrExpr) {
@@ -625,6 +638,18 @@ public class DataMapManager {
                 expr.kind() == SyntaxKind.QUERY_EXPRESSION,
                 expr.kind() == SyntaxKind.FUNCTION_CALL,
                 customFunctionRange);
+        elements.add(mapping);
+    }
+
+    private void genRootQueryMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
+                                     List<MappingPort> enumPorts) {
+        List<String> inputs = new ArrayList<>();
+        expr.accept(new GenInputsVisitor(inputs, enumPorts));
+        Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
+                getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
+                expr.kind() == SyntaxKind.QUERY_EXPRESSION,
+                expr.kind() == SyntaxKind.FUNCTION_CALL,
+                null);
         elements.add(mapping);
     }
 
@@ -1170,6 +1195,14 @@ public class DataMapManager {
                             mappingExpr, null, textEdits);
                 }
             }
+        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            ClauseNode clauseNode = ((QueryExpressionNode) expr).resultClause();
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                expr = ((SelectClauseNode) clauseNode).expression();
+            } else {
+                expr = ((CollectClauseNode) clauseNode).expression();
+            }
+            genSource(expr, names, idx, stringBuilder, mappingExpr, position, textEdits);
         }
     }
 
@@ -1362,6 +1395,7 @@ public class DataMapManager {
         if (targetField == null) {
             return expr;
         }
+
         String[] splits = targetField.split(DOT);
         ExpressionNode mappingExpr = expr;
         for (int i = 1; i < splits.length; i++) {
@@ -1380,6 +1414,10 @@ public class DataMapManager {
                     mappingExpr = (ExpressionNode) listCtrExprNode.expressions().get(index);
                 }
             } else if (mappingExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                String name = splits[i];
+                if (name.equals(ZERO)) {
+                    continue;
+                }
                 QueryExpressionNode queryExpr = (QueryExpressionNode) mappingExpr;
                 ClauseNode clauseNode = queryExpr.resultClause();
                 if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
@@ -1388,7 +1426,7 @@ public class DataMapManager {
                         MappingConstructorExpressionNode mappingCtrExprNode =
                                 (MappingConstructorExpressionNode) mappingExpr;
                         Map<String, SpecificFieldNode> fields = convertMappingFieldsToMap(mappingCtrExprNode);
-                        mappingExpr = fields.get(splits[i]).valueExpr().orElseThrow();
+                        mappingExpr = fields.get(name).valueExpr().orElseThrow();
                     }
                 }
             }
@@ -1790,6 +1828,9 @@ public class DataMapManager {
                 }
                 targetType = ((ArrayTypeSymbol) targetType).memberTypeDescriptor();
             } else {
+                if (targetType.typeKind() == TypeDescKind.ARRAY) {
+                    targetType = CommonUtils.getRawType(((ArrayTypeSymbol) targetType).memberTypeDescriptor());
+                }
                 if (targetType.typeKind() != TypeDescKind.RECORD) {
                     return null;
                 }

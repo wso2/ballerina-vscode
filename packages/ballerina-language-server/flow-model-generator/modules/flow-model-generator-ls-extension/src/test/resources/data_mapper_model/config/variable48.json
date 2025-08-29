@@ -25,60 +25,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "fs1.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "fs1.'type",
-            "variableName": "'type",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "fs1",
-        "variableName": "fs1",
+        "fields": [],
+        "name": "fs1",
+        "displayName": "fs1",
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
-        "optional": false
+        "ref": "1026316765"
       },
       {
-        "fields": [
-          {
-            "id": "fs2.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "fs2.'type",
-            "variableName": "'type",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "fs2",
-        "variableName": "fs2",
+        "fields": [],
+        "name": "fs2",
+        "displayName": "fs2",
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
-        "optional": false
+        "ref": "1026316765"
       }
     ],
     "output": {
-      "id": "name",
-      "variableName": "name",
+      "name": "name",
+      "displayName": "name",
       "typeName": "string",
-      "kind": "string",
-      "optional": false
+      "kind": "string"
     },
     "mappings": [
       {
@@ -92,6 +61,28 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "1026316765": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "type",
+            "displayName": "type",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "FileSystem",
+        "kind": "record"
+      }
+    }
   }
 }

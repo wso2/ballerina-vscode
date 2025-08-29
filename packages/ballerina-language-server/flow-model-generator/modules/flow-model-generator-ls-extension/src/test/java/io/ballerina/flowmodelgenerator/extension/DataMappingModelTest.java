@@ -126,6 +126,17 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("union3.json")},
                 {Path.of("union4.json")},
                 {Path.of("union5.json")},
+                {Path.of("variable48.json")},
+                {Path.of("variable49.json")},
+                {Path.of("query12.json")},
+                {Path.of("query13.json")},
+                {Path.of("query14.json")},
+                {Path.of("query15.json")},
+                {Path.of("function_def6.json")},
+                {Path.of("query16.json")},
+                {Path.of("query17.json")},
+                {Path.of("variable50.json")},
+                {Path.of("variable51.json")},
         };
     }
 

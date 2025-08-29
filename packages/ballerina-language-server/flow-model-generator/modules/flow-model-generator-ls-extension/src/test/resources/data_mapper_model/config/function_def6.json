@@ -21,7 +21,7 @@
     "offset": 56
   },
   "propertyKey": "expression",
-  "targetField": "transform2.0",
+  "targetField": "transform2",
   "model": {
     "inputs": [
       {
@@ -38,15 +38,6 @@
         "typeName": "Input[]",
         "kind": "array",
         "category": "parameter",
-        "ref": "-1703435696"
-      },
-      {
-        "fields": [],
-        "name": "input",
-        "displayName": "input",
-        "typeName": "Input",
-        "kind": "record",
-        "focusExpression": "inputs",
         "ref": "-1703435696"
       }
     ],
@@ -67,38 +58,17 @@
     },
     "mappings": [
       {
-        "output": "transform2.fullName",
+        "output": "transform2",
         "inputs": [
-          "input.user.firstName"
+          "inputs"
         ],
-        "expression": "input?.user?.firstName\n",
+        "expression": "from var input in inputs select {\n    fullName: input?.user?.firstName\n}",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
+        "isQueryExpression": true,
         "isFunctionCall": false
       }
     ],
-    "query": {
-      "output": "transform2",
-      "inputs": [
-        "inputs"
-      ],
-      "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "input",
-          "type": "Input",
-          "expression": "inputs"
-        }
-      },
-      "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "{\n    fullName: input?.user?.firstName\n}"
-        }
-      }
-    },
     "refs": {
       "-1514999486": {
         "fields": [
