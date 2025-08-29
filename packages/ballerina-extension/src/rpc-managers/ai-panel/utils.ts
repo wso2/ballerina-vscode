@@ -17,7 +17,7 @@
  */
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, keywords, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
+import { FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, keywords, DiagnosticEntry, DataMapperModelResponse } from "@wso2/ballerina-core";
 import { window } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
@@ -1416,8 +1416,8 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
     };
 }
 
-export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse> {
-    if (!file) { return inlineDataMapperResponse; }
+export async function mappingFileDataMapperModel(file: Attachment, dataMapperResponse: DataMapperModelResponse): Promise<DataMapperModelResponse> {
+    if (!file) { return dataMapperResponse; }
     const fileData = await attatchmentToFileData(file);
     const params: DataMapperRequest = {
         file: fileData,
@@ -1427,9 +1427,9 @@ export async function mappingFileInlineDataMapperModel(file: Attachment, inlineD
     let mappingFile: MappingFileRecord = JSON.parse(resp.fileContent) as MappingFileRecord;
 
     return {
-        ...inlineDataMapperResponse,
+        ...dataMapperResponse,
         mappingsModel: {
-            ...inlineDataMapperResponse.mappingsModel,
+            ...dataMapperResponse.mappingsModel,
             mapping_fields: mappingFile.mapping_fields
         }
     };

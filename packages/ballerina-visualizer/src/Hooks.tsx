@@ -17,32 +17,33 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { IDMViewState } from '@wso2/ballerina-core';
+import { DMViewState, LinePosition } from '@wso2/ballerina-core';
 
-export const useInlineDataMapperModel = (
+export const useDataMapperModel = (
     filePath: string,
-    viewState: IDMViewState
+    viewState: DMViewState,
+    position?: LinePosition
 ) => {
     const { rpcClient } = useRpcContext();
     const viewId = viewState?.viewId;
     const codedata = viewState?.codedata;
 
-    const getIDMModel = async () => {
+    const getDMModel = async () => {
         try {
             const modelParams = {
                 filePath,
                 codedata,
                 targetField: viewId,
-                position: {
+                position: position ?? {
                     line: codedata.lineRange.startLine.line,
                     offset: codedata.lineRange.startLine.offset
                 }
             };
             const res = await rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getDataMapperModel(modelParams);
 
-            console.log('>>> [Inline Data Mapper] Model:', res);
+            console.log('>>> [Data Mapper] Model:', res);
             return res.mappingsModel;
         } catch (error) {
             console.error(error);
@@ -56,8 +57,8 @@ export const useInlineDataMapperModel = (
         isError,
         refetch
     } = useQuery({
-        queryKey: ['getIDMModel', { filePath, codedata, viewId }],
-        queryFn: () => getIDMModel(),
+        queryKey: ['getDMModel', { filePath, codedata, viewId }],
+        queryFn: () => getDMModel(),
         networkMode: 'always'
     });
 
