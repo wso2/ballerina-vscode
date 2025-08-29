@@ -50,6 +50,7 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
+    private final boolean filterByCurrentOrg;
     protected String currentOrg;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
@@ -87,20 +88,18 @@ public abstract class SearchCommand {
         this.dbManager = SearchDatabaseManager.getInstance();
         this.defaultViewHolder = DefaultViewHolder.getInstance();
 
-        boolean filterByCurrentOrg;
         if (queryMap == null) {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            filterByCurrentOrg = DEFAULT_FILTER_BY_CURRENT_ORG;
+            this.filterByCurrentOrg = DEFAULT_FILTER_BY_CURRENT_ORG;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            filterByCurrentOrg = parseBooleanParam(queryMap.get("filterByCurrentOrg"),
+            this.filterByCurrentOrg = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
                     DEFAULT_FILTER_BY_CURRENT_ORG);
         }
-        this.currentOrg = filterByCurrentOrg ? getOrganizationName().orElse(null) : null;
     }
 
     /**
@@ -125,12 +124,33 @@ public abstract class SearchCommand {
     protected abstract Map<String, List<SearchResult>> fetchPopularItems();
 
     /**
+     * Performs a search with the given query parameters within the current organization.
+     *
+     * @return List of search results
+     */
+    protected List<Item> searchCurrentOrganization(String currentOrg) {
+        throw new UnsupportedOperationException("Organization search is not supported for this command");
+    }
+
+    /**
      * Executes the search based on the current search parameters.
      *
      * @return List of search results
      */
     public JsonArray execute() {
-        List<Item> items = query.isEmpty() ? defaultView() : search();
+        List<Item> items;
+        if (this.filterByCurrentOrg) {
+            String currentOrg = project.currentPackage().ballerinaToml()
+                    .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
+                            .flatMap(table -> table.get("org"))
+                            .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())))
+                    .orElse(null);
+            items = searchCurrentOrganization(currentOrg);
+        } else if (query.isEmpty()) {
+            items = defaultView();
+        } else {
+            items = search();
+        }
         return GSON.toJsonTree(items).getAsJsonArray();
     }
 
@@ -170,13 +190,6 @@ public abstract class SearchCommand {
         } catch (Exception e) {
             return defaultValue;
         }
-    }
-
-    protected Optional<String> getOrganizationName() {
-        return project.currentPackage().ballerinaToml()
-                .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
-                        .flatMap(table -> table.get("org"))
-                        .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
     }
 
     public enum Kind {

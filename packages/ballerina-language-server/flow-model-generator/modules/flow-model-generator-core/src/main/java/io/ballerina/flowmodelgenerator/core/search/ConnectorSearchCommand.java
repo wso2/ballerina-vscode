@@ -101,17 +101,11 @@ public class ConnectorSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
         searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
-        List<SearchResult> organizationConnectors = getOrganizationConnectors(query);
         return rootBuilder.build().items();
     }
 
-    /**
-     * Fetches connectors from the current organization using Ballerina Central.
-     *
-     * @param searchQuery The search query to use
-     * @return search results containing organization connectors
-     */
-    private List<SearchResult> getOrganizationConnectors(String searchQuery) {
+    @Override
+    protected List<Item> searchCurrentOrganization(String currentOrg) {
         List<SearchResult> organizationConnectors = new ArrayList<>();
         CentralAPI centralClient = RemoteCentral.getInstance();
         Map<String, String> queryMap = new HashMap<>();
@@ -124,30 +118,29 @@ public class ConnectorSearchCommand extends SearchCommand {
             queryMap.put("org", currentOrg);
             success = true;
         }
-        if (!success) {
-            return organizationConnectors;
-        }
-        if (!searchQuery.isEmpty()) {
-            queryMap.put("q", searchQuery);
-        }
-        queryMap.put("limit", String.valueOf(limit));
-        queryMap.put("offset", String.valueOf(offset));
-        ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-        if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-            for (Connector connector : connectorsResponse.connectors()) {
-                SearchResult.Package packageInfo = new SearchResult.Package(
-                        connector.packageInfo.getOrganization(),
-                        connector.packageInfo.getName(),
-                        connector.moduleName,
-                        connector.packageInfo.getVersion()
-                );
-                SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
-                        connector.packageInfo.getSummary(), true);
-                organizationConnectors.add(searchResult);
+        if (success) {
+            if (!query.isEmpty()) {
+                queryMap.put("q", query);
             }
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
+            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+                for (Connector connector : connectorsResponse.connectors()) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            connector.packageInfo.getOrganization(),
+                            connector.packageInfo.getName(),
+                            connector.moduleName,
+                            connector.packageInfo.getVersion()
+                    );
+                    SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
+                            connector.packageInfo.getSummary(), true);
+                    organizationConnectors.add(searchResult);
+                }
+            }
+            organizationConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         }
-        organizationConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
-        return organizationConnectors;
+        return rootBuilder.build().items();
     }
 
     @Override
