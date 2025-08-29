@@ -46,6 +46,7 @@ public class CodeGenerationTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("code_generation_with_devant_chunker.json")},
                 {Path.of("code_generation_with_markdown_chunker.json")},
+                {Path.of("code_generation_with_html_chunker.json")},
                 {Path.of("code_generation_with_generic_chunker.json")}
         };
     }
