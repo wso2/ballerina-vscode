@@ -1,0 +1,186 @@
+{
+  "source": "generated_chunker",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "HtmlChunker",
+      "description": "Represents an HTML document chunker. Provides functionality to recursively chunk a HTML document using a configurable strategy. The chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
+    },
+    "codedata": {
+      "node": "CHUNKER",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "HtmlChunker",
+      "version": "1.5.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:HtmlChunker",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Chunker Name",
+          "description": "Chunker instance name"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiHtmlChunker",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "maxChunkSize": {
+        "metadata": {
+          "label": "Max Chunk Size",
+          "description": "Maximum number of characters allowed per chunk"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "maxChunkSize"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0"
+      },
+      "maxOverlapSize": {
+        "metadata": {
+          "label": "Max Overlap Size",
+          "description": "Maximum number of characters to reuse from the end of the previous chunk when creating\nthe next one."
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "maxOverlapSize"
+        },
+        "typeMembers": [
+          {
+            "type": "int",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "0"
+      },
+      "strategy": {
+        "metadata": {
+          "label": "Strategy",
+          "description": "The markdown chunking strategy to use. Defaults to `MARKDOWN_HEADER`"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "ai:MarkdownChunkStrategy",
+        "placeholder": "\"CHARACTER\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "strategy"
+        },
+        "typeMembers": [
+          {
+            "type": "MarkdownChunkStrategy",
+            "packageInfo": "ballerina:ai:1.5.0",
+            "packageName": "ai",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ],
+        "defaultValue": "\"CHARACTER\""
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "connections.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/ai;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "final ai:HtmlChunker aiHtmlChunker = new ();"
+        }
+      ]
+    }
+  }
+}
