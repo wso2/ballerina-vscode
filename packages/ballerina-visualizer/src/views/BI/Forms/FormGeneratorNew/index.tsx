@@ -651,7 +651,7 @@ export function FormGeneratorNew(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
-            helperPaneOrigin: helperPaneSide || "right",
+            helperPaneOrigin: helperPaneSide || "auto",
             helperPaneHeight: "3/4"
         } as FormExpressionEditorProps;
     }, [
@@ -683,7 +683,7 @@ export function FormGeneratorNew(props: FormProps) {
                 onClose={onCloseTypeEditor}
             >
                 <FormTypeEditor
-                    getNewTypeCreateForm={function (): void {
+                    refetchTypes={false} getNewTypeCreateForm={function (): void {
                         throw new Error("Function not implemented.");
                     } } onSaveType={function (type: Type): void {
                         throw new Error("Function not implemented.");
