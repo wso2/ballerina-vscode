@@ -21,6 +21,23 @@
                         "flags": 1
                     },
                     "enabled": true
+                },
+                {
+                    "metadata": {
+                        "label": "Text Data Loader",
+                        "description": "Dataloader that can be used to load supported file types as `TextDocument`s. Currently only supports `pdf`, `docx` and `pptx` file types."
+                    },
+                    "codedata": {
+                        "node": "DATA_LOADER",
+                        "module": "ai",
+                        "packageName": "ai",
+                        "symbol": "init",
+                        "org": "ballerina",
+                        "importStmt": "import ballerina/ai",
+                        "object": "TextDataLoader",
+                        "flags": 1
+                    },
+                    "enabled": true
                 }
             ]
         }

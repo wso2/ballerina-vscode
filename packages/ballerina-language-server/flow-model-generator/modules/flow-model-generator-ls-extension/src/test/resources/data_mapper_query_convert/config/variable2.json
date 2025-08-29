@@ -16,14 +16,14 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
-  "targetField": "stores.credentials",
   "mapping": {
     "output": "credentials",
     "inputs": [],
     "expression": "bank.userInfo",
     "diagnostics": []
   },
+  "propertyKey": "expression",
+  "targetField": "stores.credentials",
   "clauseType": "select",
   "output": {
     "variable1_1.bal": [

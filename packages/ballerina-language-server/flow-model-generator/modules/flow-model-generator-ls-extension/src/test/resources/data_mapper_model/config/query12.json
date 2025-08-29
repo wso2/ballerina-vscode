@@ -1,0 +1,95 @@
+{
+  "source": "query8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query7.bal",
+      "startLine": {
+        "line": 11,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 11,
+        "offset": 56
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 11,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "myTypes2",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "myTypes1",
+          "displayName": "<myTypes1Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myTypes1",
+        "displayName": "myTypes1",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "2079019383"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "myTypes2",
+        "displayName": "<myTypes2Item>",
+        "typeName": "MyType",
+        "kind": "record",
+        "ref": "2079019383"
+      },
+      "name": "myTypes2",
+      "displayName": "myTypes2",
+      "typeName": "MyType[]",
+      "kind": "array",
+      "ref": "2079019383"
+    },
+    "mappings": [
+      {
+        "output": "myTypes2",
+        "inputs": [
+          "myTypes1"
+        ],
+        "expression": "from var x in myTypes1 select x",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "name": "name1",
+            "displayName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    }
+  }
+}

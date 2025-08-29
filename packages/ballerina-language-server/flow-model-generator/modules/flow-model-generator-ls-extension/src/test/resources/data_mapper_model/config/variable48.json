@@ -1,0 +1,88 @@
+{
+  "source": "variable47.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable47.bal",
+      "startLine": {
+        "line": 6,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 6,
+        "offset": 35
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 6,
+    "offset": 0
+  },
+  "propertyKey": "expression",
+  "targetField": "fs2.name",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "fs1",
+        "displayName": "fs1",
+        "typeName": "FileSystem",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "1026316765"
+      },
+      {
+        "fields": [],
+        "name": "fs2",
+        "displayName": "fs2",
+        "typeName": "FileSystem",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "1026316765"
+      }
+    ],
+    "output": {
+      "name": "name",
+      "displayName": "name",
+      "typeName": "string",
+      "kind": "string"
+    },
+    "mappings": [
+      {
+        "output": "name",
+        "inputs": [
+          "fs1.'type"
+        ],
+        "expression": "fs1.'type",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "1026316765": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "type",
+            "displayName": "type",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "FileSystem",
+        "kind": "record"
+      }
+    }
+  }
+}

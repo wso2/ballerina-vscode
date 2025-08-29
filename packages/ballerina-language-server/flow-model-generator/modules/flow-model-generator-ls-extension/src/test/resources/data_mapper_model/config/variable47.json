@@ -1,0 +1,113 @@
+{
+  "source": "variable30.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable30.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 7,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "v2.i",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "v1",
+        "displayName": "v1",
+        "typeName": "MyType",
+        "kind": "record",
+        "category": "variable",
+        "ref": "1826392918"
+      },
+      {
+        "name": "kItem",
+        "displayName": "kItem",
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "v1.k"
+      }
+    ],
+    "output": {
+      "name": "i",
+      "displayName": "i",
+      "typeName": "string",
+      "kind": "string"
+    },
+    "mappings": [
+      {
+        "output": "i",
+        "inputs": [
+          "kItem"
+        ],
+        "expression": "'join(\",\", kItem)",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true
+      }
+    ],
+    "query": {
+      "output": "i",
+      "inputs": [
+        "v1.k"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "kItem",
+          "type": "string",
+          "expression": "v1.k"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "collect",
+        "properties": {
+          "expression": "'join(\",\", kItem)"
+        }
+      }
+    },
+    "refs": {
+      "1826392918": {
+        "fields": [
+          {
+            "member": {
+              "name": "k",
+              "displayName": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "k",
+            "displayName": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    }
+  }
+}

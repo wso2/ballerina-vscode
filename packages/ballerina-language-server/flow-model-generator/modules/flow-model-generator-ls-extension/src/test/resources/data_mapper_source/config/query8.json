@@ -1,0 +1,46 @@
+{
+  "source": "query3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query3.bal",
+      "startLine": {
+        "line": 11,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 14,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 11,
+    "offset": 4
+  },
+  "mapping": {
+    "output": "b0",
+    "expression": "sum(kItem)"
+  },
+  "targetField": "arr2.b0",
+  "output": {
+    "query3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 20
+          },
+          "end": {
+            "line": 13,
+            "character": 22
+          }
+        },
+        "newText": "sum(kItem)"
+      }
+    ]
+  }
+}

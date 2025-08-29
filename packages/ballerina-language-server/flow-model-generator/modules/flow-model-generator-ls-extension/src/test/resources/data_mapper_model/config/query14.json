@@ -1,0 +1,181 @@
+{
+  "source": "query8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query7.bal",
+      "startLine": {
+        "line": 13,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 13,
+        "offset": 90
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 13,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "types.t.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "myType3",
+          "displayName": "<myType3Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myType3",
+        "displayName": "myType3",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "focusExpression": "myTypes3",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "myTypes1",
+          "displayName": "<myTypes1Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myTypes1",
+        "displayName": "myTypes1",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "myTypes2",
+          "displayName": "<myTypes2Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myTypes2",
+        "displayName": "myTypes2",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "myTypes3",
+            "displayName": "<myTypes3ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "ref": "2079019383"
+          },
+          "name": "myTypes3",
+          "displayName": "<myTypes3Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "ref": "2079019383"
+        },
+        "name": "myTypes3",
+        "displayName": "myTypes3",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "2079019383"
+      },
+      {
+        "fields": [],
+        "name": "y",
+        "displayName": "y",
+        "typeName": "MyType",
+        "kind": "record",
+        "focusExpression": "myType3",
+        "ref": "2079019383"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "0",
+        "displayName": "<0Item>",
+        "typeName": "MyType",
+        "kind": "record",
+        "ref": "2079019383"
+      },
+      "name": "0",
+      "displayName": "0",
+      "typeName": "MyType[]",
+      "kind": "array",
+      "ref": "2079019383"
+    },
+    "mappings": [
+      {
+        "output": "0",
+        "inputs": [
+          "y"
+        ],
+        "expression": "y",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "0",
+      "inputs": [
+        "myType3"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "y",
+          "type": "MyType",
+          "expression": "myType3"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "y"
+        }
+      }
+    },
+    "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "name": "name1",
+            "displayName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    }
+  }
+}

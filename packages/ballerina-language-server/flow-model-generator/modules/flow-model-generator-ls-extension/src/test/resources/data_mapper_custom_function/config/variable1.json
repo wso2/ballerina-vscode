@@ -48,7 +48,7 @@
             "character": 1
           }
         },
-        "newText": "\nfunction functionStudentToStudent2(Student student) returns Student {}"
+        "newText": "\nfunction mapStudentToStudent(Student student) returns Student {}"
       }
     ],
     "proj/main.bal": [
@@ -63,7 +63,7 @@
             "character": 54
           }
         },
-        "newText": "functionStudentToStudent2(userInfo.username)"
+        "newText": "mapStudentToStudent(userInfo.username)"
       }
     ]
   }

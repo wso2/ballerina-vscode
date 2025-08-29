@@ -1,0 +1,45 @@
+{
+  "source": "variable7.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7.bal",
+      "startLine": {
+        "line": 33,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 42,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "arr2.m2",
+    "inputs": [],
+    "expression": "arr1.m2",
+    "diagnostics": []
+  },
+  "propertyKey": "expression",
+  "targetField": "arr2",
+  "clauseType": "select",
+  "output": {
+    "variable7.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 34,
+            "character": 16
+          },
+          "end": {
+            "line": 34,
+            "character": 23
+          }
+        },
+        "newText": "from var m2Item in arr1.m2 select []"
+      }
+    ]
+  }
+}

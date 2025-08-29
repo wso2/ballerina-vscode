@@ -24,59 +24,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "member": {
-              "id": "user.phoneNumber.0",
-              "variableName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "user.phoneNumber",
-            "variableName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
-        "id": "user",
-        "variableName": "user",
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "1177817223"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "member": {
-              "id": "td.values",
-              "variableName": "<valuesItemItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "td.values",
-            "variableName": "<valuesItem>",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          "id": "td.values",
-          "variableName": "values",
-          "typeName": "string[][]",
-          "kind": "array",
-          "optional": false
-        }
-      ],
-      "id": "td",
-      "variableName": "td",
+      "fields": [],
+      "name": "td",
+      "displayName": "td",
       "typeName": "TwoDim",
       "kind": "record",
-      "optional": false
+      "ref": "-320539792"
     },
     "mappings": [
       {
@@ -183,6 +146,52 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-320539792": {
+        "fields": [
+          {
+            "member": {
+              "member": {
+                "name": "values",
+                "displayName": "<valuesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "name": "values",
+              "displayName": "<valuesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "name": "values",
+            "displayName": "values",
+            "typeName": "string[][]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "TwoDim",
+        "kind": "record"
+      },
+      "1177817223": {
+        "fields": [
+          {
+            "member": {
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "phoneNumber",
+            "displayName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
   }
 }

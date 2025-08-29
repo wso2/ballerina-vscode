@@ -1,3 +1,5 @@
+import ballerina/ai;
 import ballerinax/ai.devant;
 
-devant:BinaryDataLoader loader = new("./source/");
+devant:BinaryDataLoader binaryLoader = new ("./source/");
+ai:TextDataLoader textLoader = new ("./source/");

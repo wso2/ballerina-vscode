@@ -23,76 +23,22 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "engineering.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "engineering.employees",
-            "variableName": "employees",
-            "typeName": "record",
-            "kind": "array",
-            "optional": false
-          }
-        ],
-        "id": "engineering",
-        "variableName": "engineering",
+        "fields": [],
+        "name": "engineering",
+        "displayName": "engineering",
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-676835306"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "alice.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "id": "alice.department.name",
-              "variableName": "name",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "member": {
-                "id": "alice.department.employees",
-                "variableName": "<employeesItem>",
-                "typeName": "Employee",
-                "kind": "record",
-                "isRecursive": true,
-                "optional": false
-              },
-              "id": "alice.department.employees",
-              "variableName": "employees",
-              "typeName": "Employee[]",
-              "kind": "array",
-              "optional": false
-            }
-          ],
-          "id": "alice.department",
-          "variableName": "department",
-          "typeName": "Department",
-          "kind": "record",
-          "optional": false
-        }
-      ],
-      "id": "alice",
-      "variableName": "alice",
+      "fields": [],
+      "name": "alice",
+      "displayName": "alice",
       "typeName": "Employee",
       "kind": "record",
-      "optional": false
+      "ref": "281439725"
     },
     "mappings": [
       {
@@ -115,6 +61,59 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "-676835306": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "employees",
+              "displayName": "<employeesItem>",
+              "typeName": "Employee",
+              "kind": "record",
+              "ref": "281439725"
+            },
+            "name": "employees",
+            "displayName": "employees",
+            "typeName": "Employee[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "281439725"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      },
+      "281439725": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "department",
+            "displayName": "department",
+            "typeName": "Department",
+            "kind": "record",
+            "optional": false,
+            "ref": "-676835306"
+          }
+        ],
+        "typeName": "Employee",
+        "kind": "record"
+      }
+    }
   }
 }
