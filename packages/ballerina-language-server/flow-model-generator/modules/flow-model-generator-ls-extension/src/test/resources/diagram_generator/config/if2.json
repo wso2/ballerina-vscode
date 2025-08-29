@@ -94,6 +94,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "price > 10 ",
                 "placeholder": "true",
                 "optional": false,
@@ -152,6 +153,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "price > 100 ",
                         "placeholder": "true",
                         "optional": false,

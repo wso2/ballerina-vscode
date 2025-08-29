@@ -455,6 +455,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "(response is json) ",
                         "placeholder": "true",
                         "optional": false,
@@ -664,6 +665,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "(i == 3) ",
                         "placeholder": "true",
                         "optional": false,
@@ -750,6 +752,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "i < count ",
             "placeholder": "true",
             "optional": false,

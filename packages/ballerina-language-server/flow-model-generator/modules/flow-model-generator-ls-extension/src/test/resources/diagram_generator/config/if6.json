@@ -94,6 +94,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "count > 0 ",
                 "placeholder": "true",
                 "optional": false,
@@ -169,6 +170,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "count == 0 ",
                 "placeholder": "true",
                 "optional": false,

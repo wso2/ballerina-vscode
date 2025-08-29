@@ -177,6 +177,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "quantity < 0 || ripeness < 1 || ripeness > 5 ",
                         "placeholder": "true",
                         "optional": false,
@@ -461,12 +462,13 @@
           }
         ],
         "properties": {
-          "condition": {
+          "matchTarget": {
             "metadata": {
-              "label": "Condition",
-              "description": "Boolean Condition"
+              "label": "Target",
+              "description": "Match target expression"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "any|error",
             "value": "data ",
             "placeholder": "true",
             "optional": false,

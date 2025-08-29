@@ -518,12 +518,13 @@
                   }
                 ],
                 "properties": {
-                  "condition": {
+                  "matchTarget": {
                     "metadata": {
-                      "label": "Condition",
-                      "description": "Boolean Condition"
+                      "label": "Target",
+                      "description": "Match target expression"
                     },
                     "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "any|error",
                     "value": "ripeness ",
                     "placeholder": "true",
                     "optional": false,
@@ -726,12 +727,13 @@
           }
         ],
         "properties": {
-          "condition": {
+          "matchTarget": {
             "metadata": {
-              "label": "Condition",
-              "description": "Boolean Condition"
+              "label": "Target",
+              "description": "Match target expression"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "any|error",
             "value": "quantity ",
             "placeholder": "true",
             "optional": false,

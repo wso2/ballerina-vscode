@@ -337,6 +337,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "i > 3 ",
             "placeholder": "true",
             "optional": false,

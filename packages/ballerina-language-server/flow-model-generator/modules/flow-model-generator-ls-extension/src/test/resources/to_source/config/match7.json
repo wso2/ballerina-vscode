@@ -365,10 +365,10 @@
               }
             ],
             "properties": {
-              "condition": {
+              "matchTarget": {
                 "metadata": {
-                  "label": "Condition",
-                  "description": "Boolean Condition"
+                  "label": "Target",
+                  "description": "Match target expression"
                 },
                 "valueType": "EXPRESSION",
                 "value": "q ",
@@ -463,10 +463,10 @@
       }
     ],
     "properties": {
-      "condition": {
+      "matchTarget": {
         "metadata": {
-          "label": "Condition",
-          "description": "Boolean Condition"
+          "label": "Target",
+          "description": "Match target expression"
         },
         "valueType": "EXPRESSION",
         "value": "quantity ",

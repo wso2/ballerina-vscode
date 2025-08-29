@@ -332,6 +332,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(z > 30) ",
                 "placeholder": "true",
                 "optional": false,
@@ -500,6 +501,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(x > y) ",
                 "placeholder": "true",
                 "optional": false,

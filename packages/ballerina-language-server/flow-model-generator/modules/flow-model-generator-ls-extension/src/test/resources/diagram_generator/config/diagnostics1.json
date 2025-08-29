@@ -765,6 +765,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(s == 12) ",
                 "placeholder": "true",
                 "optional": false,
@@ -832,6 +833,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "(i == \"12\") ",
                         "placeholder": "true",
                         "optional": false,
@@ -885,6 +887,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(s == 12) ",
                 "placeholder": "true",
                 "optional": false,

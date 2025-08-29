@@ -2112,7 +2112,7 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(MatchStatementNode matchStatementNode) {
         startNode(NodeKind.MATCH, matchStatementNode)
-                .properties().condition(matchStatementNode.condition());
+                .properties().matchTarget(matchStatementNode.condition());
 
         NodeList<MatchClauseNode> matchClauseNodes = matchStatementNode.matchClauses();
         for (MatchClauseNode matchClauseNode : matchClauseNodes) {

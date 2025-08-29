@@ -361,6 +361,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "i < 4 ",
             "placeholder": "true",
             "optional": false,

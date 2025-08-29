@@ -94,6 +94,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "food.price < 100 ",
                 "placeholder": "true",
                 "optional": false,
@@ -219,6 +220,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "food.price < 200 ",
                 "placeholder": "true",
                 "optional": false,
@@ -277,6 +279,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "food.remaining > 0 ",
                         "placeholder": "true",
                         "optional": false,

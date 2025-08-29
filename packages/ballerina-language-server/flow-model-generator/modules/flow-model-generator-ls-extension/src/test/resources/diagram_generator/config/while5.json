@@ -1416,6 +1416,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "adminClient is http:ClientError ",
                         "placeholder": "true",
                         "optional": false,
@@ -1857,6 +1858,7 @@
                       "description": "Boolean Condition"
                     },
                     "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
                     "value": "attempts < retries ",
                     "placeholder": "true",
                     "optional": false,
@@ -1915,6 +1917,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "i < count ",
             "placeholder": "true",
             "optional": false,

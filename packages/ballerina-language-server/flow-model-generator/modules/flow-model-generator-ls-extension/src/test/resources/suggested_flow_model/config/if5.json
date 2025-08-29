@@ -251,6 +251,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "(x > y) ",
                 "placeholder": "true",
                 "optional": false,
@@ -309,6 +310,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "(x % 2 == 0) ",
                         "placeholder": "true",
                         "optional": false,
