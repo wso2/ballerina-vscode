@@ -27,7 +27,7 @@ import { DataMapperView } from "./DataMapperView";
 export interface DataMapperProps {
     filePath: string;
     codedata: CodeData;
-    varName: string;
+    name: string;
     projectUri?: string;
     position?: LinePosition;
     reusable?: boolean;
