@@ -27,14 +27,14 @@
       {
         "member": {
           "fields": [],
-          "id": "myType3",
-          "name": "<myType3Item>",
+          "name": "myType3",
+          "displayName": "<myType3Item>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
-        "id": "myType3",
         "name": "myType3",
+        "displayName": "myType3",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
@@ -44,14 +44,14 @@
       {
         "member": {
           "fields": [],
-          "id": "myTypes1",
-          "name": "<myTypes1Item>",
+          "name": "myTypes1",
+          "displayName": "<myTypes1Item>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
-        "id": "myTypes1",
         "name": "myTypes1",
+        "displayName": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
@@ -60,14 +60,14 @@
       {
         "member": {
           "fields": [],
-          "id": "myTypes2",
-          "name": "<myTypes2Item>",
+          "name": "myTypes2",
+          "displayName": "<myTypes2Item>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
-        "id": "myTypes2",
         "name": "myTypes2",
+        "displayName": "myTypes2",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
@@ -77,20 +77,20 @@
         "member": {
           "member": {
             "fields": [],
-            "id": "myTypes3",
-            "name": "<myTypes3ItemItem>",
+            "name": "myTypes3",
+            "displayName": "<myTypes3ItemItem>",
             "typeName": "MyType",
             "kind": "record",
             "ref": "2079019383"
           },
-          "id": "myTypes3",
-          "name": "<myTypes3Item>",
+          "name": "myTypes3",
+          "displayName": "<myTypes3Item>",
           "typeName": "MyType[]",
           "kind": "array",
           "ref": "2079019383"
         },
-        "id": "myTypes3",
         "name": "myTypes3",
+        "displayName": "myTypes3",
         "typeName": "MyType[][]",
         "kind": "array",
         "category": "variable",
@@ -100,20 +100,20 @@
         "member": {
           "member": {
             "fields": [],
-            "id": "myTypes4",
-            "name": "<myTypes4ItemItem>",
+            "name": "myTypes4",
+            "displayName": "<myTypes4ItemItem>",
             "typeName": "MyType",
             "kind": "record",
             "ref": "2079019383"
           },
-          "id": "myTypes4",
-          "name": "<myTypes4Item>",
+          "name": "myTypes4",
+          "displayName": "<myTypes4Item>",
           "typeName": "MyType[]",
           "kind": "array",
           "ref": "2079019383"
         },
-        "id": "myTypes4",
         "name": "myTypes4",
+        "displayName": "myTypes4",
         "typeName": "MyType[][]",
         "kind": "array",
         "category": "variable",
@@ -121,8 +121,8 @@
       },
       {
         "fields": [],
-        "id": "types",
         "name": "types",
+        "displayName": "types",
         "typeName": "Types",
         "kind": "record",
         "category": "variable",
@@ -130,8 +130,8 @@
       },
       {
         "fields": [],
-        "id": "y",
         "name": "y",
+        "displayName": "y",
         "typeName": "MyType",
         "kind": "record",
         "focusExpression": "myType3",
@@ -141,14 +141,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "0",
-        "name": "<0Item>",
+        "name": "0",
+        "displayName": "<0Item>",
         "typeName": "MyType",
         "kind": "record",
         "ref": "2079019383"
       },
-      "id": "0",
       "name": "0",
+      "displayName": "0",
       "typeName": "MyType[]",
       "kind": "array",
       "ref": "2079019383"
@@ -191,15 +191,15 @@
       "2079019383": {
         "fields": [
           {
-            "id": "name1",
             "name": "name1",
+            "displayName": "name1",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "i",
             "name": "i",
+            "displayName": "i",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -214,20 +214,20 @@
             "member": {
               "member": {
                 "fields": [],
-                "id": "t",
-                "name": "<tItemItem>",
+                "name": "t",
+                "displayName": "<tItemItem>",
                 "typeName": "MyType",
                 "kind": "record",
                 "ref": "2079019383"
               },
-              "id": "t",
-              "name": "<tItem>",
+              "name": "t",
+              "displayName": "<tItem>",
               "typeName": "MyType[]",
               "kind": "array",
               "ref": "2079019383"
             },
-            "id": "t",
             "name": "t",
+            "displayName": "t",
             "typeName": "MyType[][]",
             "kind": "array",
             "optional": false,

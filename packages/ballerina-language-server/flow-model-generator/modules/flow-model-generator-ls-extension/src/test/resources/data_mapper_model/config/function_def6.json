@@ -27,14 +27,14 @@
       {
         "member": {
           "fields": [],
-          "id": "inputs",
-          "name": "<inputsItem>",
+          "name": "inputs",
+          "displayName": "<inputsItem>",
           "typeName": "Input",
           "kind": "record",
           "ref": "-1703435696"
         },
-        "id": "inputs",
         "name": "inputs",
+        "displayName": "inputs",
         "typeName": "Input[]",
         "kind": "array",
         "category": "parameter",
@@ -44,14 +44,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "transform2",
-        "name": "<transform2Item>",
+        "name": "transform2",
+        "displayName": "<transform2Item>",
         "typeName": "Output",
         "kind": "record",
         "ref": "-1514999486"
       },
-      "id": "transform2",
       "name": "transform2",
+      "displayName": "transform2",
       "typeName": "Output[]",
       "kind": "array",
       "ref": "-1514999486"
@@ -73,8 +73,8 @@
       "-1514999486": {
         "fields": [
           {
-            "id": "fullName",
             "name": "fullName",
+            "displayName": "fullName",
             "typeName": "string",
             "kind": "string",
             "optional": true
@@ -86,8 +86,8 @@
       "-1064739742": {
         "fields": [
           {
-            "id": "firstName",
             "name": "firstName",
+            "displayName": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -100,8 +100,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "user",
             "name": "user",
+            "displayName": "user",
             "typeName": "User",
             "kind": "record",
             "optional": true,

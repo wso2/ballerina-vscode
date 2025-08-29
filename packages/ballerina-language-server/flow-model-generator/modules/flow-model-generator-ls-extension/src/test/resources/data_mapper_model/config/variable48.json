@@ -26,8 +26,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "fs1",
         "name": "fs1",
+        "displayName": "fs1",
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
@@ -35,8 +35,8 @@
       },
       {
         "fields": [],
-        "id": "fs2",
         "name": "fs2",
+        "displayName": "fs2",
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
@@ -44,8 +44,8 @@
       }
     ],
     "output": {
-      "id": "name",
       "name": "name",
+      "displayName": "name",
       "typeName": "string",
       "kind": "string"
     },
@@ -66,15 +66,15 @@
       "1026316765": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "type",
             "name": "type",
+            "displayName": "type",
             "typeName": "string",
             "kind": "string",
             "optional": false

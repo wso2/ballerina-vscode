@@ -26,8 +26,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "arr1",
         "name": "arr1",
+        "displayName": "arr1",
         "typeName": "simpleTypeArr",
         "kind": "record",
         "category": "variable",
@@ -36,14 +36,14 @@
       {
         "member": {
           "fields": [],
-          "id": "m2Item",
-          "name": "<m2ItemItem>",
+          "name": "m2Item",
+          "displayName": "<m2ItemItem>",
           "typeName": "MyType2",
           "kind": "record",
           "ref": "802102543"
         },
-        "id": "m2Item",
         "name": "m2Item",
+        "displayName": "m2Item",
         "typeName": "MyType2[]",
         "kind": "array",
         "focusExpression": "arr1.m2",
@@ -54,20 +54,20 @@
       "member": {
         "member": {
           "fields": [],
-          "id": "m2",
-          "name": "<m2ItemItem>",
+          "name": "m2",
+          "displayName": "<m2ItemItem>",
           "typeName": "MyType2",
           "kind": "record",
           "ref": "802102543"
         },
-        "id": "m2",
-        "name": "<m2Item>",
+        "name": "m2",
+        "displayName": "<m2Item>",
         "typeName": "MyType2[]",
         "kind": "array",
         "ref": "802102543"
       },
-      "id": "m2",
       "name": "m2",
+      "displayName": "m2",
       "typeName": "MyType2[][]",
       "kind": "array",
       "ref": "802102543"
@@ -111,13 +111,13 @@
         "fields": [
           {
             "member": {
-              "id": "k",
-              "name": "<kItem>",
+              "name": "k",
+              "displayName": "<kItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "k",
             "name": "k",
+            "displayName": "k",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -125,22 +125,22 @@
           {
             "member": {
               "fields": [],
-              "id": "l",
-              "name": "<lItem>",
+              "name": "l",
+              "displayName": "<lItem>",
               "typeName": "MyType2",
               "kind": "record",
               "ref": "802102543"
             },
-            "id": "l",
             "name": "l",
+            "displayName": "l",
             "typeName": "MyType2[]",
             "kind": "array",
             "optional": false,
             "ref": "802102543"
           },
           {
-            "id": "i",
             "name": "i",
+            "displayName": "i",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -153,8 +153,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "Bb",
             "name": "Bb",
+            "displayName": "Bb",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -167,16 +167,16 @@
       "1012320595": {
         "fields": [
           {
-            "id": "p",
             "name": "p",
+            "displayName": "p",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "fields": [],
-            "id": "q",
             "name": "q",
+            "displayName": "q",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -189,8 +189,8 @@
       "293955111": {
         "fields": [
           {
-            "id": "Ccc",
             "name": "Ccc",
+            "displayName": "Ccc",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -202,41 +202,41 @@
       "-268419592": {
         "fields": [
           {
-            "id": "a0",
             "name": "a0",
+            "displayName": "a0",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
             "member": {
-              "id": "a1",
-              "name": "<a1Item>",
+              "name": "a1",
+              "displayName": "<a1Item>",
               "typeName": "int",
               "kind": "int"
             },
-            "id": "a1",
             "name": "a1",
+            "displayName": "a1",
             "typeName": "int[]",
             "kind": "array",
             "optional": false
           },
           {
-            "id": "b0",
             "name": "b0",
+            "displayName": "b0",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "member": {
-              "id": "b1",
-              "name": "<b1Item>",
+              "name": "b1",
+              "displayName": "<b1Item>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "b1",
             "name": "b1",
+            "displayName": "b1",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -244,26 +244,26 @@
           {
             "member": {
               "member": {
-                "id": "b2",
-                "name": "<b2ItemItem>",
+                "name": "b2",
+                "displayName": "<b2ItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },
-              "id": "b2",
-              "name": "<b2Item>",
+              "name": "b2",
+              "displayName": "<b2Item>",
               "typeName": "string[]",
               "kind": "array"
             },
-            "id": "b2",
             "name": "b2",
+            "displayName": "b2",
             "typeName": "string[][]",
             "kind": "array",
             "optional": false
           },
           {
             "fields": [],
-            "id": "m0",
             "name": "m0",
+            "displayName": "m0",
             "typeName": "MyType",
             "kind": "record",
             "optional": false,
@@ -272,14 +272,14 @@
           {
             "member": {
               "fields": [],
-              "id": "m1",
-              "name": "<m1Item>",
+              "name": "m1",
+              "displayName": "<m1Item>",
               "typeName": "MyType",
               "kind": "record",
               "ref": "-842473667"
             },
-            "id": "m1",
             "name": "m1",
+            "displayName": "m1",
             "typeName": "MyType[]",
             "kind": "array",
             "optional": false,
@@ -289,20 +289,20 @@
             "member": {
               "member": {
                 "fields": [],
-                "id": "m2",
-                "name": "<m2ItemItem>",
+                "name": "m2",
+                "displayName": "<m2ItemItem>",
                 "typeName": "MyType2",
                 "kind": "record",
                 "ref": "802102543"
               },
-              "id": "m2",
-              "name": "<m2Item>",
+              "name": "m2",
+              "displayName": "<m2Item>",
               "typeName": "MyType2[]",
               "kind": "array",
               "ref": "802102543"
             },
-            "id": "m2",
             "name": "m2",
+            "displayName": "m2",
             "typeName": "MyType2[][]",
             "kind": "array",
             "optional": false,
@@ -317,14 +317,14 @@
           {
             "member": {
               "fields": [],
-              "id": "arr",
-              "name": "<arrItem>",
+              "name": "arr",
+              "displayName": "<arrItem>",
               "typeName": "",
               "kind": "record",
               "ref": "1012320595"
             },
-            "id": "arr",
             "name": "arr",
+            "displayName": "arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -332,8 +332,8 @@
           },
           {
             "fields": [],
-            "id": "Aa",
             "name": "Aa",
+            "displayName": "Aa",
             "typeName": "",
             "kind": "record",
             "optional": false,
@@ -346,8 +346,8 @@
       "-1137921160": {
         "fields": [
           {
-            "id": "r",
             "name": "r",
+            "displayName": "r",
             "typeName": "int",
             "kind": "int",
             "optional": false

@@ -27,14 +27,14 @@
       {
         "member": {
           "fields": [],
-          "name": "myType2",
-          "displayName": "<myType2Item>",
+          "name": "myTypes1",
+          "displayName": "<myTypes1Item>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
-        "name": "myType2",
-        "displayName": "myType2",
+        "name": "myTypes1",
+        "displayName": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
         "category": "variable",
