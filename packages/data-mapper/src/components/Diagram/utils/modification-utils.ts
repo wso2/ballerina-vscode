@@ -78,7 +78,7 @@ export async function addValue(fieldId: string, value: string, context: IDataMap
 export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
 	const views=context.views;
 	const viewId = views[views.length-1].targetField;
-	return await context.deleteMapping( mapping as Mapping, viewId)
+	return await context.deleteMapping( mapping, viewId)
 }
 
 export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
