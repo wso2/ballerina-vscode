@@ -30,6 +30,8 @@ import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget
 import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
+import { ArrayOutputFieldWidget } from '../ArrayOutput/ArrayOuptutFieldWidget';
+import { PrimitiveOutputElementWidget } from '../PrimitiveOutput/PrimitiveOutputElementWidget';
 
 export interface QueryOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -60,8 +62,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 	const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 	const [isHovered, setIsHovered] = useState(false);
 
-	const collapsedFieldsStore = useDMCollapsedFieldsStore();
-
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
 		useShallow(state => ({
 			setIsIOConfigPanelOpen: state.setIsIOConfigPanelOpen,
@@ -70,28 +70,14 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 		}))
 	);
 
-	const fields = [outputType.member ?? outputType];
-	const hasFields = fields.length > 0;
+	const field = outputType.member || outputType;
 
-	const portIn = getPort(`${id}.IN`);
+	const portIn = getPort(`${id}.#.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed)) {
-		expanded = false;
-	}
+	
 	const isDisabled = portIn?.attributes.descendantHasValue;
-
-	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
-
-	const handleExpand = () => {
-		const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== id));
-        } else {
-            collapsedFieldsStore.setFields([...collapsedFields, id]);
-        }
-	};
 
 	const handlePortState = (state: PortState) => {
 		setPortState(state)
@@ -146,35 +132,34 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 						}
 					</span>
 					<span className={classes.label}>
-						<Button
-							id={"expand-or-collapse-" + id} 
-							appearance="icon"
-							tooltip="Expand/Collapse"
-							sx={{ marginLeft: indentation }}
-							onClick={handleExpand}
-							data-testid={`${id}-expand-icon-mapping-target-node`}
-						>
-							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-						</Button>
 						{label}
 					</span>
 				</TreeHeader>
-				{(expanded && fields) && (
+				{(expanded && field) && (
 					<TreeBody>
-						{fields?.map((item, index) => {
-							return (
-								<ObjectOutputFieldWidget
-									key={index}
-									engine={engine}
-									field={item}
-									getPort={getPort}
-									parentId={id}
-									context={context}
-									treeDepth={0}
-									hasHoveredParent={isHovered}
-								/>
-							);
-						})}
+						{outputType.kind === TypeKind.Array ? (
+							<ObjectOutputFieldWidget
+								engine={engine}
+								field={field}
+								getPort={getPort}
+								parentId={id}
+								context={context}
+								treeDepth={0}
+								hasHoveredParent={isHovered}
+								isPortParent={true}
+							/>
+						) : (
+							<PrimitiveOutputElementWidget
+								key={id}
+								engine={engine}
+								field={field}
+								getPort={getPort}
+								parentId={id}
+								context={context}
+								hasHoveredParent={isHovered}
+								isPortParent={true}
+							/>
+						)}
 					</TreeBody>
 				)}
 			</TreeContainer>

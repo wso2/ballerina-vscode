@@ -22,6 +22,7 @@ import { CanvasWidget } from "@projectstorm/react-canvas-core";
 import {
     autoDistribute,
     calculateEntryNodeHeight,
+    calculateGraphQLNodeHeight,
     createNodesLink,
     createPortNodeLink,
     generateEngine,
@@ -33,18 +34,14 @@ import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
 import { DiagramContextProvider, DiagramContextState } from "./DiagramContext";
 import Controls from "./Controls";
-import {
-    CDAutomation,
-    CDConnection,
-    CDFunction,
-    CDListener,
-    CDModel,
-    CDService,
-    CDResourceFunction,
-} from "@wso2/ballerina-core";
+import { CDAutomation, CDConnection, CDFunction, CDListener, CDModel, CDService, CDResourceFunction } from "@wso2/ballerina-core";
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
+
+export type GroupKey = "Query" | "Subscription" | "Mutation";
+export const PREVIEW_COUNT = 2;
+export const SHOW_ALL_THRESHOLD = 3;
 
 export interface DiagramProps {
     project: CDModel;
@@ -55,6 +52,14 @@ export interface DiagramProps {
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection) => void;
 }
+
+export type GQLFuncListType = Record<GroupKey, Array<CDFunction | CDResourceFunction>>;
+
+export type GQLState = {
+    Query: boolean;
+    Subscription: boolean;
+    Mutation: boolean;
+};
 
 export function Diagram(props: DiagramProps) {
     const {
@@ -69,6 +74,38 @@ export function Diagram(props: DiagramProps) {
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+    const [graphQLGroupOpen, setGraphQLGroupOpen] = useState<Record<string, GQLState>>({} as Record<string, GQLState>);
+
+    // Ensure every service has a default GraphQL group open state.
+    // Defaults: Query = true, Subscription = false, Mutation = false
+    useEffect(() => {
+        if (!project?.services) return;
+
+        const graphqlServices = project.services.filter(
+            (svc) => svc.type === "graphql:Service"
+        );
+        const currentGraphqlIds = new Set(graphqlServices.map((svc) => svc.uuid));
+
+        setGraphQLGroupOpen((previousState) => {
+            const updatedState = { ...previousState };
+
+            // Remove services that no longer exist
+            Object.keys(updatedState).forEach((id) => {
+                if (!currentGraphqlIds.has(id)) {
+                    delete updatedState[id];
+                }
+            });
+
+            // Add new services that are not yet in the state
+            graphqlServices.forEach((service) => {
+                if (!updatedState[service.uuid]) {
+                    updatedState[service.uuid] = { Query: true, Subscription: false, Mutation: false };
+                }
+            });
+
+            return updatedState;
+        });
+    }, [project]);
 
     useEffect(() => {
         if (diagramEngine) {
@@ -76,7 +113,7 @@ export function Diagram(props: DiagramProps) {
             drawDiagram(nodes, links);
             autoDistribute(diagramEngine);
         }
-    }, [project, expandedNodes]);
+    }, [project, expandedNodes, graphQLGroupOpen]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -104,6 +141,14 @@ export function Diagram(props: DiagramProps) {
         });
     };
 
+    const handleToggleGraphQLGroup = (serviceUuid: string, group: "Query" | "Subscription" | "Mutation") => {
+        setGraphQLGroupOpen(prev => {
+            const current = prev[serviceUuid] ?? { Query: true, Subscription: false, Mutation: false };
+            const next = { ...current, [group]: !current[group] } as { Query: boolean; Subscription: boolean; Mutation: boolean };
+            return { ...prev, [serviceUuid]: next };
+        });
+    };
+
     const getDiagramData = () => {
         const nodes: NodeModel[] = [];
         const links: NodeLinkModel[] = [];
@@ -114,7 +159,6 @@ export function Diagram(props: DiagramProps) {
         const sortedConnections = sortItems(filteredConnections || []) as CDConnection[];
         sortedConnections.forEach((connection, index) => {
             const node = new ConnectionNodeModel(connection);
-            // Set initial Y position for connections
             node.setPosition(0, 100 + index * 100);
             nodes.push(node);
         });
@@ -124,74 +168,82 @@ export function Diagram(props: DiagramProps) {
         // Sort services by sortText before creating nodes
         const sortedServices = sortItems(project.services || []) as CDService[];
         sortedServices.forEach((service) => {
-            // Calculate height based on visible functions and expansion state
-            const totalFunctions = service.remoteFunctions.length + service.resourceFunctions.length;
-            const isExpanded = expandedNodes.has(service.uuid);
-            const nodeHeight = calculateEntryNodeHeight(totalFunctions, isExpanded);
-
             // Create entry node with calculated height
             const node = new EntryNodeModel(service, "service");
-            node.height = nodeHeight;
-            node.setPosition(0, startY);
-            nodes.push(node);
 
-            startY += nodeHeight + 16;
+            const isGraphQL = service.type === "graphql:Service";
+            if (isGraphQL) {
+                const { visible, hidden } = partitionGraphQLServiceFunctions(
+                    service,
+                    expandedNodes,
+                    graphQLGroupOpen[service.uuid] ?? { Query: true, Subscription: false, Mutation: false }
+                );
+                // Reusable function to create connections for a list of functions to a given port getter
+                const nodeHeight = calculateGraphQLNodeHeight(
+                    visible,
+                    hidden,
+                    graphQLGroupOpen[service.uuid] || { Query: true, Subscription: false, Mutation: false });
 
-            // Determine visible and hidden functions based on expansion state
-            const serviceFunctions = [];
-            if (service.remoteFunctions?.length > 0) {
-                serviceFunctions.push(...service.remoteFunctions);
-            }
-            if (service.resourceFunctions?.length > 0) {
-                serviceFunctions.push(...service.resourceFunctions);
-            }
+                node.height = nodeHeight;
+                node.setPosition(0, startY);
+                nodes.push(node);
+                startY += nodeHeight + 16;
 
-            const isNodeExpanded = expandedNodes.has(service.uuid);
+                // For GraphQL, handle visible and hidden per group
+                (Object.keys(visible) as GroupKey[]).forEach((group) => {
+                    createFunctionConnections(
+                        visible[group],
+                        nodes,
+                        node,
+                        (func) => node.getFunctionPort(func),
+                        links,
+                        group
+                    );
+                });
 
-            let visibleFunctions, hiddenFunctions;
-            if (serviceFunctions.length <= 3 || isNodeExpanded) {
-                // Show all functions if ≤3 total or if expanded
-                visibleFunctions = serviceFunctions;
-                hiddenFunctions = [];
+                (Object.keys(hidden) as GroupKey[]).forEach((group) => {
+                    createFunctionConnections(
+                        hidden[group],
+                        nodes,
+                        node,
+                        (_func, grp) => node.getGraphQLGroupPort(grp!),
+                        links,
+                        group
+                    );
+                });
+
             } else {
-                // Show only first 2 functions when collapsed
-                visibleFunctions = serviceFunctions.slice(0, 2);
-                hiddenFunctions = serviceFunctions.slice(2);
-            }
 
-            // Create connections for visible functions
-            visibleFunctions.forEach((func) => {
-                func.connections?.forEach((connectionUuid) => {
-                    const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
-                    if (connectionNode) {
-                        const port = node.getFunctionPort(func);
-                        if (port) {
-                            const link = createPortNodeLink(port, connectionNode);
-                            if (link) {
-                                links.push(link);
-                            }
-                        }
-                    }
-                });
-            });
+                // Calculate height based on visible functions and expansion state
+                const totalFunctions = service.remoteFunctions.length + service.resourceFunctions.length;
+                const isExpanded = expandedNodes.has(service.uuid);
+                const nodeHeight = calculateEntryNodeHeight(totalFunctions, isExpanded);
+                node.height = nodeHeight;
+                node.setPosition(0, startY);
+                nodes.push(node);
 
-            // Create connections for hidden functions to the view all resources port (only when collapsed)
-            if (hiddenFunctions.length > 0 && !isNodeExpanded) {
-                const viewAllPort = node.getViewAllResourcesPort();
-                hiddenFunctions.forEach((func) => {
-                    func.connections?.forEach((connectionUuid) => {
-                        const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
-                        if (connectionNode && viewAllPort) {
-                            const link = createPortNodeLink(viewAllPort, connectionNode);
-                            if (link) {
-                                links.push(link);
-                            }
-                        }
-                    });
-                });
+                startY += nodeHeight + 16;
+
+                const { hidden, visible } = partitionRegularServiceFunctions(service, expandedNodes);
+                createFunctionConnections(
+                    visible,
+                    nodes,
+                    node,
+                    (func) => node.getFunctionPort(func),
+                    links
+                );
+
+                if (hidden.length > 0) {
+                    createFunctionConnections(
+                        hidden,
+                        nodes,
+                        node,
+                        () => node.getViewAllResourcesPort(),
+                        links
+                    );
+                }
             }
         });
-
         // create automation
         const automation = project.automation;
         if (automation) {
@@ -260,6 +312,7 @@ export function Diagram(props: DiagramProps) {
     const context: DiagramContextState = {
         project,
         expandedNodes,
+        graphQLGroupOpen,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,
@@ -267,6 +320,7 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect,
         onDeleteComponent,
         onToggleNodeExpansion: handleToggleNodeExpansion,
+        onToggleGraphQLGroup: handleToggleGraphQLGroup,
     };
 
     return (
@@ -282,4 +336,100 @@ export function Diagram(props: DiagramProps) {
             )}
         </>
     );
+}
+
+function getGraphQLGroupLabel(accessor?: string, name?: string): GroupKey | null {
+    if (accessor === "get") return "Query";
+    if (accessor === "subscribe") return "Subscription";
+    if (!accessor && name) return "Mutation";
+    return null;
+}
+
+function partitionRegularServiceFunctions(
+    service: CDService,
+    expandedNodes: Set<string>
+): { visible: Array<CDFunction | CDResourceFunction>; hidden: Array<CDFunction | CDResourceFunction> } {
+    const serviceFunctions: Array<CDFunction | CDResourceFunction> = [];
+    if (service.remoteFunctions?.length) serviceFunctions.push(...service.remoteFunctions);
+    if (service.resourceFunctions?.length) serviceFunctions.push(...service.resourceFunctions);
+
+    const isExpanded = expandedNodes.has(service.uuid);
+    if (serviceFunctions.length <= SHOW_ALL_THRESHOLD || isExpanded) {
+        return { visible: serviceFunctions, hidden: [] };
+    }
+    return { visible: serviceFunctions.slice(0, PREVIEW_COUNT), hidden: serviceFunctions.slice(PREVIEW_COUNT) };
+}
+
+function partitionGraphQLServiceFunctions(
+    service: CDService,
+    expandedNodes: Set<string>,
+    groupOpen?: { Query: boolean; Subscription: boolean; Mutation: boolean; }
+): { visible: GQLFuncListType; hidden: GQLFuncListType } {
+    const serviceFunctions: Array<CDFunction | CDResourceFunction> = [];
+    if (service.remoteFunctions?.length) serviceFunctions.push(...service.remoteFunctions);
+    if (service.resourceFunctions?.length) serviceFunctions.push(...service.resourceFunctions);
+
+
+
+    const grouped = serviceFunctions.reduce((acc, fn) => {
+        const accessor = (fn as CDResourceFunction).accessor;
+        const name = (fn as CDFunction).name;
+        const group = getGraphQLGroupLabel(accessor, name);
+        if (!group) return acc;
+        (acc[group] ||= []).push(fn);
+        return acc;
+    }, {} as GQLFuncListType);
+
+    const visible: GQLFuncListType = {
+        Query: [],
+        Subscription: [],
+        Mutation: [],
+    };
+    const hidden: GQLFuncListType = {
+        Query: [],
+        Subscription: [],
+        Mutation: [],
+    };
+
+    (Object.keys(grouped) as GroupKey[]).forEach((group) => {
+        const items = grouped[group];
+        const isOpen = groupOpen ? !!groupOpen[group] : true; // default open if not provided
+        if (!isOpen) {
+            hidden[group].push(...items);
+            return;
+        }
+        const groupExpanded = expandedNodes.has(service.uuid + group);
+        if (items.length <= SHOW_ALL_THRESHOLD || groupExpanded) {
+            visible[group].push(...items);
+        } else {
+            visible[group].push(...items.slice(0, PREVIEW_COUNT));
+            hidden[group].push(...items.slice(PREVIEW_COUNT));
+        }
+    });
+
+    return { visible, hidden };
+}
+
+function createFunctionConnections(
+    funcs: Array<CDFunction | CDResourceFunction>,
+    nodes: NodeModel[],
+    node: EntryNodeModel,
+    portGetter: (func: CDFunction | CDResourceFunction, group?: GroupKey) => any,
+    links: NodeLinkModel[],
+    group?: GroupKey
+) {
+    funcs.forEach((func) => {
+        func.connections?.forEach((connectionUuid) => {
+            const connectionNode = nodes.find((n) => n.getID() === connectionUuid);
+            if (connectionNode) {
+                const port = portGetter(func, group);
+                if (port) {
+                    const link = createPortNodeLink(port, connectionNode);
+                    if (link) {
+                        links.push(link);
+                    }
+                }
+            }
+        });
+    });
 }
