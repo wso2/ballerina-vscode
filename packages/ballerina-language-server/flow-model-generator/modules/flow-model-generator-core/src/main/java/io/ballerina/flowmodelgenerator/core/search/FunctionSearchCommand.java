@@ -71,7 +71,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
  * <li>IMPORTED_FUNCTIONS: Functions from imported modules</li>
  * <li>AVAILABLE_FUNCTIONS: Functions available but not imported (optional)</li>
  * </p>
- *o
+ *
  * @see SearchCommand
  * @since 1.0.0
  */

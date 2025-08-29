@@ -51,7 +51,6 @@ public abstract class SearchCommand {
     protected final int limit;
     protected final int offset;
     private final boolean filterByCurrentOrg;
-    protected String currentOrg;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
@@ -97,7 +96,7 @@ public abstract class SearchCommand {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            this.filterByCurrentOrg = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
+            this.filterByCurrentOrg = parseBooleanParam(queryMap.get("filterByCurrentOrg"),
                     DEFAULT_FILTER_BY_CURRENT_ORG);
         }
     }

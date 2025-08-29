@@ -63,7 +63,6 @@ class RestClient {
     private final CentralAPIClient centralClient;
     private final String accessToken;
 
-
     private static final String supportedPlatform = Arrays.stream(JvmTarget.values())
             .map(JvmTarget::code)
             .collect(Collectors.joining(","));
@@ -162,7 +161,7 @@ class RestClient {
             conn.setRequestMethod("GET");
 
             // Add Authorization header if accessToken is present
-            if (this.accessToken != null && !this.accessToken.isEmpty()) {
+            if (hasAuthorizedAccess()) {
                 conn.setRequestProperty("Authorization", "Bearer " + this.accessToken);
             }
 
