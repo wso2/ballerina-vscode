@@ -39,6 +39,11 @@ public class Constants {
     public static final String AI = "ai";
     public static final String DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 
+    public static final String CONDITION_TYPE_CONSTRAINT = "boolean";
+    public static final String MATCH_TARGET_TYPE_CONSTRAINT = "any|error";
+    public static final String COLLECTION_TYPE_CONSTRAINT =
+            "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json";
+
     // Constants used for Natural functions
     public static final class NaturalFunctions {
         private NaturalFunctions() {}

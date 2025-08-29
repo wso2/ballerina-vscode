@@ -64,6 +64,9 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.StringJoiner;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.COLLECTION_TYPE_CONSTRAINT;
+import static io.ballerina.flowmodelgenerator.core.Constants.CONDITION_TYPE_CONSTRAINT;
+import static io.ballerina.flowmodelgenerator.core.Constants.MATCH_TARGET_TYPE_CONSTRAINT;
 import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_DOC;
 import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_LABEL;
@@ -630,7 +633,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
                 .placeholder("true")
                 .type(Property.ValueType.EXPRESSION)
-                .typeConstraint("boolean")
+                .typeConstraint(CONDITION_TYPE_CONSTRAINT)
                 .editable();
         addProperty(Property.CONDITION_KEY, expressionNode);
         return this;
@@ -645,7 +648,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
                 .placeholder("true")
                 .type(Property.ValueType.EXPRESSION)
-                .typeConstraint("any|error")
+                .typeConstraint(MATCH_TARGET_TYPE_CONSTRAINT)
                 .editable();
         addProperty(Property.MATCH_TARGET_KEY, expressionNode);
     }
@@ -997,7 +1000,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(expressionNode == null ? "" : expressionNode.kind() == SyntaxKind.CHECK_EXPRESSION ?
                         ((CheckExpressionNode) expressionNode).expression().toString() : expressionNode.toString())
                 .type(Property.ValueType.ACTION_OR_EXPRESSION)
-                .typeConstraint("(any|error)[]|stream<any|error, ()>|string|map<any|error>|json");
+                .typeConstraint(COLLECTION_TYPE_CONSTRAINT);
         addProperty(Property.COLLECTION_KEY, expressionNode);
         return this;
     }
