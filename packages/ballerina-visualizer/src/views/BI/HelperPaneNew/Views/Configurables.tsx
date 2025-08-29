@@ -79,13 +79,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
 
     useEffect(() => {
         getConfigVariables()
-    }, [])
-
-    useEffect(() => {
         getProjectInfo()
-    }, []);
-
-    useEffect(() => {
         const fetchTomlValues = async () => {
             try {
                 const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
@@ -101,7 +95,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         };
 
         fetchTomlValues();
-    }, []);
+    }, [])
 
     const getProjectInfo = async () => {
         const projectPath = await rpcClient.getVisualizerLocation();

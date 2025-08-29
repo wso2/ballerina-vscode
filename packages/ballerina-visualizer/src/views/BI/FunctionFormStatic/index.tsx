@@ -18,11 +18,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FunctionNode, LineRange, NodeKind, NodeProperties as OriginalNodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE } from "@wso2/ballerina-core";
-
-type NodeProperties = OriginalNodeProperties & {
-    [key: string]: any;
-};
-
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
@@ -32,6 +27,10 @@ import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
+
+type NodeProperties = OriginalNodeProperties & {
+    [key: string]: any;
+};
 
 const FormContainer = styled.div`
     display: flex;

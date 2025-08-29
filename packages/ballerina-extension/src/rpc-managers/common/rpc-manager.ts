@@ -256,7 +256,7 @@ export class CommonRpcManager implements CommonRPCAPI {
             try {
                 return parse(tomlContent);
             } catch (error) {
-                console.error("Failed to load tomal content", error);
+                console.error("Failed to load Ballerina.toml content", error);
                 return;
             }
         }
