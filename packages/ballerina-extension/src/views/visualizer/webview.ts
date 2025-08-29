@@ -23,7 +23,7 @@ import { RPCLayer } from "../../RPCLayer";
 import { debounce } from "lodash";
 import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } from "../../utils/webview-utils";
 import { extension } from "../../BalExtensionContext";
-import { StateMachine, updateView } from "../../stateMachine";
+import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
@@ -61,6 +61,11 @@ export class VisualizerWebview {
             const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
             if (!isOpened || this._panel?.active) {
                 await document.document.save();
+            }
+
+            // Reset visualizer the undo-redo stack if user did changes in the editor
+            if (isOpened) {
+                undoRedoManager.reset();
             }
 
             const state = StateMachine.state();
