@@ -83,6 +83,7 @@ export function OperationForm(props: OperationFormProps) {
                     addNewButton: false,
                     enabled: typeField?.enabled,
                     editable: typeField?.editable,
+                    imports: param?.imports || {}
                 },
                 name: {
                     value: param.formValues['variable'] as string,
@@ -310,6 +311,7 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,
         identifierRange: param.name.codedata?.lineRange,
-        hidden: param.hidden ?? false
+        hidden: param.hidden ?? false,
+        imports: param.type?.imports || {}
     };
 }
