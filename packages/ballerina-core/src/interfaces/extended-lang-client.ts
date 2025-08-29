@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./inline-data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
@@ -293,26 +293,26 @@ export interface InitialIDMSourceResponse {
     codedata?: CodeData;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface DataMapperModelRequest {
     filePath: string;
     codedata: CodeData;
     position: LinePosition;
     targetField?: string;
 }
 
-export interface InlineDataMapperBase {
+export interface DataMapperBase {
     filePath: string;
     codedata: CodeData;
     varName?: string;
     targetField?: string;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
+export interface DataMapperSourceRequest extends DataMapperBase {
     mapping: Mapping;
     withinSubMapping?: boolean;
 }
 
-export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
+export interface AllDataMapperSourceRequest extends DataMapperBase {
     mappings: Mapping[];
 }
 
@@ -330,11 +330,11 @@ export interface VisualizableFieldsRequest {
     codedata: CodeData;
 }
 
-export interface InlineDataMapperModelResponse {
+export interface DataMapperModelResponse {
     mappingsModel: ExpandedDMModel | DMModel;
 }
 
-export interface InlineDataMapperSourceResponse {
+export interface DataMapperSourceResponse {
     textEdits?: {
         [key: string]: TextEdit[];
     };
@@ -400,7 +400,7 @@ export interface MapWithCustomFnRequest {
     targetField: string;
 }
 
-export interface GetInlineDataMapperCodedataRequest {
+export interface GetDataMapperCodedataRequest {
     filePath: string;
     codedata: CodeData;
     name: string;
@@ -412,7 +412,7 @@ export interface GetSubMappingCodedataRequest {
     view: string;
 }
 
-export interface GetInlineDataMapperCodedataResponse {
+export interface GetDataMapperCodedataResponse {
     codedata: CodeData;
 }
 
