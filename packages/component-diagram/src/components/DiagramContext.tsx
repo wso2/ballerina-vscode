@@ -24,6 +24,7 @@ import { CDFunction, CDResourceFunction } from "@wso2/ballerina-core";
 export interface DiagramContextState {
     project: CDModel;
     expandedNodes: Set<string>; // Track which nodes are expanded by their UUID
+    graphQLGroupOpen?: Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }>;
     onListenerSelect: (listener: CDListener) => void;
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
@@ -31,11 +32,13 @@ export interface DiagramContextState {
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection) => void;
     onToggleNodeExpansion: (nodeId: string) => void; // Toggle expansion state of a node
+    onToggleGraphQLGroup?: (serviceUuid: string, group: "Query" | "Subscription" | "Mutation") => void;
 }
 
 export const DiagramContext = React.createContext<DiagramContextState>({
     project: { connections: [], listeners: [], services: [] },
     expandedNodes: new Set(),
+    graphQLGroupOpen: {},
     onListenerSelect: () => {},
     onServiceSelect: () => {},
     onFunctionSelect: () => {},
@@ -43,6 +46,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     onConnectionSelect: () => {},
     onDeleteComponent: () => {},
     onToggleNodeExpansion: () => {},
+    onToggleGraphQLGroup: () => {},
 });
 
 export const useDiagramContext = () => React.useContext(DiagramContext);
