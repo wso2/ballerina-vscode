@@ -131,6 +131,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
+    let assistantThinking: string = "";
 
     for await (const part of fullStream) {
         if (part.type === "tool-result") {
@@ -170,6 +171,12 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || assistantResponse
                     : assistantResponse;
 
+            const assistantMessages = finalMessages
+                .filter((msg) => msg.role === "assistant" && msg !== lastAssistantMessage)
+                .map((msg) => (msg.content as any[]).find((c) => c.type === "text")?.text || "")
+                .filter((text) => text !== "");
+            assistantThinking = assistantMessages.join("\n");
+
                 const postProcessedResp: PostProcessResponse = await postProcess({
                     assistant_response: assistantResponse,
                 });
@@ -197,7 +204,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     repair_attempt++;
                 }
                 console.log("Final Diagnostics ", diagnostics);
-                eventHandler({ type: "content_replace", content: diagnosticFixResp });
+                eventHandler({ type: "content_replace", content: assistantThinking + diagnosticFixResp });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
                 eventHandler({ type: "stop", command: Command.Code });
