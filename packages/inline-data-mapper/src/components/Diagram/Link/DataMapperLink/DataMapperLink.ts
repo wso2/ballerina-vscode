@@ -27,7 +27,7 @@ export const LINK_TYPE_ID = "datamapper-link";
 export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
-	ArrayToSingletonWithCollect = "array-singleton-collect",
+	ArrayToSingletonAggregate = "array-singleton-aggregate",
 	Incompatible = "Incompatible",
 	Default = undefined // This is for non-array mappings currently
 }
