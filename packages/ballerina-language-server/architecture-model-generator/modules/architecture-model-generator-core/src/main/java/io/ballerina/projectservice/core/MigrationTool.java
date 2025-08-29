@@ -20,6 +20,18 @@ package io.ballerina.projectservice.core;
 
 import java.util.List;
 
+/**
+ * Represents a migration tool with its configuration parameters.
+ *
+ * @param id              unique identifier for the migration tool
+ * @param title           display name of the migration tool
+ * @param commandName     command to execute the migration tool
+ * @param requiredVersion minimum required version for the tool
+ * @param needToPull      indicates if the tool needs to be pulled from central
+ * @param description     description of the migration tool
+ * @param parameters      list of parameters required by the migration tool
+ * @since 1.2.0
+ */
 public record MigrationTool(int id, String title,
                             String commandName,
                             String requiredVersion,

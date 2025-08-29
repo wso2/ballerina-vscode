@@ -22,4 +22,10 @@ import io.ballerina.projectservice.core.MigrationTool;
 
 import java.util.List;
 
+/**
+ * Response containing a list of available migration tools.
+ *
+ * @param tools list of available migration tools with their configurations
+ * @since 1.2.0
+ */
 public record MigrationToolListResponse(List<MigrationTool> tools) { }

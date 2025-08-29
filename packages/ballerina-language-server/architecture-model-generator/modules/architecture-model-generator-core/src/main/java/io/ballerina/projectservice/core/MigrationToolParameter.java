@@ -20,4 +20,15 @@ package io.ballerina.projectservice.core;
 
 import java.util.List;
 
-public record MigrationToolParameter(String key, String label, String valueType, String defaultValue, List<String> options) { }
+/**
+ * Represents a parameter for a migration tool.
+ *
+ * @param key          parameter key used in the tool configuration
+ * @param label        human-readable label for the parameter
+ * @param valueType    type of the parameter value (e.g., string, boolean, enum)
+ * @param defaultValue default value for the parameter
+ * @param options      list of valid options for enum-type parameters
+ * @since 1.2.0
+ */
+public record MigrationToolParameter(String key, String label, String valueType, String defaultValue,
+                                     List<String> options) { }
