@@ -17,15 +17,17 @@
  */
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, ProgressRing, Typography } from "@wso2/ui-toolkit";
+import { Typography } from "@wso2/ui-toolkit";
 import { useEffect, useMemo, useState } from "react";
 import { BodyText } from "../../styles";
-import { CoverageSummary } from "./components/CoverageSummary";
+import { MigrationActionButtons } from "./components/MigrationActionButtons";
 import { MigrationLogs } from "./components/MigrationLogs";
-import { ReportButtons } from "./components/ReportButtons";
+import { MigrationStatusContent } from "./components/MigrationStatusContent";
 import { ButtonWrapper, NextButtonWrapper, StepWrapper } from "./styles";
 import { MigrationProgressProps, MigrationReportJSON } from "./types";
-import { EXAMPLE_REPORT_JSON, getMigrationProgressHeaderData } from "./utils";
+import { getMigrationDisplayState, getMigrationProgressHeaderData } from "./utils";
+
+
 
 export function MigrationProgressView({
     migrationState,
@@ -46,7 +48,6 @@ export function MigrationProgressView({
             return JSON.parse(migrationResponse.jsonReport) as MigrationReportJSON;
         } catch (error) {
             console.error("Failed to parse migration report JSON:", error);
-            return EXAMPLE_REPORT_JSON;
         }
     }, [migrationResponse?.jsonReport]);
 
@@ -95,7 +96,8 @@ export function MigrationProgressView({
         }
     };
 
-    const { headerText, headerDesc } = getMigrationProgressHeaderData(migrationCompleted, migrationSuccessful);
+    const displayState = getMigrationDisplayState(migrationCompleted, migrationSuccessful, !!parsedReportData);
+    const { headerText, headerDesc } = getMigrationProgressHeaderData(displayState);
 
     return (
         <>
@@ -104,46 +106,22 @@ export function MigrationProgressView({
                 <BodyText>{headerDesc}</BodyText>
             </div>
             <StepWrapper>
-                {migrationCompleted && migrationSuccessful ? (
-                    parsedReportData ? (
-                        <>
-                            <CoverageSummary
-                                reportData={parsedReportData}
-                                onViewReport={handleViewReport}
-                                onSaveReport={handleSaveReport}
-                            />
-                            <NextButtonWrapper>
-                                <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
-                                    Back
-                                </Button>
-                                <Button
-                                    disabled={!migrationCompleted || !migrationSuccessful}
-                                    onClick={onNext}
-                                    appearance="primary"
-                                >
-                                    Next
-                                </Button>
-                            </NextButtonWrapper>
-                        </>
-                    ) : (
-                        <>
-                            <Typography variant="body3" sx={{ color: "var(--vscode-terminal-ansiGreen)" }}>
-                                Migration completed successfully!
-                            </Typography>
-                            {migrationResponse.report && (
-                                <ReportButtons onViewReport={handleViewReport} onSaveReport={handleSaveReport} />
-                            )}
-                        </>
-                    )
-                ) : migrationCompleted && !migrationSuccessful ? (
-                    <></>
-                ) : (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <ProgressRing sx={{ width: 14, height: 14 }} color="var(--vscode-foreground)" />
-                        <span style={{ color: "var(--vscode-foreground)" }}>
-                            {migrationState || "Starting migration..."}
-                        </span>
-                    </div>
+                <MigrationStatusContent
+                    state={displayState}
+                    migrationState={migrationState}
+                    migrationResponse={migrationResponse}
+                    parsedReportData={parsedReportData}
+                    onViewReport={handleViewReport}
+                    onSaveReport={handleSaveReport}
+                />
+                {displayState.showButtonsInStep && (
+                    <NextButtonWrapper>
+                        <MigrationActionButtons
+                            onNext={onNext}
+                            onBack={onBack}
+                            nextDisabled={!migrationCompleted || !migrationSuccessful}
+                        />
+                    </NextButtonWrapper>
                 )}
             </StepWrapper>
 
@@ -156,18 +134,13 @@ export function MigrationProgressView({
             />
 
             {/* Show button after logs when migration is in progress or failed */}
-            {(!migrationCompleted || (migrationCompleted && !migrationSuccessful)) && (
+            {displayState.showButtonsAfterLogs && (
                 <ButtonWrapper>
-                    <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
-                        Back
-                    </Button>
-                    <Button
-                        disabled={!migrationCompleted || !migrationSuccessful}
-                        onClick={onNext}
-                        appearance="primary"
-                    >
-                        Next
-                    </Button>
+                    <MigrationActionButtons
+                        onNext={onNext}
+                        onBack={onBack}
+                        nextDisabled={!migrationCompleted || !migrationSuccessful}
+                    />
                 </ButtonWrapper>
             )}
         </>

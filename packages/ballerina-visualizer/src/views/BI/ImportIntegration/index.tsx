@@ -127,10 +127,6 @@ export function ImportIntegration() {
         setStep(step - 1);
     };
 
-    const handleGoHome = () => {
-        gotToWelcome();
-    };
-
     const getMigrationTools = () => {
         rpcClient
             .getMigrateIntegrationRpcClient()
@@ -173,7 +169,7 @@ export function ImportIntegration() {
 
     return (
         <FormContainer>
-            <IconButton onClick={handleGoHome}>
+            <IconButton onClick={gotToWelcome}>
                 <Icon name="bi-home" iconSx={{ color: "var(--vscode-foreground)" }} />
             </IconButton>
             <Typography variant="h1">Migrate External Integration</Typography>
@@ -190,7 +186,7 @@ export function ImportIntegration() {
                     toolPullProgress={toolPullProgress}
                     onSelectIntegration={setSelectedIntegration}
                     handleStartImport={handleStartImport}
-                    onBack={handleGoHome}
+                    onBack={gotToWelcome}
                 />
             )}
             {step === 1 && (
