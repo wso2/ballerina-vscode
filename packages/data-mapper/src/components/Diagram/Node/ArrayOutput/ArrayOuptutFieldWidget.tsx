@@ -135,7 +135,10 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
 
     const label = (
         <TruncatedLabel style={{ marginRight: "auto" }}>
-            <span className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}>
+            <span
+                className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}
+                style={{ marginLeft: !connectedViaLink ? 0 : indentation + 24 }}
+            >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {fieldName && typeName && ":"}
@@ -254,7 +257,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     ? <ProgressRing sx={{ height: '16px', width: '16px' }} />
                     : <Codicon name="add" iconSx={{ color: "var(--vscode-inputOption-activeForeground)" }} />
                 }
-                Add Element
+                    Add Element
             </Button>
         );
     }, [isAddingElement]);
