@@ -25,16 +25,16 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "bank",
         "name": "bank",
+        "displayName": "bank",
         "typeName": "Bank",
         "kind": "record",
         "category": "variable",
@@ -44,14 +44,14 @@
       {
         "member": {
           "fields": [],
-          "id": "banks",
-          "name": "<banksItem>",
+          "name": "banks",
+          "displayName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
           "ref": "668760670"
         },
-        "id": "banks",
         "name": "banks",
+        "displayName": "banks",
         "typeName": "Bank[]",
         "kind": "array",
         "category": "variable",
@@ -60,14 +60,14 @@
       {
         "member": {
           "fields": [],
-          "id": "userInfo",
-          "name": "<userInfoItem>",
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
           "ref": "-481592369"
         },
-        "id": "userInfo",
         "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
         "category": "variable",
@@ -75,8 +75,8 @@
       },
       {
         "fields": [],
-        "id": "info",
         "name": "info",
+        "displayName": "info",
         "typeName": "UserInfo",
         "kind": "record",
         "focusExpression": "bank.userInfo",
@@ -86,14 +86,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "credentials",
-        "name": "<credentialsItem>",
+        "name": "credentials",
+        "displayName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
         "ref": "1085256861"
       },
-      "id": "credentials",
       "name": "credentials",
+      "displayName": "credentials",
       "typeName": "Credentials[]",
       "kind": "array",
       "ref": "1085256861"
@@ -149,8 +149,8 @@
       "668760670": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -158,14 +158,14 @@
           {
             "member": {
               "fields": [],
-              "id": "userInfo",
-              "name": "<userInfoItem>",
+              "name": "userInfo",
+              "displayName": "<userInfoItem>",
               "typeName": "UserInfo",
               "kind": "record",
               "ref": "-481592369"
             },
-            "id": "userInfo",
             "name": "userInfo",
+            "displayName": "userInfo",
             "typeName": "UserInfo[]",
             "kind": "array",
             "optional": false,
@@ -178,22 +178,22 @@
       "-481592369": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "id",
             "name": "id",
+            "displayName": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -205,15 +205,15 @@
       "1085256861": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

@@ -24,16 +24,16 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "var1",
         "name": "var1",
+        "displayName": "var1",
         "typeName": "Options",
         "kind": "record",
         "category": "local-variable",
@@ -48,8 +48,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "var2",
       "name": "var2",
+      "displayName": "var2",
       "typeName": "Options",
       "kind": "record",
       "moduleInfo": {
@@ -65,22 +65,22 @@
       "1722113469": {
         "fields": [
           {
-            "id": "clientName",
             "name": "clientName",
+            "displayName": "clientName",
             "typeName": "string",
             "kind": "string",
             "optional": true
           },
           {
-            "id": "database",
             "name": "database",
+            "displayName": "database",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "id": "connectionTimeout",
             "name": "connectionTimeout",
+            "displayName": "connectionTimeout",
             "typeName": "int",
             "kind": "int",
             "optional": false

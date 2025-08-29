@@ -24,16 +24,16 @@
   "model": {
     "inputs": [
       {
-        "id": "AGE",
         "name": "AGE",
+        "displayName": "AGE",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       }
     ],
     "output": {
-      "id": "myAge",
       "name": "myAge",
+      "displayName": "myAge",
       "typeName": "int",
       "kind": "int"
     },

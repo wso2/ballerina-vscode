@@ -26,8 +26,8 @@
     "inputs": [],
     "output": {
       "fields": [],
-      "id": "l1",
       "name": "l1",
+      "displayName": "l1",
       "typeName": "L1",
       "kind": "record",
       "ref": "-541564682"
@@ -39,14 +39,14 @@
           {
             "member": {
               "fields": [],
-              "id": "l2",
-              "name": "<l2Item>",
+              "name": "l2",
+              "displayName": "<l2Item>",
               "typeName": "L2",
               "kind": "record",
               "ref": "1686465105"
             },
-            "id": "l2",
             "name": "l2",
+            "displayName": "l2",
             "typeName": "L2[]",
             "kind": "array",
             "optional": false,
@@ -59,15 +59,15 @@
       "-457011656": {
         "fields": [
           {
-            "id": "l4_1",
             "name": "l4_1",
+            "displayName": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "id": "l4_2",
             "name": "l4_2",
+            "displayName": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -79,8 +79,8 @@
       "1686465105": {
         "fields": [
           {
-            "id": "l3",
             "name": "l3",
+            "displayName": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -89,20 +89,20 @@
             "member": {
               "member": {
                 "fields": [],
-                "id": "l3Arr",
-                "name": "<l3ArrItemItem>",
+                "name": "l3Arr",
+                "displayName": "<l3ArrItemItem>",
                 "typeName": "L3",
                 "kind": "record",
                 "ref": "-457011656"
               },
-              "id": "l3Arr",
-              "name": "<l3ArrItem>",
+              "name": "l3Arr",
+              "displayName": "<l3ArrItem>",
               "typeName": "L3[]",
               "kind": "array",
               "ref": "-457011656"
             },
-            "id": "l3Arr",
             "name": "l3Arr",
+            "displayName": "l3Arr",
             "typeName": "L3[][]",
             "kind": "array",
             "optional": false,

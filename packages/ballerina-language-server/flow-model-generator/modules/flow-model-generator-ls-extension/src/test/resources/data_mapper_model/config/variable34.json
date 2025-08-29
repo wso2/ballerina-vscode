@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -35,8 +35,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "user1",
       "name": "user1",
+      "displayName": "user1",
       "typeName": "User1",
       "kind": "record",
       "ref": "-2043998407"
@@ -80,8 +80,8 @@
       "-1647132631": {
         "fields": [
           {
-            "id": "u",
             "name": "u",
+            "displayName": "u",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -94,16 +94,16 @@
         "fields": [
           {
             "fields": [],
-            "id": "user2",
             "name": "user2",
+            "displayName": "user2",
             "typeName": "User2",
             "kind": "record",
             "optional": false,
             "ref": "-69405822"
           },
           {
-            "id": "s1",
             "name": "s1",
+            "displayName": "s1",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -116,16 +116,16 @@
         "fields": [
           {
             "fields": [],
-            "id": "user4",
             "name": "user4",
+            "displayName": "user4",
             "typeName": "User4",
             "kind": "record",
             "optional": false,
             "ref": "-462373188"
           },
           {
-            "id": "i3",
             "name": "i3",
+            "displayName": "i3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -137,8 +137,8 @@
       "-699535980": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -151,8 +151,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "user5",
             "name": "user5",
+            "displayName": "user5",
             "typeName": "User5",
             "kind": "record",
             "optional": false,
@@ -166,8 +166,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "user3",
             "name": "user3",
+            "displayName": "user3",
             "typeName": "User3",
             "kind": "record",
             "optional": false,

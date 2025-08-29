@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "u1",
         "name": "u1",
+        "displayName": "u1",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
@@ -34,8 +34,8 @@
       },
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -44,8 +44,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "var3",
       "name": "var3",
+      "displayName": "var3",
       "typeName": "Person",
       "kind": "record",
       "ref": "1538513639"
@@ -91,13 +91,13 @@
         "fields": [
           {
             "member": {
-              "id": "contacts",
-              "name": "<contactsItem>",
+              "name": "contacts",
+              "displayName": "<contactsItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "contacts",
             "name": "contacts",
+            "displayName": "contacts",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -110,13 +110,13 @@
         "fields": [
           {
             "member": {
-              "id": "phoneNumber",
-              "name": "<phoneNumberItem>",
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "phoneNumber",
             "name": "phoneNumber",
+            "displayName": "phoneNumber",
             "typeName": "string[]",
             "kind": "array",
             "optional": false

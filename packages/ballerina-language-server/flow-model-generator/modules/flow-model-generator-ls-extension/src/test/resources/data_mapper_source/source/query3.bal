@@ -1,17 +1,16 @@
 type MyType record {|
-    string name1;
-    int i;
+    string[] k;
 |};
 
-type Types record {|
-    MyType[][] t;
+type SimpleTypeArr record {|
+    string b0;
+    MyType m0;
 |};
 
-public function main() {
-    MyType[] myTypes1 = [{i: 0, name1: ""}, {i: 0, name1: ""}];
-    MyType[] myTypes2 = from var x in myTypes1 select {i: x.i};
-    MyType[][] myTypes3 = [];
-    Types types = {t: from var myType3 in myTypes3 select from var y in myType3 select {}};
-    Types types = {t: from var myType3 in myTypes3 select {i: "12"}};
-    MyType[][] myTypes4 = from var myType3 in myTypes3 select from var y in myType3 select {};
+function foo() {
+    SimpleTypeArr arr1 = {};
+    SimpleTypeArr arr2 = {
+        b0: from var kItem in arr1.m0.k
+            collect ""
+    };
 }

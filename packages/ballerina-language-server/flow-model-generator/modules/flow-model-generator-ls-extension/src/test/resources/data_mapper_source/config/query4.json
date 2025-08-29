@@ -10,8 +10,8 @@
         "offset": 4
       },
       "endLine": {
-        "line": 11,
-        "offset": 56
+        "line": 14,
+        "offset": 6
       }
     },
     "sourceCode": ""
@@ -22,24 +22,24 @@
     "offset": 4
   },
   "mapping": {
-    "output": "myTypes2.i",
-    "expression": "abc"
+    "output": "b0",
+    "expression": "sum(kItem)"
   },
-  "targetField": "myTypes2.0",
+  "targetField": "arr2.b0",
   "output": {
     "query3.bal": [
       {
         "range": {
           "start": {
-            "line": 11,
-            "character": 58
+            "line": 13,
+            "character": 20
           },
           "end": {
-            "line": 11,
-            "character": 61
+            "line": 13,
+            "character": 22
           }
         },
-        "newText": "abc"
+        "newText": "sum(kItem)"
       }
     ]
   }

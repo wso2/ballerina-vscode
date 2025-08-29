@@ -26,8 +26,8 @@
     "inputs": [],
     "output": {
       "fields": [],
-      "id": "person",
       "name": "person",
+      "displayName": "person",
       "typeName": "Person",
       "kind": "record",
       "ref": "-999232890"
@@ -37,16 +37,16 @@
       "-999232890": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "father",
             "name": "father",
+            "displayName": "father",
             "typeName": "Person",
             "kind": "record",
             "optional": false,
@@ -54,8 +54,8 @@
           },
           {
             "fields": [],
-            "id": "mother",
             "name": "mother",
+            "displayName": "mother",
             "typeName": "Person",
             "kind": "record",
             "optional": false,

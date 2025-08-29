@@ -24,31 +24,31 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "userInfo",
         "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
         "ref": "-481592369"
       },
       {
-        "id": "x",
         "name": "x",
+        "displayName": "x",
         "typeName": "int",
         "kind": "int",
         "category": "local-variable"
       },
       {
-        "id": "y",
         "name": "y",
+        "displayName": "y",
         "typeName": "int",
         "kind": "int",
         "category": "local-variable"
@@ -56,8 +56,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "student",
       "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "-863925971"
@@ -92,22 +92,22 @@
       "-863925971": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "id",
             "name": "id",
+            "displayName": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -119,22 +119,22 @@
       "-481592369": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "id",
             "name": "id",
+            "displayName": "id",
             "typeName": "int",
             "kind": "int",
             "optional": false
