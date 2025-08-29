@@ -26,7 +26,7 @@ import { extension } from "../../BalExtensionContext";
 import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
+import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
