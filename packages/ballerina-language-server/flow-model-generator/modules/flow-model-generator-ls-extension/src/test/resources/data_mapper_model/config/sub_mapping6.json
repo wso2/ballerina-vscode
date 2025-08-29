@@ -25,16 +25,16 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "s",
         "name": "s",
+        "displayName": "s",
         "typeName": "Student",
         "kind": "record",
         "category": "variable",
@@ -42,16 +42,16 @@
       },
       {
         "fields": [],
-        "id": "userInfo",
         "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "variable",
         "ref": "-1418772512"
       },
       {
-        "id": "x",
         "name": "x",
+        "displayName": "x",
         "typeName": "int",
         "kind": "int",
         "category": "variable"
@@ -59,13 +59,13 @@
     ],
     "output": {
       "member": {
-        "id": "username",
-        "name": "<usernameItem>",
+        "name": "username",
+        "displayName": "<usernameItem>",
         "typeName": "string",
         "kind": "string"
       },
-      "id": "username",
       "name": "username",
+      "displayName": "username",
       "typeName": "string[]",
       "kind": "array"
     },
@@ -107,15 +107,15 @@
       "-1418772512": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -128,20 +128,20 @@
         "fields": [
           {
             "member": {
-              "id": "username",
-              "name": "<usernameItem>",
+              "name": "username",
+              "displayName": "<usernameItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false

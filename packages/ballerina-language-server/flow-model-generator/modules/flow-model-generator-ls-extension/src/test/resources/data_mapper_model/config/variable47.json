@@ -26,24 +26,24 @@
     "inputs": [
       {
         "fields": [],
-        "id": "v1",
         "name": "v1",
+        "displayName": "v1",
         "typeName": "MyType",
         "kind": "record",
         "category": "variable",
         "ref": "1826392918"
       },
       {
-        "id": "kItem",
         "name": "kItem",
+        "displayName": "kItem",
         "typeName": "string",
         "kind": "string",
         "focusExpression": "v1.k"
       }
     ],
     "output": {
-      "id": "i",
       "name": "i",
+      "displayName": "i",
       "typeName": "string",
       "kind": "string"
     },
@@ -86,20 +86,20 @@
         "fields": [
           {
             "member": {
-              "id": "k",
-              "name": "<kItem>",
+              "name": "k",
+              "displayName": "<kItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "k",
             "name": "k",
+            "displayName": "k",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
           },
           {
-            "id": "i",
             "name": "i",
+            "displayName": "i",
             "typeName": "string",
             "kind": "string",
             "optional": false

@@ -26,26 +26,26 @@
       {
         "members": [
           {
-            "id": "DepartmentCode.FINANCE",
-            "name": "FINANCE",
+            "name": "DepartmentCode.FINANCE",
+            "displayName": "FINANCE",
             "typeName": "FINANCE",
             "kind": "FINANCE"
           },
           {
-            "id": "DepartmentCode.IT",
-            "name": "IT",
+            "name": "DepartmentCode.IT",
+            "displayName": "IT",
             "typeName": "IT",
             "kind": "IT"
           },
           {
-            "id": "DepartmentCode.HR",
-            "name": "HR",
+            "name": "DepartmentCode.HR",
+            "displayName": "HR",
             "typeName": "HR",
             "kind": "HR"
           }
         ],
-        "id": "enum",
-        "name": "DepartmentCode",
+        "name": "enum",
+        "displayName": "DepartmentCode",
         "typeName": "DepartmentCode",
         "kind": "enum",
         "category": "enum"
@@ -53,8 +53,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "engineering",
       "name": "engineering",
+      "displayName": "engineering",
       "typeName": "Department",
       "kind": "record",
       "ref": "-1148493925"
@@ -85,8 +85,8 @@
       "-1148493925": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -94,26 +94,26 @@
           {
             "members": [
               {
-                "id": "code",
                 "name": "code",
+                "displayName": "code",
                 "typeName": "FINANCE",
                 "kind": "FINANCE"
               },
               {
-                "id": "code",
                 "name": "code",
+                "displayName": "code",
                 "typeName": "IT",
                 "kind": "IT"
               },
               {
-                "id": "code",
                 "name": "code",
+                "displayName": "code",
                 "typeName": "HR",
                 "kind": "HR"
               }
             ],
-            "id": "code",
             "name": "code",
+            "displayName": "code",
             "typeName": "DepartmentCode",
             "kind": "union",
             "optional": false,

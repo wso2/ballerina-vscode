@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -35,8 +35,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "td",
       "name": "td",
+      "displayName": "td",
       "typeName": "TwoDim",
       "kind": "record",
       "ref": "-320539792"
@@ -153,18 +153,18 @@
           {
             "member": {
               "member": {
-                "id": "values",
-                "name": "<valuesItemItem>",
+                "name": "values",
+                "displayName": "<valuesItemItem>",
                 "typeName": "string",
                 "kind": "string"
               },
-              "id": "values",
-              "name": "<valuesItem>",
+              "name": "values",
+              "displayName": "<valuesItem>",
               "typeName": "string[]",
               "kind": "array"
             },
-            "id": "values",
             "name": "values",
+            "displayName": "values",
             "typeName": "string[][]",
             "kind": "array",
             "optional": false
@@ -177,13 +177,13 @@
         "fields": [
           {
             "member": {
-              "id": "phoneNumber",
-              "name": "<phoneNumberItem>",
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "phoneNumber",
             "name": "phoneNumber",
+            "displayName": "phoneNumber",
             "typeName": "string[]",
             "kind": "array",
             "optional": false

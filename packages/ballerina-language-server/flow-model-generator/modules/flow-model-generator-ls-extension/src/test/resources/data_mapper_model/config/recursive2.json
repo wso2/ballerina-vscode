@@ -24,8 +24,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "engineering",
         "name": "engineering",
+        "displayName": "engineering",
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
@@ -34,8 +34,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "alice",
       "name": "alice",
+      "displayName": "alice",
       "typeName": "Employee",
       "kind": "record",
       "ref": "281439725"
@@ -66,8 +66,8 @@
       "-676835306": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -75,14 +75,14 @@
           {
             "member": {
               "fields": [],
-              "id": "employees",
-              "name": "<employeesItem>",
+              "name": "employees",
+              "displayName": "<employeesItem>",
               "typeName": "Employee",
               "kind": "record",
               "ref": "281439725"
             },
-            "id": "employees",
             "name": "employees",
+            "displayName": "employees",
             "typeName": "Employee[]",
             "kind": "array",
             "optional": false,
@@ -95,16 +95,16 @@
       "281439725": {
         "fields": [
           {
-            "id": "name",
             "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "fields": [],
-            "id": "department",
             "name": "department",
+            "displayName": "department",
             "typeName": "Department",
             "kind": "record",
             "optional": false,

@@ -26,8 +26,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "l2Item",
         "name": "l2Item",
+        "displayName": "l2Item",
         "typeName": "l2Item",
         "kind": "record",
         "category": "variable",
@@ -36,8 +36,8 @@
       },
       {
         "fields": [],
-        "id": "var1",
         "name": "var1",
+        "displayName": "var1",
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable",
@@ -45,8 +45,8 @@
       },
       {
         "fields": [],
-        "id": "l3ArrItem",
         "name": "l3ArrItem",
+        "displayName": "l3ArrItem",
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "focusExpression": "l2Item.l3Arr",
@@ -56,14 +56,14 @@
     "output": {
       "member": {
         "fields": [],
-        "id": "l3Arr",
-        "name": "<l3ArrItem>",
+        "name": "l3Arr",
+        "displayName": "<l3ArrItem>",
         "typeName": "",
         "kind": "record",
         "ref": "1847207892"
       },
-      "id": "l3Arr",
       "name": "l3Arr",
+      "displayName": "l3Arr",
       "typeName": "[]",
       "kind": "array",
       "ref": "1847207892"
@@ -113,8 +113,8 @@
       "-791387238": {
         "fields": [
           {
-            "id": "l3",
             "name": "l3",
+            "displayName": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -122,14 +122,14 @@
           {
             "member": {
               "fields": [],
-              "id": "l3Arr",
-              "name": "<l3ArrItem>",
+              "name": "l3Arr",
+              "displayName": "<l3ArrItem>",
               "typeName": "",
               "kind": "record",
               "ref": "1847207892"
             },
-            "id": "l3Arr",
             "name": "l3Arr",
+            "displayName": "l3Arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -142,8 +142,8 @@
       "2072204783": {
         "fields": [
           {
-            "id": "l3",
             "name": "l3",
+            "displayName": "l3",
             "typeName": "int",
             "kind": "int",
             "optional": false
@@ -151,14 +151,14 @@
           {
             "member": {
               "fields": [],
-              "id": "l3Arr",
-              "name": "<l3ArrItem>",
+              "name": "l3Arr",
+              "displayName": "<l3ArrItem>",
               "typeName": "",
               "kind": "record",
               "ref": "1847207892"
             },
-            "id": "l3Arr",
             "name": "l3Arr",
+            "displayName": "l3Arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -173,14 +173,14 @@
           {
             "member": {
               "fields": [],
-              "id": "l2",
-              "name": "<l2Item>",
+              "name": "l2",
+              "displayName": "<l2Item>",
               "typeName": "",
               "kind": "record",
               "ref": "-791387238"
             },
-            "id": "l2",
             "name": "l2",
+            "displayName": "l2",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
@@ -193,15 +193,15 @@
       "-1019813121": {
         "fields": [
           {
-            "id": "l4_1",
             "name": "l4_1",
+            "displayName": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "id": "l4_2",
             "name": "l4_2",
+            "displayName": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -213,15 +213,15 @@
       "1847207892": {
         "fields": [
           {
-            "id": "l4_1",
             "name": "l4_1",
+            "displayName": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "id": "l4_2",
             "name": "l4_2",
+            "displayName": "l4_2",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -234,8 +234,8 @@
         "fields": [
           {
             "fields": [],
-            "id": "l1",
             "name": "l1",
+            "displayName": "l1",
             "typeName": "",
             "kind": "record",
             "optional": false,

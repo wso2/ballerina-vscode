@@ -25,8 +25,8 @@
     "inputs": [
       {
         "fields": [],
-        "id": "u1",
         "name": "u1",
+        "displayName": "u1",
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
@@ -34,8 +34,8 @@
       },
       {
         "fields": [],
-        "id": "user",
         "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
@@ -44,8 +44,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "var3",
       "name": "var3",
+      "displayName": "var3",
       "typeName": "Person5",
       "kind": "record",
       "ref": "1800505404"
@@ -113,21 +113,21 @@
       "-1867509383": {
         "fields": [
           {
-            "id": "primaryPhone",
             "name": "primaryPhone",
+            "displayName": "primaryPhone",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
             "member": {
-              "id": "secondaryPhones",
-              "name": "<secondaryPhonesItem>",
+              "name": "secondaryPhones",
+              "displayName": "<secondaryPhonesItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "secondaryPhones",
             "name": "secondaryPhones",
+            "displayName": "secondaryPhones",
             "typeName": "string[]",
             "kind": "array",
             "optional": false
@@ -141,14 +141,14 @@
           {
             "member": {
               "fields": [],
-              "id": "contacts",
-              "name": "<contactsItem>",
+              "name": "contacts",
+              "displayName": "<contactsItem>",
               "typeName": "Temp",
               "kind": "record",
               "ref": "-1867509383"
             },
-            "id": "contacts",
             "name": "contacts",
+            "displayName": "contacts",
             "typeName": "Temp[]",
             "kind": "array",
             "optional": false,
@@ -162,13 +162,13 @@
         "fields": [
           {
             "member": {
-              "id": "phoneNumber",
-              "name": "<phoneNumberItem>",
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
               "typeName": "string",
               "kind": "string"
             },
-            "id": "phoneNumber",
             "name": "phoneNumber",
+            "displayName": "phoneNumber",
             "typeName": "string[]",
             "kind": "array",
             "optional": false

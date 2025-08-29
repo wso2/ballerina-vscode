@@ -24,16 +24,16 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
         "name": "CONST",
+        "displayName": "CONST",
         "typeName": "const",
         "kind": "const",
         "category": "constant"
       },
       {
         "fields": [],
-        "id": "userInfo",
         "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
@@ -42,8 +42,8 @@
     ],
     "output": {
       "fields": [],
-      "id": "student",
       "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
       "ref": "1118340738"
@@ -86,15 +86,15 @@
       "-1418772512": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
@@ -106,22 +106,22 @@
       "1118340738": {
         "fields": [
           {
-            "id": "username",
             "name": "username",
+            "displayName": "username",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "password",
             "name": "password",
+            "displayName": "password",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "length",
             "name": "length",
+            "displayName": "length",
             "typeName": "int",
             "kind": "int",
             "optional": false
