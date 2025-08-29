@@ -157,20 +157,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         });
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => {
-        // newNodeNameRef.current = "";
-        // // Safely extract the variable name as a string, fallback to empty string if not available
-        // const varName = typeof updatedNode?.properties?.variable?.value === "string"
-        //     ? updatedNode.properties.variable.value
-        //     : "";
-        // newNodeNameRef.current = varName;
-        // handleOnFormSubmit?.(updatedNode, isDataMapperFormUpdate, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
-        // if (isModalOpen) {
-        //     setIsModalOpen(false)
-        //     getVariableInfo();
-        // }
-    };
-
     const handleItemClicked = (name: string) => {
         onChange(name, true)
     }

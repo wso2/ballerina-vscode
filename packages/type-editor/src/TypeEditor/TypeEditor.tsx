@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useContext, useState } from "react";
+import React, {  useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
@@ -25,7 +25,6 @@ import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../TypeH
 import { TypeHelperContext } from "../Context";
 import { ImportTab } from "./Tabs/ImportTab";
 import { TypeCreatorTab } from "./Tabs/TypeCreatorTab";
-import { EditorContext } from "./Contexts/TypeEditorContext";
 
 namespace S {
     export const Container = styled(SidePanelBody)`

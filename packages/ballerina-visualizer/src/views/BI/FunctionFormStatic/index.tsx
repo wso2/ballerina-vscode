@@ -22,19 +22,16 @@ import { FunctionNode, LineRange, NodeKind, NodeProperties as OriginalNodeProper
 type NodeProperties = OriginalNodeProperties & {
     [key: string]: any;
 };
-import { View, ViewContent } from "@wso2/ui-toolkit";
+
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
-import { TitleBar } from "../../../components/TitleBar";
-import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
-import { ScrollableContainer } from "../HelperPaneNew/Components/ScrollableContainer";
 
 const FormContainer = styled.div`
     display: flex;
@@ -61,12 +58,6 @@ const FormContainer = styled.div`
         background-color: rgba(0, 0, 0, 0.2);
         border-radius: 4px;
     }
-`;
-
-const Container = styled.div`
-    display: "flex";
-    flex-direction: "column";
-    gap: 10;
 `;
 
 interface FunctionFormProps {

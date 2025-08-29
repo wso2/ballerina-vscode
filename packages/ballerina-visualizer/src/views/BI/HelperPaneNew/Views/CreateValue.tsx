@@ -16,15 +16,12 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from "@wso2/ballerina-core";
+import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordTypeField, TypeField } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { getDefaultValue, isRowType } from "../Utils/types";
 import ExpandableList from "../Components/ExpandableList";
-import SelectableItem from "../Components/SelectableItem";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import DynamicModal from "../Components/Modal";
-import { RecordConfig } from "./RecordConfigView";
 
 type CreateValuePageProps = {
     fileName: string;

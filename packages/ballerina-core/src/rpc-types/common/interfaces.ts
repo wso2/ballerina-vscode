@@ -100,4 +100,3 @@ export interface TomlPackage {
 export interface TomlValues {
     package: TomlPackage;
 }
-

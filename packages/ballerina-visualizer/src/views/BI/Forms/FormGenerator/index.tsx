@@ -154,7 +154,7 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-const BreadcrumbContainer = styled.div`
+export const BreadcrumbContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
@@ -163,7 +163,7 @@ const BreadcrumbContainer = styled.div`
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
 
-const BreadcrumbItem = styled.span`
+export const BreadcrumbItem = styled.span`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     font-size: var(--vscode-font-size);
     
@@ -173,7 +173,7 @@ const BreadcrumbItem = styled.span`
     }
 `;
 
-const BreadcrumbSeparator = styled.span`
+export const BreadcrumbSeparator = styled.span`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     font-size: var(--vscode-font-size);
 `;
@@ -885,7 +885,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         })
         setTypeEditorState({
             isOpen: true,
-            newTypeValue: "Haha Value"
+            newTypeValue: ""
         })
     }
 
@@ -1056,7 +1056,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     // default form
     return (
-        <>
+        <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
             {fields && fields.length > 0 && (
                 <Form
                     ref={ref}
@@ -1108,7 +1108,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 <React.Fragment key={index}>
                                     {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                                     <BreadcrumbItem>
-                                         {stackItem?.type?.name || "New Type"}
+                                        {stackItem?.type?.name || "New Type"}
                                     </BreadcrumbItem>
                                 </React.Fragment>
                             ))}
@@ -1127,7 +1127,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     </div>
                 </DynamicModal>)
             }
-        </>
+        </EditorContext.Provider>
     );
 });
 

@@ -329,7 +329,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         subPanelView,
         targetLineRange,
         fileName,
-        helperPaneOrigin,
         helperPaneHeight,
         recordTypeField,
         helperPaneZIndex,

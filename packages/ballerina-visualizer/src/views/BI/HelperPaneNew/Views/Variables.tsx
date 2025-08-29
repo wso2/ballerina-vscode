@@ -89,15 +89,6 @@ export const Variables = (props: VariablesPageProps) => {
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
                 : undefined;
 
-        console.log("Trigger Character:", triggerCharacter);
-    }, []);
-
-    useEffect(() => {
-        const triggerCharacter =
-            currentValue.length > 0
-                ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
-                : undefined;
-
         handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
     }, [targetLineRange])
 
