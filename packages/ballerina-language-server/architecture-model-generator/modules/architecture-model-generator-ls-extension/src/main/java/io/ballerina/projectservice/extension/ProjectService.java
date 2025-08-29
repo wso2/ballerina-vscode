@@ -121,7 +121,7 @@ public class ProjectService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             ExtendedLanguageClient langClient = this.context.get(ExtendedLanguageClient.class);
             if (langClient == null) {
-                new ImportMuleResponse("Language client not available", null, null, null);
+                return new ImportMuleResponse("Language client not available", null, null, null);
             }
             Consumer<String> stateCallback = langClient::stateCallback;
             Consumer<String> logCallback = langClient::logCallback;

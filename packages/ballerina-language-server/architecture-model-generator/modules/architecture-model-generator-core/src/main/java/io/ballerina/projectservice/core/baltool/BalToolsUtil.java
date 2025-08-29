@@ -180,7 +180,7 @@ public final class BalToolsUtil {
         String[] parts1 = version1.split("\\.");
         String[] parts2 = version2.split("\\.");
 
-        // Assuming a valid "x.x.x" format, get the length of the shorter array
+        // Assuming a valid "x.x.x" format, get the length of the longer array
         int length = Math.max(parts1.length, parts2.length);
 
         for (int i = 0; i < length; i++) {
