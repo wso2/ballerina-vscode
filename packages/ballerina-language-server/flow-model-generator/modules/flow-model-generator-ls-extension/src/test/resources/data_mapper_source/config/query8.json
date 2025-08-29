@@ -22,24 +22,24 @@
     "offset": 4
   },
   "mapping": {
-    "output": "myTypes2",
-    "expression": "abc"
+    "output": "b0",
+    "expression": "sum(kItem)"
   },
-  "targetField": "myTypes2",
+  "targetField": "arr2.b0",
   "output": {
-    "query4.bal": [
+    "query3.bal": [
       {
         "range": {
           "start": {
-            "line": 11,
-            "character": 54
+            "line": 13,
+            "character": 20
           },
           "end": {
-            "line": 11,
-            "character": 62
+            "line": 13,
+            "character": 22
           }
         },
-        "newText": "abc"
+        "newText": "sum(kItem)"
       }
     ]
   }

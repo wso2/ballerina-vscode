@@ -1,10 +1,10 @@
 {
-  "source": "query3.bal",
+  "source": "query4.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "query3.bal",
+      "fileName": "query4.bal",
       "startLine": {
         "line": 13,
         "offset": 4
@@ -27,7 +27,7 @@
   },
   "targetField": "types.t.0",
   "output": {
-    "query3.bal": [
+    "query4.bal": [
       {
         "range": {
           "start": {
