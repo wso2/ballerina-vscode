@@ -65,7 +65,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, varName, projectUri, position, reusable } = props;
+    const { filePath, codedata, name, projectUri, position, reusable } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -73,7 +73,7 @@ export function DataMapperView(props: DataMapperProps) {
         hasInputsOutputsChanged: false
     });
     const [viewState, setViewState] = useState<DMViewState>({
-        viewId: varName,
+        viewId: name,
         codedata: codedata
     });
 
@@ -95,11 +95,11 @@ export function DataMapperView(props: DataMapperProps) {
     } = useDataMapperModel(filePath, viewState, position);
 
     useEffect(() => {
-        setViewState(prev => ({
-            ...prev,
-            codedata
-        }));
-    }, [varName, codedata]);
+        setViewState({
+            viewId: name,
+            codedata: codedata
+        });
+    }, [name, codedata]);
 
     useEffect(() => {
         if (!model) return;
@@ -126,12 +126,16 @@ export function DataMapperView(props: DataMapperProps) {
 
         // If types changed, we need to reprocess everything
         if (hasRefsChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
-            const expandedModel = expandDMModel(model as DMModel, {
-                processInputs: hasInputsChanged || hasRefsChanged,
-                processOutput: hasOutputChanged || hasRefsChanged,
-                processSubMappings: hasSubMappingsChanged || hasRefsChanged,
-                previousModel: modelState.model as ExpandedDMModel
-            });
+            const expandedModel = expandDMModel(
+                model as DMModel,
+                {
+                    processInputs: hasInputsChanged || hasRefsChanged,
+                    processOutput: hasOutputChanged || hasRefsChanged,
+                    processSubMappings: hasSubMappingsChanged || hasRefsChanged,
+                    previousModel: modelState.model as ExpandedDMModel
+                },
+                name
+            );
             console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
             setModelState({
                 model: expandedModel,
@@ -169,7 +173,7 @@ export function DataMapperView(props: DataMapperProps) {
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.variableName,
+            identifier: modelState.model.output.name,
             documentUri: filePath,
         };
 
@@ -297,7 +301,7 @@ export function DataMapperView(props: DataMapperProps) {
                 index,
                 clause,
                 targetField,
-                varName
+                varName: name
             };
             console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
 
@@ -335,7 +339,7 @@ export function DataMapperView(props: DataMapperProps) {
                 targetField,
                 subMappingName,
                 type,
-                varName,
+                name,
                 defaultValue
             );
 
@@ -359,7 +363,7 @@ export function DataMapperView(props: DataMapperProps) {
                     filePath,
                     codedata: viewState.codedata,
                     mapping,
-                    varName,
+                    varName: name,
                     targetField: viewId,
                 });
             console.log(">>> [Data Mapper] deleteMapping response:", resp);
@@ -378,7 +382,7 @@ export function DataMapperView(props: DataMapperProps) {
                     codedata,
                     mapping,
                     functionMetadata: metadata,
-                    varName,
+                    varName: name,
                     targetField: viewId,
                 });
             console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
@@ -491,7 +495,7 @@ export function DataMapperView(props: DataMapperProps) {
             }
             setFilteredCompletions(expressionCompletions);
         }, 150),
-        [filePath, codedata, varName, completions]
+        [filePath, codedata, name, completions]
     );
 
     const handleCompletionSelect = (value: string) => {
@@ -515,13 +519,13 @@ export function DataMapperView(props: DataMapperProps) {
                         <FunctionForm
                             projectPath={projectUri}
                             filePath={filePath}
-                            functionName={modelState.model.output.variableName}
+                            functionName={modelState.model.output.name}
                             isDataMapper={true}
                         />
                     ) : (
                         <DataMapper
                             modelState={modelState}
-                            name={varName}
+                            name={name}
                             onClose={onClose}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
