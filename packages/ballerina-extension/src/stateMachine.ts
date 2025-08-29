@@ -349,6 +349,12 @@ const stateMachine = createMachine<MachineContext>(
 
                 const execution = new ShellExecution(buildCommand);
 
+                if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+                    resolve(true);
+                    return;
+                }
+
+
                 const task = new Task(
                     taskDefinition,
                     workspace.workspaceFolders![0],
