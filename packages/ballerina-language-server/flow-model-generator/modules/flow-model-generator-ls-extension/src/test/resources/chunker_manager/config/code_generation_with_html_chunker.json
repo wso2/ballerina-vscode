@@ -3,8 +3,9 @@
   "flowNode": {
     "id": "31",
     "metadata": {
-      "label": "HtmlChunker",
-      "description": "Represents an HTML document chunker. Provides functionality to recursively chunk a HTML document using a configurable strategy. The chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
+      "label": "Chunker",
+      "description": "Initializes a new instance of the `HtmlChunker`.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
     },
     "codedata": {
       "node": "CHUNKER",
@@ -37,7 +38,7 @@
           "description": "Chunker instance name"
         },
         "valueType": "IDENTIFIER",
-        "value": "aiHtmlChunker",
+        "value": "aiHtmlchunker",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -73,7 +74,7 @@
       "maxOverlapSize": {
         "metadata": {
           "label": "Max Overlap Size",
-          "description": "Maximum number of characters to reuse from the end of the previous chunk when creating\nthe next one."
+          "description": "Maximum number of characters to reuse from the end of the previous chunk when creating\nthe next one"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
@@ -100,10 +101,10 @@
       "strategy": {
         "metadata": {
           "label": "Strategy",
-          "description": "The markdown chunking strategy to use. Defaults to `MARKDOWN_HEADER`"
+          "description": "The HTML chunking strategy to use. Defaults to `HTML_HEADER`."
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:MarkdownChunkStrategy",
+        "valueTypeConstraint": "ai:HtmlChunkStrategy",
         "placeholder": "\"CHARACTER\"",
         "optional": true,
         "editable": true,
@@ -115,7 +116,7 @@
         },
         "typeMembers": [
           {
-            "type": "MarkdownChunkStrategy",
+            "type": "HtmlChunkStrategy",
             "packageInfo": "ballerina:ai:1.5.0",
             "packageName": "ai",
             "kind": "BASIC_TYPE",
@@ -178,7 +179,7 @@
               "character": 0
             }
           },
-          "newText": "final ai:HtmlChunker aiHtmlChunker = new ();"
+          "newText": "final ai:HtmlChunker aiHtmlchunker = new ();"
         }
       ]
     }

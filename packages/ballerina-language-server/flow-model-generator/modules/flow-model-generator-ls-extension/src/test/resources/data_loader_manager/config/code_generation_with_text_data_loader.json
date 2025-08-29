@@ -3,8 +3,9 @@
   "flowNode": {
     "id": "31",
     "metadata": {
-      "label": "Text Data Loader",
-      "description": "Dataloader that can be used to load supported file types as `TextDocument`s. Currently only supports `pdf`, `docx` and `pptx` file types."
+      "label": "Data Loader",
+      "description": "Initializes the data loader with the given paths.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
     },
     "codedata": {
       "node": "DATA_LOADER",
@@ -12,8 +13,8 @@
       "module": "ai",
       "packageName": "ai",
       "object": "TextDataLoader",
-      "symbol": "init",
-      "version": "1.5.0"
+      "version": "1.5.0",
+      "isNew": true
     },
     "returning": false,
     "properties": {
@@ -23,16 +24,13 @@
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "devant:BinaryDataLoader",
+        "value": "ai:TextDataLoader",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {},
-        "imports": {
-          "ai": "ballerina/ai"
-        }
+        "codedata": {}
       },
       "variable": {
         "metadata": {
@@ -40,21 +38,18 @@
           "description": "Data loader instance name"
         },
         "valueType": "IDENTIFIER",
-        "value": "devantBinarydataloader",
+        "value": "aiTextdataloader",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {
-          "ai": "ballerina/ai"
-        }
+        "hidden": false
       },
-      "path": {
+      "paths": {
         "metadata": {
-          "label": "Path",
-          "description": "The file or directory path to load documents from"
+          "label": "Paths",
+          "description": "The paths to the files to load"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "EXPRESSION_SET",
         "valueTypeConstraint": "string",
         "placeholder": "\"\"",
         "optional": false,
@@ -62,21 +57,18 @@
         "advanced": false,
         "hidden": false,
         "codedata": {
-          "kind": "REQUIRED",
-          "originalName": "path"
+          "kind": "REST_PARAMETER",
+          "originalName": "paths"
         },
         "typeMembers": [
           {
             "type": "string",
             "packageInfo": "",
             "packageName": "",
-            "kind": "BASIC_TYPE",
+            "kind": "ARRAY_TYPE",
             "selected": false
           }
-        ],
-        "imports": {
-          "ai": "ballerina/ai"
-        }
+        ]
       },
       "scope": {
         "metadata": {
@@ -88,10 +80,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true,
-        "imports": {
-          "ai": "ballerina/ai"
-        }
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -103,10 +92,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": true,
-        "imports": {
-          "ai": "ballerina/ai"
-        }
+        "hidden": true
       }
     },
     "flags": 0
@@ -138,7 +124,7 @@
               "character": 0
             }
           },
-          "newText": "final devant:BinaryDataLoader devantBinarydataloader = check new (\"\");"
+          "newText": "final ai:TextDataLoader aiTextdataloader = check new ();"
         }
       ]
     }
