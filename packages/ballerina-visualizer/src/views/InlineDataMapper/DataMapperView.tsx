@@ -38,14 +38,15 @@ import {
     NodePosition,
     EVENT_TYPE,
     LineRange,
-    ResultClauseType
+    ResultClauseType,
+    IOType
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapperView } from "@wso2/ballerina-inline-data-mapper";
 
 import { useInlineDataMapperModel } from "../../Hooks";
-import { expandDMModel } from "./modelProcessor";
+import { expandDMModel, processTypeReference } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { InlineDataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
@@ -58,7 +59,7 @@ interface ModelSignature {
     inputs: string[];
     output: string;
     subMappings: string[];
-    types: string;
+    refs: string;
 }
 
 export function InlineDataMapperView(props: InlineDataMapperProps) {
@@ -107,10 +108,10 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
         const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
         const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasTypesChanged = hasSignatureChanged(currentSignature, prevSignature, 'types');
+        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
-        const isExpandedModel = !('types' in model);
+        const isExpandedModel = !('refs' in model);
         if (isExpandedModel) {
             setModelState({
                 model: model as ExpandedDMModel,
@@ -122,17 +123,18 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
         }
 
         // If types changed, we need to reprocess everything
-        if (hasTypesChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
+        if (hasRefsChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
             const expandedModel = expandDMModel(model as DMModel, {
-                processInputs: hasInputsChanged || hasTypesChanged,
-                processOutput: hasOutputChanged || hasTypesChanged,
-                processSubMappings: hasSubMappingsChanged || hasTypesChanged,
+                processInputs: hasInputsChanged || hasRefsChanged,
+                processOutput: hasOutputChanged || hasRefsChanged,
+                processSubMappings: hasSubMappingsChanged || hasRefsChanged,
                 previousModel: modelState.model as ExpandedDMModel
             });
+            console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
             setModelState({
                 model: expandedModel,
-                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasTypesChanged,
-                hasSubMappingsChanged: hasSubMappingsChanged || hasTypesChanged
+                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
+                hasSubMappingsChanged: hasSubMappingsChanged || hasRefsChanged
             });
         } else {
             setModelState(prev => ({
@@ -375,6 +377,18 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
+    const enrichChildFields = (parentField: IOType) => {
+        if (parentField.ref) {
+            parentField.fields = processTypeReference(
+                parentField.ref,
+                parentField.id,
+                model as DMModel,
+                new Set()
+            ).fields;
+            parentField.isDeepNested = false;
+        }
+    }
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -486,6 +500,7 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
                     deleteMapping={deleteMapping}
                     mapWithCustomFn={mapWithCustomFn}
                     goToFunction={goToFunction}
+                    enrichChildFields={enrichChildFields}
                     expressionBar={{
                         completions: filteredCompletions,
                         isUpdatingSource,
@@ -501,10 +516,10 @@ export function InlineDataMapperView(props: InlineDataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.id),
-    output: model.output.id,
-    subMappings: model.subMappings?.map(s => s.id) || [],
-    types: 'types' in model ? JSON.stringify(model.types) : ''
+    inputs: model.inputs.map(i => i.name),
+    output: model.output.name,
+    subMappings: model.subMappings?.map(s => s.name) || [],
+    refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 
 const hasSignatureChanged = (

@@ -14,7 +14,7 @@ import { generateInlineAutoMappings } from "../../../src/features/ai/service/dat
 import { FieldMetadata, ParameterDefinitions, ParameterField, ParameterMetadata } from "./types";
 
 function transformIOType(input: IOType): FormField {
-    const name = input.variableName || extractNameFromId(input.id);
+    const name = input.name || extractNameFromId(input.id);
 
     let typeName: string;
     if (input.kind && input.typeName && input.kind !== input.typeName && input.category) {
@@ -324,7 +324,7 @@ function transformCodeObjectToMappings(codeObject: any, request: InlineDataMappe
 
     // Get the output variable name from the request
     const { output: mappingOutput } = request.mappingsModel as ExpandedDMModel;
-    const outputVariableName = mappingOutput.variableName || extractNameFromId(mappingOutput.id);
+    const outputVariableName = mappingOutput.name || extractNameFromId(mappingOutput.id);
 
     // Iterate through each property in codeObject
     Object.keys(codeObject).forEach(key => {
