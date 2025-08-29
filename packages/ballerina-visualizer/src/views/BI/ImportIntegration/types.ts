@@ -74,3 +74,12 @@ export interface ConfigureProjectFormProps {
     onNext: (projectName: string, projectPath: string) => void;
     onBack: () => void;
 }
+
+export interface MigrationDisplayState {
+    isInProgress: boolean;
+    isSuccess: boolean;
+    isFailed: boolean;
+    hasReportData: boolean;
+    showButtonsInStep: boolean;
+    showButtonsAfterLogs: boolean;
+}
