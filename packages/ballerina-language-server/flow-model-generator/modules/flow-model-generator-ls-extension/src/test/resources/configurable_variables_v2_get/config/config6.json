@@ -374,7 +374,7 @@
     "ballerina/log": {
       "": [
         {
-          "id": "94278",
+          "id": "113165",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -384,12 +384,12 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 63,
+                "line": 82,
                 "offset": 0
               },
               "endLine": {
-                "line": 63,
-                "offset": 38
+                "line": 83,
+                "offset": 46
               }
             }
           },
@@ -414,7 +414,7 @@
                 "description": "Type of the variable"
               },
               "valueType": "TYPE",
-              "value": "string",
+              "value": "LogFormat",
               "placeholder": "var",
               "optional": false,
               "editable": false,
@@ -428,7 +428,7 @@
                 "description": "Default value of the variable"
               },
               "valueType": "EXPRESSION",
-              "value": "\"logfmt\"",
+              "value": "LOGFMT",
               "optional": true,
               "editable": false,
               "advanced": false,
@@ -454,7 +454,7 @@
                 "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
-              "value": "",
+              "value": "Root logger default log format.",
               "optional": true,
               "editable": false,
               "advanced": false,
@@ -465,7 +465,7 @@
           "flags": 0
         },
         {
-          "id": "95267",
+          "id": "116134",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -475,12 +475,12 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 64,
+                "line": 85,
                 "offset": 0
               },
               "endLine": {
-                "line": 64,
-                "offset": 35
+                "line": 86,
+                "offset": 39
               }
             }
           },
@@ -505,7 +505,7 @@
                 "description": "Type of the variable"
               },
               "valueType": "TYPE",
-              "value": "string",
+              "value": "Level",
               "placeholder": "var",
               "optional": false,
               "editable": false,
@@ -519,7 +519,7 @@
                 "description": "Default value of the variable"
               },
               "valueType": "EXPRESSION",
-              "value": "\"INFO\"",
+              "value": "INFO",
               "optional": true,
               "editable": false,
               "advanced": false,
@@ -545,7 +545,7 @@
                 "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
-              "value": "",
+              "value": "Root logger default log level.",
               "optional": true,
               "editable": false,
               "advanced": false,
@@ -556,7 +556,7 @@
           "flags": 0
         },
         {
-          "id": "96291",
+          "id": "119145",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -566,12 +566,12 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 65,
+                "line": 88,
                 "offset": 0
               },
               "endLine": {
-                "line": 65,
-                "offset": 67
+                "line": 89,
+                "offset": 74
               }
             }
           },
@@ -636,7 +636,189 @@
                 "description": "Variable documentation in Markdown format"
               },
               "valueType": "STRING",
+              "value": "Modules with their log levels.",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "122110",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "natives.bal",
+              "startLine": {
+                "line": 91,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 92,
+                "offset": 63
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "keyValues",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "AnydataKeyValues & readonly",
+              "placeholder": "var",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "{}",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
               "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "Default key-values to add to the root logger.",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "165779",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "natives.bal",
+              "startLine": {
+                "line": 135,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 136,
+                "offset": 84
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "Global",
+              "value": "destinations",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "valueType": "TYPE",
+              "value": "readonly & OutputDestination[]",
+              "placeholder": "var",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "codedata": {}
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "valueType": "EXPRESSION",
+              "value": "[{'type: STDERR}]",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "valueType": "EXPRESSION",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "valueType": "STRING",
+              "value": "Destinations is a list of file destinations or standard output/error.",
               "optional": true,
               "editable": false,
               "advanced": false,
