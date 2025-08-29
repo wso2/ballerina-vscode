@@ -35,7 +35,7 @@ import {
     RunExternalCommandResponse,
     ShowErrorMessageRequest,
     SyntaxTree,
-    TomalValues,
+    TomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
@@ -248,7 +248,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         return null;
     }
 
-    async getCurrentProjectTomlValues(): Promise<TomalValues> {
+    async getCurrentProjectTomlValues(): Promise<TomlValues> {
         const projectRoot = await this.getBallerinaProjectRoot();
         const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
         if (fs.existsSync(ballerinaTomlPath)) {

@@ -91,13 +91,13 @@ export interface ShowErrorMessageRequest {
     message: string;
 }
 
-export interface TomalPackage {
+export interface TomlPackage {
     org: string;
     name: string;
     version: string;
 }
 
-export interface TomalValues {
-    package: TomalPackage;
+export interface TomlValues {
+    package: TomlPackage;
 }
 

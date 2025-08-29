@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { CompletionInsertText, ConfigVariable, FlowNode, LineRange, TomalPackage } from "@wso2/ballerina-core";
+import { CompletionInsertText, ConfigVariable, FlowNode, LineRange, TomlPackage } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReactNode, useEffect, useState } from "react";
 import ExpandableList from "../Components/ExpandableList";
@@ -61,7 +61,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [configVarNode, setCofigVarNode] = useState<FlowNode>();
     const [isSaving, setIsSaving] = useState(false);
-    const [packageInfo, setPackageInfo] = useState<TomalPackage>();
+    const [packageInfo, setPackageInfo] = useState<TomlPackage>();
     const [isImportEnv, setIsImportEnv] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
 
