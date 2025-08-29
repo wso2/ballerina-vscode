@@ -84,8 +84,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     if (fieldIndex !== undefined && !isPortParent) {
         portName = `${portName}.${fieldIndex}`
     }
-
-    const fieldName = field?.variableName || '';
+    const fieldName = field?.name || '';
 
     const portIn = getPort(`${portName}.IN`);
     const mapping = portIn && portIn.attributes.value;

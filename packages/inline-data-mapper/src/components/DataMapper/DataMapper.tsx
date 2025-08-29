@@ -131,7 +131,8 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
         generateForm,
         addClauses,
         mapWithCustomFn,
-        goToFunction
+        goToFunction,
+        enrichChildFields
     } = props;
     const {
         model,
@@ -139,7 +140,7 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
     } = modelState;
 
     const initialView = [{
-        label: model.output.variableName,
+        label: model.output.name,
         targetField: name
     }];
 
@@ -202,7 +203,8 @@ export function InlineDataMapper(props: InlineDataMapperProps) {
                 convertToQuery,
                 deleteMapping,
                 mapWithCustomFn,
-                goToFunction
+                goToFunction,
+                enrichChildFields
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);

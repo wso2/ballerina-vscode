@@ -51,6 +51,20 @@ export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapp
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
 
+export function hasChildMappingsForOutput(mappings: Mapping[], outputId: string): boolean {
+    return mappings.some(mapping => 
+        mapping.output.startsWith(outputId + ".")
+    );
+}
+
+export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): boolean {
+    return mappings.some(mapping => {
+        if (mapping.inputs.some(input => input.startsWith(inputId + "."))) return true;
+        return mapping.elements?.some(element => hasChildMappingsForInput(element.mappings, inputId));
+    }
+    );
+}
+
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
     return mappingType !== MappingType.Default;
 }

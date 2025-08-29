@@ -48,8 +48,8 @@ export class QueryOutputNodeFactory extends AbstractReactFactory<QueryOutputNode
 						getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
 						context={event.model.context}
 						mappings={event.model.filteredMappings}
-						valueLabel={event.model.outputType.variableName}
-						originalTypeName={event.model.filteredOutputType?.variableName}
+						valueLabel={event.model.outputType.name}
+						originalTypeName={event.model.filteredOutputType?.name}
 					/>
 				)}
 			</>

@@ -48,7 +48,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
 
-    const fieldName = dmType.variableName;
+    const fieldName = dmType.name;
     const typeName = getTypeName(dmType);
     const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
@@ -88,7 +88,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     );
 
     const handleExpand = () => {
-        if (dmType.kind === TypeKind.Array) {
+        if (dmType.kind === TypeKind.Array || dmType.isDeepNested) {
             const expandedFields = expandedFieldsStore.fields;
             if (expanded) {
                 expandedFieldsStore.setFields(expandedFields.filter((element) => element !== fieldId));

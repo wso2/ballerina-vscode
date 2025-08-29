@@ -142,7 +142,7 @@ export class InputNode extends DataMapperNodeModel {
 
     public getSearchFilteredType() {
         // TODO: Include variableName for inputTypes (Currently only available for variables)
-        const variableName = this.inputType.variableName || this.inputType.id;
+        const variableName = this.inputType.name || this.inputType.id;
         if (variableName) {
             const searchValue = useDMSearchStore.getState().inputSearch;
 

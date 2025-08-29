@@ -27,6 +27,8 @@ import {
     TypeKind,
 } from "@wso2/ballerina-core";
 
+const MAX_NESTED_DEPTH = 4;
+
 interface ExpandOptions {
     processInputs?: boolean;
     processOutput?: boolean;
@@ -44,14 +46,32 @@ function generateFieldId(parentId: string, fieldName: string): string {
 /**
  * Processes a type reference and returns the appropriate IOType structure
  */
-function processTypeReference(
-    refType: RecordType | EnumType,
+export function processTypeReference(
+    ref: string,
     fieldId: string,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): Partial<IOType> {
+    const refType = model.refs[ref]
     if ('fields' in refType) {
+        if (visitedRefs.has(ref)) {
+            return {
+                ref: ref,
+                fields: [],
+                isRecursive: true,
+                isDeepNested: true,
+            }
+        }
+        visitedRefs.add(ref);
+        if (visitedRefs.size > MAX_NESTED_DEPTH) {
+            return {
+                ref: ref,
+                fields: [],
+                isDeepNested: true
+            }
+        }
         return {
-            fields: processTypeFields(refType, fieldId, model)
+            fields: processTypeFields(refType, fieldId, model, visitedRefs)
         };
     }
     if ('members' in refType) {
@@ -69,27 +89,41 @@ function processArray(
     field: IOTypeField,
     parentId: string,
     member: IOTypeField,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): IOType {
-    const fieldId = generateFieldId(parentId, `${parentId.split(".").pop()!}Item`);
+    let fieldId = generateFieldId(parentId, member.name);
+
+    let isFocused = false;
+    if (model.focusInputs) {
+        const focusMember = model.focusInputs[parentId];
+        if (focusMember) {
+            member = focusMember;
+            parentId = member.name;
+            fieldId = member.name;
+            isFocused = true;
+        }
+    }
+
     const ioType: IOType = {
         id: fieldId,
+        name: member.name,
         typeName: member.typeName!,
-        kind: member.kind
+        kind: member.kind,
+        ...(isFocused && { isFocused })
     };
-
-    if (member.ref) {
-        const refType = model.types[member.ref];
-        return {
-            ...ioType,
-            ...processTypeReference(refType, fieldId, model)
-        };
-    }
 
     if (member.kind === TypeKind.Array && member.member) {
         return {
             ...ioType,
-            member: processArray(field, fieldId, member.member, model)
+            member: processArray(field, parentId, member.member, model, visitedRefs)
+        };
+    }
+
+    if (member.ref) {
+        return {
+            ...ioType,
+            ...processTypeReference(member.ref, parentId, model, visitedRefs)
         };
     }
 
@@ -102,31 +136,31 @@ function processArray(
 function processTypeFields(
     type: RecordType,
     parentId: string,
-    model: DMModel
+    model: DMModel,
+    visitedRefs: Set<string>
 ): IOType[] {
     if (!type.fields) return [];
 
     return type.fields.map(field => {
-        const fieldId = generateFieldId(parentId, field.fieldName!);
+        const fieldId = generateFieldId(parentId, field.name!);
         const ioType: IOType = {
             id: fieldId,
-            variableName: field.fieldName!,
-            typeName: field.typeName!,
+            name: field.name,
+            typeName: field.typeName,
             kind: field.kind
         };
 
         if (field.kind === TypeKind.Record && field.ref) {
-            const refType = model.types[field.ref];
             return {
                 ...ioType,
-                ...processTypeReference(refType, fieldId, model)
+                ...processTypeReference(field.ref, fieldId, model, new Set(visitedRefs))
             };
         }
 
         if (field.kind === TypeKind.Array && field.member) {
             return {
                 ...ioType,
-                member: processArray(field, fieldId, field.member, model)
+                member: processArray(field, fieldId, field.member, model, new Set(visitedRefs))
             };
         }
 
@@ -139,12 +173,37 @@ function processTypeFields(
  */
 function createBaseIOType(root: IORoot): IOType {
     return {
-        id: root.id,
-        variableName: root.fieldName!,
+        id: root.name,
+        name: root.name,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category })
     };
+}
+
+/**
+ * Preprocesses inputs of the DMModel (separates focus inputs from regular inputs)
+ * Processes each regular input into an IOType
+ */
+
+function processInputRoots(model: DMModel): IOType[]{
+    const inputs: IORoot[] = [];
+    const focusInputs: Record<string, IOTypeField> = {};
+    for (const input of model.inputs) {
+        if (input.focusExpression) {
+            focusInputs[input.focusExpression] = input as IOTypeField;
+        } else {
+            inputs.push(input);
+        }
+    }
+    const preProcessedModel: DMModel = {
+        ...model,
+        inputs,
+        focusInputs
+    };
+
+    return inputs.map(input => processIORoot(input, preProcessedModel));
+
 }
 
 /**
@@ -153,18 +212,17 @@ function createBaseIOType(root: IORoot): IOType {
 function processIORoot(root: IORoot, model: DMModel): IOType {
     const ioType = createBaseIOType(root);
 
-    if (root.ref) {
-        const refType = model.types[root.ref];
-        return {
-            ...ioType,
-            ...processTypeReference(refType, root.id, model)
-        };
-    }
-
     if (root.kind === TypeKind.Array && root.member) {
         return {
             ...ioType,
-            member: processArray(root, root.id, root.member, model)
+            member: processArray(root, root.name, root.member, model, new Set<string>())
+        };
+    }
+
+    if (root.ref) {
+        return {
+            ...ioType,
+            ...processTypeReference(root.ref, root.name, model, new Set<string>())
         };
     }
 
@@ -187,7 +245,7 @@ export function expandDMModel(
 
     return {
         inputs: processInputs
-            ? model.inputs.map(input => processIORoot(input, model))
+            ? processInputRoots(model)
             : previousModel?.inputs || [],
         output: processOutput
             ? processIORoot(model.output, model)
@@ -196,6 +254,7 @@ export function expandDMModel(
             ? model.subMappings?.map(subMapping => processIORoot(subMapping, model))
             : previousModel?.subMappings || [],
         mappings: model.mappings,
+        query: model.query,
         source: "",
         view: ""
     };
