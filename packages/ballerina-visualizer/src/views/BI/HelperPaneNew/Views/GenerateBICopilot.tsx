@@ -16,11 +16,9 @@
  * under the License.
  */
 
-import { AutoResizeTextArea, Button, Codicon, TextArea, ThemeColors } from "@wso2/ui-toolkit"
-import { TextField } from "@wso2/ui-toolkit/lib/components/TextField/TextField"
+import { AutoResizeTextArea, Codicon, TextArea, ThemeColors } from "@wso2/ui-toolkit"
 import styled from "@emotion/styled";
-import { useState, useCallback } from "react";
-import debounce from "lodash/debounce";
+import { useState } from "react";
 
 const Container = styled.div`
     display: flex;

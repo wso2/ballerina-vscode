@@ -170,6 +170,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
     const typeFieldRef = exprRef?.current?.inputElement?.getBoundingClientRect();
 
+    //TODO: use this after operator part is implemented
     const handleOperatorClick = (operator: TypeHelperOperator) => {
         if (operator.insertType === 'global') {
             if (operator.insertLocation === 'start') {

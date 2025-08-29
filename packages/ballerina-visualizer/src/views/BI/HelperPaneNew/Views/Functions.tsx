@@ -28,13 +28,9 @@ import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/Express
 import { COMPLETION_ITEM_KIND, CompletionItem, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
-import { Divider, Overlay, SearchBox, ThemeColors } from "@wso2/ui-toolkit";
-import { LoadingContainer } from "../../../styles";
-import { createPortal } from "react-dom";
+import { Divider, SearchBox } from "@wso2/ui-toolkit";
 import { LibraryBrowser } from "../../HelperPane/LibraryBrowser";
-import { LoadingRing } from "../../../../components/Loader";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
-import FormGenerator from "../../Forms/FormGenerator";
 import FooterButtons from "../Components/FooterButtons";
 import DynamicModal from "../Components/Modal";
 import { URI, Utils } from "vscode-uri";
@@ -281,13 +277,6 @@ export const FunctionsPage = ({
                     onFunctionItemSelect={onFunctionItemSelect}
                 />
             )}
-            {/* {isAddingFunction && createPortal(
-                <>
-                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 5000 }} />
-                    <LoadingContainer> <LoadingRing /> </LoadingContainer>
-                </>
-                , document.body
-            )} */}
         </div>
     )
 }
@@ -295,9 +284,3 @@ export const FunctionsPage = ({
 const FunctionItemLabel = styled.span`
     font-size: 13px;
 `;
-
-// <ExpandableList.Section key={cat.label} title={cat.label}>
-// {cat.items.map((item) => (
-//     <ExpandableList.Item key={item.label}>{item.label}</ExpandableList.Item>
-// ))}
-// </ExpandableList.Section>

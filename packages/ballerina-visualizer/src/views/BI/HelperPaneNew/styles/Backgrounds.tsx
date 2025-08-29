@@ -28,4 +28,3 @@ export const HelperBackground = styled.div`
   height: 100%;
   font-size: 16px;
 `;
-

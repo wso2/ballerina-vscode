@@ -1,10 +1,19 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
- * This software is the property of WSO2 LLC. and its suppliers, if any.
- * Dissemination of any information or reproduction of any material contained
- * herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
- * You may not alter or remove any copyright or other notice from copies of this content.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -12,7 +21,7 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
-import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HELPER_PANE_EX_BTN_OFFSET, HELPER_PANE_WIDTH, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
+import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import {  SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
 import DynamicModal from './Components/Modal';
@@ -63,15 +72,10 @@ const HelperPaneNewEl = ({
     exprRef,
     anchorRef,
     onClose,
-    defaultValue,
     currentValue,
     onChange,
-    helperPaneHeight,
     recordTypeField,
     updateImports,
-    isAssignIdentifier,
-    completions,
-    projectPath,
     handleOnFormSubmit,
     selectedType,
     filteredCompletions,
@@ -85,7 +89,6 @@ const HelperPaneNewEl = ({
     const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ? 4 : 3
-    const selectedItemRef = useRef<HTMLDivElement>(null);
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -300,16 +303,6 @@ const HelperPaneNewEl = ({
                                         </TitleContainer>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
-                                {/* <SlidingPaneNavContainer to="ENVS">
-                                <ExpandableList.Item>
-                                    <TitleContainer>
-                                        {getIcon(COMPLETION_ITEM_KIND.EnumMember)}
-                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                            Environment Variables
-                                        </Typography>
-                                    </TitleContainer>
-                                </ExpandableList.Item>
-                            </SlidingPaneNavContainer> */}
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
                                     to="FUNCTIONS"
@@ -325,19 +318,6 @@ const HelperPaneNewEl = ({
                             </ExpandableList>
 
                         </div>
-                        {/* <div style={{ marginTop: "auto", gap: '10px' }}>
-                            <Divider />
-                            <DynamicModal width={600} height={400} anchorRef={anchorRef} title="Build Expression with BI Copilot" openState={isModalOpen} setOpenState={setIsModalOpen}>
-                                <DynamicModal.Trigger>
-                                    <FooterButtons
-                                        sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto' }}
-                                        startIcon='copilot'
-                                        title="Generate with BI Copilot" />
-                                </DynamicModal.Trigger>
-                                <GenerateBICopilot />
-                            </DynamicModal>
-
-                        </div> */}
                     </SlidingPane>
 
                     {/* Variables Page */}

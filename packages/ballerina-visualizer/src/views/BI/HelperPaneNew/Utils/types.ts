@@ -16,8 +16,6 @@
  * under the License.
  */
 
-import { CompletionItem } from "@wso2/ui-toolkit";
-
 export const DEFAULT_VALUE_MAP: Record<string, string> = {
     "struct": "{}",
     "array": "[]",
