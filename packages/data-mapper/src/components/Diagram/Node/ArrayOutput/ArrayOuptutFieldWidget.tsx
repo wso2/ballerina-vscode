@@ -283,7 +283,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handleArrayDeletion = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }

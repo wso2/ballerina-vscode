@@ -148,7 +148,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handleDeleteValue = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }
