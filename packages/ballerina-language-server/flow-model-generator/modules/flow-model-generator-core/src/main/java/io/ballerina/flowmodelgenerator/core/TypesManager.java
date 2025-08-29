@@ -353,7 +353,7 @@ public class TypesManager {
 
         // methods
         serviceDeclarationSymbol.methods().forEach((key, method) -> {
-            // params - skip for GraphQL
+            // Skipping Parameters. e.g. GraphQL service class methods
             if (!skipParameters) {
                 method.typeDescriptor().params().ifPresent(params -> params.forEach(param -> {
                     addDependencyTypes(param.typeDescriptor(), references, skipParameters);

@@ -95,7 +95,18 @@
         "qualifiers": [
           "RESOURCE"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "kind": "FIELD",
+            "refs": [
+              "ballerina/graphql:Context"
+            ],
+            "type": "graphql:Context",
+            "name": "context",
+            "optional": false,
+            "readonly": false
+          }
+        ],
         "kind": "RESOURCE",
         "name": "g",
         "description": "",
