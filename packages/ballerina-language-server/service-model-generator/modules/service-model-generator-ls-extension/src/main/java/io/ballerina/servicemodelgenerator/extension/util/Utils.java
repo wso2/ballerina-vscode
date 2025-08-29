@@ -82,6 +82,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
@@ -420,7 +421,7 @@ public final class Utils {
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
-            String propertyName = "annot" + annotName;
+            String propertyName = ANNOT_PREFIX + annotName;
             if (service.getProperties().containsKey(propertyName)) {
                 Value property = service.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
@@ -442,11 +443,10 @@ public final class Utils {
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
-            String propertyName = "annot" + annotName;
+            String propertyName = ANNOT_PREFIX + annotName;
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
-                property.setEnabled(true);
             }
         });
     }
@@ -504,7 +504,7 @@ public final class Utils {
 
     public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {
         Map<String, Value> properties = function.getProperties().entrySet().stream()
-                        .filter(entry -> entry.getKey().startsWith("annot"))
+                        .filter(entry -> entry.getKey().startsWith(ANNOT_PREFIX))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<String> annots = new ArrayList<>();
@@ -603,10 +603,7 @@ public final class Utils {
         LineRange range = LineRange.from(firstToken.lineRange().fileName(),
                 firstAnnotationEndLinePos, lastAnnotationEndLinePos);
 
-        if (!annotEdit.isEmpty()) {
-            edits.add(new TextEdit(toRange(range), annotEdit));
-        }
-
+        edits.add(new TextEdit(toRange(range), annotEdit));
     }
 
     public static String getValueString(Value value) {

@@ -160,6 +160,8 @@ public class Constants {
     public static final String OBJECT_METHOD = "OBJECT_METHOD";
 
     public static final String DEFAULT = "default";
+    public static final String RESOURCE_CONFIG = "ResourceConfig";
+    public static final String ANNOT_PREFIX = "annot";
 
     // GraphQL advance params
     public static final String GRAPHQL_CONTEXT = "context";

@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -154,7 +155,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
                 .getAnnotationAttachments(pkg.packageId());
         for (AnnotationAttachment annotationAttachment : annotationAttachments) {
             if (annotationAttachment.attachmentPoints().contains(AnnotationAttachPoint.SERVICE)) {
-                String key = "annot" + annotationAttachment.annotName();
+                String key = ANNOT_PREFIX + annotationAttachment.annotName();
                 properties.put(key, getAnnotationAttachmentProperty(annotationAttachment));
             }
         }
