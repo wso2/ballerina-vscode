@@ -16,93 +16,30 @@
  * under the License.
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 
-import { DataMapperView } from "@wso2/data-mapper-view";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { STModification, HistoryEntry, EVENT_TYPE } from "@wso2/ballerina-core";
-import { FunctionDefinition } from "@wso2/syntax-tree";
-import { RecordEditor, StatementEditorComponentProps } from "@wso2/record-creator";
-import { View } from "@wso2/ui-toolkit";
+import { CodeData, LinePosition } from "@wso2/ballerina-core";
+import { ErrorBoundary } from "@wso2/ui-toolkit";
+
 import { TopNavigationBar } from "../../components/TopNavigationBar";
-import { FunctionForm } from "../BI";
+import { DataMapperView } from "./DataMapperView";
 
-interface DataMapperProps {
-    projectPath: string;
+export interface DataMapperProps {
     filePath: string;
-    model: FunctionDefinition;
-    functionName: string;
-    applyModifications: (modifications: STModification[], isRecordModification?: boolean) => Promise<void>;
+    codedata: CodeData;
+    varName: string;
+    projectUri?: string;
+    position?: LinePosition;
+    reusable?: boolean;
 }
 
 export function DataMapper(props: DataMapperProps) {
-    const { projectPath, filePath, model, functionName, applyModifications } = props;
-    const { rpcClient } = useRpcContext();
-    const langServerRpcClient = rpcClient.getLangClientRpcClient();
-    const libraryBrowserRPCClient = rpcClient.getLibraryBrowserRPCClient();
-    const recordCreatorRpcClient = rpcClient.getRecordCreatorRpcClient();
-
-    const hasInputs = useMemo(
-        () => model.functionSignature.parameters?.length > 0,
-        [model.functionSignature.parameters]
-    );
-
-    const hasOutputs = useMemo(
-        () => model.functionSignature?.returnTypeDesc && model.functionSignature.returnTypeDesc.type,
-        [model.functionSignature]
-    );
-
-
-    const goToFunction = async (entry: HistoryEntry) => {
-        const documentUri = entry?.location?.documentUri;
-        const position = entry?.location?.position;
-        rpcClient
-            .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
-    };
-
-    const applyRecordModifications = async (modifications: STModification[]) => {
-        await props.applyModifications(modifications, true);
-    };
-
-    const renderRecordPanel = (props: {
-        closeAddNewRecord: (createdNewRecord?: string) => void,
-        onUpdate: (updated: boolean) => void
-    } & StatementEditorComponentProps) => {
-        return (
-            <RecordEditor
-                isDataMapper={true}
-                onCancel={props.closeAddNewRecord}
-                recordCreatorRpcClient={recordCreatorRpcClient}
-                {...props}
-                applyModifications={applyRecordModifications}
-            />
-        );
-    };
-
     return (
         <>
-            {!hasInputs || !hasOutputs ? (
-                <FunctionForm
-                    projectPath={projectPath}
-                    filePath={filePath}
-                    functionName={functionName}
-                    isDataMapper={true}
-                />
-            ) : (
-                <View>
-                    <TopNavigationBar />
-                    <DataMapperView
-                        fnST={model}
-                        filePath={filePath}
-                        langServerRpcClient={langServerRpcClient}
-                        libraryBrowserRpcClient={libraryBrowserRPCClient}
-                        applyModifications={applyModifications}
-                        goToFunction={goToFunction}
-                        renderRecordPanel={renderRecordPanel}
-                    />
-                </View>
-            )}
+            <TopNavigationBar />
+            <ErrorBoundary errorMsg="Error while loading the Data Mapper">
+                <DataMapperView {...props} />
+            </ErrorBoundary>
         </>
     );
 };

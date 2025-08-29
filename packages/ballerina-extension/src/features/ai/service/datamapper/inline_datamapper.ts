@@ -31,10 +31,10 @@ import {
 } from "./types";
 import { MappingSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-import { ADDITION, DIRECT, DIVISION, LENGTH, MODULAR, MULTIPLICATION, NAME, PARAMETER_1, PARAMETER_2, SPLIT, SUBTRACTION } from "./constant";
+import { DIRECT, LENGTH, NAME, PARAMETER_1, PARAMETER_2, SPLIT } from "./constant";
 import { operationsTable } from "./datamapper";
 import { getInlineDataMappingPrompt } from "./inline_prompt";
-import { ExpandedDMModel, InlineDataMapperModelResponse, IOType } from "@wso2/ballerina-core";
+import { ExpandedDMModel, DataMapperModelResponse, IOType } from "@wso2/ballerina-core";
 
 // =============================================================================
 // UTILITY FUNCTIONS FOR SCHEMA PROCESSING
@@ -428,7 +428,7 @@ function convertFlatToNestedMap(flatMap: { [key: string]: MappingJson }): { [key
 /**
  * Enhanced main function for AI-powered data mapping generation with inline schema support
  */
-async function mapInlineData(payload: InlineDataMapperModelResponse): Promise<DatamapperResponse> {
+async function mapInlineData(payload: DataMapperModelResponse): Promise<DatamapperResponse> {
     const maxRetries = 3;
     let retries = 0;
     let lastError: Error;
@@ -551,7 +551,7 @@ function isMapping(value: any): value is { OPERATION: MappingOperation } {
 // MAIN EXPORT FUNCTION
 // =============================================================================
 
-export async function generateInlineAutoMappings(payload?: InlineDataMapperModelResponse): Promise<DatamapperResponse> {
+export async function generateInlineAutoMappings(payload?: DataMapperModelResponse): Promise<DatamapperResponse> {
     if (!payload) {
         throw new Error("Payload is required for generating auto mappings");
     }
