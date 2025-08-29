@@ -35,4 +35,10 @@ public interface ExtendedLanguageClient extends LanguageClient {
     //  notifications to the client
     @JsonNotification("designModelService/publishArtifacts")
     void publishArtifacts(Object artifacts);
+
+    @JsonNotification("projectService/stateCallback")
+    void stateCallback(Object artifacts);
+
+    @JsonNotification("projectService/logCallback")
+    void logCallback(Object artifacts);
 }

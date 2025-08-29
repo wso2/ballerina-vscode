@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pd:ProcessDefinition xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:pd="http://xmlns.tibco.com/bw/process/2003" xmlns:ns="http://www.tibco.com/pe/WriteToLogActivitySchema" xmlns:ns1="http://www.tibco.com/namespaces/tnt/plugins/file">
+    <pd:name>main.process</pd:name>
+    <pd:startName>File Poller</pd:startName>
+    <pd:returnBindings/>
+    <pd:starter name="File Poller">
+        <pd:type>com.tibco.plugin.file.FileEventSource</pd:type>
+        <pd:resourceType>ae.activities.FileEventSourceResource</pd:resourceType>
+        <config>
+            <pollInterval>1</pollInterval>
+            <createEvent>true</createEvent>
+            <modifyEvent>true</modifyEvent>
+            <deleteEvent>true</deleteEvent>
+            <mode>files-and-directories</mode>
+            <encoding>text</encoding>
+            <sortby>File Name</sortby>
+            <sortorder>descending</sortorder>
+            <excludeContent>true</excludeContent>
+            <fileName>./TestDir/</fileName>
+        </config>
+        <pd:inputBindings/>
+    </pd:starter>
+    <pd:endName>End</pd:endName>
+    <pd:errorSchemas/>
+    <pd:processVariables/>
+    <pd:targetNamespace>http://xmlns.example.com/1689511053359</pd:targetNamespace>
+    <pd:activity name="Log">
+        <pd:type>com.tibco.pe.core.WriteToLogActivity</pd:type>
+        <pd:resourceType>ae.activities.log</pd:resourceType>
+        <config>
+            <role>User</role>
+        </config>
+        <pd:inputBindings>
+            <ns:ActivityInput>
+                <message>
+                    <xsl:value-of select="$File-Poller/ns1:EventSourceOutputNoContentClass/fileInfo/fileName"/>
+                </message>
+            </ns:ActivityInput>
+        </pd:inputBindings>
+    </pd:activity>
+    <pd:transition>
+        <pd:from>File Poller</pd:from>
+        <pd:to>Log</pd:to>
+        <pd:lineType>Default</pd:lineType>
+        <pd:lineColor>-16777216</pd:lineColor>
+        <pd:conditionType>always</pd:conditionType>
+    </pd:transition>
+    <pd:transition>
+        <pd:from>Log</pd:from>
+        <pd:to>End</pd:to>
+        <pd:lineType>Default</pd:lineType>
+        <pd:lineColor>-16777216</pd:lineColor>
+        <pd:conditionType>always</pd:conditionType>
+    </pd:transition>
+</pd:ProcessDefinition>

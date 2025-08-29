@@ -76,6 +76,38 @@ task unpackStdLibs() {
     }
 }
 
+def pullBallerinaTool(String toolName, String version = null) {
+    tasks.register("tool_pull${toolName}_${version ? version : 'latest'}", Exec) {
+        group = "ballerinaTools"
+        description = "Pulls Ballerina tool ${toolName}${version ? " version ${version}" : ""} if not present"
+
+        def balPullCommand = "bal tool pull ${toolName}${version ? ':' + version : ''}"
+        if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', balPullCommand
+        } else {
+            commandLine '/bin/sh', '-c', balPullCommand
+        }
+
+        ignoreExitValue = true
+        standardOutput = new ByteArrayOutputStream()
+
+        doLast {
+            if (executionResult.get().exitValue != 0) {
+                def outputMessage = standardOutput.toString().trim()
+                if (outputMessage && outputMessage.contains('is already available')) {
+                    return
+                }
+
+                // Optionally throw an exception to fail the build
+                throw new GradleException("Tool ${toolName} failed to pull")
+            } else {
+                println "Successfully pulled Ballerina tool '${toolName}'"
+            }
+        }
+    }
+}
+
+
 task copyStdlibs() {
     dependsOn(unpackStdLibs)
     doLast {
@@ -106,6 +138,8 @@ test {
         suites "src/test/resources/testng.xml"
     }
 }
+
+test.dependsOn pullBallerinaTool('migrate-tibco', migrateTibcoVersion)
 
 ext.moduleName = 'io.ballerina.architecturemodelgenerator.extension'
 

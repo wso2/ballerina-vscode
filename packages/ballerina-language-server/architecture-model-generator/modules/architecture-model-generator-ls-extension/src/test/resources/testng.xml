@@ -27,6 +27,7 @@ under the License.
             <class name="io.ballerina.designmodelgenerator.extension.DesignModelGeneratorTest"/>
             <class name="io.ballerina.designmodelgenerator.extension.ArtifactsTest"/>
             <class name="io.ballerina.designmodelgenerator.extension.PublishArtifactsSubscriberTest"/>
+            <class name="io.ballerina.designmodelgenerator.extension.ImportTibcoTest"/>
         </classes>
     </test>
 </suite>
