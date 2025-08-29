@@ -32,11 +32,11 @@ import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
-    async pullMigrationTool(args: { toolName: string }): Promise<void> {
+    async pullMigrationTool(args: { toolName: string; version: string }): Promise<void> {
         try {
-            await pullMigrationTool(args.toolName);
+            await pullMigrationTool(args.toolName, args.version);
         } catch (error) {
-            console.error(`Failed to pull migration tool '${args.toolName}':`, error);
+            console.error(`Failed to pull migration tool '${args.toolName}' version '${args.version}':`, error);
             throw error;
         }
     }

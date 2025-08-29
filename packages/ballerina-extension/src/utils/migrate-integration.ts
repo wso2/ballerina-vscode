@@ -28,12 +28,18 @@ import { debug } from "./logger";
  * Includes 5-minute timeout.
  *
  * @param migrationToolName The alias for the Ballerina tool to pull (e.g., "migrate-tibco", "migrate-mule").
+ * @param version The version of the tool to pull (e.g., "1.1.1").
  * @returns A promise that resolves when the operation is complete or rejects on failure.
  */
-export async function pullMigrationTool(migrationToolName: string): Promise<void> {
+export async function pullMigrationTool(migrationToolName: string, version: string): Promise<void> {
     // 1. Initial validation and command mapping
     if (!migrationToolName) {
         const errorMessage = "Migration tool name is required";
+        return Promise.reject(new Error(errorMessage));
+    }
+
+    if (!version) {
+        const errorMessage = "Migration tool version is required";
         return Promise.reject(new Error(errorMessage));
     }
 
@@ -45,7 +51,7 @@ export async function pullMigrationTool(migrationToolName: string): Promise<void
     }
 
     const ballerinaCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-    const command = `${ballerinaCmd} tool pull ${migrationToolName}`;
+    const command = `${ballerinaCmd} tool pull ${migrationToolName}:${version}`;
     debug(`Executing migration tool pull command: ${command}`);
 
     // 2. This function now returns a promise that wraps the exec lifecycle

@@ -47,7 +47,7 @@ export interface MigrationReportJSON {
 export interface ImportIntegrationFormProps {
     selectedIntegration: MigrationTool | null;
     migrationTools: MigrationTool[];
-    pullIntegrationTool: (integrationType: string) => void;
+    pullIntegrationTool: (integrationType: string, version: string) => void;
     pullingTool: boolean;
     toolPullProgress: DownloadProgress | null;
     setImportParams: (params: FinalIntegrationParams) => void;

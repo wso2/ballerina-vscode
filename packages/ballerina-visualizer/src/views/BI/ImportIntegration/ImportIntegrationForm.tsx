@@ -78,7 +78,7 @@ export function ImportIntegrationForm({
 
         setImportParams(finalParams);
         if (selectedIntegration.needToPull) {
-            pullIntegrationTool(selectedIntegration.commandName);
+            pullIntegrationTool(selectedIntegration.commandName, selectedIntegration.requiredVersion);
         } else {
             handleStartImport(finalParams, selectedIntegration, toolPullProgress);
         }

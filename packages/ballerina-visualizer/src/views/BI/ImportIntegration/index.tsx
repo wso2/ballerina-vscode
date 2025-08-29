@@ -53,10 +53,11 @@ export function ImportIntegration() {
 
     const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
 
-    const pullIntegrationTool = (commandName: string) => {
+    const pullIntegrationTool = (commandName: string, version: string) => {
         setPullingTool(true);
         rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
             toolName: commandName,
+            version: version,
         });
     };
 
