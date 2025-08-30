@@ -26,7 +26,7 @@ import { TitleBar } from '../../../components/TitleBar';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
-import { getAiModuleOrg, getNodeTemplate } from './utils';
+import { getAiModuleOrg, getNodeTemplate, searchNodes } from './utils';
 import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
 
 const FormContainer = styled.div`
@@ -77,11 +77,8 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         { label: "Completing", description: "Finalizing the agent setup" }
     ];
 
-    const agentFilePath = useRef<string>("");
+    const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
-    const agentCallEndOfFile = useRef<LinePosition | null>(null);
-    const agentEndOfFile = useRef<LinePosition | null>(null);
-    const mainFilePath = useRef<string>("");
 
     const validateName = (name: string): boolean => {
         if (!name) {
@@ -109,36 +106,16 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             // Initialize wizard data when user clicks create
             setCurrentStep(0);
 
-            // get agent file path
-            const filePath = await rpcClient.getVisualizerLocation();
-            agentFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "agents.bal").fsPath;
-
-            // get end of files
-            // main.bal last line
-            mainFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
-            const endOfFile = await rpcClient.getBIDiagramRpcClient().getEndOfFile({ filePath: mainFilePath.current });
-            console.log(">>> endOfFile", endOfFile);
-            agentCallEndOfFile.current = endOfFile;
-
-            // agent.bal file last line
-            const endOfAgentFile = await rpcClient
-                .getBIDiagramRpcClient()
-                .getEndOfFile({ filePath: agentFilePath.current });
-            console.log(">>> endOfAgentFile", endOfAgentFile);
-            agentEndOfFile.current = endOfAgentFile;
-
             // get agent org
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
             // Search for agent node in the current file
-            const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath: agentFilePath.current,
-                position: { startLine: agentEndOfFile.current, endLine: agentEndOfFile.current },
-                queryMap: {
-                    orgName: aiModuleOrg.current
-                },
-                searchKind: "AGENT"
-            });
+            const agentSearchResponse = await searchNodes(
+                rpcClient,
+                projectPath.current,
+                { orgName: aiModuleOrg.current },
+                "AGENT"
+            );
 
             // Validate search response structure
             if (!agentSearchResponse?.categories?.[0]?.items?.[0]) {
@@ -149,17 +126,15 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             console.log(">>> agentNode", agentNode);
 
             // Generate template from agent node
-            const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, agentFilePath.current);
+            const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
             // Search for model providers
-            const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath: agentFilePath.current,
-                position: { startLine: agentEndOfFile.current, endLine: agentEndOfFile.current },
-                queryMap: {
-                    q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider"
-                },
-                searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
-            });
+            const modelProviderSearchResponse = await searchNodes(
+                rpcClient,
+                projectPath.current,
+                { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
+                aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+            );
 
             const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
             console.log(">>> modelNodes", modelNodes);
@@ -174,7 +149,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             }
 
             // get model node template
-            const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModelNode.codedata, agentFilePath.current);
+            const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModelNode.codedata, projectPath.current);
 
             // Get listener model
             const listenerName = agentName + "Listener";
@@ -222,11 +197,9 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             // save model node
             const modelVarName = `_${agentName}Model`;
             modelNodeTemplate.properties.variable.value = modelVarName;
-            modelNodeTemplate.codedata.isNew = false;
-            modelNodeTemplate.codedata.lineRange = { fileName: agentFilePath.current, startLine: agentEndOfFile.current, endLine: agentEndOfFile.current };
             const modelResponse = await rpcClient
                 .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: modelNodeTemplate });
+                .getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
             console.log(">>> modelResponse getSourceCode", { modelResponse });
 
             // save the agent node
@@ -239,7 +212,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             const agentResponse = await rpcClient
                 .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: agentNodeTemplate });
+                .getSourceCode({ filePath: projectPath.current, flowNode: agentNodeTemplate });
             console.log(">>> agentResponse getSourceCode", { agentResponse });
 
             // If the selected model is the default WSO2 model provider, configure it
