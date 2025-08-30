@@ -101,10 +101,8 @@ public class NewConnectionBuilder extends CallBuilder {
             }
             default -> throw new IllegalStateException("Invalid scope for the new connection node");
         }
-        // TODO: This should be removed once the codedata is refactored to capture the module name
-        if (Boolean.TRUE.equals(codedata.isGenerated())) {
-            sourceBuilder.addImport(codedata.module());
-        } else {
+
+        if (Boolean.FALSE.equals(codedata.isGenerated())) {
             sourceBuilder.acceptImport();
         }
 

@@ -602,38 +602,64 @@ public class SourceBuilder {
         Range startLineRange = CommonUtils.toRange(startLine);
 
         // Obtain the module descriptor of the current module
-        String currentModuleOrg;
-        String currentModuleName;
         Optional<Module> currentModule = this.workspaceManager.module(filePath);
-        boolean isGenerated;
+
+        // Clean the imports for the current module if the imports belong to the same package
         if (currentModule.isPresent()) {
             ModuleDescriptor descriptor = currentModule.get().descriptor();
-            currentModuleName = descriptor.name().toString();
-            currentModuleOrg = descriptor.org().value();
-            imports.remove(currentModuleOrg + "/" + currentModuleName);
-            isGenerated = Boolean.TRUE.equals(flowNode.codedata().isGenerated());
-        } else {
-            currentModuleName = "";
-            isGenerated = false;
+            String currentModuleName = descriptor.name().toString();
+            String currentModuleOrg = descriptor.org().value();
+            cleanImportsForModuleImportsInSamePackage(currentModuleOrg, currentModuleName);
         }
 
         // Remove the existing imports
+        removeExistingImports(syntaxTree);
+
+        // Generate the text edits for the imports
+        generateImportsTextEdits(filePath, startLineRange);
+    }
+
+    private void cleanImportsForModuleImportsInSamePackage(String orgName, String moduleName) {
+        for (String importStmt : imports) {
+            String[] parts = importStmt.split("/");
+            if (parts.length > 1) {
+                String importOrg = parts[0];
+                String importModule = parts[1];
+
+                if (!orgName.equals(importOrg)) {
+                    continue;
+                }
+
+                if (moduleName.equals(importModule)) {
+                    imports.remove(orgName + "/" + moduleName);
+                    continue;
+                }
+
+                String moduleNamePrefix = moduleName + ".";
+                if (importModule.startsWith(moduleNamePrefix)) {
+                    imports.remove(importStmt);
+                    imports.add(moduleNamePrefix + importModule.substring(moduleName.length() + 1));
+                }
+            }
+        }
+    }
+
+    private void removeExistingImports(SyntaxTree syntaxTree) {
         ModulePartNode rootNode = syntaxTree.rootNode();
         for (ImportDeclarationNode existingImport : rootNode.imports()) {
             String moduleName = existingImport.moduleName().stream()
                     .map(IdentifierToken::text)
                     .collect(Collectors.joining("."));
-            String prefix = existingImport.orgName().map(org -> org.orgName().text() + "/").orElse("");
-            imports.remove(prefix + moduleName);
+            String orgName = existingImport.orgName().map(org -> org.orgName().text() + "/").orElse("");
+            imports.remove(orgName + moduleName);
         }
+    }
 
-        // Generate the text edits for the imports
+    private void generateImportsTextEdits(Path filePath, Range startLineRange) {
         for (String moduleImport : imports) {
-            // TODO: Check this condition for other cases like persist module
-            String importPrefix = isGenerated ? currentModuleName + "." : "";
             tokenBuilder
                     .keyword(SyntaxKind.IMPORT_KEYWORD)
-                    .name(importPrefix + moduleImport)
+                    .name(moduleImport)
                     .endOfStatement();
             textEdit(SourceKind.IMPORT, filePath, startLineRange);
         }

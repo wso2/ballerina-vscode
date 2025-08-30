@@ -506,7 +506,7 @@ public class FunctionDataBuilder {
 
         // Resolving import statements
         String importStatements =
-                functionKind == FunctionData.Kind.CLASS_INIT || isConnectorOrProviderKind(functionKind)
+                functionKind == FunctionData.Kind.CLASS_INIT || isConnector(functionKind) || isAiClassKind(functionKind)
                         ? getImportStatement(moduleInfo)
                         : returnTypeSymbol.map(typeSymbol -> getImportStatements(returnTypeSymbol.get())).orElse(null);
 
@@ -1051,6 +1051,9 @@ public class FunctionDataBuilder {
     }
 
     private String getImportStatement(ModuleInfo moduleInfo) {
+        if (isCurrentModule && moduleInfo.equals(userModuleInfo)) {
+            return null;
+        }
         return CommonUtils.getImportStatement(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName());
     }
 
