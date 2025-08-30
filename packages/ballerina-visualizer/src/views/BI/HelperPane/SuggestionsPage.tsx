@@ -42,14 +42,14 @@ export const SuggestionsPage = ({ fileName, targetLineRange, defaultValue, onCha
     const getVariableInfo = useCallback(() => {
         setIsLoading(true);
         setTimeout(() => {
+            const position = targetLineRange
+                ? { line: targetLineRange.startLine.line, offset: targetLineRange.startLine.offset }
+                : undefined;
             rpcClient
                 .getBIDiagramRpcClient()
                 .getVisibleVariableTypes({
                     filePath: fileName,
-                    position: targetLineRange ? {
-                        line: targetLineRange.startLine.line,
-                        offset: targetLineRange.startLine.offset
-                    } : undefined
+                    position
                 })
                 .then((response) => {
                     if (response.categories?.length) {

@@ -32,7 +32,8 @@ import {
     RecordTypeField,
     FormDiagnostics,
     Imports,
-    CodeData
+    CodeData,
+    LinePosition
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -132,6 +133,10 @@ export function FormGeneratorNew(props: FormProps) {
     } = props;
 
     const { rpcClient } = useRpcContext();
+
+    const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
+        return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
+    };
 
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
 
@@ -244,7 +249,7 @@ export function FormGeneratorNew(props: FormProps) {
                         filePath: fileName,
                         context: {
                             expression: value,
-                            startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
+                            startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                             lineOffset: lineOffset,
                             offset: charOffset,
                             codedata: undefined,
@@ -314,7 +319,7 @@ export function FormGeneratorNew(props: FormProps) {
                 if (!types.length) {
                     const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
-                        position: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
+                        position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                         ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
                     });
 
@@ -397,7 +402,7 @@ export function FormGeneratorNew(props: FormProps) {
                             filePath: fileName,
                             context: {
                                 expression: expression,
-                                startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
+                                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                                 lineOffset: 0,
                                 offset: 0,
                                 codedata: field.codedata,
@@ -604,7 +609,7 @@ export function FormGeneratorNew(props: FormProps) {
             filePath: fileName,
             context: {
                 expression: value,
-                startLine: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current).startLine : undefined,
+                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: undefined,

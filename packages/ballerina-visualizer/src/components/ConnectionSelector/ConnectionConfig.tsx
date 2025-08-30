@@ -92,6 +92,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                         onSubmit={handleOnSave}
                         disableSaveButton={savingForm}
                         isSaving={savingForm}
+                        helperPaneSide="left"
                     />
                 </>
             )
