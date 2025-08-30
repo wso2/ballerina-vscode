@@ -401,6 +401,11 @@ export function ConnectorView(props: ConnectorViewProps) {
                                 </div>
                             </ListContainer>
                         )}
+                        {selectedConnectorCategory === "CurrentOrg" && filteredCategories.length === 0 && (
+                            <BodyTinyInfo style={{ textAlign: "center" }}>
+                                No connectors found in your organization.
+                            </BodyTinyInfo>
+                        )}
                         {/* Default connectors of LS is hardcoded and is sent with categories with item field */}
                         {!isLoading && filteredCategories && filteredCategories.length > 0 && (
                             <div>
