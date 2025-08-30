@@ -24,106 +24,103 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
+        "name": "std",
+        "displayName": "std",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-235867440"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "var1909",
+      "displayName": "var1909",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "-1781951605"
+    },
+    "mappings": [],
+    "refs": {
+      "-235867440": {
         "fields": [
           {
-            "id": "std.firstName",
-            "variableName": "firstName",
+            "name": "firstName",
+            "displayName": "firstName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "std.lastName",
-            "variableName": "lastName",
+            "name": "lastName",
+            "displayName": "lastName",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "id": "std.stdAge",
-            "variableName": "stdAge",
+            "name": "stdAge",
+            "displayName": "stdAge",
             "typeName": "int",
             "kind": "int",
             "optional": false
           }
         ],
-        "id": "std",
-        "variableName": "std",
         "typeName": "Student",
-        "kind": "record",
-        "category": "local-variable",
-        "optional": false
+        "kind": "record"
+      },
+      "-263690226": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "bar",
+            "displayName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "optional": false,
+            "ref": "-235867440"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1781951605": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "city",
+            "displayName": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "foo",
+            "displayName": "foo",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-263690226"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
       }
-    ],
-    "output": {
-      "fields": [
-        {
-          "id": "var1909.name",
-          "variableName": "name",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "var1909.age",
-          "variableName": "age",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        },
-        {
-          "id": "var1909.city",
-          "variableName": "city",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "fields": [
-                {
-                  "id": "var1909.foo.bar.firstName",
-                  "variableName": "firstName",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "var1909.foo.bar.lastName",
-                  "variableName": "lastName",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "var1909.foo.bar.stdAge",
-                  "variableName": "stdAge",
-                  "typeName": "int",
-                  "kind": "int",
-                  "optional": false
-                }
-              ],
-              "id": "var1909.foo.bar",
-              "variableName": "bar",
-              "typeName": "Student",
-              "kind": "record",
-              "optional": false
-            }
-          ],
-          "id": "var1909.foo",
-          "variableName": "foo",
-          "typeName": "record",
-          "kind": "record",
-          "optional": false
-        }
-      ],
-      "id": "var1909",
-      "variableName": "var1909",
-      "typeName": "Person",
-      "kind": "record",
-      "optional": false
-    },
-    "mappings": []
+    }
   }
 }

@@ -44,7 +44,8 @@ public class CodeGenerationTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("code_generation_with_devant_data_loader.json")}
+                {Path.of("code_generation_with_devant_data_loader.json")},
+                {Path.of("code_generation_with_text_data_loader.json")}
         };
     }
 

@@ -24,6 +24,21 @@
           },
           {
             "metadata": {
+              "label": "HtmlChunker",
+              "description": "Represents an HTML document chunker. Provides functionality to recursively chunk a HTML document using a configurable strategy. The chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "HtmlChunker",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
               "label": "MarkdownChunker",
               "description": "Represents a Markdown document chunker. Provides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to finer-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content between chunks can be controlled using `maxOverlapSize`."
             },

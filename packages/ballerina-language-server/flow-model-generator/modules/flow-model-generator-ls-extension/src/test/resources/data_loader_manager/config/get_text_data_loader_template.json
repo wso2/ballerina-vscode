@@ -1,0 +1,111 @@
+{
+  "source": "data_loader/loader.bal",
+  "codedata": {
+    "node": "DATA_LOADER",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "object": "TextDataLoader",
+    "symbol": "init",
+    "version": "1.5.0"
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Data Loader",
+        "description": "Initializes the data loader with the given paths.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+      },
+      "codedata": {
+        "node": "DATA_LOADER",
+        "org": "ballerina",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "TextDataLoader",
+        "version": "1.5.0",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "ai:TextDataLoader",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {}
+        },
+        "variable": {
+          "metadata": {
+            "label": "Data Loader Name",
+            "description": "Data loader instance name"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "aiTextdataloader",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "paths": {
+          "metadata": {
+            "label": "Paths",
+            "description": "The paths to the files to load"
+          },
+          "valueType": "EXPRESSION_SET",
+          "valueTypeConstraint": "string",
+          "placeholder": "\"\"",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "kind": "REST_PARAMETER",
+            "originalName": "paths"
+          },
+          "typeMembers": [
+            {
+              "type": "string",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "ARRAY_TYPE",
+              "selected": false
+            }
+          ]
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "valueType": "ENUM",
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "valueType": "FLAG",
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

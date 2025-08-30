@@ -1,0 +1,45 @@
+{
+  "source": "variable1_2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1_2.bal",
+      "startLine": {
+        "line": 40,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 40,
+        "offset": 132
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "stores.credentials.username",
+    "inputs": [],
+    "expression": "bank.userInfo",
+    "diagnostics": []
+  },
+  "propertyKey": "expression",
+  "targetField": "storeList.stores",
+  "clauseType": "select",
+  "output": {
+    "variable1_2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 40,
+            "character": 115
+          },
+          "end": {
+            "line": 40,
+            "character": 128
+          }
+        },
+        "newText": "from var userInfoItem in bank.userInfo select {username: \"\"}"
+      }
+    ]
+  }
+}

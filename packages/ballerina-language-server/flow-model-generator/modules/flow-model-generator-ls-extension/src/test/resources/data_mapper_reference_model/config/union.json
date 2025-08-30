@@ -1,0 +1,122 @@
+{
+  "source": "union.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "union.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 25
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 23,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "id": "dog",
+        "variableName": "dog",
+        "typeName": "Dog",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-27067364"
+      },
+      {
+        "fields": [],
+        "id": "elephant",
+        "variableName": "elephant",
+        "typeName": "Elephant",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "252136892"
+      }
+    ],
+    "output": {
+      "members": [
+        {
+          "fields": [],
+          "id": "animal1.record",
+          "variableName": "record",
+          "typeName": "Dog",
+          "kind": "record",
+          "ref": "-27067364"
+        },
+        {
+          "fields": [],
+          "id": "animal1.record",
+          "variableName": "record",
+          "typeName": "Elephant",
+          "kind": "record",
+          "ref": "252136892"
+        }
+      ],
+      "id": "animal1",
+      "variableName": "animal1",
+      "typeName": "Animal",
+      "kind": "union",
+      "ref": "-390580094"
+    },
+    "mappings": [
+      {
+        "output": "animal1",
+        "inputs": [
+          "dog"
+        ],
+        "expression": "dog",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "252136892": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "cast",
+            "variableName": "cast",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Elephant",
+        "kind": "record"
+      },
+      "-27067364": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "id": "breed",
+            "variableName": "breed",
+            "typeName": "string",
+            "kind": "string"
+          }
+        ],
+        "typeName": "Dog",
+        "kind": "record"
+      }
+    }
+  }
+}

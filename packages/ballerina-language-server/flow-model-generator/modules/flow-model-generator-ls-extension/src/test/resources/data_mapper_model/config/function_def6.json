@@ -1,0 +1,116 @@
+{
+  "source": "function_def1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def1.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 25,
+    "offset": 56
+  },
+  "propertyKey": "expression",
+  "targetField": "transform2",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "inputs",
+          "displayName": "<inputsItem>",
+          "typeName": "Input",
+          "kind": "record",
+          "ref": "-1703435696"
+        },
+        "name": "inputs",
+        "displayName": "inputs",
+        "typeName": "Input[]",
+        "kind": "array",
+        "category": "parameter",
+        "ref": "-1703435696"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "transform2",
+        "displayName": "<transform2Item>",
+        "typeName": "Output",
+        "kind": "record",
+        "ref": "-1514999486"
+      },
+      "name": "transform2",
+      "displayName": "transform2",
+      "typeName": "Output[]",
+      "kind": "array",
+      "ref": "-1514999486"
+    },
+    "mappings": [
+      {
+        "output": "transform2",
+        "inputs": [
+          "inputs"
+        ],
+        "expression": "from var input in inputs select {\n    fullName: input?.user?.firstName\n}",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-1514999486": {
+        "fields": [
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "typeName": "Output",
+        "kind": "record"
+      },
+      "-1064739742": {
+        "fields": [
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-1703435696": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user",
+            "displayName": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true,
+            "ref": "-1064739742"
+          }
+        ],
+        "typeName": "Input",
+        "kind": "record"
+      }
+    }
+  }
+}

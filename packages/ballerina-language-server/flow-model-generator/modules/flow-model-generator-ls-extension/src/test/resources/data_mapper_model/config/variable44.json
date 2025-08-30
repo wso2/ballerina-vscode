@@ -25,222 +25,38 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "id": "myStudent.username.0",
-              "variableName": "<usernameItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "myStudent.username",
-            "variableName": "username",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "members": [
-              {
-                "fields": [
-                  {
-                    "id": "myStudent.password.username",
-                    "variableName": "username",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "myStudent.password.password",
-                    "variableName": "password",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  }
-                ],
-                "id": "myStudent.password",
-                "variableName": "password",
-                "typeName": "UserInfo",
-                "kind": "record",
-                "optional": false
-              },
-              {
-                "member": {
-                  "id": "myStudent.password.0",
-                  "variableName": "<passwordItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "myStudent.password",
-                "variableName": "password",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "myStudent.password",
-            "variableName": "password",
-            "typeName": "UserInfo|string[]",
-            "kind": "union",
-            "optional": false
-          }
-        ],
-        "id": "myStudent",
-        "variableName": "myStudent",
+        "fields": [],
+        "name": "myStudent",
+        "displayName": "myStudent",
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
-        "optional": false
+        "ref": "196591409"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "id": "student1.username.0",
-              "variableName": "<usernameItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "student1.username",
-            "variableName": "username",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "members": [
-              {
-                "fields": [
-                  {
-                    "id": "student1.password.username",
-                    "variableName": "username",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  },
-                  {
-                    "id": "student1.password.password",
-                    "variableName": "password",
-                    "typeName": "string",
-                    "kind": "string",
-                    "optional": false
-                  }
-                ],
-                "id": "student1.password",
-                "variableName": "password",
-                "typeName": "UserInfo",
-                "kind": "record",
-                "optional": false
-              },
-              {
-                "member": {
-                  "id": "student1.password.0",
-                  "variableName": "<passwordItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "student1.password",
-                "variableName": "password",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "student1.password",
-            "variableName": "password",
-            "typeName": "UserInfo|string[]",
-            "kind": "union",
-            "optional": false
-          }
-        ],
-        "id": "student1",
-        "variableName": "student1",
+        "fields": [],
+        "name": "student1",
+        "displayName": "student1",
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "196591409"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "member": {
-            "id": "student2.username",
-            "variableName": "<usernameItem>",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          "id": "student2.username",
-          "variableName": "username",
-          "typeName": "string[]",
-          "kind": "array",
-          "optional": false
-        },
-        {
-          "members": [
-            {
-              "fields": [
-                {
-                  "id": "student2.password.username",
-                  "variableName": "username",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "student2.password.password",
-                  "variableName": "password",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                }
-              ],
-              "id": "student2.password",
-              "variableName": "password",
-              "typeName": "UserInfo",
-              "kind": "record",
-              "optional": false
-            },
-            {
-              "member": {
-                "id": "student2.password",
-                "variableName": "<passwordItem>",
-                "typeName": "string",
-                "kind": "string",
-                "optional": false
-              },
-              "id": "student2.password",
-              "variableName": "password",
-              "typeName": "string[]",
-              "kind": "array",
-              "optional": false
-            }
-          ],
-          "id": "student2.password",
-          "variableName": "password",
-          "typeName": "UserInfo|string[]",
-          "kind": "union",
-          "optional": false
-        }
-      ],
-      "id": "student2",
-      "variableName": "student2",
+      "fields": [],
+      "name": "student2",
+      "displayName": "student2",
       "typeName": "Student",
       "kind": "record",
-      "optional": false
+      "ref": "196591409"
     },
     "mappings": [
       {
@@ -313,6 +129,77 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-1418772512": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "196591409": {
+        "fields": [
+          {
+            "member": {
+              "name": "username",
+              "displayName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "fields": [],
+                "name": "password",
+                "displayName": "password",
+                "typeName": "UserInfo",
+                "kind": "record",
+                "ref": "-1418772512"
+              },
+              {
+                "member": {
+                  "name": "password",
+                  "displayName": "<passwordItem>",
+                  "typeName": "string",
+                  "kind": "string"
+                },
+                "name": "password",
+                "displayName": "password",
+                "typeName": "string[]",
+                "kind": "array"
+              }
+            ],
+            "name": "password",
+            "displayName": "password",
+            "typeName": "",
+            "kind": "union",
+            "optional": false,
+            "ref": "-233843293"
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      }
+    }
   }
 }

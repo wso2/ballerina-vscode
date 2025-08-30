@@ -43,7 +43,7 @@
                 "metadata": {
                   "label": "chunk",
                   "description": "Chunks the provided document.",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.3.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "METHOD_CALL",
@@ -52,8 +52,34 @@
                   "packageName": "ai",
                   "object": "GenericRecursiveChunker",
                   "symbol": "chunk",
-                  "version": "1.3.1",
+                  "version": "1.5.0",
                   "parentSymbol": "genericChunker",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "htmlChunker"
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "chunk",
+                  "description": "Chunks the provided document.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "HtmlChunker",
+                  "symbol": "chunk",
+                  "version": "1.5.0",
+                  "parentSymbol": "htmlChunker",
                   "resourcePath": ""
                 },
                 "enabled": true
@@ -69,7 +95,7 @@
                 "metadata": {
                   "label": "chunk",
                   "description": "Chunks the provided document.",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.3.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "METHOD_CALL",
@@ -78,7 +104,7 @@
                   "packageName": "ai",
                   "object": "MarkdownChunker",
                   "symbol": "chunk",
-                  "version": "1.3.1",
+                  "version": "1.5.0",
                   "parentSymbol": "mdChunker",
                   "resourcePath": ""
                 },

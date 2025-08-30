@@ -41,7 +41,8 @@ public class GetNodeTemplateTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("get_devant_data_loader_template.json")}
+                {Path.of("get_devant_data_loader_template.json")},
+                {Path.of("get_text_data_loader_template.json")}
         };
     }
 

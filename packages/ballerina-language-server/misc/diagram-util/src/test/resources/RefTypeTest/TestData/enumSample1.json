@@ -1,0 +1,72 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject4",
+  "typeSymbolName": "Department",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "name",
+        "type": {
+          "dependentTypeHashes": [],
+          "name": "string",
+          "typeName": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "code",
+        "type": {
+          "memberTypes": [
+            {
+              "dependentTypeHashes": [],
+              "name": "FINANCE"
+            },
+            {
+              "dependentTypeHashes": [],
+              "name": "IT"
+            },
+            {
+              "dependentTypeHashes": [],
+              "name": "HR"
+            }
+          ],
+          "dependentTypeHashes": [],
+          "hashCode": "-959561237",
+          "name": "DepartmentCode",
+          "typeName": "union"
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeHashes": [
+      "-959561237"
+    ],
+    "hashCode": "1123774631",
+    "name": "Department",
+    "typeName": "record",
+    "dependentTypes": {
+      "-959561237": {
+        "memberTypes": [
+          {
+            "dependentTypeHashes": [],
+            "name": "FINANCE"
+          },
+          {
+            "dependentTypeHashes": [],
+            "name": "IT"
+          },
+          {
+            "dependentTypeHashes": [],
+            "name": "HR"
+          }
+        ],
+        "dependentTypeHashes": [],
+        "hashCode": "-959561237",
+        "name": "DepartmentCode",
+        "typeName": "union"
+      }
+    }
+  }
+}
