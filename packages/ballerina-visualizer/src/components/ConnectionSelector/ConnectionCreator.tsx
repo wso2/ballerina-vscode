@@ -69,7 +69,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             updateNodeWithConnectionVariable(connectionKind, selectedNode, nodeTemplate?.properties?.variable?.value as string);
             onSave?.(selectedNode);
         } catch (error) {
-            console.error(`>>> Error creating ${connectionKind.toLowerCase()}`, error);
+            console.error(`>>> Error creating ${connectionKind}`, error);
         }
     }, [onSave, rpcClient, connectionKind, connectionFields]);
 
