@@ -522,7 +522,6 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.CONNECTION_SELECT:
                 return () => setSidePanelView(SidePanelView.CONNECTION_CONFIG);
             case SidePanelView.CONNECTION_CREATE:
-                return onBack;
             case SidePanelView.NEW_AGENT:
                 return onBack;
             case SidePanelView.FORM:
