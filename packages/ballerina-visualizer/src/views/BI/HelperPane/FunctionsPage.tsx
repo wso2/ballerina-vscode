@@ -70,7 +70,7 @@ export const FunctionsPage = ({
             rpcClient
                 .getBIDiagramRpcClient()
                 .search({
-                    position: targetLineRange ? targetLineRange : undefined,
+                    position: targetLineRange,
                     filePath: fileName,
                     queryMap: {
                         q: searchText.trim(),
