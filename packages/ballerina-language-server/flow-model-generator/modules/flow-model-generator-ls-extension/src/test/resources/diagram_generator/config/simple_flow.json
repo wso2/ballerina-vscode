@@ -91,6 +91,7 @@
                   "description": "Boolean Condition"
                 },
                 "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
                 "value": "area == \"kandy\" ",
                 "placeholder": "true",
                 "optional": false,

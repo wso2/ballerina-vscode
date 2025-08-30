@@ -52,7 +52,7 @@ public class MatchBuilder extends NodeBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        properties().condition(null);
+        properties().matchTarget(null);
 
         Branch.Builder defaultCaseBuilder = new Branch.Builder()
                 .codedata().node(NodeKind.CONDITIONAL).stepOut()
@@ -66,7 +66,7 @@ public class MatchBuilder extends NodeBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        Optional<Property> condition = sourceBuilder.getProperty(Property.CONDITION_KEY);
+        Optional<Property> condition = sourceBuilder.getProperty(Property.MATCH_TARGET_KEY);
         if (condition.isEmpty()) {
             throw new IllegalStateException("Match node does not have a condition");
         }

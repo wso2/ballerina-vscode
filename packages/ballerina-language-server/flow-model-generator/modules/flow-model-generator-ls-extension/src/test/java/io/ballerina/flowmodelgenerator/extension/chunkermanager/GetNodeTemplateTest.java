@@ -43,6 +43,7 @@ public class GetNodeTemplateTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("get_devant_chunker_template.json")},
                 {Path.of("get_markdown_chunker_template.json")},
+                {Path.of("get_html_chunker_template.json")},
                 {Path.of("get_generic_chunker_template.json")}
         };
     }

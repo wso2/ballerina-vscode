@@ -24,90 +24,43 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "id": "userInfo.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.id",
-            "variableName": "id",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "id": "userInfo",
-        "variableName": "userInfo",
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-481592369"
       },
       {
-        "id": "x",
-        "variableName": "x",
+        "name": "x",
+        "displayName": "x",
         "typeName": "int",
         "kind": "int",
-        "category": "local-variable",
-        "optional": false
+        "category": "local-variable"
       },
       {
-        "id": "y",
-        "variableName": "y",
+        "name": "y",
+        "displayName": "y",
         "typeName": "int",
         "kind": "int",
-        "category": "local-variable",
-        "optional": false
+        "category": "local-variable"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "student.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "student.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "student.id",
-          "variableName": "id",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
-      "id": "student",
-      "variableName": "student",
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "optional": false
+      "ref": "-863925971"
     },
     "mappings": [
       {
@@ -134,6 +87,62 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "-863925971": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "-481592369": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    }
   }
 }

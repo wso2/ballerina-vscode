@@ -24,91 +24,29 @@
   "model": {
     "inputs": [
       {
-        "fields": [
-          {
-            "id": "user.name",
-            "variableName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "user",
-        "variableName": "user",
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "optional": false
+        "ref": "-699535980"
       }
     ],
     "output": {
       "member": {
-        "fields": [
-          {
-            "fields": [
-              {
-                "member": {
-                  "id": "users4.user5.u",
-                  "variableName": "<uItem>",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                "id": "users4.user5.u",
-                "variableName": "u",
-                "typeName": "string[]",
-                "kind": "array",
-                "optional": false
-              }
-            ],
-            "id": "users4.user5",
-            "variableName": "user5",
-            "typeName": "User5",
-            "kind": "record",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [
-                {
-                  "id": "users4.users6.account",
-                  "variableName": "account",
-                  "typeName": "string",
-                  "kind": "string",
-                  "optional": false
-                },
-                {
-                  "id": "users4.users6.balance",
-                  "variableName": "balance",
-                  "typeName": "decimal",
-                  "kind": "decimal",
-                  "optional": false
-                }
-              ],
-              "id": "users4.users6",
-              "variableName": "<users6Item>",
-              "typeName": "User6",
-              "kind": "record",
-              "optional": false
-            },
-            "id": "users4.users6",
-            "variableName": "users6",
-            "typeName": "User6[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
-        "id": "users4",
-        "variableName": "<users4Item>",
+        "fields": [],
+        "name": "users4",
+        "displayName": "<users4Item>",
         "typeName": "User4",
         "kind": "record",
-        "optional": false
+        "ref": "-1258898922"
       },
-      "id": "users4",
-      "variableName": "users4",
+      "name": "users4",
+      "displayName": "users4",
       "typeName": "User4[]",
       "kind": "array",
-      "optional": false
+      "ref": "-1258898922"
     },
     "mappings": [
       {
@@ -193,6 +131,91 @@
           }
         ]
       }
-    ]
+    ],
+    "refs": {
+      "-539589308": {
+        "fields": [
+          {
+            "name": "account",
+            "displayName": "account",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "balance",
+            "displayName": "balance",
+            "typeName": "decimal",
+            "kind": "decimal",
+            "optional": false
+          }
+        ],
+        "typeName": "User6",
+        "kind": "record"
+      },
+      "-1258898922": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user5",
+            "displayName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "optional": false,
+            "ref": "438943303"
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "users6",
+              "displayName": "<users6Item>",
+              "typeName": "User6",
+              "kind": "record",
+              "ref": "-539589308"
+            },
+            "name": "users6",
+            "displayName": "users6",
+            "typeName": "User6[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-539589308"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "-699535980": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "438943303": {
+        "fields": [
+          {
+            "member": {
+              "name": "u",
+              "displayName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "u",
+            "displayName": "u",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      }
+    }
   }
 }

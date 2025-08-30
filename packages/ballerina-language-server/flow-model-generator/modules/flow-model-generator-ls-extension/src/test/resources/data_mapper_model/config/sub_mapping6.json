@@ -25,90 +25,49 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "member": {
-              "id": "s.username.0",
-              "variableName": "<usernameItem>",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            "id": "s.username",
-            "variableName": "username",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "id": "s.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "s",
-        "variableName": "s",
+        "fields": [],
+        "name": "s",
+        "displayName": "s",
         "typeName": "Student",
         "kind": "record",
         "category": "variable",
-        "optional": false
+        "ref": "1493913948"
       },
       {
-        "fields": [
-          {
-            "id": "userInfo.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "userInfo",
-        "variableName": "userInfo",
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "variable",
-        "optional": false
+        "ref": "-1418772512"
       },
       {
-        "id": "x",
-        "variableName": "x",
+        "name": "x",
+        "displayName": "x",
         "typeName": "int",
         "kind": "int",
-        "category": "variable",
-        "optional": false
+        "category": "variable"
       }
     ],
     "output": {
       "member": {
-        "id": "username",
-        "variableName": "<usernameItem>",
+        "name": "username",
+        "displayName": "<usernameItem>",
         "typeName": "string",
-        "kind": "string",
-        "optional": false
+        "kind": "string"
       },
-      "id": "username",
-      "variableName": "username",
+      "name": "username",
+      "displayName": "username",
       "typeName": "string[]",
-      "kind": "array",
-      "optional": false
+      "kind": "array"
     },
     "mappings": [
       {
@@ -142,6 +101,54 @@
         "properties": {
           "expression": "n"
         }
+      }
+    },
+    "refs": {
+      "-1418772512": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "1493913948": {
+        "fields": [
+          {
+            "member": {
+              "name": "username",
+              "displayName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
       }
     }
   }

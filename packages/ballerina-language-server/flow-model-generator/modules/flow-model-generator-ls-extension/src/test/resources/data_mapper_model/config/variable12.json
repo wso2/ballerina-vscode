@@ -24,83 +24,29 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "id": "userInfo.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "userInfo",
-        "variableName": "userInfo",
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-1418772512"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "student.id",
-          "variableName": "id",
-          "typeName": "decimal",
-          "kind": "decimal",
-          "optional": false
-        },
-        {
-          "fields": [
-            {
-              "id": "student.credentials.username",
-              "variableName": "username",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            },
-            {
-              "id": "student.credentials.password",
-              "variableName": "password",
-              "typeName": "string",
-              "kind": "string",
-              "optional": false
-            }
-          ],
-          "id": "student.credentials",
-          "variableName": "credentials",
-          "typeName": "Credentials",
-          "kind": "record",
-          "optional": false
-        },
-        {
-          "id": "student.length",
-          "variableName": "length",
-          "typeName": "int",
-          "kind": "int",
-          "optional": false
-        }
-      ],
-      "id": "student",
-      "variableName": "student",
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "optional": false
+      "ref": "1568106809"
     },
     "mappings": [
       {
@@ -150,6 +96,77 @@
         "isQueryExpression": false,
         "isFunctionCall": false
       }
-    ]
+    ],
+    "refs": {
+      "1568106809": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "decimal",
+            "kind": "decimal",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "credentials",
+            "displayName": "credentials",
+            "typeName": "Credentials",
+            "kind": "record",
+            "optional": false,
+            "ref": "1085256861"
+          },
+          {
+            "name": "length",
+            "displayName": "length",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "-1418772512": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "1085256861": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      }
+    }
   }
 }

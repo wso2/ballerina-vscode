@@ -743,7 +743,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     return new ServiceClassModelResponse(e);
                 }
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new ServiceClassModelResponse();
                 }
                 NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
@@ -752,7 +753,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 ServiceClassUtil.ServiceClassContext context = ServiceClassUtil.ServiceClassContext
                         .valueOf(request.context());
-                ServiceClass serviceClass = ServiceClassUtil.getServiceClass(classDefinitionNode, context);
+                ServiceClass serviceClass = ServiceClassUtil.getServiceClass(semanticModel.get(), classDefinitionNode,
+                        context);
                 return new ServiceClassModelResponse(serviceClass);
             } catch (Throwable e) {
                 return new ServiceClassModelResponse(e);

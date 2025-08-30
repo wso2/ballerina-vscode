@@ -757,6 +757,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "true ",
                         "placeholder": "true",
                         "optional": false,
@@ -1045,6 +1046,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "true ",
                         "placeholder": "true",
                         "optional": false,

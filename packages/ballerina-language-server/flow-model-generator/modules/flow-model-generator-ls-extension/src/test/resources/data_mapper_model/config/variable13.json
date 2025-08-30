@@ -24,60 +24,29 @@
   "model": {
     "inputs": [
       {
-        "id": "CONST",
-        "variableName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant",
-        "optional": false
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
       },
       {
-        "fields": [
-          {
-            "id": "userInfo.username",
-            "variableName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "id": "userInfo.password",
-            "variableName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "id": "userInfo",
-        "variableName": "userInfo",
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "optional": false
+        "ref": "-1418772512"
       }
     ],
     "output": {
-      "fields": [
-        {
-          "id": "credentials.username",
-          "variableName": "username",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        },
-        {
-          "id": "credentials.password",
-          "variableName": "password",
-          "typeName": "string",
-          "kind": "string",
-          "optional": false
-        }
-      ],
-      "id": "credentials",
-      "variableName": "credentials",
+      "fields": [],
+      "name": "credentials",
+      "displayName": "credentials",
       "typeName": "Credentials",
       "kind": "record",
-      "optional": false
+      "ref": "1085256861"
     },
     "mappings": [
       {
@@ -89,6 +58,48 @@
         "diagnostics": [],
         "elements": []
       }
-    ]
+    ],
+    "refs": {
+      "-1418772512": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "1085256861": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      }
+    }
   }
 }

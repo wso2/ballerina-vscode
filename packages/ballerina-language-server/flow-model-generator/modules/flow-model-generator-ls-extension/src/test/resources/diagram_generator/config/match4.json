@@ -436,6 +436,7 @@
                                   "description": "Boolean Condition"
                                 },
                                 "valueType": "EXPRESSION",
+                                "valueTypeConstraint": "boolean",
                                 "value": "p < 25 ",
                                 "placeholder": "true",
                                 "optional": false,
@@ -580,12 +581,13 @@
                   }
                 ],
                 "properties": {
-                  "condition": {
+                  "matchTarget": {
                     "metadata": {
-                      "label": "Condition",
-                      "description": "Boolean Condition"
+                      "label": "Target",
+                      "description": "Match target expression"
                     },
                     "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "any|error",
                     "value": "p % 4 ",
                     "placeholder": "true",
                     "optional": false,
@@ -600,12 +602,13 @@
           }
         ],
         "properties": {
-          "condition": {
+          "matchTarget": {
             "metadata": {
-              "label": "Condition",
-              "description": "Boolean Condition"
+              "label": "Target",
+              "description": "Match target expression"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "any|error",
             "value": "price ",
             "placeholder": "true",
             "optional": false,

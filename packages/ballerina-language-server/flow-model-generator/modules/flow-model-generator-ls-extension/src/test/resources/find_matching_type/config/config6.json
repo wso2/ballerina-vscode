@@ -289,7 +289,7 @@
                   "selected": false
                 }
               ],
-              "name": "type",
+              "name": "'type",
               "typeName": "enum",
               "optional": false,
               "typeInfo": {

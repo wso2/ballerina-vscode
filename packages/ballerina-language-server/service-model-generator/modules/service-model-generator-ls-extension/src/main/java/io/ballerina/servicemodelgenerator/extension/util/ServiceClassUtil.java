@@ -18,9 +18,14 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -33,6 +38,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
@@ -45,14 +51,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 
 /**
  * Util class for service class related operations.
@@ -77,12 +85,13 @@ public class ServiceClassUtil {
         return builder.toString();
     }
 
-    public static ServiceClass getServiceClass(ClassDefinitionNode classDef, ServiceClassContext context) {
+    public static ServiceClass getServiceClass(SemanticModel semanticModel, ClassDefinitionNode classDef,
+                                               ServiceClassContext context) {
         ServiceClass.ServiceClassBuilder builder = new ServiceClass.ServiceClassBuilder();
 
         List<Function> functions = new ArrayList<>();
         List<Field> fields = new ArrayList<>();
-        populateFunctionsAndFields(classDef, functions, fields, context);
+        populateFunctionsAndFields(semanticModel, classDef, functions, fields, context);
 
         builder.name(classDef.className().text().trim())
                 .type(getClassType(classDef))
@@ -117,7 +126,8 @@ public class ServiceClassUtil {
                 .build();
     }
 
-    private static void populateFunctionsAndFields(ClassDefinitionNode classDef, List<Function> functions,
+    private static void populateFunctionsAndFields(SemanticModel semanticModel, ClassDefinitionNode classDef,
+                                                   List<Function> functions,
                                                    List<Field> fields, ServiceClassContext context) {
         classDef.members().forEach(member -> {
             if (member instanceof FunctionDefinitionNode functionDefinitionNode) {
@@ -131,7 +141,7 @@ public class ServiceClassUtil {
                             null, null, null, Constants.GRAPHQL, null, null, GRAPHQL);
                     functions.add(gqlFunctionBuilder.getModelFromSource(gqlContext));
                 } else {
-                    functions.add(buildMemberFunction(functionDefinitionNode, functionKind, context));
+                    functions.add(buildMemberFunction(semanticModel, functionDefinitionNode, functionKind, context));
                 }
             } else if (context == ServiceClassContext.TYPE_DIAGRAM
                     && member instanceof ObjectFieldNode objectFieldNode) {
@@ -140,12 +150,12 @@ public class ServiceClassUtil {
         });
     }
 
-    private static Function buildMemberFunction(FunctionDefinitionNode functionDef, FunctionKind kind,
-                                                ServiceClassContext context) {
+    private static Function buildMemberFunction(SemanticModel semanticModel, FunctionDefinitionNode functionDef,
+                                                FunctionKind kind, ServiceClassContext context) {
         Function functionModel = Function.getNewFunctionModel(context);
         updateMetadata(functionModel, kind);
         functionModel.setKind(kind.name());
-        updateAnnotationAttachmentProperty(functionDef, functionModel);
+        buildAnnotation(semanticModel, functionDef, functionModel);
         if (kind == FunctionKind.INIT) {
             functionModel.getName().setMetadata(FUNCTION_NAME_METADATA);
             functionModel.getReturnType().setMetadata(FUNCTION_RETURN_TYPE_METADATA);
@@ -239,6 +249,43 @@ public class ServiceClassUtil {
             case RESOURCE -> function.setMetadata(new MetaData("Resource Method", "Resource Method"));
             case DEFAULT -> function.setMetadata(new MetaData("Object Method", "Object Method"));
         }
+    }
+
+    private static void buildAnnotation(SemanticModel semanticModel, FunctionDefinitionNode functionDef,
+                                        Function function) {
+        Optional<MetadataNode> metadata = functionDef.metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+
+        metadata.get().annotations().forEach(annotationNode -> {
+            if (annotationNode.annotValue().isEmpty()) {
+                return;
+            }
+
+            String annotName = annotationNode.annotReference().toString().trim();
+            String[] split = annotName.split(COLON);
+            annotName = split[split.length - 1];
+            String propertyName = ANNOT_PREFIX + annotName;
+            if (function.getProperties().containsKey(propertyName)) {
+                Value property = function.getProperties().get(propertyName);
+                Optional<Symbol> symbol = semanticModel.symbol(annotationNode);
+                if (symbol.orElse(null) instanceof AnnotationSymbol annotSymbol) {
+                    Optional<ModuleSymbol> module = annotSymbol.getModule();
+                    if (module.isPresent() && annotSymbol.typeDescriptor().isPresent()) {
+                        String moduleName = module.get().id().moduleName();
+                        String moduleOrg = module.get().id().orgName();
+                        property.getCodedata().setModuleName(moduleName);
+                        property.getCodedata().setOrgName(moduleOrg);
+                        String type = annotSymbol.typeDescriptor().get().getName().orElse(RESOURCE_CONFIG);
+                        property.setTypeMembers(List.of(new PropertyTypeMemberInfo(type, String.join(COLON, moduleOrg,
+                                moduleName, module.get().id().version()), "RECORD_TYPE", false)));
+                    }
+                }
+                property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setEnabled(true);
+            }
+        });
     }
 
     public static String getTcpConnectionServiceTemplate() {

@@ -491,6 +491,7 @@
                           "description": "Boolean Condition"
                         },
                         "valueType": "EXPRESSION",
+                        "valueTypeConstraint": "boolean",
                         "value": "cacheValue is string ",
                         "placeholder": "true",
                         "optional": false,
@@ -1687,7 +1688,7 @@
                 "metadata": {
                   "label": "printError",
                   "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.13.0.png"
                 },
                 "codedata": {
                   "node": "FUNCTION_CALL",
@@ -1695,7 +1696,7 @@
                   "module": "log",
                   "packageName": "log",
                   "symbol": "printError",
-                  "version": "2.12.0",
+                  "version": "2.13.0",
                   "lineRange": {
                     "fileName": "main.bal",
                     "startLine": {

@@ -628,6 +628,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "i < count ",
             "placeholder": "true",
             "optional": false,

@@ -29,6 +29,7 @@
               "description": "Boolean Condition"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
             "value": "",
             "placeholder": "true",
             "optional": false,

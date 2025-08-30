@@ -477,12 +477,13 @@
                   }
                 ],
                 "properties": {
-                  "condition": {
+                  "matchTarget": {
                     "metadata": {
-                      "label": "Condition",
-                      "description": "Boolean Condition"
+                      "label": "Target",
+                      "description": "Match target expression"
                     },
                     "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "any|error",
                     "value": "fruit.quantity ",
                     "placeholder": "true",
                     "optional": false,
@@ -658,12 +659,13 @@
           }
         ],
         "properties": {
-          "condition": {
+          "matchTarget": {
             "metadata": {
-              "label": "Condition",
-              "description": "Boolean Condition"
+              "label": "Target",
+              "description": "Match target expression"
             },
             "valueType": "EXPRESSION",
+            "valueTypeConstraint": "any|error",
             "value": "fruit.price ",
             "placeholder": "true",
             "optional": false,
