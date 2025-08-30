@@ -145,51 +145,6 @@
           },
           {
             "metadata": {
-              "label": "mistralModel"
-            },
-            "items": [
-              {
-                "metadata": {
-                  "label": "chat",
-                  "description": "Uses function call API to determine next function to be called\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.mistral_1.0.1.png"
-                },
-                "codedata": {
-                  "node": "REMOTE_ACTION_CALL",
-                  "org": "ballerinax",
-                  "module": "ai.mistral",
-                  "packageName": "ai.mistral",
-                  "object": "ModelProvider",
-                  "symbol": "chat",
-                  "version": "1.0.1",
-                  "parentSymbol": "mistralModel",
-                  "resourcePath": ""
-                },
-                "enabled": true
-              },
-              {
-                "metadata": {
-                  "label": "generate",
-                  "description": "Sends a chat request to the model and generates a value that belongs to the type\ncorresponding to the type descriptor argument.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.mistral_1.0.1.png"
-                },
-                "codedata": {
-                  "node": "REMOTE_ACTION_CALL",
-                  "org": "ballerinax",
-                  "module": "ai.mistral",
-                  "packageName": "ai.mistral",
-                  "object": "ModelProvider",
-                  "symbol": "generate",
-                  "version": "1.0.1",
-                  "parentSymbol": "mistralModel",
-                  "resourcePath": ""
-                },
-                "enabled": true
-              }
-            ]
-          },
-          {
-            "metadata": {
               "label": "ollamaModel"
             },
             "items": [
