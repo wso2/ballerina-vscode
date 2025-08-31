@@ -77,37 +77,46 @@ export function createBIProject(name: string, isService: boolean) {
         });
 }
 
-export function createBIProjectPure(name: string, projectPath: string) {
+export function createBIProjectPure(integrationName: string, packageName: string, projectPath: string, createDirectory: boolean = true, orgName?: string, version?: string) {
     const projectLocation = projectPath;
 
-    name = sanitizeName(name);
-    const projectRoot = path.join(projectLocation, name);
-    // Create project root directory
-    if (!fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot);
+    const sanitizedIntegrationName = sanitizeName(integrationName);
+    
+    const projectRoot = createDirectory 
+        ? path.join(projectLocation, sanitizedIntegrationName)
+        : projectLocation;
+    
+    // Create project root directory if needed
+    if (createDirectory && !fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot, { recursive: true });
     }
 
-    // Get current username from the system across different OS platforms
-    let username;
-    try {
-        if (process.platform === 'win32') {
-            // Windows
-            username = process.env.USERNAME || 'myOrg';
-        } else {
-            // macOS and Linux
-            username = process.env.USER || 'myOrg';
+    let finalOrgName = orgName;
+    if (!finalOrgName) {
+        // Get current username from the system across different OS platforms
+        try {
+            if (process.platform === 'win32') {
+                // Windows
+                finalOrgName = process.env.USERNAME || 'myOrg';
+            } else {
+                // macOS and Linux
+                finalOrgName = process.env.USER || 'myOrg';
+            }
+        } catch (error) {
+            console.error('Error getting username:', error);
+            finalOrgName = 'myOrg';
         }
-    } catch (error) {
-        console.error('Error getting username:', error);
     }
 
     const EMPTY = "\n";
+    const finalVersion = version || "0.1.0";
 
     const ballerinaTomlContent = `
 [package]
-org = "${username}"
-name = "${name}"
-version = "0.1.0"
+org = "${finalOrgName}"
+name = "${packageName}"
+version = "${finalVersion}"
+label = "${integrationName}"
 
 [build-options]
 sticky = true
