@@ -49,6 +49,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const expandedFieldsStore = useDMExpandedFieldsStore();
 
     const fieldName = dmType.name;
+    const displayName = dmType.displayName || fieldName;
     const typeName = getTypeName(dmType);
     const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
@@ -75,7 +76,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
         <TruncatedLabel style={{ marginRight: "auto" }}>
             <span style={{ opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
                 <span className={classes.valueLabel} style={{ marginLeft: indentation }}>
-                    <InputSearchHighlight>{fieldName}</InputSearchHighlight>
+                    <InputSearchHighlight>{displayName}</InputSearchHighlight>
                     {dmType.optional && "?"}
                 </span>
                 {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
