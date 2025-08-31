@@ -108,6 +108,7 @@ function processArray(
     const ioType: IOType = {
         id: fieldId,
         name: member.name,
+        displayName: member.displayName,
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused })
@@ -146,6 +147,7 @@ function processTypeFields(
         const ioType: IOType = {
             id: fieldId,
             name: field.name,
+            displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind
         };
@@ -175,6 +177,7 @@ function createBaseIOType(root: IORoot): IOType {
     return {
         id: root.name,
         name: root.name,
+        displayName: root.displayName,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category })
@@ -203,7 +206,6 @@ function processInputRoots(model: DMModel): IOType[]{
     };
 
     return inputs.map(input => processIORoot(input, preProcessedModel));
-
 }
 
 /**
