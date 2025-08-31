@@ -21,6 +21,7 @@ import * as fs from "fs";
 import { ChatNotify, GenerateCodeRequest } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../../../../src/features/ai/service/event";
 import { commands, Uri, workspace } from "vscode";
+import * as vscode from "vscode";
 
 const RESOURCES_PATH = path.resolve(__dirname, "../../../../../test/ai/evals/code/resources");
 
@@ -104,26 +105,66 @@ function createTestEventHandler(): { handler: CopilotEventHandler; getResult: ()
     return { handler, getResult };
 }
 
-suite.skip("AI Code Generator Tests Suite", () => {
+suite("AI Code Generator Tests Suite", () => {
 
     // Close all the open workspace folders before running the test
     suiteSetup(async function () {
+        this.timeout(60000); // 60 second timeout for extension initialization
+        
+        // Wait for VSCode startup to complete (onStartupFinished activation event)
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        
         await commands.executeCommand("workbench.action.closeAllEditors");
+        
+        // Add the Ballerina workspace to trigger workspaceContains activation event
+        const PROJECT_ROOT = "/Users/wso2/ai-playground/code/foo";
+        const currentFolderCount = workspace.workspaceFolders?.length || 0;
+        workspace.updateWorkspaceFolders(currentFolderCount, 0, {
+            uri: Uri.file(PROJECT_ROOT),
+        });
+        
+        // Give VSCode time to detect the workspace and trigger activation
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Force extension activation by opening a Ballerina file
+        try {
+            const testBalFile = Uri.file("/Users/wso2/ai-playground/code/foo/main.bal");
+            await commands.executeCommand("vscode.open", testBalFile);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        } catch (error) {
+            // Fallback: try to execute a ballerina command to force activation
+            try {
+                await commands.executeCommand("ballerina.showExamples");
+            } catch (cmdError) {
+                // Extension might still be loading
+            }
+        }
+        
+        // Poll for AI test command availability
+        let attempts = 0;
+        const maxAttempts = 30;
+        
+        while (attempts < maxAttempts) {
+            const commands = await vscode.commands.getCommands();
+            if (commands.includes('ballerina.test.ai.generateCodeCore')) {
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            attempts++;
+        }
+        
+        if (attempts >= maxAttempts) {
+            throw new Error("AI test command never registered - extension failed to activate");
+        }
     });
 
     test("basic workspace test", async function () {
-        const PROJECT_ROOT = "/Users/anjanash/Desktop/Office/OpenSource/vscode-extensions/workspaces/ballerina/ballerina-extension/test/data/aiTest";
-
-        const success = workspace.updateWorkspaceFolders(0, 0, {
-            uri: Uri.file(PROJECT_ROOT),
-        });
-
-        await wait(2000);
-
-        console.log("Workspace folders after update:", workspace.workspaceFolders?.length || 0);
+        this.timeout(120000); // 2 minute timeout for test execution
+        
         const { handler: testEventHandler, getResult } = createTestEventHandler();
 
-        await wait(15000);
+        await wait(15000); // Wait for workspace to settle
+        
         const params: GenerateCodeRequest = {
             usecase: "write a hello world",
             chatHistory: [],
@@ -141,18 +182,14 @@ suite.skip("AI Code Generator Tests Suite", () => {
             assert.strictEqual(result.errorOccurred, null, "No errors should have occurred");
             assert.ok(result.events.length > 0, "Should have received events");
 
-            console.log(`Test completed for folder: ${PROJECT_ROOT}`);
-            console.log(`Generated content length: ${result.fullContent.length}`);
-            console.log(`Total events: ${result.events.length}`);
-
             //TODO: Take the response. Add to files, then compile the project.  Get diagnostics
-            // 
         } catch (error) {
-            console.error(`Test failed for folder ${PROJECT_ROOT}:`, error);
+            // Add debug info for failed authentication 
+            if ((error as Error).message?.includes("login method")) {
+                console.log("Expected authentication error in test environment");
+            }
             throw error;
         }
-
-        console.log("Test completed successfully");
     });
 });
 
