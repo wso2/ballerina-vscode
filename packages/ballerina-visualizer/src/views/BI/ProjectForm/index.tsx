@@ -16,11 +16,20 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
-import { Button, Icon, LocationSelector, TextField, Typography,Codicon,Tooltip } from "@wso2/ui-toolkit";
+import { useEffect, useState } from "react";
+import {
+    Button,
+    Icon,
+    LocationSelector,
+    TextField,
+    Typography,
+    Codicon,
+    CheckBox,
+    LinkButton,
+    ThemeColors,
+} from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { BodyText } from "../../styles";
 import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 
 const FormContainer = styled.div`
@@ -28,6 +37,13 @@ const FormContainer = styled.div`
     flex-direction: column;
     margin: 80px 120px;
     max-width: 600px;
+`;
+
+const TitleContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
 `;
 
 const ButtonWrapper = styled.div`
@@ -47,65 +63,89 @@ const IconButton = styled.div`
     }
 `;
 
-const PreviewContainer = styled.div`
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    height: 28px;
-    gap: 8px;
-    background-color: var(--vscode-editor-background);
-    * {
-        cursor: default !important;
-    }
+const CheckboxContainer = styled.div`
+    margin: 16px 0;
 `;
 
-const InputPreviewWrapper = styled.div`
+const FieldGroup = styled.div`
+    margin-bottom: 20px;
+`;
+
+const OptionalConfigRow = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin: 20px 0;
-`;
-
-const PreviewText = styled(Typography)`
-    color: var(--vscode-sideBarTitle-foreground);
-    opacity: 0.5;
-    font-family: var(--vscode-editor-font-family, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
-    word-break: break-all;
-    min-width: 100px;
-    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    line-height: 1;
+    width: 100%;
+    margin-bottom: 8px;
 `;
 
-const PreviewIcon = styled(Codicon)`
+const OptionalConfigButtonContainer = styled.div`
     display: flex;
-    align-items: center;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: flex-end;
 `;
 
-const sanitizeProjectName = (name: string): string => {
-    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+const OptionalConfigContent = styled.div`
+    margin-top: 16px;
+`;
+
+const sanitizePackageName = (name: string): string => {
+    return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+};
+
+const isValidPackageName = (name: string): boolean => {
+    return /^[a-z0-9_]+$/.test(name);
 };
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
-    const [selectedModule, setSelectedModule] = useState("Main");
-    const [name, setName] = useState("");
+    const [integrationName, setIntegrationName] = useState("");
+    const [packageName, setPackageName] = useState("");
+    const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [path, setPath] = useState("");
+    const [createDirectory, setCreateDirectory] = useState(true);
+    const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
+    const [orgName, setOrgName] = useState("");
+    const [version, setVersion] = useState("");
 
-    const handleProjectName = (value: string) => {
-        setName(value);
+    const handleIntegrationName = (value: string) => {
+        setIntegrationName(value);
+        // Auto-populate package name if user hasn't manually edited it
+        if (!packageNameTouched) {
+            setPackageName(sanitizePackageName(value));
+        }
+    };
+
+    const handlePackageName = (value: string) => {
+        // Only allow valid package name characters
+        const sanitized = sanitizePackageName(value);
+        setPackageName(sanitized);
+        setPackageNameTouched(value.length > 0);
     };
 
     const handleCreateProject = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .createProject({ projectName: name, isService: selectedModule === "Service", projectPath: path });
+        const finalPath = createDirectory ? path : path;
+        rpcClient.getBIDiagramRpcClient().createProject({
+            projectName: integrationName,
+            packageName: packageName,
+            projectPath: finalPath,
+            createDirectory: createDirectory,
+            orgName: orgName || undefined,
+            version: version || undefined,
+        });
     };
 
-    const handleProjecDirSelection = async () => {
+    const handleShowOptionalConfigurations = () => {
+        setShowOptionalConfigurations(true);
+    };
+
+    const handleHideOptionalConfigurations = () => {
+        setShowOptionalConfigurations(false);
+    };
+
+    const handleProjectDirSelection = async () => {
         const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
         setPath(projectDirectory.path);
     };
@@ -115,7 +155,6 @@ export function ProjectForm() {
             const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
             setPath(currentDir.path);
         })();
-
     }, []);
 
     const gotToWelcome = () => {
@@ -129,41 +168,104 @@ export function ProjectForm() {
 
     return (
         <FormContainer>
-            <IconButton onClick={gotToWelcome}>
-                <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-            </IconButton>
-            <Typography variant="h2">Create Your Integration</Typography>
-            <BodyText>
-                Name your integration and select a location to start building.
-            </BodyText>
-            <InputPreviewWrapper>
+            <TitleContainer>
+                <IconButton onClick={gotToWelcome}>
+                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                </IconButton>
+                <Typography variant="h2">Create Your Integration</Typography>
+            </TitleContainer>
+
+            <FieldGroup>
                 <TextField
-                    onTextChange={handleProjectName}
-                    value={name}
+                    onTextChange={handleIntegrationName}
+                    value={integrationName}
                     label="Integration Name"
-                    placeholder="Enter a integration name"
+                    placeholder="Enter an integration name"
                     autoFocus={true}
+                    required={true}
                 />
-                {name && (
-                    <PreviewContainer>
-                        <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                            <Tooltip content="A unique identifier for your intergration">
-                                <PreviewText variant="caption">
-                                    {sanitizeProjectName(name)}
-                                </PreviewText>
-                            </Tooltip>
-                    </PreviewContainer>
-                )}
-            </InputPreviewWrapper>
-            <LocationSelector
-                label="Select Integration Path"
-                selectedFile={path}
-                btnText="Select Path"
-                onSelect={handleProjecDirSelection}
-            />
+            </FieldGroup>
+
+            <FieldGroup>
+                <TextField
+                    onTextChange={handlePackageName}
+                    value={packageName}
+                    label="Package Name"
+                    description="Ballerina package name created for your integration."
+                />
+            </FieldGroup>
+
+            <FieldGroup>
+                <LocationSelector
+                    label="Select Integration Path"
+                    selectedFile={path}
+                    btnText="Select Path"
+                    onSelect={handleProjectDirSelection}
+                />
+
+                <CheckboxContainer>
+                    <CheckBox
+                        label="Create a new directory using the package name"
+                        checked={createDirectory}
+                        onChange={setCreateDirectory}
+                    />
+                </CheckboxContainer>
+            </FieldGroup>
+
+            <OptionalConfigRow>
+                Optional Configurations
+                <OptionalConfigButtonContainer>
+                    {!showOptionalConfigurations && (
+                        <LinkButton
+                            onClick={handleShowOptionalConfigurations}
+                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                        >
+                            <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                            Expand
+                        </LinkButton>
+                    )}
+                    {showOptionalConfigurations && (
+                        <LinkButton
+                            onClick={handleHideOptionalConfigurations}
+                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                        >
+                            <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                            Collapsed
+                        </LinkButton>
+                    )}
+                </OptionalConfigButtonContainer>
+            </OptionalConfigRow>
+
+            {showOptionalConfigurations && (
+                <OptionalConfigContent>
+                    <FieldGroup>
+                        <TextField
+                            onTextChange={setOrgName}
+                            value={orgName}
+                            label="Organization Name"
+                            description="The organization that will own the Ballerina package created for your integration."
+                        />
+                    </FieldGroup>
+                    <FieldGroup>
+                        <TextField
+                            onTextChange={setVersion}
+                            value={version}
+                            label="Package Version"
+                            placeholder="0.1.0"
+                            description="Version of the Ballerina package created for your integration."
+                        />
+                    </FieldGroup>
+                </OptionalConfigContent>
+            )}
+
             <ButtonWrapper>
                 <Button
-                    disabled={name.length < 2 || path.length < 2}
+                    disabled={
+                        integrationName.length < 2 ||
+                        packageName.length < 2 ||
+                        path.length < 2 ||
+                        !isValidPackageName(packageName)
+                    }
                     onClick={handleCreateProject}
                     appearance="primary"
                 >
