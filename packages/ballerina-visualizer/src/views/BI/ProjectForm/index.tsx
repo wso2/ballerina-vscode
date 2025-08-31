@@ -126,11 +126,10 @@ export function ProjectForm() {
     };
 
     const handleCreateProject = () => {
-        const finalPath = createDirectory ? path : path;
         rpcClient.getBIDiagramRpcClient().createProject({
             projectName: integrationName,
             packageName: packageName,
-            projectPath: finalPath,
+            projectPath: path,
             createDirectory: createDirectory,
             orgName: orgName || undefined,
             version: version || undefined,
@@ -230,7 +229,7 @@ export function ProjectForm() {
                             sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
                         >
                             <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                            Collapsed
+                            Collapse
                         </LinkButton>
                     )}
                 </OptionalConfigButtonContainer>
