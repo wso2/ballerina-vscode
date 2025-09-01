@@ -691,15 +691,25 @@ public class DataMapManager {
     }
 
     private LineRange findFunctionLineRange(String funcName, Document functionDocument, Document dataMappingDocument) {
-        LineRange lineRange = findFunctionLineRangeInDocument(functionDocument, funcName);
-        if (lineRange != null) {
+        LineRange lineRange = null;
+        if (functionDocument != null) {
+            lineRange = findFunctionLineRangeInDocument(functionDocument, funcName);
+            if (lineRange != null) {
+                return lineRange;
+            }
+        }
+        if (dataMappingDocument != null) {
+            lineRange = findFunctionLineRangeInDocument(dataMappingDocument, funcName);
             return lineRange;
         }
-
-        return findFunctionLineRangeInDocument(dataMappingDocument, funcName);
+        return null;
     }
 
     private LineRange findFunctionLineRangeInDocument(Document document, String funcName) {
+        if (document == null) {
+            return null;
+        }
+
         for (ModuleMemberDeclarationNode member :
                 ((ModulePartNode) document.syntaxTree().rootNode()).members()) {
             if (member.kind() != SyntaxKind.FUNCTION_DEFINITION) {
