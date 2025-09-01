@@ -140,7 +140,7 @@ export function TitleBar(props: TitleBarProps) {
                 )}
             </LeftContainer>
             <RightContainer>
-                <UndoRedoGroup />
+                {actions && <UndoRedoGroup key={Math.random()} />}
                 {actions && <ActionsContainer>{actions}</ActionsContainer>}
             </RightContainer>
         </TitleBarContainer>
