@@ -18,10 +18,19 @@
 
 package io.ballerina.projectservice.extension;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import io.ballerina.projectservice.core.MigrationTool;
+import io.ballerina.projectservice.core.MuleImporter;
 import io.ballerina.projectservice.core.TibcoImporter;
 import io.ballerina.projectservice.core.ToolExecutionResult;
+import io.ballerina.projectservice.core.baltool.BalToolsUtil;
+import io.ballerina.projectservice.extension.request.ImportMuleRequest;
 import io.ballerina.projectservice.extension.request.ImportTibcoRequest;
+import io.ballerina.projectservice.extension.response.ImportMuleResponse;
 import io.ballerina.projectservice.extension.response.ImportTibcoResponse;
+import io.ballerina.projectservice.extension.response.MigrationToolListResponse;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
@@ -31,6 +40,12 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -45,6 +60,22 @@ public class ProjectService implements ExtendedLanguageServerService {
 
     public static final String CAPABILITY_NAME = "projectService";
     private LanguageServerContext context;
+    private final List<MigrationTool> migrationTools;
+
+    public ProjectService() {
+        Type toolListType = new TypeToken<List<MigrationTool>>() {
+        }.getType();
+        InputStream inputStream = getClass().getClassLoader()
+                .getResourceAsStream("migration_tools.json");
+        List<MigrationTool> loadedTools = List.of();
+        if (inputStream != null) {
+            try (JsonReader reader = new JsonReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                loadedTools = new Gson().fromJson(reader, toolListType);
+            } catch (IOException ignored) {
+            }
+        }
+        this.migrationTools = loadedTools;
+    }
 
     @Override
     public void init(LanguageServer langServer,
@@ -76,6 +107,35 @@ public class ProjectService implements ExtendedLanguageServerService {
             ToolExecutionResult result = TibcoImporter.importTibco(request.orgName(), request.packageName(),
                     request.sourcePath(), stateCallback, logCallback);
             return ImportTibcoResponse.from(result);
+        });
+    }
+
+    /**
+     * Use a mule project or file to import a Mule project into the Ballerina project.
+     *
+     * @param request The request containing the details of the Mule project to be imported.
+     * @return A CompletableFuture that resolves to an ImportMuleResponse.
+     */
+    @JsonRequest
+    public CompletableFuture<ImportMuleResponse> importMule(ImportMuleRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ExtendedLanguageClient langClient = this.context.get(ExtendedLanguageClient.class);
+            if (langClient == null) {
+                return new ImportMuleResponse("Language client not available", null, null, null);
+            }
+            Consumer<String> stateCallback = langClient::stateCallback;
+            Consumer<String> logCallback = langClient::logCallback;
+            ToolExecutionResult result = MuleImporter.importMule(request.orgName(), request.packageName(),
+                    request.sourcePath(), request.parameters(), stateCallback, logCallback);
+            return ImportMuleResponse.from(result);
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<MigrationToolListResponse> getMigrationTools() {
+        return CompletableFuture.supplyAsync(() -> {
+            List<MigrationTool> tools = BalToolsUtil.getToolsCompatibility(this.migrationTools);
+            return new MigrationToolListResponse(tools);
         });
     }
 }
