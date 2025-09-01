@@ -62,9 +62,10 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
-import { findFunctionByName, transformCategories } from "./utils";
+import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
 import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
+import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
@@ -120,6 +121,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [forceUpdate, setForceUpdate] = useState(0);
+    const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -164,10 +166,34 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     return;
                 }
                 setShowProgressIndicator(true);
+                if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
+                    updateConnectionWithNewItem(parent.recentIdentifier);
+                }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
         });
     }, [rpcClient]);
+
+    const updateConnectionWithNewItem = (recentIdentifier: string) => {
+        // Add a new item as loading into the "Connections" category
+        setCategories((prev: PanelCategory[]) => {
+            // Find the "Connections" category
+            const updated = prev.map((cat) => {
+                if (cat.title === "Connections") {
+                    // Add new item to the items array and sort the items by title
+                    return {
+                        ...cat,
+                        items: [
+                            ...(cat.items || []),
+                            { title: recentIdentifier, isLoading: true, items: [] }
+                        ].sort((a, b) => (a as PanelCategory).title.localeCompare((b as PanelCategory).title))
+                    };
+                }
+                return cat;
+            });
+            return updated as PanelCategory[];
+        });
+    };
 
     const debouncedGetFlowModel = useCallback(
         debounce(() => {
@@ -1101,6 +1127,29 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
+    const handleOnSelectNewConnection = async (nodeId: string, metadata?: any) => {
+        // Push current state to navigation stack before navigating
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        setShowProgressIndicator(true);
+
+        try {
+            const { flowNode, connectionKind } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                targetRef.current,
+                model?.fileName,
+                rpcClient
+            );
+
+            nodeTemplateRef.current = flowNode;
+            setSelectedConnectionKind(connectionKind as ConnectionKind);
+            setSidePanelView(SidePanelView.CONNECTION_CREATE);
+            setShowSidePanel(true);
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
     const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
@@ -1691,11 +1740,19 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     // AI Agent callback handlers
-    const handleOnEditAgentModel = (node: FlowNode) => {
-        console.log(">>> Edit agent model called", node);
-        selectedNodeRef.current = node;
+    const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
+        console.log(">>> Edit agent model called", agentCallNode);
+
+        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        const agentNode = moduleNodes.flowModel.connections.find((node) => node.properties.variable.value === agentCallNode.properties.connection.value);
+        if (!agentNode) {
+            console.error(`Agent node not found`, agentCallNode);
+        }
+
+        selectedNodeRef.current = agentNode;
         showEditForm.current = true;
-        setSidePanelView(SidePanelView.AGENT_MODEL);
+        setSelectedConnectionKind('MODEL_PROVIDER');
+        setSidePanelView(SidePanelView.CONNECTION_CONFIG);
         setShowSidePanel(true);
     };
 
@@ -1881,6 +1938,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }, 500);
     };
 
+    const updateNodeWithConnection = async (selectedNode: FlowNode) => {
+        await rpcClient
+            .getBIDiagramRpcClient()
+            .getSourceCode({ filePath: projectPath, flowNode: selectedNode });
+        handleOnCloseSidePanel();
+    };
+
     const handleOnDeleteTool = async (tool: ToolData, node: FlowNode) => {
         console.log(">>> Delete tool called", tool, node);
 
@@ -2003,6 +2067,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 editForm={showEditForm.current}
                 updatedExpressionField={updatedExpressionField}
                 canGoBack={navigationStack.length > 0}
+                selectedConnectionKind={selectedConnectionKind}
+                setSidePanelView={setSidePanelView}
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onBack={handleOnFormBack}
@@ -2032,12 +2098,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchVectorKnowledgeBase={handleSearchVectorKnowledgeBase}
                 onSearchDataLoader={handleSearchDataLoader}
                 onSearchChunker={handleSearchChunker}
+                onUpdateNodeWithConnection={updateNodeWithConnection}
                 // AI Agent specific callbacks
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}
                 onDeleteTool={handleOnDeleteTool}
                 onAddTool={handleOnAddTool}
                 onAddMcpServer={handleOnAddMcpServer}
+                onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
             />
         </>

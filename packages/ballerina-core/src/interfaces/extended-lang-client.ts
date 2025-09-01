@@ -839,6 +839,7 @@ export type SearchQueryParams = {
     offset?: number;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
+    filterByCurrentOrg?: boolean;
 }
 
 export type SearchKind =
@@ -851,10 +852,11 @@ export type SearchKind =
     | "EMBEDDING_PROVIDER"
     | "VECTOR_KNOWLEDGE_BASE"
     | "DATA_LOADER"
-    | "CHUNKER";
+    | "CHUNKER"
+    | "CLASS_INIT";
 
 export type BISearchRequest = {
-    position: LineRange;
+    position?: LineRange;
     filePath: string;
     queryMap: SearchQueryParams;
     searchKind: SearchKind;
@@ -1333,6 +1335,7 @@ export interface Member {
     defaultValue?: string;
     optional?: boolean;
     imports?: Imports;
+    readonly?: boolean;
 }
 
 export interface GetGraphqlTypeRequest {
