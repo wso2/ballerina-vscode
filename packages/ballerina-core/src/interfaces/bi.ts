@@ -87,6 +87,7 @@ export type NodeMetadata = {
     agent?: AgentData;
     paramsToHide?: string[]; // List of properties keys to to hide from forms
     module?: string;
+    type?: string;
 };
 
 export type ParentMetadata = {

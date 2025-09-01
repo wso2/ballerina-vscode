@@ -136,6 +136,8 @@ const VisualizerComponent = React.memo(({ state }: { state: MachineStateValue })
     switch (true) {
         case typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady":
             return <MainPanel />;
+        case typeof state === 'object' && 'viewActive' in state && state.viewActive === "resolveMissingDependencies":
+            return <PullingDependenciesView />; 
         default:
             return <LanguageServerLoadingView />;
     }
@@ -161,6 +163,32 @@ const LanguageServerLoadingView = () => {
                 </LoadingSubtitle>
                 <LoadingText>
                     <span className="loading-dots">Initializing</span>
+                </LoadingText>
+            </LoadingContent>
+        </div>
+    );
+};
+
+const PullingDependenciesView = () => {
+    return (
+        <div style={{
+            backgroundColor: 'var(--vscode-editor-background)',
+            height: '100vh',
+            width: '100%',
+            display: 'flex',
+            fontFamily: 'var(--vscode-font-family)'
+        }}>
+            <Global styles={globalStyles} />
+            <LoadingContent>
+                <ProgressRing />
+                <LoadingTitle>
+                    Pulling Dependencies
+                </LoadingTitle>
+                <LoadingSubtitle>
+                    Fetching required modules for your project
+                </LoadingSubtitle>
+                <LoadingText>
+                    <span className="loading-dots">Pulling</span>
                 </LoadingText>
             </LoadingContent>
         </div>

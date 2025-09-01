@@ -2,7 +2,7 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
@@ -48,7 +48,10 @@ const stateMachine = createMachine<MachineContext>(
                         projectStructure: (context, event) => event.payload,
                     }),
                     () => {
-                        commands.executeCommand("BI.project-explorer.refresh");
+                        // Use queueMicrotask to ensure context is updated before command execution
+                        queueMicrotask(() => {
+                            commands.executeCommand("BI.project-explorer.refresh");
+                        });
                     }
                 ]
             },
@@ -60,9 +63,35 @@ const stateMachine = createMachine<MachineContext>(
                         identifier: (context, event) => event.viewLocation.identifier ? event.viewLocation.identifier : context.identifier,
                     })
                 ]
+            },
+            SWITCH_PROJECT: {
+                target: "switch_project"
             }
         },
         states: {
+            switch_project: {
+                invoke: {
+                    src: checkForProjects,
+                    onDone: [
+                        {
+                            target: "viewActive.viewReady",
+                            actions: [
+                                assign({
+                                    isBI: (context, event) => event.data.isBI,
+                                    projectUri: (context, event) => event.data.projectPath,
+                                    scope: (context, event) => event.data.scope,
+                                    org: (context, event) => event.data.orgName,
+                                    package: (context, event) => event.data.packageName,
+                                }),
+                                async (context, event) => {
+                                    await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
+                                    notifyCurrentWebview();
+                                }
+                            ]
+                        }
+                    ],
+                }
+            },
             initialize: {
                 invoke: {
                     src: checkForProjects,
@@ -171,6 +200,14 @@ const stateMachine = createMachine<MachineContext>(
                     viewInit: {
                         invoke: {
                             src: 'openWebView',
+                            onDone: {
+                                target: "resolveMissingDependencies"
+                            },
+                        }
+                    },
+                    resolveMissingDependencies: {
+                        invoke: {
+                            src: 'resolveMissingDependencies',
                             onDone: {
                                 target: "webViewLoading"
                             },
@@ -311,6 +348,27 @@ const stateMachine = createMachine<MachineContext>(
                     VisualizerWebview.currentPanel!.getWebview()?.reveal();
                     resolve(true);
                 }
+            });
+        },
+        resolveMissingDependencies: (context, event) => {
+            return new Promise(async (resolve, reject) => {
+                if (context?.projectUri) {
+                    const langClient = context.langClient;
+
+                    const dependenciesResponse: any = await langClient.resolveModuleDependencies({
+                        documentIdentifier: {
+                            uri: Uri.file(context.projectUri).toString()
+                        }
+                    });
+
+                    if (dependenciesResponse?.success) {
+                        console.log("Dependencies resolved successfully.");
+                    } else {
+                        console.log("Error resolving dependencies.");
+                    }
+                }
+
+                resolve(true);
             });
         },
         findView(context, event): Promise<void> {
@@ -498,7 +556,7 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
-export function updateView(refreshTreeView?: boolean) {
+export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
@@ -538,7 +596,7 @@ export function updateView(refreshTreeView?: boolean) {
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
+        buildProjectArtifactsStructure(projectUri || StateMachine.context().projectUri, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }

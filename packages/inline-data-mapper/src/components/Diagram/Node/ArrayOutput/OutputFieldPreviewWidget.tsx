@@ -29,7 +29,6 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
-import { getSanitizedId } from "../../utils/common-utils";
 
 export interface OutputFieldPreviewWidgetProps {
     parentId: string;
@@ -67,7 +66,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = getSanitizedId(parentId);
+    let updatedParentId = parentId;
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
