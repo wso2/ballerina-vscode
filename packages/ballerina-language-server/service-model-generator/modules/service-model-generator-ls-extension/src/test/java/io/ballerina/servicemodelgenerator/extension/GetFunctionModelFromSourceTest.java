@@ -25,8 +25,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.request.CommonModelFromSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.response.FunctionFromSourceResponse;
-import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.LineRange;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -52,8 +50,8 @@ public class GetFunctionModelFromSourceTest extends AbstractLSTest {
         bufferedReader.close();
 
         String sourcePath = sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString();
-        CommonModelFromSourceRequest sourceRequest = new CommonModelFromSourceRequest(sourcePath, testConfig.codedata());
-        JsonObject jsonMap = getResponseAndCloseFile(sourceRequest, sourcePath);
+        CommonModelFromSourceRequest request = new CommonModelFromSourceRequest(sourcePath, testConfig.codedata());
+        JsonObject jsonMap = getResponseAndCloseFile(request, sourcePath);
         FunctionFromSourceResponse serviceFromSourceResponse = gson.fromJson(jsonMap, FunctionFromSourceResponse.class);
 
         Function actualFunctionModel = serviceFromSourceResponse.function();
