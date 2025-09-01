@@ -1282,7 +1282,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async deleteOpenApiGeneratedModule(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
-    
+
     async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
         return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
     }

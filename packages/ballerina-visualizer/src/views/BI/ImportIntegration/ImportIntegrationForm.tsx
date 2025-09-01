@@ -18,7 +18,7 @@
 
 import { MigrationTool } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Icon, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Icon, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
@@ -144,17 +144,19 @@ export function ImportIntegrationForm({
             )}
 
             <ButtonWrapper>
-                <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
-                    Back
-                </Button>
-                <Button
-                    disabled={isImportDisabled}
-                    onClick={handleImportIntegration}
-                    appearance="primary"
-                    tooltip={getImportTooltip(selectedIntegration, importSourcePath)}
-                >
-                    Start Migration
-                </Button>
+                <ActionButtons
+                    primaryButton={{
+                        text: "Start Migration",
+                        onClick: handleImportIntegration,
+                        disabled: isImportDisabled,
+                        tooltip: getImportTooltip(selectedIntegration, importSourcePath)
+                    }}
+                    secondaryButton={{
+                        text: "Back",
+                        onClick: onBack,
+                        disabled: false
+                    }}
+                />
             </ButtonWrapper>
 
             {pullingTool && (

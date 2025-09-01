@@ -51,6 +51,14 @@ export const MigrationStatusContent: React.FC<MigrationStatusContentProps> = ({
         );
     }
 
+    if (state.isFailed) {
+        return (
+            <Typography variant="body3" sx={{ color: "var(--vscode-errorForeground)" }}>
+                Migration error: {migrationResponse.error}
+            </Typography>
+        );
+    }
+
     if (state.isSuccess) {
         if (state.hasReportData && parsedReportData) {
             return (

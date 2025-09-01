@@ -1,5 +1,5 @@
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
 import { FolderPicker } from "./components/FolderPicker";
@@ -68,12 +68,18 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
                 />
             </StepContainer>
             <ButtonWrapper>
-                <Button onClick={onBack} appearance="secondary" sx={{ marginRight: "12px" }}>
-                    Back
-                </Button>
-                <Button disabled={isCreateProjectDisabled} onClick={() => onNext(name, path)} appearance="primary">
-                    Create and Open Project
-                </Button>
+                <ActionButtons
+                    primaryButton={{
+                        text: "Create and Open Project",
+                        onClick: () => onNext(name, path),
+                        disabled: isCreateProjectDisabled
+                    }}
+                    secondaryButton={{
+                        text: "Back",
+                        onClick: onBack,
+                        disabled: false
+                    }}
+                />
             </ButtonWrapper>
         </>
     );
