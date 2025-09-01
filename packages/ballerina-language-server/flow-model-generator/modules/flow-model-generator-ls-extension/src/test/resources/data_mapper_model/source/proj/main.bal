@@ -18,6 +18,7 @@ service OASServiceType on new http:Listener(9090) {
         do {
             UserInfo user = {username: "user1", password: "pass1"};
             Student student = {username: bar(user.username, user.password)};
+            Student student2 = {username: bar2(user.username, user.password)};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}
