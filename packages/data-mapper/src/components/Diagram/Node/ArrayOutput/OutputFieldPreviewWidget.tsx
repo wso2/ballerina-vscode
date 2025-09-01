@@ -71,6 +71,8 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
     let fieldName = field?.name || '';
+    const displayName = field?.displayName || fieldName;
+
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
 
@@ -129,7 +131,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
                 )}
                 style={{ marginLeft: fields ? 0 : indentation + 24 }}
             >
-                <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
+                <OutputSearchHighlight>{displayName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {typeName && ":"}
             </span>

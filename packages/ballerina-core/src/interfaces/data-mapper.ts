@@ -85,6 +85,7 @@ export interface IOType {
     kind?: TypeKind;
     typeName?: string;
     name?: string;
+    displayName?: string;
     fields?: IOType[];
     member?: IOType;
     members?: EnumMember[];
@@ -157,6 +158,7 @@ export interface IOTypeField {
     typeName?: string;
     kind: TypeKind;
     name: string;
+    displayName?: string;
     member?: IOTypeField;
     defaultValue?: unknown;
     optional?: boolean;
