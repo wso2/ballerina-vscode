@@ -105,10 +105,32 @@
         ],
         "expression": "y",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "refs": {
+      "2079019383": {
+        "fields": [
+          {
+            "name": "name1",
+            "displayName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      },
       "-1223228350": {
         "fields": [
           {
@@ -136,26 +158,6 @@
           }
         ],
         "typeName": "Types",
-        "kind": "record"
-      },
-      "2079019383": {
-        "fields": [
-          {
-            "name": "name1",
-            "displayName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "i",
-            "displayName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "typeName": "MyType",
         "kind": "record"
       },
       "-353186209": {
