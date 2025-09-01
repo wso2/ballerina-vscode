@@ -297,7 +297,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     }
 
     const customPaths = [...ballerinaJarPaths, ballerinaLanguageServerJar];
-    debug(`Custom paths: ${customPaths}`);
+    // debug(`Custom paths: ${customPaths}`);
     if (process.env.LS_CUSTOM_CLASSPATH) {
         debug(`LS_CUSTOM_CLASSPATH: ${process.env.LS_CUSTOM_CLASSPATH}`);
         customPaths.push(process.env.LS_CUSTOM_CLASSPATH);
