@@ -230,7 +230,7 @@ export class BallerinaExtension {
     }
 
     init(_onBeforeInit: Function): Promise<void> {
-        debug("Initializing Ballerina Extension");
+        debug("Initializing Extension...");
         if (extensions.getExtension(PREV_EXTENSION_ID)) {
             this.showUninstallOldVersion();
         }
@@ -262,6 +262,7 @@ export class BallerinaExtension {
 
             // Check if ballerina home is set.
             if (this.overrideBallerinaHome()) {
+                debug("Override ballerina home is enabled.");
                 if (!this.getConfiguredBallerinaHome()) {
                     const message = "Trying to get ballerina version without setting ballerina home.";
                     sendTelemetryEvent(this, TM_EVENT_ERROR_INVALID_BAL_HOME_CONFIGURED, CMP_EXTENSION_CORE, getMessageObject(message));

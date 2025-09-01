@@ -133,7 +133,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
     // Activate Subscription Commands
     debug('Activating subscription commands.');
     activateSubscriptions();
-    debug('Initializing ballerina extension.');
+    debug('Starting ballerina extension initialization.');
     await ballerinaExtInstance.init(onBeforeInit).then(() => {
         debug('Ballerina extension activated successfully.');
         // <------------ CORE FUNCTIONS ----------->
