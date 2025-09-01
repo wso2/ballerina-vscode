@@ -292,7 +292,7 @@ public class FunctionDataBuilder {
         // Check if the package is pulled
         if (semanticModel == null) {
             if (moduleInfo.version() == null) {
-                // Update the module version via central if it is not provided
+                // Fetch the latest module version from central repository when version is not explicitly provided
                 CentralAPI centralApi = RemoteCentral.getInstance();
                 moduleInfo = new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
                         centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName()));
