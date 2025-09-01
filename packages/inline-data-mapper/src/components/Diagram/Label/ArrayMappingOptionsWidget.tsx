@@ -96,10 +96,8 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const [inProgress, setInProgress] = React.useState(false);
     const wrapWithProgress = (onClick: () => Promise<void>) => {
         return async () => {
-            link.pendingMappingType = MappingType.Default;
             setInProgress(true);
             await onClick();
-            setInProgress(false);
         }
     };
     
@@ -119,12 +117,12 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         await mapWithQuery(link, ResultClauseType.COLLECT, context);
     };
 
-    const onClickMapWithCustomFunction = async () => {
+    const onClickMapWithCustomFn = async () => {
         await mapWithCustomFn(link, context);
     };
 
-    const onClickMapUsingCollectClause = async (collectFunction: string) => {
-
+    const onClickMapWithAggregateFn = async (fn: string) => {
+        await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
     }
 
     const getItemElement = (id: string, label: string) => {
@@ -165,12 +163,12 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         }
     ];
 
-    const collectClauseFns = ["sum", "avg", "min", "max", "count"];
+    const aggregateFns = ["sum", "avg", "min", "max", "count"];
 
-    const a2sCollectClauseItems: Item[] = collectClauseFns.map((func) => ({
-        id: `a2s-collect-${func}`,
-        label: getItemElement(`a2s-collect-${func}`, `Aggregate using ${func}`),
-        onClick: wrapWithProgress(async () => await onClickMapUsingCollectClause(func))
+    const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
+        id: `a2s-collect-${fn}`,
+        label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
+        onClick: wrapWithProgress(async () => await onClickMapWithAggregateFn(fn))
     }));
 
     const defaultMenuItems: Item[] = [
@@ -185,15 +183,15 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
         ? a2aMenuItems
         : pendingMappingType === MappingType.ArrayToSingleton
             ? a2sMenuItems
-            : pendingMappingType === MappingType.ArrayToSingletonWithCollect
-                ? a2sCollectClauseItems
+            : pendingMappingType === MappingType.ArrayToSingletonAggregate
+                ? a2sAggregateItems
                 : defaultMenuItems;
 
-    if (pendingMappingType !== MappingType.ArrayToSingletonWithCollect) {
+    if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
         menuItems.push({
             id: "a2a-a2s-func",
             label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
-            onClick: wrapWithProgress(onClickMapWithCustomFunction)
+            onClick: wrapWithProgress(onClickMapWithCustomFn)
         });
     }
     return (
