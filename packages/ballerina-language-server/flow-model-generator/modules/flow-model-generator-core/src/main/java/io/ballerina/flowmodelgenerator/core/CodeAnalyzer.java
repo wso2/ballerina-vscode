@@ -940,6 +940,7 @@ public class CodeAnalyzer extends NodeVisitor {
             addRemainingParamsToPropertyMap(funcParamMap, hasOnlyRestParams);
             return;
         }
+        boolean hasIncludedParamAsNamedArg = false;
         Optional<List<ParameterSymbol>> paramsOptional = functionTypeSymbol.params();
         if (paramsOptional.isPresent()) {
             List<ParameterSymbol> paramsList = paramsOptional.get();
@@ -966,7 +967,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (paramResult.kind() == ParameterData.Kind.INCLUDED_RECORD) {
                     if (argumentNodes.size() > i && argumentNodes.get(i).kind() == SyntaxKind.NAMED_ARG) {
                         FunctionArgumentNode argNode = argumentNodes.get(i);
-                        funcParamMap.remove(escapedParamName);
                         NamedArgumentNode namedArgumentNode = (NamedArgumentNode) argNode;
                         String argName = namedArgumentNode.argumentName().name().text();
                         if (argName.equals(paramResult.name())) {  // foo("a", b = {})
@@ -1007,6 +1007,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                         .stepOut()
                                     .stepOut()
                                     .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                            hasIncludedParamAsNamedArg = true;
                         } else {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
                                 paramResult = funcParamMap.get(argName);
@@ -1058,7 +1059,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
                             }
                         }
-
+                        funcParamMap.remove(escapedParamName);
                     } else { // positional arg
                         if (paramValue != null) {
                             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
@@ -1223,6 +1224,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .stepOut()
                         .addProperty("additionalValues");
+            }
+            if (hasIncludedParamAsNamedArg) {
+                return;
             }
             addRemainingParamsToPropertyMap(funcParamMap, hasOnlyRestParams);
         }
