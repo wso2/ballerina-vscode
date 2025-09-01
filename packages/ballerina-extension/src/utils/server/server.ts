@@ -55,19 +55,19 @@ function findJarsExcludingPatterns(directory: string, excludePatterns: string[])
         }
         const files = fs.readdirSync(directory);
         const matchingJars: string[] = [];
-        
+
         const compiledPatterns = excludePatterns.map(pattern => new RegExp(pattern.replace(/\*/g, '.*')));
-        
+
         files.forEach(file => {
             if (file.endsWith('.jar')) {
                 const shouldExclude = compiledPatterns.some(regex => regex.test(file));
-                
+
                 if (!shouldExclude) {
                     matchingJars.push(path.join(directory, file));
                 }
             }
         });
-        
+
         return matchingJars;
     } catch (error) {
         console.error(`Error reading directory ${directory}:`, error);
@@ -77,13 +77,13 @@ function findJarsExcludingPatterns(directory: string, excludePatterns: string[])
 
 function parseJdkVersion(versionString: string): { parsedVersion: number[], buildNumber: number } {
     const [mainVersion, buildPart] = versionString.split('+');
-    
+
     const parsedVersion = mainVersion
         .split('.')
         .map(num => parseInt(num, 10) || 0);
-    
+
     const buildNumber = parseInt(buildPart || '0', 10);
-    
+
     return { parsedVersion, buildNumber };
 }
 
@@ -93,10 +93,10 @@ function extractJdkInfo(fileName: string, directory: string): JdkInfo | null {
     if (!match) {
         return null;
     }
-    
+
     const versionString = match[1];
     const { parsedVersion, buildNumber } = parseJdkVersion(versionString);
-    
+
     return {
         name: fileName,
         version: versionString,
@@ -112,19 +112,19 @@ export function findHighestVersionJdk(directory: string): string | null {
             debug(`Dependencies directory not found: ${directory}`);
             return null;
         }
-        
+
         const files = fs.readdirSync(directory);
         debug(`Found files in dependencies directory: ${files.join(', ')}`);
-        
+
         const jdkInfos = files
             .map(file => extractJdkInfo(file, directory))
             .filter((jdk): jdk is JdkInfo => jdk !== null);
-        
+
         if (jdkInfos.length === 0) {
             debug(`No JDK directories found matching pattern in: ${directory}`);
             return null;
         }
-        
+
         const sortedJdks = orderBy(jdkInfos, [
             // sort by major version (descending)
             (jdk: JdkInfo) => jdk.parsedVersion[0] || 0,
@@ -135,12 +135,12 @@ export function findHighestVersionJdk(directory: string): string | null {
             // sort by build number (descending)
             (jdk: JdkInfo) => jdk.buildNumber
         ], ['desc', 'desc', 'desc', 'desc']);
-        
+
         const highestVersionJdk = sortedJdks[0];
-        
+
         debug(`Selected JDK: ${highestVersionJdk.name} at ${highestVersionJdk.fullPath}`);
         return highestVersionJdk.fullPath;
-        
+
     } catch (error) {
         console.error(`Error reading directory ${directory}:`, error);
         return null;
@@ -148,9 +148,10 @@ export function findHighestVersionJdk(directory: string): string | null {
 }
 
 export function getServerOptions(extension: BallerinaExtension): ServerOptions {
+    debug('Getting server options.');
     // Check if user wants to use Ballerina CLI language server or if version requires it
     const BI_SUPPORTED_MINIMUM_VERSION = 2201123; // 2201.12.3
-    if (extension?.useDistributionLanguageServer() ||!isSupportedSLVersion(extension, BI_SUPPORTED_MINIMUM_VERSION) ) {
+    if (extension?.useDistributionLanguageServer() || !isSupportedSLVersion(extension, BI_SUPPORTED_MINIMUM_VERSION)) {
         return getServerOptionsUsingCLI(extension);
     } else {
         return getServerOptionsUsingJava(extension);
@@ -161,13 +162,13 @@ function getServerOptionsUsingCLI(extension: BallerinaExtension): ServerOptions 
     const ballerinaCmd = extension.getBallerinaCmd();
     debug(`Using bal command to start language server.`);
     debug(`Using Ballerina CLI command '${ballerinaCmd}'`);
-    
+
     let cmd = isWindows() ? 'cmd.exe' : ballerinaCmd;
     let args = ["start-language-server"];
     if (isWindows()) {
         args = ['/c', ballerinaCmd, 'start-language-server'];
     }
-    
+
     let opt: ExecutableOptions = {};
     opt.env = Object.assign({}, process.env);
 
@@ -178,7 +179,7 @@ function getServerOptionsUsingCLI(extension: BallerinaExtension): ServerOptions 
             opt.env.BALLERINA_CLASSPATH_EXT = process.env.LS_EXTENSIONS_PATH;
         }
     }
-    
+
     if (process.env.LSDEBUG === "true" || extension?.enableLSDebug()) {
         debug('Language Server is starting in debug mode.');
         let debugPort = 5005;
@@ -215,7 +216,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
             opt.env.BALLERINA_CLASSPATH_EXT = process.env.LS_EXTENSIONS_PATH;
         }
     }
-    
+
     let debugOpts = '';
     if (process.env.LSDEBUG === "true" || extension?.enableLSDebug()) {
         let debugPort = 5005;
@@ -225,10 +226,10 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
 
     const ballerinaHome = isWindows() ? fs.realpathSync.native(extension?.getBallerinaHome()) : extension?.getBallerinaHome();
     // Get the base ballerina home by removing the distribution part
-    const baseHome = ballerinaHome.includes('distributions') 
+    const baseHome = ballerinaHome.includes('distributions')
         ? ballerinaHome.substring(0, ballerinaHome.indexOf('distributions'))
         : ballerinaHome;
-    
+
     // jar patterns to exclude
     const excludeJarPatterns = [
         'architecture-model*',
@@ -250,20 +251,21 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
         join(ballerinaHome, 'lib', 'tools', 'lang-server', 'lib'),
         join(ballerinaHome, 'lib', 'tools', 'debug-adapter', 'lib')
     ];
-    
-    const ballerinaJarPaths = directoriesToSearch.flatMap(directory => 
+
+    const ballerinaJarPaths = directoriesToSearch.flatMap(directory =>
         findJarsExcludingPatterns(directory, excludeJarPatterns)
     );
-    
+
     ballerinaJarPaths.forEach(jarPath => {
         if (!fs.existsSync(jarPath)) {
+            debug(`Ballerina jar not found in ${jarPath}`);
             log(`Ballerina jar not found in ${jarPath}`);
         }
     });
 
     let ballerinaLanguageServerJar: string | null = null;
     const configuredLangServerPath = extension?.getConfiguredLangServerPath();
-    
+
     if (configuredLangServerPath && configuredLangServerPath.trim() !== "") {
         debug(`Using custom language server path: ${configuredLangServerPath}`);
         // User provided custom language server path
@@ -276,9 +278,9 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     } else {
         debug(`Using bundled language server from ls directory.`);
         // Use bundled language server from ls directory
-        const lsDir = extension?.context.asAbsolutePath("ls");    
+        const lsDir = extension?.context.asAbsolutePath("ls");
         ballerinaLanguageServerJar = findFileByPattern(lsDir, /^ballerina-language-server.*\.jar$/);
-        
+
         if (!ballerinaLanguageServerJar || !fs.existsSync(ballerinaLanguageServerJar)) {
             debug(`No ballerina language server jar found in: ${lsDir}`);
             throw new Error(`Language server JAR not found in ${lsDir}`);
@@ -286,6 +288,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     }
 
     const jarName = path.basename(configuredLangServerPath || ballerinaLanguageServerJar);
+    debug(`Language Server JAR: ${jarName}`);
     const versionMatch = jarName.match(/ballerina-language-server-(.+)\.jar$/);
     if (versionMatch) {
         log(`Language Server Version: ${versionMatch[1]}`);
@@ -294,17 +297,18 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     }
 
     const customPaths = [...ballerinaJarPaths, ballerinaLanguageServerJar];
+    debug(`Custom paths: ${customPaths}`);
     if (process.env.LS_CUSTOM_CLASSPATH) {
         debug(`LS_CUSTOM_CLASSPATH: ${process.env.LS_CUSTOM_CLASSPATH}`);
         customPaths.push(process.env.LS_CUSTOM_CLASSPATH);
     }
-    
+
     const classpath = customPaths.join(delimiter);
-    
+
     // Find any JDK in the dependencies directory
     const dependenciesDir = join(baseHome, 'dependencies');
     const jdkDir = findHighestVersionJdk(dependenciesDir);
-    
+    debug(`JDK Directory: ${jdkDir}`);
     if (!jdkDir) {
         debug(`No JDK found in dependencies directory: ${dependenciesDir}`);
         throw new Error(`JDK not found in ${dependenciesDir}`);
@@ -314,27 +318,28 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
     if (jdkVersionMatch) {
         log(`JDK Version: ${jdkVersionMatch[1]}`);
     }
-    
+    debug(`JDK Version: ${jdkVersionMatch[1]}`);
     const javaExecutable = isWindows() ? 'java.exe' : 'java';
     const cmd = join(jdkDir, 'bin', javaExecutable);
     const args = ['-cp', classpath, `-Dballerina.home=${ballerinaHome}`, 'org.ballerinalang.langserver.launchers.stdio.Main'];
 
+    debug(`Java Executable: ${cmd}`);
     // Include debug options in the Java arguments if in debug mode
     if (debugOpts) {
         args.unshift(debugOpts);
     }
-  
+    debug(`Debug Options: ${debugOpts}`);
     // Add custom JVM arguments from environment variable ( Example: LS_CUSTOM_ARGS="-arg1 -arg2=value")
     if (process.env.LS_CUSTOM_ARGS) {
         debug(`LS_CUSTOM_ARGS: ${process.env.LS_CUSTOM_ARGS}`);
         args.unshift(...process.env.LS_CUSTOM_ARGS.split(' '));
     }
-    
+
     const serverOptions = {
         command: cmd,
         args,
         options: opt
     };
-    
+
     return serverOptions;
 }
