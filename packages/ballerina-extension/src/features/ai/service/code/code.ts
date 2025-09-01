@@ -44,10 +44,9 @@ import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 
-const ANTHROPIC_CACHE_BLOCK_LIMIT = 20;
-const knownIds = new Set<string>();
 
 function appendFinalMessages(history: CoreMessage[], finalMessages: CoreMessage[]): void {
+    const knownIds = new Set<string>();
     for (let i = 0; i < finalMessages.length - 1; i++) {
         const message = finalMessages[i];
         const messageId = (message as any).id;
@@ -75,6 +74,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
+    const ANTHROPIC_CACHE_BLOCK_LIMIT = 20;
 
     // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
