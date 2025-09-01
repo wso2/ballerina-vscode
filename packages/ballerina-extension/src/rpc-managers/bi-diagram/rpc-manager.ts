@@ -1827,16 +1827,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const filePath = path.join(projectUri, params.filePath);
             StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
                 .then(async (deleteTypeResponse: DeleteTypeResponse) => {
-                    console.log(">>> delete type response", deleteTypeResponse);
                     if (deleteTypeResponse.textEdits) {
                         await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
                         resolve(deleteTypeResponse);
                     } else {
-                        console.log(">>> error deleting type", deleteTypeResponse?.errorMsg);
                         reject(deleteTypeResponse.errorMsg);
                     }
                 }).catch((error) => {
-                    console.log(">>> error deleting type", error);
                     reject(error);
                 });
         });
@@ -1846,20 +1843,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const projectUri = StateMachine.context().projectUri;
         const filePath = path.join(projectUri, params.filePath);
 
-        console.log(">>> verifying type delete", params);
         const request: VerifyTypeDeleteRequest = {
             filePath: filePath,
             startPosition: params.startPosition,
         };
         return new Promise((resolve, reject) => {
             StateMachine.langClient().verifyTypeDelete(request)
-                .then((response) => {
-                    console.log(">>> verify type delete response", response);
-                    
+                .then((response) => {                    
                     resolve(response);
                 })
                 .catch((error) => {
-                    console.log(">>> error verifying type delete", error);
                     reject(error);
                 });
         });
