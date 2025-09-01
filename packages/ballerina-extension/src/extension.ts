@@ -119,13 +119,23 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
     const ballerinaExtInstance = new BallerinaExtension();
     extension.ballerinaExtInstance = ballerinaExtInstance;
     debug('Active the Ballerina VS Code extension.');
-    sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    try {
+        debug('Sending telemetry event.');
+        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    } catch (error) {
+        debug('Error sending telemetry event.');
+    }
+    debug('Setting context.');
     ballerinaExtInstance.setContext(extension.context);
     // Enable URI handlers
+    debug('Activating URI handlers.');
     activateUriHandlers(ballerinaExtInstance);
     // Activate Subscription Commands
+    debug('Activating subscription commands.');
     activateSubscriptions();
+    debug('Initializing ballerina extension.');
     await ballerinaExtInstance.init(onBeforeInit).then(() => {
+        debug('Ballerina extension activated successfully.');
         // <------------ CORE FUNCTIONS ----------->
         // Activate Library Browser
         activateLibraryBrowser(ballerinaExtInstance);
@@ -187,6 +197,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         });
         isPluginStartup = false;
     }).catch((e) => {
+        debug('Failed to activate Ballerina extension.');
         log("Failed to activate Ballerina extension. " + (e.message ? e.message : e));
         const cmds: any[] = ballerinaExtInstance.extension.packageJSON.contributes.commands;
 

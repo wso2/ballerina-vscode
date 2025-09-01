@@ -230,6 +230,7 @@ export class BallerinaExtension {
     }
 
     init(_onBeforeInit: Function): Promise<void> {
+        debug("Initializing Ballerina Extension");
         if (extensions.getExtension(PREV_EXTENSION_ID)) {
             this.showUninstallOldVersion();
         }
@@ -273,6 +274,9 @@ export class BallerinaExtension {
                 this.ballerinaHome = this.getConfiguredBallerinaHome();
             }
 
+            debug("Validating ballerina version.");
+            debug("Ballerina home: " + this.ballerinaHome);
+            debug("Override ballerina home: " + this.overrideBallerinaHome());
             // Validate the ballerina version.
             return this.getBallerinaVersion(this.ballerinaHome, this.overrideBallerinaHome()).then(async runtimeVersion => {
                 debug("=".repeat(60));
@@ -336,6 +340,7 @@ export class BallerinaExtension {
                 throw new Error(msg);
             });
         } catch (ex) {
+            debug(`Error initializing Ballerina Extension`);
             let msg = "Error happened.";
             if (ex instanceof Error) {
                 msg = "Error while activating plugin. " + (ex.message ? ex.message : ex);
@@ -1928,9 +1933,11 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
         let command = '';
 
         if (isWindows()) {
+            debug('Getting shell environment for Windows.');
             // Windows: use PowerShell to get environment
             command = 'powershell.exe -Command "[Environment]::GetEnvironmentVariables(\'Process\') | ConvertTo-Json"';
         } else {
+            debug('Getting shell environment for Unix-like systems.');
             // Unix-like systems: source profile files and print environment
             const shell = process.env.SHELL || '/bin/bash';
             if (shell.includes('zsh')) {
