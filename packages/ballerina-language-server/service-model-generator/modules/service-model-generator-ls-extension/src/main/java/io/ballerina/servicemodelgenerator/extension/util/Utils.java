@@ -57,6 +57,7 @@ import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
@@ -298,6 +299,7 @@ public final class Utils {
         functionModel.setParameters(parameterModels);
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         functionModel.setCanAddParameters(true);
+        updateFunctionDocs(functionDefinitionNode, functionModel);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }
@@ -451,6 +453,30 @@ public final class Utils {
         });
     }
 
+    public static void updateServiceDocs(ServiceDeclarationNode serviceNode, Service service) {
+        if (serviceNode.metadata().isPresent()) {
+            Optional<Node> docString = serviceNode.metadata().get().documentationString();
+            if (docString.isPresent()) {
+                String[] docs = docString.get().toString().trim().split(NEW_LINE);
+                StringBuilder docBuilder = new StringBuilder();
+                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
+                service.getDocumentation().setValue(docBuilder.toString().trim());
+            }
+        }
+    }
+
+    public static void updateFunctionDocs(FunctionDefinitionNode functionDef, Function function) {
+        if (functionDef.metadata().isPresent()) {
+            Optional<Node> docString = functionDef.metadata().get().documentationString();
+            if (docString.isPresent()) {
+                String[] docs = docString.get().toString().trim().split(NEW_LINE);
+                StringBuilder docBuilder = new StringBuilder();
+                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
+                function.getDocumentation().setValue(docBuilder.toString().trim());
+            }
+        }
+    }
+
     private static String getListenerExprName(ExpressionNode expressionNode) {
         if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
             return nameReferenceNode.toSourceCode().trim();
@@ -527,6 +553,44 @@ public final class Utils {
         return annots;
     }
 
+    public static List<String> getDocumentationEdits(Service service) {
+        List<String> docs = new ArrayList<>();
+        if (Objects.nonNull(service.getDocumentation()) && service.getDocumentation().getValue() != null) {
+            String formatted = service.getDocumentation().getValue().isBlank() ? "" : "# " + service.getDocumentation();
+            docs.add(formatted);
+        }
+        return docs;
+    }
+
+    public static List<String> getDocumentationEdits(ServiceClass serviceClass) {
+        List<String> docs = new ArrayList<>();
+        if (Objects.nonNull(serviceClass.documentation()) && serviceClass.documentation().getValue() != null) {
+            String formatted = serviceClass.documentation().getValue().isBlank() ? "" :
+                    "# " + serviceClass.documentation();
+            docs.add(formatted);
+        }
+        return docs;
+    }
+
+    public static List<String> getDocumentationEdits(Function function) {
+
+        List<String> docs = new ArrayList<>();
+        if (Objects.nonNull(function.getDocumentation()) && function.getDocumentation().getValue() != null) {
+            String formatted = function.getDocumentation().getValue().isBlank() ? "" :
+                    "# " + function.getDocumentation().getValue();
+            docs.add(formatted);
+        }
+        for (Parameter parameter : function.getParameters()) {
+            Value doc = parameter.getDocumentation();
+            if (Objects.nonNull(doc) && parameter.isEnabled() && doc.getValue() != null) {
+                String formatted = doc.getValue().isBlank() ? "" :
+                        "# + " + parameter.getName().getValue() + " - " + doc;
+                docs.add(formatted);
+            }
+        }
+        return docs;
+    }
+
     public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
                                                     List<TextEdit> edits) {
         Token serviceKeyword = serviceNode.serviceKeyword();
@@ -562,6 +626,37 @@ public final class Utils {
                 firstAnnotationEndLinePos, lastAnnotationEndLinePos);
 
         edits.add(new TextEdit(toRange(range), annotEdit));
+    }
+
+    public static void addServiceDocTextEdits(Service service, ServiceDeclarationNode serviceNode,
+                                              List<TextEdit> edits) {
+        Token serviceKeyword = serviceNode.serviceKeyword();
+
+        List<String> docs = getDocumentationEdits(service);
+        String docEdit = String.join(System.lineSeparator(), docs);
+
+        Optional<MetadataNode> metadata = serviceNode.metadata();
+        if (metadata.isEmpty()) { // metadata is empty and the service has documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        Optional<Node> documentationString = metadata.get().documentationString();
+        if (documentationString.isEmpty()) { // metadata is present but no documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
+            }
+            return;
+        }
+
+        LinePosition docStartLinePos = documentationString.get().lineRange().startLine();
+        LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
+        LineRange range = LineRange.from(serviceKeyword.lineRange().fileName(), docStartLinePos, docEndLinePos);
+        edits.add(new TextEdit(toRange(range), docEdit));
     }
 
     public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
@@ -600,6 +695,36 @@ public final class Utils {
                 firstAnnotationEndLinePos, lastAnnotationEndLinePos);
 
         edits.add(new TextEdit(toRange(range), annotEdit));
+    }
+
+    public static void addFunctionDocTextEdits(Function function, FunctionDefinitionNode functionDef,
+                                               List<TextEdit> edits) {
+        Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
+                : functionDef.qualifierList().get(0);
+        List<String> docEdits = getDocumentationEdits(function);
+        String docEdit = String.join(System.lineSeparator(), docEdits);
+        Optional<MetadataNode> metadata = functionDef.metadata();
+        if (metadata.isEmpty()) { // metadata is empty and the service has documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        Optional<Node> documentationString = metadata.get().documentationString();
+        if (documentationString.isEmpty()) { // metadata is present but no documentation
+            if (!docEdits.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
+            }
+            return;
+        }
+
+        LinePosition docStartLinePos = documentationString.get().lineRange().startLine();
+        LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
+        LineRange range = LineRange.from(firstToken.lineRange().fileName(), docStartLinePos, docEndLinePos);
+        edits.add(new TextEdit(toRange(range), docEdit));
     }
 
     public static String getValueString(Value value) {
@@ -646,6 +771,10 @@ public final class Utils {
                                                    FunctionSignatureContext signatureContext,
                                                    Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
+        List<String> documentation = getDocumentationEdits(function);
+        if (!documentation.isEmpty()) {
+            builder.append(String.join(NEW_LINE, documentation)).append(NEW_LINE);
+        }
 
         List<String> functionAnnotations = getAnnotationEdits(function, imports);
         if (!functionAnnotations.isEmpty()) {

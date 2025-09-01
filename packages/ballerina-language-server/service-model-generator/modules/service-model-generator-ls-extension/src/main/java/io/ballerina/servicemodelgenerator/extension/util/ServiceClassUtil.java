@@ -26,6 +26,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -42,9 +43,12 @@ import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +62,12 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTI
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
 
 /**
  * Util class for service class related operations.
@@ -95,6 +102,7 @@ public class ServiceClassUtil {
 
         builder.name(classDef.className().text().trim())
                 .type(getClassType(classDef))
+                .documentation(addServiceClassDoc(classDef))
                 .properties(Map.of("name", buildClassNameProperty(classDef.className().text().trim(),
                         classDef.className().lineRange(), context)))
                 .codedata(new Codedata(classDef.lineRange()))
@@ -334,5 +342,49 @@ public class ServiceClassUtil {
         GRAPHQL_DIAGRAM,
         SERVICE_DIAGRAM,
         HTTP_DIAGRAM
+    }
+
+    public static void addServiceClassDocTextEdits(ServiceClass serviceClass, ClassDefinitionNode classDef,
+                                                   List<TextEdit> edits) {
+        List<String> docEdits = getDocumentationEdits(serviceClass);
+        String docEdit = String.join(System.lineSeparator(), docEdits);
+        Optional<MetadataNode> metadata =  classDef.metadata();
+        if (metadata.isEmpty()) { // metadata is empty and the service has documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(Utils.toRange(classDef.lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        Optional<Node> documentationString = metadata.get().documentationString();
+        if (documentationString.isEmpty()) { // metadata is present but no documentation
+            if (!docEdits.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(Utils.toRange(metadata.get().lineRange()), docEdit));
+            }
+            return;
+        }
+
+        LinePosition docStartLinePos = documentationString.get().lineRange().startLine();
+        LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
+        LineRange range = LineRange.from(classDef.lineRange().fileName(), docStartLinePos, docEndLinePos);
+        edits.add(new TextEdit(Utils.toRange(range), docEdit));
+}
+
+    public static Value addServiceClassDoc(ClassDefinitionNode classDef) {
+        Optional<MetadataNode> metadata =  classDef.metadata();
+        Value serviceClassDoc = getServiceDocumentation();
+        if (metadata.isPresent()) {
+            Optional<Node> docString = metadata.get().documentationString();
+            if (docString.isPresent()) {
+                String[] docs = docString.get().toString().trim().split(NEW_LINE);
+                StringBuilder docBuilder = new StringBuilder();
+                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
+                serviceClassDoc.setValue(docBuilder.toString().trim());
+                return serviceClassDoc;
+            }
+        }
+        return serviceClassDoc;
     }
 }

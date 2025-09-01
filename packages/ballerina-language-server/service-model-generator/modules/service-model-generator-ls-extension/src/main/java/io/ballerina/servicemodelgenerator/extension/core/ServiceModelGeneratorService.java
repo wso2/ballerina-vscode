@@ -118,6 +118,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
@@ -797,6 +798,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     LineRange nameRange = classDefinitionNode.className().lineRange();
                     edits.add(new TextEdit(Utils.toRange(nameRange), className.getValue()));
                 }
+                addServiceClassDocTextEdits(serviceClass, classDefinitionNode, edits);
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
