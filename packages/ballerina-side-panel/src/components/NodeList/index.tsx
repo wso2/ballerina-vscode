@@ -451,6 +451,8 @@ export function NodeList(props: NodeListProps) {
                     const isModelProviderCategory = group.title === "Model Providers";
                     const isVectorStoreCategory = group.title === "Vector Stores";
                     const isEmbeddingProviderCategory = group.title === "Embedding Providers";
+                    const isDataLoaderCategory = group.title === "Data Loaders";
+                    const isChunkerCategory = group.title === "Chunkers";
                     const isVectorKnowledgeBaseCategory = group.title === "Vector Knowledge Bases";
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
@@ -463,6 +465,8 @@ export function NodeList(props: NodeListProps) {
                             !isModelProviderCategory &&
                             !isVectorStoreCategory &&
                             !isEmbeddingProviderCategory &&
+                            !isDataLoaderCategory &&
+                            !isChunkerCategory &&
                             !isVectorKnowledgeBaseCategory
                         ) {
                             return null;
@@ -568,7 +572,7 @@ export function NodeList(props: NodeListProps) {
                                 )}
                             {onAdd &&
                                 addButtonLabel &&
-                                (isModelProviderCategory || isVectorStoreCategory || isEmbeddingProviderCategory || isVectorKnowledgeBaseCategory) &&
+                                (isModelProviderCategory || isVectorStoreCategory || isEmbeddingProviderCategory || isDataLoaderCategory || isChunkerCategory || isVectorKnowledgeBaseCategory) &&
                                 (!group.items || group.items.length === 0) &&
                                 !searchText &&
                                 !isSearching && (
@@ -579,8 +583,8 @@ export function NodeList(props: NodeListProps) {
                                 )}
                             {group.items &&
                             group.items.length > 0 &&
-                            // 1. If parent group is "Connections", "Model Providers", "Vector Stores", "Embedding Providers", or "Vector Knowledge Bases" and ALL items don't have id, use getConnectionContainer
-                            (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores" || group.title === "Embedding Providers" || group.title === "Vector Knowledge Bases") &&
+                            // 1. If parent group is "Connections", "Model Providers", "Vector Stores", "Embedding Providers", "Data Loaders", "Chunkers", or "Vector Knowledge Bases" and ALL items don't have id, use getConnectionContainer
+                            (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores" || group.title === "Embedding Providers" || group.title === "Data Loaders" || group.title === "Chunkers" || group.title === "Vector Knowledge Bases") &&
                             group.items.filter((item) => item != null).every((item) => !("id" in item))
                                 ? getConnectionContainer(group.items as Category[])
                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
