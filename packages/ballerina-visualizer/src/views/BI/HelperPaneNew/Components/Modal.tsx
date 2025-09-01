@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import React, { useState, cloneElement, isValidElement, ReactNode, ReactElement, useEffect } from "react";
+import React, { cloneElement, isValidElement, ReactNode, ReactElement, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { Codicon, Divider, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { useVisualizerContext } from "../../../../Context";
 
 export type DynamicModalProps = {
     children: ReactNode;
@@ -42,16 +43,6 @@ const ModalContainer = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-`;
-
-const Overlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: ${ThemeColors.SURFACE_CONTAINER};
-    opacity: 0.4;
 `;
 
 const ModalBox = styled.div<{ width?: number; height?: number }>`
@@ -84,13 +75,6 @@ const InvisibleButton = styled.button`
     align-items: center;
 `;
 
-const Title = styled.h1`
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-left: 20px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-`;
 
 const ModalHeaderSection = styled.header`
     display: flex;
@@ -112,6 +96,8 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     openState,
     setOpenState,
 }) => {
+    const { setShowOverlay } = useVisualizerContext();
+
 
     let trigger: ReactElement | null = null;
     const content: ReactNode[] = [];
@@ -128,22 +114,22 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
 
     const handleClose = () => {
         setOpenState(false);
+        setShowOverlay(false);
         onClose && onClose();
     };
 
-    useEffect(() => {
-        setOpenState(openState)
-    }, [openState]);
+    if (openState) {
+        setShowOverlay(true);    
+    }
 
     return (
         <>
             {trigger}
             {openState && createPortal(
                 <ModalContainer className="unq-modal-overlay">
-                    <Overlay onClick={handleClose} />
                     <ModalBox width={width} height={height}>
                         <ModalHeaderSection>
-                            <Typography variant="h2" sx={{ margin: 0}}>
+                            <Typography variant="h2" sx={{ margin: 0 }}>
                                 {title}
                             </Typography>
                             <Codicon name="close" onClick={handleClose} />
