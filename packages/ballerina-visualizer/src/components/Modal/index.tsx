@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { cloneElement, isValidElement, ReactNode, ReactElement } from "react";
+import React, { cloneElement, isValidElement, ReactNode, ReactElement, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { Codicon, Divider, ThemeColors, Typography } from "@wso2/ui-toolkit";
@@ -97,8 +97,6 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     setOpenState,
 }) => {
     const { setShowOverlay } = useVisualizerContext();
-
-
     let trigger: ReactElement | null = null;
     const content: ReactNode[] = [];
 
@@ -119,8 +117,14 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     };
 
     if (openState) {
-        setShowOverlay(true);    
+        setShowOverlay(true);
     }
+
+    useEffect(() => {
+        return () => {
+            setShowOverlay(false);
+        };
+    }, []);
 
     return (
         <>
