@@ -84,7 +84,7 @@ export interface IOType {
     category?: InputCategory;
     kind?: TypeKind;
     typeName?: string;
-    name: string;
+    name?: string;
     displayName?: string;
     fields?: IOType[];
     member?: IOType;
