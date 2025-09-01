@@ -94,12 +94,20 @@ export function DataMapperView(props: DataMapperProps) {
         isError
     } = useDataMapperModel(filePath, viewState, position);
 
+    const prevPositionRef = useRef(position);
+    
     useEffect(() => {
-        setViewState({
-            viewId: name,
+        const positionChanged = 
+            prevPositionRef.current?.line !== position?.line || 
+            prevPositionRef.current?.offset !== position?.offset;
+        
+        setViewState(prevState => ({
+            viewId: positionChanged ? name : prevState.viewId || name,
             codedata: codedata
-        });
-    }, [name, codedata]);
+        }));
+        
+        prevPositionRef.current = position;
+    }, [name, codedata, position]);
 
     useEffect(() => {
         if (!model) return;
