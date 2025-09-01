@@ -109,6 +109,10 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             // get agent org
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
+            // get project path
+            const filePath = await rpcClient.getVisualizerLocation();
+            projectPath.current = filePath.projectUri;
+
             // Search for agent node in the current file
             const agentSearchResponse = await searchNodes(
                 rpcClient,
