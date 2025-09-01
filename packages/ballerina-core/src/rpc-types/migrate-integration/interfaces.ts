@@ -26,6 +26,7 @@ export interface MigrationTool {
     parameters: Array<{
         key: string;
         label: string;
+        description: string;
         valueType: "boolean" | "string" | "number" | "enum";
         defaultValue?: boolean | string | number;
         options?: string[];
@@ -56,4 +57,12 @@ export interface OpenMigrationReportRequest {
 export interface SaveMigrationReportRequest {
     reportContent: string;
     defaultFileName: string;
+}
+
+export interface MigrateRequest {
+    projectName: string;
+    projectPath: string;
+    textEdits: {
+        [key: string]: string;
+    };
 }

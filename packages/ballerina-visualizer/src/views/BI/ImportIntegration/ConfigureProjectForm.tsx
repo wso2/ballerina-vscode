@@ -1,8 +1,7 @@
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ActionButtons, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { BodyText } from "../../styles";
-import { FolderPicker } from "./components/FolderPicker";
 import {
     ButtonWrapper,
     InputPreviewWrapper,
@@ -23,7 +22,10 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
     const isCreateProjectDisabled = !isPathValid || name.length < 2;
 
     const handleProjectDirSelection = async () => {
-        return await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        const result = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        if (result?.path) {
+            setPath(result.path);
+        }
     };
 
     useEffect(() => {
@@ -60,11 +62,11 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
             <StepContainer>
                 <Typography variant="body3">Project Location</Typography>
                 <BodyText style={{ marginTop: "8px" }}>Select where to create the project.</BodyText>
-                <FolderPicker
-                    selectedPath={path}
-                    onPathChange={setPath}
-                    onSelectPath={handleProjectDirSelection}
-                    buttonText="Select Path"
+                <LocationSelector
+                    label=""
+                    selectedFile={path}
+                    onSelect={handleProjectDirSelection}
+                    btnText="Select Path"
                 />
             </StepContainer>
             <ButtonWrapper>

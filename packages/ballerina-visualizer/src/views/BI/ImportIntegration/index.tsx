@@ -102,7 +102,7 @@ export function ImportIntegration() {
                 projectPath: projectPath,
                 textEdits: migrationResponse.textEdits,
             };
-            rpcClient.getBIDiagramRpcClient().migrateProject(params);
+            rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
         }
     };
 

@@ -21,6 +21,8 @@ import {
     getMigrationTools,
     importIntegration,
     ImportIntegrationRPCRequest,
+    migrateProject,
+    MigrateRequest,
     MigrationToolPullRequest,
     openMigrationReport,
     OpenMigrationReportRequest,
@@ -38,4 +40,5 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onRequest(importIntegration, (args: ImportIntegrationRPCRequest) => rpcManger.importIntegration(args));
     messenger.onNotification(openMigrationReport, (args: OpenMigrationReportRequest) => rpcManger.openMigrationReport(args));
     messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
+    messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
 }
