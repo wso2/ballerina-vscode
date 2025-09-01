@@ -47,6 +47,7 @@ import {
     GetTypesRequest,
     getTypeFromJson,
     JsonToTypeRequest,
+    MigrateRequest,
     ModelFromCodeRequest,
     OpenAPIClientDeleteRequest,
     OpenAPIClientGenerationRequest,

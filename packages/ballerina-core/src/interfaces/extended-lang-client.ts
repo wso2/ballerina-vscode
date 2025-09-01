@@ -1145,6 +1145,22 @@ export interface RenameIdentifierRequest {
     newName: string;
 }
 
+export interface ImportIntegrationRequest {
+    packageName: string;
+    orgName: string;
+    sourcePath: string;
+    parameters?: Record<string, any>;
+}
+
+export interface ImportIntegrationResponse {
+    error: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
+    jsonReport: string;
+}
+
 // <-------- Trigger Related ------->
 export interface TriggerModelsRequest {
     organization?: string;
