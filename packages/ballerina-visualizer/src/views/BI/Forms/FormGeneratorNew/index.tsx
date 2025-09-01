@@ -67,7 +67,7 @@ import { getHelperPaneNew } from "../../HelperPaneNew";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
-import DynamicModal from "../../HelperPaneNew/Components/Modal";
+import DynamicModal from "../../../../components/Modal";
 
 interface TypeEditorState {
     isOpen: boolean;

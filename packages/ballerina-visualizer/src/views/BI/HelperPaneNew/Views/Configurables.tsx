@@ -23,7 +23,7 @@ import ExpandableList from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
 import { COMPLETION_ITEM_KIND, Divider, getIcon, ThemeColors } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
-import DynamicModal from "../Components/Modal";
+import DynamicModal from "../../../../components/Modal";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";

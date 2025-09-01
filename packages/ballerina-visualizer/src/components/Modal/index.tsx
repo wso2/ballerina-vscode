@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { cloneElement, isValidElement, ReactNode, ReactElement, useEffect } from "react";
+import React, { cloneElement, isValidElement, ReactNode, ReactElement } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { Codicon, Divider, ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { useVisualizerContext } from "../../../../Context";
+import { useVisualizerContext } from "../../Context";
 
 export type DynamicModalProps = {
     children: ReactNode;
@@ -126,7 +126,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
         <>
             {trigger}
             {openState && createPortal(
-                <ModalContainer className="unq-modal-overlay">
+                <ModalContainer ref={anchorRef} className="unq-modal-overlay">
                     <ModalBox width={width} height={height}>
                         <ModalHeaderSection>
                             <Typography variant="h2" sx={{ margin: 0 }}>

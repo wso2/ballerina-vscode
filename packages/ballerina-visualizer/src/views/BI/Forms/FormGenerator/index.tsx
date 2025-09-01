@@ -90,7 +90,7 @@ import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
 import { EditorContext, StackItem } from "@wso2/type-editor";
-import DynamicModal from "../../HelperPaneNew/Components/Modal";
+import DynamicModal from "../../../../components/Modal";
 import React from "react";
 
 interface TypeEditorState {

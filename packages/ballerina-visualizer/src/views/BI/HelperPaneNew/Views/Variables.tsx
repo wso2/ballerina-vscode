@@ -25,7 +25,7 @@ import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox,
 import {  useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import DynamicModal from "../Components/Modal"
+import DynamicModal from "../../../../components/Modal"
 import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
