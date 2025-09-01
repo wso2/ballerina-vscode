@@ -34,6 +34,7 @@ import { Category, Item, Node } from "./types";
 import { cloneDeep, debounce } from "lodash";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { getCategoryConfig, shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, CategoryAction } from "./categoryConfig";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -443,32 +444,11 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {groups.map((group, index) => {
-                    const isConnectionCategory = group.title === "Connections";
-                    const isProjectFunctionsCategory = group.title === "Current Integration";
-                    const isDataMapperCategory = isProjectFunctionsCategory && title === "Data Mappers";
-                    const isAgentCategory = group.title === "Agents";
-                    const isNpFunctionCategory = isProjectFunctionsCategory && title === "Natural Functions";
-                    const isModelProviderCategory = group.title === "Model Providers";
-                    const isVectorStoreCategory = group.title === "Vector Stores";
-                    const isEmbeddingProviderCategory = group.title === "Embedding Providers";
-                    const isDataLoaderCategory = group.title === "Data Loaders";
-                    const isChunkerCategory = group.title === "Chunkers";
-                    const isVectorKnowledgeBaseCategory = group.title === "Vector Knowledge Bases";
+                    const categoryActions = getCategoryActions(group.title, title);
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (
-                            !isConnectionCategory &&
-                            !isProjectFunctionsCategory &&
-                            !isAgentCategory &&
-                            !isNpFunctionCategory &&
-                            !isModelProviderCategory &&
-                            !isVectorStoreCategory &&
-                            !isEmbeddingProviderCategory &&
-                            !isDataLoaderCategory &&
-                            !isChunkerCategory &&
-                            !isVectorKnowledgeBaseCategory
-                        ) {
+                        if (!shouldShowEmptyCategory(group.title)) {
                             return null;
                         }
                     }
@@ -476,7 +456,7 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
                     // skip current integration category if onAddFunction is not provided and items are empty
-                    if (!onAddFunction && isProjectFunctionsCategory && (!group.items || group.items.length === 0)) {
+                    if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
                         return null;
                     }
 
@@ -492,99 +472,68 @@ export function NodeList(props: NodeListProps) {
                                     <>
                                         <S.Title>{group.title}</S.Title>
                                         <>
-                                            {onAddConnection && isConnectionCategory && (
-                                                <Button
-                                                    appearance="icon"
-                                                    tooltip="Add Connection"
-                                                    onClick={handleAddConnection}
-                                                >
-                                                    <Codicon name="add" />
-                                                </Button>
-                                            )}
-                                            {onAddFunction && isDataMapperCategory && (
-                                                <Button
-                                                    appearance="icon"
-                                                    tooltip="Create Data Mapper"
-                                                    onClick={handleAddFunction}
-                                                >
-                                                    <Codicon name="add" />
-                                                </Button>
-                                            )}
-                                            {onAddFunction &&
-                                                isProjectFunctionsCategory &&
-                                                !isDataMapperCategory &&
-                                                !isNpFunctionCategory && (
+                                            {categoryActions.map((action, actionIndex) => {
+                                                const handlers = {
+                                                    onAddConnection: handleAddConnection,
+                                                    onAddFunction: handleAddFunction,
+                                                    onAdd: handleAdd
+                                                };
+                                                
+                                                const handler = handlers[action.handlerKey];
+                                                const propsHandler = props[action.handlerKey];
+                                                
+                                                // Only render if the handler exists in props
+                                                if (!propsHandler || !handler) return null;
+                                                
+                                                const tooltipText = action.tooltip || addButtonLabel || "";
+                                                
+                                                return (
                                                     <Button
+                                                        key={`${group.title}-${actionIndex}`}
                                                         appearance="icon"
-                                                        tooltip="Create Function"
-                                                        onClick={handleAddFunction}
+                                                        tooltip={tooltipText}
+                                                        onClick={handler}
                                                     >
                                                         <Codicon name="add" />
                                                     </Button>
-                                                )}
-                                            {onAddFunction && isNpFunctionCategory && (
-                                                <Button
-                                                    appearance="icon"
-                                                    tooltip="Create Natural Function"
-                                                    onClick={handleAddFunction}
-                                                >
-                                                    <Codicon name="add" />
-                                                </Button>
-                                            )}
-                                            {onAdd && addButtonLabel && (
-                                                <Button
-                                                    appearance="icon"
-                                                    tooltip={addButtonLabel}
-                                                    onClick={handleAdd}
-                                                >
-                                                    <Codicon name="add" />
-                                                </Button>
-                                            )}
+                                                );
+                                            })}
                                         </>
                                     </>
                                 )}
                             </S.Row>
-                            {onAddConnection && isConnectionCategory && (!group.items || group.items.length === 0) && (
-                                <S.HighlightedButton onClick={handleAddConnection}>
-                                    <Codicon
-                                        name="add"
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ display: "flex", alignItems: "center" }}
-                                    />
-                                    Add Connection
-                                </S.HighlightedButton>
-                            )}
-                            {onAddFunction &&
-                                isProjectFunctionsCategory &&
-                                (!group.items || group.items.length === 0) &&
+                            {(!group.items || group.items.length === 0) &&
                                 !searchText &&
-                                !isSearching && (
-                                    <S.HighlightedButton onClick={handleAddFunction}>
-                                        <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                        {`Create ${
-                                            isDataMapperCategory
-                                                ? "Data Mapper"
-                                                : isNpFunctionCategory
-                                                ? "Natural Function"
-                                                : "Function"
-                                        }`}
-                                    </S.HighlightedButton>
-                                )}
-                            {onAdd &&
-                                addButtonLabel &&
-                                (isModelProviderCategory || isVectorStoreCategory || isEmbeddingProviderCategory || isDataLoaderCategory || isChunkerCategory || isVectorKnowledgeBaseCategory) &&
-                                (!group.items || group.items.length === 0) &&
-                                !searchText &&
-                                !isSearching && (
-                                    <S.HighlightedButton onClick={handleAdd}>
-                                        <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                        {addButtonLabel}
-                                    </S.HighlightedButton>
-                                )}
+                                !isSearching &&
+                                categoryActions.map((action, actionIndex) => {
+                                    const handlers = {
+                                        onAddConnection: handleAddConnection,
+                                        onAddFunction: handleAddFunction,
+                                        onAdd: handleAdd
+                                    };
+                                    
+                                    const handler = handlers[action.handlerKey];
+                                    const propsHandler = props[action.handlerKey];
+                                    
+                                    // Only render if the handler exists in props
+                                    if (!propsHandler || !handler) return null;
+                                    
+                                    const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
+                                    
+                                    return (
+                                        <S.HighlightedButton 
+                                            key={`empty-${group.title}-${actionIndex}`}
+                                            onClick={handler}
+                                        >
+                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                            {buttonLabel}
+                                        </S.HighlightedButton>
+                                    );
+                                })}
                             {group.items &&
                             group.items.length > 0 &&
-                            // 1. If parent group is "Connections", "Model Providers", "Vector Stores", "Embedding Providers", "Data Loaders", "Chunkers", or "Vector Knowledge Bases" and ALL items don't have id, use getConnectionContainer
-                            (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores" || group.title === "Embedding Providers" || group.title === "Data Loaders" || group.title === "Chunkers" || group.title === "Vector Knowledge Bases") &&
+                            // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
+                            shouldUseConnectionContainer(group.title) &&
                             group.items.filter((item) => item != null).every((item) => !("id" in item))
                                 ? getConnectionContainer(group.items as Category[])
                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
