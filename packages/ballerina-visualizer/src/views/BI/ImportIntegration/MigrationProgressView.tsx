@@ -17,17 +17,14 @@
  */
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Typography } from "@wso2/ui-toolkit";
 import { useEffect, useMemo, useState } from "react";
 import { BodyText } from "../../styles";
-import { MigrationActionButtons } from "./components/MigrationActionButtons";
 import { MigrationLogs } from "./components/MigrationLogs";
 import { MigrationStatusContent } from "./components/MigrationStatusContent";
 import { ButtonWrapper, NextButtonWrapper, StepWrapper } from "./styles";
 import { MigrationProgressProps, MigrationReportJSON } from "./types";
 import { getMigrationDisplayState, getMigrationProgressHeaderData } from "./utils";
-
-
 
 export function MigrationProgressView({
     migrationState,
@@ -116,10 +113,17 @@ export function MigrationProgressView({
                 />
                 {displayState.showButtonsInStep && (
                     <NextButtonWrapper>
-                        <MigrationActionButtons
-                            onNext={onNext}
-                            onBack={onBack}
-                            nextDisabled={!migrationCompleted || !migrationSuccessful}
+                        <ActionButtons
+                            primaryButton={{
+                                text: "Next",
+                                onClick: onNext,
+                                disabled: !migrationCompleted || !migrationSuccessful
+                            }}
+                            secondaryButton={{
+                                text: "Back",
+                                onClick: onBack,
+                                disabled: false
+                            }}
                         />
                     </NextButtonWrapper>
                 )}
@@ -136,10 +140,17 @@ export function MigrationProgressView({
             {/* Show button after logs when migration is in progress or failed */}
             {displayState.showButtonsAfterLogs && (
                 <ButtonWrapper>
-                    <MigrationActionButtons
-                        onNext={onNext}
-                        onBack={onBack}
-                        nextDisabled={!migrationCompleted || !migrationSuccessful}
+                    <ActionButtons
+                        primaryButton={{
+                            text: "Next",
+                            onClick: onNext,
+                            disabled: !migrationCompleted || !migrationSuccessful
+                        }}
+                        secondaryButton={{
+                            text: "Back",
+                            onClick: onBack,
+                            disabled: false
+                        }}
                     />
                 </ButtonWrapper>
             )}
