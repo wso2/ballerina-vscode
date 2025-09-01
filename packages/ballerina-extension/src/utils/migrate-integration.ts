@@ -23,6 +23,8 @@ import { RPCLayer } from "../RPCLayer";
 import { VisualizerWebview } from "../views/visualizer/webview";
 import { debug } from "./logger";
 
+const PROGRESS_COMPLETE = 100;
+
 /**
  * Executes the `bal tool pull` command and sends progress notifications to the webview client via RPC.
  * Includes 5-minute timeout.
@@ -80,11 +82,6 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
 
         let accumulatedStdout = "";
         let progressReported = 0;
-        let isResolved = false;
-
-        const cleanup = () => {
-            isResolved = true;
-        };
 
         // 3. Process the command's standard output with carriage return handling
         childProcess.stdout?.on("data", (data: Buffer) => {
@@ -98,11 +95,11 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
 
             // Case A: Tool is already installed (high-priority check)
             if (accumulatedStdout.includes("is already available locally")) {
-                if (progressReported < 100) {
-                    progressReported = 100;
+                if (progressReported < PROGRESS_COMPLETE) {
+                    progressReported = PROGRESS_COMPLETE;
                     sendProgress({
                         message: "Tool is already installed.",
-                        percentage: 100,
+                        percentage: PROGRESS_COMPLETE,
                         success: true,
                         step: 3,
                     });
@@ -110,11 +107,11 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
             }
             // Case B: Download is complete (check for success message)
             else if (accumulatedStdout.includes("pulled from central successfully")) {
-                if (progressReported < 100) {
-                    progressReported = 100;
+                if (progressReported < PROGRESS_COMPLETE) {
+                    progressReported = PROGRESS_COMPLETE;
                     sendProgress({
                         message: "Download complete. Finalizing...",
-                        percentage: 100,
+                        percentage: PROGRESS_COMPLETE,
                         success: false, // Not fully successful until the process closes with code 0
                         step: 2,
                     });
@@ -129,7 +126,7 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
                     const currentPercentage = parseInt(percentageMatch[1], 10);
 
                     // Update progress if it's a valid number and moving forward
-                    if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= 100) {
+                    if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= PROGRESS_COMPLETE) {
                         progressReported = currentPercentage;
 
                         // Extract download info from progress line if available
@@ -157,7 +154,7 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
                         const lastMatch = allPercentageMatches[allPercentageMatches.length - 1];
                         const currentPercentage = parseInt(lastMatch, 10);
 
-                        if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= 100) {
+                        if (!isNaN(currentPercentage) && currentPercentage > progressReported && currentPercentage <= PROGRESS_COMPLETE) {
                             progressReported = currentPercentage;
                             sendProgress({
                                 message: `Downloading... ${currentPercentage}%`,
@@ -197,7 +194,6 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
                     success: false,
                     step: -1,
                 });
-                cleanup();
                 reject(new Error(errorOutput));
             }
         });
@@ -205,7 +201,6 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
         // 5. Handle the definitive end of the process
         childProcess.on("close", (code) => {
             debug(`Tool pull command exited with code ${code}`);
-            cleanup();
 
             // Success conditions: code 0, or code 1 with "already available" message
             const isAlreadyInstalled = accumulatedStdout.includes("is already available locally");
@@ -220,12 +215,12 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
                 } else if (isSuccessfulDownload) {
                     finalMessage = `Successfully pulled '${migrationToolName}'.`;
                 } else {
-                    finalMessage = `Tool pull completed with code ${code}.`;
+                    finalMessage = `Tool pull completed with code ${code}. Please check the logs for more details.`;
                 }
 
                 sendProgress({
                     message: finalMessage,
-                    percentage: 100,
+                    percentage: PROGRESS_COMPLETE,
                     success: true,
                     step: 3,
                 });
@@ -244,7 +239,6 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
         // Handle process execution errors (e.g., command not found)
         childProcess.on("error", (error) => {
             debug(`Tool pull process error: ${error.message}`);
-            cleanup();
 
             const errorMessage = `Failed to execute command: ${error.message}`;
             sendProgress({
@@ -258,7 +252,6 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
         // Handle timeout from exec options
         childProcess.on("timeout", () => {
             debug("Tool pull process timed out after 5 minutes");
-            cleanup();
 
             const errorMessage = "Download timed out after 5 minutes";
             sendProgress({
