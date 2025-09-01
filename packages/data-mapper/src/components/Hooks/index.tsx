@@ -23,7 +23,7 @@ import {
 } from "@projectstorm/react-diagrams";
 
 import { DataMapperNodeModel } from '../Diagram/Node/commons/DataMapperNode';
-import { getFieldCountMismatchIndex, getInputNodeFieldCounts, getIONodeHeight } from '../Diagram/utils/diagram-utils';
+import { getFieldCountMismatchIndex, getInputNodeFieldCounts, getIONodeHeight, isSameView } from '../Diagram/utils/diagram-utils';
 import { OverlayLayerModel } from '../Diagram/OverlayLayer/OverlayLayerModel';
 import { ErrorNodeKind } from '../DataMapper/Error/RenderingError';
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from '../../store/store';
@@ -72,6 +72,7 @@ export const useRepositionedNodes = (
 
     nodesClone.forEach((node, index) => {
         const existingNode = prevNodes.find(prevNode => prevNode.id === node.id);
+        const sameView = isSameView(node, existingNode);
 
         if (node instanceof ObjectOutputNode
             || node instanceof ArrayOutputNode
@@ -80,7 +81,7 @@ export const useRepositionedNodes = (
             || node instanceof OutputDataImportNodeModel
         ) {
             const x = (window.innerWidth) * (100 / zoomLevel) - IO_NODE_DEFAULT_WIDTH;
-            const y = existingNode && existingNode.getY() !== 0 ? existingNode.getY() : 0;
+            const y = existingNode && sameView && existingNode.getY() !== 0 ? existingNode.getY() : 0;
             node.setPosition(x, y);
         }
         if (node instanceof InputNode
@@ -92,6 +93,7 @@ export const useRepositionedNodes = (
             const computedY = prevBottomY + (prevBottomY ? GAP_BETWEEN_INPUT_NODES : 0);
 
             const utilizeExistingY = existingNode &&
+                sameView &&
                 existingNode.getY() !== 0 &&
                 !(node instanceof SubMappingNode) &&
                 (fieldCountMismatchIndex === -1 || index <= fieldCountMismatchIndex);
