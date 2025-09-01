@@ -52,7 +52,7 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
         await populateLocalConnectors(projectDir, result);
     }
     // Find the workspace folder and get the project name. Correct way to get the project name is from the ballerina.toml file.
-    const workspace = vscode.workspace.workspaceFolders.find(folder => folder.uri.fsPath === projectDir);
+    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
     const projectName = workspace?.name;
     result.projectName = projectName;
 
