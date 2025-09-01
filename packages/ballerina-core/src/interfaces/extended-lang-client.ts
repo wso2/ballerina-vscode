@@ -839,6 +839,7 @@ export type SearchQueryParams = {
     offset?: number;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
+    filterByCurrentOrg?: boolean;
 }
 
 export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE";
@@ -1323,6 +1324,7 @@ export interface Member {
     defaultValue?: string;
     optional?: boolean;
     imports?: Imports;
+    readonly?: boolean;
 }
 
 export interface GetGraphqlTypeRequest {
