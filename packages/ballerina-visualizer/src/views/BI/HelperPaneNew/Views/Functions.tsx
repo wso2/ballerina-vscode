@@ -42,7 +42,7 @@ type FunctionsPageProps = {
     fileName: string;
     targetLineRange: LineRange;
     onClose: () => void;
-    onChange: (insertText: CompletionInsertText) => void;
+    onChange: (insertText: CompletionInsertText | string) => void;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
     selectedType?: CompletionItem
 };
@@ -257,6 +257,7 @@ export const FunctionsPage = ({
                     <FunctionFormStatic
                         projectPath={projectUri}
                         filePath={defaultFunctionsFile}
+                        handleSubmit={onChange}
                         functionName={undefined}
                         isDataMapper={false}
                         defaultType={selectedType?.label}

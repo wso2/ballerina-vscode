@@ -66,12 +66,13 @@ interface FunctionFormProps {
     isDataMapper?: boolean;
     isNpFunction?: boolean;
     isAutomation?: boolean;
+    handleSubmit?: (value: string) => void;
     defaultType?: string;
 }
 
 export function FunctionFormStatic(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, defaultType } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, defaultType, handleSubmit } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -291,20 +292,12 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             .getSourceCode({ filePath, flowNode: functionNodeCopy, isFunctionNodeUpdate: true });
 
         if (sourceCode.artifacts.length === 0) {
-            setSaving(false);
             showErrorNotification();
-        } else {
-            const newArtifact = sourceCode.artifacts.find(res => res.isNew);
-            if (newArtifact) {
-                rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
-                return;
-            }
-            const updatedArtifact = sourceCode.artifacts.find(res => !res.isNew && (res.name === functionName || res.context === functionName));
-            if (updatedArtifact) {
-                rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: updatedArtifact.path, position: updatedArtifact.position } });
-                return;
-            }
         }
+        else {
+            handleSubmit(`${sourceCode.artifacts[0].name}()`);
+        }
+        setSaving(false)
     };
 
     const handleFormSubmit = async (data: FormValues, formImports?: FormImports) => {
@@ -376,9 +369,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <FormHeader
-                subtitle={'Define the function here, then implement it and use it later in your integration.'}
-            />
+
             {isLoading && (
                 <LoadingContainer>
                     <LoadingRing />
