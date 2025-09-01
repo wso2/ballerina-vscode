@@ -330,10 +330,12 @@ export class BallerinaExtension {
                 });
                 debug("=".repeat(60));
             }, (reason) => {
+                debug('Error getting ballerina version: ' + reason.message);
                 sendTelemetryException(this, reason, CMP_EXTENSION_CORE);
                 this.showMessageInstallBallerina();
                 throw new Error(reason);
             }).catch(e => {
+                debug('Error getting ballerina version: ' + e.message);
                 const msg = `Error when checking ballerina version. ${e.message}`;
                 sendTelemetryException(this, e, CMP_EXTENSION_CORE, getMessageObject(msg));
                 this.telemetryReporter.dispose();
@@ -1450,8 +1452,10 @@ export class BallerinaExtension {
                     return resolve(parsedVersion);
                 } catch (error) {
                     if (error instanceof Error) {
+                        debug('Error getting ballerina version: ' + error.message);
                         sendTelemetryException(this, error, CMP_EXTENSION_CORE);
                     }
+                    debug('Error getting ballerina version: ' + error);
                     return reject(error);
                 }
             });
