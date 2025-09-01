@@ -46,7 +46,7 @@ import {
     FormImports
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { CompletionItem, DynamicModal, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
+import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
 
 import {
     convertBalCompletion,
@@ -67,6 +67,7 @@ import { getHelperPaneNew } from "../../HelperPaneNew";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
+import DynamicModal from "../../HelperPaneNew/Components/Modal";
 
 interface TypeEditorState {
     isOpen: boolean;

@@ -250,7 +250,7 @@ export const FunctionsPage = ({
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
             <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', padding: '8px' }}>
-                <DynamicModal width={500} height={600} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
+                <DynamicModal width={400} height={600} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
                     <DynamicModal.Trigger>
                         <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between', overflow: "hidden" }} startIcon='add' title="New Function" />
                     </DynamicModal.Trigger>
