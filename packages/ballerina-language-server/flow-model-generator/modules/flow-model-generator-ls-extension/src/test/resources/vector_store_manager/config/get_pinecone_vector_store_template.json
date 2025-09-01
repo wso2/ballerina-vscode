@@ -42,8 +42,7 @@
           "hidden": false,
           "codedata": {},
           "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
+            "pinecone": "ballerinax/ai.pinecone"
           }
         },
         "variable": {
@@ -56,11 +55,7 @@
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false,
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          }
+          "hidden": false
         },
         "serviceUrl": {
           "metadata": {
@@ -86,11 +81,7 @@
               "kind": "BASIC_TYPE",
               "selected": false
             }
-          ],
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          }
+          ]
         },
         "apiKey": {
           "metadata": {
@@ -116,11 +107,7 @@
               "kind": "BASIC_TYPE",
               "selected": false
             }
-          ],
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          }
+          ]
         },
         "queryMode": {
           "metadata": {
@@ -148,8 +135,7 @@
             }
           ],
           "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
+            "ai": "ballerina/ai"
           },
           "defaultValue": "\"HYBRID\""
         },
@@ -177,10 +163,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          },
           "defaultValue": "{}"
         },
         "httpConfig": {
@@ -209,7 +191,6 @@
             }
           ],
           "imports": {
-            "ai": "ballerina/ai",
             "vector": "ballerinax/pinecone.vector"
           },
           "defaultValue": "{}"
@@ -224,11 +205,7 @@
           "optional": false,
           "editable": true,
           "advanced": true,
-          "hidden": true,
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          }
+          "hidden": true
         },
         "checkError": {
           "metadata": {
@@ -240,11 +217,7 @@
           "optional": false,
           "editable": false,
           "advanced": true,
-          "hidden": true,
-          "imports": {
-            "ai": "ballerina/ai",
-            "vector": "ballerinax/pinecone.vector"
-          }
+          "hidden": true
         }
       },
       "flags": 0
