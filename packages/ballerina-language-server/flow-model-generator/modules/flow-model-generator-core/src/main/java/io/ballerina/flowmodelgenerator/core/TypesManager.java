@@ -136,11 +136,11 @@ public class TypesManager {
 
         Map<String, Object> refs = new HashMap<>();
         if (optSymbol.get().kind() == SymbolKind.SERVICE_DECLARATION) {
-            addDependencyTypes((ServiceDeclarationSymbol) optSymbol.get(), refs);
+            addDependencyTypes((ServiceDeclarationSymbol) optSymbol.get(), refs, true);
         } else {
             TypeSymbol typeDescriptor = getTypeDescriptor(optSymbol.get());
             if (typeDescriptor != null) {
-                addDependencyTypes(typeDescriptor, refs);
+                addDependencyTypes(typeDescriptor, refs, true);
             }
         }
 
@@ -158,11 +158,11 @@ public class TypesManager {
 
         Map<String, Object> refs = new HashMap<>();
         if (symbol.get().kind() == SymbolKind.SERVICE_DECLARATION) {
-            addDependencyTypes((ServiceDeclarationSymbol) symbol.get(), refs);
+            addDependencyTypes((ServiceDeclarationSymbol) symbol.get(), refs, false);
         } else {
             TypeSymbol typeDescriptor = getTypeDescriptor(symbol.get());
             if (typeDescriptor != null) {
-                addDependencyTypes(typeDescriptor, refs);
+                addDependencyTypes(typeDescriptor, refs, false);
             }
         }
 
@@ -174,7 +174,7 @@ public class TypesManager {
         Map<String, Object> refs = new HashMap<>();
         TypeSymbol typeDescriptor = getTypeDescriptor(typeDefSymbol);
         if (typeDescriptor != null) {
-            addDependencyTypes(typeDescriptor, refs);
+            addDependencyTypes(typeDescriptor, refs, false);
         }
         return genTypeDataRefWithoutPosition(type, refs.values().stream().toList());
     }
@@ -343,91 +343,95 @@ public class TypesManager {
         }
     }
 
-    private void addDependencyTypes(ServiceDeclarationSymbol serviceDeclarationSymbol, Map<String, Object> references) {
+    private void addDependencyTypes(ServiceDeclarationSymbol serviceDeclarationSymbol,
+                                    Map<String, Object> references,
+                                    boolean skipParameters) {
         // attributes
-        serviceDeclarationSymbol.fieldDescriptors().forEach((key, field) -> {
-            addDependencyTypes(field.typeDescriptor(), references);
-        });
+        if (!skipParameters) {
+            serviceDeclarationSymbol.fieldDescriptors().forEach((key, field) -> {
+                addDependencyTypes(field.typeDescriptor(), references, skipParameters);
+            });
+        }
 
         // methods
         serviceDeclarationSymbol.methods().forEach((key, method) -> {
-            // params
-            method.typeDescriptor().params().ifPresent(params -> params.forEach(param -> {
-                addDependencyTypes(param.typeDescriptor(), references);
-            }));
+            // Skipping Parameters. e.g. GraphQL service class methods
+            if (!skipParameters) {
+                method.typeDescriptor().params().ifPresent(params -> params.forEach(param -> {
+                    addDependencyTypes(param.typeDescriptor(), references, skipParameters);
+                }));
+            }
 
             // return type
             method.typeDescriptor().returnTypeDescriptor().ifPresent(returnType -> {
-                addDependencyTypes(returnType, references);
+                addDependencyTypes(returnType, references, skipParameters);
             });
 
             // rest param
             method.typeDescriptor().restParam().ifPresent(restParam -> {
-                addDependencyTypes(restParam.typeDescriptor(), references);
+                addDependencyTypes(restParam.typeDescriptor(), references, skipParameters);
             });
         });
     }
 
-    private void addDependencyTypes(TypeSymbol typeSymbol, Map<String, Object> references) {
+    private void addDependencyTypes(TypeSymbol typeSymbol, Map<String, Object> references, boolean skipParameters) {
         switch (typeSymbol.typeKind()) {
             case RECORD -> {
                 RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
 
                 // type inclusions
                 recordTypeSymbol.typeInclusions().forEach(includedType -> {
-                    addDependencyTypes(includedType, references);
+                    addDependencyTypes(includedType, references, skipParameters);
                 });
 
                 // members
                 recordTypeSymbol.fieldDescriptors().forEach((key, field) -> {
-                    addDependencyTypes(field.typeDescriptor(), references);
+                    addDependencyTypes(field.typeDescriptor(), references, skipParameters);
                 });
 
                 // rest member
                 if (recordTypeSymbol.restTypeDescriptor().isPresent()) {
-                    addDependencyTypes(recordTypeSymbol.restTypeDescriptor().get(), references);
+                    addDependencyTypes(recordTypeSymbol.restTypeDescriptor().get(), references, skipParameters);
                 }
             }
-            case ARRAY -> {
-                addDependencyTypes(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(), references);
-            }
-            case UNION -> {
-                ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes().forEach(memberType -> {
-                    addDependencyTypes(memberType, references);
-                });
-            }
+           case ARRAY -> addDependencyTypes(
+                    ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(),
+                    references,
+                    skipParameters
+            );
+            case UNION -> ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes().forEach(memberType -> {
+                addDependencyTypes(memberType, references, skipParameters);
+            });
             case ERROR -> {
                 ErrorTypeSymbol errorTypeSymbol = (ErrorTypeSymbol) typeSymbol;
                 if (errorTypeSymbol.signature().equals(BUILT_IN_ERROR)) {
                     return;
                 }
-                addDependencyTypes((errorTypeSymbol).detailTypeDescriptor(), references);
+                addDependencyTypes((errorTypeSymbol).detailTypeDescriptor(), references, skipParameters);
             }
             case FUTURE -> {
                 Optional<TypeSymbol> typeParam = ((FutureTypeSymbol) typeSymbol).typeParameter();
                 if (typeParam.isEmpty()) {
                     return;
                 }
-                addDependencyTypes(typeParam.get(), references);
+                addDependencyTypes(typeParam.get(), references, skipParameters);
             }
             case MAP -> {
                 TypeSymbol typeParam = ((MapTypeSymbol) typeSymbol).typeParam();
-                addDependencyTypes(typeParam, references);
+                addDependencyTypes(typeParam, references, skipParameters);
             }
             case STREAM -> {
                 TypeSymbol typeParam = ((StreamTypeSymbol) typeSymbol).typeParameter();
-                addDependencyTypes(typeParam, references);
+                addDependencyTypes(typeParam, references, skipParameters);
             }
-            case INTERSECTION -> {
-                ((IntersectionTypeSymbol) typeSymbol).memberTypeDescriptors().forEach(memberTypes -> {
-                    addDependencyTypes(memberTypes, references);
-                });
-            }
+            case INTERSECTION -> ((IntersectionTypeSymbol) typeSymbol).memberTypeDescriptors().forEach(memberTypes -> {
+                addDependencyTypes(memberTypes, references, skipParameters);
+            });
             case TABLE -> {
                 TableTypeSymbol tableTypeSymbol = (TableTypeSymbol) typeSymbol;
-                addDependencyTypes(tableTypeSymbol.rowTypeParameter(), references);
+                addDependencyTypes(tableTypeSymbol.rowTypeParameter(), references, skipParameters);
                 if (tableTypeSymbol.keyConstraintTypeParameter().isPresent()) {
-                    addDependencyTypes(tableTypeSymbol.keyConstraintTypeParameter().get(), references);
+                    addDependencyTypes(tableTypeSymbol.keyConstraintTypeParameter().get(), references, skipParameters);
                 }
             }
             case OBJECT -> {
@@ -435,29 +439,31 @@ public class TypesManager {
 
                 // inclusions
                 objectTypeSymbol.typeInclusions().forEach(includedType -> {
-                    addDependencyTypes(includedType, references);
+                    addDependencyTypes(includedType, references, skipParameters);
                 });
 
                 // attributes
                 objectTypeSymbol.fieldDescriptors().forEach((key, field) -> {
-                    addDependencyTypes(field.typeDescriptor(), references);
+                    addDependencyTypes(field.typeDescriptor(), references, skipParameters);
                 });
 
                 // methods
                 objectTypeSymbol.methods().forEach((key, method) -> {
-                    // params
-                    method.typeDescriptor().params().ifPresent(params -> params.forEach(param -> {
-                        addDependencyTypes(param.typeDescriptor(), references);
-                    }));
+                    // params - skip for GraphQL
+                    if (!skipParameters) {
+                        method.typeDescriptor().params().ifPresent(params -> params.forEach(param -> {
+                            addDependencyTypes(param.typeDescriptor(), references, skipParameters);
+                        }));
+                    }
 
                     // return type
                     method.typeDescriptor().returnTypeDescriptor().ifPresent(returnType -> {
-                        addDependencyTypes(returnType, references);
+                        addDependencyTypes(returnType, references, skipParameters);
                     });
 
                     // rest param
                     method.typeDescriptor().restParam().ifPresent(restParam -> {
-                        addDependencyTypes(restParam.typeDescriptor(), references);
+                        addDependencyTypes(restParam.typeDescriptor(), references, skipParameters);
                     });
                 });
             }
@@ -473,7 +479,11 @@ public class TypesManager {
                 }
                 references.putIfAbsent(typeName, getTypeData(definition));
                 if (CommonUtils.isWithinPackage(definition, moduleInfo)) {
-                    addDependencyTypes(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor(), references);
+                    addDependencyTypes(
+                            ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor(),
+                            references,
+                            skipParameters
+                    );
                 }
             }
             default -> {
