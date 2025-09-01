@@ -72,7 +72,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const [isLoading, setLoading] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
-    const fieldName = field?.id || '';
+    const fieldName = field?.name || '';
 
     let portName = parentId;
     if (!isPortParent) {

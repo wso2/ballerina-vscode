@@ -89,6 +89,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     }
 
     let fieldName = field?.name || '';
+    let displayName = field?.displayName || fieldName;
+
     let portName = isPortParent
         ? parentId
         : updatedParentId !== ''
@@ -188,7 +190,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     }
 
     if (isWithinArray) {
-        fieldName = field?.typeName ? `${field?.typeName}Item` : 'item';
+        displayName = field?.typeName ? `${field?.typeName}Item` : 'item';
     }
 
     const label = !isArray && (
@@ -199,7 +201,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                 )}
                 style={{ marginLeft: fields ? 0 : indentation + 24 }}
             >
-                <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
+                <OutputSearchHighlight>{displayName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
             </span>
             {typeName && (
