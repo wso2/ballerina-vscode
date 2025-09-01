@@ -53,6 +53,7 @@ export const IntegrationParameters: React.FC<IntegrationParametersProps> = ({
                         <Dropdown
                             id={`${param.key}-dropdown`}
                             label={param.label}
+                            description={param.description}
                             value={integrationParams[param.key] || param.defaultValue || param.options[0]}
                             items={param.options.map(option => ({ 
                                 id: option, 
@@ -74,6 +75,7 @@ export const IntegrationParameters: React.FC<IntegrationParametersProps> = ({
                     ) : (
                         <TextField
                             value={integrationParams[param.key] || ""}
+                            description={param.description}
                             onTextChange={(value) => onParameterChange(param.key, value)}
                             label={param.label}
                             placeholder={`Enter ${param.label.toLowerCase()}`}

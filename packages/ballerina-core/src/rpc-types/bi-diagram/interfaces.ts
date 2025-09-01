@@ -27,14 +27,6 @@ export interface ProjectRequest {
     isService: boolean;
 }
 
-export interface MigrateRequest {
-    projectName: string;
-    projectPath: string;
-    textEdits: {
-        [key: string]: string;
-    };
-}
-
 export interface WorkspacesResponse {
     workspaces: WorkspaceFolder[];
 }

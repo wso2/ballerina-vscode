@@ -120,7 +120,6 @@ import {
     getVisibleVariableTypes,
     getWorkspaces,
     handleReadmeContent,
-    migrateProject,
     openAIChat,
     openConfigToml,
     openReadme,
@@ -156,7 +155,6 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
     messenger.onNotification(createProject, (args: ProjectRequest) => rpcManger.createProject(args));
-    messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
     messenger.onRequest(getWorkspaces, () => rpcManger.getWorkspaces());
     messenger.onRequest(getProjectStructure, () => rpcManger.getProjectStructure());
     messenger.onRequest(getProjectComponents, () => rpcManger.getProjectComponents());

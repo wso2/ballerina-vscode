@@ -18,12 +18,11 @@
 
 import { MigrationTool } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ActionButtons, Icon, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Icon, LocationSelector, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { LoadingRing } from "../../../components/Loader";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
-import { FolderPicker } from "./components/FolderPicker";
 import { IntegrationParameters } from "./components/IntegrationParameters";
 import {
     ButtonWrapper,
@@ -64,7 +63,10 @@ export function ImportIntegrationForm({
     };
 
     const handleFolderSelection = async () => {
-        return await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
+        const result = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
+        if (result?.path) {
+            setImportSourcePath(result.path);
+        }
     };
 
     const handleImportIntegration = () => {
@@ -121,10 +123,11 @@ export function ImportIntegrationForm({
                 <StepContainer>
                     <Typography variant="h3">Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
-                    <FolderPicker
-                        selectedPath={importSourcePath}
-                        onPathChange={setImportSourcePath}
-                        onSelectPath={handleFolderSelection}
+                    <LocationSelector
+                        label=""
+                        selectedFile={importSourcePath}
+                        onSelect={handleFolderSelection}
+                        btnText={importSourcePath ? "Change" : "Select Project"}
                     />
                 </StepContainer>
             )}

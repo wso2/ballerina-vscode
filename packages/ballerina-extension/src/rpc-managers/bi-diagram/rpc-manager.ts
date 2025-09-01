@@ -87,7 +87,6 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
-    MigrateRequest,
     ModelFromCodeRequest,
     NodeKind,
     OpenAPIClientDeleteRequest,
@@ -161,7 +160,7 @@ import { cleanAndValidateProject, getCurrentBIProject } from "../../features/con
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, createBIAutomation, createBIFunction, createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
+import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
@@ -1817,10 +1816,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     reject(error);
                 });
         });
-    }
-
-    async migrateProject(params: MigrateRequest): Promise<void> {
-        createBIProjectFromMigration(params);
     }
 }
 

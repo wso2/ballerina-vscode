@@ -18,18 +18,20 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    getMigrationTools,
     GetMigrationToolsResponse,
-    importIntegration,
-    ImportIntegrationResponse,
     ImportIntegrationRPCRequest,
+    ImportIntegrationResponse,
     MigrateIntegrationAPI,
+    MigrateRequest,
     MigrationToolPullRequest,
-    openMigrationReport,
     OpenMigrationReportRequest,
+    SaveMigrationReportRequest,
+    getMigrationTools,
+    importIntegration,
+    migrateProject,
+    openMigrationReport,
     pullMigrationTool,
-    saveMigrationReport,
-    SaveMigrationReportRequest
+    saveMigrationReport
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -59,5 +61,9 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     saveMigrationReport(params: SaveMigrationReportRequest): void {
         return this._messenger.sendNotification(saveMigrationReport, HOST_EXTENSION, params);
+    }
+
+    migrateProject(params: MigrateRequest): void {
+        return this._messenger.sendNotification(migrateProject, HOST_EXTENSION, params);
     }
 }
