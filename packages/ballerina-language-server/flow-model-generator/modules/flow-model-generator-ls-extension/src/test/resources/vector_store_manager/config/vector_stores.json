@@ -36,6 +36,51 @@
               "symbol": "init"
             },
             "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Weaviate Vector Store",
+              "description": "Weaviate vector store implementation with support for dense and hybrid vector search modes."
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.weaviate",
+              "packageName": "ai.weaviate",
+              "object": "VectorStore",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Milvus Vector Store",
+              "description": "Milvus vector store implementation with support for dense and hybrid vector search modes."
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.milvus",
+              "packageName": "ai.milvus",
+              "object": "VectorStore",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Pgvector Vector Store",
+              "description": "Pgvector vector store implementation with support for dense, sparse and hybrid vector search modes."
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.pgvector",
+              "packageName": "ai.pgvector",
+              "object": "VectorStore",
+              "symbol": "init"
+            },
+            "enabled": true
           }
         ]
       }

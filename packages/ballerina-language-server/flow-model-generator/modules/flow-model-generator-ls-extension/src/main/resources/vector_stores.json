@@ -38,6 +38,57 @@
                         "flags": 1
                     },
                     "enabled": true
+                },
+                {
+                    "metadata": {
+                        "label": "Weaviate Vector Store",
+                        "description": "Weaviate vector store implementation with support for dense and hybrid vector search modes."
+                    },
+                    "codedata": {
+                        "node": "VECTOR_STORE",
+                        "module": "ai.weaviate",
+                        "packageName": "ai.weaviate",
+                        "symbol": "init",
+                        "object": "VectorStore",
+                        "org": "ballerinax",
+                        "importStmt": "import ballerinax/ai.weaviate",
+                        "flags": 1
+                    },
+                    "enabled": true
+                },
+                {
+                    "metadata": {
+                        "label": "Milvus Vector Store",
+                        "description": "Milvus vector store implementation with support for dense and hybrid vector search modes."
+                    },
+                    "codedata": {
+                        "node": "VECTOR_STORE",
+                        "module": "ai.milvus",
+                        "packageName": "ai.milvus",
+                        "symbol": "init",
+                        "object": "VectorStore",
+                        "org": "ballerinax",
+                        "importStmt": "import ballerinax/ai.milvus",
+                        "flags": 1
+                    },
+                    "enabled": true
+                },
+                {
+                    "metadata": {
+                        "label": "Pgvector Vector Store",
+                        "description": "Pgvector vector store implementation with support for dense, sparse and hybrid vector search modes."
+                    },
+                    "codedata": {
+                        "node": "VECTOR_STORE",
+                        "module": "ai.pgvector",
+                        "packageName": "ai.pgvector",
+                        "symbol": "init",
+                        "object": "VectorStore",
+                        "org": "ballerinax",
+                        "importStmt": "import ballerinax/ai.pgvector",
+                        "flags": 1
+                    },
+                    "enabled": true
                 }
             ]
         }
