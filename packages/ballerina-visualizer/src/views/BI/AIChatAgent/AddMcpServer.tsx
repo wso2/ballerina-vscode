@@ -139,6 +139,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
+    const projectPath = useRef<string>("");
     const agentFilePath = useRef<string>("");
     const hasUpdatedToolsField = useRef(false);
     const formRef = useRef<any>(null);
@@ -284,6 +285,9 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const initPanel = async () => {
         hasUpdatedToolsField.current = false; // Reset on panel init
         setLoading(true);
+        // get project path
+        const filePath = await rpcClient.getVisualizerLocation();
+        projectPath.current = filePath.projectUri;
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
         // fetch tools and agent node
@@ -307,9 +311,10 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const fetchExistingTools = async () => {
         const agentToolsSearchResponse = await searchNodes(
             rpcClient,
-            agentFilePath.current,
+            projectPath.current,
             { q: "" },
-            "AGENT_TOOL"
+            "AGENT_TOOL",
+            { startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }
         );
         const existingToolsList = agentToolsSearchResponse.categories?.[0]?.items
             ? (agentToolsSearchResponse.categories[0].items as AvailableNode[]).map((item) => item.codedata.symbol)
