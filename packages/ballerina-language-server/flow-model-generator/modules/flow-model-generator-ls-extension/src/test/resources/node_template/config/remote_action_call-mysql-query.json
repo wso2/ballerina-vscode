@@ -96,9 +96,6 @@
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "rowType"
         },
-        "imports": {
-          "sql": "ballerina/sql"
-        },
         "defaultValue": "record {|anydata...;|}"
       },
       "type": {
@@ -128,10 +125,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "hidden": false
       }
     },
     "flags": 0

@@ -80,10 +80,7 @@
             "kind": "RECORD_TYPE",
             "selected": false
           }
-        ],
-        "imports": {
-          "http": "ballerina/http"
-        }
+        ]
       },
       "type": {
         "metadata": {
@@ -112,10 +109,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {
-          "http": "ballerina/http"
-        }
+        "hidden": false
       }
     },
     "flags": 0
