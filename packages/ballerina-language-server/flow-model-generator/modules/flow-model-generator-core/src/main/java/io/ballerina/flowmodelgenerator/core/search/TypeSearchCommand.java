@@ -94,10 +94,6 @@ class TypeSearchCommand extends SearchCommand {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
         }
 
-        // Add organization types to default view if any exist
-        List<SearchResult> organizationTypes = getOrganizationTypes("");
-        searchResults.addAll(organizationTypes);
-
         buildLibraryNodes(searchResults);
         buildImportedLocalModules();
         return rootBuilder.build().items();
@@ -106,67 +102,67 @@ class TypeSearchCommand extends SearchCommand {
     @Override
     protected List<Item> search() {
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
-
-        List<SearchResult> organizationTypes = getOrganizationTypes(query);
-        typeSearchList.addAll(organizationTypes);
-
         buildLibraryNodes(typeSearchList);
         buildImportedLocalModules();
         return rootBuilder.build().items();
     }
 
-    /**
-     * Fetches types from the current organization using Ballerina Central.
-     *
-     * @param searchQuery The search query to use
-     * @return search results containing organization types
-     */
-    private List<SearchResult> getOrganizationTypes(String searchQuery) {
-        List<SearchResult> organizationTypes = new ArrayList<>();
-
-        if (currentOrg == null || currentOrg.isEmpty()) {
-            return organizationTypes;
-        }
-
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        String orgQuery = "org:" + currentOrg;
-        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
-        queryMap.put("limit", String.valueOf(limit));
-        queryMap.put("offset", String.valueOf(offset));
-        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-        if (symbolResponse != null && symbolResponse.symbols() != null) {
-            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                if (symbol.symbolType().equals("record") || symbol.symbolType().contains("type")) {
-                    SearchResult.Package packageInfo = new SearchResult.Package(
-                            symbol.organization(),
-                            symbol.name(),
-                            symbol.name(),
-                            symbol.version()
-                    );
-                    SearchResult searchResult = SearchResult.from(
-                            packageInfo,
-                            symbol.symbolName(),
-                            symbol.description(),
-                            true
-                    );
-                    organizationTypes.add(searchResult);
-                }
-            }
-        }
-        return organizationTypes;
-    }
-
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
-        // Return empty value as required
         return Collections.emptyMap();
+    }
+
+    /**
+     * Search types/records in the given organization via Central and add them to the result categories.
+     */
+    @Override
+    protected List<Item> searchCurrentOrganization(String currentOrg) {
+        List<SearchResult> organizationTypes = new ArrayList<>();
+        CentralAPI centralClient = RemoteCentral.getInstance();
+        Map<String, String> queryMap = new HashMap<>();
+        boolean success = false;
+        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
+//        if (centralClient.hasAuthorizedAccess()) {
+//            queryMap.put("user-packages", "true");
+//            success = true;
+//        }
+        if (currentOrg != null && !currentOrg.isEmpty()) {
+            String orgQuery = "org:" + currentOrg;
+            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
+            success = true;
+        }
+        if (success) {
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+            if (symbolResponse != null && symbolResponse.symbols() != null) {
+                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                    // Consider records and other type-like symbols
+                    if ("record".equals(symbol.symbolType()) || symbol.symbolType().contains("type")) {
+                        SearchResult.Package packageInfo = new SearchResult.Package(
+                                symbol.organization(),
+                                symbol.name(),
+                                symbol.name(),
+                                symbol.version()
+                        );
+                        SearchResult searchResult = SearchResult.from(
+                                packageInfo,
+                                symbol.symbolName(),
+                                symbol.description(),
+                                true
+                        );
+                        organizationTypes.add(searchResult);
+                    }
+                }
+            }
+            buildLibraryNodes(organizationTypes);
+        }
+        return rootBuilder.build().items();
     }
 
     private void buildLibraryNodes(List<SearchResult> typeSearchList) {
         // Set the categories based on available flags
         Category.Builder importedTypesBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_TYPES);
-        Category.Builder currentOrgTypesBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
         Category.Builder availableTypesBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library types
@@ -191,8 +187,6 @@ class TypeSearchCommand extends SearchCommand {
             Category.Builder builder;
             if (moduleNames.contains(packageInfo.moduleName())) {
                 builder = importedTypesBuilder;
-            } else if (searchResult.fromCurrentOrg()) {
-                builder = currentOrgTypesBuilder;
             } else {
                 builder = availableTypesBuilder;
             }
