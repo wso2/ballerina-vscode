@@ -132,7 +132,6 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     };
 
     useEffect(() => {
-        console.log("inside")
         setOpenState(openState)
     }, [openState]);
 

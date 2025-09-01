@@ -76,8 +76,6 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
-    const [titleSubtitle, setTitleSubtitle] = useState<string>("");
-    const [formSubtitle, setFormSubtitle] = useState<string>("");
     const [saving, setSaving] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -89,23 +87,15 @@ export function FunctionFormStatic(props: FunctionFormProps) {
         if (isAutomation || functionName === "main") {
             nodeKind = 'AUTOMATION';
             formType.current = "Automation";
-            setTitleSubtitle('An automation that can be invoked periodically or manually');
-            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or Devant');
         } else if (isDataMapper) {
             nodeKind = 'DATA_MAPPER_DEFINITION';
             formType.current = 'Data Mapper';
-            setTitleSubtitle('Transform data between different data types');
-            setFormSubtitle('Create mappings on how to convert the inputs into a single output');
         } else if (isNpFunction) {
             nodeKind = 'NP_FUNCTION_DEFINITION';
             formType.current = 'Natural Function';
-            setTitleSubtitle('Build a flow using a natural language description');
-            setFormSubtitle('Describe what you need in a prompt and let AI handle the implementation');
         } else {
             nodeKind = 'FUNCTION_DEFINITION';
             formType.current = 'Function';
-            setTitleSubtitle('Build reusable custom flows');
-            setFormSubtitle('Define a flow that can be used within your integration');
         }
 
         if (functionName) {
@@ -152,6 +142,8 @@ export function FunctionFormStatic(props: FunctionFormProps) {
         let flowNode = res.flowNode;
 
         let properties = flowNode.properties as NodeProperties;
+
+        console.log("FLOWNODE", flowNode)
 
         // Remove the description fields from properties
         properties = Object.keys(properties).reduce((acc, key) => {
@@ -385,8 +377,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <FormHeader
-                title={`${functionName ? 'Edit' : 'Create New'} ${formType.current}`}
-                subtitle={formSubtitle}
+                subtitle={'Define the function here, then implement it and use it later in your integration.'}
             />
             {isLoading && (
                 <LoadingContainer>
