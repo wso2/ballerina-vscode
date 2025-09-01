@@ -547,7 +547,8 @@ public class DataMapManager {
 
     private void generateRecordVariableDataMapping(ExpressionNode expressionNode, List<Mapping> mappings,
                                                    String name, SemanticModel semanticModel,
-                                                   Document functionDocument, Document dataMappingDocument, List<MappingPort> enumPorts) {
+                                                   Document functionDocument, Document dataMappingDocument,
+                                                   List<MappingPort> enumPorts) {
         SyntaxKind exprKind = expressionNode.kind();
         if (exprKind == SyntaxKind.MAPPING_CONSTRUCTOR) {
             genMapping((MappingConstructorExpressionNode) expressionNode, mappings, name, semanticModel,
