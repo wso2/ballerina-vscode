@@ -49,7 +49,6 @@ type VariablesPageProps = {
 
 const VariablesMoreIconContainer = styled.div`
     display: flex;
-    min-wdith: 20px;
     align-items: center;
     justify-content: center;
     padding: 4px;
