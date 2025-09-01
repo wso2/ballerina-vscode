@@ -45,7 +45,7 @@ export class DataMapperLinkModel extends DefaultLinkModel {
 		super({
 			type: LINK_TYPE_ID,
 			width: 1,
-			curvyness: 0,
+			curvyness: 50,
 			locked: true,
 			color: "var(--vscode-debugIcon-breakpointDisabledForeground)"
 		});

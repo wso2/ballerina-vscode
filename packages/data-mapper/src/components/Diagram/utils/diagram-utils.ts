@@ -49,8 +49,8 @@ export function getIONodeHeight(noOfFields: number) {
 export function calculateControlPointOffset(screenWidth: number) {
     const minWidth = 850;
     const maxWidth = 1500;
-    const minOffset = 15;
-    const maxOffset = 90;
+    const minOffset = 50;
+    const maxOffset = 150;
 
     const clampedWidth = Math.min(Math.max(screenWidth, minWidth), maxWidth);
     const interpolationFactor = (clampedWidth - minWidth) / (maxWidth - minWidth);
@@ -81,4 +81,13 @@ export function getFieldCountMismatchIndex(newFieldCounts: FieldCount[], existin
     }
     
     return -1;
+}
+
+export function isSameView(newNode: DataMapperNodeModel, existingNode?: DataMapperNodeModel) {
+    if (!existingNode || !existingNode?.context || !newNode?.context) return;
+
+    const prevFocusedView = existingNode.context.views[existingNode.context.views.length - 1];
+    const newFocusedView = newNode.context.views[newNode.context.views.length - 1];
+
+    return prevFocusedView.label === newFocusedView.label;
 }
