@@ -82,3 +82,12 @@ export function getFieldCountMismatchIndex(newFieldCounts: FieldCount[], existin
     
     return -1;
 }
+
+export function isSameView(newNode: DataMapperNodeModel, existingNode?: DataMapperNodeModel) {
+    if (!existingNode || !existingNode?.context || !newNode?.context) return;
+
+    const prevFocusedView = existingNode.context.views[existingNode.context.views.length - 1];
+    const newFocusedView = newNode.context.views[newNode.context.views.length - 1];
+
+    return prevFocusedView.label === newFocusedView.label;
+}
