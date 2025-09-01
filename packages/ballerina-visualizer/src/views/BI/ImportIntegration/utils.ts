@@ -16,14 +16,15 @@
  * under the License.
  */
 
-import { CoverageLevel, MigrationDisplayState, MigrationReportJSON } from "./types";
+import { MigrationTool } from "@wso2/ballerina-core";
+import { CoverageLevel, MigrationDisplayState } from "./types";
 
 export const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
 const IMPORT_DISABLED_TOOLTIP = "Please select a source platform to continue.";
 const PATH_SELECTION_TOOLTIP = "Please select a project folder to continue.";
 const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
 
-export const getImportTooltip = (selectedIntegration: any, importSourcePath: string) => {
+export const getImportTooltip = (selectedIntegration: MigrationTool, importSourcePath: string) => {
     if (!selectedIntegration) {
         return IMPORT_DISABLED_TOOLTIP;
     }
