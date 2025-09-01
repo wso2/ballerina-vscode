@@ -648,8 +648,9 @@ async function getExternalRecords(
                 libNames: [libName],
                 mode: getGenerationMode(GenerationType.CODE_GENERATION),
             })) as { libraries: Library[] };
+            if (result.libraries && result.libraries.length > 0) {
             library = result.libraries[0];
-            if (!library) {
+            } else {
                 console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
                 continue;
             }
