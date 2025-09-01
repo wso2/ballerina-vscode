@@ -150,7 +150,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         if (type?.codedata?.node === "CLASS") {
-            rpcClient.getVisualizerRpcClient().openView({
+            await rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
@@ -176,13 +176,13 @@ export function TypeDiagram(props: TypeDiagramProps) {
         if (!component) {
             return false;
         }
-        
+
         try {
             const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
-            filePath: component.codedata?.lineRange?.fileName,
-            startPosition: component.codedata?.lineRange?.startLine,
-        });
-            
+                filePath: component.codedata?.lineRange?.fileName,
+                startPosition: component.codedata?.lineRange?.startLine,
+            });
+
             if (response.errorMsg) {
                 rpcClient.getCommonRpcClient().showErrorMessage({
                     message: response.errorMsg || "Failed to find usages.",
@@ -199,7 +199,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
     };
 
     // After user confirms in the diagram, delete without re-verifying.
-    const onTypeDelete = async (typeId:string) => {
+    const onTypeDelete = async (typeId: string) => {
         const component = typesModel?.find((type) => type.name === typeId);
         if (!component || !visualizerLocation?.metadata?.recordFilePath) {
             return;
@@ -210,7 +210,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 startLine: component.codedata?.lineRange?.startLine,
                 endLine: component.codedata?.lineRange?.endLine,
             }
-        }).then((response)=>{
+        }).then((response) => {
             if (response.errorMsg) {
                 rpcClient.getCommonRpcClient().showErrorMessage({
                     message: response.errorMsg || "Failed to delete type. Please check the console for more details.",

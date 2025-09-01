@@ -181,8 +181,8 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 onClick: () => onNodeEdit(),
             },
             {
-                id: "goToSource", 
-                label: "Source", 
+                id: "goToSource",
+                label: "Source",
                 onClick: () => onGoToSource()
             },
             ...(!node.isGraphqlRoot ? [{
@@ -190,12 +190,12 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 label: "Delete",
                 onClick: () => handleDeleteClick()
             }] : []),
-            
+
         ] : [{
-                id: "focusView", 
-                label: "Focused View", 
-                onClick: () => onFocusedView()
-            }])
+            id: "focusView",
+            label: "Focused View",
+            onClick: () => onFocusedView()
+        }])
     ];
 
     const handleConfirm = (state: boolean) => {
@@ -203,7 +203,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         if (isVerifyingDelete) {
             return;
         }
-        if (state)  {
+        if (state) {
             onNodeDeleteWithConfirm(); // Call the actual delete function
         }
         setIsConfirmOpen(false); // Close the confirmation dialog
@@ -270,12 +270,12 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 <Confirm
                     isOpen={isConfirmOpen}
                     onConfirm={handleConfirm}
-                    confirmText={isVerifyingDelete ? "Please wait..." : "Delete"}
+                    confirmText={isVerifyingDelete ? "Verifying the possibility to delete the type" : "Delete"}
                     message={confirmMessage}
                     anchorEl={confirmEl}
                     anchorOrigin={anchorOrigin}
                     transformOrigin={transformOrigin}
-                    sx={{ zIndex: 3002}}
+                    sx={{ zIndex: 3002 }}
                 />
             </EntityHead>
         </CtrlClickGo2Source>
