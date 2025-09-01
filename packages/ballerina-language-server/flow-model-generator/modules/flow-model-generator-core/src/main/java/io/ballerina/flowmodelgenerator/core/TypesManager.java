@@ -343,7 +343,9 @@ public class TypesManager {
         }
     }
 
-    private void addDependencyTypes(ServiceDeclarationSymbol serviceDeclarationSymbol, Map<String, Object> references, boolean skipParameters) {
+    private void addDependencyTypes(ServiceDeclarationSymbol serviceDeclarationSymbol,
+                                    Map<String, Object> references,
+                                    boolean skipParameters) {
         // attributes
         if (!skipParameters) {
             serviceDeclarationSymbol.fieldDescriptors().forEach((key, field) -> {
@@ -392,7 +394,11 @@ public class TypesManager {
                     addDependencyTypes(recordTypeSymbol.restTypeDescriptor().get(), references, skipParameters);
                 }
             }
-            case ARRAY -> addDependencyTypes(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(), references, skipParameters);
+           case ARRAY -> addDependencyTypes(
+                    ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(),
+                    references,
+                    skipParameters
+            );
             case UNION -> ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes().forEach(memberType -> {
                 addDependencyTypes(memberType, references, skipParameters);
             });
@@ -473,7 +479,11 @@ public class TypesManager {
                 }
                 references.putIfAbsent(typeName, getTypeData(definition));
                 if (CommonUtils.isWithinPackage(definition, moduleInfo)) {
-                    addDependencyTypes(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor(), references, skipParameters);
+                    addDependencyTypes(
+                            ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor(),
+                            references,
+                            skipParameters
+                    );
                 }
             }
             default -> {
