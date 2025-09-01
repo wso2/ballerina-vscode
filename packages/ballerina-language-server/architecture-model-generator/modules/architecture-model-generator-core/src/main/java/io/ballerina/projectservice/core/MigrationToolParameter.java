@@ -25,10 +25,11 @@ import java.util.List;
  *
  * @param key          parameter key used in the tool configuration
  * @param label        human-readable label for the parameter
+ * @param description  detailed description of what this parameter does
  * @param valueType    type of the parameter value (e.g., string, boolean, enum)
  * @param defaultValue default value for the parameter
  * @param options      list of valid options for enum-type parameters
  * @since 1.2.0
  */
-public record MigrationToolParameter(String key, String label, String valueType, String defaultValue,
-                                     List<String> options) { }
+public record MigrationToolParameter(String key, String label, String description, String valueType,
+                                     String defaultValue, List<String> options) { }

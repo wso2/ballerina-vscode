@@ -113,10 +113,12 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
                 Path projectPath = workspaceManager.projectRoot(filePath);
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
+                Optional<Document> dataMappingDoc = getDocumentFromFile(projectPath, "data_mappings.bal");
 
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setMappingsModel(dataMapManager.getMappings(semanticModel.get(), request.codedata(),
-                        request.position(), request.targetField(), functionsDoc.orElse(null)));
+                        request.position(), request.targetField(), functionsDoc.orElse(null),
+                        dataMappingDoc.orElse(null)));
             } catch (Throwable e) {
                 response.setError(e);
             }
