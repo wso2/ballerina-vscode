@@ -242,7 +242,7 @@
                 "metadata": {
                   "label": "chat",
                   "description": "Sends a chat request to the model with the given messages and tools.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -251,7 +251,7 @@
                   "packageName": "ai",
                   "object": "Wso2ModelProvider",
                   "symbol": "chat",
-                  "version": "1.1.1",
+                  "version": "1.5.0",
                   "parentSymbol": "wso2DefaultModel",
                   "resourcePath": ""
                 },
@@ -261,7 +261,7 @@
                 "metadata": {
                   "label": "generate",
                   "description": "Sends a chat request to the model and generates a value that belongs to the type\ncorresponding to the type descriptor argument.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -270,7 +270,7 @@
                   "packageName": "ai",
                   "object": "Wso2ModelProvider",
                   "symbol": "generate",
-                  "version": "1.1.1",
+                  "version": "1.5.0",
                   "parentSymbol": "wso2DefaultModel",
                   "resourcePath": ""
                 },
@@ -287,7 +287,7 @@
                 "metadata": {
                   "label": "chat",
                   "description": "Sends a chat request to the model with the given messages and tools.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -296,7 +296,7 @@
                   "packageName": "ai",
                   "object": "Wso2ModelProvider",
                   "symbol": "chat",
-                  "version": "1.1.1",
+                  "version": "1.5.0",
                   "parentSymbol": "wso2Model",
                   "resourcePath": ""
                 },
@@ -306,7 +306,7 @@
                 "metadata": {
                   "label": "generate",
                   "description": "Sends a chat request to the model and generates a value that belongs to the type\ncorresponding to the type descriptor argument.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -315,7 +315,7 @@
                   "packageName": "ai",
                   "object": "Wso2ModelProvider",
                   "symbol": "generate",
-                  "version": "1.1.1",
+                  "version": "1.5.0",
                   "parentSymbol": "wso2Model",
                   "resourcePath": ""
                 },

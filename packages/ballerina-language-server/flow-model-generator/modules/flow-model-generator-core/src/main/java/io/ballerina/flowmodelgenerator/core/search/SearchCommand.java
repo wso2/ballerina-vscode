@@ -50,7 +50,7 @@ public abstract class SearchCommand {
     protected final String query;
     protected final int limit;
     protected final int offset;
-    protected String currentOrg;
+    private final boolean filterByCurrentOrg;
     final SearchDatabaseManager dbManager;
     final DefaultViewHolder defaultViewHolder;
 
@@ -58,7 +58,7 @@ public abstract class SearchCommand {
     private static final Gson GSON = new Gson();
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
-    private static final boolean DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH = false;
+    private static final boolean DEFAULT_FILTER_BY_CURRENT_ORG = false;
 
     public static SearchCommand from(Kind kind, Project module, LineRange position, Map<String, String> queryMap,
                                      Document functionsDoc) {
@@ -87,20 +87,18 @@ public abstract class SearchCommand {
         this.dbManager = SearchDatabaseManager.getInstance();
         this.defaultViewHolder = DefaultViewHolder.getInstance();
 
-        boolean includeCurrentOrgInSearch;
         if (queryMap == null) {
             this.query = "";
             this.limit = DEFAULT_LIMIT;
             this.offset = DEFAULT_OFFSET;
-            includeCurrentOrgInSearch = DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH;
+            this.filterByCurrentOrg = DEFAULT_FILTER_BY_CURRENT_ORG;
         } else {
             this.query = queryMap.getOrDefault("q", "");
             this.limit = parseIntParam(queryMap.get("limit"), DEFAULT_LIMIT);
             this.offset = parseIntParam(queryMap.get("offset"), DEFAULT_OFFSET);
-            includeCurrentOrgInSearch = parseBooleanParam(queryMap.get("includeCurrentOrganizationInSearch"),
-                    DEFAULT_INCLUDE_CURRENT_ORG_IN_SEARCH);
+            this.filterByCurrentOrg = parseBooleanParam(queryMap.get("filterByCurrentOrg"),
+                    DEFAULT_FILTER_BY_CURRENT_ORG);
         }
-        this.currentOrg = includeCurrentOrgInSearch ? getOrganizationName().orElse(null) : null;
     }
 
     /**
@@ -125,12 +123,33 @@ public abstract class SearchCommand {
     protected abstract Map<String, List<SearchResult>> fetchPopularItems();
 
     /**
+     * Performs a search with the given query parameters within the current organization.
+     *
+     * @return List of search results
+     */
+    protected List<Item> searchCurrentOrganization(String currentOrg) {
+        throw new UnsupportedOperationException("Organization search is not supported for this command");
+    }
+
+    /**
      * Executes the search based on the current search parameters.
      *
      * @return List of search results
      */
     public JsonArray execute() {
-        List<Item> items = query.isEmpty() ? defaultView() : search();
+        List<Item> items;
+        if (this.filterByCurrentOrg) {
+            String currentOrg = project.currentPackage().ballerinaToml()
+                    .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
+                            .flatMap(table -> table.get("org"))
+                            .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())))
+                    .orElse(null);
+            items = searchCurrentOrganization(currentOrg);
+        } else if (query.isEmpty()) {
+            items = defaultView();
+        } else {
+            items = search();
+        }
         return GSON.toJsonTree(items).getAsJsonArray();
     }
 
@@ -170,13 +189,6 @@ public abstract class SearchCommand {
         } catch (Exception e) {
             return defaultValue;
         }
-    }
-
-    protected Optional<String> getOrganizationName() {
-        return project.currentPackage().ballerinaToml()
-                .flatMap(toml -> toml.tomlDocument().toml().getTable("package")
-                        .flatMap(table -> table.get("org"))
-                        .flatMap(orgValue -> Optional.ofNullable(orgValue.toString())));
     }
 
     public enum Kind {
