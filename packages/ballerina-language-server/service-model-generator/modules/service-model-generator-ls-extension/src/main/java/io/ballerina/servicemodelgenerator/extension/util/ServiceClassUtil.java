@@ -333,6 +333,7 @@ public class ServiceClassUtil {
         TYPE_DIAGRAM,
         GRAPHQL_DIAGRAM,
         SERVICE_DIAGRAM,
-        HTTP_DIAGRAM
+        HTTP_DIAGRAM,
+        CLASS
     }
 }

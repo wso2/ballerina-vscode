@@ -44,6 +44,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 
 import java.io.IOException;
@@ -87,7 +88,8 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         if (isResource) {
             return getEnrichedResourceModel(functionDefinitionNode, context.semanticModel());
         }
-        Function functionModel = getEnrichedFunctionModel(functionDefinitionNode);
+        Function functionModel = getEnrichedFunctionModel(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM,
+                functionDefinitionNode);
         functionModel.setEditable(true);
         return functionModel;
     }
