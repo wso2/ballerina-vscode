@@ -16,83 +16,55 @@
  * under the License.
  */
 
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ActionButtons, LocationSelector, TextField, Tooltip, Typography } from "@wso2/ui-toolkit";
-import { useEffect, useState } from "react";
+import { ActionButtons, Typography } from "@wso2/ui-toolkit";
+import { useState } from "react";
 import { BodyText } from "../../styles";
-import {
-    ButtonWrapper,
-    InputPreviewWrapper,
-    PreviewContainer,
-    PreviewIcon,
-    PreviewText,
-    StepContainer
-} from "./styles";
+import { ButtonWrapper } from "./styles";
 import { ConfigureProjectFormProps } from "./types";
-import { sanitizeProjectName } from "./utils";
+import { ProjectFormFields, ProjectFormData } from "../ProjectForm/ProjectFormFields";
+import { isFormValid } from "../ProjectForm/utils";
 
 export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormProps) {
-    const { rpcClient } = useRpcContext();
-    const [name, setName] = useState("");
-    const [path, setPath] = useState("");
+    const [formData, setFormData] = useState<ProjectFormData>({
+        integrationName: "",
+        packageName: "",
+        path: "",
+        createDirectory: true,
+        orgName: "",
+        version: "",
+    });
 
-    const isPathValid = path.length > 2;
-    const isCreateProjectDisabled = !isPathValid || name.length < 2;
-
-    const handleProjectDirSelection = async () => {
-        const result = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        if (result?.path) {
-            setPath(result.path);
-        }
+    const handleFormDataChange = (data: Partial<ProjectFormData>) => {
+        setFormData(prev => ({ ...prev, ...data }));
     };
 
-    useEffect(() => {
-        (async () => {
-            const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
-            setPath(currentDir.path);
-        })();
-    }, []);
+    const handleCreateProject = () => {
+        onNext({
+            projectName: formData.integrationName,
+            packageName: formData.packageName,
+            projectPath: formData.path,
+            createDirectory: formData.createDirectory,
+            orgName: formData.orgName || undefined,
+            version: formData.version || undefined,
+        });
+    };
 
     return (
         <>
             <Typography variant="h2">Configure Your Integration Project</Typography>
             <BodyText>Please provide the necessary details to create your integration project.</BodyText>
-            <InputPreviewWrapper>
-                <TextField
-                    onTextChange={setName}
-                    value={name}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={true}
-                />
-                <PreviewContainer>
-                    <PreviewIcon
-                        name="project"
-                        iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }}
-                    />
-                    <Tooltip content="A unique identifier for your integration">
-                        <PreviewText variant="caption">
-                            {name ? sanitizeProjectName(name) : "integration_id"}
-                        </PreviewText>
-                    </Tooltip>
-                </PreviewContainer>
-            </InputPreviewWrapper>
-            <StepContainer>
-                <Typography variant="body3">Project Location</Typography>
-                <BodyText style={{ marginTop: "8px" }}>Select where to create the project.</BodyText>
-                <LocationSelector
-                    label=""
-                    selectedFile={path}
-                    onSelect={handleProjectDirSelection}
-                    btnText="Select Path"
-                />
-            </StepContainer>
+            
+            <ProjectFormFields
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
+            />
+
             <ButtonWrapper>
                 <ActionButtons
                     primaryButton={{
                         text: "Create and Open Project",
-                        onClick: () => onNext(name, path),
-                        disabled: isCreateProjectDisabled
+                        onClick: handleCreateProject,
+                        disabled: !isFormValid(formData)
                     }}
                     secondaryButton={{
                         text: "Back",
