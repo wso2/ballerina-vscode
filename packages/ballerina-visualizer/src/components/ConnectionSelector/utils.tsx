@@ -130,7 +130,7 @@ export const updateNodeWithConnectionVariable = (connectionKind: ConnectionKind,
     const propertyKey = getValidPropertyKey(selectedNode, config.nodePropertyKey) || (Array.isArray(config.nodePropertyKey) ? config.nodePropertyKey[0] : config.nodePropertyKey);
     const property = selectedNode.properties[propertyKey as keyof typeof selectedNode.properties];
 
-    if (property && typeof property === 'object' && 'value' in property) {
+    if (property && typeof property === 'object') {
         (property as Property).value = connectionVariable;
     }
 };
