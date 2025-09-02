@@ -27,10 +27,10 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
@@ -46,6 +46,7 @@ export interface ObjectOutputFieldWidgetProps {
     fieldIndex?: number;
     treeDepth?: number;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
@@ -57,7 +58,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         context,
         fieldIndex,
         treeDepth = 0,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
     const [isLoading, setLoading] = useState(false);
@@ -66,6 +68,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
+    const expandedFieldsStore = useDMExpandedFieldsStore();
+
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
 
     let indentation = treeDepth * 16;
@@ -78,18 +82,22 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isRecord = typeKind === TypeKind.Record;
     const isEnum = typeKind === TypeKind.Enum;
 
-    let updatedParentId = getSanitizedId(parentId);
+    let updatedParentId = parentId;
     
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
 
-    let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== ''
-        ? fieldName !== '' && fieldIndex === undefined
-            ? `${updatedParentId}.${fieldName}`
-            : updatedParentId
-        : fieldName;
+    let fieldName = field?.name || '';
+    let displayName = field?.displayName || fieldName;
+
+    let portName = isPortParent
+        ? parentId
+        : updatedParentId !== ''
+            ? fieldName !== '' && fieldIndex === undefined
+                ? `${updatedParentId}.${fieldName}`
+                : updatedParentId
+            : fieldName;
 
     const portIn = getPort(portName + ".IN");
     const isUnknownType = field?.kind === TypeKind.Unknown;
@@ -105,11 +113,14 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isWithinArray = fieldIndex !== undefined;
 
     const handleExpand = () => {
-		const collapsedFields = collapsedFieldsStore.fields;
-        if (!expanded) {
-            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
-        } else {
+		const expandedFields = expandedFieldsStore.fields;
+        const collapsedFields = collapsedFieldsStore.fields;
+        if (expanded) {
+            expandedFieldsStore.setFields(expandedFields.filter((element) => element !== portName));
             collapsedFieldsStore.setFields([...collapsedFields, portName]);
+        } else {
+            expandedFieldsStore.setFields([...expandedFields, portName]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== portName));
         }
     };
 
@@ -139,7 +150,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const handleDeleteValue = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }
@@ -179,7 +190,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     }
 
     if (isWithinArray) {
-        fieldName = field?.typeName ? `${field?.typeName}Item` : 'item';
+        displayName = field?.typeName ? `${field?.typeName}Item` : 'item';
     }
 
     const label = !isArray && (
@@ -190,7 +201,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                 )}
                 style={{ marginLeft: fields ? 0 : indentation + 24 }}
             >
-                <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
+                <OutputSearchHighlight>{displayName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
             </span>
             {typeName && (

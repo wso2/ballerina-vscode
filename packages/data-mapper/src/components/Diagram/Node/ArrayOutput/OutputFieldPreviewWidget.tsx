@@ -29,7 +29,6 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
-import { getSanitizedId } from "../../utils/common-utils";
 
 export interface OutputFieldPreviewWidgetProps {
     parentId: string;
@@ -67,11 +66,13 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
     const isArray = typeKind === TypeKind.Array;
     const isRecord = typeKind === TypeKind.Record;
 
-    let updatedParentId = getSanitizedId(parentId);
+    let updatedParentId = parentId;
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
-    let fieldName = field?.variableName || '';
+    let fieldName = field?.name || '';
+    const displayName = field?.displayName || fieldName;
+
     let portName = updatedParentId !== '' ? fieldName !== '' ? `${updatedParentId}.${fieldName}` : updatedParentId : fieldName;
     const portIn = getPort(portName + ".IN");
 
@@ -130,7 +131,7 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
                 )}
                 style={{ marginLeft: fields ? 0 : indentation + 24 }}
             >
-                <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
+                <OutputSearchHighlight>{displayName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {typeName && ":"}
             </span>
@@ -186,8 +187,8 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
                 fields
                     .filter((subField) => subField)
                     .map((subField, index) => {
-                        const fieldKey = subField.variableName 
-                            ? `${portName}.${subField.variableName}` 
+                        const fieldKey = subField.name 
+                            ? `${portName}.${subField.name}` 
                             : `${portName}.${index}`;
                         
                         return (

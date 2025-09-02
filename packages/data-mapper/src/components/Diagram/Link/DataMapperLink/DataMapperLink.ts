@@ -27,7 +27,7 @@ export const LINK_TYPE_ID = "datamapper-link";
 export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
-	ArrayToSingletonWithCollect = "array-singleton-collect",
+	ArrayToSingletonAggregate = "array-singleton-aggregate",
 	Incompatible = "Incompatible",
 	Default = undefined // This is for non-array mappings currently
 }
@@ -45,7 +45,7 @@ export class DataMapperLinkModel extends DefaultLinkModel {
 		super({
 			type: LINK_TYPE_ID,
 			width: 1,
-			curvyness: 0,
+			curvyness: 50,
 			locked: true,
 			color: "var(--vscode-debugIcon-breakpointDisabledForeground)"
 		});

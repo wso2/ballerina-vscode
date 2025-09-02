@@ -30,7 +30,7 @@ export type MachineStateValue =
     | 'lsReady'
     | 'viewActive'
     | 'disabled'
-    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' };
+    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' } | { viewActive: 'resolveMissingDependencies' };
 
 export type PopupMachineStateValue = 'initialize' | 'ready' | {
     open: 'active';
@@ -92,7 +92,8 @@ export enum MACHINE_VIEW {
     BIServiceClassConfigView = "Service Class Config View",
     BIDataMapperForm = "Add Data Mapper SKIP",
     AIAgentDesigner = "AI Agent Designer",
-    AIChatAgentWizard = "AI Chat Agent Wizard"
+    AIChatAgentWizard = "AI Chat Agent Wizard",
+    ResolveMissingDependencies = "Resolve Missing Dependencies"
 }
 
 export interface MachineEvent {

@@ -84,7 +84,8 @@ export interface IOType {
     category?: InputCategory;
     kind?: TypeKind;
     typeName?: string;
-    variableName?: string;
+    name?: string;
+    displayName?: string;
     fields?: IOType[];
     member?: IOType;
     members?: IOType[];
@@ -92,6 +93,9 @@ export interface IOType {
     optional?: boolean;
     focusedMemberId?: string;
     isFocused?: boolean;
+    isRecursive?: boolean;
+    isDeepNested?: boolean;
+    ref?: string;
     moduleInfo? : ModuleInfo;
 }
 
@@ -113,7 +117,7 @@ export interface ExpandedDMModel {
     subMappings?: IOType[];
     mappings: Mapping[];
     source: string;
-    view: string;
+    rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
 }
@@ -122,10 +126,11 @@ export interface DMModel {
     inputs: IORoot[];
     output: IORoot;
     subMappings?: IORoot[];
-    types: Record<string, RecordType | EnumType>;
+    refs: Record<string, RecordType | EnumType>;
     mappings: Mapping[];
     view: string;
     query?: Query;
+    focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
 }
 
@@ -136,12 +141,13 @@ export interface ModelState {
 }
 
 export interface IORoot extends IOTypeField {
-    id: string;
     category?: InputCategory;
 }
 
 export interface RecordType {
     fields: IOTypeField[];
+    typeName: string;
+    kind: TypeKind;
 }
 
 export interface EnumType {
@@ -151,11 +157,13 @@ export interface EnumType {
 export interface IOTypeField {
     typeName?: string;
     kind: TypeKind;
-    fieldName?: string;
+    name: string;
+    displayName?: string;
     member?: IOTypeField;
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
+    focusExpression?: string;
 }
 
 export interface EnumMember {

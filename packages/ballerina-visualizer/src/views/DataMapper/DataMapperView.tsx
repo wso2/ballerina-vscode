@@ -39,6 +39,7 @@ import {
     EVENT_TYPE,
     LineRange,
     ResultClauseType,
+    IOType,
     MACHINE_VIEW,
     VisualizerLocation
 } from "@wso2/ballerina-core";
@@ -47,7 +48,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapper } from "@wso2/ballerina-data-mapper";
 
 import { useDataMapperModel } from "../../Hooks";
-import { expandDMModel } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { DataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
@@ -60,11 +60,11 @@ interface ModelSignature {
     inputs: string[];
     output: string;
     subMappings: string[];
-    types: string;
+    refs: string;
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, varName, projectUri, position, reusable } = props;
+    const { filePath, codedata, name, projectUri, position, reusable } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -72,7 +72,7 @@ export function DataMapperView(props: DataMapperProps) {
         hasInputsOutputsChanged: false
     });
     const [viewState, setViewState] = useState<DMViewState>({
-        viewId: varName,
+        viewId: name,
         codedata: codedata
     });
 
@@ -93,12 +93,20 @@ export function DataMapperView(props: DataMapperProps) {
         isError
     } = useDataMapperModel(filePath, viewState, position);
 
+    const prevPositionRef = useRef(position);
+    
     useEffect(() => {
-        setViewState(prev => ({
-            ...prev,
-            codedata
+        const positionChanged = 
+            prevPositionRef.current?.line !== position?.line || 
+            prevPositionRef.current?.offset !== position?.offset;
+        
+        setViewState(prevState => ({
+            viewId: positionChanged ? name : prevState.viewId || name,
+            codedata: codedata
         }));
-    }, [varName, codedata]);
+        
+        prevPositionRef.current = position;
+    }, [name, codedata, position]);
 
     useEffect(() => {
         if (!model) return;
@@ -109,10 +117,10 @@ export function DataMapperView(props: DataMapperProps) {
         const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
         const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
         const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasTypesChanged = hasSignatureChanged(currentSignature, prevSignature, 'types');
+        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
-        const isExpandedModel = !('types' in model);
+        const isExpandedModel = !('refs' in model);
         if (isExpandedModel) {
             setModelState({
                 model: model as ExpandedDMModel,
@@ -124,18 +132,34 @@ export function DataMapperView(props: DataMapperProps) {
         }
 
         // If types changed, we need to reprocess everything
-        if (hasTypesChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
-            const expandedModel = expandDMModel(model as DMModel, {
-                processInputs: hasInputsChanged || hasTypesChanged,
-                processOutput: hasOutputChanged || hasTypesChanged,
-                processSubMappings: hasSubMappingsChanged || hasTypesChanged,
-                previousModel: modelState.model as ExpandedDMModel
-            });
-            setModelState({
-                model: expandedModel,
-                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasTypesChanged,
-                hasSubMappingsChanged: hasSubMappingsChanged || hasTypesChanged
-            });
+        if (hasRefsChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
+            const processExpandedModel = async () => {
+                try {
+                    const expandedModelResponse = await rpcClient.getDataMapperRpcClient().getExpandedDMFromDMModel(
+                        {
+                            model: model as DMModel,
+                            options: {
+                                processInputs: hasInputsChanged || hasRefsChanged,
+                                processOutput: hasOutputChanged || hasRefsChanged,
+                                processSubMappings: hasSubMappingsChanged || hasRefsChanged,
+                                previousModel: modelState.model as ExpandedDMModel
+                            },
+                            rootViewId: name
+                        }
+                    );
+                    console.log(">>> [Data Mapper] processed expandedModel:", expandedModelResponse);
+                    setModelState({
+                        model: expandedModelResponse.expandedModel,
+                        hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
+                        hasSubMappingsChanged: hasSubMappingsChanged || hasRefsChanged
+                    });
+                } catch (error) {
+                    console.error("Error processing expanded model:", error);
+                    throw error;
+                }
+            };
+
+            processExpandedModel();
         } else {
             setModelState(prev => ({
                 model: {
@@ -265,10 +289,6 @@ export function DataMapperView(props: DataMapperProps) {
 
     const convertToQuery = async (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => {
         try {
-            const a = viewId.split(".");
-            const b = mapping.output.split(".");
-            const targetField = [...a, ...b.slice(1)].join(".");
-            console.log(">>> [Data Mapper] targetField:", targetField);
             const convertToQueryRequest: ConvertToQueryRequest = {
                 filePath,
                 codedata: viewState.codedata,
@@ -299,7 +319,7 @@ export function DataMapperView(props: DataMapperProps) {
                 index,
                 clause,
                 targetField,
-                varName
+                varName: name
             };
             console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
 
@@ -337,7 +357,7 @@ export function DataMapperView(props: DataMapperProps) {
                 targetField,
                 subMappingName,
                 type,
-                varName,
+                name,
                 defaultValue
             );
 
@@ -361,7 +381,7 @@ export function DataMapperView(props: DataMapperProps) {
                     filePath,
                     codedata: viewState.codedata,
                     mapping,
-                    varName,
+                    varName: name,
                     targetField: viewId,
                 });
             console.log(">>> [Data Mapper] deleteMapping response:", resp);
@@ -380,7 +400,7 @@ export function DataMapperView(props: DataMapperProps) {
                     codedata,
                     mapping,
                     functionMetadata: metadata,
-                    varName,
+                    varName: name,
                     targetField: viewId,
                 });
             console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
@@ -402,6 +422,24 @@ export function DataMapperView(props: DataMapperProps) {
             .getVisualizerRpcClient()
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
+
+    const enrichChildFields = async (parentField: IOType) => {
+        if (!parentField.ref) return;
+
+        const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
+            ref: parentField.ref,
+            fieldId: parentField.id,
+            model: model as DMModel,
+            visitedRefs: new Set()
+        });
+
+        if (!response.success || !response.result) {
+            throw new Error(`Failed to get process type reference: ${response.error}`);
+        }
+
+        parentField.fields = response.result.fields;
+        parentField.isDeepNested = false;
+    }
 
     useEffect(() => {
         // Hack to hit the error boundary
@@ -481,7 +519,7 @@ export function DataMapperView(props: DataMapperProps) {
             }
             setFilteredCompletions(expressionCompletions);
         }, 150),
-        [filePath, codedata, varName, completions]
+        [filePath, codedata, name, completions]
     );
 
     const handleCompletionSelect = (value: string) => {
@@ -511,7 +549,7 @@ export function DataMapperView(props: DataMapperProps) {
                     ) : (
                         <DataMapper
                             modelState={modelState}
-                            name={varName}
+                            name={name}
                             onClose={onClose}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
@@ -524,6 +562,7 @@ export function DataMapperView(props: DataMapperProps) {
                             deleteMapping={deleteMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             goToFunction={goToFunction}
+                            enrichChildFields={enrichChildFields}
                             expressionBar={{
                                 completions: filteredCompletions,
                                 isUpdatingSource,
@@ -541,10 +580,10 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.id),
-    output: model.output.id,
-    subMappings: model.subMappings?.map(s => s.id) || [],
-    types: 'types' in model ? JSON.stringify(model.types) : ''
+    inputs: model.inputs.map(i => i.name),
+    output: model.output.name,
+    subMappings: model.subMappings?.map(s => s.name) || [],
+    refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 
 const hasSignatureChanged = (

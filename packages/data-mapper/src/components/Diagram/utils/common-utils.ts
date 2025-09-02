@@ -31,7 +31,8 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode
+    PrimitiveOutputNode,
+    QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { View } from "../../DataMapper/Views/DataMapperView";
@@ -50,8 +51,22 @@ export function findMappingByOutput(mappings: Mapping[], outputId: string): Mapp
     return mappings.find(mapping => (mapping.output === outputId || mapping.output.replaceAll("\"", "") === outputId));
 }
 
+export function hasChildMappingsForOutput(mappings: Mapping[], outputId: string): boolean {
+    return mappings.some(mapping => 
+        mapping.output.startsWith(outputId + ".")
+    );
+}
+
+export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): boolean {
+    return mappings.some(mapping => {
+        if (mapping.inputs.some(input => input.startsWith(inputId + "."))) return true;
+        return mapping.elements?.some(element => hasChildMappingsForInput(element.mappings, inputId));
+    }
+    );
+}
+
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType === MappingType.Incompatible;
+    return mappingType !== MappingType.Default;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
@@ -62,7 +77,11 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        if (targetPort.getParent() instanceof PrimitiveOutputNode) return MappingType.ArrayToSingletonWithCollect;
+        
+        const targetNode = targetPort.getNode();
+        if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
+            return MappingType.ArrayToSingletonAggregate;
+        }
 
         const sourceNode = sourcePort.getNode();
 
@@ -184,13 +203,6 @@ export function fieldFQNFromPortName(portName: string): string {
     return portName.split('.').slice(1).join('.');
 }
 
-export function getSanitizedId(id: string): string {
-    if (id.endsWith('>')) {
-         return id.split('.').slice(0, -1).join('.');
-    }
-    return id;
-}
-
 export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	const nodeType = node.getType();
 	switch (nodeType) {
@@ -268,5 +280,10 @@ export function isExpandable(field: IOType): boolean {
 }
 
 export function getTargetField(viewId: string, outputId: string){
-    return [...viewId.split("."), ...outputId.split(".").slice(1)].join(".");
+    const outputIdParts = outputId.split(".").slice(1);
+    // Added to support multi dimensional arrays
+    if (outputIdParts.length === 0) {
+        outputIdParts.push("0");
+    }
+    return [...viewId.split("."), ...outputIdParts].join(".");
 }

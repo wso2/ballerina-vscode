@@ -32,7 +32,7 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { ObjectOutputFieldWidget } from "../ObjectOutput/ObjectOutputFieldWidget";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { ValueConfigMenuItem } from "../commons/ValueConfigButton/ValueConfigMenuItem";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import { TreeBody } from "../commons/Tree/Tree";
 import { getTypeName } from "../../utils/type-utils";
@@ -51,6 +51,7 @@ export interface ArrayOutputFieldWidgetProps {
     treeDepth?: number;
     asOutput?: boolean;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
@@ -63,7 +64,8 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         fieldIndex,
         treeDepth = 0,
         asOutput,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
 
@@ -78,11 +80,11 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const arrayField = field?.member;
     const typeName = getTypeName(field);
 
-    let portName = getSanitizedId(parentId);
-    if (fieldIndex !== undefined) {
+    let portName = parentId;
+    if (fieldIndex !== undefined && !isPortParent) {
         portName = `${portName}.${fieldIndex}`
     }
-    const fieldName = field?.variableName || '';
+    const fieldName = field?.displayName || field?.name || '';
 
     const portIn = getPort(`${portName}.IN`);
     const mapping = portIn && portIn.attributes.value;
@@ -133,7 +135,10 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
 
     const label = (
         <TruncatedLabel style={{ marginRight: "auto" }}>
-            <span className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}>
+            <span
+                className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}
+                style={{ marginLeft: !connectedViaLink ? 0 : indentation + 24 }}
+            >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
                 {fieldName && typeName && ":"}
@@ -252,7 +257,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     ? <ProgressRing sx={{ height: '16px', width: '16px' }} />
                     : <Codicon name="add" iconSx={{ color: "var(--vscode-inputOption-activeForeground)" }} />
                 }
-                Add Element
+                    Add Element
             </Button>
         );
     }, [isAddingElement]);
@@ -281,7 +286,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const handleArrayDeletion = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }
