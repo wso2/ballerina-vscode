@@ -22,6 +22,8 @@ import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
 import FormGenerator from "../../Forms/FormGenerator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { SidePanelView } from "../../FlowDiagram/PanelManager";
+import { ConnectionKind } from "../../../../components/ConnectionSelector";
 
 const Container = styled.div`
     max-width: 600px;
@@ -54,6 +56,7 @@ interface ConnectionConfigViewProps {
     resetUpdatedExpressionField?: () => void;
     isActiveSubPanel?: boolean;
     isPullingConnector?: boolean;
+    navigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
 export function ConnectionConfigView(props: ConnectionConfigViewProps) {
@@ -67,6 +70,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
         isPullingConnector,
         submitText,
         isSaving,
+        navigateToPanel,
     } = props;
     const { rpcClient } = useRpcContext();
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -109,6 +113,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     updatedExpressionField={updatedExpressionField}
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     disableSaveButton={isPullingConnector}
+                    navigateToPanel={navigateToPanel}
                 />
             )}
         </Container>
