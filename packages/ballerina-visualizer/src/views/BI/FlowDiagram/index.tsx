@@ -1939,6 +1939,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateNodeWithConnection = async (selectedNode: FlowNode) => {
+        if (selectedNode.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+            setSidePanelView(SidePanelView.FORM);
+            return;
+        }
         await rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: projectPath, flowNode: selectedNode });
