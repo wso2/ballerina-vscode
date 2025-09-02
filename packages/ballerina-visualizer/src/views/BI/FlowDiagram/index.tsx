@@ -1939,6 +1939,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateNodeWithConnection = async (selectedNode: FlowNode) => {
+        if (selectedNode.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+            setSidePanelView(SidePanelView.FORM);
+            return;
+        }
         await rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: projectPath, flowNode: selectedNode });
@@ -2000,6 +2004,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             endLine: functionInfo.endLine,
             endColumn: functionInfo.endColumn,
         });
+    };
+
+    const handleOnNavigateToPanel = (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => {
+        if (connectionKind) {
+            setSelectedConnectionKind(connectionKind);
+        }
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        setSidePanelView(targetPanel);
     };
 
     const flowModel = originalFlowModel.current && suggestedModel ? suggestedModel : model;
@@ -2107,6 +2119,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddMcpServer={handleOnAddMcpServer}
                 onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
+                onNavigateToPanel={handleOnNavigateToPanel}
             />
         </>
     );
