@@ -75,7 +75,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
 	    const lastView = context.views[context.views.length - 1];
         const targetField = getTargetField(lastView.targetField, node.targetMappedPort.attributes.value?.output);
 
-        expandArrayFn(context, node.sourcePorts[0].attributes.field?.id, targetField);
+        expandArrayFn(context, node.targetMappedPort.attributes.value.inputs[0], targetField);
     };
 
     const loadingScreen = (

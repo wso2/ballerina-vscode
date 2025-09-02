@@ -21,20 +21,24 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
-    ConvertToQueryRequest,
-    DeleteMappingRequest,
-    GetDataMapperCodedataRequest,
-    GetDataMapperCodedataResponse,
-    GetSubMappingCodedataRequest,
-    InitialIDMSourceRequest,
-    InitialIDMSourceResponse,
     AllDataMapperSourceRequest,
+    ConvertToQueryRequest,
+    DMModelRequest,
     DataMapperAPI,
     DataMapperModelRequest,
     DataMapperModelResponse,
     DataMapperSourceRequest,
     DataMapperSourceResponse,
+    DeleteMappingRequest,
+    ExpandedDMModelResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InitialIDMSourceRequest,
+    InitialIDMSourceResponse,
     MapWithCustomFnRequest,
+    ProcessTypeReferenceRequest,
+    ProcessTypeReferenceResponse,
     PropertyRequest,
     PropertyResponse,
     VisualizableFieldsRequest,
@@ -48,7 +52,9 @@ import {
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
+    getExpandedDMFromDMModel,
     getInitialIDMSource,
+    getProcessTypeReference,
     getProperty,
     getSubMappingCodedata,
     getVisualizableFields,
@@ -118,5 +124,13 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getProperty(params: PropertyRequest): Promise<PropertyResponse> {
         return this._messenger.sendRequest(getProperty, HOST_EXTENSION, params);
+    }
+
+    getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
+        return this._messenger.sendRequest(getExpandedDMFromDMModel, HOST_EXTENSION, params);
+    }
+
+    getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
+        return this._messenger.sendRequest(getProcessTypeReference, HOST_EXTENSION, params);
     }
 }
