@@ -131,8 +131,8 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     const { rpcClient } = useRpcContext();
     const [knowledgeBaseFields, setKnowledgeBaseFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [isKnowledgeBaseFormValid, setIsKnowledgeBaseFormValid] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [isFormValid, setIsFormValid] = useState(true);
     const [knowledgeBaseFormValues, setKnowledgeBaseFormValues] = useState<FormValues>({});
     const [saving, setSaving] = useState<boolean>(false);
 
@@ -176,21 +176,24 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     };
 
     const initializeForm = () => {
-        // Initialize knowledge base form fields from the node
         const formProperties = getFormProperties(node);
         const fields = convertNodePropertiesToFormFields(formProperties);
+        const actionFields = ["vectorStore", "embeddingModel", "chunker"];
         fields.forEach((field) => {
-            if (field?.codedata?.originalName === "vectorStore" || field?.codedata?.originalName === "embeddingModel" || field?.codedata?.originalName === "chunker") {
+            const originalName = field?.codedata?.originalName;
+            if (actionFields.includes(originalName)) {
                 field.type = "ACTION_EXPRESSION";
                 field.advanced = false;
                 field.actionCallback = () => {
-                    props.navigateToPanel?.(SidePanelView.CONNECTION_SELECT, getConnectionKind(field?.codedata?.originalName));
+                    props.navigateToPanel?.(SidePanelView.CONNECTION_SELECT, getConnectionKind(originalName));
                 };
                 field.actionLabel = <><Codicon name="add" />{`Create New ${field?.label}`}</>;
                 field.imports = node?.properties?.type?.imports;
             }
-            if (field?.codedata?.originalName === "chunker") {
-                field.defaultValue = "\"AUTO\""; // hack: set default value for chunker
+            if (originalName === "chunker") {
+                // hack: set default value for chunker field
+                field.defaultValue = "\"AUTO\"";
+                field.value ??= field.defaultValue;
             }
         });
         setKnowledgeBaseFields(fields);
@@ -246,11 +249,18 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 subPanelView={subPanelView}
                                 updatedExpressionField={updatedExpressionField}
                                 resetUpdatedExpressionField={resetUpdatedExpressionField}
-                                hideSaveButton={true}
-                                onValidityChange={setIsKnowledgeBaseFormValid}
+                                hideSaveButton={false}
                                 nestedForm={true}
                                 compact={true}
+                                onSubmit={handleSubmit}
+                                disableSaveButton={!isFormValid}
+                                isSaving={showProgressIndicator || saving}
                                 onChange={(fieldKey, value, allValues) => {
+                                    if (allValues["vectorStore"] == "" || allValues["embeddingModel"] == "") {
+                                        setIsFormValid(false);
+                                    } else {
+                                        setIsFormValid(true);
+                                    }
                                     setKnowledgeBaseFormValues(allValues);
                                 }}
                             />
@@ -258,16 +268,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                     )}
                 </S.Content>
             </S.ScrollableContent>
-
-            <S.Footer>
-                <Button
-                    appearance="primary"
-                    onClick={handleSubmit}
-                    disabled={showProgressIndicator || disableSaveButton || saving}
-                >
-                    {showProgressIndicator || saving ? <Typography variant="progress">Saving...</Typography> : "Save"}
-                </Button>
-            </S.Footer>
         </S.Container>
     );
 }
