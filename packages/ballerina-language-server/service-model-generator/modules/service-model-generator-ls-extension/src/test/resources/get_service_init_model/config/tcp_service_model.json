@@ -1,0 +1,8 @@
+{
+  "description": "Test getting tcp service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "tcp",
+  "moduleName": "tcp",
+  "response": {}
+}

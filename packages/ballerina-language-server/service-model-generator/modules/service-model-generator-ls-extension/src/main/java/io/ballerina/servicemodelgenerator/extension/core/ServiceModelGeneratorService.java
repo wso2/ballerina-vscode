@@ -907,7 +907,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     }
 
     @JsonRequest
-    public CompletableFuture<ServiceInitModelResponse> getServiceInitModel() {
+    public CompletableFuture<ServiceInitModelResponse> getServiceInitModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ServiceInitModel serviceInitModel = null;
