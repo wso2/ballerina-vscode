@@ -87,7 +87,7 @@ export interface IOType {
     variableName?: string;
     fields?: IOType[];
     member?: IOType;
-    members?: EnumMember[];
+    members?: IOType[];
     defaultValue?: unknown;
     optional?: boolean;
     focusedMemberId?: string;

@@ -21,20 +21,25 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
-    ConvertToQueryRequest,
-    DeleteMappingRequest,
-    GetDataMapperCodedataRequest,
-    GetDataMapperCodedataResponse,
-    GetSubMappingCodedataRequest,
-    InitialIDMSourceRequest,
-    InitialIDMSourceResponse,
     AllDataMapperSourceRequest,
+    ConvertToQueryRequest,
     DataMapperAPI,
     DataMapperModelRequest,
     DataMapperModelResponse,
     DataMapperSourceRequest,
     DataMapperSourceResponse,
+    DeleteMappingRequest,
+    DMModelRequest,
+    ExpandedDMModel,
+    ExpandedDMModelResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
+    GetSubMappingCodedataRequest,
+    InitialIDMSourceRequest,
+    InitialIDMSourceResponse,
     MapWithCustomFnRequest,
+    ProcessTypeReferenceRequest,
+    ProcessTypeReferenceResponse,
     PropertyRequest,
     PropertyResponse,
     VisualizableFieldsRequest,
@@ -46,7 +51,9 @@ import { StateMachine } from "../../stateMachine";
 import {
     buildSourceRequests,
     consolidateTextEdits,
+    expandDMModel,
     processSourceRequests,
+    processTypeReference,
     setHasStopped,
     updateAndRefreshDataMapper,
     updateSource
@@ -251,5 +258,57 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     });
                 });
         });
+    }
+
+     async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
+        try {
+            const { model, rootViewId, options = {} } = params;
+
+            // Validate input parameters
+            if (!model) {
+                throw new Error("DMModel is required for transformation");
+            }
+
+            if (!rootViewId) {
+                throw new Error("rootViewId is required for transformation");
+            }
+
+            // Transform the model using the existing expansion logic
+            const expandedModel = expandDMModel(model, rootViewId);
+
+            return {
+                expandedModel,
+                success: true
+            };
+        } catch (error) {
+            return {
+                expandedModel: {} as ExpandedDMModel,
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error occurred during transformation"
+            };
+        }
+    }
+
+    async getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
+        try {
+            const { ref, fieldId, model, visitedRefs = new Set<string>() } = params;
+
+            if (!ref || !fieldId || !model) {
+                throw new Error("ref, fieldId, and model are required parameters");
+            }
+
+            const result = processTypeReference(ref, fieldId, model, visitedRefs);
+
+            return {
+                result,
+                success: true
+            };
+        } catch (error) {
+            return {
+                result: {},
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error occurred during type reference processing"
+            };
+        }
     }
 }
