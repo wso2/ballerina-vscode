@@ -127,6 +127,8 @@ import {
     generateOpenApiClient,
     getAiSuggestions,
     getAllImports,
+    getAvailableChunkers,
+    getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
     getAvailableModelProviders,
     getAvailableNodes,
@@ -227,6 +229,14 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this._messenger.sendRequest(getAvailableVectorKnowledgeBases, HOST_EXTENSION, params);
+    }
+
+    getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableDataLoaders, HOST_EXTENSION, params);
+    }
+
+    getAvailableChunkers(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableChunkers, HOST_EXTENSION, params);
     }
 
     getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
