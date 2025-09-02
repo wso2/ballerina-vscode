@@ -146,11 +146,11 @@ export const updateNodeLineRange = (selectedNode: FlowNode, artifacts: ProjectSt
     const selectedNodeArtifact = artifacts.find((artifact) => {
         return artifact.name === selectedNode.properties.variable.value;
     });
-    if (selectedNodeArtifact && !selectedNode.codedata?.isNew) {
+    if (selectedNodeArtifact && selectedNodeArtifact.position && !selectedNode?.codedata?.isNew) {
         selectedNode.codedata.lineRange = {
             fileName: selectedNodeArtifact?.path,
-            startLine: { line: selectedNodeArtifact?.position.startLine, offset: selectedNodeArtifact?.position.startColumn },
-            endLine: { line: selectedNodeArtifact?.position.endLine, offset: selectedNodeArtifact?.position.endColumn }
+            startLine: { line: selectedNodeArtifact.position.startLine, offset: selectedNodeArtifact.position.startColumn },
+            endLine: { line: selectedNodeArtifact.position.endLine, offset: selectedNodeArtifact.position.endColumn }
         };
     }
 };
