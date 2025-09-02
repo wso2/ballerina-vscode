@@ -41,6 +41,8 @@ import {
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 
+const DEFAULT_CHUNKER_VALUE = "\"AUTO\"";
+
 namespace S {
     export const Container = styled.div`
         display: flex;
@@ -192,7 +194,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             }
             if (originalName === "chunker") {
                 // hack: set default value for chunker field
-                field.defaultValue = "\"AUTO\"";
+                field.defaultValue = DEFAULT_CHUNKER_VALUE;
                 field.value ??= field.defaultValue;
             }
         });
