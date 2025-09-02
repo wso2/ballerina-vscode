@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import { BINodeTemplateRequest, CodeData, FlowNode, LinePosition, ValueTypeConstraint } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, LinePosition, NodeKind } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
+import { BALLERINA } from "../../../constants";
 
 export const getNodeTemplate = async (
     rpcClient: BallerinaRpcClient,
@@ -36,7 +37,8 @@ export const getNodeTemplate = async (
     return response?.flowNode;
 };
 
-export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
+export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: NodeKind) => {
+    if (nodeKind && (nodeKind === "NP_FUNCTION" || nodeKind === "NP_FUNCTION_DEFINITION")) return BALLERINA;
     const filePath = await rpcClient.getVisualizerLocation();
     const aiModuleOrgResponse = await rpcClient
         .getAIAgentRpcClient()
@@ -46,8 +48,6 @@ export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient) => {
 }
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
-    // Get the agent file path and update the node
-    const filePath = await rpcClient.getVisualizerLocation();
     // Create the agent file path
     const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
     return agentFilePath;

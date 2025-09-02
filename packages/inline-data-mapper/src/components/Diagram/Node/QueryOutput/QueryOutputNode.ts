@@ -67,9 +67,9 @@ export class QueryOutputNode extends DataMapperNodeModel {
 
             this.hasNoMatchingFields = hasNoOutputMatchFound(this.outputType, this.filteredOutputType);
     
-            const parentPort = this.addPortsForHeader({
+            const headerPort = this.addPortsForHeader({
                 dmType: this.filteredOutputType,
-                name: this.rootName,
+                name: this.rootName + ".#",
                 portType: "IN",
                 portPrefix: QUERY_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
@@ -78,8 +78,20 @@ export class QueryOutputNode extends DataMapperNodeModel {
                 isPreview: true
             });
 
-            this.addPortsForOutputField({
-                field: this.filteredOutputType.member,
+            const parentField = this.filteredOutputType.member || this.filteredOutputType;
+
+            const parentPort = this.addPortsForHeader({
+                dmType: parentField,
+                name: this.rootName,
+                portType: "IN",
+                portPrefix: QUERY_OUTPUT_TARGET_PORT_PREFIX,
+                mappings: this.context.model.mappings,
+                collapsedFields,
+                expandedFields
+            });
+
+            this.processOutputFieldKind({
+                field: parentField,
                 type: "IN",
                 parentId: this.rootName,
                 mappings: this.context.model.mappings,
@@ -89,7 +101,6 @@ export class QueryOutputNode extends DataMapperNodeModel {
                 expandedFields,
                 hidden: parentPort.attributes.collapsed
             });
-    
         }
     }
 
@@ -107,12 +118,9 @@ export class QueryOutputNode extends DataMapperNodeModel {
         const { inputs: queryInputs, output: queryOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
-            if (mapping.output === queryOutput) {
-                mapping.output += `.<${queryOutput.split('.').pop()}Item>`;
-            }
             
-            const { isComplex, isQueryExpression, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || isQueryExpression || inputs.length !== 1) {
+            const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
@@ -122,8 +130,6 @@ export class QueryOutputNode extends DataMapperNodeModel {
             if (inputNode) {
                 inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));
             }
-
-            
 
             const [_, mappedOutPort] = getOutputPort(this, output);
 
@@ -164,7 +170,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
             inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
         }
 
-        const [_, mappedOutPort] = getOutputPort(this, queryOutput);
+        const [_, mappedOutPort] = getOutputPort(this, queryOutput + ".#");
 
         if (inPort && mappedOutPort) {
             const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);

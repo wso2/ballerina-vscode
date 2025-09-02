@@ -30,7 +30,7 @@ import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { ArrayOutputFieldWidget } from "../ArrayOutput/ArrayOuptutFieldWidget";
-import { fieldFQNFromPortName, getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { fieldFQNFromPortName, getDefaultValue } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
@@ -46,6 +46,7 @@ export interface ObjectOutputFieldWidgetProps {
     fieldIndex?: number;
     treeDepth?: number;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
@@ -57,7 +58,8 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
         context,
         fieldIndex,
         treeDepth = 0,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
     const [isLoading, setLoading] = useState(false);
@@ -78,18 +80,20 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     const isRecord = typeKind === TypeKind.Record;
     const isEnum = typeKind === TypeKind.Enum;
 
-    let updatedParentId = getSanitizedId(parentId);
+    let updatedParentId = parentId;
     
     if (fieldIndex !== undefined) {
         updatedParentId = `${updatedParentId}.${fieldIndex}`
     }
 
     let fieldName = field?.variableName || '';
-    let portName = updatedParentId !== ''
-        ? fieldName !== '' && fieldIndex === undefined
-            ? `${updatedParentId}.${fieldName}`
-            : updatedParentId
-        : fieldName;
+    let portName = isPortParent
+        ? parentId
+        : updatedParentId !== ''
+            ? fieldName !== '' && fieldIndex === undefined
+                ? `${updatedParentId}.${fieldName}`
+                : updatedParentId
+            : fieldName;
 
     const portIn = getPort(portName + ".IN");
     const isUnknownType = field?.kind === TypeKind.Unknown;

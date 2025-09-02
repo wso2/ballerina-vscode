@@ -230,7 +230,7 @@ export async function getDiagnostics(
         fs.mkdirSync(tempTestFolderPath, { recursive: true });
     }
     const tempTestFilePath = path.join(tempTestFolderPath, 'test.bal');
-    writeBallerinaFileDidOpen(tempTestFilePath, generatedTestSource.testSource);
+    await writeBallerinaFileDidOpen(tempTestFilePath, generatedTestSource.testSource);
 
     const diagnosticsResult = await langClient.getDiagnostics({ documentIdentifier: { uri: Uri.file(tempTestFilePath).toString() } });
     await closeAllBallerinaFiles(tempDir);
