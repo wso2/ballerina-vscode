@@ -1,0 +1,68 @@
+{
+  "source": "proj/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 30
+      }
+    },
+    "sourceCode": "2qhrsh43627mf2fyvjl"
+  },
+  "mapping": {
+    "output": "var1.gpa",
+    "expression": "student"
+  },
+  "functionMetadata": {
+    "returnType": "decimal",
+    "parameters": [
+      {
+        "name": "student",
+        "type": "Student",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "record"
+      }
+    ]
+  },
+  "targetField": "var1",
+  "output": {
+    "proj/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 28
+          },
+          "end": {
+            "line": 17,
+            "character": 28
+          }
+        },
+        "newText": "gpa: mapStudentTodecimal(student)"
+      }
+    ],
+    "proj/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction mapStudentTodecimal(Student student) returns decimal => 0.0d"
+      }
+    ]
+  }
+}

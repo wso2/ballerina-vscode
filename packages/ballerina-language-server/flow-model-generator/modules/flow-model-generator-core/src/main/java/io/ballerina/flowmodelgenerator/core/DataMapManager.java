@@ -2102,9 +2102,9 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    public JsonElement genCustomFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
+    public JsonElement genMappingFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
                                          Path filePath, JsonElement cd, JsonElement mp, JsonElement fm,
-                                         String targetField) {
+                                         String targetField, Boolean isCustomFunction) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
@@ -2117,8 +2117,14 @@ public class DataMapManager {
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
-        String functionName = genCustomFunctionDef(workspaceManager,
-                filePath, functionMetadata, textEditsMap, semanticModel);
+        String functionName;
+        if (isCustomFunction) {
+            functionName = genFunctionDef(workspaceManager,
+                    filePath, functionMetadata, textEditsMap, semanticModel, true);
+        } else {
+            functionName = genFunctionDef(workspaceManager,
+                    filePath, functionMetadata, textEditsMap, semanticModel, false);
+        }
 
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
@@ -2156,9 +2162,9 @@ public class DataMapManager {
         }
     }
 
-    private String genCustomFunctionDef(WorkspaceManager workspaceManager, Path filePath,
+    private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,
                                         FunctionMetadata functionMetadata, Map<Path,
-                    List<TextEdit>> textEditsMap, SemanticModel semanticModel) {
+                    List<TextEdit>> textEditsMap, SemanticModel semanticModel, Boolean isCustomFunction) {
         List<Parameter> parameters = functionMetadata.parameters();
         List<String> paramNames = new ArrayList<>();
         for (Parameter parameter : parameters) {
@@ -2173,7 +2179,14 @@ public class DataMapManager {
             paramNames.add(paramName);
         }
 
-        Path functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
+        Path functionsFilePath;
+        String expressionBody = null;
+        if (isCustomFunction) {
+            functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
+        } else {
+            functionsFilePath = workspaceManager.projectRoot(filePath).resolve("data_mappings.bal");
+            expressionBody = getExpressionBody(functionMetadata.returnType());
+        }
         try {
             workspaceManager.loadProject(filePath);
             Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
@@ -2181,13 +2194,49 @@ public class DataMapManager {
             Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
             String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
-            textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
-                    functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
+            if (isCustomFunction) {
+                textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
+            } else
+                textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " => " +
+                        expressionBody)); {
+
+            }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;
         } catch (WorkspaceDocumentException | EventSyncException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String getExpressionBody(String returnType) {
+        if (returnType == null || returnType.isEmpty()) {
+            return "{}";
+        }
+        if (returnType.contains("[]")) {
+            return "[]";
+        }
+
+        switch (returnType) {
+            case INT -> {
+                return "0";
+            }
+            case FLOAT -> {
+                return "0.0";
+            }
+            case DECIMAL -> {
+                return "0.0d";
+            }
+            case BOOLEAN -> {
+                return "true";
+            }
+            case STRING -> {
+                return "\"\"";
+            }
+        }
+
+        return "{}";
     }
 
     private static String getFunctionName(List<Parameter> parameters, String returnType, SemanticModel semanticModel) {
