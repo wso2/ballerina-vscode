@@ -248,7 +248,10 @@
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "ai": "ballerinax/ai"
+        }
       },
       "variable": {
         "metadata": {

@@ -98,7 +98,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "covid19": "ballerinax/covid19"
+        }
       },
       "variable": {
         "metadata": {

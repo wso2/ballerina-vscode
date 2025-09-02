@@ -197,7 +197,10 @@
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "redis": "ballerinax/redis"
+        }
       }
     },
     "flags": 1

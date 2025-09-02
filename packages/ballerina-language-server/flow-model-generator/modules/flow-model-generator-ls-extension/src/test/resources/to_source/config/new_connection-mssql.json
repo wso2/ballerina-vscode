@@ -266,6 +266,9 @@
         "advanced": false,
         "codedata": {
           "importStatements": "ballerina/sql"
+        },
+        "imports": {
+          "mssql": "ballerinax/mssql"
         }
       },
       "variable": {

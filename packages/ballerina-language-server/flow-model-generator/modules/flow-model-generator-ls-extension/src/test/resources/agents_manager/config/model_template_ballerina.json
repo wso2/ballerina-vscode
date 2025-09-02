@@ -220,7 +220,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "\"2.0\""
@@ -251,7 +250,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -282,7 +280,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -312,10 +309,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
-        },
         "defaultValue": "0.0d"
       },
       "forwarded": {
@@ -343,10 +336,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
-        },
         "defaultValue": "\"\""
       },
       "poolConfig": {
@@ -375,7 +364,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -406,7 +394,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -437,7 +424,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "\"AUTO\""
@@ -468,7 +454,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -499,7 +484,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -530,7 +514,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -561,7 +544,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -592,7 +574,6 @@
           }
         ],
         "imports": {
-          "ai": "ballerina/ai",
           "http": "ballerina/http"
         },
         "defaultValue": "{}"
@@ -622,10 +603,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
-        },
         "defaultValue": "false"
       },
       "type": {
@@ -642,8 +619,7 @@
         "hidden": false,
         "codedata": {},
         "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
+          "openai": "ballerinax/ai.openai"
         }
       },
       "variable": {
@@ -656,11 +632,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
-        }
+        "hidden": false
       },
       "checkError": {
         "metadata": {
@@ -672,11 +644,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true,
-        "imports": {
-          "ai": "ballerina/ai",
-          "http": "ballerina/http"
-        }
+        "hidden": true
       }
     },
     "flags": 0

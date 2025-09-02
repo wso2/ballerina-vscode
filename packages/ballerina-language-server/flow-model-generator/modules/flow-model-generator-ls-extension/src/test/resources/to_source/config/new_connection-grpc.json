@@ -29,7 +29,10 @@
         "placeholder": "var",
         "optional": false,
         "editable": false,
-        "advanced": false
+        "advanced": false,
+        "imports": {
+          "grpc": "ballerina/grpc"
+        }
       },
       "variable": {
         "metadata": {

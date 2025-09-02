@@ -57,7 +57,10 @@
         "valueType": "TYPE",
         "value": "http:Client|http:ClientError",
         "optional": false,
-        "editable": true
+        "editable": true,
+        "imports": {
+          "http": "ballerina/http"
+        }
       },
       "variable": {
         "metadata": {
