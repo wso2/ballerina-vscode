@@ -68,7 +68,6 @@ const PopupPanel = (props: PopupPanelProps) => {
         rpcClient.getPopupVisualizerState().then((machineState: PopupVisualizerLocation) => {
             switch (machineState?.view) {
                 case MACHINE_VIEW.AddConnectionWizard:
-                    setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
                             <AddConnectionWizard
