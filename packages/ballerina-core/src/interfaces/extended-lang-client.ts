@@ -842,7 +842,18 @@ export type SearchQueryParams = {
     filterByCurrentOrg?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE" | "CLASS_INIT";
+export type SearchKind =
+    | "FUNCTION"
+    | "CONNECTOR"
+    | "TYPE"
+    | "NP_FUNCTION"
+    | "MODEL_PROVIDER"
+    | "VECTOR_STORE"
+    | "EMBEDDING_PROVIDER"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "DATA_LOADER"
+    | "CHUNKER"
+    | "CLASS_INIT";
 
 export type BISearchRequest = {
     position?: LineRange;
