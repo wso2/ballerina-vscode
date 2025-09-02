@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DownloadProgress, ImportIntegrationResponse, MigrationTool } from "@wso2/ballerina-core";
+import { DownloadProgress, ImportIntegrationResponse, MigrationTool, ProjectRequest } from "@wso2/ballerina-core";
 
 export interface FinalIntegrationParams {
     importSourcePath: string;
@@ -71,7 +71,7 @@ export interface MigrationProgressProps {
 }
 
 export interface ConfigureProjectFormProps {
-    onNext: (projectName: string, projectPath: string) => void;
+    onNext: (project: ProjectRequest) => void;
     onBack: () => void;
 }
 

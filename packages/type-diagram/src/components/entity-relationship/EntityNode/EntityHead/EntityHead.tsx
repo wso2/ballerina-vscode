@@ -80,6 +80,15 @@ const ImportedLabel = styled.span`
     white-space: nowrap;
 `;
 
+const GraphqlIconContainer = styled.div`
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 20px;
+`;
+
 export function EntityHeadWidget(props: ServiceHeadProps) {
     const { engine, node, isSelected } = props;
     const { setFocusedNodeId, onEditNode, goToSource } = useContext(DiagramContext);
@@ -151,9 +160,9 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 <HeaderWrapper>
                     <EntityNameContainer>
                         {node.isGraphqlRoot && (
-                            <div style={{ marginRight: "5px", marginTop: "2px" }}>
+                            <GraphqlIconContainer>
                                 <Icon name="bi-graphql" iconSx={{ color: "#e535ab", fontSize: "20px" }} />
-                            </div>
+                            </GraphqlIconContainer>
                         )}
                         <EntityName
                             isClickable={isClickable && !isImported}
