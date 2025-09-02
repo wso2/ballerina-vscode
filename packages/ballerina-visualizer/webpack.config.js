@@ -4,7 +4,8 @@ const webpack = require('webpack');
 module.exports = {
   entry: "./src/index.tsx",
   target: "web",
-  devtool: "eval-cheap-module-source-map",
+  devtool: !process.env.CI ? "eval-source-map" : undefined,
+  mode: !process.env.CI ? "development" : "production",
   output: {
     path: path.resolve(__dirname, "build"),
     filename: "Visualizer.js",
@@ -26,49 +27,49 @@ module.exports = {
   },
   module: {
     rules: [{
-        test: /\.(ts|tsx)$/,
-        loader: "ts-loader",
-        exclude: '/node_modules/',
-        options: {
-          configFile: path.resolve(__dirname, 'tsconfig.json'),
-          transpileOnly: true, 
-        },
+      test: /\.(ts|tsx)$/,
+      loader: "ts-loader",
+      exclude: '/node_modules/',
+      options: {
+        configFile: path.resolve(__dirname, 'tsconfig.json'),
+        transpileOnly: true,
       },
-      {
-        enforce: "pre",
-        test: /\.js$/,
-        loader: "source-map-loader",
-        exclude: /node_modules\/parse5/,
+    },
+    {
+      enforce: "pre",
+      test: /\.js$/,
+      loader: "source-map-loader",
+      exclude: /node_modules\/parse5/,
+    },
+    {
+      test: /\.css$/,
+      use: [
+        'style-loader',
+        'css-loader'
+      ]
+    },
+    {
+      test: /\.s[ac]ss$/i,
+      use: [
+        // Creates `style` nodes from JS strings
+        'style-loader',
+        // Translates CSS into CommonJS
+        'css-loader',
+        // Compiles Sass to CSS
+        'sass-loader',
+      ],
+    },
+    {
+      test: /\.(woff|woff2|ttf|otf|eot)$/,
+      type: 'asset/inline',
+    },
+    {
+      test: /\.(svg)$/,
+      type: 'asset/resource',
+      generator: {
+        filename: './images/[name][ext]',
       },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
-      },
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          // Creates `style` nodes from JS strings
-          'style-loader',
-          // Translates CSS into CommonJS
-          'css-loader',
-          // Compiles Sass to CSS
-          'sass-loader',
-        ],
-      },
-      {
-        test: /\.(woff|woff2|ttf|otf|eot)$/,
-        type: 'asset/inline',
-      },
-      {
-        test: /\.(svg)$/,
-        type: 'asset/resource',
-        generator: {
-          filename: './images/[name][ext]',
-        },
-      }
+    }
     ],
   },
   devServer: {
