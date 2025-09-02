@@ -388,7 +388,8 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperSourceResponse> transformationFunction(DataMapperTransformFunctionRequest request) {
+    public CompletableFuture<DataMapperSourceResponse> transformationFunction(
+            DataMapperTransformFunctionRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             DataMapperSourceResponse response = new DataMapperSourceResponse();
             try {

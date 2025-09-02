@@ -2230,11 +2230,10 @@ public class DataMapManager {
             if (isCustomFunction) {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
-            } else
+            } else {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " => " +
-                        expressionBody)); {
-
+                        expressionBody));
             }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;
