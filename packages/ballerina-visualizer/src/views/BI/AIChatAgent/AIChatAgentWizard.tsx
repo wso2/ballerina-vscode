@@ -26,7 +26,7 @@ import { TitleBar } from '../../../components/TitleBar';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
-import { getAiModuleOrg, getNodeTemplate, searchNodes } from './utils';
+import { getAiModuleOrg, getNodeTemplate } from './utils';
 import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
 
 const FormContainer = styled.div`
@@ -114,12 +114,11 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             projectPath.current = filePath.projectUri;
 
             // Search for agent node in the current file
-            const agentSearchResponse = await searchNodes(
-                rpcClient,
-                projectPath.current,
-                { orgName: aiModuleOrg.current },
-                "AGENT"
-            );
+            const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: projectPath.current,
+                queryMap: { orgName: aiModuleOrg.current },
+                searchKind: "AGENT"
+            });
 
             // Validate search response structure
             if (!agentSearchResponse?.categories?.[0]?.items?.[0]) {
@@ -133,12 +132,11 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
             // Search for model providers
-            const modelProviderSearchResponse = await searchNodes(
-                rpcClient,
-                projectPath.current,
-                { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
-                aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
-            );
+            const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: projectPath.current,
+                queryMap: { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
+                searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+            });
 
             const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
             console.log(">>> modelNodes", modelNodes);

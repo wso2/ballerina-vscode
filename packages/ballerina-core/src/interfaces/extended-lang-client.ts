@@ -862,7 +862,7 @@ export type SearchKind =
 export type BISearchRequest = {
     position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 

@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath, getAiModuleOrg, getNodeTemplate, searchNodes } from "./utils";
+import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
 
 const Container = styled.div`
     padding: 16px;
@@ -101,12 +101,11 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             return;
         }
         try {
-            const memoryManagerSearchResponse = await searchNodes(
-                rpcClient,
-                agentFilePath.current,
-                { orgName: aiModuleOrg.current },
-                "MEMORY_MANAGER"
-            );
+            const memoryManagerSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: agentFilePath.current,
+                queryMap: { orgName: aiModuleOrg.current },
+                searchKind: "MEMORY_MANAGER"
+            });
 
             if (!memoryManagerSearchResponse?.categories?.[0]?.items) {
                 console.error("No memory managers found in search response");

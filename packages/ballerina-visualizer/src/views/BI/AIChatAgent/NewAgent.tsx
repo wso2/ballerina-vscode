@@ -18,15 +18,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { AvailableNode, FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
+import { AvailableNode, FlowNode, LineRange, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
-import { URI, Utils } from "vscode-uri";
 import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAiModuleOrg, getNodeTemplate, searchNodes } from "./utils";
+import { getAiModuleOrg, getNodeTemplate } from "./utils";
 import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
 
 const Container = styled.div`
@@ -86,12 +85,11 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
     const fetchAgentNode = async () => {
         // Search for agent node using search API
-        const agentSearchResponse = await searchNodes(
-            rpcClient,
-            projectPath.current,
-            { orgName: aiModuleOrg.current },
-            "AGENT"
-        );
+        const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            queryMap: { orgName: aiModuleOrg.current },
+            searchKind: "AGENT"
+        });
         console.log(">>> agentSearchResponse", agentSearchResponse);
 
         // Validate search response structure
@@ -205,12 +203,11 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         setSavingForm(true);
 
         // Search for model providers using search API
-        const modelProviderSearchResponse = await searchNodes(
-            rpcClient,
-            projectPath.current,
-            { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
-            aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
-        );
+        const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            queryMap: { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
+            searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+        });
         console.log(">>> modelProviderSearchResponse", modelProviderSearchResponse);
 
         const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
