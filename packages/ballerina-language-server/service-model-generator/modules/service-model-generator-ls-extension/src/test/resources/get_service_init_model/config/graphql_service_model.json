@@ -1,0 +1,8 @@
+{
+  "description": "Test getting graphql service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "graphql",
+  "moduleName": "graphql",
+  "response": {}
+}

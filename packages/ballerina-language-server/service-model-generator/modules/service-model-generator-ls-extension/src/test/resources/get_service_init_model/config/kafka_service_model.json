@@ -1,0 +1,8 @@
+{
+  "description": "Test getting kafka service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "kafka",
+  "moduleName": "kafka",
+  "response": {}
+}

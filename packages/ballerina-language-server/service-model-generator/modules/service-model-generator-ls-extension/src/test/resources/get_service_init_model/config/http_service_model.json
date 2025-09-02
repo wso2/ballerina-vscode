@@ -1,0 +1,8 @@
+{
+  "description": "Test getting the http service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "http",
+  "moduleName": "http",
+  "response": {}
+}

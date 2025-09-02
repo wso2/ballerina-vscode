@@ -1,0 +1,8 @@
+{
+  "description": "Test getting rabbitmq service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "rabbitmq",
+  "moduleName": "rabbitmq",
+  "response": {}
+}
