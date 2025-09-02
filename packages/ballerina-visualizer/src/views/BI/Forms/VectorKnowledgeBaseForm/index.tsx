@@ -256,11 +256,8 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 disableSaveButton={!isFormValid}
                                 isSaving={showProgressIndicator || saving}
                                 onChange={(fieldKey, value, allValues) => {
-                                    if (allValues["vectorStore"] == "" || allValues["embeddingModel"] == "") {
-                                        setIsFormValid(false);
-                                    } else {
-                                        setIsFormValid(true);
-                                    }
+                                    const isValid = allValues["vectorStore"] !== "" && allValues["embeddingModel"] !== "";
+                                    setIsFormValid(isValid);
                                     setKnowledgeBaseFormValues(allValues);
                                 }}
                             />
