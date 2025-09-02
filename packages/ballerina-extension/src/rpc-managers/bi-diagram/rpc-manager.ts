@@ -422,14 +422,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(
-            params.projectName,
-            params.packageName,
-            params.projectPath,
-            params.createDirectory,
-            params.orgName,
-            params.version
-        );
+        createBIProjectPure(params);
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {
