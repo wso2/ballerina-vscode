@@ -2002,6 +2002,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
     };
 
+    const handleOnNavigateToPanel = (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => {
+        if (connectionKind) {
+            setSelectedConnectionKind(connectionKind);
+        }
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        setSidePanelView(targetPanel);
+    };
+
     const flowModel = originalFlowModel.current && suggestedModel ? suggestedModel : model;
 
     const memoizedDiagramProps = useMemo(
@@ -2107,6 +2115,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddMcpServer={handleOnAddMcpServer}
                 onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
+                onNavigateToPanel={handleOnNavigateToPanel}
             />
         </>
     );
