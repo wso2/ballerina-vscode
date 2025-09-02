@@ -43,7 +43,7 @@ export interface ConnectionConfigProps {
     connectionKind: ConnectionKind;
     selectedNode?: FlowNode;
     onSave?: (selectedCallNode: FlowNode) => void;
-    onCreateNew?: () => void;
+    onNavigateToSelectionList?: () => void;
 }
 
 export interface ConnectionSearchConfig {
