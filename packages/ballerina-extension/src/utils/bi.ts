@@ -186,7 +186,7 @@ export function createBIProjectPure(integrationName: string, packageName: string
 org = "${finalOrgName}"
 name = "${packageName}"
 version = "${finalVersion}"
-label = "${integrationName}"
+title = "${integrationName}"
 
 [build-options]
 sticky = true
