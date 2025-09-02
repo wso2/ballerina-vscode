@@ -31,6 +31,13 @@ export const FormContainer = styled.div`
     z-index: 1;
 `;
 
+export const TitleContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+`;
+
 export const IconButton = styled.div`
     cursor: pointer;
     border-radius: 4px;
