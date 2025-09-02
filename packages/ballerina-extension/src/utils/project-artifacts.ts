@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
+import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse, VisualizerLocation } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
@@ -51,6 +51,11 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
         traverseComponents(designArtifacts.artifacts, result);
         await populateLocalConnectors(projectDir, result);
     }
+    // Find the workspace folder and get the project name. Correct way to get the project name is from the ballerina.toml file.
+    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
+    const projectName = workspace?.name;
+    result.projectName = projectName;
+
     if (isUpdate) {
         StateMachine.updateProjectStructure({ ...result });
     }

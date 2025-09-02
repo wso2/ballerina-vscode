@@ -264,7 +264,7 @@ export function WelcomeView(props: WelcomeViewProps) {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.BIProjectForm, // TODO: This should be updated to a specific import view when available
+                view: MACHINE_VIEW.BIImportIntegration,
             },
         });
     };

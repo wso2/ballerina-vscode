@@ -95,6 +95,7 @@ export function getLlmModelIcons(modelType: string) {
         case "ai.openai":
             return <OpenAiIcon />;
         case "AzureOpenAiProvider":
+        case "OpenAiModelProvider":
         case "ai.azure":
             return <AzureOpenAiIcon />;
         case "AnthropicProvider":
