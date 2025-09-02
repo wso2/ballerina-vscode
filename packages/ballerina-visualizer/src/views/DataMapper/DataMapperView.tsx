@@ -144,7 +144,7 @@ export function DataMapperView(props: DataMapperProps) {
                 },
                 name
             );
-            console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
+            console.log(">>> [Data Mapper] processed expandedModel:", expandedModel);
             setModelState({
                 model: expandedModel,
                 hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
