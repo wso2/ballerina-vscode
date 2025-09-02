@@ -85,3 +85,36 @@ export const findFunctionByName = (components: BallerinaProjectComponents, funct
     }
     return null;
 };
+
+export const getNodeTemplateForConnection = async (
+    nodeId: string,
+    metadata: any,
+    targetRef: any,
+    modelFileName: string | undefined,
+    rpcClient: any
+) => {
+    const { node } = metadata as { node: AvailableNode };
+
+    const response = await rpcClient
+        .getBIDiagramRpcClient()
+        .getNodeTemplate({
+            position: targetRef?.startLine || { line: 0, offset: 0 },
+            filePath: modelFileName,
+            id: node.codedata,
+        });
+
+    const flowNode = response.flowNode;
+    flowNode.metadata = node.metadata;
+
+    let connectionKind: string;
+    switch (nodeId) {
+        case "MODEL_PROVIDER":
+        case "CLASS_INIT":
+            connectionKind = 'MODEL_PROVIDER';
+            break;
+        default:
+            connectionKind = nodeId;
+    }
+
+    return { flowNode, connectionKind };
+};
