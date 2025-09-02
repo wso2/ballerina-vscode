@@ -620,7 +620,7 @@ public class SourceBuilder {
     }
 
     private void cleanImportsForModuleImportsInSamePackage(String orgName, String moduleName) {
-        for (String importStmt : imports) {
+        for (String importStmt : new HashSet<>(imports)) {
             String[] parts = importStmt.split("/");
             if (parts.length > 1) {
                 String importOrg = parts[0];
