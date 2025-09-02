@@ -455,6 +455,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                     <ArrayEditor
                         type={type}
                         onChange={setType}
+                        onValidationError={handleValidationError}
                     />
                     <AdvancedOptions type={type} onChange={setType} />
                     </>
