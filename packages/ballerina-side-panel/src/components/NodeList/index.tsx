@@ -35,6 +35,7 @@ import { cloneDeep, debounce } from "lodash";
 import { GroupListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
 import { getCategoryConfig, shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, CategoryAction } from "./categoryConfig";
 
 namespace S {
@@ -65,10 +66,10 @@ namespace S {
         justify-content: flex-start;
         align-items: flex-start;
         width: 100%;
-        margin-top: 8px;
-        margin-bottom: ${({ showBorder }) => (showBorder ? "20px" : "12px")};
-        padding-bottom: 8px;
-        border-bottom: ${({ showBorder }) => (showBorder ? `1px solid ${ThemeColors.OUTLINE_VARIANT}` : "none")};
+        margin-top: 0;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
     `;
 
     export const Row = styled.div<{}>`
@@ -88,16 +89,17 @@ namespace S {
 
     export const Grid = styled.div<{ columns: number }>`
         display: grid;
-        grid-template-columns: repeat(${({ columns }) => columns}, 1fr);
+        grid-template-columns: repeat(${({ columns }) => columns}, minmax(0, 1fr));
         gap: 8px;
         width: 100%;
         margin-top: 8px;
+        margin-bottom: 12px;
     `;
 
     export const Title = styled.div<{}>`
         font-size: 14px;
         font-family: GilmerBold;
-        text-wrap: nowrap;
+        white-space: nowrap;
         &:first {
             margin-top: 0;
         }
@@ -124,6 +126,8 @@ namespace S {
         height: 36px;
         cursor: ${({ enabled }) => (enabled ? "pointer" : "not-allowed")};
         font-size: 14px;
+        min-width: 160px;
+        max-width: 100%;
         ${({ enabled }) => !enabled && "opacity: 0.5;"}
         &:hover {
             ${({ enabled }) =>
@@ -137,7 +141,8 @@ namespace S {
 
     export const ComponentTitle = styled.div`
         white-space: nowrap;
-        width: 124px;
+        flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         display: block;
@@ -145,10 +150,11 @@ namespace S {
     `;
 
     export const IconContainer = styled.div`
-        padding: 0 8px;
+        padding: 0 4px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         & svg {
             height: 16px;
             width: 16px;
@@ -175,6 +181,7 @@ namespace S {
 
     export const HighlightedButton = styled.div`
         margin-top: 10px;
+        margin-bottom: 12px;
         width: 100%;
         display: flex;
         flex-direction: row;
@@ -190,13 +197,6 @@ namespace S {
             border: 1px solid ${ThemeColors.PRIMARY};
             background-color: ${ThemeColors.PRIMARY_CONTAINER};
         }
-    `;
-
-    export const AddConnectionButton = styled(Button)`
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        width: 100%;
     `;
 
     export const AiContainer = styled.div`
@@ -243,6 +243,53 @@ namespace S {
         color: ${ThemeColors.ON_SURFACE_VARIANT};
         transition: all 0.2s ease;
     `;
+
+    export const CategoryHeader = styled.div<{ fullWidth?: boolean }>`
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: -webkit-fill-available;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 5px;
+        margin: ${({ fullWidth }) => fullWidth ? '0 -12px' : '0'};
+        
+        &:hover {
+            background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        }
+    `;
+
+    export const CategoryCard = styled.div<{ hasBackground?: boolean }>`
+        background-color: ${({ hasBackground }) => hasBackground ? `rgba(255, 255, 255, 0.02)` : 'transparent'};
+        border-radius: 5px;
+        padding: ${({ hasBackground }) => hasBackground ? '0 12px' : '0'};
+        margin-bottom: 16px;
+        border: ${({ hasBackground }) => hasBackground ? `1px solid ${ThemeColors.OUTLINE_VARIANT}` : 'none'};
+        transition: all 0.2s ease;
+        
+        &:hover {
+            ${({ hasBackground }) => hasBackground && `
+                background-color: rgba(255, 255, 255, 0.04);
+            `}
+        }
+    `;
+
+    export const ChevronIcon = styled.div<{ isExpanded: boolean }>`
+        transition: transform 0.2s ease;
+        transform: ${({ isExpanded }) => isExpanded ? 'rotate(-90deg)' : 'rotate(90deg)'};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    export const CategorySeparator = styled.div`
+        width: 100%;
+        height: 1px;
+        background-color: ${ThemeColors.OUTLINE_VARIANT};
+        margin: 16px 0;
+    `;
 }
 
 interface NodeListProps {
@@ -280,6 +327,7 @@ export function NodeList(props: NodeListProps) {
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
+    const [expandedCategories, setExpandedCategoriesState] = useState<Record<string, boolean>>({});
     const { rpcClient } = useRpcContext();
     const [isNPSupported, setIsNPSupported] = useState(false);
 
@@ -291,6 +339,19 @@ export function NodeList(props: NodeListProps) {
                 setIsNPSupported(supported);
             });
     }, []);
+
+    // Initialize expanded categories state from localStorage
+    useEffect(() => {
+        if (categories && categories.length > 0) {
+            const categoryTitles = categories.map(cat => cat.title);
+            const storedState = getExpandedCategories();
+            const defaultState = getDefaultExpandedState(categoryTitles);
+            
+            // Merge stored state with defaults, prioritizing stored state
+            const mergedState = { ...defaultState, ...storedState };
+            setExpandedCategoriesState(mergedState);
+        }
+    }, [categories]);
 
     useEffect(() => {
         if (onSearchTextChange) {
@@ -319,6 +380,15 @@ export function NodeList(props: NodeListProps) {
             ...prev,
             [sectionKey]: !prev[sectionKey],
         }));
+    };
+
+    const toggleCategory = (categoryTitle: string) => {
+        const newExpandedState = {
+            ...expandedCategories,
+            [categoryTitle]: !expandedCategories[categoryTitle],
+        };
+        setExpandedCategoriesState(newExpandedState);
+        setExpandedCategories(newExpandedState);
     };
 
     const handleAddNode = (node: Node, category?: string) => {
@@ -446,10 +516,40 @@ export function NodeList(props: NodeListProps) {
             .flatMap((group) => group?.items || [])
             .filter((item) => item != null)
             .find((item) => "id" in item && item.id === "FUNCTION");
+        
+        // Configuration for special categories
+        const categoryConfig = {
+            "Connections": { hasBackground: false },
+            "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
+            "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
+            "Control": { hasBackground: true },
+            "Error Handling": { hasBackground: true },
+            "Concurrency": { hasBackground: true },
+            "Logging": { hasBackground: true },
+            "Model Providers": { hasBackground: false },
+            "Embedding Providers": { hasBackground: false },
+            "Vector Knowledge Bases": { hasBackground: false },
+            "Vector Stores": { hasBackground: false },
+            "Data Loaders": { hasBackground: false },
+            "Chunkers": { hasBackground: false },
+        };
+        
+        // Reorder categories to move AI as 4th category
+        const reorderedGroups = [...groups];
+        const aiCategoryIndex = reorderedGroups.findIndex(group => group.title === "AI");
+        if (aiCategoryIndex !== -1 && aiCategoryIndex < 3) {
+            const aiCategory = reorderedGroups.splice(aiCategoryIndex, 1)[0];
+            reorderedGroups.splice(3, 0, aiCategory);
+        }
+        
         const content = (
             <>
-                {groups.map((group, index) => {
+                {reorderedGroups.map((group, index) => {
                     const categoryActions = getCategoryActions(group.title, title);
+                    const config = categoryConfig[group.title] || { hasBackground: true };
+                    const shouldShowSeparator = config.showSeparatorBefore;
+                    const isLoggingCategory = group.title === "Logging";
+                    
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
@@ -465,115 +565,136 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
 
+                    const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
+
                     return (
-                        <S.CategoryRow key={group.title + index} showBorder={!isSubCategory}>
-                            <S.Row>
-                                {isSubCategory && (
-                                    <Tooltip content={group.description}>
-                                        <S.SubTitle>{group.title}</S.SubTitle>
-                                    </Tooltip>
-                                )}
-                                {!isSubCategory && (
-                                    <>
-                                        <S.Title>{group.title}</S.Title>
+                        <React.Fragment key={group.title + index}>
+                            {shouldShowSeparator && <S.CategorySeparator />}
+                            <S.CategoryCard hasBackground={config.hasBackground && !isSubCategory}>
+                                <S.CategoryRow showBorder={false}>
+                                    {!isSubCategory ? (
+                                        <S.CategoryHeader fullWidth={config.hasBackground && !isSubCategory} onClick={() => toggleCategory(group.title)}>
+                                            <S.Row style={{ margin: 0, cursor: 'pointer' }}>
+                                                <S.Title>{group.title}</S.Title>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {categoryActions.map((action, actionIndex) => {
+                                                        const handlers = {
+                                                            onAddConnection: handleAddConnection,
+                                                            onAddFunction: handleAddFunction,
+                                                            onAdd: handleAdd
+                                                        };
+                                                        
+                                                        const handler = handlers[action.handlerKey];
+                                                        const propsHandler = props[action.handlerKey];
+                                                        
+                                                        // Only render if the handler exists in props
+                                                        if (!propsHandler || !handler) return null;
+                                                        
+                                                        const tooltipText = action.tooltip || addButtonLabel || "";
+                                                        
+                                                        return (
+                                                            <Tooltip key={`${group.title}-${actionIndex}`} content={tooltipText}>
+                                                                <Button
+                                                                    appearance="icon"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handler();
+                                                                    }}
+                                                                >
+                                                                    <Codicon name="add" />
+                                                                </Button>
+                                                            </Tooltip>
+                                                        );
+                                                    })}
+                                                    <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
+                                                        <S.ChevronIcon isExpanded={isCategoryExpanded}>
+                                                            <Codicon name="chevron-right" />
+                                                        </S.ChevronIcon>
+                                                    </Tooltip>
+                                                </div>
+                                            </S.Row>
+                                        </S.CategoryHeader>
+                                    ) : (
+                                        <S.Row>
+                                            <Tooltip content={group.description}>
+                                                <S.SubTitle>{group.title}</S.SubTitle>
+                                            </Tooltip>
+                                        </S.Row>
+                                    )}
+                                    {isCategoryExpanded && (
                                         <>
-                                            {categoryActions.map((action, actionIndex) => {
-                                                const handlers = {
-                                                    onAddConnection: handleAddConnection,
-                                                    onAddFunction: handleAddFunction,
-                                                    onAdd: handleAdd
-                                                };
-                                                
-                                                const handler = handlers[action.handlerKey];
-                                                const propsHandler = props[action.handlerKey];
-                                                
-                                                // Only render if the handler exists in props
-                                                if (!propsHandler || !handler) return null;
-                                                
-                                                const tooltipText = action.tooltip || addButtonLabel || "";
-                                                
-                                                return (
-                                                    <Button
-                                                        key={`${group.title}-${actionIndex}`}
-                                                        appearance="icon"
-                                                        tooltip={tooltipText}
-                                                        onClick={handler}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                );
-                                            })}
+                                            {(!group.items || group.items.length === 0) &&
+                                                !searchText &&
+                                                !isSearching &&
+                                                categoryActions.map((action, actionIndex) => {
+                                                    const handlers = {
+                                                        onAddConnection: handleAddConnection,
+                                                        onAddFunction: handleAddFunction,
+                                                        onAdd: handleAdd
+                                                    };
+                                                    
+                                                    const handler = handlers[action.handlerKey];
+                                                    const propsHandler = props[action.handlerKey];
+                                                    
+                                                    // Only render if the handler exists in props
+                                                    if (!propsHandler || !handler) return null;
+                                                    
+                                                    const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
+                                                    
+                                                    return (
+                                                        <S.HighlightedButton 
+                                                            key={`empty-${group.title}-${actionIndex}`}
+                                                            onClick={handler}
+                                                        >
+                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            {buttonLabel}
+                                                        </S.HighlightedButton>
+                                                    );
+                                                })}
+                                            {group.items &&
+                                            group.items.length > 0 &&
+                                            // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
+                                            shouldUseConnectionContainer(group.title) &&
+                                            group.items.filter((item) => item != null).every((item) => !("id" in item))
+                                                ? getConnectionContainer(group.items as Category[])
+                                                : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
+                                                group.items.filter((item) => item != null).every((item) => !("id" in item))
+                                                ? getCategoryContainer(
+                                                      group.items as Category[],
+                                                      true,
+                                                      !isSubCategory ? group.title : parentCategoryTitle
+                                                  )
+                                                : // 3. Otherwise (has items with id or mixed), use getNodesContainer
+                                                  getNodesContainer(
+                                                      group.items as (Node | Category)[],
+                                                      !isSubCategory ? group.title : parentCategoryTitle
+                                                  )}
+                                            {/* Add Show More Functions under Logging category */}
+                                            {isLoggingCategory && callFunctionNode && isCategoryExpanded && (
+                                                <S.AdvancedSubcategoryContainer key={"showMoreFunctions"} style={{ marginBottom: "12px" }}>
+                                                    <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
+                                                        <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
+                                                        <Button
+                                                            appearance="icon"
+                                                            sx={{
+                                                                transition: "all 0.2s ease",
+                                                                "&:hover": {
+                                                                    backgroundColor: "transparent !important",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <Codicon name="chevron-right" />
+                                                        </Button>
+                                                    </S.AdvancedSubcategoryHeader>
+                                                </S.AdvancedSubcategoryContainer>
+                                            )}
                                         </>
-                                    </>
-                                )}
-                            </S.Row>
-                            {(!group.items || group.items.length === 0) &&
-                                !searchText &&
-                                !isSearching &&
-                                categoryActions.map((action, actionIndex) => {
-                                    const handlers = {
-                                        onAddConnection: handleAddConnection,
-                                        onAddFunction: handleAddFunction,
-                                        onAdd: handleAdd
-                                    };
-                                    
-                                    const handler = handlers[action.handlerKey];
-                                    const propsHandler = props[action.handlerKey];
-                                    
-                                    // Only render if the handler exists in props
-                                    if (!propsHandler || !handler) return null;
-                                    
-                                    const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
-                                    
-                                    return (
-                                        <S.HighlightedButton 
-                                            key={`empty-${group.title}-${actionIndex}`}
-                                            onClick={handler}
-                                        >
-                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                            {buttonLabel}
-                                        </S.HighlightedButton>
-                                    );
-                                })}
-                            {group.items &&
-                            group.items.length > 0 &&
-                            // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
-                            shouldUseConnectionContainer(group.title) &&
-                            group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                ? getConnectionContainer(group.items as Category[])
-                                : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
-                                group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                ? getCategoryContainer(
-                                      group.items as Category[],
-                                      true,
-                                      !isSubCategory ? group.title : parentCategoryTitle
-                                  )
-                                : // 3. Otherwise (has items with id or mixed), use getNodesContainer
-                                  getNodesContainer(
-                                      group.items as (Node | Category)[],
-                                      !isSubCategory ? group.title : parentCategoryTitle
-                                  )}
-                        </S.CategoryRow>
+                                    )}
+                                </S.CategoryRow>
+                            </S.CategoryCard>
+                        </React.Fragment>
                     );
                 })}
-                {callFunctionNode && (
-                    <S.AdvancedSubcategoryContainer key={"showMoreFunctions"}>
-                        <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
-                            <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
-                            <Button
-                                appearance="icon"
-                                sx={{
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        backgroundColor: "transparent !important",
-                                    },
-                                }}
-                            >
-                                <Codicon name="chevron-right" />
-                            </Button>
-                        </S.AdvancedSubcategoryHeader>
-                    </S.AdvancedSubcategoryContainer>
-                )}
             </>
         );
 
@@ -628,6 +749,9 @@ export function NodeList(props: NodeListProps) {
         category.items = filterItems(category.items) || [];
         return category;
     });
+
+    // When searching, expand all categories
+    const shouldExpandAll = searchText && searchText.length > 0;
 
     return (
         <S.Container>
