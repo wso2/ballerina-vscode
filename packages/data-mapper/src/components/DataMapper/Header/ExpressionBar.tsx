@@ -75,13 +75,21 @@ export interface ExpressionBarProps {
 
 export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const classes = useStyles();
-    const { completions, isUpdatingSource, triggerCompletions, onCompletionSelect, onSave, onCancel } = useExpressionContext();
+    const {
+        completions,
+        isUpdatingSource,
+        triggerCompletions,
+        onCompletionSelect,
+        onSave,
+        onCancel,
+        goToSource
+    } = useExpressionContext();
     const textFieldRef = useRef<HeaderExpressionEditorRef>();
     const savedTextFieldValue = useRef<string>('');
     const [textFieldValue, setTextFieldValue] = useState<string>('');
     const [placeholder, setPlaceholder] = useState<string>();
 
-    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort, resetExprBarFocus } =
+    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort } =
         useDMExpressionBarStore(
             useShallow((state) => ({
                 focusedPort: state.focusedPort,
@@ -95,7 +103,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         );
 
     const portChanged = !!(focusedPort || lastFocusedPort)
-        && lastFocusedPort?.attributes.fieldFQN !== focusedPort?.attributes.fieldFQN;
+        && lastFocusedPort?.attributes.optionalOmittedFieldFQN !== focusedPort?.attributes.optionalOmittedFieldFQN;
 
     useEffect(() => {
         (async () => {
@@ -164,13 +172,18 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         setTextFieldValue(text);
 
         /* Trigger completions */
-        const outputId = focusedPort.attributes.fieldFQN;
+        const outputId = focusedPort.attributes.optionalOmittedFieldFQN;
         const views = (focusedPort.getNode() as DataMapperNodeModel).context.views;
         const viewId = views[views.length - 1]?.targetField;
         triggerCompletions(outputId, viewId, text, cursorPosition);
     };
 
-    const gotoSource = () => {};
+    const gotoSource = () => {
+        const outputId = focusedPort.attributes.optionalOmittedFieldFQN;
+        const views = (focusedPort.getNode() as DataMapperNodeModel).context.views;
+        const viewId = views[views.length - 1]?.targetField;
+        goToSource(outputId, viewId);
+    };
 
     const saveSource = async (port: InputOutputPortModel, value: string) => {
         const valueChanged = savedTextFieldValue.current !== value;
@@ -178,7 +191,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
             return;
         }
 
-        const outputId = port.attributes.fieldFQN;
+        const outputId = port.attributes.optionalOmittedFieldFQN;
         const views = (port.getNode() as DataMapperNodeModel).context.views;
         const viewId = views[views.length - 1]?.targetField;
         const name = views[0]?.targetField;
@@ -191,7 +204,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     };
 
     const handleManualCompletionRequest = () => {
-        const outputId = focusedPort.attributes.fieldFQN;
+        const outputId = focusedPort.attributes.optionalOmittedFieldFQN;
         const views = (focusedPort.getNode() as DataMapperNodeModel).context.views;
         const viewId = views[views.length - 1]?.targetField;
         const cursorPosition = textFieldRef.current.shadowRoot.querySelector('input').selectionStart;
@@ -207,7 +220,12 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
     const inputProps: InputProps = {
         endAdornment: (
-            <Button appearance="icon" tooltip="Goto source" onClick={gotoSource}>
+            <Button
+                appearance="icon"
+                tooltip="Goto source"
+                onClick={gotoSource}
+                disabled={!focusedPort}
+            >
                 <Codicon name="code" />
             </Button>
         )
@@ -240,15 +258,15 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     }, [focusedPort, focusedFilter, lastFocusedPort]);
 
     const fieldTitle = useMemo(() => {
-        if (focusedPort?.attributes.fieldFQN) {
-            return focusedPort?.attributes.fieldFQN;
+        if (focusedPort?.attributes.optionalOmittedFieldFQN) {
+            return focusedPort?.attributes.optionalOmittedFieldFQN;
         }
         return undefined;
     }, [focusedPort]);
 
     const partialFieldTitle = useMemo(() => {
         if (fieldTitle) {
-            return focusedPort?.attributes.fieldFQN.split('.').pop();
+            return focusedPort?.attributes.optionalOmittedFieldFQN.split('.').pop();
         }
         return 'No field selected';
     }, [fieldTitle]);

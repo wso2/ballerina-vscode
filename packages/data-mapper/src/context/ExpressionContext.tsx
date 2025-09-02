@@ -25,7 +25,8 @@ const defaultState: ExpressionBarProps = {
     triggerCompletions: () => {},
     onCompletionSelect: () => {},
     onSave: () => Promise.resolve(),
-    onCancel: () => {}
+    onCancel: () => {},
+    goToSource: () => Promise.resolve()
 };
 export const Context = createContext<ExpressionBarProps>(defaultState);
 
