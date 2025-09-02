@@ -72,6 +72,7 @@ import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { InlineDataMapper } from "./views/InlineDataMapper";
+import { ImportIntegration } from "./views/BI/ImportIntegration";
 
 const globalStyles = css`
     *,
@@ -397,6 +398,11 @@ const MainPanel = () => {
                         setShowHome(false);
                         setViewComponent(<ProjectForm />);
                         break;
+                    case MACHINE_VIEW.BIImportIntegration:
+                        setShowHome(false);
+                        setViewComponent(<ImportIntegration />);
+                        break;
+
                     case MACHINE_VIEW.BIComponentView:
                         setViewComponent(<ComponentListView scope={value.scope} />);
                         break;

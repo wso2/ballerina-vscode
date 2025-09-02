@@ -43,6 +43,7 @@ import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
+import { ActionExpressionEditor } from "./ActionExpressionEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -177,6 +178,17 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
     } else if (field.type === "SERVICE_PATH" || field.type === "ACTION_PATH") {
         return <PathEditor field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
+    } else if (!field.items && field.type === "ACTION_EXPRESSION") {
+        return (
+            <ActionExpressionEditor
+                field={field}
+                openSubPanel={openSubPanel}
+                subPanelView={subPanelView}
+                handleOnFieldFocus={handleOnFieldFocus}
+                autoFocus={autoFocus}
+                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
     } else {
         // Default to text editor
         // Readonly fields are also treated as text editor
