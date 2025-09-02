@@ -542,7 +542,7 @@ export function PanelManager(props: PanelManagerProps) {
                         connectionKind={selectedConnectionKind}
                         selectedNode={selectedNode}
                         onSave={onUpdateNodeWithConnection}
-                        onCreateNew={() => onNavigateToPanel?.(SidePanelView.CONNECTION_CREATE)}
+                        onNavigateToSelectionList={() => onNavigateToPanel?.(SidePanelView.CONNECTION_SELECT)}
                     />
                 );
 
