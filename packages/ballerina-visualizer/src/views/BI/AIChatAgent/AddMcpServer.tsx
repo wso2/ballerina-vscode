@@ -14,7 +14,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import FormGenerator from "../Forms/FormGenerator";
-import { findAgentNodeFromAgentCallNode, getAgentFilePath, searchNodes } from "./utils";
+import { findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
 import { CheckBox } from '@wso2/ui-toolkit';
 import { FormValues } from "@wso2/ballerina-side-panel";
 
@@ -309,13 +309,11 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
     
     const fetchExistingTools = async () => {
-        const agentToolsSearchResponse = await searchNodes(
-            rpcClient,
-            projectPath.current,
-            { q: "" },
-            "AGENT_TOOL",
-            { startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }
-        );
+        const agentToolsSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            position: { startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+            searchKind: "AGENT_TOOL"
+        });
         const existingToolsList = agentToolsSearchResponse.categories?.[0]?.items
             ? (agentToolsSearchResponse.categories[0].items as AvailableNode[]).map((item) => item.codedata.symbol)
             : [];

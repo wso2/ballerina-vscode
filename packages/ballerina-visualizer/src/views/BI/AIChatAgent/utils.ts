@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { CodeData, FlowNode, LinePosition, LineRange, NodeKind, SearchKind } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, LinePosition, NodeKind } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
@@ -405,19 +405,4 @@ const parseToolsString = (toolsStr: string): string[] => {
     }
     // Split by comma and trim each element
     return inner.split(",").map((tool) => tool.trim());
-};
-
-export const searchNodes = async (
-    rpcClient: BallerinaRpcClient,
-    filePath: string,
-    queryMap: Record<string, string>,
-    searchKind: SearchKind,
-    position?: LineRange
-) => {
-    return await rpcClient.getBIDiagramRpcClient().search({
-        filePath,
-        position,
-        queryMap,
-        searchKind
-    });
 };
