@@ -75,6 +75,7 @@ import { DocSection } from "../components/ExpressionEditor";
 // @ts-ignore
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
+import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -160,10 +161,12 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
         category.items?.forEach((item) => {
             if ((item as PanelNode).metadata?.codedata) {
                 const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
                 const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             }
         });
     });
@@ -171,19 +174,9 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
-    panelCategories.forEach((category) => {
-        category.items?.forEach((item) => {
-            if ((item as PanelNode).metadata?.codedata) {
-                const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
-                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            }
-        });
-    });
-    return panelCategories;
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
@@ -192,6 +185,37 @@ export function convertEmbeddingProviderCategoriesToSidePanelCategories(categori
 
 export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertCategoriesToSidePanelCategoriesWithIcon(
+    categories: Category[],
+    iconFactory: (codedata: any) => React.ReactElement
+): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = iconFactory(codedata);
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = iconFactory(codedata);
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertDataLoaderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertNodePropertiesToFormFields(
@@ -333,14 +357,28 @@ export function updateNodeProperties(
     return updatedNodeProperties;
 }
 
-export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string): string {
+function getConnectionDisplayName(connectionKind?: ConnectionKind): string {
+    if (!connectionKind) return 'Connection';
+    try {
+        const config = getConnectionKindConfig(connectionKind);
+        return config.displayName;
+    } catch {
+        return 'Connection';
+    }
+}
+
+export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string, connectionKind?: ConnectionKind): string {
     switch (view) {
         case SidePanelView.NODE_LIST:
             return ""; // Show switch instead of title
         case SidePanelView.NEW_AGENT:
             return "AI Agent";
-        case SidePanelView.AGENT_MODEL:
-            return "Configure LLM Model";
+        case SidePanelView.CONNECTION_CONFIG:
+            return `Configure ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_SELECT:
+            return `Select ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_CREATE:
+            return `Create ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
@@ -369,13 +407,11 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             ) {
                 return `${clientName || activeNode.properties.connection.value} → ${activeNode.metadata.label}`;
             } else if (activeNode.codedata?.node === "DATA_MAPPER_CALL") {
-                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                    activeNode.codedata.symbol
-                }`;
+                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.codedata.symbol
+                    }`;
             }
-            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                activeNode.metadata.label
-            }`;
+            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.metadata.label
+                }`;
         default:
             return "";
     }
