@@ -423,6 +423,25 @@ export function DataMapperView(props: DataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
+    const goToSource = async (outputId: string, viewId: string) => {
+        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+            filePath,
+            codedata: viewState.codedata,
+            propertyKey: "expression", // TODO: Remove this once the API is updated
+            targetField: viewId,
+            fieldId: outputId,
+        })
+        if (property.codedata) {
+            const position: NodePosition = {
+                startLine: property.codedata.lineRange?.startLine?.line,
+                startColumn: property.codedata.lineRange?.startLine?.offset,
+                endLine: property.codedata.lineRange?.endLine?.line,
+                endColumn: property.codedata.lineRange?.endLine?.offset,
+            };
+            rpcClient.getCommonRpcClient().goToSource({ position, fileName: property.codedata.lineRange?.fileName });
+        }
+    }
+
     const enrichChildFields = async (parentField: IOType) => {
         if (!parentField.ref) return;
 
@@ -570,6 +589,7 @@ export function DataMapperView(props: DataMapperProps) {
                                 onCompletionSelect: handleCompletionSelect,
                                 onSave: updateExprFromExprBar,
                                 onCancel: handleExpressionCancel,
+                                goToSource: goToSource
                             }}
                         />
                     )}
