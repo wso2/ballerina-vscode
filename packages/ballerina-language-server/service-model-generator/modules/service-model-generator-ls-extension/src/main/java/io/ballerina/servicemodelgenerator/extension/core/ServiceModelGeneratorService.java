@@ -48,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerBasicInfo;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -78,6 +79,7 @@ import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromS
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceClassModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceFromSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ServiceInitModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerListResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerResponse;
@@ -899,6 +901,18 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new TypeResponse(TypeCompletionGenerator.getTypes(project));
             } catch (Throwable e) {
                 return new TypeResponse(Collections.emptyList());
+            }
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<ServiceInitModelResponse> getServiceInitModel() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                ServiceInitModel serviceInitModel = null;
+                return new ServiceInitModelResponse(serviceInitModel);
+            } catch (Throwable e) {
+                return new ServiceInitModelResponse(e);
             }
         });
     }
