@@ -137,7 +137,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     onTextChange={handlePackageName}
                     value={formData.packageName}
                     label="Package Name"
-                    description="Ballerina package name created for your integration."
+                    description="This will be used as the Ballerina package name for the integration."
                     errorMsg={packageNameError || ""}
                 />
             </FieldGroup>
@@ -190,7 +190,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                             onTextChange={(value) => onFormDataChange({ orgName: value })}
                             value={formData.orgName}
                             label="Organization Name"
-                            description="The organization that will own the Ballerina package created for your integration."
+                            description="The organization that owns this Ballerina package."
                         />
                     </FieldGroup>
                     <FieldGroup>
@@ -199,7 +199,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                             value={formData.version}
                             label="Package Version"
                             placeholder="0.1.0"
-                            description="Version of the Ballerina package created for your integration."
+                            description="Version of the Ballerina package."
                         />
                     </FieldGroup>
                 </OptionalConfigContent>
