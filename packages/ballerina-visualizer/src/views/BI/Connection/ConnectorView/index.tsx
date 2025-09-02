@@ -38,6 +38,10 @@ const ViewWrapper = styled.div<{ isHalfView?: boolean }>`
 const Container = styled.div`
     padding: 0 20px;
     width: 100%;
+    height: 100%;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 `;
 
 const ListContainer = styled.div<{ isHalfView?: boolean }>`
@@ -303,7 +307,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                     />
                 </Row>
 
-                <SplitView defaultWidths={[20, 80]}>
+                <SplitView sx={{ height: "100%", overflow: "hidden" }} defaultWidths={[20, 80]}>
                     <div style={{ marginTop: "24px" }}>
                         <TreeViewItem
                             key={`StandardLibrary`}
@@ -464,7 +468,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                                             Generate connector using OpenAPI spec
                                                         </BodyTinyInfo>
                                                         <BodyTinyInfo style={{ fontSize: '12px', color: 'var(--vscode-descriptionForeground)' }}>
-                                                            If you cannot find what you need in standard libraries, generate a custom connector by importing an OpenAPI specification.
+                                                            Can’t find what you need in the standard connectors? Create a custom connector using an OpenAPI specification.
                                                         </BodyTinyInfo>
                                                         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: '40px' }}>
 
