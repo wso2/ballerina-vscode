@@ -124,6 +124,8 @@ export interface BIDiagramAPI {
     getAvailableVectorStores: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getAvailableEmbeddingProviders: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getAvailableVectorKnowledgeBases: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
+    getAvailableDataLoaders: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
+    getAvailableChunkers: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getEnclosedFunction: (params: BIGetEnclosedFunctionRequest) => Promise<BIGetEnclosedFunctionResponse>;
     getNodeTemplate: (params: BINodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;

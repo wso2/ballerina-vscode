@@ -47,7 +47,7 @@ import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { goToSource } from "../../utils";
-import { askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
+import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
 import { parse } from 'toml';
 import * as fs from 'fs';
 import path from "path";
@@ -185,6 +185,19 @@ export class CommonRpcManager implements CommonRPCAPI {
                     const dirPath = selectedDir[0].fsPath;
                     resolve({ path: dirPath });
                 }
+            }
+        });
+    }
+
+    async selectFileOrFolderPath(): Promise<FileOrDirResponse> {
+        return new Promise(async (resolve) => {
+            const selectedFileOrFolder = await askFileOrFolderPath();
+            if (!selectedFileOrFolder || selectedFileOrFolder.length === 0) {
+                window.showErrorMessage('A file or folder must be selected');
+                resolve({ path: "" });
+            } else {
+                const fileOrFolderPath = selectedFileOrFolder[0].fsPath;
+                resolve({ path: fileOrFolderPath });
             }
         });
     }

@@ -85,7 +85,7 @@ const PreviewIcon = styled(Codicon)`
     align-items: center;
 `;
 
-const sanitizeProjectName = (name: string): string => {
+export const sanitizeProjectName = (name: string): string => {
     return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 };
 
@@ -141,13 +141,13 @@ export function ProjectForm() {
                     onTextChange={handleProjectName}
                     value={name}
                     label="Integration Name"
-                    placeholder="Enter a integration name"
+                    placeholder="Enter an integration name"
                     autoFocus={true}
                 />
                 {name && (
                     <PreviewContainer>
                         <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                            <Tooltip content="A unique identifier for your intergration">
+                            <Tooltip content="A unique identifier for your integration">
                                 <PreviewText variant="caption">
                                     {sanitizeProjectName(name)}
                                 </PreviewText>
