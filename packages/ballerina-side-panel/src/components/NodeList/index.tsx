@@ -525,6 +525,12 @@ export function NodeList(props: NodeListProps) {
             "Error Handling": { hasBackground: true },
             "Concurrency": { hasBackground: true },
             "Logging": { hasBackground: true },
+            "Model Providers": { hasBackground: false },
+            "Embedding Providers": { hasBackground: false },
+            "Vector Knowledge Bases": { hasBackground: false },
+            "Vector Stores": { hasBackground: false },
+            "Data Loaders": { hasBackground: false },
+            "Chunkers": { hasBackground: false },
         };
         
         // Reorder categories to move AI as 4th category

@@ -44,7 +44,18 @@ export const getDefaultExpandedState = (categories: string[]): ExpandedCategorie
     const defaultExpanded: ExpandedCategoriesState = {};
 
     // Set default expanded categories
-    const defaultExpandedCategories = ["Statement", "Control", "Connections", "Standard Library"];
+    const defaultExpandedCategories = [
+        "Statement",
+        "Control",
+        "Connections",
+        "Standard Library",
+        "Model Providers",
+        "Vector Stores",
+        "Embedding Providers",
+        "Vector Knowledge Bases",
+        "Data Loaders",
+        "Chunkers",
+    ];
 
     categories.forEach((category) => {
         defaultExpanded[category] = defaultExpandedCategories.includes(category);
