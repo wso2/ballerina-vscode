@@ -24,9 +24,8 @@ import { EntityHead, EntityName } from '../styles';
 import { CtrlClickGo2Source } from '../../../common/CtrlClickHandler/CtrlClickGo2Source';
 import { DiagramContext } from '../../../common';
 import styled from '@emotion/styled';
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
+import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
 import { MoreVertIcon } from '../../../../resources';
-import { GraphQLIcon } from '../../../../resources/assets/icons/GraphqlIcon';
 
 interface ServiceHeadProps {
     engine: DiagramEngine;
@@ -79,6 +78,15 @@ const ImportedLabel = styled.span`
     padding: 0 6px;
     margin-left: 8px;
     white-space: nowrap;
+`;
+
+const GraphqlIconContainer = styled.div`
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 20px;
 `;
 
 export function EntityHeadWidget(props: ServiceHeadProps) {
@@ -152,9 +160,9 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 <HeaderWrapper>
                     <EntityNameContainer>
                         {node.isGraphqlRoot && (
-                            <div style={{ marginRight: "5px", marginTop: "2px" }}>
-                                <GraphQLIcon />
-                            </div>
+                            <GraphqlIconContainer>
+                                <Icon name="bi-graphql" iconSx={{ color: "#e535ab", fontSize: "20px" }} />
+                            </GraphqlIconContainer>
                         )}
                         <EntityName
                             isClickable={isClickable && !isImported}

@@ -54,7 +54,7 @@ export async function modifyFileContent(params: UpdateFileContentRequest): Promi
         }
         return doc.save();
     } else {
-        writeBallerinaFileDidOpen(normalizedFilePath, content);
+        await writeBallerinaFileDidOpen(normalizedFilePath, content);
         StateMachine.langClient().updateStatusBar();
         if (updateViewFlag) {
             updateView();
