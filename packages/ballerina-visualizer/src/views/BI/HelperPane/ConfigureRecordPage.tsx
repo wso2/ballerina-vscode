@@ -26,7 +26,7 @@ import { debounce } from "lodash";
 
 type ConfigureRecordPageProps = {
     fileName: string;
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     onChange: (value: string, isRecordConfigureChange: boolean) => void;
     currentValue: string;
     recordTypeField: RecordTypeField;
