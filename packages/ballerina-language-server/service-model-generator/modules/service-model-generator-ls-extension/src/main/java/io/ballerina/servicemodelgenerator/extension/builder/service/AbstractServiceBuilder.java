@@ -31,6 +31,7 @@ import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.servicemodelgenerator.extension.builder.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter;
+import io.ballerina.servicemodelgenerator.extension.builder.ServiceNodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -103,7 +104,15 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServ
  *
  * @since 1.2.0
  */
-public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
+public abstract class AbstractServiceBuilder implements NodeBuilder<Service>, ServiceNodeBuilder {
+
+    @Override
+    public void getServiceInitModel() {
+    }
+
+    @Override
+    public void addServiceInitSource() {
+    }
 
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
