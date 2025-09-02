@@ -41,6 +41,10 @@ import {
     OperationType,
     GENERATE_TEST_AGAINST_THE_REQUIREMENT,
     GENERATE_CODE_AGAINST_THE_REQUIREMENT,
+    ComponentInfo,
+    ImportInfo,
+    MetadataWithAttachments,
+    ExtendedDataMapperMetadata,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -50,7 +54,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
-import { findRegexMatches, formatWithProperIndentation } from "../../../../utils/utils";
+import { formatWithProperIndentation } from "../../../../utils/utils";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -431,7 +435,7 @@ const AIChat: React.FC = () => {
         }
     }, [messages]);
 
-    async function handleSendQuery(content: { input: Input[]; attachments: Attachment[] }) {
+    async function handleSendQuery(content: { input: Input[]; attachments: Attachment[], metadata?: Record<string, any> }) {
         // Clear previous generation refs
         currentDiagnosticsRef.current = [];
         functionsRef.current = [];
@@ -624,6 +628,7 @@ const AIChat: React.FC = () => {
                                     outputRecord: parsedInput.placeholderValues.outputRecord,
                                     functionName: parsedInput.placeholderValues.functionName,
                                 },
+                                metadata as ExtendedDataMapperMetadata,
                                 attachments
                             );
                             break;
@@ -635,11 +640,16 @@ const AIChat: React.FC = () => {
                                     outputRecord: "",
                                     functionName: parsedInput.placeholderValues.functionName,
                                 },
+                                metadata as ExtendedDataMapperMetadata,
                                 attachments
                             );
                             break;
                         case "inline-mappings":
-                            await processInlineMappingParameters(inputText, metadata, attachments);
+                            await processInlineMappingParameters(
+                                inputText, 
+                                metadata as ExtendedDataMapperMetadata, 
+                                attachments
+                            );
                             break;
                     }
                     break;
@@ -906,7 +916,12 @@ const AIChat: React.FC = () => {
 
                 segmentText = updatedContent.trim();
             } else if (command === "ai_map_inline") {
-                rpcClient.getAiPanelRpcClient().addInlineCodeSegmentToWorkspace({ segmentText, filePath });
+                rpcClient.getAiPanelRpcClient().addInlineCodeSegmentToWorkspace(
+                    { 
+                        segmentText, 
+                        filePath
+                    }
+                );
                 continue;
             } else if (command === "test") {
                 segmentText = `${originalContent}\n\n${segmentText}`;
@@ -1050,8 +1065,8 @@ const AIChat: React.FC = () => {
     function processRecordReference(
         recordName: string,
         recordMap: Map<string, any>,
-        allImports: Array<{ moduleName: string; alias?: string }>,
-        importsMap: Map<string, { moduleName: string; alias?: string; recordName: string }>
+        allImports: Array<ImportInfo>,
+        importsMap: Map<string, ImportInfo>
     ): DataMappingRecord | Error {
         const isArray = recordName.endsWith("[]");
         const cleanedRecordName = recordName.replace(/\[\]$/, "");
@@ -1170,7 +1185,7 @@ const AIChat: React.FC = () => {
     function processOutput(
         outputParam: string,
         recordMap: Map<any, any>,
-        allImports: { moduleName: string; alias?: string }[],
+        allImports: ImportInfo[],
         importsMap: Map<any, any>
     ) {
         const parts = outputParam.split("|");
@@ -1191,6 +1206,7 @@ const AIChat: React.FC = () => {
     async function processMappingParameters(
         message: string,
         parameters: MappingParameters,
+        metadata?: ExtendedDataMapperMetadata,
         attachments?: Attachment[]
     ) {
         let assistant_response = "";
@@ -1203,6 +1219,7 @@ const AIChat: React.FC = () => {
         let outputParam;
         let inputNames: string[] = [];
         let result;
+        let finalContent: string = "";
         setIsLoading(true);
 
         const functionName = parameters.functionName;
@@ -1220,7 +1237,7 @@ const AIChat: React.FC = () => {
             }
         });
 
-        const existingFunctions: { name: string; filePath: string; startLine: number; endLine: number }[] = [];
+        const existingFunctions: ComponentInfo[] = [];
 
         for (const pkg of projectComponents.components.packages || []) {
             for (const mod of pkg.modules || []) {
@@ -1243,7 +1260,9 @@ const AIChat: React.FC = () => {
                         name: func.name,
                         filePath: filepath + func.filePath,
                         startLine: func.startLine,
+                        startColumn: func.startColumn,
                         endLine: func.endLine,
+                        endColumn: func.endColumn
                     });
                 });
             }
@@ -1280,32 +1299,54 @@ const AIChat: React.FC = () => {
         output = processOutput(outputParam, recordMap, allImports, importsMap);
 
         const requestPayload: any = {
-            backendUri: "",
-            token: "",
             inputRecordTypes: inputs,
             outputRecordType: output,
             functionName,
             imports: Array.from(importsMap.values()),
             inputNames: inputNames,
+            model: metadata
         };
         if (attachments && attachments.length > 0) {
             requestPayload.attachment = attachments;
         }
-        const response = await rpcClient.getAiPanelRpcClient().getMappingsFromRecord(requestPayload);
+
+        let allMappingsRequest;
+        const tempFileMetadata = await rpcClient.getAiPanelRpcClient().createTempFileAndGenerateMetadata(
+            {
+                inputs,
+                output,
+                functionName, 
+                inputNames, 
+                imports: Array.from(importsMap.values())
+            }
+        );
+        allMappingsRequest = await rpcClient.getAiPanelRpcClient().generateMappings(
+            { 
+                metadata: tempFileMetadata, 
+                attachments, 
+                useTemporaryFile: true 
+            }
+        );
+
+        const response = await rpcClient.getDataMapperRpcClient().getAllDataMapperSource(allMappingsRequest);
+        finalContent = response.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
+
+        await rpcClient.getAiPanelRpcClient().addCodeSegmentToWorkspace(
+            { 
+                segmentText: finalContent, 
+                filePath: tempFileMetadata.codeData.lineRange.fileName, 
+                metadata: tempFileMetadata, 
+                textEdit: response
+            }
+        );
+        await new Promise(resolve => setTimeout(resolve, 100));
+        finalContent = await rpcClient.getAiPanelRpcClient().getContentFromFile(
+            { 
+                filePath: tempFileMetadata.codeData.lineRange.fileName 
+            }
+        );
+
         setIsLoading(false);
-
-        assistant_response = `Mappings consist of the following:\n`;
-        if (inputParams.length === 1) {
-            assistant_response += `- **Input Record**: ${inputParams[0]}\n`;
-        } else {
-            assistant_response += `- **Input Records**: ${inputParams.join(", ")}\n`;
-        }
-        assistant_response += `- **Output Record**: ${outputParam}\n`;
-        assistant_response += `- **Function Name**: ${functionName}\n`;
-
-        if (result.functionNameMatch) {
-            assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-        }
 
         let filePath;
         if (result.functionNameMatch) {
@@ -1315,7 +1356,6 @@ const AIChat: React.FC = () => {
         } else {
             filePath = "data_mappings.bal";
         }
-        let finalContent = response.mappingCode;
         const needsImports = Array.from(importsMap.values()).length > 0;
 
         if (needsImports) {
@@ -1332,7 +1372,20 @@ const AIChat: React.FC = () => {
                 })
                 .join("\n");
 
-            finalContent = `${newImports}\n${response.mappingCode}`;
+            finalContent = `${newImports}\n${finalContent}`;
+        }
+
+        assistant_response = `Mappings consist of the following:\n`;
+        if (inputParams.length === 1) {
+            assistant_response += `- **Input Record**: ${inputParams[0]}\n`;
+        } else {
+            assistant_response += `- **Input Records**: ${inputParams.join(", ")}\n`;
+        }
+        assistant_response += `- **Output Record**: ${outputParam}\n`;
+        assistant_response += `- **Function Name**: ${functionName}\n`;
+
+        if (result.functionNameMatch) {
+            assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
         }
         assistant_response += `<code filename="${filePath}" type="ai_map">\n\`\`\`ballerina\n${finalContent}\n\`\`\`\n</code>`;
 
@@ -1347,7 +1400,7 @@ const AIChat: React.FC = () => {
 
     async function processInlineMappingParameters(
         message: string,
-        metadata?: Record<string, any>,
+        metadata?: ExtendedDataMapperMetadata,
         attachments?: Attachment[]
     ) {
         let assistant_response = "";
@@ -1364,13 +1417,14 @@ const AIChat: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const requestPayload: any = {
+            const requestPayload: MetadataWithAttachments = {
                 metadata,
+                useTemporaryFile: false
             };
             if (attachments && attachments.length > 0) {
-                requestPayload.attachment = attachments;
+                requestPayload.attachments = attachments;
             }
-            const allMappingsRequest = await rpcClient.getAiPanelRpcClient().getMappingsFromModel(requestPayload);
+            const allMappingsRequest = await rpcClient.getAiPanelRpcClient().generateMappings(requestPayload);
             const sourceResponse = await rpcClient
                 .getDataMapperRpcClient()
                 .getAllDataMapperSource(allMappingsRequest);

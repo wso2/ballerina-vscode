@@ -283,8 +283,9 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const autoMapWithAI = async () => {
+        const datamapperModel = await rpcClient.getAiPanelRpcClient().generateDataMapperModel({});
         rpcClient.getAiPanelRpcClient()
-            .openInlineMappingChatWindow();
+            .openAIMappingChatWindow(datamapperModel);
     };
 
     return (
