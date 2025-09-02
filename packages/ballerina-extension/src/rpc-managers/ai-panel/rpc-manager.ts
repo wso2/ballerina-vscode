@@ -311,7 +311,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             });
 
             const { source } = res as SyntaxTree;
-            modifyFileContent({ filePath, content: source });
+            await modifyFileContent({ filePath, content: source });
             updateView();
         }
 
@@ -1065,7 +1065,7 @@ async function setupProjectEnvironment(project: ProjectSource): Promise<{ langCl
         // Update lastUpdatedBalFile if it's a .bal file
         if (sourceFile.filePath.endsWith('.bal')) {
             const tempFilePath = path.join(tempDir, sourceFile.filePath);
-            writeBallerinaFileDidOpen(tempFilePath, sourceFile.content);
+            await writeBallerinaFileDidOpen(tempFilePath, sourceFile.content);
         }
     }
 

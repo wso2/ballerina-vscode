@@ -17,13 +17,22 @@
  */
 
 import { NodeModel } from "@projectstorm/react-diagrams";
+import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { NodePortModel } from "../../NodePort";
 import { NODE_LOCKED, NodeTypes } from "../../../resources/constants";
 import { EntryPoint, EntryPointType } from "../../../utils/types";
 import { CDFunction, CDResourceFunction, CDService } from "@wso2/ballerina-core";
 import { getEntryNodeFunctionPortName } from "../../../utils/diagram";
 
+export interface BaseNodeWidgetProps {
+    model: EntryNodeModel;
+    engine: DiagramEngine;
+}
+
 export const VIEW_ALL_RESOURCES_PORT_NAME = "view-all-resources";
+export const GQL_GROUP_QUERY_PORT_NAME = "graphql-group-Query";
+export const GQL_GROUP_MUTATION_PORT_NAME = "graphql-group-Mutation";
+export const GQL_GROUP_SUBSCRIPTION_PORT_NAME = "graphql-group-Subscription";
 
 export class EntryNodeModel extends NodeModel {
     readonly node: EntryPoint;
@@ -43,20 +52,38 @@ export class EntryNodeModel extends NodeModel {
         this.outPorts = [];
         this.addInPort("in");
         this.addOutPort("out");
-        
+
         const serviceFunctions = [
             ...(node as CDService).remoteFunctions ?? [],
             ...(node as CDService).resourceFunctions ?? []
         ];
-        
+
         // Add function ports
         serviceFunctions.forEach((func) => {
             this.addOutPort(getEntryNodeFunctionPortName(func));
         });
-        
+
         // Add view all resources port if there are more than 3 functions
         if (serviceFunctions.length > 3) {
             this.addOutPort(VIEW_ALL_RESOURCES_PORT_NAME);
+        }
+
+        // For GraphQL services, add per-group header ports so links can attach when a group is collapsed
+        const svc = node as CDService;
+        if (svc?.type === "graphql:Service") {
+            let hasQuery = false;
+            let hasSubscription = false;
+            let hasMutation = false;
+            serviceFunctions.forEach((fn) => {
+                const accessor = (fn as CDResourceFunction).accessor;
+                const name = (fn as CDFunction).name;
+                if (accessor === "get") hasQuery = true;
+                else if (accessor === "subscribe") hasSubscription = true;
+                else if (!accessor && name) hasMutation = true;
+            });
+            if (hasQuery) this.addOutPort(GQL_GROUP_QUERY_PORT_NAME);
+            if (hasMutation) this.addOutPort(GQL_GROUP_MUTATION_PORT_NAME);
+            if (hasSubscription) this.addOutPort(GQL_GROUP_SUBSCRIPTION_PORT_NAME);
         }
     }
 
@@ -98,6 +125,15 @@ export class EntryNodeModel extends NodeModel {
 
     getViewAllResourcesPort(): NodePortModel | undefined {
         return this.outPorts.find((port) => port.getOptions().name === VIEW_ALL_RESOURCES_PORT_NAME);
+    }
+
+    getGraphQLGroupPort(group: "Query" | "Mutation" | "Subscription"): NodePortModel | undefined {
+        const name = group === "Query"
+            ? GQL_GROUP_QUERY_PORT_NAME
+            : group === "Mutation"
+                ? GQL_GROUP_MUTATION_PORT_NAME
+                : GQL_GROUP_SUBSCRIPTION_PORT_NAME;
+        return this.outPorts.find((port) => port.getOptions().name === name);
     }
 
     getHeight(): number {
