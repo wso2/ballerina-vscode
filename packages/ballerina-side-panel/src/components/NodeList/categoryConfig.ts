@@ -84,7 +84,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         title: "Model Providers",
         actions: [{
             type: 'add',
-            tooltip: "", // Will use addButtonLabel from props
+            tooltip: "Add Model Provider", // Will use addButtonLabel from props
             emptyStateLabel: "", // Will use addButtonLabel from props
             handlerKey: 'onAdd'
         }],
