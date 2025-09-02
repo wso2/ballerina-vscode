@@ -839,12 +839,13 @@ export type SearchQueryParams = {
     offset?: number;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
+    filterByCurrentOrg?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE";
+export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE" | "CLASS_INIT";
 
 export type BISearchRequest = {
-    position: LineRange;
+    position?: LineRange;
     filePath: string;
     queryMap: SearchQueryParams;
     searchKind: SearchKind;
@@ -1131,6 +1132,22 @@ export interface RenameIdentifierRequest {
     fileName: string;
     position: Position;
     newName: string;
+}
+
+export interface ImportIntegrationRequest {
+    packageName: string;
+    orgName: string;
+    sourcePath: string;
+    parameters?: Record<string, any>;
+}
+
+export interface ImportIntegrationResponse {
+    error: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
+    jsonReport: string;
 }
 
 // <-------- Trigger Related ------->
