@@ -167,7 +167,7 @@ export function DataMapperView(props: DataMapperProps) {
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.variableName,
+            identifier: modelState.model.output.name,
             documentUri: filePath,
         };
 
@@ -505,7 +505,7 @@ export function DataMapperView(props: DataMapperProps) {
                         <FunctionForm
                             projectPath={projectUri}
                             filePath={filePath}
-                            functionName={modelState.model.output.variableName}
+                            functionName={modelState.model.output.name}
                             isDataMapper={true}
                         />
                     ) : (

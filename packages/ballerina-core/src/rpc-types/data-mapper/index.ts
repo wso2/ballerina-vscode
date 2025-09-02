@@ -35,7 +35,11 @@ import {
     AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
-    MapWithCustomFnRequest
+    MapWithCustomFnRequest,
+    DMModelRequest,
+    ProcessTypeReferenceResponse,
+    ProcessTypeReferenceRequest,
+    ExpandedDMModelResponse
 } from "../../interfaces/extended-lang-client";
 
 export interface DataMapperAPI {
@@ -53,4 +57,6 @@ export interface DataMapperAPI {
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getAllDataMapperSource: (params:AllDataMapperSourceRequest) => Promise<DataMapperSourceResponse>;
     getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;
+    getExpandedDMFromDMModel: (params: DMModelRequest) => Promise<ExpandedDMModelResponse>;
+    getProcessTypeReference: (params: ProcessTypeReferenceRequest) => Promise<ProcessTypeReferenceResponse>;
 }

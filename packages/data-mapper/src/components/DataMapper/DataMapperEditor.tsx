@@ -140,7 +140,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     } = modelState;
 
     const initialView = [{
-        label: model.output.variableName,
+        label: model.output.name,
         targetField: name
     }];
 
@@ -264,8 +264,9 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const autoMapWithAI = async () => {
+        const datamapperModel = await rpcClient.getAiPanelRpcClient().generateDataMapperModel({});
         rpcClient.getAiPanelRpcClient()
-            .openInlineMappingChatWindow();
+            .openAIMappingChatWindow(datamapperModel);
     };
 
     return (
