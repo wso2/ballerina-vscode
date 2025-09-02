@@ -32,7 +32,8 @@ import {
     RecordTypeField,
     FormDiagnostics,
     Imports,
-    CodeData
+    CodeData,
+    LinePosition
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -72,7 +73,7 @@ interface TypeEditorState {
 interface FormProps {
     fileName: string;
     fields: FormField[];
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     projectPath?: string;
     submitText?: string;
     cancelText?: string;
@@ -132,6 +133,10 @@ export function FormGeneratorNew(props: FormProps) {
     } = props;
 
     const { rpcClient } = useRpcContext();
+
+    const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
+        return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
+    };
 
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
 
@@ -244,7 +249,7 @@ export function FormGeneratorNew(props: FormProps) {
                         filePath: fileName,
                         context: {
                             expression: value,
-                            startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                            startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                             lineOffset: lineOffset,
                             offset: charOffset,
                             codedata: undefined,
@@ -314,7 +319,7 @@ export function FormGeneratorNew(props: FormProps) {
                 if (!types.length) {
                     const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
-                        position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                        position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                         ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
                     });
 
@@ -397,7 +402,7 @@ export function FormGeneratorNew(props: FormProps) {
                             filePath: fileName,
                             context: {
                                 expression: expression,
-                                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                                 lineOffset: 0,
                                 offset: 0,
                                 codedata: field.codedata,
@@ -443,7 +448,7 @@ export function FormGeneratorNew(props: FormProps) {
         return getHelperPane({
             fieldKey: fieldKey,
             fileName: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
@@ -485,7 +490,7 @@ export function FormGeneratorNew(props: FormProps) {
             valueTypeConstraint: valueTypeConstraint,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             currentType: currentType,
             currentCursorPosition: currentCursorPosition,
             helperPaneHeight: typeHelperHeight,
@@ -604,7 +609,7 @@ export function FormGeneratorNew(props: FormProps) {
             filePath: fileName,
             context: {
                 expression: value,
-                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: undefined,

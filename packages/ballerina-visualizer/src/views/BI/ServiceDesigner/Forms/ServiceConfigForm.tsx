@@ -162,7 +162,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                         }
                     }
                 })
-            } else if (data[val.key]) {
+            } else if (data[val.key] !== undefined) {
                 val.value = data[val.key];
             }
             val.imports = getImportsForProperty(val.key, formImports);
