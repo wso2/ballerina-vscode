@@ -77,7 +77,7 @@ function createTempBallerinaFile(
   );
   fs.cpSync(projectRoot, tempDir, { recursive: true });
   const tempTestFilePath = path.join(tempDir, "temp.bal");
-  writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
+  await writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
 
   return tempTestFilePath;
 }

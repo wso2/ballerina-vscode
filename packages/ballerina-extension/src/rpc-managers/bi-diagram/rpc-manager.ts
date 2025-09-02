@@ -394,6 +394,43 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+
+    async getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available data loaders from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableDataLoaders(params)
+                .then((model) => {
+                    console.log(">>> bi available data loaders from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available data loaders from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableChunkers(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available chunkers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableChunkers(params)
+                .then((model) => {
+                    console.log(">>> bi available chunkers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available chunkers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
@@ -422,7 +459,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(params.projectName, params.projectPath);
+        createBIProjectPure(params);
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {
