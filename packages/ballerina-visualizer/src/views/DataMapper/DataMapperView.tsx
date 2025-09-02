@@ -48,7 +48,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapper } from "@wso2/ballerina-data-mapper";
 
 import { useDataMapperModel } from "../../Hooks";
-import { expandDMModel, processTypeReference } from "./modelProcessor";
 import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
 import { DataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
@@ -134,22 +133,33 @@ export function DataMapperView(props: DataMapperProps) {
 
         // If types changed, we need to reprocess everything
         if (hasRefsChanged || hasInputsChanged || hasOutputChanged || hasSubMappingsChanged) {
-            const expandedModel = expandDMModel(
-                model as DMModel,
-                {
-                    processInputs: hasInputsChanged || hasRefsChanged,
-                    processOutput: hasOutputChanged || hasRefsChanged,
-                    processSubMappings: hasSubMappingsChanged || hasRefsChanged,
-                    previousModel: modelState.model as ExpandedDMModel
-                },
-                name
-            );
-            console.log(">>> [Inline Data Mapper] processed expandedModel:", expandedModel);
-            setModelState({
-                model: expandedModel,
-                hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
-                hasSubMappingsChanged: hasSubMappingsChanged || hasRefsChanged
-            });
+            const processExpandedModel = async () => {
+                try {
+                    const expandedModelResponse = await rpcClient.getDataMapperRpcClient().getExpandedDMFromDMModel(
+                        {
+                            model: model as DMModel,
+                            options: {
+                                processInputs: hasInputsChanged || hasRefsChanged,
+                                processOutput: hasOutputChanged || hasRefsChanged,
+                                processSubMappings: hasSubMappingsChanged || hasRefsChanged,
+                                previousModel: modelState.model as ExpandedDMModel
+                            },
+                            rootViewId: name
+                        }
+                    );
+                    console.log(">>> [Data Mapper] processed expandedModel:", expandedModelResponse);
+                    setModelState({
+                        model: expandedModelResponse.expandedModel,
+                        hasInputsOutputsChanged: hasInputsChanged || hasOutputChanged || hasRefsChanged,
+                        hasSubMappingsChanged: hasSubMappingsChanged || hasRefsChanged
+                    });
+                } catch (error) {
+                    console.error("Error processing expanded model:", error);
+                    throw error;
+                }
+            };
+
+            processExpandedModel();
         } else {
             setModelState(prev => ({
                 model: {
@@ -413,16 +423,22 @@ export function DataMapperView(props: DataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
-    const enrichChildFields = (parentField: IOType) => {
-        if (parentField.ref) {
-            parentField.fields = processTypeReference(
-                parentField.ref,
-                parentField.id,
-                model as DMModel,
-                new Set()
-            ).fields;
-            parentField.isDeepNested = false;
+    const enrichChildFields = async (parentField: IOType) => {
+        if (!parentField.ref) return;
+
+        const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
+            ref: parentField.ref,
+            fieldId: parentField.id,
+            model: model as DMModel,
+            visitedRefs: new Set()
+        });
+
+        if (!response.success || !response.result) {
+            throw new Error(`Failed to get process type reference: ${response.error}`);
         }
+
+        parentField.fields = response.result.fields;
+        parentField.isDeepNested = false;
     }
 
     useEffect(() => {

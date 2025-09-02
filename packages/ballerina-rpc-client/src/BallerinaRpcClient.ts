@@ -58,11 +58,11 @@ import { CommonRpcClient, GraphqlDesignerRpcClient, PersistDiagramRpcClient, Rec
 import { BiDiagramRpcClient } from "./rpc-clients/bi-diagram/rpc-client";
 import { ConnectorWizardRpcClient } from "./rpc-clients/connector-wizard/rpc-client";
 import { SequenceDiagramRpcClient } from "./rpc-clients/sequence-diagram/rpc-client";
-import { DataMapperRpcClient } from "./rpc-clients/inline-data-mapper/rpc-client";
 import { TestManagerServiceRpcClient } from "./rpc-clients";
 import { AiAgentRpcClient } from "./rpc-clients/ai-agent/rpc-client";
 import { ICPServiceRpcClient } from "./rpc-clients/icp-service/rpc-client";
 import { AgentChatRpcClient } from "./rpc-clients/agent-chat/rpc-client";
+import { DataMapperRpcClient } from "./rpc-clients/data-mapper/rpc-client";
 
 export class BallerinaRpcClient {
 
