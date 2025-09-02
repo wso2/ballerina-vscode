@@ -36,6 +36,7 @@ import { GroupListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
+import { getCategoryConfig, shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, CategoryAction } from "./categoryConfig";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -275,19 +276,19 @@ namespace S {
         }
     `;
 
-    export const CategorySeparator = styled.div`
-        width: 100%;
-        height: 1px;
-        background-color: ${ThemeColors.OUTLINE_VARIANT};
-        margin: 16px 0;
-    `;
-
     export const ChevronIcon = styled.div<{ isExpanded: boolean }>`
         transition: transform 0.2s ease;
         transform: ${({ isExpanded }) => isExpanded ? 'rotate(-90deg)' : 'rotate(90deg)'};
         display: flex;
         align-items: center;
         justify-content: center;
+    `;
+
+    export const CategorySeparator = styled.div`
+        width: 100%;
+        height: 1px;
+        background-color: ${ThemeColors.OUTLINE_VARIANT};
+        margin: 16px 0;
     `;
 }
 
@@ -544,30 +545,15 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    const isConnectionCategory = group.title === "Connections";
-                    const isProjectFunctionsCategory = group.title === "Current Integration";
-                    const isDataMapperCategory = isProjectFunctionsCategory && title === "Data Mappers";
-                    const isAgentCategory = group.title === "Agents";
-                    const isNpFunctionCategory = isProjectFunctionsCategory && title === "Natural Functions";
-                    const isModelProviderCategory = group.title === "Model Providers";
-                    const isVectorStoreCategory = group.title === "Vector Stores";
-                    const isEmbeddingProviderCategory = group.title === "Embedding Providers";
-                    const isVectorKnowledgeBaseCategory = group.title === "Vector Knowledge Bases";
+                    const categoryActions = getCategoryActions(group.title, title);
+                    const config = categoryConfig[group.title] || { hasBackground: true };
+                    const shouldShowSeparator = config.showSeparatorBefore;
+                    const isLoggingCategory = group.title === "Logging";
                     
-                    const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (
-                            !isConnectionCategory &&
-                            !isProjectFunctionsCategory &&
-                            !isAgentCategory &&
-                            !isNpFunctionCategory &&
-                            !isModelProviderCategory &&
-                            !isVectorStoreCategory &&
-                            !isEmbeddingProviderCategory &&
-                            !isVectorKnowledgeBaseCategory
-                        ) {
+                        if (!shouldShowEmptyCategory(group.title)) {
                             return null;
                         }
                     }
@@ -575,14 +561,12 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
                     // skip current integration category if onAddFunction is not provided and items are empty
-                    if (!onAddFunction && isProjectFunctionsCategory && (!group.items || group.items.length === 0)) {
+                    if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
                         return null;
                     }
 
-                    const config = categoryConfig[group.title] || { hasBackground: true };
-                    const shouldShowSeparator = config.showSeparatorBefore;
-                    const isLoggingCategory = group.title === "Logging";
-                    
+                    const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
+
                     return (
                         <React.Fragment key={group.title + index}>
                             {shouldShowSeparator && <S.CategorySeparator />}
@@ -590,168 +574,122 @@ export function NodeList(props: NodeListProps) {
                                 <S.CategoryRow showBorder={false}>
                                     {!isSubCategory ? (
                                         <S.CategoryHeader fullWidth={config.hasBackground && !isSubCategory} onClick={() => toggleCategory(group.title)}>
-                                    <S.Row style={{ margin: 0, cursor: 'pointer' }}>
-                                        <S.Title>{group.title}</S.Title>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {onAddConnection && isConnectionCategory && (
-                                                <Tooltip content="Add Connection">
-                                                    <Button
-                                                        appearance="icon"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAddConnection();
-                                                        }}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                </Tooltip>
-                                            )}
-                                            {onAddFunction && isDataMapperCategory && (
-                                                <Button
-                                                    appearance="icon"
-                                                    tooltip="Create Data Mapper"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAddFunction();
-                                                    }}
-                                                >
-                                                    <Codicon name="add" />
-                                                </Button>
-                                            )}
-                                            {onAddFunction &&
-                                                isProjectFunctionsCategory &&
-                                                !isDataMapperCategory &&
-                                                !isNpFunctionCategory && (
-                                                    <Tooltip content="Create Function">
+                                            <S.Row style={{ margin: 0, cursor: 'pointer' }}>
+                                                <S.Title>{group.title}</S.Title>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {categoryActions.map((action, actionIndex) => {
+                                                        const handlers = {
+                                                            onAddConnection: handleAddConnection,
+                                                            onAddFunction: handleAddFunction,
+                                                            onAdd: handleAdd
+                                                        };
+                                                        
+                                                        const handler = handlers[action.handlerKey];
+                                                        const propsHandler = props[action.handlerKey];
+                                                        
+                                                        // Only render if the handler exists in props
+                                                        if (!propsHandler || !handler) return null;
+                                                        
+                                                        const tooltipText = action.tooltip || addButtonLabel || "";
+                                                        
+                                                        return (
+                                                            <Tooltip key={`${group.title}-${actionIndex}`} content={tooltipText}>
+                                                                <Button
+                                                                    appearance="icon"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handler();
+                                                                    }}
+                                                                >
+                                                                    <Codicon name="add" />
+                                                                </Button>
+                                                            </Tooltip>
+                                                        );
+                                                    })}
+                                                    <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
+                                                        <S.ChevronIcon isExpanded={isCategoryExpanded}>
+                                                            <Codicon name="chevron-right" />
+                                                        </S.ChevronIcon>
+                                                    </Tooltip>
+                                                </div>
+                                            </S.Row>
+                                        </S.CategoryHeader>
+                                    ) : (
+                                        <S.Row>
+                                            <Tooltip content={group.description}>
+                                                <S.SubTitle>{group.title}</S.SubTitle>
+                                            </Tooltip>
+                                        </S.Row>
+                                    )}
+                                    {isCategoryExpanded && (
+                                        <>
+                                            {(!group.items || group.items.length === 0) &&
+                                                !searchText &&
+                                                !isSearching &&
+                                                categoryActions.map((action, actionIndex) => {
+                                                    const handlers = {
+                                                        onAddConnection: handleAddConnection,
+                                                        onAddFunction: handleAddFunction,
+                                                        onAdd: handleAdd
+                                                    };
+                                                    
+                                                    const handler = handlers[action.handlerKey];
+                                                    const propsHandler = props[action.handlerKey];
+                                                    
+                                                    // Only render if the handler exists in props
+                                                    if (!propsHandler || !handler) return null;
+                                                    
+                                                    const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
+                                                    
+                                                    return (
+                                                        <S.HighlightedButton 
+                                                            key={`empty-${group.title}-${actionIndex}`}
+                                                            onClick={handler}
+                                                        >
+                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            {buttonLabel}
+                                                        </S.HighlightedButton>
+                                                    );
+                                                })}
+                                            {group.items &&
+                                            group.items.length > 0 &&
+                                            // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
+                                            shouldUseConnectionContainer(group.title) &&
+                                            group.items.filter((item) => item != null).every((item) => !("id" in item))
+                                                ? getConnectionContainer(group.items as Category[])
+                                                : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
+                                                group.items.filter((item) => item != null).every((item) => !("id" in item))
+                                                ? getCategoryContainer(
+                                                      group.items as Category[],
+                                                      true,
+                                                      !isSubCategory ? group.title : parentCategoryTitle
+                                                  )
+                                                : // 3. Otherwise (has items with id or mixed), use getNodesContainer
+                                                  getNodesContainer(
+                                                      group.items as (Node | Category)[],
+                                                      !isSubCategory ? group.title : parentCategoryTitle
+                                                  )}
+                                            {/* Add Show More Functions under Logging category */}
+                                            {isLoggingCategory && callFunctionNode && isCategoryExpanded && (
+                                                <S.AdvancedSubcategoryContainer key={"showMoreFunctions"} style={{ marginBottom: "12px" }}>
+                                                    <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
+                                                        <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
                                                         <Button
                                                             appearance="icon"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddFunction();
+                                                            sx={{
+                                                                transition: "all 0.2s ease",
+                                                                "&:hover": {
+                                                                    backgroundColor: "transparent !important",
+                                                                },
                                                             }}
                                                         >
-                                                            <Codicon name="add" />
+                                                            <Codicon name="chevron-right" />
                                                         </Button>
-                                                    </Tooltip>
-                                                )}
-                                            {onAddFunction && isNpFunctionCategory && (
-                                                <Tooltip content="Create Natural Function">
-                                                    <Button
-                                                        appearance="icon"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAddFunction();
-                                                        }}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                </Tooltip>
+                                                    </S.AdvancedSubcategoryHeader>
+                                                </S.AdvancedSubcategoryContainer>
                                             )}
-                                            {onAdd && addButtonLabel && (
-                                                <Tooltip content={addButtonLabel}>
-                                                    <Button
-                                                        appearance="icon"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAdd();
-                                                        }}
-                                                    >
-                                                        <Codicon name="add" />
-                                                    </Button>
-                                                </Tooltip>
-                                            )}
-                                            <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
-                                                <S.ChevronIcon isExpanded={isCategoryExpanded}>
-                                                    <Codicon name="chevron-right" />
-                                                </S.ChevronIcon>
-                                            </Tooltip>
-                                        </div>
-                                    </S.Row>
-                                </S.CategoryHeader>
-                            ) : (
-                                <S.Row>
-                                    <Tooltip content={group.description}>
-                                        <S.SubTitle>{group.title}</S.SubTitle>
-                                    </Tooltip>
-                                </S.Row>
-                            )}
-                            {isCategoryExpanded && (
-                                <>
-                                    {onAddConnection && isConnectionCategory && (!group.items || group.items.length === 0) && (
-                                        <S.HighlightedButton onClick={handleAddConnection}>
-                                            <Codicon
-                                                name="add"
-                                                iconSx={{ fontSize: 12 }}
-                                                sx={{ display: "flex", alignItems: "center" }}
-                                            />
-                                            Add Connection
-                                        </S.HighlightedButton>
+                                        </>
                                     )}
-                                    {onAddFunction &&
-                                        isProjectFunctionsCategory &&
-                                        (!group.items || group.items.length === 0) &&
-                                        !searchText &&
-                                        !isSearching && (
-                                            <S.HighlightedButton onClick={handleAddFunction}>
-                                                <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                                {`Create ${
-                                                    isDataMapperCategory
-                                                        ? "Data Mapper"
-                                                        : isNpFunctionCategory
-                                                        ? "Natural Function"
-                                                        : "Function"
-                                                }`}
-                                            </S.HighlightedButton>
-                                        )}
-                                    {onAdd &&
-                                        addButtonLabel &&
-                                        (isModelProviderCategory || isVectorStoreCategory || isEmbeddingProviderCategory || isVectorKnowledgeBaseCategory) &&
-                                        (!group.items || group.items.length === 0) &&
-                                        !searchText &&
-                                        !isSearching && (
-                                            <S.HighlightedButton onClick={handleAdd}>
-                                                <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                                {addButtonLabel}
-                                            </S.HighlightedButton>
-                                        )}
-                                    {group.items &&
-                                    group.items.length > 0 &&
-                                    // 1. If parent group is "Connections", "Model Providers", "Vector Stores", "Embedding Providers", or "Vector Knowledge Bases" and ALL items don't have id, use getConnectionContainer
-                                    (group.title === "Connections" || group.title === "Model Providers" || group.title === "Vector Stores" || group.title === "Embedding Providers" || group.title === "Vector Knowledge Bases") &&
-                                    group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                        ? getConnectionContainer(group.items as Category[])
-                                        : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
-                                        group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                        ? getCategoryContainer(
-                                              group.items as Category[],
-                                              true,
-                                              !isSubCategory ? group.title : parentCategoryTitle
-                                          )
-                                        : // 3. Otherwise (has items with id or mixed), use getNodesContainer
-                                          getNodesContainer(
-                                              group.items as (Node | Category)[],
-                                              !isSubCategory ? group.title : parentCategoryTitle
-                                          )}
-                                    {isLoggingCategory && callFunctionNode && isCategoryExpanded && (
-                                        <S.AdvancedSubcategoryContainer key={"showMoreFunctions"} style={{ marginBottom: "12px" }}>
-                                            <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
-                                                <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
-                                                <Button
-                                                    appearance="icon"
-                                                    sx={{
-                                                        transition: "all 0.2s ease",
-                                                        "&:hover": {
-                                                            backgroundColor: "transparent !important",
-                                                        },
-                                                    }}
-                                                >
-                                                    <Codicon name="chevron-right" />
-                                                </Button>
-                                            </S.AdvancedSubcategoryHeader>
-                                        </S.AdvancedSubcategoryContainer>
-                                    )}
-                                </>
-                            )}
                                 </S.CategoryRow>
                             </S.CategoryCard>
                         </React.Fragment>
