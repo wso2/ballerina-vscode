@@ -34,11 +34,10 @@ export const BodyText = styled(Text)`
 `;
 
 export const BodyTinyInfo = styled(Text)`
-    color: var(--vscode-sideBarTitle-foreground);
+    color: var(--vscode-descriptionForeground);
     margin: 0 0 8px;
-    opacity: 0.5;
     font-weight: normal;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 0.39px;
 `;
 

@@ -49,6 +49,19 @@ const Container = styled.div`
     justify-content: center;
 `;
 
+const PopupContainer = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    z-index: 2000;
+    background-color: ${ThemeColors.SURFACE_BRIGHT};
+    border-radius: 20px;
+    overflow: hidden;
+`;
+
 const StatusCard = styled.div`
     margin: 16px 16px 0 16px;
     padding: 16px;
@@ -98,10 +111,11 @@ interface AddConnectionWizardProps {
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
+    isPopupScreen?: boolean;
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose } = props;
+    const { fileName, target, onClose, isPopupScreen } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
@@ -289,7 +303,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
     };
 
     const handleOnBack = () => {
-        setCurrentStep(WizardStep.CONNECTOR_LIST);
+        isPopupScreen ? onClose() : setCurrentStep(WizardStep.CONNECTOR_LIST);
     };
 
     const handleSubPanel = (subPanel: SubPanel) => {
@@ -333,7 +347,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     return (
         <Container>
-            <>
+            {!isPopupScreen ? (
                 <ConnectorView
                     key={connectorsViewKey}
                     fileName={fileName}
@@ -342,10 +356,24 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     onAddGeneratedConnector={handleOnAddGeneratedConnector}
                     onClose={onClose}
                 />
-                {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
-                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
-                )}
-            </>
+            ) : (currentStep === WizardStep.CONNECTOR_LIST) && (
+                <>
+                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5`, zIndex: 1999 }} />
+                    <PopupContainer>
+                        <ConnectorView
+                            key={connectorsViewKey}
+                            fileName={fileName}
+                            targetLinePosition={target}
+                            onSelectConnector={handleOnSelectConnector}
+                            onAddGeneratedConnector={handleOnAddGeneratedConnector}
+                            onClose={onClose}
+                        />
+                    </PopupContainer>
+                </>
+            )}
+            {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
+                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
+            )}
             {currentStep === WizardStep.CONNECTION_CONFIG && (
                 <PanelContainer
                     show={true}

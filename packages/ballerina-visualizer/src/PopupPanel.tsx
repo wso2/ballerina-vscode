@@ -75,6 +75,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 fileName={location.documentUri || location.projectUri}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
+                                isPopupScreen={true}
                             />
                         );
                     });

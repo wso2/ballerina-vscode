@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, FlowNode, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ProgressRing, SearchBox, SplitView, TreeViewItem, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, SearchBox, SplitView, ThemeColors, TreeViewItem, Typography, View } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce, set } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyText, BodyTinyInfo, TopBar } from "../../../styles";
@@ -31,7 +31,7 @@ import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 const ViewWrapper = styled.div<{ isHalfView?: boolean }>`
     display: flex;
     flex-direction: column;
-    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "40vh" : "100vh")};
+    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "40vh" : "100%")};
     width: 100%;
 `;
 
@@ -256,6 +256,13 @@ export function ConnectorView(props: ConnectorViewProps) {
         });
     }
 
+    const openLearnMoreURL = () => {
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: 'https://ballerina.io/learn/publish-packages-to-ballerina-central/'
+        })
+    };
+
+
     const isFullView = onClose === undefined;
     const isLoading = isSearching || fetchingInfo;
 
@@ -352,7 +359,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                             ? 'bold' : 'normal'
                                     }}
                                 >
-                                    {'Current Organization'}
+                                    {'Organization\'s Connectors'}
                                 </Typography>
                             </TreeViewItemContent>
                         </TreeViewItem>
@@ -381,7 +388,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                             ? 'bold' : 'normal'
                                     }}
                                 >
-                                    {'Local Connectors'}
+                                    {'Custom Connectors'}
                                 </Typography>
                             </TreeViewItemContent>
                         </TreeViewItem>
@@ -389,7 +396,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                     <ListContainer isHalfView={hideTitle}>
                         {selectedConnectorCategory === "CurrentOrg" && (
                             <LabelRow>
-                                <Typography variant="h3">{'Current Organization'}</Typography>
+                                <Typography variant="h3">{'Organization\'s Connectors'}</Typography>
                             </LabelRow>
                         )}
                         {isLoading && (
@@ -402,9 +409,26 @@ export function ConnectorView(props: ConnectorViewProps) {
                             </ListContainer>
                         )}
                         {selectedConnectorCategory === "CurrentOrg" && filteredCategories.length === 0 && (
-                            <BodyTinyInfo style={{ textAlign: "center" }}>
-                                No connectors found in your organization.
-                            </BodyTinyInfo>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginTop: '140px' }}>
+                                <BodyTinyInfo style={{ textAlign: "center" }}>
+                                    No connectors found in your organization. You can create and publish connectors to Ballerina Central.
+                                </BodyTinyInfo>
+                                <BodyTinyInfo style={{ textAlign: "center", color: 'var(--vscode-descriptionForeground)' }}>
+                                    Learn how to{' '}
+                                    <span
+                                        style={{
+                                            color: 'var(--vscode-textLink-foreground)',
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline'
+                                        }}
+                                        onClick={() => {
+                                            openLearnMoreURL();
+                                        }}
+                                    >
+                                        publish packages to Ballerina Central
+                                    </span>
+                                </BodyTinyInfo>
+                            </div>
                         )}
                         {/* Default connectors of LS is hardcoded and is sent with categories with item field */}
                         {!isLoading && filteredCategories && filteredCategories.length > 0 && (
@@ -414,6 +438,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                         const isLocalConnectorCategory = category.metadata.label === "Local";
                                         const itemCount = category.items?.length || 0;
                                         const isLocalConnectorsEmpty = isLocalConnectorCategory && itemCount === 0;
+                                        const label = category.metadata.label === "Local" ? "Custom Connectors" : category.metadata.label;
 
                                         if (!isLocalConnectorCategory && (!category.items || category.items.length === 0)) {
                                             return null;
@@ -422,7 +447,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                                         return (
                                             <div key={category.metadata.label + index}>
                                                 <LabelRow>
-                                                    <Typography variant="h3">{category.metadata.label}</Typography>
+                                                    <Typography variant="h3">{label}</Typography>
                                                     {isLocalConnectorCategory && (
                                                         <Button
                                                             appearance="icon"
@@ -434,10 +459,25 @@ export function ConnectorView(props: ConnectorViewProps) {
                                                     )}
                                                 </LabelRow>
                                                 {isLocalConnectorsEmpty ? (
-                                                    <BodyTinyInfo style={{ textAlign: "center" }}>
-                                                        No local connectors found. You can create one by importing an OpenAPI
-                                                        spec.
-                                                    </BodyTinyInfo>
+                                                    <>
+                                                        <BodyTinyInfo>
+                                                            Generate connector using OpenAPI spec
+                                                        </BodyTinyInfo>
+                                                        <BodyTinyInfo style={{ fontSize: '12px', color: 'var(--vscode-descriptionForeground)' }}>
+                                                            If you cannot find what you need in standard libraries, generate a custom connector by importing an OpenAPI specification.
+                                                        </BodyTinyInfo>
+                                                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: '40px' }}>
+
+                                                            <Button
+                                                                sx={{ display: 'flex', justifySelf: 'flex-end' }}
+                                                                appearance="primary"
+                                                                onClick={onAddGeneratedConnector}
+                                                            >
+                                                                <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                                Generate a connector
+                                                            </Button>
+                                                        </div>
+                                                    </>
                                                 ) : (
                                                     <GridContainer isHalfView={hideTitle}>
                                                         {category.items?.map((connector, index) => {
