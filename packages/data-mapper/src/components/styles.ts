@@ -42,10 +42,7 @@ const addElementButton = {
     color: "var(--vscode-inputOption-activeForeground)",
     display: "flex",
     justifyContent: "space-between",
-    fontStyle: "normal",
-    fontWeight: 400,
-    fontSize: "13px",
-    lineHeight: "24px",
+    opacity: 0.7
 };
 
 const treeLabel = {
@@ -110,11 +107,11 @@ export const useIONodesStyles = () => ({
         '&:hover': {
             backgroundColor: 'var(--vscode-input-background)',
         },
-        opacity: 0.8
+        opacity: 0.9
     }),
     treeLabelDisabled: css({
         cursor: 'not-allowed',
-        opacity: 0.5
+        opacity: 0.7
     }),
     header: css({
 		color: "black",
@@ -128,7 +125,7 @@ export const useIONodesStyles = () => ({
 		fontSize: "14px",
 	}),
     labelDisabled: css({
-		opacity: 0.5
+		opacity: 0.7
 	}),
     treeLabelPortSelected: css({
         color: "var(--vscode-list-activeSelectionForeground)",
@@ -153,7 +150,7 @@ export const useIONodesStyles = () => ({
     }),
     ArrayFieldRowDisabled: css({
         cursor: 'not-allowed',
-        opacity: 0.5
+        opacity: 0.7
     }),
     innerTreeLabel: css({
         display: "flex",

@@ -99,7 +99,7 @@ export class ArrayOutputNode extends DataMapperNodeModel {
                     });
                 } else {
                     this.addPortsForOutputField({
-                        field: { ...this.outputType.member, variableName: this.outputType.variableName + "Item" },
+                        field: this.outputType.member,
                         type: "IN",
                         parentId: this.rootName,
                         mappings,

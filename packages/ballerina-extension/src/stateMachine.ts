@@ -172,6 +172,14 @@ const stateMachine = createMachine<MachineContext>(
                         invoke: {
                             src: 'openWebView',
                             onDone: {
+                                target: "resolveMissingDependencies"
+                            },
+                        }
+                    },
+                    resolveMissingDependencies: {
+                        invoke: {
+                            src: 'resolveMissingDependencies',
+                            onDone: {
                                 target: "webViewLoading"
                             },
                         }
@@ -311,6 +319,27 @@ const stateMachine = createMachine<MachineContext>(
                     VisualizerWebview.currentPanel!.getWebview()?.reveal();
                     resolve(true);
                 }
+            });
+        },
+        resolveMissingDependencies: (context, event) => {
+            return new Promise(async (resolve, reject) => {
+                if (context?.projectUri) {
+                    const langClient = context.langClient;
+
+                    const dependenciesResponse: any = await langClient.resolveModuleDependencies({
+                        documentIdentifier: {
+                            uri: Uri.file(context.projectUri).toString()
+                        }
+                    });
+
+                    if (dependenciesResponse?.success) {
+                        console.log("Dependencies resolved successfully.");
+                    } else {
+                        console.log("Error resolving dependencies.");
+                    }
+                }
+
+                resolve(true);
             });
         },
         findView(context, event): Promise<void> {

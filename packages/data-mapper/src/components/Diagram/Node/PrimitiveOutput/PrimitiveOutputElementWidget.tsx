@@ -24,7 +24,7 @@ import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
-import { getDefaultValue, getSanitizedId } from "../../utils/common-utils";
+import { getDefaultValue } from "../../utils/common-utils";
 import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
@@ -45,6 +45,7 @@ export interface PrimitiveOutputElementWidgetWidgetProps {
     fieldIndex?: number;
     isArrayElement?: boolean;
     hasHoveredParent?: boolean;
+    isPortParent?: boolean;
 }
 
 export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidgetWidgetProps) {
@@ -56,7 +57,8 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
         context,
         fieldIndex,
         isArrayElement,
-        hasHoveredParent
+        hasHoveredParent,
+        isPortParent
     } = props;
     const classes = useIONodesStyles();
     
@@ -70,15 +72,17 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const [isLoading, setLoading] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
-    const fieldName = field?.id || '';
+    const fieldName = field?.name || '';
 
-    let portName = getSanitizedId(parentId);
-    if (fieldIndex !== undefined) {
-        portName = `${portName}.${fieldIndex}`;
-    } else if (fieldName) {
-        portName = `${portName}.${fieldName}`;
+    let portName = parentId;
+    if (!isPortParent) {
+        if (fieldIndex !== undefined) {
+            portName = `${portName}.${fieldIndex}`;
+        } else if (fieldName) {
+            portName = `${portName}.${fieldName}`;
+        }
     }
-    
+  
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;
@@ -92,7 +96,7 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const handleDelete = async () => {
         setLoading(true);
         try {
-            await removeMapping(mapping, context);
+            await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
         } finally {
             setLoading(false);
         }

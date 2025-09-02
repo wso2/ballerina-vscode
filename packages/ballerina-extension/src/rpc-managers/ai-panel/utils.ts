@@ -30,7 +30,6 @@ import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { ArrayEnumUnionType, ArrayRecordType, MetadataType, NUMERIC_AND_BOOLEAN_TYPES, Operation, PrimitiveType, RecordType, UnionEnumIntersectionType } from "./constants";
 import { FieldMetadata, IntermediateMapping, MappingData, MappingFileRecord, ParameterDefinitions, ParameterField, ParameterMetadata, ProcessCombinedKeyResult, ProcessParentKeyResult, RecordDefinitonObject } from "./types";
 import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
-import { StateMachine } from '../../stateMachine';
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -1891,7 +1890,7 @@ function transformInputs(inputs: IOType[]): {
 }
 
 function transformIOType(input: IOType): FormField {
-    const name = input.variableName || extractNameFromId(input.id);
+    const name = input.name || extractNameFromId(input.id);
 
     let typeName: string;
     if (input.kind && input.typeName && input.kind !== input.typeName && input.category) {
@@ -1983,7 +1982,7 @@ function transformCodeObjectToMappings(codeObject: Record<string, string>, reque
 
     // Get the output variable name from the request
     const { output: mappingOutput } = request.mappingsModel as ExpandedDMModel;
-    const outputVariableName = mappingOutput.variableName || extractNameFromId(mappingOutput.id);
+    const outputVariableName = mappingOutput.name || extractNameFromId(mappingOutput.id);
 
     // Iterate through each property in codeObject
     Object.keys(codeObject).forEach(key => {

@@ -49,7 +49,7 @@ export class ObjectOutputNodeFactory extends AbstractReactFactory<ObjectOutputNo
 						context={event.model.context}
 						mappings={event.model.filteredMappings}
 						valueLabel={event.model.filteredOutputType.id}
-						originalTypeName={event.model.filteredOutputType?.variableName}
+						originalTypeName={event.model.filteredOutputType?.name}
 					/>
 				)}
 			</>

@@ -78,7 +78,7 @@ export async function addValue(fieldId: string, value: string, context: IDataMap
 export async function removeMapping(mapping: Mapping, context: IDataMapperContext) {
 	const views=context.views;
 	const viewId = views[views.length-1].targetField;
-	return await context.deleteMapping( mapping as Mapping, viewId)
+	return await context.deleteMapping( mapping, viewId)
 }
 
 export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
@@ -104,7 +104,7 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 	const inputField = sourcePortModel.attributes.field;
 	const outputField = outputPortModel.attributes.field;
 	const inputParams: CustomFnParams[] = [{
-		name: inputField.variableName,
+		name: inputField.name,
 		type: getTypeName(inputField).replace("record", "any"),
 		isOptional: false,
 		isNullable: false,
@@ -131,18 +131,17 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	const outputPortModel = targetPort as InputOutputPortModel;
 
 	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
-	const outputId = outputPortModel.attributes.fieldFQN;
+	const output = outputPortModel.attributes.fieldFQN;
 	const lastView = context.views[context.views.length - 1];
 	const viewId = lastView?.targetField || null;
 	const name  = context.views[0]?.targetField;
 
 	const mapping: Mapping = {
-		output: "OUTPUT",// TODO: Remove this once the API is updated, currently output is embedded in to targetField
+		output: output,
 		expression: input
 	};
-	const targetField = getTargetField(viewId, outputId); // TODO: Remove this once the API is updated
 
-	await context?.convertToQuery(mapping, clauseType, targetField, name);
+	await context?.convertToQuery(mapping, clauseType, viewId, name);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     PopupMachineStateValue,
     EVENT_TYPE,
+    ParentPopupData,
     CodeData,
     LinePosition,
 } from "@wso2/ballerina-core";
@@ -342,7 +343,7 @@ const MainPanel = () => {
                             <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.identifier}
+                                name={value?.dataMapperMetadata?.name}
                                 projectUri={value.projectUri}
                                 position={position}
                                 reusable
@@ -354,7 +355,7 @@ const MainPanel = () => {
                             <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.dataMapperMetadata?.name}
+                                name={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
@@ -504,10 +505,10 @@ const MainPanel = () => {
         setPopupMessage(false);
     };
 
-    const handleOnClose = () => {
+    const handleOnClose = (parent?: ParentPopupData) => {
         rpcClient
             .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null }, isPopup: true });
+            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
     };
 
     return (
