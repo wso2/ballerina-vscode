@@ -98,7 +98,7 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.SWITCH_PROJECT, async () => {
         // Hack to switch the project. This will reload the window and prompt the user to select the project.
         // This is a temporary solution until we provide the support for multi root workspaces.
-        commands.executeCommand('workbench.action.reloadWindow');
+        StateMachine.sendEvent("SWITCH_PROJECT" as any);
     });
 
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);

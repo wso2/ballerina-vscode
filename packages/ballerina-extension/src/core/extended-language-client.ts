@@ -248,13 +248,20 @@ import {
     DeleteMappingRequest,
     MapWithCustomFnRequest,
     AIToolResponse,
-    AIToolRequest
+    AIToolRequest,
+    ImportIntegrationRequest,
+    ImportIntegrationResponse,
+    onMigrationToolStateChanged,
+    onMigrationToolLogs,
+    GetMigrationToolsResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
 import { CMP_LS_CLIENT_COMPLETIONS, CMP_LS_CLIENT_DIAGNOSTICS, getMessageObject, sendTelemetryEvent, TM_EVENT_LANG_CLIENT } from "../features/telemetry";
 import { DefinitionParams, InitializeParams, InitializeResult, Location, LocationLink, TextDocumentPositionParams } from 'vscode-languageserver-protocol';
 import { updateProjectArtifacts } from "../utils/project-artifacts";
+import { RPCLayer } from "../../src/RPCLayer";
+import { VisualizerWebview } from "../../src/views/visualizer/webview";
 
 export const CONNECTOR_LIST_CACHE = "CONNECTOR_LIST_CACHE";
 export const HTTP_CONNECTOR_LIST_CACHE = "HTTP_CONNECTOR_LIST_CACHE";
@@ -417,7 +424,12 @@ enum EXTENDED_APIS {
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
-    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries'
+    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
+    TIBCO_TO_BI = 'projectService/importTibco',
+    MULE_TO_BI = 'projectService/importMule',
+    MIGRATION_TOOL_STATE = 'projectService/stateCallback',
+    MIGRATION_TOOL_LOG = 'projectService/logCallback',
 }
 
 enum EXTENDED_APIS_ORG {
@@ -512,6 +524,32 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                 }
             } catch (error) {
                 console.error("Error in PUBLISH_ARTIFACTS handler:", error);
+            }
+        });
+    }
+
+    registerMigrationToolCallbacks(): void {
+        this.onNotification(EXTENDED_APIS.MIGRATION_TOOL_STATE, (res: ArtifactsNotification) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigrationToolStateChanged,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in MIGRATION_TOOL_STATE handler:", error);
+            }
+        });
+
+        this.onNotification(EXTENDED_APIS.MIGRATION_TOOL_LOG, (res: ArtifactsNotification) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigrationToolLogs,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
         });
     }
@@ -1253,6 +1291,19 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
     }
 
+    async getMigrationTools(): Promise<GetMigrationToolsResponse> {
+        return this.sendRequest<GetMigrationToolsResponse>(EXTENDED_APIS.GET_MIGRATION_TOOLS);
+    }
+
+    async importTibcoToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
+        debug(`Importing Tibco to Ballerina: ${JSON.stringify(params)}`);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
+    }
+
+    async importMuleToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
+        debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
+    }
 
     // <------------ BI APIS END --------------->
 
