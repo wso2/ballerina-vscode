@@ -682,7 +682,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "http": "ballerina/http"
+        }
       },
       "variable": {
         "metadata": {

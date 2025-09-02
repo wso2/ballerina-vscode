@@ -331,7 +331,10 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "rabbitmq": "ballerinax/rabbitmq"
+        }
       },
       "variable": {
         "metadata": {

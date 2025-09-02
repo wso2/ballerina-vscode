@@ -131,9 +131,6 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "rowType"
             },
-            "imports": {
-              "sql": "ballerina/sql"
-            },
             "defaultValue": "record {|anydata...;|}"
           },
           "variable": {
@@ -159,9 +156,6 @@
                   "offset": 32
                 }
               }
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             }
           },
           "type": {
@@ -176,10 +170,7 @@
             "editable": false,
             "advanced": false,
             "hidden": true,
-            "codedata": {},
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "codedata": {}
           }
         },
         "flags": 0
@@ -274,9 +265,6 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "rowType"
             },
-            "imports": {
-              "sql": "ballerina/sql"
-            },
             "defaultValue": "record {|anydata...;|}"
           },
           "variable": {
@@ -302,9 +290,6 @@
                   "offset": 59
                 }
               }
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             }
           },
           "type": {
@@ -319,10 +304,7 @@
             "editable": false,
             "advanced": false,
             "hidden": true,
-            "codedata": {},
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "codedata": {}
           }
         },
         "flags": 0
@@ -594,10 +576,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -609,10 +588,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -637,9 +613,6 @@
                   "offset": 30
                 }
               }
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             }
           },
           "type": {
@@ -654,10 +627,7 @@
             "editable": false,
             "advanced": false,
             "hidden": true,
-            "codedata": {},
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "codedata": {}
           }
         },
         "flags": 1

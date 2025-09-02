@@ -1,0 +1,128 @@
+{
+  "source": "proj/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable24.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 78
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 20,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "const",
+        "kind": "const",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "student",
+        "displayName": "student",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "278074307"
+      },
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "660407909"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student2",
+      "displayName": "student2",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "278074307"
+    },
+    "mappings": [
+      {
+        "output": "student2.username",
+        "inputs": [
+          "user.username",
+          "user.password"
+        ],
+        "expression": "bar2(user.username, user.password)",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true,
+        "functionRange": {
+          "fileName": "data_mappings.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 2,
+            "offset": 1
+          }
+        }
+      }
+    ],
+    "refs": {
+      "278074307": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "660407909": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    }
+  }
+}

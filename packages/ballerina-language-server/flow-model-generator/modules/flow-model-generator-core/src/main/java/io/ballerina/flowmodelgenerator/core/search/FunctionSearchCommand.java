@@ -114,10 +114,6 @@ class FunctionSearchCommand extends SearchCommand {
         }
         searchResults.addAll(defaultViewHolder.get(this).getOrDefault(FETCH_KEY, List.of()));
 
-        // Add organization functions to default view if any exist
-        List<SearchResult> organizationFunctions = getOrganizationFunctions("");
-        searchResults.addAll(organizationFunctions);
-
         buildLibraryNodes(searchResults);
         return rootBuilder.build().items();
     }
@@ -126,54 +122,53 @@ class FunctionSearchCommand extends SearchCommand {
     protected List<Item> search() {
         buildProjectNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
-
-        List<SearchResult> organizationFunctions = getOrganizationFunctions(query);
-        functionSearchList.addAll(organizationFunctions);
-
         buildLibraryNodes(functionSearchList);
         return rootBuilder.build().items();
     }
 
-    /**
-     * Fetches functions from the current organization using Ballerina Central.
-     *
-     * @param searchQuery The search query to use
-     * @return search results containing organization functions
-     */
-    private List<SearchResult> getOrganizationFunctions(String searchQuery) {
+    @Override
+    protected List<Item> searchCurrentOrganization(String currentOrg) {
         List<SearchResult> organizationFunctions = new ArrayList<>();
-
-        if (currentOrg == null || currentOrg.isEmpty()) {
-            return organizationFunctions;
-        }
-
         CentralAPI centralClient = RemoteCentral.getInstance();
         Map<String, String> queryMap = new HashMap<>();
-        String orgQuery = "org:" + currentOrg;
-        queryMap.put("q", searchQuery.isEmpty() ? orgQuery : searchQuery + " " + orgQuery);
-        queryMap.put("limit", String.valueOf(limit));
-        queryMap.put("offset", String.valueOf(offset));
-        SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-        if (symbolResponse != null && symbolResponse.symbols() != null) {
-            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                if (symbol.symbolType().equals("function")) {
-                    SearchResult.Package packageInfo = new SearchResult.Package(
-                            symbol.organization(),
-                            symbol.name(),
-                            symbol.name(),
-                            symbol.version()
-                    );
-                    SearchResult searchResult = SearchResult.from(
-                            packageInfo,
-                            symbol.symbolName(),
-                            symbol.description(),
-                            true
-                    );
-                    organizationFunctions.add(searchResult);
+        boolean success = false;
+        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
+//        if (centralClient.hasAuthorizedAccess()) {
+//            queryMap.put("user-packages", "true");
+//            success = true;
+//        }
+        if (currentOrg != null && !currentOrg.isEmpty()) {
+            String orgQuery = "org:" + currentOrg;
+            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
+            success = true;
+        }
+        if (success) {
+            queryMap.put("limit", String.valueOf(limit));
+            queryMap.put("offset", String.valueOf(offset));
+            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
+            if (symbolResponse != null && symbolResponse.symbols() != null) {
+                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                    if ("function".equals(symbol.symbolType())) {
+                        SearchResult.Package packageInfo = new SearchResult.Package(
+                                symbol.organization(),
+                                symbol.name(),
+                                symbol.name(),
+                                symbol.version()
+                        );
+                        SearchResult searchResult = SearchResult.from(
+                                packageInfo,
+                                symbol.symbolName(),
+                                symbol.description(),
+                                true
+                        );
+                        organizationFunctions.add(searchResult);
+                    }
                 }
             }
+            // Reuse existing building logic to add these to categories
+            buildLibraryNodes(organizationFunctions);
         }
-        return organizationFunctions;
+        return rootBuilder.build().items();
     }
 
     @Override
@@ -260,7 +255,6 @@ class FunctionSearchCommand extends SearchCommand {
     private void buildLibraryNodes(List<SearchResult> functionSearchList) {
         // Set the categories based on the available flags
         Category.Builder importedFnBuilder = rootBuilder.stepIn(Category.Name.IMPORTED_FUNCTIONS);
-        Category.Builder currentOrgFnBuilder = rootBuilder.stepIn(Category.Name.CURRENT_ORGANIZATION);
         Category.Builder availableFnBuilder = rootBuilder.stepIn(Category.Name.STANDARD_LIBRARY);
 
         // Add the library functions
@@ -285,8 +279,6 @@ class FunctionSearchCommand extends SearchCommand {
             Category.Builder builder;
             if (moduleNames.contains(packageInfo.moduleName())) {
                 builder = importedFnBuilder;
-            } else if (searchResult.fromCurrentOrg()) {
-                builder = currentOrgFnBuilder;
             } else {
                 builder = availableFnBuilder;
             }

@@ -57,7 +57,10 @@
         },
         "value": "redis:Client",
         "optional": false,
-        "editable": true
+        "editable": true,
+        "imports": {
+          "redis": "ballerinax/redis"
+        }
       }
     },
     "flags": 1

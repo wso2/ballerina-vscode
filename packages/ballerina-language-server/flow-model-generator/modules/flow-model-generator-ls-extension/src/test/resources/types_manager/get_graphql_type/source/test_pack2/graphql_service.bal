@@ -84,7 +84,7 @@ service /graphql2 on new graphql:Listener(9090) {
 listener graphql:Listener gt = new (listenTo = 22);
 
 service graphql:Service /graphql on gt {
-    resource function get g() returns ProfileType|string {
+    resource function get g(graphql:Context context) returns ProfileType|string {
         do {
         } on fail error err {
             // handle error

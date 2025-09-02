@@ -9,6 +9,7 @@
       {
         "key": "forceVersion",
         "label": "Force Version",
+        "description": "Force specific Mule version or auto-detect from project.",
         "valueType": "enum",
         "defaultValue": "Auto Detect",
         "options": ["Auto Detect","3", "4"]

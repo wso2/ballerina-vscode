@@ -41,7 +41,10 @@
           "editable": false,
           "advanced": false,
           "hidden": false,
-          "codedata": {}
+          "codedata": {},
+          "imports": {
+            "ai": "ballerina/ai"
+          }
         },
         "variable": {
           "metadata": {

@@ -241,6 +241,9 @@
         "advanced": false,
         "codedata": {
           "importStatements": "ballerina/sql"
+        },
+        "imports": {
+          "postgresql": "ballerinax/postgresql"
         }
       },
       "variable": {

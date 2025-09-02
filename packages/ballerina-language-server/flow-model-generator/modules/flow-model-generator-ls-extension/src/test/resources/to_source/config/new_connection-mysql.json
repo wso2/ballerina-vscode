@@ -242,6 +242,9 @@
         "advanced": false,
         "codedata": {
           "importStatements": "ballerina/sql"
+        },
+        "imports": {
+          "mysql": "ballerinax/mysql"
         }
       },
       "variable": {

@@ -98,7 +98,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "datalake": "ballerinax/azure.datalake"
+        }
       },
       "variable": {
         "metadata": {

@@ -70,7 +70,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "azure_cosmosdb": "ballerinax/azure_cosmosdb"
+        }
       },
       "variable": {
         "metadata": {

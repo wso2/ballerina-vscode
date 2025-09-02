@@ -292,6 +292,7 @@ public class FunctionDataBuilder {
         // Check if the package is pulled
         if (semanticModel == null) {
             if (moduleInfo.version() == null) {
+                // Fetch the latest module version from central repository when version is not explicitly provided
                 CentralAPI centralApi = RemoteCentral.getInstance();
                 moduleInfo = new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
                         centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName()));
@@ -503,8 +504,11 @@ public class FunctionDataBuilder {
             }
         }
 
-        String importStatements = returnTypeSymbol.map(
-                typeSymbol -> getImportStatements(returnTypeSymbol.get())).orElse(null);
+        // Resolving import statements
+        String importStatements =
+                functionKind == FunctionData.Kind.CLASS_INIT || isConnector(functionKind) || isAiClassKind(functionKind)
+                        ? getImportStatement(moduleInfo)
+                        : returnTypeSymbol.map(typeSymbol -> getImportStatements(returnTypeSymbol.get())).orElse(null);
 
         boolean returnError = returnTypeSymbol
                 .map(returnTypeDesc -> CommonUtils.subTypeOf(returnTypeDesc, errorTypeSymbol)).orElse(false);
@@ -1044,6 +1048,13 @@ public class FunctionDataBuilder {
 
     private String getDescription(Documentable documentable) {
         return documentable.documentation().flatMap(Documentation::description).orElse("");
+    }
+
+    private String getImportStatement(ModuleInfo moduleInfo) {
+        if (isCurrentModule && moduleInfo.equals(userModuleInfo)) {
+            return null;
+        }
+        return CommonUtils.getImportStatement(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName());
     }
 
     private String getImportStatements(TypeSymbol typeSymbol) {

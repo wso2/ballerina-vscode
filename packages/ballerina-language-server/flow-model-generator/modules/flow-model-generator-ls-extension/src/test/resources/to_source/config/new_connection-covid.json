@@ -62,7 +62,10 @@
         "valueType": "TYPE",
         "value": "covid19:Client",
         "optional": false,
-        "editable": true
+        "editable": true,
+        "imports": {
+          "covid19": "ballerinax/covid19"
+        }
       },
       "variable": {
         "metadata": {
