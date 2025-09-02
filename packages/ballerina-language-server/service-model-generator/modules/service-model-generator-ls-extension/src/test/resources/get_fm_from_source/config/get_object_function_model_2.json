@@ -1,16 +1,16 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "sample1/service.bal",
   "description": "",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "service.bal",
       "startLine": {
-        "line": 44,
-        "offset": 4
+        "line": 6,
+        "offset": 3
       },
       "endLine": {
-        "line": 46,
-        "offset": 5
+        "line": 8,
+        "offset": 4
       }
     }
   },
@@ -37,13 +37,61 @@
         "description": "The name of the function"
       },
       "valueType": "IDENTIFIER",
-      "value": "foo",
+      "value": "hello",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "parameters": [],
+    "parameters": [
+      {
+        "metadata": {
+          "label": "name",
+          "description": "name"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "name",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    ],
     "schema": {
       "parameter": {
         "type": {
@@ -93,7 +141,7 @@
         "description": "The return type of the function"
       },
       "valueType": "TYPE",
-      "value": "int",
+      "value": "string",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -105,14 +153,14 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "service.bal",
         "startLine": {
-          "line": 44,
-          "offset": 4
+          "line": 6,
+          "offset": 3
         },
         "endLine": {
-          "line": 46,
-          "offset": 5
+          "line": 8,
+          "offset": 4
         }
       }
     }

@@ -1,0 +1,53 @@
+{
+  "filePath": "sample1/service.bal",
+  "description": "",
+  "codedata": {
+    "lineRange": {
+      "fileName": "service.bal",
+      "startLine": {
+        "line": 3,
+        "offset": 3
+      },
+      "endLine": {
+        "line": 4,
+        "offset": 4
+      }
+    }
+  },
+  "response": {
+    "metadata": {
+      "label": "",
+      "description": ""
+    },
+    "kind": "DEFAULT",
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "init",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "parameters": [],
+    "returnType": {
+      "hasError": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "valueType": "TYPE",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": false
+  }
+}

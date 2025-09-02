@@ -1,15 +1,15 @@
 {
-  "filePath": "sample1/main.bal",
-  "description": "",
+  "filePath": "sample1/types.bal",
+  "description": "Get the function model of a resource method in a class object",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "types.bal",
       "startLine": {
-        "line": 44,
+        "line": 10,
         "offset": 4
       },
       "endLine": {
-        "line": 46,
+        "line": 14,
         "offset": 5
       }
     }
@@ -37,7 +37,7 @@
         "description": "The name of the function"
       },
       "valueType": "IDENTIFIER",
-      "value": "foo",
+      "value": "get",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -93,7 +93,7 @@
         "description": "The return type of the function"
       },
       "valueType": "TYPE",
-      "value": "int",
+      "value": "string",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -105,13 +105,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "types.bal",
         "startLine": {
-          "line": 44,
+          "line": 10,
           "offset": 4
         },
         "endLine": {
-          "line": 46,
+          "line": 14,
           "offset": 5
         }
       }

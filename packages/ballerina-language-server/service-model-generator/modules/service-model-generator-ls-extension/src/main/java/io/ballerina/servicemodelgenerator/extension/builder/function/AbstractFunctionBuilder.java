@@ -69,7 +69,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.CLASS;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
@@ -142,7 +142,13 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
      */
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
-        Function functionModel = Function.getNewFunctionModel(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM);
+        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
+        Function functionModel;
+        if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
+            functionModel = getEnrichedFunctionModel(CLASS, functionDefinitionNode);
+        } else {
+            functionModel = getEnrichedFunctionModel(SERVICE_DIAGRAM, functionDefinitionNode);
+        }
         functionModel.setEditable(true);
         return functionModel;
     }
@@ -155,20 +161,26 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         return "";
     }
 
-    static Function getEnrichedFunctionModel(FunctionDefinitionNode functionDefinitionNode) {
-        Function functionModel = Function.getNewFunctionModel(SERVICE_DIAGRAM);
-        boolean isInit = Utils.isInitFunction(functionDefinitionNode);
-        if (isInit) {
-            functionModel.setKind(KIND_DEFAULT);
-        }
+    static Function getEnrichedFunctionModel(ServiceClassUtil.ServiceClassContext context,
+                                             FunctionDefinitionNode functionDefinitionNode) {
+        Function functionModel = Function.getNewFunctionModel(context);
         functionModel.getName().setValue(functionDefinitionNode.functionName().text().trim());
-        functionModel.getName().setValueType(VALUE_TYPE_IDENTIFIER);
 
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
         Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
+        }
+
+        boolean isInit = Utils.isInitFunction(functionDefinitionNode);
+        if (isInit) {
+            functionModel.setKind(KIND_DEFAULT);
+            functionModel.setAccessor(null);
+            if (context == SERVICE_DIAGRAM) {
+                functionModel.setSchema(null);
+                return functionModel;
+            }
         }
 
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
