@@ -25,7 +25,7 @@ import { RelativeLoader } from "../RelativeLoader";
 import { InfoBox } from "../InfoBox";
 import { ConnectionCreatorProps } from "./types";
 import { getConnectionSpecialConfig } from "./config";
-import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable } from "./utils";
+import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable, updateNodeLineRange } from "./utils";
 import { LoaderContainer } from "./styles";
 import { cloneDeep } from "lodash";
 
@@ -63,10 +63,13 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
         updateFormFieldsWithData(connectionFields, data, formImports);
         updateNodeTemplateProperties(nodeTemplate, connectionFields);
         try {
-            await rpcClient
+            const response = await rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: projectPath.current, flowNode: nodeTemplate });
+            // Update the selected node with the new connection variable
             updateNodeWithConnectionVariable(connectionKind, selectedNode, nodeTemplate?.properties?.variable?.value as string);
+            // Update the line range for the selected node if it was updated
+            updateNodeLineRange(selectedNode, response.artifacts);
             onSave?.(selectedNode);
         } catch (error) {
             console.error(`>>> Error creating ${connectionKind}`, error);
