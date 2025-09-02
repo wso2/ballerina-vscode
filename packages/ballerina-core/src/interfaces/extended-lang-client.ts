@@ -28,9 +28,9 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
-import { Attachment } from "../rpc-types/ai-panel/interfaces";
+import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
@@ -305,6 +305,7 @@ export interface DataMapperBase {
     codedata: CodeData;
     varName?: string;
     targetField?: string;
+    position?: LinePosition;
 }
 
 export interface DataMapperSourceRequest extends DataMapperBase {
@@ -322,7 +323,8 @@ export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
 
 export interface MetadataWithAttachments {
     metadata: ExtendedDataMapperMetadata;
-    attachment?: Attachment[];
+    attachments?: Attachment[];
+    useTemporaryFile?: boolean;
 }
 
 export interface VisualizableFieldsRequest {
@@ -340,6 +342,51 @@ export interface DataMapperSourceResponse {
     };
     error?: string;
     userAborted?: boolean;
+}
+
+export interface CreateTempFileRequest {
+    inputs: DataMappingRecord[];
+    output: DataMappingRecord;
+    functionName: string;
+    inputNames: string[];
+    imports: ImportInfo[];
+}
+
+export interface DatamapperModelContext {
+    documentUri?: string;
+    identifier?: string;
+    dataMapperMetadata?: any;
+}
+
+export interface ExpandModelOptions {
+    processInputs?: boolean;
+    processOutput?: boolean;
+    processSubMappings?: boolean;
+    previousModel?: ExpandedDMModel;
+}
+
+export interface DMModelRequest {
+    model: DMModel;
+    rootViewId: string;
+    options?: ExpandModelOptions;
+}
+
+export interface ExpandedDMModelResponse {
+    expandedModel: ExpandedDMModel;
+    success: boolean;
+    error?: string;
+}
+export interface ProcessTypeReferenceRequest {
+    ref: string;
+    fieldId: string;
+    model: DMModel;
+    visitedRefs?: Set<string>;
+}
+
+export interface ProcessTypeReferenceResponse {
+    result: Partial<IOType>;
+    success: boolean;
+    error?: string;
 }
 
 export interface VisualizableFieldsResponse {
