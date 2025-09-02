@@ -333,8 +333,7 @@ public class DataMapManager {
         inputPorts = removeParentPort(node, inputPorts);
 
         List<Mapping> mappings = new ArrayList<>();
-        MatchingNode matchingNode1 = targetNode.matchingNode();
-        ExpressionNode expr = matchingNode1.expr();
+        ExpressionNode expr = matchingNode.expr();
         if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             genMapping((MappingConstructorExpressionNode) expr, mappings, name, semanticModel,
                     functionDocument, dataMappingDocument, enumPorts);
@@ -1619,7 +1618,8 @@ public class DataMapManager {
         textEditsMap.put(filePath, textEdits);
 
         Mapping mapping = gson.fromJson(mp, Mapping.class);
-        TypeSymbol targetTypeSymbol = getTargetType(targetNode.typeSymbol(), mapping.output());
+        TypeSymbol targetTypeSymbol =
+                getTargetType(targetNode.typeSymbol(), mapping.output(), targetNode.expressionNode());
         if (targetTypeSymbol == null) {
             return null;
         }
@@ -1634,7 +1634,7 @@ public class DataMapManager {
                 TypeSymbol typeSymbol =
                         CommonUtils.getRawType(((ArrayTypeSymbol) targetTypeSymbol).memberTypeDescriptor());
                 String query = getQuerySource(mapping.expression(), "select", typeSymbol);
-                genSource(targetNode.expressionNode(), mapping.output().split(DOT), 1, new StringBuilder(), query,
+                genSource(targetNode.matchingNode().expr(), mapping.output().split(DOT), 1, new StringBuilder(), query,
                         null, textEdits);
             }
         }
@@ -1855,6 +1855,30 @@ public class DataMapManager {
             }
         }
         return null;
+    }
+
+    private TypeSymbol getTargetType(TypeSymbol typeSymbol, String targetField, ExpressionNode expr) {
+        if (targetField == null || targetField.isEmpty()) {
+            return typeSymbol;
+        }
+        String[] splits = targetField.split(DOT);
+        if (splits.length == 1 && expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            ExpressionNode currentExpr = expr;
+            while (currentExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                if (typeSymbol.typeKind() != TypeDescKind.ARRAY) {
+                    break;
+                }
+                typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
+                ClauseNode clauseNode = ((QueryExpressionNode) currentExpr).resultClause();
+                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    currentExpr = ((SelectClauseNode) clauseNode).expression();
+                } else {
+                    currentExpr = ((CollectClauseNode) clauseNode).expression();
+                }
+            }
+            return typeSymbol;
+        }
+        return getTargetType(typeSymbol, targetField);
     }
 
     private TypeSymbol getTargetType(TypeSymbol typeSymbol, String targetField) {
