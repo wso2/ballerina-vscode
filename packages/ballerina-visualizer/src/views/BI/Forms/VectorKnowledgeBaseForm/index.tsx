@@ -162,7 +162,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             });
     };
 
-    const getConnectionKind = (fieldName: string): ConnectionKind => {
+    const getConnectionKind = (fieldName: string): ConnectionKind | undefined => {
         switch (fieldName) {
             case "vectorStore":
                 return "VECTOR_STORE";
@@ -171,7 +171,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             case "chunker":
                 return "CHUNKER";
             default:
-                return;
+                return undefined;
         }
     };
 
