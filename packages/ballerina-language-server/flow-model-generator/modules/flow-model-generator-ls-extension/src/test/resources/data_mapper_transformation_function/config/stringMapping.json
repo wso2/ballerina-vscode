@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToString1(Student student) returns ReturnType[type=string, kind=string] => \"\""
+        "newText": "\nfunction mapRecordToString1(Student student) returns string => \"\""
       }
     ]
   }

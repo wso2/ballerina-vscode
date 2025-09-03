@@ -51,7 +51,7 @@
             "character": 1
           }
         },
-        "newText": "\nfunction mapRecordToRecord1(Student student) returns ReturnType[type=Student, kind=record] {}"
+        "newText": "\nfunction mapRecordToRecord1(Student student) returns Student {}"
       }
     ],
     "proj/main.bal": [

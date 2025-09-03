@@ -2224,10 +2224,10 @@ public class DataMapManager {
             List<TextEdit> textEdits = new ArrayList<>();
             if (isCustomFunction) {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
-                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " {}"));
             } else {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
-                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " => " +
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " => " +
                         expressionBody));
             }
             textEditsMap.put(functionsFilePath, textEdits);

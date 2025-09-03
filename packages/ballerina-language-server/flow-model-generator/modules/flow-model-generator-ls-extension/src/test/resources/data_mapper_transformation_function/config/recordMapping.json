@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToRecord1(UserInfo user) returns ReturnType[type=Student, kind=record] => {}"
+        "newText": "\nfunction mapRecordToRecord1(UserInfo user) returns Student => {}"
       }
     ]
   }

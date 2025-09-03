@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapUnionToUnion1(string|int age) returns ReturnType[type=int|string, kind=union] {}"
+        "newText": "\nfunction mapUnionToUnion1(string|int age) returns int|string {}"
       }
     ]
   }

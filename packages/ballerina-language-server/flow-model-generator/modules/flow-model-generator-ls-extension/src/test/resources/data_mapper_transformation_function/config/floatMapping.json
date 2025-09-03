@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToFloat1(Student student) returns ReturnType[type=float, kind=float] => 0.0"
+        "newText": "\nfunction mapRecordToFloat1(Student student) returns float => 0.0"
       }
     ]
   }

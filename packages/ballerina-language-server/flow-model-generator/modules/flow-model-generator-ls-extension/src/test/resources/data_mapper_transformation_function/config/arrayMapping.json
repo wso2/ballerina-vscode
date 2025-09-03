@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToArray1(UserInfo user) returns ReturnType[type=string[], kind=array] => []"
+        "newText": "\nfunction mapRecordToArray1(UserInfo user) returns string[] => []"
       }
     ]
   }

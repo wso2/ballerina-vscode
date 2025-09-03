@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToBoolean1(Student student) returns ReturnType[type=boolean, kind=boolean] => true"
+        "newText": "\nfunction mapRecordToBoolean1(Student student) returns boolean => true"
       }
     ]
   }

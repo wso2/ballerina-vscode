@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToDecimal1(Student student) returns ReturnType[type=decimal, kind=decimal] => 0.0d"
+        "newText": "\nfunction mapRecordToDecimal1(Student student) returns decimal => 0.0d"
       }
     ]
   }
