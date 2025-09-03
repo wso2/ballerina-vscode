@@ -1,0 +1,104 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "9",
+    "displayName": "RabbitMQ Event Handler",
+    "description": "Create a service to handle messages from a RabbitMQ queue",
+    "orgName": "ballerinax",
+    "packageName": "rabbitmq",
+    "moduleName": "rabbitmq",
+    "version": "3.2.0",
+    "type": "rabbitmq",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+    "properties": {
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "The host used for establishing the connection"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "\"localhost\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"localhost\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "The port used for establishing the connection"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "5672",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "value": "5672",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Queue Name",
+          "description": "The name of the queue to listen to"
+        },
+        "codedata": {
+          "argType": "SERVICE_BASE_PATH"
+        },
+        "placeholder": "\"myQueue\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"myQueue\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/rabbitmq;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener rabbitmq:Listener rabbitmqListener = new (\"localhost\", 5672);\nservice \"myQueue\" on rabbitmqListener {\n}\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "2",
+    "displayName": "GraphQL Service",
+    "description": "Create GraphQL service",
+    "orgName": "ballerina",
+    "packageName": "graphql",
+    "moduleName": "graphql",
+    "version": "1.16.0",
+    "type": "graphql",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+    "properties": {
+      "basePath": {
+        "metadata": {
+          "label": "Base Path",
+          "description": "The base path of the GraphQL service"
+        },
+        "codedata": {
+          "argType": "SERVICE_BASE_PATH"
+        },
+        "placeholder": "/graphql",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "/graphql",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/graphql;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener graphql:Listener graphqlListener = new ();\nservice /graphql on graphqlListener {\n}\n"
+      }
+    ]
+  }
+}
