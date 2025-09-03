@@ -1,0 +1,71 @@
+{
+  "source": "proj2/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 30
+      }
+    },
+    "sourceCode": "Student var1 = {};"
+  },
+  "mapping": {
+    "output": "var1",
+    "expression": "user"
+  },
+  "functionMetadata": {
+    "returnType": {
+      "type": "Student",
+      "kind": "record"
+    },
+    "parameters": [
+      {
+        "name": "user",
+        "type": "UserInfo",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "record"
+      }
+    ]
+  },
+  "targetField": "var1",
+  "output": {
+    "proj2/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 64
+          },
+          "end": {
+            "line": 0,
+            "character": 64
+          }
+        },
+        "newText": "\nfunction mapRecordToRecord2(UserInfo user) returns Student => {}"
+      }
+    ],
+    "proj2/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 27
+          },
+          "end": {
+            "line": 17,
+            "character": 29
+          }
+        },
+        "newText": "mapRecordToRecord2(user)"
+      }
+    ]
+  }
+}

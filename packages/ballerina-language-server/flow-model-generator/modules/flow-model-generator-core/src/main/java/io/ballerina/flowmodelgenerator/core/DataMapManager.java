@@ -2291,7 +2291,7 @@ public class DataMapManager {
                 continue;
             }
             Optional<String> name = symbol.getName();
-            String functionName = "map" + firstParamKind + "To" + returnTypeKind;
+            String functionName = NameUtil.toCamelCase("map " + firstParamKind + " To " + returnTypeKind);
             if (name.isEmpty() || !name.get().startsWith(functionName)) {
                 continue;
             }

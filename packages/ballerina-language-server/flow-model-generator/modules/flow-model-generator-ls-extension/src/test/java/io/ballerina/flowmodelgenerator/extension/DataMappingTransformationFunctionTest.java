@@ -52,6 +52,7 @@ public class DataMappingTransformationFunctionTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("recordMapping.json")},
+                {Path.of("recordMapping2.json")},
                 {Path.of("arrayMapping.json")},
                 {Path.of("stringMapping.json")},
                 {Path.of("intMapping.json")},
