@@ -66,6 +66,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -173,7 +174,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                 requiredParams.add(value.getValue());
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED)
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED)) {
-                includedParams.add(value.getValue());
+                includedParams.add(entry.getKey() + " = " +  value.getValue());
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
@@ -193,6 +194,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         Value basePath = serviceInitModel.getProperties().get("basePath");
         if (basePath != null && !basePath.getValue().isEmpty()) {
             builder.append(basePath.getValue()).append(SPACE);
+        } else {
+            builder.append(listenerProtocol).append(COLON).append("Service").append(SPACE);
         }
         builder.append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
                 .append(NEW_LINE).append(CLOSE_BRACE).append(NEW_LINE);

@@ -1,0 +1,33 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "1",
+    "displayName": "HTTP Service",
+    "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http",
+    "version": "2.14.0",
+    "type": "http",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+    "properties": {}
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener http:Listener httpListenerResult = new ();\nservice http:Service on httpListenerResult {\n}\n"
+      }
+    ]
+  }
+}
