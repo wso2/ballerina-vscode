@@ -65,6 +65,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_SERVICE_TYPE_DESCRIPTOR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
@@ -193,6 +194,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
 
         Value basePath = serviceInitModel.getProperties().get("basePath");
         if (basePath != null && !basePath.getValue().isEmpty()) {
+            if (basePath.getCodedata().getArgType().equals(ARG_TYPE_SERVICE_TYPE_DESCRIPTOR)) {
+                builder.append(listenerProtocol).append(COLON);
+            }
             builder.append(basePath.getValue()).append(SPACE);
         } else {
             builder.append(listenerProtocol).append(COLON).append("Service").append(SPACE);
