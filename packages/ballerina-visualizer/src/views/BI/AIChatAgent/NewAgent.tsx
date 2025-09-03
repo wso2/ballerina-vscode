@@ -18,11 +18,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, LinePosition, LineRange, NodeProperties } from "@wso2/ballerina-core";
+import { AvailableNode, FlowNode, LineRange, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
-import { URI, Utils } from "vscode-uri";
 import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -54,17 +53,13 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
-    const [defaultModelNode, setDefaultModelNode] = useState<FlowNode | null>(null);
     const [formFields, setFormFields] = useState<FormField[]>([]);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
-    const agentFilePath = useRef<string>("");
-    const mainFilePath = useRef<string>("");
+    const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
-    const agentCallEndOfFile = useRef<LinePosition | null>(null);
-    const agentEndOfFile = useRef<LinePosition | null>(null);
 
     useEffect(() => {
         initPanel();
@@ -72,64 +67,40 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        // get agent file path
+        // get project path
         const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
-        // get main file path
-        mainFilePath.current = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
+        projectPath.current = filePath.projectUri;
         // get agent org
         aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node
         await fetchAgentNode();
-        // get end of files
-        // main.bal last line
-        const endOfFile = await rpcClient.getBIDiagramRpcClient().getEndOfFile({ filePath: fileName });
-        console.log(">>> endOfFile", endOfFile);
-        agentCallEndOfFile.current = endOfFile;
-        // agent.bal file last line
-        const endOfAgentFile = await rpcClient
-            .getBIDiagramRpcClient()
-            .getEndOfFile({ filePath: agentFilePath.current });
-        console.log(">>> endOfAgentFile", endOfAgentFile);
-        agentEndOfFile.current = endOfAgentFile;
     };
 
     useEffect(() => {
-        if (agentNode && defaultModelNode) {
+        if (agentNode) {
             configureFormFields();
             setLoading(false);
         }
-    }, [agentNode, defaultModelNode]);
+    }, [agentNode]);
 
     const fetchAgentNode = async () => {
-        // get the agent node
-        const allAgents = await rpcClient.getAIAgentRpcClient().getAllAgents({ filePath: agentFilePath.current, orgName: aiModuleOrg.current });
-        console.log(">>> allAgents", allAgents);
-        if (!allAgents.agents.length) {
+        // Search for agent node using search API
+        const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            queryMap: { orgName: aiModuleOrg.current },
+            searchKind: "AGENT"
+        });
+        console.log(">>> agentSearchResponse", agentSearchResponse);
+
+        // Validate search response structure
+        if (!agentSearchResponse?.categories?.[0]?.items?.length) {
             console.log(">>> no agents found");
             return;
         }
-        const agentCodeData = allAgents.agents.at(0);
+        const agentCodeData = (agentSearchResponse.categories[0].items[0] as AvailableNode).codedata;
         // get agent node template
-        const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, agentFilePath.current);
+        const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, projectPath.current);
         setAgentNode(agentNodeTemplate);
-
-        // get all llm models
-        const allModels = await rpcClient
-            .getAIAgentRpcClient()
-            .getAllModels({ agent: agentCodeData.object, filePath: agentFilePath.current, orgName: aiModuleOrg.current });
-        console.log(">>> allModels", allModels);
-        // get openai model
-        const defaultModel = allModels.models.find((model) => model.object === "OpenAiProvider" || (model.org === BALLERINA && model.module === AI));
-        if (!defaultModel) {
-            console.log(">>> no default model found");
-            return;
-        }
-        // get model node template
-        const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, agentFilePath.current);
-        setDefaultModelNode(modelNodeTemplate);
-
-        // get agent call node template
     };
 
     const configureFormFields = () => {
@@ -231,16 +202,33 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         console.log(">>> save value", { data, rawData });
         setSavingForm(true);
 
+        // Search for model providers using search API
+        const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            queryMap: { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
+            searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+        });
+        console.log(">>> modelProviderSearchResponse", modelProviderSearchResponse);
+
+        const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
+        // get openai model
+        const defaultModelNode = modelNodes.find((model) =>
+            model.codedata.object === "OpenAiProvider" || (model.codedata.org === BALLERINA && model.codedata.module === AI)
+        );
+        const defaultModel = defaultModelNode?.codedata;
+        if (!defaultModel) {
+            console.log(">>> no default model found");
+            return;
+        }
+        // get model node template
+        const defaultModelNodeTemplate = await getNodeTemplate(rpcClient, defaultModel, projectPath.current);
+
         // save model node
         const modelResponse = await rpcClient
             .getBIDiagramRpcClient()
-            .getSourceCode({ filePath: agentFilePath.current, flowNode: defaultModelNode });
+            .getSourceCode({ filePath: projectPath.current, flowNode: defaultModelNodeTemplate });
         console.log(">>> modelResponse getSourceCode", { modelResponse });
-        const modelVarName = defaultModelNode.properties.variable.value as string;
-
-        // wait 2 seconds (wait until LS is updated)
-        console.log(">>> wait 2 seconds");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const modelVarName = defaultModelNodeTemplate.properties.variable.value as string;
 
         // save the agent node
         const updatedAgentNode = cloneDeep(agentNode);
@@ -258,13 +246,9 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
         const agentResponse = await rpcClient
             .getBIDiagramRpcClient()
-            .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
+            .getSourceCode({ filePath: projectPath.current, flowNode: updatedAgentNode });
         console.log(">>> agentResponse getSourceCode", { agentResponse });
         const agentVarName = agentNode.properties.variable.value as string;
-
-        // wait 2 seconds (wait until LS is updated)
-        console.log(">>> wait 2 seconds");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // update the agent call node
         const updatedAgentCallNode = cloneDeep(agentCallNode);
@@ -303,7 +287,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
             )}
             {!loading && (
                 <ConfigForm
-                    fileName={mainFilePath.current}
+                    fileName={projectPath.current}
                     isSaving={savingForm}
                     formFields={formFields}
                     targetLineRange={{

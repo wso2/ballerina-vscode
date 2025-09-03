@@ -23,7 +23,7 @@ import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 
 const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean }>`
     gap: 16px;
-    max-width: 42rem;
+    width: 132px;
     padding: 12px;
     border-radius: 4px;
     border: 1px solid
