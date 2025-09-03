@@ -23,23 +23,23 @@ import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
+import { DEVANT_API_KEY, DEVANT_STS_TOKEN } from '../../features/ai/utils';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
 
-export const checkToken = async (): Promise<{ token: string; loginMethod: LoginMethod } | undefined> => {
+export const checkToken = async (): Promise<AuthCredentials | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
             // Clean up any legacy tokens on initialization
             await cleanupLegacyTokens();
 
-            const token = await getAccessToken();
-            const loginMethod = await getLoginMethod();
-            if (!token || !loginMethod) {
+            const credentials = await getAccessToken();
+            if (!credentials) {
                 resolve(undefined);
                 return;
             }
-            resolve({ token, loginMethod });
+            resolve(credentials);
         } catch (error) {
             reject(error);
         }
@@ -63,8 +63,8 @@ const cleanupLegacyTokens = async (): Promise<void> => {
 export const logout = async (isUserLogout: boolean = true) => {
     // For user-initiated logout, check if we need to redirect to SSO logout
     if (isUserLogout) {
-        const { token, loginMethod } = await checkToken();
-        if (token && loginMethod === LoginMethod.BI_INTEL) {
+        const credentials = await checkToken();
+        if (credentials.loginMethod === LoginMethod.BI_INTEL) {
             const logoutURL = getLogoutUrl();
             vscode.env.openExternal(vscode.Uri.parse(logoutURL));
         }
@@ -112,7 +112,7 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
         };
         await storeAuthCredentials(credentials);
 
-        return { token: apiKey };
+        return { credentials: credentials };
 
     } catch (error) {
         console.error('API key validation failed:', error);
@@ -128,4 +128,21 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
         }
         throw new Error('Validation failed. Please try again.');
     }
+};
+
+export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefined> => {
+    // Check if both required devant environment variables are present and non-empty
+    if (!DEVANT_API_KEY || !DEVANT_STS_TOKEN ||
+        DEVANT_API_KEY.trim() === '' || DEVANT_STS_TOKEN.trim() === '') {
+        return undefined;
+    }
+
+    // Return devant credentials without storing (always read from env)
+    return {
+        loginMethod: LoginMethod.DEVANT_ENV,
+        secrets: {
+            apiKey: DEVANT_API_KEY,
+            stsToken: DEVANT_STS_TOKEN
+        }
+    };
 };
