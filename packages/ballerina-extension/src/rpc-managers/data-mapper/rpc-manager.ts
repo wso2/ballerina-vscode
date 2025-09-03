@@ -313,7 +313,17 @@ export class DataMapperRpcManager implements DataMapperAPI {
     }
 
     async mapWithTransformFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .mapWithTransformFn(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper map with transform fn response", resp);
+                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
     }
 }
