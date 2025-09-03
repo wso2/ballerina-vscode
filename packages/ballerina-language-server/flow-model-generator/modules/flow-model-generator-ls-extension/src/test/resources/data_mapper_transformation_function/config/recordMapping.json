@@ -21,7 +21,10 @@
     "expression": "user"
   },
   "functionMetadata": {
-    "returnType": "Student",
+    "returnType": {
+      "type": "Student",
+      "kind": "record"
+    },
     "parameters": [
       {
         "name": "user",
@@ -46,7 +49,7 @@
             "character": 29
           }
         },
-        "newText": "mapUserInfoToStudent(user)"
+        "newText": "mapRecordToRecord1(user)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapUserInfoToStudent(UserInfo user) returns Student => {}"
+        "newText": "\nfunction mapRecordToRecord1(UserInfo user) returns ReturnType[type=Student, kind=record] => {}"
       }
     ]
   }

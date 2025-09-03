@@ -114,6 +114,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefReco
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -2151,15 +2152,8 @@ public class DataMapManager {
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
-        String functionName;
-        if (isCustomFunction) {
-            functionName = genFunctionDef(workspaceManager,
-                    filePath, functionMetadata, textEditsMap, semanticModel, true);
-        } else {
-            functionName = genFunctionDef(workspaceManager,
-                    filePath, functionMetadata, textEditsMap, semanticModel, false);
-        }
-
+        String functionName = genFunctionDef(workspaceManager,
+                filePath, functionMetadata, textEditsMap, semanticModel, isCustomFunction);
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
         genSource(expressionNode, mapping.output().split(DOT), 1, new StringBuilder(),
@@ -2219,12 +2213,12 @@ public class DataMapManager {
             functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
         } else {
             functionsFilePath = workspaceManager.projectRoot(filePath).resolve("data_mappings.bal");
-            expressionBody = getExpressionBody(functionMetadata.returnType());
+            expressionBody = getExpressionBody(functionMetadata.returnType().type());
         }
         try {
             workspaceManager.loadProject(filePath);
             Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
-            String returnType = functionMetadata.returnType();
+            ReturnType returnType = functionMetadata.returnType();
             Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
             String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
@@ -2272,26 +2266,24 @@ public class DataMapManager {
         return "{}";
     }
 
-    private static String getFunctionName(List<Parameter> parameters, String returnType, SemanticModel semanticModel) {
+    private static String getFunctionName(List<Parameter> parameters, ReturnType returnType, SemanticModel semanticModel) {
         String functionName = "map";
 
         if (parameters.isEmpty()) {
             return functionName;
         }
         Parameter firstParam = parameters.getFirst();
-        if (firstParam.kind.equals("union")) {
-            return getUnionFunctionName(semanticModel);
-        }
-
-        return functionName + firstParam.type() + "To" + returnType;
+        return functionName + NameUtil.toCamelCase(getFunctionMappingName(firstParam, returnType, semanticModel));
     }
 
-    private static String getUnionFunctionName(SemanticModel semanticModel) {
-        int highestNumber = findHighestUnionNumber(semanticModel);
-        return "mapUnion" + (highestNumber + 1);
+    private static String getFunctionMappingName(Parameter firstParam, ReturnType returnType, SemanticModel semanticModel) {
+        String firstParamKind = firstParam.kind();
+        String returnTypeKind = returnType.kind();
+        int highestNumber = findHighestFunctionNumber(firstParamKind, returnTypeKind, semanticModel);
+        return " " + firstParamKind + " To " + returnTypeKind + (highestNumber + 1);
     }
 
-    private static int findHighestUnionNumber(SemanticModel semanticModel) {
+    private static int findHighestFunctionNumber(String firstParamKind, String returnTypeKind, SemanticModel semanticModel) {
         int highestNumber = 0;
 
         for (Symbol symbol : semanticModel.moduleSymbols()) {
@@ -2299,10 +2291,11 @@ public class DataMapManager {
                 continue;
             }
             Optional<String> name = symbol.getName();
-            if (name.isEmpty() || !name.get().startsWith("mapUnion")) {
+            String functionName = "map" + firstParamKind + "To" + returnTypeKind;
+            if (name.isEmpty() || !name.get().startsWith(functionName)) {
                 continue;
             }
-            String suffix = name.get().substring("mapUnion".length());
+            String suffix = name.get().substring(functionName.length());
             if (!suffix.matches("\\d+")) {
                 continue;
             }
@@ -2395,10 +2388,13 @@ public class DataMapManager {
         }
     }
 
-    private record FunctionMetadata(List<Parameter> parameters, String returnType) {
+    private record FunctionMetadata(List<Parameter> parameters, ReturnType returnType) {
     }
 
     private record Parameter(String name, String type, boolean isOptional, boolean isNullable, String kind) {
+    }
+
+    private record ReturnType(String type, String kind) {
     }
 
     private record Query(String output, List<String> inputs, Clause fromClause,

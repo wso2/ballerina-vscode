@@ -21,7 +21,10 @@
     "expression": "student"
   },
   "functionMetadata": {
-    "returnType": "boolean",
+    "returnType": {
+      "type": "boolean",
+      "kind": "boolean"
+    },
     "parameters": [
       {
         "name": "student",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "isUnderGrad: mapStudentToboolean(student)"
+        "newText": "isUnderGrad: mapRecordToBoolean1(student)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapStudentToboolean(Student student) returns boolean => true"
+        "newText": "\nfunction mapRecordToBoolean1(Student student) returns ReturnType[type=boolean, kind=boolean] => true"
       }
     ]
   }

@@ -21,7 +21,10 @@
     "expression": "input.age"
   },
   "functionMetadata": {
-    "returnType": "int|string",
+    "returnType": {
+      "type": "int|string",
+      "kind": "union"
+    },
     "parameters": [
       {
         "name": "age",
@@ -46,7 +49,7 @@
             "character": 21
           }
         },
-        "newText": "age: mapUnion1(input.age)"
+        "newText": "age: mapUnionToUnion1(input.age)"
       }
     ],
     "proj2/functions.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapUnion1(string|int age) returns int|string {}"
+        "newText": "\nfunction mapUnionToUnion1(string|int age) returns ReturnType[type=int|string, kind=union] {}"
       }
     ]
   }

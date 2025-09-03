@@ -21,7 +21,10 @@
     "expression": "student"
   },
   "functionMetadata": {
-    "returnType": "string",
+    "returnType": {
+      "type": "string",
+      "kind": "string"
+    },
     "parameters": [
       {
         "name": "student",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "password: mapStudentTostring(student)"
+        "newText": "password: mapRecordToString1(student)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapStudentTostring(Student student) returns string => \"\""
+        "newText": "\nfunction mapRecordToString1(Student student) returns ReturnType[type=string, kind=string] => \"\""
       }
     ]
   }

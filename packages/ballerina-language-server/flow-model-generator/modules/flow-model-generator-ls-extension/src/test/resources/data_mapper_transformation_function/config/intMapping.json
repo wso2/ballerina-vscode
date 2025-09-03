@@ -21,7 +21,10 @@
     "expression": "student"
   },
   "functionMetadata": {
-    "returnType": "int",
+    "returnType": {
+      "type": "int",
+      "kind": "int"
+    },
     "parameters": [
       {
         "name": "student",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "age: mapStudentToint(student)"
+        "newText": "age: mapRecordToInt1(student)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapStudentToint(Student student) returns int => 0"
+        "newText": "\nfunction mapRecordToInt1(Student student) returns ReturnType[type=int, kind=int] => 0"
       }
     ]
   }

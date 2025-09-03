@@ -21,7 +21,10 @@
     "expression": "student"
   },
   "functionMetadata": {
-    "returnType": "float",
+    "returnType": {
+      "type": "float",
+      "kind": "float"
+    },
     "parameters": [
       {
         "name": "student",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "height: mapStudentTofloat(student)"
+        "newText": "height: mapRecordToFloat1(student)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapStudentTofloat(Student student) returns float => 0.0"
+        "newText": "\nfunction mapRecordToFloat1(Student student) returns ReturnType[type=float, kind=float] => 0.0"
       }
     ]
   }

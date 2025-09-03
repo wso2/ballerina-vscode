@@ -21,7 +21,10 @@
     "expression": "user"
   },
   "functionMetadata": {
-    "returnType": "string[]",
+    "returnType": {
+      "type": "string[]",
+      "kind": "array"
+    },
     "parameters": [
       {
         "name": "user",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "courses: mapUserInfoTostring[](user)"
+        "newText": "courses: mapRecordToArray1(user)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapUserInfoTostring[](UserInfo user) returns string[] => []"
+        "newText": "\nfunction mapRecordToArray1(UserInfo user) returns ReturnType[type=string[], kind=array] => []"
       }
     ]
   }

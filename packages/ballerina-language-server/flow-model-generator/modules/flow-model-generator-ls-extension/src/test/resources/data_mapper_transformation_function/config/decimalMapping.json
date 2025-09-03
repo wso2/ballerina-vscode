@@ -21,7 +21,10 @@
     "expression": "student"
   },
   "functionMetadata": {
-    "returnType": "decimal",
+    "returnType": {
+      "type": "decimal",
+      "kind": "decimal"
+    },
     "parameters": [
       {
         "name": "student",
@@ -46,7 +49,7 @@
             "character": 28
           }
         },
-        "newText": "gpa: mapStudentTodecimal(student)"
+        "newText": "gpa: mapRecordToDecimal1(student)"
       }
     ],
     "proj/data_mappings.bal": [
@@ -61,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapStudentTodecimal(Student student) returns decimal => 0.0d"
+        "newText": "\nfunction mapRecordToDecimal1(Student student) returns ReturnType[type=decimal, kind=decimal] => 0.0d"
       }
     ]
   }
