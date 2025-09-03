@@ -2,10 +2,10 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
-import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
@@ -21,6 +21,7 @@ interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
     isBISupported: boolean;
     errorCode: string | null;
+    dependenciesResolved?: boolean;
 }
 
 export let history: History;
@@ -36,7 +37,8 @@ const stateMachine = createMachine<MachineContext>(
             langClient: null,
             errorCode: null,
             isBISupported: false,
-            view: MACHINE_VIEW.Overview
+            view: MACHINE_VIEW.Overview,
+            dependenciesResolved: false
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -200,17 +202,26 @@ const stateMachine = createMachine<MachineContext>(
                     viewInit: {
                         invoke: {
                             src: 'openWebView',
-                            onDone: {
-                                target: "resolveMissingDependencies"
-                            },
+                            onDone: [
+                                {
+                                    target: "resolveMissingDependencies",
+                                    cond: (context) => !context.dependenciesResolved
+                                },
+                                {
+                                    target: "webViewLoading"
+                                }
+                            ]
                         }
                     },
                     resolveMissingDependencies: {
                         invoke: {
                             src: 'resolveMissingDependencies',
                             onDone: {
-                                target: "webViewLoading"
-                            },
+                                target: "webViewLoading",
+                                actions: assign({
+                                    dependenciesResolved: true
+                                })
+                            }
                         }
                     },
                     webViewLoading: {
@@ -353,18 +364,76 @@ const stateMachine = createMachine<MachineContext>(
         resolveMissingDependencies: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 if (context?.projectUri) {
-                    const langClient = context.langClient;
-
-                    const dependenciesResponse: any = await langClient.resolveModuleDependencies({
-                        documentIdentifier: {
-                            uri: Uri.file(context.projectUri).toString()
+                    const diagnostics: ProjectDiagnosticsResponse = await StateMachine.langClient().getProjectDiagnostics({
+                        projectRootIdentifier: {
+                            uri: Uri.file(context.projectUri).toString(),
                         }
                     });
 
-                    if (dependenciesResponse?.success) {
-                        console.log("Dependencies resolved successfully.");
-                    } else {
-                        console.log("Error resolving dependencies.");
+                    // Check if there are any "cannot resolve module" diagnostics
+                    const hasMissingModuleDiagnostics = diagnostics.errorDiagnosticMap &&
+                        Object.values(diagnostics.errorDiagnosticMap).some(fileDiagnostics => 
+                            fileDiagnostics.some(diagnostic => 
+                                diagnostic.message.includes('cannot resolve module')
+                            )
+                        );
+
+                    // Only proceed with build if there are missing module diagnostics
+                    if (!hasMissingModuleDiagnostics) {
+                        resolve(true);
+                        return;
+                    }
+
+                    const taskDefinition: TaskDefinition = {
+                        type: 'shell',
+                        task: 'run'
+                    };
+
+                    let buildCommand = 'bal build';
+
+                    const config = workspace.getConfiguration('ballerina');
+                    const ballerinaHome = config.get<string>('home');
+                    if (ballerinaHome) {
+                        buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
+                    }
+
+                    const execution = new ShellExecution(buildCommand);
+
+                    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+                        resolve(true);
+                        return;
+                    }
+
+
+                    const task = new Task(
+                        taskDefinition,
+                        workspace.workspaceFolders![0],
+                        'Ballerina Build',
+                        'ballerina',
+                        execution
+                    );
+
+                    try {
+                        const taskExecution = await tasks.executeTask(task);
+
+                        // Wait for task completion
+                        await new Promise<void>((taskResolve) => {
+                            // Listen for task completion
+                            const disposable = tasks.onDidEndTask((taskEndEvent) => {
+                                if (taskEndEvent.execution === taskExecution) {
+                                    console.log('Build task completed');
+
+                                    // Close the terminal pane on completion
+                                    commands.executeCommand('workbench.action.closePanel');
+
+                                    disposable.dispose();
+                                    taskResolve();
+                                }
+                            });
+                        });
+
+                    } catch (error) {
+                        window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
                     }
                 }
 
