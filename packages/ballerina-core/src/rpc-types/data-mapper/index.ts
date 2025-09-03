@@ -35,7 +35,7 @@ import {
     AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
     DMModelRequest,
     ProcessTypeReferenceResponse,
     ProcessTypeReferenceRequest,
@@ -52,7 +52,7 @@ export interface DataMapperAPI {
     addClauses: (params: AddClausesRequest) => Promise<DataMapperSourceResponse>;
     addSubMapping: (params: AddSubMappingRequest) => Promise<DataMapperSourceResponse>;
     deleteMapping: (params: DeleteMappingRequest) => Promise<DataMapperSourceResponse>;
-    mapWithCustomFn: (params: MapWithCustomFnRequest) => Promise<DataMapperSourceResponse>;
+    mapWithCustomFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getAllDataMapperSource: (params: AllDataMapperSourceRequest) => Promise<DataMapperSourceResponse>;

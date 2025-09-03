@@ -22,7 +22,7 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { getTargetField, getValueType } from "./common-utils";
-import { CustomFnMetadata, CustomFnParams, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getTypeName, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
 
@@ -103,7 +103,8 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 
 	const inputField = sourcePortModel.attributes.field;
 	const outputField = outputPortModel.attributes.field;
-	const inputParams: CustomFnParams[] = [{
+
+	const params: FnParams[] = [{
 		name: inputField.name,
 		type: getTypeName(inputField).replace("record", "any"),
 		isOptional: false,
@@ -111,9 +112,14 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 		kind: inputField.kind
 	}];
 
-	const metadata: CustomFnMetadata = {
-		returnType: getTypeName(outputField).replace("record", "any"),
-		parameters: inputParams
+	const returnType: FnReturnType = {
+		type: getTypeName(outputField).replace("record", "any"),
+		kind: outputField.kind
+	}
+
+	const metadata: FnMetadata = {
+		returnType: returnType,
+		parameters: params
 	}
 
 	await context.mapWithCustomFn(mapping, metadata, viewId);

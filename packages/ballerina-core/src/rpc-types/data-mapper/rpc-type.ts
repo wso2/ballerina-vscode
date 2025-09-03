@@ -37,7 +37,7 @@ import {
     AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
     DMModelRequest,
     ProcessTypeReferenceResponse,
     ProcessTypeReferenceRequest,
@@ -55,7 +55,7 @@ export const convertToQuery: RequestType<ConvertToQueryRequest, DataMapperSource
 export const addClauses: RequestType<AddClausesRequest, DataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
 export const addSubMapping: RequestType<AddSubMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
 export const deleteMapping: RequestType<DeleteMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
-export const mapWithCustomFn: RequestType<MapWithCustomFnRequest, DataMapperSourceResponse> = { method: `${_preFix}/mapWithCustomFn` };
+export const mapWithCustomFn: RequestType<MapWithFnRequest, DataMapperSourceResponse> = { method: `${_preFix}/mapWithCustomFn` };
 export const getDataMapperCodedata: RequestType<GetDataMapperCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
 export const getAllDataMapperSource: RequestType<AllDataMapperSourceRequest, DataMapperSourceResponse> = { method: `${_preFix}/getAllDataMapperSource` };

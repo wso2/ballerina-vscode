@@ -246,7 +246,7 @@ import {
     GetSubMappingCodedataRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
     AIToolResponse,
     AIToolRequest,
     ImportIntegrationRequest,
@@ -768,7 +768,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_MAPPING, params);
     }
 
-    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
+    async mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_CUSTOM_FN, params);
     }
 
