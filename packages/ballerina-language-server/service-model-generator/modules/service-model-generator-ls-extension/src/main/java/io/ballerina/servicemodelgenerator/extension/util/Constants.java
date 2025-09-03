@@ -102,7 +102,6 @@ public class Constants {
 
     public static final String VARIABLE_NAME_KEY = "variableNameKey";
 
-
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
     public static final String GRAPHQL_DEFAULT_LISTENER_EXPR = "new (listenTo = 8080)";
