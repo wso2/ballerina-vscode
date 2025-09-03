@@ -90,3 +90,13 @@ export interface FileOrDirRequest {
 export interface ShowErrorMessageRequest {
     message: string;
 }
+
+export interface TomlPackage {
+    org: string;
+    name: string;
+    version: string;
+}
+
+export interface TomlValues {
+    package: TomlPackage;
+}
