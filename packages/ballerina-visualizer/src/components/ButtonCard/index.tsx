@@ -21,9 +21,9 @@ import { ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 
-const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean }>`
+const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean, sx?: any }>`
     gap: 16px;
-    width: 132px;
+    max-width: 42rem;
     padding: 12px;
     border-radius: 4px;
     border: 1px solid

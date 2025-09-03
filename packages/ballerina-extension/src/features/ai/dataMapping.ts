@@ -51,16 +51,16 @@ export async function createTempDataMappingFile(
   imports: ImportInfo[]
 ): Promise<string> {
   const funcSource = createDataMappingFunctionSource(inputs, output, functionName, inputNames);
-  const tempFilePath = createTempBallerinaFile(projectRoot, funcSource, imports);
+  const tempFilePath = await createTempBallerinaFile(projectRoot, funcSource, imports);
   return tempFilePath;
 }
 
 // Create a temporary Ballerina file with optional imports
-function createTempBallerinaFile(
+async function createTempBallerinaFile(
   projectRoot: string,
   funcSource: string,
   imports?: ImportInfo[]
-): string {
+): Promise<string> {
   let fullSource = funcSource;
 
   if (imports && imports.length > 0) {
