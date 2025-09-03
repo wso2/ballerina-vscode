@@ -38,6 +38,7 @@ import {
     deleteFromProject,
     DeleteFromProjectRequest,
     DeveloperDocument,
+    DocGenerationRequest,
     fetchData,
     FetchDataRequest,
     generateCode,
@@ -61,6 +62,7 @@ import {
     getFromDocumentation,
     getFromFile,
     GetFromFileRequest,
+    getGeneratedDocumentation,
     getGeneratedTests,
     getLoginMethod,
     getModuleDirectory,
@@ -170,4 +172,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
     messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
+    messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
 }

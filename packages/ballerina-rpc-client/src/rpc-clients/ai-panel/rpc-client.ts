@@ -30,6 +30,7 @@ import {
     DatamapperModelContext,
     DeleteFromProjectRequest,
     DeveloperDocument,
+    DocGenerationRequest,
     ExtendedDataMapperMetadata,
     FetchDataRequest,
     FetchDataResponse,
@@ -88,6 +89,7 @@ import {
     getFileExists,
     getFromDocumentation,
     getFromFile,
+    getGeneratedDocumentation,
     getGeneratedTests,
     getLoginMethod,
     getModuleDirectory,
@@ -367,5 +369,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     abortAIGeneration(): void {
         return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
+    }
+
+    getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+        return this._messenger.sendRequest(getGeneratedDocumentation, HOST_EXTENSION, params);
     }
 }

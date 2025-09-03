@@ -23,7 +23,6 @@ import {
     SourceFile,
     MappingParameters,
     DataMappingRecord,
-    PostProcessResponse,
     TestGenerationTarget,
     LLMDiagnostics,
     ImportStatement,
@@ -45,6 +44,8 @@ import {
     ImportInfo,
     MetadataWithAttachments,
     ExtendedDataMapperMetadata,
+    DocGenerationRequest,
+    DocGenerationType,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -60,23 +61,15 @@ import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../sty
 import ReferenceDropdown from "../ReferenceDropdown";
 import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import {
-    CopilotContentBlockContent,
-    CopilotErrorContent,
-    CopilotEvent,
-    hasCodeBlocks,
-    parseCopilotSSEEvent,
-} from "../../utils/sseUtils";
 import MarkdownRenderer from "../MarkdownRenderer";
 import { CodeSection } from "../CodeSection";
 import ErrorBox from "../ErrorBox";
-import { Input, parseBadgeString, parseInput, stringifyInputArrayWithBadges } from "../AIChatInput/utils/inputUtils";
+import { Input, parseInput, stringifyInputArrayWithBadges } from "../AIChatInput/utils/inputUtils";
 import { commandTemplates, NATURAL_PROGRAMMING_TEMPLATES } from "../../commandTemplates/data/commandTemplates.const";
 import { placeholderTags } from "../../commandTemplates/data/placeholderTags.const";
 import {
     getTemplateById,
     getTemplateTextById,
-    injectTags,
     removeTemplate,
     upsertTemplate,
 } from "../../commandTemplates/utils/utils";
@@ -93,17 +86,6 @@ import { getOnboardingOpens, incrementOnboardingOpens } from "./utils/utils";
 
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
-
-interface CodeBlock {
-    filePath: string;
-    content: string;
-}
-
-interface ApiResponse {
-    event: string;
-    error: string | null;
-    questions: string[];
-}
 
 interface ChatIndexes {
     integratedChatIndex: number;
@@ -690,6 +672,16 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
+                case Command.Doc: {
+                    switch (parsedInput.templateId) {
+                        case "generate-user-doc":
+                            await processUserDocGeneration(
+                                parsedInput.placeholderValues.servicename
+                            );
+                            break;
+                    }
+                    break;
+                }
             }
         }
     }
@@ -1048,6 +1040,27 @@ const AIChat: React.FC = () => {
             };
 
             await rpcClient.getAiPanelRpcClient().generateTestPlan(requestBody);
+        } catch (error: any) {
+            setIsLoading(false);
+            const errorName = error instanceof Error ? error.name : "Unknown error";
+            const errorMessage = "message" in error ? error.message : "Unknown error";
+
+            if (errorName === "AbortError") {
+                throw new Error("Failed: The user cancelled the request.");
+            } else {
+                throw new Error(errorMessage);
+            }
+        }
+    }
+
+    async function processUserDocGeneration(serviceName: string) {
+        try {
+            const requestBody: DocGenerationRequest = {
+                type: DocGenerationType.User,
+                serviceName: serviceName
+            };
+
+            await rpcClient.getAiPanelRpcClient().getGeneratedDocumentation(requestBody);
         } catch (error: any) {
             setIsLoading(false);
             const errorName = error instanceof Error ? error.name : "Unknown error";

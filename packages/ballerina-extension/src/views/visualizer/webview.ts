@@ -168,13 +168,13 @@ export class VisualizerWebview {
                 padding-top: 30vh;
             }
             .loader {
-                width: 32px;
+                width: 36px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 4px solid var(--vscode-button-background);
+                border: 6px solid var(--vscode-button-background);
                 animation:
-                    l20-1 0.8s infinite linear alternate,
-                    l20-2 1.6s infinite linear;
+                    l20-1 0.5s infinite linear alternate,
+                    l20-2 1s infinite linear;
             }
             @keyframes l20-1{
                 0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
