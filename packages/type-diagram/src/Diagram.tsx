@@ -29,6 +29,8 @@ import { dagreEngine } from './resources/constants';
 import { DesignDiagramContext } from './components/common';
 import { DiagramControls } from './components/Controls/DiagramControls';
 import { OverlayLayerModel } from './components/OverlayLoader';
+import { NodeSelector } from './components/NodeSelector';
+import { FilteringInfoBanner } from './components/FilteringInfoBanner';
 import { Type } from '@wso2/ballerina-core';
 import { focusToNode } from './utils/utils';
 import { graphqlModeller } from './utils/model-mapper/entityModelMapper';
@@ -39,38 +41,65 @@ interface TypeDiagramProps {
     isGraphql?: boolean;
     selectedNodeId?: string;
     focusedNodeId?: string;
+    focusOnLargeDiagram?: string;
     updateFocusedNodeId?: (nodeId: string) => void;
     showProblemPanel?: () => void;
     goToSource: (node: Type) => void
     onTypeEdit: (typeId: string, isGraphqlRoot?: boolean) => void;
 }
 
-export function TypeDiagram(props: TypeDiagramProps) {
-    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql } = props;
+export interface ModellerResult {
+    model: DiagramModel;
+    isFirstLevelDependenciesFiltered?: boolean;
+}
 
+export function TypeDiagram(props: TypeDiagramProps) {
+    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, focusOnLargeDiagram } = props;
+    console.log("selectedNodeId in TypeDiagram, focusOnLargeDiagram, focusedNodeId", selectedNodeId, focusOnLargeDiagram, focusedNodeId);
     const [diagramEngine] = useState<DiagramEngine>(createEntitiesEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
     const [hasDiagnostics, setHasDiagnostics] = useState<boolean>(false);
     const [selectedDiagramNode, setSelectedDiagramNode] = useState<string>(selectedNodeId);
+    const [showNodeSelector, setShowNodeSelector] = useState<boolean>(false);
+    const [isFirstLevelFiltered, setIsFirstLevelFiltered] = useState<boolean>(false);
 
     useEffect(() => {
         drawDiagram(focusedNodeId);
-    }, [typeModel, focusedNodeId, rootService]);
+    }, [typeModel, focusedNodeId, rootService, focusOnLargeDiagram]);
 
     useEffect(() => {
         setSelectedDiagramNode(selectedNodeId);
+        if (selectedNodeId === undefined) {
+            drawDiagram();
+        }
+
     }, [selectedNodeId]);
 
     const drawDiagram = (focusedNode?: string) => {
-        let diagramModel;
+        // Check if we have too many nodes and no focused node
+        if (!focusedNode && !focusOnLargeDiagram && typeModel && typeModel.length > 100) {
+            console.log(`Large diagram detected (${typeModel.length} nodes). Showing node selector.`);
+            setShowNodeSelector(true);
+            return;
+        }
+
+        let diagramModel: DiagramModel;
+        setShowNodeSelector(false);
+
 
         // Create diagram model based on type
         if (isGraphql && rootService) {
             console.log("Modeling  graphql diagram");
             diagramModel = graphqlModeller(rootService, typeModel);
         } else if (typeModel && !isGraphql) {
-            console.log("Modeling entity diagram");
-            diagramModel = entityModeller(typeModel, focusedNode);
+            console.log("Modeling entity diagram", focusedNode, selectedNodeId);
+            let nodeToFocus = focusedNode;
+            if (focusOnLargeDiagram) {
+                nodeToFocus = focusOnLargeDiagram;
+            }
+            const modellerResult: ModellerResult = entityModeller(typeModel, nodeToFocus);
+            diagramModel = modellerResult.model;
+            setIsFirstLevelFiltered(modellerResult.isFirstLevelDependenciesFiltered || false);
         }
 
         if (diagramModel) {
@@ -129,25 +158,43 @@ export function TypeDiagram(props: TypeDiagramProps) {
         drawDiagram(focusedNodeId);
     };
 
+    const handleNodeSelect = (nodeId: string) => {
+        console.log(`Node selected: ${nodeId}`);
+        setShowNodeSelector(false);
+        if (updateFocusedNodeId) {
+            updateFocusedNodeId(nodeId);
+        }
+    };
+
+
     return (
         <DesignDiagramContext {...ctx}>
-            {diagramEngine?.getModel() && diagramModel ?
-                <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                    <DiagramContainer data-testid="type-diagram">
-                        <NavigationWrapperCanvasWidget
-                            diagramEngine={diagramEngine}
-                            className={styles.canvas}
-                            focusedNode={diagramEngine?.getModel()?.getNode(selectedDiagramNode)}
+            {showNodeSelector ? (
+                <NodeSelector
+                    nodes={typeModel || []}
+                    onNodeSelect={handleNodeSelect}
+                />
+            ) : diagramEngine?.getModel() && diagramModel ? (
+                <>
+                    {isFirstLevelFiltered && <FilteringInfoBanner />}
+                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+                        <DiagramContainer data-testid="type-diagram">
+                            <NavigationWrapperCanvasWidget
+                                diagramEngine={diagramEngine}
+                                className={styles.canvas}
+                                focusedNode={diagramEngine?.getModel()?.getNode(selectedDiagramNode)}
+                            />
+                        </DiagramContainer>
+                        <DiagramControls
+                            engine={diagramEngine}
+                            refreshDiagram={refreshDiagram}
+                            showProblemPanel={showProblemPanel}
                         />
-                    </DiagramContainer>
-                    <DiagramControls
-                        engine={diagramEngine}
-                        refreshDiagram={refreshDiagram}
-                        showProblemPanel={showProblemPanel}
-                    />
-                </div> :
+                    </div>
+                </>
+            ) : (
                 <ProgressRing sx={{ color: ThemeColors.PRIMARY }} />
-            }
+            )}
         </DesignDiagramContext>
     );
 }
