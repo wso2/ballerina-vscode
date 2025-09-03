@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
 import com.google.gson.JsonElement;
 
 /**
- * Represents a request to get text edits for function definition and function call.
+ * Represents a request to get text edits for transform function definition and its function call.
  *
  * @param filePath         File path of the source file
  * @param codedata         Position details of the node

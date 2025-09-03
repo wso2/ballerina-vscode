@@ -387,6 +387,14 @@ public class DataMapperService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Generates text edits for transformation function and its function call.
+     * @param request The request containing information needed to generate the transformation function,
+     *                including file path, code data, mapping details, function metadata and target field
+     * @return Two text edits to apply to the codebase - one for the function definition and one for the function call
+     *
+     * @since 1.2.0
+     */
     @JsonRequest
     public CompletableFuture<DataMapperSourceResponse> transformationFunction(
             DataMapperTransformFunctionRequest request) {

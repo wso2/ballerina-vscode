@@ -2245,30 +2245,20 @@ public class DataMapManager {
             return "[]";
         }
 
-        switch (returnType) {
-            case INT -> {
-                return "0";
-            }
-            case FLOAT -> {
-                return "0.0";
-            }
-            case DECIMAL -> {
-                return "0.0d";
-            }
-            case BOOLEAN -> {
-                return "true";
-            }
-            case STRING -> {
-                return "\"\"";
-            }
-        }
+        return  switch (returnType) {
+            case INT -> "0";
+            case FLOAT -> "0.0";
+            case DECIMAL -> "0.0d";
+            case BOOLEAN -> "true";
+            case STRING -> "\"\"";
+            default -> "{}";
+        };
 
-        return "{}";
     }
 
-    private static String getFunctionName(List<Parameter> parameters, ReturnType returnType, SemanticModel semanticModel) {
+    private static String getFunctionName(List<Parameter> parameters, ReturnType returnType,
+                                          SemanticModel semanticModel) {
         String functionName = "map";
-
         if (parameters.isEmpty()) {
             return functionName;
         }
@@ -2276,14 +2266,16 @@ public class DataMapManager {
         return functionName + NameUtil.toCamelCase(getFunctionMappingName(firstParam, returnType, semanticModel));
     }
 
-    private static String getFunctionMappingName(Parameter firstParam, ReturnType returnType, SemanticModel semanticModel) {
+    private static String getFunctionMappingName(Parameter firstParam, ReturnType returnType,
+                                                 SemanticModel semanticModel) {
         String firstParamKind = firstParam.kind();
         String returnTypeKind = returnType.kind();
         int highestNumber = findHighestFunctionNumber(firstParamKind, returnTypeKind, semanticModel);
         return " " + firstParamKind + " To " + returnTypeKind + (highestNumber + 1);
     }
 
-    private static int findHighestFunctionNumber(String firstParamKind, String returnTypeKind, SemanticModel semanticModel) {
+    private static int findHighestFunctionNumber(String firstParamKind, String returnTypeKind,
+                                                 SemanticModel semanticModel) {
         int highestNumber = 0;
 
         for (Symbol symbol : semanticModel.moduleSymbols()) {
