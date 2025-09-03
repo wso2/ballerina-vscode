@@ -39,6 +39,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
@@ -61,8 +62,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
@@ -154,7 +159,51 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     }
 
     @Override
-    public void addServiceInitSource() {
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
+        List<String> requiredParams = new ArrayList<>();
+        List<String> includedParams = new ArrayList<>();
+        List<TextEdit> edits = new ArrayList<>();
+        for (Map.Entry<String, Value> entry : properties.entrySet()) {
+            Value value = entry.getValue();
+            Codedata codedata = value.getCodedata();
+            String argType = codedata.getArgType();
+            if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
+                requiredParams.add(value.getValue());
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED)
+                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED)) {
+                includedParams.add(value.getValue());
+            }
+        }
+        String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+        String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                modulePartNode.lineRange().endLine(), LISTENER_VAR_NAME.formatted(listenerProtocol));
+        requiredParams.addAll(includedParams);
+        String args = String.join(", ", requiredParams);
+        String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
+                listenerProtocol, "Listener", listenerVarName, args);
+
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(listenerDeclaration)
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE);
+
+        Value basePath = serviceInitModel.getProperties().get("basePath");
+        if (basePath != null && !basePath.getValue().isEmpty()) {
+            builder.append(basePath.getValue()).append(SPACE);
+        }
+        builder.append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE).append(CLOSE_BRACE).append(NEW_LINE);
+
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        return Map.of(context.filePath(), edits);
     }
 
     @Override

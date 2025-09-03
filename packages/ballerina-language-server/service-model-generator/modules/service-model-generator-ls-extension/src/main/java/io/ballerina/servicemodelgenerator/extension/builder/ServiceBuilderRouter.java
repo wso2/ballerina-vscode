@@ -33,6 +33,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
@@ -126,5 +127,17 @@ public class ServiceBuilderRouter {
         GetServiceInitModelContext context = new GetServiceInitModelContext(
                 request.orgName(), request.pkgName(), request.moduleName());
         return serviceBuilder.getServiceInitModel(context);
+    }
+
+    public static Map<String, List<TextEdit>> addServiceInitSource(ServiceInitModel serviceInitModel,
+                                                                   SemanticModel semanticModel,
+                                                                   Project project, WorkspaceManager workspaceManager,
+                                                                   String filePath,
+                                                                   Document document)
+            throws Exception {
+        ServiceNodeBuilder serviceBuilder = getServiceBuilder(serviceInitModel.getModuleName());
+        AddServiceInitModelContext context = new AddServiceInitModelContext(serviceInitModel, semanticModel, project,
+                workspaceManager, filePath, document);
+        return serviceBuilder.addServiceInitSource(context);
     }
 }

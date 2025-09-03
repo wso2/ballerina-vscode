@@ -20,7 +20,12 @@ package io.ballerina.servicemodelgenerator.extension.builder;
 
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
+import org.eclipse.lsp4j.TextEdit;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for building service model specific models.
@@ -37,5 +42,5 @@ public interface ServiceNodeBuilder extends NodeBuilder<Service> {
     /**
      * Get the listener and service declaration source.
      */
-    void addServiceInitSource();
+    Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context);
 }
