@@ -450,6 +450,14 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.AddCustomConnector:
+                        setViewComponent(
+                            <AddConnectionWizard
+                                fileName={value.documentUri || value.projectUri}
+                                openCustomConnectorView={true}
+                            />
+                        );
+                        break;
                     case MACHINE_VIEW.BIMainFunctionForm:
                         setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} isAutomation={true} />);
                         break;

@@ -55,6 +55,10 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConnectionWizard });
     });
 
+    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, () => {
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddCustomConnector });
+    });
+
     commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIComponentView });
     });
