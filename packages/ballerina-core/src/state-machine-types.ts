@@ -78,6 +78,7 @@ export enum MACHINE_VIEW {
     BIImportIntegration = "BI Import Integration SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
     AddConfigVariables = "Add Config Variables",
