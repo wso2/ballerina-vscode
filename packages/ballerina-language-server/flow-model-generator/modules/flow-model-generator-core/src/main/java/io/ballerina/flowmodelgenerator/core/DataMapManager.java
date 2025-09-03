@@ -2283,13 +2283,12 @@ public class DataMapManager {
     private static int findHighestFunctionNumber(String firstParamKind, String returnTypeKind,
                                                  SemanticModel semanticModel) {
         int highestNumber = 0;
-
+        String functionName = NameUtil.toCamelCase("map " + firstParamKind + " To " + returnTypeKind);
         for (Symbol symbol : semanticModel.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.FUNCTION) {
                 continue;
             }
             Optional<String> name = symbol.getName();
-            String functionName = NameUtil.toCamelCase("map " + firstParamKind + " To " + returnTypeKind);
             if (name.isEmpty() || !name.get().startsWith(functionName)) {
                 continue;
             }
