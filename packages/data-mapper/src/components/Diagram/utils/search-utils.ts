@@ -126,7 +126,12 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	return false;
 }
 
-export function getFilteredMappings(mappings: Mapping[], inputSearch: string, outputSearch: string): Mapping[] {
+export function getFilteredMappings(
+	mappings: Mapping[],
+	inputSearch: string,
+	outputSearch: string,
+	isElement: boolean = false
+): Mapping[] {
     return mappings.flatMap(mapping => {
 
 		const filteredInputs = mapping.inputs.filter(input => {
@@ -136,12 +141,13 @@ export function getFilteredMappings(mappings: Mapping[], inputSearch: string, ou
 		});
 
         const outputField = mapping.output.split(".").pop();
-        const matchedWithOutputSearch = outputSearch === "" || 
+        const matchedWithOutputSearch = outputSearch === "" ||
+			isElement ||
             outputField.toLowerCase().includes(outputSearch.toLowerCase());
         
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 
-            getFilteredMappings(element.mappings, inputSearch, outputSearch)
+            getFilteredMappings(element.mappings, inputSearch, outputSearch, matchedWithOutputSearch)
         ) || [];
 
 		const filteredMapping = filteredInputs.length > 0 && matchedWithOutputSearch;
