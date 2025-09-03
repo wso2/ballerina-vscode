@@ -221,6 +221,11 @@
                         "experimental"
                     ]
                 },
+                "ballerina.showAdvancedAiNodes": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show advanced AI nodes (Chunker, Vector Store, Embedding Provider, Recursive Document Chunker) in the Flow Diagram View's node palette."
+                },
                 "ballerina-vscode.trace.server": {
                     "type": "string",
                     "default": "off",
@@ -623,6 +628,13 @@
             {
                 "command": "BI.project-explorer.add-connection",
                 "title": "Add Connection",
+                "icon": "$(add)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
+                "command": "BI.project-explorer.add-custom-connector",
+                "title": "Add Custom Connector",
                 "icon": "$(add)",
                 "group": "navigation",
                 "category": "BI"

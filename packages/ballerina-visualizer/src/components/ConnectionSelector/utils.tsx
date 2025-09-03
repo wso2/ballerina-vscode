@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { FlowNode, Category, Property } from "@wso2/ballerina-core";
+import { FlowNode, Category, Property, ProjectStructureArtifactResponse } from "@wso2/ballerina-core";
 import { FormField, Category as PanelCategory, FormValues, FormImports } from "@wso2/ballerina-side-panel";
 import { ConnectionKindConfig, ConnectionKind, ConnectionSearchConfig } from "./types";
 import { getImportsForProperty } from "../../utils/bi";
@@ -130,7 +130,7 @@ export const updateNodeWithConnectionVariable = (connectionKind: ConnectionKind,
     const propertyKey = getValidPropertyKey(selectedNode, config.nodePropertyKey) || (Array.isArray(config.nodePropertyKey) ? config.nodePropertyKey[0] : config.nodePropertyKey);
     const property = selectedNode.properties[propertyKey as keyof typeof selectedNode.properties];
 
-    if (property && typeof property === 'object' && 'value' in property) {
+    if (property && typeof property === 'object') {
         (property as Property).value = connectionVariable;
     }
 };
@@ -140,4 +140,17 @@ export const getSearchConfig = (connectionKind: ConnectionKind, aiModuleOrg?: st
     if (config.searchConfig)
         return config.searchConfig(aiModuleOrg);
     return { query: "", searchKind: connectionKind };
+};
+
+export const updateNodeLineRange = (selectedNode: FlowNode, artifacts: ProjectStructureArtifactResponse[]): void => {
+    const selectedNodeArtifact = artifacts.find((artifact) => {
+        return artifact.name === selectedNode.properties.variable.value;
+    });
+    if (selectedNodeArtifact && selectedNodeArtifact.position && !selectedNode?.codedata?.isNew) {
+        selectedNode.codedata.lineRange = {
+            fileName: selectedNodeArtifact?.path,
+            startLine: { line: selectedNodeArtifact.position.startLine, offset: selectedNodeArtifact.position.startColumn },
+            endLine: { line: selectedNodeArtifact.position.endLine, offset: selectedNodeArtifact.position.endColumn }
+        };
+    }
 };

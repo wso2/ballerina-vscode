@@ -89,7 +89,11 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -125,6 +129,8 @@ export const getAvailableModelProviders: RequestType<BIAvailableNodesRequest, BI
 export const getAvailableVectorStores: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableVectorStores` };
 export const getAvailableEmbeddingProviders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableEmbeddingProviders` };
 export const getAvailableVectorKnowledgeBases: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableVectorKnowledgeBases` };
+export const getAvailableDataLoaders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableDataLoaders` };
+export const getAvailableChunkers: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableChunkers` };
 export const getEnclosedFunction: RequestType<BIGetEnclosedFunctionRequest, BIGetEnclosedFunctionResponse> = { method: `${_preFix}/getEnclosedFunction` };
 export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getNodeTemplate` };
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
@@ -164,6 +170,8 @@ export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
 export const updateTypes: RequestType<UpdateTypesRequest, UpdateTypesResponse> = { method: `${_preFix}/updateTypes` };
+export const deleteType: RequestType<DeleteTypeRequest, DeleteTypeResponse> = { method: `${_preFix}/deleteType` };
+export const verifyTypeDelete: RequestType<VerifyTypeDeleteRequest, VerifyTypeDeleteResponse> = { method: `${_preFix}/verifyTypeDelete` };
 export const getTypeFromJson: RequestType<JsonToTypeRequest, JsonToTypeResponse> = { method: `${_preFix}/getTypeFromJson` };
 export const getServiceClassModel: RequestType<ModelFromCodeRequest, ServiceClassModelResponse> = { method: `${_preFix}/getServiceClassModel` };
 export const updateClassField: RequestType<ClassFieldModifierRequest, SourceEditResponse> = { method: `${_preFix}/updateClassField` };

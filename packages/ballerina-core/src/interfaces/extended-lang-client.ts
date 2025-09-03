@@ -837,17 +837,32 @@ export type SearchQueryParams = {
     q?: string;
     limit?: number;
     offset?: number;
+    orgName?: string;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE" | "CLASS_INIT";
+export type SearchKind =
+    | "FUNCTION"
+    | "CONNECTOR"
+    | "TYPE"
+    | "NP_FUNCTION"
+    | "MODEL_PROVIDER"
+    | "VECTOR_STORE"
+    | "EMBEDDING_PROVIDER"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "DATA_LOADER"
+    | "CHUNKER"
+    | "AGENT"
+    | "MEMORY_MANAGER"
+    | "AGENT_TOOL"
+    | "CLASS_INIT";
 
 export type BISearchRequest = {
     position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 
@@ -1134,6 +1149,22 @@ export interface RenameIdentifierRequest {
     newName: string;
 }
 
+export interface ImportIntegrationRequest {
+    packageName: string;
+    orgName: string;
+    sourcePath: string;
+    parameters?: Record<string, any>;
+}
+
+export interface ImportIntegrationResponse {
+    error: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
+    jsonReport: string;
+}
+
 // <-------- Trigger Related ------->
 export interface TriggerModelsRequest {
     organization?: string;
@@ -1361,6 +1392,30 @@ export interface UpdateTypesResponse {
     textEdits: {
         [filePath: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface DeleteTypeRequest {
+    filePath: string;
+    lineRange: LineRange;
+}
+
+export interface DeleteTypeResponse {
+    textEdits: {
+        [filePath: string]: TextEdit[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface VerifyTypeDeleteRequest {
+    filePath: string;
+    startPosition: LinePosition;
+}
+
+export interface VerifyTypeDeleteResponse {
+    canDelete: boolean;
     errorMsg?: string;
     stacktrace?: string;
 }
