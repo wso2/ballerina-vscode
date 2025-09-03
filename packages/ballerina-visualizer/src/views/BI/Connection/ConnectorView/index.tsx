@@ -21,7 +21,7 @@ import styled from "@emotion/styled";
 import { AvailableNode, Category, FlowNode, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, ProgressRing, SearchBox, SplitView, ThemeColors, TreeViewItem, Typography, View } from "@wso2/ui-toolkit";
-import { cloneDeep, debounce, set } from "lodash";
+import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyText, BodyTinyInfo, TopBar } from "../../../styles";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -312,7 +312,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                 </Row>
 
                 <SplitView sx={{ height: "100%", overflow: "hidden" }} defaultWidths={[20, 80]}>
-                    <div style={{ marginTop: "24px" }}>
+                    <div style={{ marginTop: "24px", minWidth: "220px" }}>
                         <TreeViewItem
                             key={`StandardLibrary`}
                             id={`StandardLibrary`}
@@ -553,7 +553,6 @@ export function ConnectorView(props: ConnectorViewProps) {
                         )}
                     </ListContainer>
                 </SplitView>
-                {!isSearching && connectors.length === 0 && <p>No connectors found</p>}
             </Container>
         </ViewWrapper>
     );
