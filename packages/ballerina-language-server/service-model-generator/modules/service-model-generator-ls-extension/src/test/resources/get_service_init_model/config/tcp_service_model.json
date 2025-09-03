@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "3",
       "displayName": "TCP Service",
-      "description": "TCP Service",
+      "description": "Create TCP service to handle TCP client connections",
       "orgName": "ballerina",
       "packageName": "tcp",
       "moduleName": "tcp",
@@ -16,17 +16,18 @@
       "type": "tcp",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
       "properties": {
-        "tcpPort": {
+        "localPort": {
           "metadata": {
             "label": "TCP Port",
             "description": "The port on which the TCP service listens"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "80",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,

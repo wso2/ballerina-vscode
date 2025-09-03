@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "9",
       "displayName": "RabbitMQ Event Handler",
-      "description": "RabbitMQ Event Handler",
+      "description": "Create a service to handle messages from a RabbitMQ queue",
       "orgName": "ballerinax",
       "packageName": "rabbitmq",
       "moduleName": "rabbitmq",
@@ -22,11 +22,12 @@
             "description": "The host used for establishing the connection"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "\"localhost\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -40,11 +41,12 @@
             "description": "The port used for establishing the connection"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "5672",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -58,11 +60,12 @@
             "description": "The name of the queue to listen to"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "SERVICE_BASE_PATH"
           },
-          "placeholder": "\"\"",
+          "placeholder": "\"myQueue\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,

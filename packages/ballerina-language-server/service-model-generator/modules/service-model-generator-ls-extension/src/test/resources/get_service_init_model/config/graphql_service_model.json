@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "2",
       "displayName": "GraphQL Service",
-      "description": "GraphQL Service",
+      "description": "Create GraphQL service",
       "orgName": "ballerina",
       "packageName": "graphql",
       "moduleName": "graphql",
@@ -27,6 +27,7 @@
           "placeholder": "/graphql",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "/graphql",
           "items": [],
           "typeMembers": [],
           "enabled": true,

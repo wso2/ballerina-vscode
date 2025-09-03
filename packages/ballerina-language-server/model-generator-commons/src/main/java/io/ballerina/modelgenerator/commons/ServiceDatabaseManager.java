@@ -289,6 +289,7 @@ public class ServiceDatabaseManager {
     public Optional<ServiceInitInfo> getServiceInitInfo(String orgName, String moduleName) {
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append("s.display_name, ");
+        sql.append("s.description, ");
         sql.append("p.package_id, ");
         sql.append("p.org, ");
         sql.append("p.name AS package_name, ");
@@ -316,6 +317,7 @@ public class ServiceDatabaseManager {
                         rs.getString("version")
                 );
                 String displayName = rs.getString("display_name");
+                String description = rs.getString("description");
                 conn.close();
 
                 StringBuilder sql2 = new StringBuilder("SELECT ");
@@ -324,6 +326,7 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.label, ");
                 sql2.append("sip.description, ");
                 sql2.append("sip.default_value, ");
+                sql2.append("sip.placeholder, ");
                 sql2.append("sip.value_type as valueType, ");
                 sql2.append("sip.type_constrain as typeConstrain, ");
                 sql2.append("sip.source_kind as sourceKind, ");
@@ -341,7 +344,8 @@ public class ServiceDatabaseManager {
                         initProperties.add(getServiceInitProperty(rs2));
                     }
                     conn2.close();
-                    ServiceInitInfo serviceInitInfo = new ServiceInitInfo(packageInfo, displayName, initProperties);
+                    ServiceInitInfo serviceInitInfo = new ServiceInitInfo(packageInfo, displayName, description,
+                            initProperties);
                     return Optional.of(serviceInitInfo);
                 }
             }
@@ -360,6 +364,7 @@ public class ServiceDatabaseManager {
                 rs.getString("label"),
                 rs.getString("description"),
                 rs.getString("default_value"),
+                rs.getString("placeholder"),
                 rs.getString("valueType"),
                 rs.getString("typeConstrain"),
                 rs.getString("sourceKind"),
