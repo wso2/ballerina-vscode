@@ -19,6 +19,7 @@
 import { Member, Type, TypeFunctionModel, TypeNodeKind } from '@wso2/ballerina-core';
 import { DiagramModel } from '@projectstorm/react-diagrams';
 import { EntityLinkModel, EntityModel, EntityPortModel } from '../../components/entity-relationship';
+import { ModellerResult } from '../../Diagram';
 
 function createEntityNodes(components: Type[], selectedEntityId?: string, isGraphqlRoot?: boolean): Map<string, EntityModel> {
     let entityNodes = new Map<string, EntityModel>();
@@ -51,7 +52,11 @@ function createEntityLinks(entityNodes: Map<string, EntityModel>): EntityLinkMod
     entityNodes.forEach((sourceNode) => {
         const members = isNodeClass(sourceNode.entityObject?.codedata?.node) ? sourceNode.entityObject.functions : sourceNode.entityObject.members;
         if (members) {
-            Object.entries(members).forEach(([_, member]: [string, Member | TypeFunctionModel]) => {
+            const memberEntries = Array.isArray(members) 
+                ? members.map((member, index) => [index.toString(), member] as [string, Member | TypeFunctionModel])
+                : Object.entries(members);
+                
+            memberEntries.forEach(([_, member]: [string, Member | TypeFunctionModel]) => {
                 const refs = getRefs(member);
 
                 if (refs.length > 0) {
@@ -107,15 +112,24 @@ export function graphqlModeller(rootService: Type, refs: Type[]): DiagramModel {
     return model;
 }
 
-export function entityModeller(components: Type[], selectedEntityId?: string): DiagramModel {
+export function entityModeller(components: Type[], selectedEntityId?: string): ModellerResult {
     let filteredComponents = components;
+    let firstLevelDependenciesFiltered = false;
 
-    // If selectedEntityId is provided, filter for related entities
     if (selectedEntityId) {
         const relatedEntities = new Set<string>();
         relatedEntities.add(selectedEntityId);
         findRelatedEntities(selectedEntityId, components, relatedEntities);
         filteredComponents = components.filter(comp => relatedEntities.has(comp.name));
+        console.log(`Filtered to ${filteredComponents.length} related nodes for selected entity '${selectedEntityId}'`);
+        
+        if (filteredComponents.length > 70) {
+            // show only the selected entity + first level dependencies
+            const firstLevelDeps = findFirstLevelDependencies(selectedEntityId, components);
+            filteredComponents = components.filter(comp => firstLevelDeps.has(comp.name));
+            firstLevelDependenciesFiltered = true;
+            console.log(`Filtered to first-level dependencies: ${filteredComponents.length} components`);
+        }
     }
 
     // Create nodes and links
@@ -124,7 +138,35 @@ export function entityModeller(components: Type[], selectedEntityId?: string): D
 
     let model = new DiagramModel();
     model.addAll(...Array.from(entityNodes.values()), ...entityLinks);
-    return model;
+    return {
+        model,
+        isFirstLevelDependenciesFiltered: firstLevelDependenciesFiltered
+    };
+}
+
+/**
+ * Finds only the first-level dependencies of a selected entity
+ */
+function findFirstLevelDependencies(componentId: string, components: Type[]): Set<string> {
+    const firstLevelDeps = new Set<string>();
+    firstLevelDeps.add(componentId);
+    
+    const component = components.find(comp => comp.name === componentId);
+    if (!component) return firstLevelDeps;
+
+    const members = isNodeClass(component?.codedata?.node) ? component.functions : component.members;
+
+    if (members) {
+        const memberList = Array.isArray(members) ? members : Object.values(members);
+        memberList.forEach((member: Member | TypeFunctionModel) => {
+            const refs = getRefs(member);
+            refs.forEach(ref => {
+                firstLevelDeps.add(ref);
+            });
+        });
+    }
+    
+    return firstLevelDeps;
 }
 
 function findRelatedEntities(componentId: string, components: Type[], relatedEntities: Set<string>) {
@@ -133,16 +175,18 @@ function findRelatedEntities(componentId: string, components: Type[], relatedEnt
 
     const members = isNodeClass(component?.codedata?.node) ? component.functions : component.members;
 
-    Object.values(members).forEach(member => {
-        if (member.refs) {
-            member.refs.forEach(ref => {
+    if (members) {
+        const memberList = Array.isArray(members) ? members : Object.values(members);
+        memberList.forEach((member: Member | TypeFunctionModel) => {
+            const refs = getRefs(member);
+            refs.forEach(ref => {
                 if (!relatedEntities.has(ref)) {
                     relatedEntities.add(ref);
                     findRelatedEntities(ref, components, relatedEntities);
                 }
             });
-        }
-    });
+        });
+    }
 }
 
 function createLinks(sourcePort: EntityPortModel, targetPort: EntityPortModel, link: EntityLinkModel): EntityLinkModel {
