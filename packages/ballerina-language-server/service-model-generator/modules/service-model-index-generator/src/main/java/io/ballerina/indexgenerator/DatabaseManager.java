@@ -123,14 +123,14 @@ class DatabaseManager {
 
     public static void insertServiceDeclaration(int packageId,
                                                 ServiceIndexGenerator.ServiceDeclaration serviceDeclaration) {
-        String sql = "INSERT INTO ServiceDeclaration (package_id, display_name, optional_type_descriptor, " +
-                "type_descriptor_label, type_descriptor_description, type_descriptor_default_value, " +
-                "add_default_type_descriptor, " +
+        String sql = "INSERT INTO ServiceDeclaration (package_id, display_name, description, " +
+                "optional_type_descriptor, type_descriptor_label, type_descriptor_description, " +
+                "type_descriptor_default_value, add_default_type_descriptor, " +
                 "optional_absolute_resource_path, absolute_resource_path_label, absolute_resource_path_description, " +
                 "absolute_resource_path_default_value, optional_string_literal, string_literal_label, " +
                 "string_literal_description, string_literal_default_value, listener_kind, kind) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        insertEntry(sql, new Object[]{packageId, serviceDeclaration.displayName(),
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        insertEntry(sql, new Object[]{packageId, serviceDeclaration.displayName(), serviceDeclaration.description(),
                 serviceDeclaration.optionalTypeDescriptor(), serviceDeclaration.typeDescriptorLabel(),
                 serviceDeclaration.typeDescriptorDescription(),
                 serviceDeclaration.typeDescriptorDefaultValue(), serviceDeclaration.addDefaultTypeDescriptor(),
@@ -174,12 +174,13 @@ class DatabaseManager {
                 pkg});
     }
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
-                                                      String defaultValue, String valueType, String typeConstrain,
-                                                      String sourceKind, String selections) {
-        String sql = "INSERT INTO ServiceInitializerProperty (package_id, key_name, label, description, default_value, " +
-                "value_type, type_constrain, source_kind, selections) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        return insertEntry(sql, new Object[]{packageId, keyName, label, description, defaultValue, valueType,
-                typeConstrain, sourceKind, selections});
+                                                       String defaultValue, String placeholder, String valueType,
+                                                       String typeConstrain, String sourceKind, String selections) {
+        String sql = "INSERT INTO ServiceInitializerProperty (package_id, key_name, label, description, " +
+                "default_value, placeholder, value_type, type_constrain, source_kind, selections) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return insertEntry(sql, new Object[]{packageId, keyName, label, description, defaultValue, placeholder,
+                valueType, typeConstrain, sourceKind, selections});
     }
 
     public static void insertServiceInitializerPropertyMemberType(int initializerId, String type, String kind,

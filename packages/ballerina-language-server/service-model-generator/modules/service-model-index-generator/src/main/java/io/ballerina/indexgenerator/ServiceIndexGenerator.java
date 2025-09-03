@@ -220,8 +220,8 @@ class ServiceIndexGenerator {
                 String propertyName = entry.getKey();
                 ServiceInitializerProperty property = entry.getValue();
                 int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
-                        property.label(), property.description(), property.defaultValue(), property.valueType(),
-                        property.typeConstrain(), property.sourceKind(),
+                        property.label(), property.description(), property.defaultValue(), property.placeholder(),
+                        property.valueType(), property.typeConstrain(), property.sourceKind(),
                         String.join(",", property.selections()));
                 for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
                     DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
@@ -641,18 +641,19 @@ class ServiceIndexGenerator {
                                        Map<String, ServiceInitializerProperty> initForm) {
     }
 
-    record ServiceDeclaration(int optionalTypeDescriptor, String displayName, String typeDescriptorLabel,
-                              String typeDescriptorDescription, String typeDescriptorDefaultValue,
-                              int addDefaultTypeDescriptor, int optionalAbsoluteResourcePath,
-                              String absoluteResourcePathLabel, String absoluteResourcePathDescription,
-                              String absoluteResourcePathDefaultValue, int optionalStringLiteral,
-                              String stringLiteralLabel, String stringLiteralDescription,
+    record ServiceDeclaration(int optionalTypeDescriptor, String displayName, String description,
+                              String typeDescriptorLabel, String typeDescriptorDescription,
+                              String typeDescriptorDefaultValue, int addDefaultTypeDescriptor,
+                              int optionalAbsoluteResourcePath, String absoluteResourcePathLabel,
+                              String absoluteResourcePathDescription, String absoluteResourcePathDefaultValue,
+                              int optionalStringLiteral, String stringLiteralLabel, String stringLiteralDescription,
                               String stringLiteralDefaultValue, String listenerKind, String kind) {
     }
 
-    record ServiceInitializerProperty(String label, String description, String defaultValue, String valueType,
-                                      String typeConstrain, List<ServiceInitializerPropertyMemberType> typeMembers,
-                                      String sourceKind, List<String> selections) {
+    record ServiceInitializerProperty(String label, String description, String defaultValue, String placeholder,
+                                      String valueType, String typeConstrain,
+                                      List<ServiceInitializerPropertyMemberType> typeMembers, String sourceKind,
+                                      List<String> selections) {
     }
 
     record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
