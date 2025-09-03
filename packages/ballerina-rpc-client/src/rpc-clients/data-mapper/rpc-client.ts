@@ -36,7 +36,7 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
     ProcessTypeReferenceRequest,
     ProcessTypeReferenceResponse,
     PropertyRequest,
@@ -106,7 +106,7 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
     }
 
-    mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
+    mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(mapWithCustomFn, HOST_EXTENSION, params);
     }
 

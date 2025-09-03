@@ -37,7 +37,7 @@ import {
     GetSubMappingCodedataRequest,
     InitialIDMSourceRequest,
     InitialIDMSourceResponse,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
     ProcessTypeReferenceRequest,
     ProcessTypeReferenceResponse,
     PropertyRequest,
@@ -245,7 +245,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
+    async mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()

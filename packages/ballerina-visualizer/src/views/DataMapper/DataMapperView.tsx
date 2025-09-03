@@ -34,7 +34,7 @@ import {
     TRIGGER_CHARACTERS,
     Mapping,
     CodeData,
-    CustomFnMetadata,
+    FnMetadata,
     NodePosition,
     EVENT_TYPE,
     LineRange,
@@ -391,7 +391,7 @@ export function DataMapperView(props: DataMapperProps) {
         }
     };
 
-    const mapWithCustomFn = async (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => {
+    const mapWithCustomFn = async (mapping: Mapping, metadata: FnMetadata, viewId: string) => {
         try {
             const resp = await rpcClient
                 .getDataMapperRpcClient()

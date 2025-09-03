@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType, IOType } from "./data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
@@ -438,11 +438,11 @@ export interface DeleteMappingRequest {
     targetField: string;
 }
 
-export interface MapWithCustomFnRequest {
+export interface MapWithFnRequest {
     filePath: string;
     codedata: CodeData;
     mapping: Mapping;
-    functionMetadata: CustomFnMetadata;
+    functionMetadata: FnMetadata;
     varName?: string;
     targetField: string;
 }
