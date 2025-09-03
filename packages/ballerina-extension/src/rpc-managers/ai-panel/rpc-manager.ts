@@ -36,6 +36,7 @@ import {
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
+    DocGenerationRequest,
     ExpandedDMModel,
     ExtendedDataMapperMetadata,
     FetchDataRequest,
@@ -97,6 +98,7 @@ import { GenerationType, getSelectedLibraries } from "../../features/ai/service/
 import { Library } from "../../features/ai/service/libs/libs_types";
 import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
 import { generateTestPlan } from "../../features/ai/service/test/test_plan";
+import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
@@ -1006,6 +1008,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.error(">>> Failed to add inline code segment to the workspace", error);
             throw error;
         }
+    }
+
+    async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+        await generateDocumentationForService(params);
     }
 }
 
