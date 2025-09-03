@@ -32,7 +32,10 @@ import {
     RecordTypeField,
     FormDiagnostics,
     Imports,
-    CodeData
+    CodeData,
+    LinePosition,
+    TypeNodeKind,
+    Member
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -57,11 +60,15 @@ import {
     removeDuplicateDiagnostics,
     updateLineRange
 } from "../../../../utils/bi";
-import { debounce, set } from "lodash";
-import { getHelperPane } from "../../HelperPane";
+import { debounce } from "lodash";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { getHelperPaneNew } from "../../HelperPaneNew";
+import React from "react";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
+import { EditorContext, StackItem } from "@wso2/type-editor";
+import DynamicModal from "../../../../components/Modal";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -72,7 +79,7 @@ interface TypeEditorState {
 interface FormProps {
     fileName: string;
     fields: FormField[];
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     projectPath?: string;
     submitText?: string;
     cancelText?: string;
@@ -128,10 +135,14 @@ export function FormGeneratorNew(props: FormProps) {
         concertRequired,
         description,
         preserveFieldOrder,
-        injectedComponents
+        injectedComponents,
     } = props;
 
     const { rpcClient } = useRpcContext();
+
+    const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
+        return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
+    };
 
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
 
@@ -146,6 +157,53 @@ export function FormGeneratorNew(props: FormProps) {
 
     const [fieldsValues, setFields] = useState<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
+    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+    const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+    //stack for recursive type creation
+    const [stack, setStack] = useState<StackItem[]>([{
+        isDirty: false,
+        type: undefined
+    }]);
+
+    const pushTypeStack = (item: StackItem) => {
+        setStack((prev) => [...prev, item]);
+        setRefetchStates((prev) => [...prev, false]);
+    };
+
+    const popTypeStack = () => {
+        setStack((prev) => prev.slice(0, -1));
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            const currentState = newStates.pop();
+            if (currentState && newStates.length > 0) {
+                newStates[newStates.length - 1] = true;
+            }
+            return newStates;
+        });
+    };
+
+    const peekTypeStack = (): StackItem | null => {
+        return stack.length > 0 ? stack[stack.length - 1] : null;
+    };
+
+    const replaceTop = (item: StackItem) => {
+        if (stack.length === 0) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = item;
+            return newStack;
+        });
+    }
+
+    const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = shouldRefetch;
+            }
+            return newStates;
+        });
+    };
 
     useEffect(() => {
         if (rpcClient) {
@@ -244,7 +302,7 @@ export function FormGeneratorNew(props: FormProps) {
                         filePath: fileName,
                         context: {
                             expression: value,
-                            startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                            startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                             lineOffset: lineOffset,
                             offset: charOffset,
                             codedata: undefined,
@@ -314,7 +372,7 @@ export function FormGeneratorNew(props: FormProps) {
                 if (!types.length) {
                     const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
-                        position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                        position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                         ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
                     });
 
@@ -397,7 +455,7 @@ export function FormGeneratorNew(props: FormProps) {
                             filePath: fileName,
                             context: {
                                 expression: expression,
-                                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                                 lineOffset: 0,
                                 offset: 0,
                                 codedata: field.codedata,
@@ -408,7 +466,7 @@ export function FormGeneratorNew(props: FormProps) {
                         let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics);
                         // HACK: filter unknown module and undefined type diagnostics for local connections
                         uniqueDiagnostics = filterUnsupportedDiagnostics(uniqueDiagnostics);
-                        
+
                         setDiagnosticsInfo({ key, diagnostics: uniqueDiagnostics });
                     }
                 } catch (error) {
@@ -433,17 +491,19 @@ export function FormGeneratorNew(props: FormProps) {
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
+            debouncedRetrieveCompletions.cancel();
             changeHelperPaneState(false);
             handleExpressionEditorCancel();
         }
 
-        return getHelperPane({
+        return getHelperPaneNew({
             fieldKey: fieldKey,
             fileName: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
@@ -453,7 +513,14 @@ export function FormGeneratorNew(props: FormProps) {
             helperPaneHeight: helperPaneHeight,
             recordTypeField: recordTypeField,
             isAssignIdentifier: isAssignIdentifier,
-            updateImports: handleUpdateImports
+            updateImports: handleUpdateImports,
+            completions: completions,
+            projectPath: projectPath,
+            selectedType: selectedType,
+            filteredCompletions: filteredCompletions,
+            isInModal: false,
+            valueTypeConstraint: valueTypeConstraint,
+            handleRetrieveCompletions: handleRetrieveCompletions,
         });
     };
 
@@ -468,6 +535,7 @@ export function FormGeneratorNew(props: FormProps) {
         changeHelperPaneState: (isOpen: boolean) => void,
         typeHelperHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef: RefObject<FormExpressionEditorRef>,
     ) => {
         const formField = fieldsValues.find(f => f.key === fieldKey);
         const handleCreateNewType = (typeName: string) => {
@@ -485,7 +553,7 @@ export function FormGeneratorNew(props: FormProps) {
             valueTypeConstraint: valueTypeConstraint,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
-            targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
+            targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
             currentType: currentType,
             currentCursorPosition: currentCursorPosition,
             helperPaneHeight: typeHelperHeight,
@@ -494,12 +562,13 @@ export function FormGeneratorNew(props: FormProps) {
             changeTypeHelperState: changeHelperPaneState,
             updateImports: handleUpdateImports,
             onTypeCreate: handleCreateNewType,
-            onCloseCompletions: handleCloseCompletions
+            onCloseCompletions: handleCloseCompletions,
+            exprRef: exprRef,
         });
     }
 
     const handleTypeChange = async (type: Type) => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ isOpen: true });
 
         if (typeEditorState.field) {
             const updatedFields = fieldsValues.map(field => {
@@ -559,44 +628,58 @@ export function FormGeneratorNew(props: FormProps) {
         }
     }
 
-    const defaultType = (): Type => {
-        if (typeEditorState.field.type === 'PARAM_MANAGER') {
-            return {
-                name: typeEditorState.newTypeValue || "MyType",
-                editable: true,
-                metadata: {
-                    label: "",
-                    description: "",
-                },
-                codedata: {
-                    node: "RECORD",
-                },
-                properties: {},
-                members: [],
-                includes: [] as string[],
-                allowAdditionalFields: false
-            };
-        }
-        return {
-            name: typeEditorState.newTypeValue || "MyType",
-            editable: true,
-            metadata: {
-                label: "",
-                description: ""
-            },
-            codedata: {
-                node: "CLASS"
-            },
-            properties: {},
-            members: [],
-            includes: [] as string[],
-            functions: []
-        };
+    const handleSelectedTypeChange = (type: CompletionItem) => {
+        setSelectedType(type);
     }
 
     const onCloseTypeEditor = () => {
         setTypeEditorState({ isOpen: false });
     };
+
+    const handleTypeEditorStateChange = (state: boolean) => {
+        if (!state) {
+            if (stack.length > 1) {
+                popTypeStack();
+                return;
+            }
+            stack[0].type = undefined
+        }
+        setTypeEditorState({ isOpen: state });
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack({
+            type: {
+                name: "",
+                members: [] as Member[],
+                editable: true,
+                metadata: {
+                    description: "",
+                    label: ""
+                },
+                properties: {},
+                codedata: {
+                    node: "RECORD" as TypeNodeKind
+                },
+                includes: [] as string[],
+                allowAdditionalFields: false
+            },
+            isDirty: false
+        })
+        setTypeEditorState({
+            isOpen: true,
+            newTypeValue: "Haha Value"
+        })
+    }
+
+    const onSaveType = (type: Type) => {
+        if (stack.length > 0) {
+            setRefetchForCurrentModal(true);
+            popTypeStack();
+        } else {
+            setTypeEditorState({ isOpen: false });
+        }
+    }
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
@@ -604,7 +687,7 @@ export function FormGeneratorNew(props: FormProps) {
             filePath: fileName,
             context: {
                 expression: value,
-                startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
+                startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: undefined,
@@ -634,8 +717,8 @@ export function FormGeneratorNew(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
-            helperPaneOrigin: helperPaneSide || "right",
-            helperPaneHeight: "3/4"
+            helperPaneOrigin: "vertical",
+            helperPaneHeight: "default",
         } as FormExpressionEditorProps;
     }, [
         filteredCompletions,
@@ -658,28 +741,9 @@ export function FormGeneratorNew(props: FormProps) {
         setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: typeEditorState.field });
     };
 
-    const renderTypeEditor = (isGraphql: boolean) => (
-        <>
-            <PanelContainer
-                title={"New Type"}
-                show={true}
-                onClose={onCloseTypeEditor}
-            >
-                <FormTypeEditor
-                    newType={true}
-                    onTypeChange={handleTypeChange}
-                    newTypeValue={typeEditorState.newTypeValue}
-                    onTypeCreate={handleTypeCreate}
-                    {...(isGraphql && { type: defaultType(), isGraphql: true })}
-                />
-            </PanelContainer>
-            <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 1000 }} />
-        </>
-    );
-
     // default form
     return (
-        <>
+        <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
             {fields && fields.length > 0 && (
                 <Form
                     nestedForm={nestedForm}
@@ -708,12 +772,44 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
                 />
             )}
-            {typeEditorState.isOpen && (
-                renderTypeEditor(isGraphqlEditor)
-            )}
-        </>
+            {
+                stack.map((item, i) => <DynamicModal
+                    key={i}
+                    width={420}
+                    height={600}
+                    anchorRef={undefined}
+                    title="Create New Type"
+                    openState={typeEditorState.isOpen}
+                    setOpenState={handleTypeEditorStateChange}>
+                    <div style={{ padding: '0px 15px' }}>
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                        {stackItem?.type?.name || "New Type"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                        <FormTypeEditor
+                            type={peekTypeStack()?.type}
+                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphqlEditor}
+                            onTypeChange={handleTypeChange}
+                            onSaveType={onSaveType}
+                            onTypeCreate={handleTypeCreate}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
+                            refetchTypes={refetchStates[i]}
+                        />
+                    </div>
+                </DynamicModal>)
+            }
+        </EditorContext.Provider>
     );
 }
 

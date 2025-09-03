@@ -139,6 +139,19 @@ export const commandTemplates = {
             placeholders: [],
         },
     ],
+    [Command.Doc]: [
+        {
+            id: TemplateId.GenerateUserDoc,
+            text: 'generate user documentation for <servicename> service',
+            placeholders: [
+                {
+                    id: 'servicename',
+                    text: '<servicename>',
+                    multiline: false,
+                }
+            ],
+        }
+    ]
 } as const;
 
 export type CommandTemplates = typeof commandTemplates;

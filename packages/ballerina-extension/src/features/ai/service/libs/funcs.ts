@@ -16,7 +16,7 @@
 
 import { generateObject, CoreMessage } from "ai";
 
-import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "./funcs_inter_types";
+import { GetFunctionResponse, GetFunctionsRequest, GetFunctionsResponse, getFunctionsResponseSchema, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction, PathParameter } from "./funcs_inter_types";
 import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
@@ -169,6 +169,8 @@ async function getSuggestedFunctions(prompt: string, libraryList: GetFunctionsRe
     console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
     
     const getLibSystemPrompt = "You are an AI assistant tasked with filtering and removing unwanted functions and clients from a given set of libraries and clients based on a user query. Your goal is to return only the relevant libraries, clients, and functions that match the user's needs.";
+
+    // TODO: Improve prompt to strictly avoid hallucinations, e.g., "Return ONLY libraries from the provided context; do not add new ones."
     const getLibUserPrompt = `
 You will be provided with a list of libraries, clients, and their functions and user query.
 
@@ -210,11 +212,16 @@ Now, based on the provided libraries, clients, and functions, and the user query
         const libList = object as GetFunctionsResponse;
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
+
+        // Filter to remove hallucinated libraries
+        const filteredLibList = libList.libraries.filter((lib) =>
+            libraryList.some((inputLib) => inputLib.name === lib.name)
+        );
         
         console.log(`[AI Request Complete] Libraries: [${libraryNames}], Duration: ${duration}s, Selected Functions: ${libList.libraries.reduce((total, lib) => total + (lib.clients?.reduce((clientTotal, client) => clientTotal + client.functions.length, 0) || 0) + (lib.functions?.length || 0), 0)}`);
         
-        printSelectedFunctions(libList.libraries);
-        return libList.libraries;
+        printSelectedFunctions(filteredLibList);
+        return filteredLibList;
     } catch (error) {
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
@@ -410,6 +417,13 @@ function getConstructor(functions: (RemoteFunction | ResourceFunction)[]): Remot
     return null;
 }
 
+function normalizePaths(paths: (PathParameter | string)[]): string[] {
+    return paths.map((path) => {
+        const pathStr = typeof path === "string" ? path : path.name;
+        return pathStr.replace(/\\./g, ".");
+    });
+}
+
 function getCompleteFuncForMiniFunc(
     minFunc: MinifiedRemoteFunction | MinifiedResourceFunction, 
     fullFunctions: (RemoteFunction | ResourceFunction)[]
@@ -419,11 +433,14 @@ function getCompleteFuncForMiniFunc(
         return fullFunctions.find(f => 'name' in f && f.name === minFunc.name) || null;
     } else {
         // MinifiedResourceFunction
-        return fullFunctions.find(f => 
-            'accessor' in f && 
-            f.accessor === minFunc.accessor && 
-            JSON.stringify(f.paths) === JSON.stringify(minFunc.paths)
-        ) || null;
+        return (
+            fullFunctions.find(
+                (f) =>
+                    'accessor' in f &&
+                    f.accessor === minFunc.accessor &&
+                    JSON.stringify(normalizePaths(f.paths)) === JSON.stringify(normalizePaths(minFunc.paths))
+            ) || null
+        );
     }
 }
 
