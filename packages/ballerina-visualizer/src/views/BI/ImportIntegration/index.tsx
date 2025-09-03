@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     MigrateRequest,
     MigrationTool,
+    ProjectRequest,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Typography } from "@wso2/ui-toolkit";
@@ -32,7 +33,7 @@ import { useEffect, useState } from "react";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
-import { FormContainer, IconButton } from "./styles";
+import { FormContainer, TitleContainer, IconButton } from "./styles";
 import { FinalIntegrationParams } from "./types";
 
 export function ImportIntegration() {
@@ -94,12 +95,11 @@ export function ImportIntegration() {
             });
     };
 
-    const handleCreateIntegrationFiles = (projectName: string, projectPath: string) => {
+    const handleCreateIntegrationFiles = (project: ProjectRequest) => {
         console.log("Creating integration files with params:", importParams);
         if (migrationResponse) {
             const params: MigrateRequest = {
-                projectName: projectName,
-                projectPath: projectPath,
+                project: project,
                 textEdits: migrationResponse.textEdits,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
@@ -169,10 +169,13 @@ export function ImportIntegration() {
 
     return (
         <FormContainer>
-            <IconButton onClick={gotToWelcome}>
-                <Icon name="bi-home" iconSx={{ color: "var(--vscode-foreground)" }} />
-            </IconButton>
-            <Typography variant="h1">Migrate External Integration</Typography>
+            <TitleContainer>
+                <IconButton onClick={gotToWelcome}>
+                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                </IconButton>
+                <Typography variant="h3">Migrate External Integration</Typography>
+            </TitleContainer>
+
             <StepperContainer style={{ marginBottom: "4%" }}>
                 <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
             </StepperContainer>

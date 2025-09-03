@@ -92,6 +92,8 @@ import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import React from "react";
+import { SidePanelView } from "../../FlowDiagram/PanelManager";
+import { ConnectionKind } from "../../../../components/ConnectionSelector";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -129,6 +131,7 @@ interface FormProps {
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
+    navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
 // Styled component for the action button description
@@ -958,6 +961,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                 subPanelView={subPanelView}
                 disableSaveButton={disableSaveButton}
+                navigateToPanel={props.navigateToPanel}
             />
         );
     }
