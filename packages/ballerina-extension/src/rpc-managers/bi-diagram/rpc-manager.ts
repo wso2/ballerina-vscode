@@ -58,18 +58,21 @@ import {
     CreateComponentResponse,
     CurrentBreakpointsResponse,
     DIRECTORY_MAP,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
+    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ExpressionDiagnosticsRequest,
     ExpressionDiagnosticsResponse,
-    FlowNode,
     FormDidCloseParams,
     FormDidOpenParams,
-    FunctionNode,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -87,6 +90,7 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
+    LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
     OpenAPIClientDeleteRequest,
@@ -130,12 +134,11 @@ import {
     UpdatedArtifactsResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    LoginMethod,
-    Diagnostics,
+    deleteType
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -159,11 +162,11 @@ import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
+import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1904,6 +1907,43 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     console.log(">>> error getting type from json", error);
+                    reject(error);
+                });
+        });
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return new Promise((resolve, reject) => {
+            const projectUri = StateMachine.context().projectUri;
+            const filePath = path.join(projectUri, params.filePath);
+            StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
+                .then(async (deleteTypeResponse: DeleteTypeResponse) => {
+                    if (deleteTypeResponse.textEdits) {
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
+                        resolve(deleteTypeResponse);
+                    } else {
+                        reject(deleteTypeResponse.errorMsg);
+                    }
+                }).catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        const projectUri = StateMachine.context().projectUri;
+        const filePath = path.join(projectUri, params.filePath);
+
+        const request: VerifyTypeDeleteRequest = {
+            filePath: filePath,
+            startPosition: params.startPosition,
+        };
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().verifyTypeDelete(request)
+                .then((response) => {                    
+                    resolve(response);
+                })
+                .catch((error) => {
                     reject(error);
                 });
         });
