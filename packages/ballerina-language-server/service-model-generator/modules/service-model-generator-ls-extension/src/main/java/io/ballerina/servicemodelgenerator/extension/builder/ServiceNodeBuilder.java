@@ -18,17 +18,21 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder;
 
+import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
+
 /**
  * Interface for building service model specific models.
  *
  * @since 1.3.0
  **/
-public interface ServiceNodeBuilder {
+public interface ServiceNodeBuilder extends NodeBuilder<Service> {
 
     /**
      * Get the unified listener and service declaration model.
      */
-    void getServiceInitModel();
+    ServiceInitModel getServiceInitModel(GetServiceInitModelContext context);
 
     /**
      * Get the listener and service declaration source.

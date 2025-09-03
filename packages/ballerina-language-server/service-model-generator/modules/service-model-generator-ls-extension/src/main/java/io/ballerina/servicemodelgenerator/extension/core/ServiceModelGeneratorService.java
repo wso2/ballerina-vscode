@@ -48,7 +48,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
-import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerBasicInfo;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -906,12 +905,17 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         });
     }
 
+    /**
+     * Get the initial service model which is a unification of service and listener models.
+     *
+     * @param request Service model request
+     * @return {@link ServiceInitModelResponse} of the service init model response
+     */
     @JsonRequest
     public CompletableFuture<ServiceInitModelResponse> getServiceInitModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                ServiceInitModel serviceInitModel = null;
-                return new ServiceInitModelResponse(serviceInitModel);
+                return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request));
             } catch (Throwable e) {
                 return new ServiceInitModelResponse(e);
             }

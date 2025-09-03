@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -35,7 +36,7 @@ public class ServiceInitModel {
     private final String version;
     private final String type;
     private final String icon;
-    private Map<String, Value> properties;
+    private final Map<String, Value> properties = new LinkedHashMap<>();
 
     public ServiceInitModel(String id, String displayName, String description, String orgName,
                             String packageName, String moduleName, String version, String type, String icon) {
@@ -90,20 +91,69 @@ public class ServiceInitModel {
         return properties;
     }
 
-    public void addProperties(Map<String, Value> properties) {
-        if (properties == null) {
-            return;
-        }
-        if (this.properties != null) {
-            this.properties.putAll(properties);
-        } else {
-            this.properties = properties;
-        }
+    public void addProperty(String key, Value value) {
+        this.properties.put(key, value);
     }
 
-    public void addProperty(String key, Value value) {
-        if (this.properties != null) {
-            this.properties.put(key, value);
+    public static class Builder {
+        private String id;
+        private String displayName;
+        private String description;
+        private String orgName;
+        private String packageName;
+        private String moduleName;
+        private String version;
+        private String type;
+        private String icon;
+
+        public Builder setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setDisplayName(String displayName) {
+            this.displayName = displayName;
+            return this;
+        }
+
+        public Builder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder setOrgName(String orgName) {
+            this.orgName = orgName;
+            return this;
+        }
+
+        public Builder setPackageName(String packageName) {
+            this.packageName = packageName;
+            return this;
+        }
+
+        public Builder setModuleName(String moduleName) {
+            this.moduleName = moduleName;
+            return this;
+        }
+
+        public Builder setVersion(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public Builder setType(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder setIcon(String icon) {
+            this.icon = icon;
+            return this;
+        }
+
+        public ServiceInitModel build() {
+            return new ServiceInitModel(id, displayName, description, orgName, packageName,
+                    moduleName, version, type, icon);
         }
     }
 }

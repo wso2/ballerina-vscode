@@ -16,30 +16,11 @@
  *  under the License.
  */
 
-package io.ballerina.servicemodelgenerator.extension.model.response;
+package io.ballerina.modelgenerator.commons;
 
-import java.util.Arrays;
+import java.util.List;
 
-/**
- * Represents the generic response generated from the service model generator LS extension.
- *
- * @since 1.3.0
- */
-public abstract class AbstractServiceModelResponse {
-
-    private String errorMsg;
-    private String stacktrace;
-
-    public void setError(Throwable e) {
-        this.errorMsg = e.getLocalizedMessage();
-        this.stacktrace = Arrays.toString(e.getStackTrace());
-    }
-
-    public String errorMsg() {
-        return errorMsg;
-    }
-
-    public String getStackTrace() {
-        return stacktrace;
-    }
+public record ServiceInitProperty(String keyName, String label, String description, String defaultValue,
+                                  String valueType, String typeConstrain, String sourceKind, String selections,
+                                  List<ParameterMemberTypeData> memberTypes) {
 }

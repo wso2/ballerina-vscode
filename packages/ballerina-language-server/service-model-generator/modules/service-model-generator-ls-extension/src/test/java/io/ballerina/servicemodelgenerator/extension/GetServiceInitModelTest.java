@@ -42,7 +42,8 @@ public class GetServiceInitModelTest extends AbstractLSTest {
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
         BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
-        GetServiceInitModelTest.TestConfig testConfig = gson.fromJson(bufferedReader, GetServiceInitModelTest.TestConfig.class);
+        GetServiceInitModelTest.TestConfig testConfig = gson.fromJson(bufferedReader,
+                GetServiceInitModelTest.TestConfig.class);
         bufferedReader.close();
 
         String filePath = sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString();
@@ -52,9 +53,9 @@ public class GetServiceInitModelTest extends AbstractLSTest {
 
         boolean assertTrue = testConfig.response().getAsJsonObject().equals(jsonMap);
         if (!assertTrue) {
-            GetServiceInitModelTest.TestConfig updatedConfig = new GetServiceInitModelTest.TestConfig(testConfig.description(),
-                    testConfig.filePath(), testConfig.orgName(), testConfig.pkgName(), testConfig.moduleName(),
-                    jsonMap);
+            GetServiceInitModelTest.TestConfig updatedConfig = new GetServiceInitModelTest.TestConfig(
+                    testConfig.description(), testConfig.filePath(), testConfig.orgName(), testConfig.pkgName(),
+                    testConfig.moduleName(), jsonMap);
 //            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(jsonMap, testConfig.response());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
