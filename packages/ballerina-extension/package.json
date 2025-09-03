@@ -633,6 +633,13 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.add-custom-connector",
+                "title": "Add Custom Connector",
+                "icon": "$(add)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
                 "command": "BI.project-explorer.delete",
                 "title": "Delete",
                 "icon": "$(trash)",
