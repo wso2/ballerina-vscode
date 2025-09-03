@@ -17,7 +17,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
-import { BACKEND_URL } from "../utils";
+import { BACKEND_URL, DEVANT_API_KEY_FOR_ASK } from "../utils";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
@@ -36,9 +36,10 @@ let cachedAuthMethod: LoginMethod | null = null;
  * Reusable fetch function that handles authentication with token refresh
  * @param input - The URL, Request object, or string to fetch
  * @param options - Fetch options
+ * @param isAskRequest - TEMPORARY HACK: If true, uses DEVANT_API_KEY_FOR_ASK env variable as API key
  * @returns Promise<Response>
  */
-export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
+export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}, isAskRequest: boolean = false): Promise<Response | undefined> {
     try {
         const credentials = await getAccessToken();
         const loginMethod = credentials.loginMethod;
@@ -52,7 +53,8 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
             // For DEVANT_ENV, use api-key and x-Authorization headers
             const secrets = credentials.secrets as DevantEnvSecrets;
-            const apiKey = secrets.apiKey;
+            // TEMPORARY HACK: Use DEVANT_API_KEY_FOR_ASK env variable for ask requests
+            const apiKey = isAskRequest ? DEVANT_API_KEY_FOR_ASK : secrets.apiKey;
             const stsToken = secrets.stsToken;
 
             if (apiKey && stsToken && apiKey.trim() !== "" && stsToken.trim() !== "") {

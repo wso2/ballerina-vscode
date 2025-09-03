@@ -36,6 +36,7 @@ export const AUTH_CLIENT_ID: string = config.get('authClientID') || process.env.
 export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
 
 export const DEVANT_API_KEY: string = config.get('devantApiKey') || process.env.DEVANT_API_KEY;
+export const DEVANT_API_KEY_FOR_ASK: string = config.get('devantApiKeyForAsk') || process.env.DEVANT_API_KEY_FOR_ASK;
 export const DEVANT_STS_TOKEN: string = config.get('cloudStsToken') || process.env.CLOUD_STS_TOKEN;
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
