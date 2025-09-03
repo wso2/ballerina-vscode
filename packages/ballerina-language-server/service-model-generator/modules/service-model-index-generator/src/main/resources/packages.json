@@ -836,7 +836,7 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         },
-        "queueName": {
+        "basePath": {
           "label": "Queue Name",
           "description": "The name of the queue to listen to",
           "defaultValue": "",
@@ -1033,7 +1033,7 @@
       "serviceTypes": {
       },
       "initForm": {
-        "eventChannel": {
+        "basePath": {
           "label": "Event Channel",
           "description": "The event channel name",
           "defaultValue": "",
@@ -1109,7 +1109,7 @@
       "serviceTypes": {
       },
       "initForm": {
-        "eventChannel": {
+        "basePath": {
           "label": "Event Channel",
           "description": "The event channel name",
           "defaultValue": "",
