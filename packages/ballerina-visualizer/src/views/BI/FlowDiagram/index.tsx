@@ -75,6 +75,7 @@ import {
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
+import { o } from "@tanstack/query-core/build/legacy/hydration-Cvr-9VdO";
 
 const Container = styled.div`
     width: 100%;
@@ -1219,6 +1220,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
+        const hasFormSubmitOptions = options && Object.keys(options).length > 0;
 
         if (openInDataMapper) {
             rpcClient
@@ -1268,6 +1270,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
                     }
+                    if (!hasFormSubmitOptions) {
+                        selectedNodeRef.current = undefined;
+                        await updateCurrentArtifactLocation(response);
+                    }
                     if (options?.shouldCloseSidePanel) {
                         selectedNodeRef.current = undefined;
                         handleOnCloseSidePanel();
@@ -1276,14 +1282,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         onRerenderRef.current = options.updateLineRangeForRecursiveInserts;
                     }
                     shouldUpdateLineRangeRef.current = options?.shouldUpdateTargetLine;
-                    updatedNodeRef.current = updatedNode
+                    updatedNodeRef.current = updatedNode;
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
             })
             .finally(() => {
                 setShowProgressIndicator(false);
-                debouncedGetFlowModel();
                 if (options?.shouldCloseSidePanel === true) {
                     setShowSidePanel(false);
                 }
