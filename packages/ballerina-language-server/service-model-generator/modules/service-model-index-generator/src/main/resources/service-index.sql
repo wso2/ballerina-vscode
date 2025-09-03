@@ -24,6 +24,7 @@ CREATE TABLE Package (
 CREATE TABLE ServiceDeclaration (
     package_id PRIMARY KEY,
     display_name TEXT NOT NULL,
+    description TEXT NOT NULL,
     optional_type_descriptor INTEGER CHECK(optional_type_descriptor IN (0, 1)),
     type_descriptor_label TEXT,
     type_descriptor_description TEXT,
@@ -138,9 +139,11 @@ CREATE TABLE ServiceInitializerProperty (
     label TEXT NOT NULL,
     description TEXT NOT NULL,
     default_value TEXT,
-    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION')),
+    placeholder TEXT,
+    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT')),
     type_constrain TEXT,
-    source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAMETER')),
+    source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
+    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED', 'LISTENER_PARAM_INCLUDED_FILED')),
     selections TEXT, -- Comma-separated values for selection options
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
