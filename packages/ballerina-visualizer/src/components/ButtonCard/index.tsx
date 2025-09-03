@@ -21,7 +21,7 @@ import { ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 
-const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean }>`
+const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean, sx?: any }>`
     gap: 16px;
     width: 132px;
     padding: 12px;
@@ -35,6 +35,7 @@ const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, d
         background-color: ${ThemeColors.PRIMARY_CONTAINER};
         border: 1px solid ${ThemeColors.HIGHLIGHT};
     };
+    ${(props: { sx?: any }) => props.sx};
 `;
 
 const CardContainer = styled.div<{ active?: boolean }>`
@@ -117,6 +118,7 @@ export interface ButtonCardProps {
     disabled?: boolean;
     tooltip?: string;
     isBeta?: boolean;
+    sx?: any;
 }
 
 export function ButtonCard(props: ButtonCardProps) {
@@ -131,7 +133,8 @@ export function ButtonCard(props: ButtonCardProps) {
         onClick,
         disabled,
         tooltip,
-        isBeta
+        isBeta,
+        sx
     } = props;
 
     // Apply truncation by default for small appearance if not explicitly set
@@ -145,6 +148,7 @@ export function ButtonCard(props: ButtonCardProps) {
                 active={active ?? false}
                 appearance={appearance}
                 disabled={disabled}
+                sx={sx}
             >
                 <CardContainer>
                     {icon && <IconContainer>{icon}</IconContainer>}
