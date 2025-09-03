@@ -160,10 +160,10 @@ import {
     AddFunctionRequest,
     AddImportItemResponse,
     UpdateImportsRequest,
-    InlineDataMapperModelRequest,
-    InlineDataMapperSourceRequest,
-    InlineDataMapperSourceResponse,
-    InlineDataMapperModelResponse,
+    DataMapperModelRequest,
+    DataMapperSourceRequest,
+    DataMapperSourceResponse,
+    DataMapperModelResponse,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
     AddArrayElementRequest,
@@ -241,8 +241,8 @@ import {
     GetConfigVariableNodeTemplateRequest,
     FunctionFromSourceRequest,
     FunctionFromSourceResponse,
-    GetInlineDataMapperCodedataRequest,
-    GetInlineDataMapperCodedataResponse,
+    GetDataMapperCodedataRequest,
+    GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
@@ -742,48 +742,48 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<VisibleVariableTypes>(EXTENDED_APIS.VISIBLE_VARIABLE_TYPES, params);
     }
 
-    async getInlineDataMapperMappings(params: InlineDataMapperModelRequest): Promise<InlineDataMapperModelResponse | NOT_SUPPORTED_TYPE> {
-        return this.sendRequest<InlineDataMapperModelResponse>(EXTENDED_APIS.DATA_MAPPER_MAPPINGS, params);
+    async getDataMapperMappings(params: DataMapperModelRequest): Promise<DataMapperModelResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest<DataMapperModelResponse>(EXTENDED_APIS.DATA_MAPPER_MAPPINGS, params);
     }
 
-    async getInlineDataMapperSource(params: InlineDataMapperSourceRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_GET_SOURCE, params);
+    async getDataMapperSource(params: DataMapperSourceRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_GET_SOURCE, params);
     }
 
     async getVisualizableFields(params: VisualizableFieldsRequest): Promise<VisualizableFieldsResponse | NOT_SUPPORTED_TYPE> {
         return this.sendRequest<VisualizableFieldsResponse>(EXTENDED_APIS.DATA_MAPPER_VISUALIZABLE, params);
     }
 
-    async addArrayElement(params: AddArrayElementRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_ELEMENT, params);
+    async addArrayElement(params: AddArrayElementRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_ELEMENT, params);
     }
 
-    async convertToQuery(params: ConvertToQueryRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_TO_QUERY, params);
+    async convertToQuery(params: ConvertToQueryRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_TO_QUERY, params);
     }
 
-    async addClauses(params: AddClausesRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_CLAUSES, params);
+    async addClauses(params: AddClausesRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_CLAUSES, params);
     }
 
-    async addSubMapping(params: AddSubMappingRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_SUB_MAPPING, params);
+    async addSubMapping(params: AddSubMappingRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_SUB_MAPPING, params);
     }
 
-    async deleteMapping(params: DeleteMappingRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_MAPPING, params);
+    async deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_MAPPING, params);
     }
 
-    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<InlineDataMapperSourceResponse> {
-        return this.sendRequest<InlineDataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_CUSTOM_FN, params);
+    async mapWithCustomFn(params: MapWithCustomFnRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_CUSTOM_FN, params);
     }
 
-    async getDataMapperCodedata(params: GetInlineDataMapperCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
-        return this.sendRequest<GetInlineDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
+    async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
+        return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
     }
 
-    async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetInlineDataMapperCodedataResponse> {
-        return this.sendRequest<GetInlineDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_SUB_MAPPING_CODEDATA, params);
+    async getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetDataMapperCodedataResponse> {
+        return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_SUB_MAPPING_CODEDATA, params);
     }
 
     async getProperty(params: PropertyRequest): Promise<PropertyResponse | NOT_SUPPORTED_TYPE> {
