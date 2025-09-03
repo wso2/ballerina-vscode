@@ -6,7 +6,7 @@
   "moduleName": "http",
   "response": {
     "serviceInitModel": {
-      "id": "1",
+      "id": "0",
       "displayName": "HTTP Service",
       "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
       "orgName": "ballerina",
@@ -15,7 +15,149 @@
       "version": "2.14.0",
       "type": "http",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
-      "properties": {}
+      "properties": {
+        "port": {
+          "metadata": {
+            "label": "Port",
+            "description": "The port on which the service will listen for incoming requests"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "value": "8080",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "designApproach": {
+          "metadata": {
+            "label": "Contract",
+            "description": "Service Contract"
+          },
+          "placeholder": "",
+          "valueType": "CHOICE",
+          "value": "",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Design From Scratch",
+                "description": "Design the service from scratch"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "basePath": {
+                  "metadata": {
+                    "label": "Service Base Path",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "type": "SERVICE_BASEPATH"
+                  },
+                  "placeholder": "",
+                  "valueType": "SERVICE_PATH",
+                  "valueTypeConstraint": "string",
+                  "value": "/",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "annotServiceConfig": {
+                  "metadata": {
+                    "label": "Service Configuration",
+                    "description": "Define advanced configurations like service level security, etc."
+                  },
+                  "codedata": {
+                    "type": "ANNOTATION_ATTACHMENT",
+                    "originalName": "ServiceConfig"
+                  },
+                  "placeholder": "{}",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "http:HttpServiceConfig",
+                  "value": "",
+                  "typeMembers": [
+                    {
+                      "type": "HttpServiceConfig",
+                      "packageInfo": "ballerina:http:2.14.0",
+                      "kind": "RECORD_TYPE",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": true
+                }
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Import From OpenAPI Specification",
+                "description": "Implement the service from an OpenAPI specification"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "spec": {
+                  "metadata": {
+                    "label": "OpenAPI Specification",
+                    "description": "Provide an OpenAPI specification to generate the resources"
+                  },
+                  "codedata": {
+                    "type": "OPENAPI"
+                  },
+                  "placeholder": "",
+                  "valueType": "FILE_SELECT",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "serviceTypeName": {
+                  "metadata": {
+                    "label": "Service Type Name",
+                    "description": "The name of the service contract type generated from the OpenAPI specification"
+                  },
+                  "codedata": {
+                    "type": "SERVICE_BASEPATH"
+                  },
+                  "placeholder": "",
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
     }
   }
 }
