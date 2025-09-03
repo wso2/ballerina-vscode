@@ -30,7 +30,7 @@ export type MachineStateValue =
     | 'lsReady'
     | 'viewActive'
     | 'disabled'
-    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' };
+    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' } | { viewActive: 'resolveMissingDependencies' };
 
 export type PopupMachineStateValue = 'initialize' | 'ready' | {
     open: 'active';
@@ -75,8 +75,10 @@ export enum MACHINE_VIEW {
     BIDiagram = "BI Diagram",
     BIWelcome = "BI Welcome",
     BIProjectForm = "BI Project SKIP",
+    BIImportIntegration = "BI Import Integration SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
     AddConfigVariables = "Add Config Variables",
@@ -92,7 +94,8 @@ export enum MACHINE_VIEW {
     BIServiceClassConfigView = "Service Class Config View",
     BIDataMapperForm = "Add Data Mapper SKIP",
     AIAgentDesigner = "AI Agent Designer",
-    AIChatAgentWizard = "AI Chat Agent Wizard"
+    AIChatAgentWizard = "AI Chat Agent Wizard",
+    ResolveMissingDependencies = "Resolve Missing Dependencies"
 }
 
 export interface MachineEvent {
@@ -219,6 +222,8 @@ export interface ChatError {
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
+export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };

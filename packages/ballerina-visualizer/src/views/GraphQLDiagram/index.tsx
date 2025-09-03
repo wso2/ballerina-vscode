@@ -214,6 +214,63 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
         setFocusedNodeId(nodeId);
     };
 
+    const verifyTypeDelete = async (typeId: string): Promise<boolean> => {
+        if (!graphqlTypeModel?.refs) {
+            return false;
+        }
+        const component = graphqlTypeModel.refs.find((type) => type.name === typeId);
+        if (!component) {
+            return false;
+        }
+
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().verifyTypeDelete({
+                filePath: component.codedata?.lineRange?.fileName,
+                startPosition: component.codedata?.lineRange?.startLine,
+            });
+
+            if (response.errorMsg) {
+                rpcClient.getCommonRpcClient().showErrorMessage({
+                    message: response.errorMsg || "Failed to find usages.",
+                });
+                throw new Error(response.errorMsg);
+            }
+            return !!response.canDelete;
+        } catch (error: any) {
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: error?.message || "Failed to find usages.",
+            });
+            throw error;
+        }
+    };
+
+    // After user confirms in the diagram, delete without re-verifying.
+    const onTypeDelete = async (typeId: string) => {
+        const component = graphqlTypeModel?.refs.find((type) => type.name === typeId);
+        if (!component) {
+            return;
+        }
+        await rpcClient.getBIDiagramRpcClient().deleteType({
+            filePath: component.codedata?.lineRange?.fileName,
+            lineRange: {
+                startLine: component.codedata?.lineRange?.startLine,
+                endLine: component.codedata?.lineRange?.endLine,
+            }
+        }).then((response) => {
+            if (response.errorMsg) {
+                rpcClient.getCommonRpcClient().showErrorMessage({
+                    message: response.errorMsg || "Failed to delete type. Please check the console for more details.",
+                });
+                throw new Error(response.errorMsg || "Failed to delete type. Please check the console for more details.");
+            }
+        }).catch((error) => {
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: error.message || "Failed to delete type. Please check the console for more details.",
+            });
+        });
+    };
+
+
     return (
         <>
             <View>
@@ -259,6 +316,8 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                             onTypeEdit={onTypeEdit}
                             focusedNodeId={focusedNodeId}
                             updateFocusedNodeId={handleFocusedNodeIdChange}
+                            onTypeDelete={onTypeDelete}
+                            verifyTypeDelete={verifyTypeDelete}
                         />
                     ) : null}
                 </ViewContent>
@@ -294,9 +353,9 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         type={editingType}
                         onTypeChange={onTypeChange}
                         newType={false}
-                        isGraphql={true} 
-                        onTypeCreate={() => { }}    
-                        />
+                        isGraphql={true}
+                        onTypeCreate={() => { }}
+                    />
                 </PanelContainer>
             )}
             {isTypeEditorOpen && editingType && editingType.codedata.node === "CLASS" && (

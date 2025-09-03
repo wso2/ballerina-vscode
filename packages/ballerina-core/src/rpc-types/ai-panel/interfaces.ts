@@ -20,7 +20,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
-import { FormField } from "../../interfaces/config-spec";
+import { DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 
 // ==================================
 // General Interfaces
@@ -118,6 +118,34 @@ export interface NotifyAIMappingsRequest {
 export interface CodeSegment {
     segmentText: string;
     filePath: string;
+    metadata?: ExtendedDataMapperMetadata;
+    textEdit?: DataMapperSourceResponse;
+}
+
+export interface DataMappingRecord {
+    type: string;
+    isArray: boolean;
+    filePath: string;
+}
+
+export interface GenerateTypesFromRecordRequest {
+    attachment?: Attachment[]
+}
+
+export interface GenerateTypesFromRecordResponse {
+    typesCode: string;
+}
+
+export interface MappingParameters {
+    inputRecord: string[];
+    outputRecord: string,
+    functionName?: string;
+}
+
+export interface ImportInfo {
+    moduleName: string;
+    alias?: string;
+    recordName?: string;
 }
 
 // Test-generator related interfaces
@@ -154,43 +182,6 @@ export interface TestGeneratorIntermediaryState {
     resourceFunction: string;
     testPlan: string;
 }
-
-
-export interface DataMappingRecord {
-    type: string;
-    isArray: boolean;
-    filePath: string;
-}
-
-export interface GenerateMappingsFromRecordRequest {
-    backendUri: string;
-    token: string;
-    inputRecordTypes: DataMappingRecord[];
-    outputRecordType: DataMappingRecord;
-    functionName: string;
-    imports: { moduleName: string; alias?: string }[];
-    inputNames?: string[];
-    attachment?: Attachment[]
-}
-
-export interface GenerateTypesFromRecordRequest {
-    backendUri: string;
-    token: string;
-    attachment?: Attachment[]
-}
-
-export interface GenerateMappingFromRecordResponse {
-    mappingCode: string;
-}
-export interface GenerateTypesFromRecordResponse {
-    typesCode: string;
-}
-export interface MappingParameters {
-    inputRecord: string[];
-    outputRecord: string,
-    functionName?: string;
-}
-
 
 export interface PostProcessRequest {
     assistant_response: string;
@@ -340,6 +331,18 @@ export interface CopilotFilterLibrariesRequest {
 
 export interface CopilotFilterLibrariesResponse {
     libraries: any[];
+}
+
+// ==================================
+// Doc Generation Related Interfaces
+// ==================================
+export enum DocGenerationType {
+    User = "user",
+}
+
+export interface DocGenerationRequest {
+    type: DocGenerationType;
+    serviceName: string;
 }
 
 export const GENERATE_TEST_AGAINST_THE_REQUIREMENT = "Generate tests against the requirements";
