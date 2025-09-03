@@ -101,6 +101,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -2217,9 +2218,15 @@ public class DataMapManager {
         }
         try {
             workspaceManager.loadProject(filePath);
-            Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
+            Range functionRange;
+            try {
+                Document document = workspaceManager.document(functionsFilePath).orElse(null);
+                assert document != null;
+                functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            } catch (ProjectException e) {
+                functionRange = new Range(new Position(0, 0), new Position(0, 0));
+            }
             ReturnType returnType = functionMetadata.returnType();
-            Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
             String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
             if (isCustomFunction) {
