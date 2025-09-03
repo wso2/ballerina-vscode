@@ -4,5 +4,37 @@
   "orgName": "ballerinax",
   "pkgName": "kafka",
   "moduleName": "kafka",
-  "response": {}
+  "response": {
+    "serviceInitModel": {
+      "id": "10",
+      "displayName": "Kafka Event Handler",
+      "description": "Kafka Event Handler",
+      "orgName": "ballerinax",
+      "packageName": "kafka",
+      "moduleName": "kafka",
+      "version": "4.5.0",
+      "type": "kafka",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+      "properties": {
+        "boostrapServers": {
+          "metadata": {
+            "label": "Bootstrap Servers",
+            "description": "List of remote server endpoints of the Kafka brokers"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAMETER"
+          },
+          "placeholder": "\"\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
 }

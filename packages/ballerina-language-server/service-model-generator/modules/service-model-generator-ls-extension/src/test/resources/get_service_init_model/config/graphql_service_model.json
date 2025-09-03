@@ -4,5 +4,37 @@
   "orgName": "ballerina",
   "pkgName": "graphql",
   "moduleName": "graphql",
-  "response": {}
+  "response": {
+    "serviceInitModel": {
+      "id": "2",
+      "displayName": "GraphQL Service",
+      "description": "GraphQL Service",
+      "orgName": "ballerina",
+      "packageName": "graphql",
+      "moduleName": "graphql",
+      "version": "1.16.0",
+      "type": "graphql",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+      "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Base Path",
+            "description": "The base path of the GraphQL service"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/graphql",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
 }

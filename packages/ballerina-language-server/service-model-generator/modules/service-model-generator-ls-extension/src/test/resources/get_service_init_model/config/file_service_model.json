@@ -1,0 +1,58 @@
+{
+  "description": "Test getting tcp service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "file",
+  "moduleName": "file",
+  "response": {
+    "serviceInitModel": {
+      "id": "4",
+      "displayName": "Directory Service",
+      "description": "Directory Service",
+      "orgName": "ballerina",
+      "packageName": "file",
+      "moduleName": "file",
+      "version": "1.12.0",
+      "type": "file",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_file_1.12.0.png",
+      "properties": {
+        "path": {
+          "metadata": {
+            "label": "Path",
+            "description": "Directory path to be monitored"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAMETER"
+          },
+          "placeholder": "\"/tmp\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "recursive": {
+          "metadata": {
+            "label": "Recursive",
+            "description": "Recursively monitor all sub-directories"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAMETER"
+          },
+          "placeholder": "false",
+          "valueType": "FLAG",
+          "valueTypeConstraint": "boolean",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
+}

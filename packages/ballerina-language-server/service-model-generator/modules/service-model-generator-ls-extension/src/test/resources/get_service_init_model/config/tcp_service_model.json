@@ -4,5 +4,37 @@
   "orgName": "ballerina",
   "pkgName": "tcp",
   "moduleName": "tcp",
-  "response": {}
+  "response": {
+    "serviceInitModel": {
+      "id": "3",
+      "displayName": "TCP Service",
+      "description": "TCP Service",
+      "orgName": "ballerina",
+      "packageName": "tcp",
+      "moduleName": "tcp",
+      "version": "1.13.0",
+      "type": "tcp",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+      "properties": {
+        "tcpPort": {
+          "metadata": {
+            "label": "TCP Port",
+            "description": "The port on which the TCP service listens"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAMETER"
+          },
+          "placeholder": "80",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
 }
