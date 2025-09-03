@@ -410,6 +410,25 @@ export function DataMapperView(props: DataMapperProps) {
         }
     };
 
+    const mapWithTransformFn = async (mapping: Mapping, metadata: FnMetadata, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .mapWithTransformFn({
+                    filePath,
+                    codedata,
+                    mapping,
+                    functionMetadata: metadata,
+                    varName: name,
+                    targetField: viewId,
+                });
+            console.log(">>> [Data Mapper] mapWithTransformFn response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     const goToFunction = async (functionRange: LineRange) => {
         const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath(functionRange.fileName);
         const position: NodePosition = {
@@ -580,6 +599,7 @@ export function DataMapperView(props: DataMapperProps) {
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             mapWithCustomFn={mapWithCustomFn}
+                            mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             expressionBar={{
