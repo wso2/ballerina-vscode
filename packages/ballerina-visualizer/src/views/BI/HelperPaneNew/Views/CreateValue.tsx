@@ -148,11 +148,6 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "string") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `<type your string template here>`") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create a string template
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
                     <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"<type your string value here>\"") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a string value
