@@ -2136,17 +2136,18 @@ public class DataMapManager {
     }
 
     public JsonElement genMappingFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
-                                         Path filePath, JsonElement cd, JsonElement mp, JsonElement fm,
+                                         Path filePath, JsonElement codeData, JsonElement mappings,
+                                          JsonElement functionMetaData,
                                          String targetField, Boolean isCustomFunction) {
-        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         if (targetNode == null) {
             return null;
         }
 
-        FunctionMetadata functionMetadata = gson.fromJson(fm, FunctionMetadata.class);
-        Mapping mapping = gson.fromJson(mp, Mapping.class);
+        FunctionMetadata functionMetadata = gson.fromJson(functionMetaData, FunctionMetadata.class);
+        Mapping mapping = gson.fromJson(mappings, Mapping.class);
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         ExpressionNode expressionNode = targetNode.expressionNode();
