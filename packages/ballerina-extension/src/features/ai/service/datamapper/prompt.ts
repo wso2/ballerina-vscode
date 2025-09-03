@@ -135,14 +135,14 @@ Example Input json :
     "fields":[
       {
         "id":"studentDetails.id",
-        "variableName":"id",
+        "name":"id",
         "typeName":"string",
         "kind":"string",
         "optional":false
       },
       {
         "id":"studentDetails.tags",
-        "variableName":"tags",
+        "name":"tags",
         "typeName":"string",
         "kind":"string",
         "optional":false
@@ -151,28 +151,28 @@ Example Input json :
         "fields":[
           {
             "id":"studentDetails.bio.firstName",
-            "variableName":"firstName",
+            "name":"firstName",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.bio.lastName",
-            "variableName":"lastName",
+            "name":"lastName",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.bio.age",
-            "variableName":"age",
+            "name":"age",
             "typeName":"int",
             "kind":"int",
             "optional":false
           }
         ],
         "id":"studentDetails.bio",
-        "variableName":"bio",
+        "name":"bio",
         "typeName":"Bio",
         "kind":"record",
         "optional":false
@@ -181,42 +181,42 @@ Example Input json :
         "fields":[
           {
             "id":"studentDetails.address.address1",
-            "variableName":"address1",
+            "name":"address1",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.address.address2",
-            "variableName":"address2",
+            "name":"address2",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.address.city",
-            "variableName":"city",
+            "name":"city",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.address.country",
-            "variableName":"country",
+            "name":"country",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.address.zipcode",
-            "variableName":"zipcode",
+            "name":"zipcode",
             "typeName":"string",
             "kind":"string",
             "optional":false
           }
         ],
         "id":"studentDetails.address",
-        "variableName":"address",
+        "name":"address",
         "typeName":"Address",
         "kind":"record",
         "optional":false
@@ -225,7 +225,7 @@ Example Input json :
         "fields":[
           {
             "id":"studentDetails.academicDetails.major",
-            "variableName":"major",
+            "name":"major",
             "typeName":"string",
             "kind":"string",
             "optional":false
@@ -233,20 +233,20 @@ Example Input json :
           {
             "member":{
               "id":"studentDetails.academicDetails.subjects.0",
-              "variableName":"<subjectsItem>",
+              "name":"<subjectsItem>",
               "typeName":"string",
               "kind":"string",
               "optional":false
             },
             "id":"studentDetails.academicDetails.subjects",
-            "variableName":"subjects",
+            "name":"subjects",
             "typeName":"string[]",
             "kind":"array",
             "optional":false
           }
         ],
         "id":"studentDetails.academicDetails",
-        "variableName":"academicDetails",
+        "name":"academicDetails",
         "typeName":"AcademicDetails",
         "kind":"record",
         "optional":false
@@ -255,28 +255,28 @@ Example Input json :
         "fields":[
           {
             "id":"studentDetails.studentProgress.studentId",
-            "variableName":"studentId",
+            "name":"studentId",
             "typeName":"string",
             "kind":"string",
             "optional":false
           },
           {
             "id":"studentDetails.studentProgress.currentLevel",
-            "variableName":"currentLevel",
+            "name":"currentLevel",
             "typeName":"float",
             "kind":"float",
             "optional":false
           }
         ],
         "id":"studentDetails.studentProgress",
-        "variableName":"studentProgress",
+        "name":"studentProgress",
         "typeName":"StudentProgress",
         "kind":"record",
         "optional":false
       }
     ],
     "id":"studentDetails",
-    "variableName":"studentDetails",
+    "name":"studentDetails",
     "typeName":"StudentDetails",
     "kind":"record",
     "category":"parameter",
@@ -290,7 +290,7 @@ Example Output json :
   "fields":[
     {
       "id":"student.studentId",
-      "variableName":"studentId",
+      "name":"studentId",
       "typeName":"int",
       "kind":"int",
       "optional":false
@@ -298,13 +298,13 @@ Example Output json :
     {
       "member":{
         "id":"student.studentTags",
-        "variableName":"<studentTagsItem>",
+        "name":"<studentTagsItem>",
         "typeName":"string",
         "kind":"string",
         "optional":false
       },
       "id":"student.studentTags",
-      "variableName":"studentTags",
+      "name":"studentTags",
       "typeName":"string[]",
       "kind":"array",
       "optional":false
@@ -313,35 +313,35 @@ Example Output json :
       "fields":[
         {
           "id":"student.studentBio.fullName",
-          "variableName":"fullName",
+          "name":"fullName",
           "typeName":"string",
           "kind":"string",
           "optional":false
         },
         {
           "id":"student.studentBio.age",
-          "variableName":"age",
+          "name":"age",
           "typeName":"int",
           "kind":"int",
           "optional":false
         }
       ],
       "id":"student.studentBio",
-      "variableName":"studentBio",
+      "name":"studentBio",
       "typeName":"StudentBio",
       "kind":"record",
       "optional":false
     },
     {
       "id":"student.studentAddress",
-      "variableName":"studentAddress",
+      "name":"studentAddress",
       "typeName":"string",
       "kind":"string",
       "optional":false
     },
     {
       "id":"student.academicMajor",
-      "variableName":"academicMajor",
+      "name":"academicMajor",
       "typeName":"string",
       "kind":"string",
       "optional":false
@@ -349,27 +349,27 @@ Example Output json :
     {
       "member":{
         "id":"student.subjects",
-        "variableName":"<subjectsItem>",
+        "name":"<subjectsItem>",
         "typeName":"string",
         "kind":"string",
         "optional":false
       },
       "id":"student.subjects",
-      "variableName":"subjects",
+      "name":"subjects",
       "typeName":"string[]",
       "kind":"array",
       "optional":false
     },
     {
       "id":"student.currentLevel",
-      "variableName":"currentLevel",
+      "name":"currentLevel",
       "typeName":"string",
       "kind":"string",
       "optional":false
     }
   ],
   "id":"student",
-  "variableName":"student",
+  "name":"student",
   "typeName":"Student",
   "kind":"record",
   "optional":false
