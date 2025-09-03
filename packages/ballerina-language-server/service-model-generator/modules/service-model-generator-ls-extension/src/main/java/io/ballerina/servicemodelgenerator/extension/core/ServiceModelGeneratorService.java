@@ -63,6 +63,7 @@ import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModelR
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceClassSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceInitSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModelRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceSourceRequest;
@@ -917,6 +918,33 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request));
             } catch (Throwable e) {
                 return new ServiceInitModelResponse(e);
+            }
+        });
+    }
+
+    /**
+     * Get the list of text edits to add a service and a listener to the given module.
+     *
+     * @param request Service source request
+     * @return {@link CommonSourceResponse} of the common source response
+     */
+    @JsonRequest
+    public CompletableFuture<CommonSourceResponse> createServiceAndListener(ServiceInitSourceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Path filePath = Path.of(request.filePath());
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    return new CommonSourceResponse();
+                }
+                Map<String, List<TextEdit>> textEdits = ServiceBuilderRouter.addServiceInitSource(
+                        request.serviceInitModel(), semanticModel.get(), project, workspaceManager,
+                        request.filePath(), document.get());
+                return new CommonSourceResponse(textEdits);
+            } catch (Throwable e) {
+                return new CommonSourceResponse(e);
             }
         });
     }
