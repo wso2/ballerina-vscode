@@ -57,6 +57,10 @@ export enum SidePanelView {
     VECTOR_STORE_LIST = "VECTOR_STORE_LIST",
     EMBEDDING_PROVIDERS = "EMBEDDING_PROVIDERS",
     EMBEDDING_PROVIDER_LIST = "EMBEDDING_PROVIDER_LIST",
+    DATA_LOADERS = "DATA_LOADERS",
+    DATA_LOADER_LIST = "DATA_LOADER_LIST",
+    CHUNKERS = "CHUNKERS",
+    CHUNKER_LIST = "CHUNKER_LIST",
     VECTOR_KNOWLEDGE_BASE_LIST = "VECTOR_KNOWLEDGE_BASE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
@@ -105,6 +109,8 @@ interface PanelManagerProps {
     onAddVectorStore?: () => void;
     onAddEmbeddingProvider?: () => void;
     onAddVectorKnowledgeBase?: () => void;
+    onAddDataLoader?: () => void;
+    onAddChunker?: () => void;
     onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
@@ -116,7 +122,10 @@ interface PanelManagerProps {
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
+    onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     setSidePanelView: (view: SidePanelView) => void;
 
     // AI Agent handlers
@@ -161,6 +170,8 @@ export function PanelManager(props: PanelManagerProps) {
         onAddVectorStore,
         onAddEmbeddingProvider,
         onAddVectorKnowledgeBase,
+        onAddDataLoader,
+        onAddChunker,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -171,8 +182,11 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchVectorStore,
         onSearchEmbeddingProvider,
         onSearchVectorKnowledgeBase,
+        onSearchDataLoader,
+        onSearchChunker,
         onSelectNewConnection,
-        onUpdateNodeWithConnection
+        onUpdateNodeWithConnection,
+        onNavigateToPanel,
     } = props;
 
     const handleOnAddTool = () => {
@@ -464,13 +478,71 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
+            case SidePanelView.DATA_LOADER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddDataLoader}
+                        addButtonLabel={"Add Data Loader"}
+                        onClose={onClose}
+                        title={"Data Loaders"}
+                        searchPlaceholder={"Search data loaders"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchDataLoader?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.DATA_LOADERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Data Loaders"}
+                        searchPlaceholder={"Search data loaders"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.CHUNKER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddChunker}
+                        addButtonLabel={"Add Chunker"}
+                        onClose={onClose}
+                        title={"Chunkers"}
+                        searchPlaceholder={"Search chunkers"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchChunker?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.CHUNKERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Chunkers"}
+                        searchPlaceholder={"Search chunkers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
             case SidePanelView.CONNECTION_CONFIG:
                 return (
                     <ConnectionConfig
                         connectionKind={selectedConnectionKind}
                         selectedNode={selectedNode}
                         onSave={onUpdateNodeWithConnection}
-                        onCreateNew={() => setSidePanelView(SidePanelView.CONNECTION_SELECT)}
+                        onNavigateToSelectionList={() => onNavigateToPanel?.(SidePanelView.CONNECTION_SELECT)}
                     />
                 );
 
@@ -504,6 +576,7 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        navigateToPanel={onNavigateToPanel}
                     />
                 );
 
@@ -520,7 +593,6 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.ADD_MCP_SERVER:
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
-                return () => setSidePanelView(SidePanelView.CONNECTION_CONFIG);
             case SidePanelView.CONNECTION_CREATE:
             case SidePanelView.NEW_AGENT:
                 return onBack;

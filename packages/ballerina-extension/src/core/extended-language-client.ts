@@ -248,13 +248,24 @@ import {
     DeleteMappingRequest,
     MapWithCustomFnRequest,
     AIToolResponse,
-    AIToolRequest
+    AIToolRequest,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
+    ImportIntegrationRequest,
+    ImportIntegrationResponse,
+    onMigrationToolStateChanged,
+    onMigrationToolLogs,
+    GetMigrationToolsResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
 import { CMP_LS_CLIENT_COMPLETIONS, CMP_LS_CLIENT_DIAGNOSTICS, getMessageObject, sendTelemetryEvent, TM_EVENT_LANG_CLIENT } from "../features/telemetry";
 import { DefinitionParams, InitializeParams, InitializeResult, Location, LocationLink, TextDocumentPositionParams } from 'vscode-languageserver-protocol';
 import { updateProjectArtifacts } from "../utils/project-artifacts";
+import { RPCLayer } from "../../src/RPCLayer";
+import { VisualizerWebview } from "../../src/views/visualizer/webview";
 
 export const CONNECTOR_LIST_CACHE = "CONNECTOR_LIST_CACHE";
 export const HTTP_CONNECTOR_LIST_CACHE = "HTTP_CONNECTOR_LIST_CACHE";
@@ -313,11 +324,15 @@ enum EXTENDED_APIS {
     BI_SOURCE_CODE = 'flowDesignService/getSourceCode',
     BI_DELETE_NODE = 'flowDesignService/deleteFlowNode',
     BI_DELETE_BY_COMPONENT_INFO = 'flowDesignService/deleteComponent',
+    BI_VERIFY_TYPE_DELETE = 'typesManager/verifyTypeDelete',
+    BI_DELETE_TYPE = 'typesManager/deleteType',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
     BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
     BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
     BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
     BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES = 'flowDesignService/getAvailableVectorKnowledgeBases',
+    BI_AVAILABLE_DATA_LOADERS = 'flowDesignService/getAvailableDataLoaders',
+    BI_AVAILABLE_CHUNKS = 'flowDesignService/getAvailableChunkers',
     BI_NODE_TEMPLATE = 'flowDesignService/getNodeTemplate',
     BI_GEN_OPEN_API = 'flowDesignService/generateServiceFromOpenApiContract',
     BI_MODULE_NODES = 'flowDesignService/getModuleNodes',
@@ -417,7 +432,12 @@ enum EXTENDED_APIS {
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
-    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries'
+    COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
+    TIBCO_TO_BI = 'projectService/importTibco',
+    MULE_TO_BI = 'projectService/importMule',
+    MIGRATION_TOOL_STATE = 'projectService/stateCallback',
+    MIGRATION_TOOL_LOG = 'projectService/logCallback',
 }
 
 enum EXTENDED_APIS_ORG {
@@ -512,6 +532,32 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                 }
             } catch (error) {
                 console.error("Error in PUBLISH_ARTIFACTS handler:", error);
+            }
+        });
+    }
+
+    registerMigrationToolCallbacks(): void {
+        this.onNotification(EXTENDED_APIS.MIGRATION_TOOL_STATE, (res: ArtifactsNotification) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigrationToolStateChanged,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in MIGRATION_TOOL_STATE handler:", error);
+            }
+        });
+
+        this.onNotification(EXTENDED_APIS.MIGRATION_TOOL_LOG, (res: ArtifactsNotification) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigrationToolLogs,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
         });
     }
@@ -960,6 +1006,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES, params);
     }
 
+    async getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_DATA_LOADERS, params);
+    }
+
+    async getAvailableChunkers(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_CHUNKS, params);
+    }
+
     async getEnclosedFunctionDef(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         return this.sendRequest<BIGetEnclosedFunctionResponse>(EXTENDED_APIS.BI_GET_ENCLOSED_FUNCTION, params);
     }
@@ -1014,6 +1068,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BISourceCodeResponse> {
         return this.sendRequest<BISourceCodeResponse>(EXTENDED_APIS.BI_DELETE_BY_COMPONENT_INFO, params);
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        return this.sendRequest<VerifyTypeDeleteResponse>(EXTENDED_APIS.BI_VERIFY_TYPE_DELETE, params);
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return this.sendRequest<DeleteTypeResponse>(EXTENDED_APIS.BI_DELETE_TYPE, params);
     }
 
     async getSequenceDiagramModel(params: SequenceModelRequest): Promise<SequenceModelResponse> {
@@ -1253,6 +1315,19 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
     }
 
+    async getMigrationTools(): Promise<GetMigrationToolsResponse> {
+        return this.sendRequest<GetMigrationToolsResponse>(EXTENDED_APIS.GET_MIGRATION_TOOLS);
+    }
+
+    async importTibcoToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
+        debug(`Importing Tibco to Ballerina: ${JSON.stringify(params)}`);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.TIBCO_TO_BI, params);
+    }
+
+    async importMuleToBI(params: ImportIntegrationRequest): Promise<ImportIntegrationResponse> {
+        debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
+        return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
+    }
 
     // <------------ BI APIS END --------------->
 

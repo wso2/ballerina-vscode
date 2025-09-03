@@ -18,9 +18,12 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatRequest,
+    addBreakpointToSource,
+    addClassField,
     AddFieldRequest,
+    addFunction,
     AddFunctionRequest,
+    AIChatRequest,
     BIAiSuggestionsRequest,
     BIAvailableNodesRequest,
     BIDeleteByComponentInfoRequest,
@@ -33,41 +36,7 @@ import {
     BuildMode,
     ClassFieldModifierRequest,
     ComponentRequest,
-    DeploymentRequest,
-    EndOfFileRequest,
-    ExpressionCompletionsRequest,
-    ExpressionDiagnosticsRequest,
-    FormDidCloseParams,
-    FormDidOpenParams,
-    FunctionNodeRequest,
-    GetConfigVariableNodeTemplateRequest,
-    GetRecordConfigRequest,
-    GetRecordModelFromSourceRequest,
-    GetTypeRequest,
-    GetTypesRequest,
-    getTypeFromJson,
-    JsonToTypeRequest,
-    ModelFromCodeRequest,
-    OpenAPIClientDeleteRequest,
-    OpenAPIClientGenerationRequest,
-    OpenAPIGeneratedModulesRequest,
-    OpenConfigTomlRequest,
-    ProjectRequest,
-    ReadmeContentRequest,
-    RecordSourceGenRequest,
-    RenameIdentifierRequest,
-    ServiceClassSourceRequest,
-    SignatureHelpRequest,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableRequestV2,
-    UpdateImportsRequest,
-    UpdateRecordConfigRequest,
-    UpdateTypeRequest,
-    UpdateTypesRequest,
-    VisibleTypesRequest,
-    addBreakpointToSource,
-    addClassField,
-    addFunction,
+    MigrateRequest,
     buildProject,
     createComponent,
     createGraphqlClassType,
@@ -76,12 +45,17 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteType,
+    DeleteTypeRequest,
+    DeploymentRequest,
     deployProject,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
     getAllImports,
+    getAvailableChunkers,
+    getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
     getAvailableModelProviders,
     getAvailableNodes,
@@ -134,7 +108,40 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    DeleteConfigVariableRequestV2
+    DeleteConfigVariableRequestV2,
+    ProjectRequest,
+    EndOfFileRequest,
+    ExpressionCompletionsRequest,
+    ExpressionDiagnosticsRequest,
+    FormDidCloseParams,
+    FormDidOpenParams,
+    FunctionNodeRequest,
+    GetConfigVariableNodeTemplateRequest,
+    GetRecordConfigRequest,
+    GetRecordModelFromSourceRequest,
+    getTypeFromJson,
+    GetTypeRequest,
+    GetTypesRequest,
+    JsonToTypeRequest,
+    ModelFromCodeRequest,
+    OpenAPIClientDeleteRequest,
+    OpenAPIClientGenerationRequest,
+    OpenAPIGeneratedModulesRequest,
+    OpenConfigTomlRequest,
+    ReadmeContentRequest,
+    RecordSourceGenRequest,
+    RenameIdentifierRequest,
+    ServiceClassSourceRequest,
+    SignatureHelpRequest,
+    UpdateConfigVariableRequest,
+    UpdateConfigVariableRequestV2,
+    UpdateImportsRequest,
+    UpdateRecordConfigRequest,
+    UpdateTypeRequest,
+    UpdateTypesRequest,
+    verifyTypeDelete,
+    VerifyTypeDeleteRequest,
+    VisibleTypesRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -150,6 +157,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
     messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
     messenger.onRequest(getAvailableVectorKnowledgeBases, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorKnowledgeBases(args));
+    messenger.onRequest(getAvailableDataLoaders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableDataLoaders(args));
+    messenger.onRequest(getAvailableChunkers, (args: BIAvailableNodesRequest) => rpcManger.getAvailableChunkers(args));
     messenger.onRequest(getEnclosedFunction, (args: BIGetEnclosedFunctionRequest) => rpcManger.getEnclosedFunction(args));
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
@@ -190,6 +199,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
+    messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));
+    messenger.onRequest(verifyTypeDelete, (args: VerifyTypeDeleteRequest) => rpcManger.verifyTypeDelete(args));
     messenger.onRequest(getTypeFromJson, (args: JsonToTypeRequest) => rpcManger.getTypeFromJson(args));
     messenger.onRequest(getServiceClassModel, (args: ModelFromCodeRequest) => rpcManger.getServiceClassModel(args));
     messenger.onRequest(updateClassField, (args: ClassFieldModifierRequest) => rpcManger.updateClassField(args));
