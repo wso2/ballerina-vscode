@@ -98,6 +98,7 @@ interface ConnectorViewProps {
     onAddGeneratedConnector: () => void;
     onClose?: () => void;
     hideTitle?: boolean;
+    openCustomConnectorView?: boolean;
 }
 
 export function ConnectorView(props: ConnectorViewProps) {
@@ -108,6 +109,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         onAddGeneratedConnector,
         onClose,
         hideTitle,
+        openCustomConnectorView,
     } = props;
     const { rpcClient } = useRpcContext();
 
@@ -115,7 +117,9 @@ export function ConnectorView(props: ConnectorViewProps) {
     const [searchText, setSearchText] = useState<string>("");
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
-    const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<string>("StandardLibrary");
+    const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<string>(
+        openCustomConnectorView? "LocalConnectors" : "StandardLibrary"
+    );
 
     useEffect(() => {
         setIsSearching(true);

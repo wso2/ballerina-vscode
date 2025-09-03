@@ -112,10 +112,11 @@ interface AddConnectionWizardProps {
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
     isPopupScreen?: boolean;
+    openCustomConnectorView?: boolean;
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose, isPopupScreen } = props;
+    const { fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
@@ -355,6 +356,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     onSelectConnector={handleOnSelectConnector}
                     onAddGeneratedConnector={handleOnAddGeneratedConnector}
                     onClose={onClose}
+                    openCustomConnectorView={openCustomConnectorView}
                 />
             ) : (currentStep === WizardStep.CONNECTOR_LIST) && (
                 <>
