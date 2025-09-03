@@ -26,11 +26,20 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.modelgenerator.commons.ServiceDeclaration;
+import io.ballerina.modelgenerator.commons.ServiceInitInfo;
+import io.ballerina.modelgenerator.commons.ServiceInitProperty;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
@@ -74,6 +83,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";
+    private static final String NEW_HTTP_SERVICE_MODEL_LOCATION = "services/http_new.json";
 
     public HttpServiceBuilder() {
     }
@@ -91,6 +101,21 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
             return Optional.of(service);
         } catch (IOException e) {
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
+                .getResourceAsStream(NEW_HTTP_SERVICE_MODEL_LOCATION);
+        if (resourceStream == null) {
+            return null;
+        }
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            return new Gson().fromJson(reader, ServiceInitModel.class);
+        } catch (IOException e) {
+            return null;
         }
     }
 

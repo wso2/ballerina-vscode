@@ -54,7 +54,7 @@
           "optional": false,
           "advanced": false
         },
-        "queueName": {
+        "basePath": {
           "metadata": {
             "label": "Queue Name",
             "description": "The name of the queue to listen to"
