@@ -60,12 +60,15 @@ interface TypeEditorState {
 
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
+    console.log("selectedTypeId", selectedTypeId);
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
     const [typesModel, setTypesModel] = React.useState<Type[]>(undefined);
     const [focusedNodeId, setFocusedNodeId] = React.useState<string | undefined>(undefined);
-    const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(selectedTypeId);
+    const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(undefined);
+    const prevSelectedTypeId = React.useRef<string | undefined>(selectedTypeId);
+    const [focusOnLargeDiagram, setFocusOnLargeDiagram] = React.useState<string | undefined>(selectedTypeId);
     const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
         isTypeCreatorOpen: false,
         editingTypeId: undefined,
@@ -100,10 +103,49 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }
     });
 
+    // Handle focused node logic - clear focusedNodeId when selectedTypeId changes
     useEffect(() => {
         setFocusedNodeId(undefined);
-        setHighlightedNodeId(selectedTypeId);
+    }, [selectedTypeId, typesModel]);
+
+    // Handle focus on large diagram logic - determine when to show focused view vs node selector
+    useEffect(() => {
+        if (!typesModel) {
+            return;
+        }
+
+        if (typesModel.length > 100) {
+            if (selectedTypeId) {
+                console.log('Setting focusOnLargeDiagram from selectedTypeId:', selectedTypeId);
+                setFocusOnLargeDiagram(selectedTypeId);
+            } else if (prevSelectedTypeId.current !== undefined) {
+                // Only clear focus when selectedTypeId explicitly becomes undefined from a previous value
+                // This preserves user action focus when selectedTypeId was never set
+                console.log('Clearing focusOnLargeDiagram due to selectedTypeId becoming undefined');
+                setFocusOnLargeDiagram(undefined);
+            }
+        } else {
+            setFocusOnLargeDiagram(undefined);
+        }
+    }, [selectedTypeId, typesModel]);
+
+    // Handle highlighted node logic - only clear internal highlights when selectedTypeId changes to a new value
+    useEffect(() => {
+        if (prevSelectedTypeId.current !== selectedTypeId && selectedTypeId !== undefined) {
+            // selectedTypeId changed to a new value, clear internal highlights
+            setHighlightedNodeId(undefined);
+        }
+
+        prevSelectedTypeId.current = selectedTypeId;
     }, [selectedTypeId]);
+
+    // Helper function to set focused view for large diagrams
+    const setFocusForLargeDiagram = (nodeId: string) => {
+        if (typesModel && typesModel.length > 100) {
+            console.log('Setting focusOnLargeDiagram from user action:', nodeId);
+            setFocusOnLargeDiagram(nodeId);
+        }
+    };
 
     const getComponentModel = async () => {
         if (!rpcClient || !visualizerLocation?.metadata?.recordFilePath) {
@@ -166,6 +208,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             editingTypeId: typeId,
         }));
         setHighlightedNodeId(typeId);
+        setFocusForLargeDiagram(typeId);
     };
 
     const onTypeEditorClosed = () => {
@@ -179,12 +222,14 @@ export function TypeDiagram(props: TypeDiagramProps) {
 
     const onSwitchToTypeDiagram = () => {
         setFocusedNodeId(undefined);
+        setFocusOnLargeDiagram(undefined);
     };
 
     const onFocusedNodeIdChange = (typeId: string) => {
         setFocusedNodeId(typeId);
         onTypeEditorClosed();
         setHighlightedNodeId(undefined);
+        setFocusOnLargeDiagram(undefined);
     };
 
     const Header = () => (
@@ -232,6 +277,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 newTypeName: undefined,
             });
             setHighlightedNodeId(type.name);
+            setFocusForLargeDiagram(type.name);
             return;
         }
         setTypeEditorState({
@@ -241,6 +287,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             newTypeName: undefined,
         });
         setHighlightedNodeId(type.name); // Highlight the newly created type
+        setFocusForLargeDiagram(type.name);
     };
 
     // Helper function to convert TypeNodeKind to display name
@@ -274,7 +321,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         <>
             <View>
                 <TopNavigationBar />
-                {!focusedNodeId && (
+                {!focusedNodeId && !focusOnLargeDiagram && (
                     <TitleBar
                         title="Types"
                         subtitle={focusedNodeId || "View and edit types in the project"}
@@ -285,15 +332,23 @@ export function TypeDiagram(props: TypeDiagramProps) {
                         }
                     />
                 )}
-                {focusedNodeId && (
-                    <TitleBar title={focusedNodeId} subtitle="Type" onBack={() => setFocusedNodeId(undefined)} />
+                {(focusedNodeId || focusOnLargeDiagram) && (
+                    <TitleBar
+                        title={focusedNodeId || focusOnLargeDiagram}
+                        subtitle="Type"
+                        onBack={() => {
+                            setFocusedNodeId(undefined);
+                            setFocusOnLargeDiagram(undefined);
+                        }}
+                    />
                 )}
                 <ViewContent>
                     {typesModel ? (
                         <TypeDesignDiagram
                             typeModel={typesModel}
-                            selectedNodeId={highlightedNodeId}
+                            selectedNodeId={highlightedNodeId !== undefined ? highlightedNodeId : selectedTypeId}
                             focusedNodeId={focusedNodeId}
+                            focusOnLargeDiagram={focusOnLargeDiagram}
                             updateFocusedNodeId={onFocusedNodeIdChange}
                             showProblemPanel={showProblemPanel}
                             goToSource={handleOnGoToSource}
