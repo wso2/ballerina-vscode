@@ -148,7 +148,7 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "string") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"<type your string value here>\"") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"TEXT_HERE\"") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a string value
                         </ExpandableList.Item>
@@ -166,7 +166,7 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `<type your string template here>`") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `TEXT_HERE`") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create a printable template
                         </ExpandableList.Item>
@@ -175,7 +175,7 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
             )}
             {isSelectedTypeContainsType(selectedType, "error") && (
                 <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("error(\"type your error message\")") }}>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("error(\"ERROR_MESSAGE_HERE\")") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create an error
                         </ExpandableList.Item>
