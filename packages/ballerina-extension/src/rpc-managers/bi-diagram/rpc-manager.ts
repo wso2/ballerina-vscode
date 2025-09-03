@@ -303,6 +303,58 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    private filterAdvancedAiNodes(response: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        const showAdvancedAiNodes = extension.ballerinaExtInstance.getShowAdvancedAiNodes();
+        if (showAdvancedAiNodes || !response) {
+            return response;
+        }
+
+        // List of node types/labels to hide when advanced AI nodes are disabled
+        const hiddenNodeTypes = [
+            'CHUNKERS',
+            'VECTOR_STORES', 
+            'EMBEDDING_PROVIDERS'
+        ];
+
+        const hiddenNodeLabels = [
+            'Recursive Document Chunker',
+            'Chunker',
+            'Vector Store',
+            'Embedding Provider'
+        ];
+
+        const filterItems = (items: any[]): any[] => {
+            if (!items) { return items; }
+            
+            return items.filter(item => {
+                if (item.codedata?.node && hiddenNodeTypes.includes(item.codedata.node)) {
+                    return false;
+                }
+                
+                if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
+                    return false;
+                }
+                
+                if (item.items) {
+                    item.items = filterItems(item.items);
+                }
+                
+                return true;
+            });
+        };
+
+        if (response.categories) {
+            response.categories = response.categories.map(category => {
+                if (category.items) {
+                    category.items = filterItems(category.items);
+                }
+                return category;
+            });
+        }
+
+        return response;
+    }
+
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
@@ -310,7 +362,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .getAvailableNodes(params)
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
-                    resolve(model);
+                    // Apply filtering for advanced AI nodes
+                    const filteredModel = this.filterAdvancedAiNodes(model);
+                    resolve(filteredModel);
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);
