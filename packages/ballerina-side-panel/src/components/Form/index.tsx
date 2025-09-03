@@ -442,7 +442,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                 } else {
                     defaultValues[field.key] = field.value ?? "";
                 }
-
+                if (field.key === "variable") {
+                    defaultValues[field.key] = formValues[field.key] ?? "";
+                }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
                 }
