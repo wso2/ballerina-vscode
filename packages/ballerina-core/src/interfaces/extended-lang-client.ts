@@ -884,6 +884,7 @@ export type SearchQueryParams = {
     q?: string;
     limit?: number;
     offset?: number;
+    orgName?: string;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
@@ -900,12 +901,15 @@ export type SearchKind =
     | "VECTOR_KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
+    | "AGENT"
+    | "MEMORY_MANAGER"
+    | "AGENT_TOOL"
     | "CLASS_INIT";
 
 export type BISearchRequest = {
     position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 
@@ -1435,6 +1439,30 @@ export interface UpdateTypesResponse {
     textEdits: {
         [filePath: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface DeleteTypeRequest {
+    filePath: string;
+    lineRange: LineRange;
+}
+
+export interface DeleteTypeResponse {
+    textEdits: {
+        [filePath: string]: TextEdit[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface VerifyTypeDeleteRequest {
+    filePath: string;
+    startPosition: LinePosition;
+}
+
+export interface VerifyTypeDeleteResponse {
+    canDelete: boolean;
     errorMsg?: string;
     stacktrace?: string;
 }
