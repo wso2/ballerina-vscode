@@ -44,7 +44,6 @@ import {
     ParentMetadata,
     NodeMetadata,
     SearchKind,
-    Item,
 } from "@wso2/ballerina-core";
 
 import {
@@ -54,12 +53,11 @@ import {
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
-    convertVectorKnowledgeBaseCategoriesToSidePanelCategories,
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
-import { View, ProgressRing, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
+import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
 import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
@@ -75,7 +73,6 @@ import {
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
-import { o } from "@tanstack/query-core/build/legacy/hydration-Cvr-9VdO";
 
 const Container = styled.div`
     width: 100%;
