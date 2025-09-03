@@ -837,6 +837,7 @@ export type SearchQueryParams = {
     q?: string;
     limit?: number;
     offset?: number;
+    orgName?: string;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
@@ -853,12 +854,15 @@ export type SearchKind =
     | "VECTOR_KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
+    | "AGENT"
+    | "MEMORY_MANAGER"
+    | "AGENT_TOOL"
     | "CLASS_INIT";
 
 export type BISearchRequest = {
     position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 
