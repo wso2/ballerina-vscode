@@ -19,10 +19,35 @@
 import * as vscode from 'vscode';
 import { AIUserToken, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
+
+/**
+ * Maps AWS regions to their corresponding Bedrock inference profile prefixes
+ * @param region - AWS region string (e.g., 'us-east-1', 'eu-west-1', 'ap-southeast-1')
+ * @returns The appropriate regional prefix for Bedrock model IDs
+ */
+function getBedrockRegionalPrefix(region: string): string {
+    const regionPrefix = region.split('-')[0].toLowerCase();
+    
+    switch (regionPrefix) {
+        case 'us':
+            return region.startsWith('us-gov-') ? 'us-gov' : 'us';
+        case 'eu':
+            return 'eu';
+        case 'ap':
+            return 'apac';
+        case 'ca':
+        case 'sa':
+            return 'us'; // Canada and South America regions use US prefix
+        default:
+            console.warn(`Unknown region prefix: ${regionPrefix}, defaulting to 'us'`);
+            return 'us';
+    }
+}
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -127,5 +152,77 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
             throw new Error('Connection failed. Please check your internet connection and ensure your API key is valid.');
         }
         throw new Error('Validation failed. Please try again.');
+    }
+};
+
+export const validateAwsCredentials = async (credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}): Promise<AIUserToken> => {
+    const { accessKeyId, secretAccessKey, region, sessionToken } = credentials;
+
+    if (!accessKeyId || !secretAccessKey || !region) {
+        throw new Error('AWS access key ID, secret access key, and region are required.');
+    }
+
+    if (!accessKeyId.startsWith('AKIA') && !accessKeyId.startsWith('ASIA')) {
+        throw new Error('Please enter a valid AWS access key ID.');
+    }
+
+    if (secretAccessKey.length < 20) {
+        throw new Error('Please enter a valid AWS secret access key.');
+    }
+
+    // List of valid AWS regions
+    const validRegions = [
+        'us-east-1', 'us-west-2', 'us-west-1', 'eu-west-1', 'eu-central-1', 
+        'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2',
+        'ap-south-1', 'ca-central-1', 'sa-east-1', 'eu-west-2', 'eu-west-3',
+        'eu-north-1', 'ap-east-1', 'me-south-1', 'af-south-1', 'ap-southeast-3'
+    ];
+
+    if (!validRegions.includes(region)) {
+        throw new Error(`Invalid AWS region. Please select a valid region like us-east-1, us-west-2, etc.`);
+    }
+
+    try {
+        const bedrock = createAmazonBedrock({
+            region: region,
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey,
+            sessionToken: sessionToken,
+        });
+        
+        // Get regional prefix based on AWS region and construct model ID
+        const regionalPrefix = getBedrockRegionalPrefix(region);
+        const modelId = `${regionalPrefix}.anthropic.claude-3-5-haiku-20241022-v1:0`;
+        const bedrockClient = bedrock(modelId);
+
+        // Make a minimal test call to validate credentials  
+        await generateText({
+            model: bedrockClient,
+            maxTokens: 1,
+            messages: [{ role: 'user', content: 'Hi' }]
+        });
+
+        // Store credentials
+        const authCredentials: AuthCredentials = {
+            loginMethod: LoginMethod.AWS_BEDROCK,
+            secrets: {
+                accessKeyId,
+                secretAccessKey,
+                region,
+                sessionToken
+            }
+        };
+        await storeAuthCredentials(authCredentials);
+
+        return { token: accessKeyId };
+
+    } catch (error) {
+        console.error('AWS Bedrock validation failed:', error);
+        throw new Error('Validation failed. Please check the log for more details.');
     }
 };
