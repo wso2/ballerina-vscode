@@ -33,7 +33,7 @@ import { exec, spawnSync } from 'child_process';
 import { LanguageClientOptions, State as LS_STATE, RevealOutputChannelOn, ServerOptions } from "vscode-languageclient/node";
 import { getServerOptions } from '../utils/server/server';
 import { ExtendedLangClient } from './extended-language-client';
-import { debug, log, getOutputChannel, outputChannel, isWindows, isSupportedVersion, VERSION, isSupportedSLVersion } from '../utils';
+import { debug, log, getOutputChannel, outputChannel, isWindows, isWSL, isSupportedVersion, VERSION, isSupportedSLVersion } from '../utils';
 import { AssertionError } from "assert";
 import {
     BALLERINA_HOME, ENABLE_ALL_CODELENS, ENABLE_TELEMETRY, ENABLE_SEMANTIC_HIGHLIGHTING, OVERRIDE_BALLERINA_HOME,
@@ -163,7 +163,7 @@ export class BallerinaExtension {
 
     constructor() {
         debug("[EXTENSION] Starting constructor initialization...");
-        
+
         try {
             // Initialize basic properties
             this.ballerinaHome = '';
@@ -173,9 +173,9 @@ export class BallerinaExtension {
             this.isNPSupported = false;
             this.isPersist = false;
             this.ballerinaUserHomeName = '.ballerina';
-            
+
             debug("[EXTENSION] Basic properties initialized");
-            
+
             // Set up directory paths
             try {
                 const userHomeDir = this.getUserHomeDirectory();
@@ -186,10 +186,10 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error setting up user home directory: ${error}`);
                 throw error;
             }
-            
+
             this.ballerinaIntegratorReleaseUrl = "https://api.github.com/repos/ballerina-platform/ballerina-distribution/releases";
             this.ballerinaHomeCustomDirName = "ballerina-home";
-            
+
             try {
                 this.ballerinaInstallationDir = path.join(this.getBallerinaUserHome(), this.ballerinaHomeCustomDirName);
                 debug(`[EXTENSION] Ballerina installation directory: ${this.ballerinaInstallationDir}`);
@@ -209,7 +209,7 @@ export class BallerinaExtension {
             } catch (error) {
                 debug(`[EXTENSION] Error setting update tool server URL: ${error}`);
             }
-            
+
             try {
                 this.ballerinaUpdateToolUserAgent = this.getUpdateToolUserAgent();
                 debug(`[EXTENSION] Update tool user agent: ${this.ballerinaUpdateToolUserAgent}`);
@@ -217,14 +217,14 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error getting update tool user agent: ${error}`);
                 this.ballerinaUpdateToolUserAgent = null;
             }
-            
+
             try {
                 this.showStatusBarItem();
                 debug("[EXTENSION] Status bar item initialized");
             } catch (error) {
                 debug(`[EXTENSION] Error initializing status bar: ${error}`);
             }
-            
+
             // Load the extension
             try {
                 this.extension = extensions.getExtension(EXTENSION_ID)!;
@@ -237,7 +237,7 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error loading extension: ${error}`);
                 throw error;
             }
-            
+
             // Set up client options
             try {
                 this.clientOptions = {
@@ -270,7 +270,7 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error creating telemetry reporter: ${error}`);
                 // Don't throw here, telemetry is not critical
             }
-            
+
             try {
                 this.documentContext = new DocumentContext();
                 debug("[EXTENSION] Document context initialized");
@@ -278,7 +278,7 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error initializing document context: ${error}`);
                 throw error;
             }
-            
+
             try {
                 this.codeServerContext = {
                     codeServerEnv: this.isCodeServerEnv(),
@@ -293,7 +293,7 @@ export class BallerinaExtension {
                 debug(`[EXTENSION] Error initializing code server context: ${error}`);
                 throw error;
             }
-            
+
             if (this.isCodeServerEnv()) {
                 try {
                     commands.executeCommand('workbench.action.closeAllEditors');
@@ -304,7 +304,7 @@ export class BallerinaExtension {
                     debug(`[EXTENSION] Error setting up code server environment: ${error}`);
                 }
             }
-            
+
             this.webviewContext = { isOpen: false };
             this.perfForecastContext = {
                 infoMessageStatus: {
@@ -312,7 +312,7 @@ export class BallerinaExtension {
                 }
             };
             this.ballerinaConfigPath = '';
-            
+
             debug("[EXTENSION] Constructor completed successfully");
         } catch (error) {
             debug(`[EXTENSION] Fatal error in constructor: ${error}`);
@@ -330,7 +330,7 @@ export class BallerinaExtension {
         debug(`[INIT] Node version: ${process.version}`);
         debug(`[INIT] VS Code version: ${env.appName} ${env.appHost}`);
         debug(`[INIT] Extension version: ${this.getVersion()}`);
-        
+
         // Log environment information for WSL debugging
         debug(`[INIT] Environment variables:`);
         debug(`[INIT] WSL_DISTRO_NAME: ${process.env.WSL_DISTRO_NAME || 'Not set'}`);
@@ -338,7 +338,7 @@ export class BallerinaExtension {
         debug(`[INIT] PATH: ${process.env.PATH || 'Not set'}`);
         debug(`[INIT] HOME: ${process.env.HOME || 'Not set'}`);
         debug(`[INIT] USERPROFILE: ${process.env.USERPROFILE || 'Not set'}`);
-        
+
         try {
             // Check for old extension version
             if (extensions.getExtension(PREV_EXTENSION_ID)) {
@@ -347,7 +347,7 @@ export class BallerinaExtension {
             } else {
                 debug("[INIT] No old extension version found");
             }
-            
+
             // Register show logs command
             try {
                 const showLogs = commands.registerCommand('ballerina.showLogs', () => {
@@ -423,12 +423,12 @@ export class BallerinaExtension {
             debug(`[INIT] Current Ballerina home: ${this.ballerinaHome}`);
             debug(`[INIT] Override Ballerina home setting: ${this.overrideBallerinaHome()}`);
             debug("[INIT] Starting Ballerina version validation...");
-            
+
             // Validate the ballerina version
             return this.getBallerinaVersion(this.ballerinaHome, this.overrideBallerinaHome()).then(async runtimeVersion => {
                 debug("=".repeat(60));
                 debug("[INIT] Ballerina version retrieved successfully");
-                
+
                 try {
                     this.ballerinaVersion = runtimeVersion;
                     log(`Plugin version: ${this.getVersion()}`);
@@ -458,7 +458,7 @@ export class BallerinaExtension {
                     debug(`[INIT] Error auto-detecting Ballerina home: ${error}`);
                     throw error;
                 }
-                
+
                 debug(`[INIT] Final Ballerina Home: ${this.ballerinaHome}`);
                 debug(`[INIT] Plugin Dev Mode: ${this.overrideBallerinaHome()}`);
                 debug(`[INIT] Debug Mode: ${this.enableLSDebug()}`);
@@ -488,7 +488,7 @@ export class BallerinaExtension {
                     let serverOptions: ServerOptions;
                     serverOptions = getServerOptions(this);
                     debug("[INIT] Server options retrieved");
-                    
+
                     this.langClient = new ExtendedLangClient('ballerina-vscode', 'Ballerina LS Client', serverOptions,
                         this.clientOptions, this, false);
                     debug("[INIT] Extended Language Client created");
@@ -534,7 +534,7 @@ export class BallerinaExtension {
                     debug(`[INIT] Error registering stop command: ${error}`);
                     // Don't throw here, this is not critical
                 }
-                
+
                 debug("=".repeat(60));
                 debug("[INIT] Extension initialization completed successfully");
             }, (reason) => {
@@ -567,26 +567,26 @@ export class BallerinaExtension {
 
     private getUpdateToolUserAgent(): string {
         debug("[USER_AGENT] Detecting platform for user agent...");
-        
+
         const platform = os.platform();
         const arch = os.arch();
-        
+
         debug(`[USER_AGENT] Platform: ${platform}, Architecture: ${arch}`);
-        
+
         // Log additional environment info for WSL debugging
         if (process.env.WSL_DISTRO_NAME) {
             debug(`[USER_AGENT] WSL environment detected: ${process.env.WSL_DISTRO_NAME}`);
         }
-        
+
         let userAgent: string | null = null;
-        
+
         if (platform === 'win32') {
             userAgent = "ballerina/2201.11.0 (win-64) Updater/1.4.5";
             debug("[USER_AGENT] Selected Windows user agent");
         } else if (platform === 'linux') {
             userAgent = "ballerina/2201.11.0 (linux-64) Updater/1.4.5";
             debug("[USER_AGENT] Selected Linux user agent");
-            
+
             if (process.env.WSL_DISTRO_NAME) {
                 debug("[USER_AGENT] Note: Running in WSL environment");
             }
@@ -601,7 +601,7 @@ export class BallerinaExtension {
         } else {
             debug(`[USER_AGENT] Unknown platform: ${platform}, returning null`);
         }
-        
+
         debug(`[USER_AGENT] Final user agent: ${userAgent}`);
         return userAgent;
     }
@@ -1403,16 +1403,16 @@ export class BallerinaExtension {
 
     private getUserHomeDirectory(): string {
         debug("[HOME_DIR] Getting user home directory...");
-        
+
         const homeDir = os.homedir();
         debug(`[HOME_DIR] OS homedir(): ${homeDir}`);
-        
+
         // Log environment variables for debugging WSL issues
         debug(`[HOME_DIR] Environment variables:`);
         debug(`[HOME_DIR] - HOME: ${process.env.HOME || 'Not set'}`);
         debug(`[HOME_DIR] - USERPROFILE: ${process.env.USERPROFILE || 'Not set'}`);
         debug(`[HOME_DIR] - WSL_DISTRO_NAME: ${process.env.WSL_DISTRO_NAME || 'Not set'}`);
-        
+
         // Validate the home directory exists
         try {
             const fs = require('fs');
@@ -1425,7 +1425,7 @@ export class BallerinaExtension {
         } catch (error) {
             debug(`[HOME_DIR] Warning: Cannot access home directory ${homeDir}: ${error}`);
         }
-        
+
         return homeDir;
     }
 
@@ -1435,17 +1435,17 @@ export class BallerinaExtension {
 
     showStatusBarItem() {
         debug("[STATUS_BAR] Creating status bar item...");
-        
+
         try {
             this.sdkVersion = window.createStatusBarItem(StatusBarAlignment.Right, 100);
             debug("[STATUS_BAR] Status bar item created successfully");
-            
+
             this.updateStatusBar("Detecting");
             debug("[STATUS_BAR] Status bar text set to 'Detecting'");
-            
+
             this.sdkVersion.command = "ballerina.showLogs";
             debug("[STATUS_BAR] Status bar command set to 'ballerina.showLogs'");
-            
+
             this.sdkVersion.show();
             debug("[STATUS_BAR] Status bar item shown successfully");
 
@@ -1468,7 +1468,7 @@ export class BallerinaExtension {
                     debug(`[STATUS_BAR] Error updating status bar on editor change: ${error}`);
                 }
             });
-            
+
             debug("[STATUS_BAR] Status bar initialization completed successfully");
         } catch (error) {
             debug(`[STATUS_BAR] Error initializing status bar: ${error}`);
@@ -1540,7 +1540,7 @@ export class BallerinaExtension {
     async getBallerinaVersion(ballerinaHome: string, overrideBallerinaHome: boolean): Promise<string> {
         debug("[VERSION] Starting Ballerina version detection...");
         debug(`[VERSION] Input parameters - ballerinaHome: '${ballerinaHome}', overrideBallerinaHome: ${overrideBallerinaHome}`);
-        
+
         try {
             // Initialize with fresh environment
             debug("[VERSION] Syncing environment variables...");
@@ -1560,7 +1560,7 @@ export class BallerinaExtension {
         // otherwise use wrapper command
         if (ballerinaHome) {
             debug(`[VERSION] Ballerina Home provided: ${ballerinaHome}`);
-            
+
             // Check if the directory exists
             try {
                 const fs = require('fs');
@@ -1576,13 +1576,13 @@ export class BallerinaExtension {
         } else {
             debug("[VERSION] No Ballerina home provided, will use system PATH");
         }
-        
+
         let distPath = "";
         if (overrideBallerinaHome) {
             try {
                 distPath = join(ballerinaHome, "bin") + sep;
                 debug(`[VERSION] Using distribution path: ${distPath}`);
-                
+
                 // Check if bin directory exists
                 const fs = require('fs');
                 const binPath = join(ballerinaHome, "bin");
@@ -1595,7 +1595,7 @@ export class BallerinaExtension {
                 throw error;
             }
         }
-        
+
         let exeExtension = "";
         if (isWindows()) {
             exeExtension = ".bat";
@@ -1616,14 +1616,14 @@ export class BallerinaExtension {
                 env: { ...process.env }, // Use current environment
                 cwd: process.cwd() // Use current working directory
             };
-            
+
             debug(`[VERSION] Exec options: timeout=${execOptions.timeout}ms, maxBuffer=${execOptions.maxBuffer}, cwd=${execOptions.cwd}`);
-            
+
             const startTime = Date.now();
             exec(ballerinaCommand, execOptions, (err, stdout, stderr) => {
                 const executionTime = Date.now() - startTime;
                 debug(`[VERSION] Command execution completed in ${executionTime}ms`);
-                
+
                 if (stdout) {
                     debug(`[VERSION] stdout (${stdout.length} chars): ${stdout.substring(0, 500)}${stdout.length > 500 ? '...' : ''}`);
                 }
@@ -1635,22 +1635,22 @@ export class BallerinaExtension {
                     debug(`[VERSION] Error code: ${err.code}`);
                     debug(`[VERSION] Error signal: ${err.signal}`);
                     debug(`[VERSION] Error killed: ${err.killed}`);
-                    
+
                     // Provide more specific error messages for WSL environment
                     let errorMessage = `Failed to execute 'bal version' command: ${err.message}`;
-                    
+
                     if (process.env.WSL_DISTRO_NAME) {
                         errorMessage += `\n[WSL Environment Detected: ${process.env.WSL_DISTRO_NAME}]`;
                         errorMessage += `\nCommon WSL issues: Path case sensitivity, Windows/Linux path mixing, file permissions`;
                     }
-                    
+
                     if (err.code === 'ENOENT') {
                         errorMessage += `\nCommand not found. Check if Ballerina is installed and in PATH.`;
                         errorMessage += `\nSearched for: ${ballerinaCommand}`;
                     } else if (err.code === 'EACCES') {
                         errorMessage += `\nPermission denied. Check file permissions for: ${ballerinaCommand}`;
                     }
-                    
+
                     reject(new Error(errorMessage));
                     return;
                 }
@@ -1661,19 +1661,19 @@ export class BallerinaExtension {
                     reject(new Error("Empty response from 'bal version' command"));
                     return;
                 }
-                
+
                 if (stdout.startsWith(ERROR)) {
                     debug(`[VERSION] Error response detected: ${stdout}`);
                     reject(new Error(`Ballerina command returned error: ${stdout}`));
                     return;
                 }
-                
+
                 if (stdout.includes(NO_SUCH_FILE)) {
                     debug(`[VERSION] 'No such file' error detected`);
                     reject(new Error(`Ballerina executable not found. Output: ${stdout}`));
                     return;
                 }
-                
+
                 if (stdout.includes(COMMAND_NOT_FOUND)) {
                     debug(`[VERSION] 'Command not found' error detected`);
                     reject(new Error(`Ballerina command not found in PATH. Output: ${stdout}`));
@@ -1686,34 +1686,34 @@ export class BallerinaExtension {
                 try {
                     this.ballerinaCmd = (distPath + ballerinaExecutor + exeExtension).trim();
                     debug(`[VERSION] Ballerina command set to: '${this.ballerinaCmd}'`);
-                    
+
                     debug(`[VERSION] Parsing version from output: ${stdout}`);
                     const lines = stdout.split('\n');
                     debug(`[VERSION] Output has ${lines.length} lines`);
-                    
+
                     if (lines.length === 0) {
                         throw new Error("No lines in version output");
                     }
-                    
+
                     const implVersionLine = lines[0];
                     debug(`[VERSION] First line: '${implVersionLine}'`);
-                    
+
                     if (!implVersionLine || implVersionLine.trim().length === 0) {
                         throw new Error("First line of version output is empty");
                     }
-                    
+
                     const replacePrefix = implVersionLine.startsWith("jBallerina")
                         ? /jBallerina /
                         : /Ballerina /;
-                    
+
                     debug(`[VERSION] Using prefix pattern: ${replacePrefix}`);
                     const parsedVersion = implVersionLine.replace(replacePrefix, '').replace(/[\n\t\r]/g, '');
                     debug(`[VERSION] Parsed version: '${parsedVersion}'`);
-                    
+
                     if (!parsedVersion || parsedVersion.trim().length === 0) {
                         throw new Error(`Unable to parse version from: '${implVersionLine}'`);
                     }
-                    
+
                     debug(`[VERSION] Successfully resolved Ballerina version: '${parsedVersion}'`);
                     return resolve(parsedVersion);
                 } catch (parseError) {
@@ -1867,16 +1867,16 @@ export class BallerinaExtension {
 
     autoDetectBallerinaHome(): { home: string, isOldBallerinaDist: boolean, isBallerinaNotFound: boolean } {
         debug("[AUTO_DETECT] Starting Ballerina home auto-detection...");
-        
+
         let balHomeOutput = "",
             isBallerinaNotFound = false,
             isOldBallerinaDist = false;
-            
+
         try {
             const args = ['home'];
             debug(`[AUTO_DETECT] Executing command with args: ${JSON.stringify(args)}`);
             debug(`[AUTO_DETECT] Using ballerinaCmd: '${this.ballerinaCmd}'`);
-            
+
             let response;
             const execOptions = {
                 shell: false,
@@ -1885,7 +1885,7 @@ export class BallerinaExtension {
                 maxBuffer: 1024 * 1024, // 1MB buffer
                 env: { ...process.env }
             };
-            
+
             if (isWindows()) {
                 debug("[AUTO_DETECT] Windows platform detected, using cmd.exe to run .bat files");
                 // On Windows, use cmd.exe to run .bat files
@@ -1898,17 +1898,17 @@ export class BallerinaExtension {
                 response = spawnSync(this.ballerinaCmd, args, execOptions);
                 debug(`[AUTO_DETECT] Unix command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
             }
-            
+
             debug(`[AUTO_DETECT] Command execution completed`);
             debug(`[AUTO_DETECT] Exit code: ${response.status}`);
             debug(`[AUTO_DETECT] Error code: ${response.error?.code}`);
             debug(`[AUTO_DETECT] Signal: ${response.signal}`);
             debug(`[AUTO_DETECT] PID: ${response.pid}`);
-            
+
             if (response.stdout && response.stdout.length > 0) {
                 balHomeOutput = response.stdout.toString().trim();
                 debug(`[AUTO_DETECT] stdout (${balHomeOutput.length} chars): '${balHomeOutput}'`);
-                
+
                 // Validate the output path
                 if (balHomeOutput) {
                     try {
@@ -1926,11 +1926,11 @@ export class BallerinaExtension {
             } else {
                 debug("[AUTO_DETECT] No stdout received");
             }
-            
+
             if (response.stderr && response.stderr.length > 0) {
                 let message = response.stderr.toString();
                 debug(`[AUTO_DETECT] stderr (${message.length} chars): '${message}'`);
-                
+
                 // Check for specific error patterns
                 const unknownCommandPattern = "bal: unknown command 'home'";
                 const commandNotFoundPatterns = [
@@ -1938,7 +1938,7 @@ export class BallerinaExtension {
                     'unknown command',
                     'is not recognized as an internal or external command'
                 ];
-                
+
                 if (message.includes(unknownCommandPattern)) {
                     debug("[AUTO_DETECT] Detected old Ballerina distribution (unknown home command)");
                     isOldBallerinaDist = true;
@@ -1946,7 +1946,7 @@ export class BallerinaExtension {
                     debug("[AUTO_DETECT] Detected Ballerina not found");
                     isBallerinaNotFound = true;
                 }
-                
+
                 // Special handling for WSL environments
                 if (process.env.WSL_DISTRO_NAME) {
                     debug(`[AUTO_DETECT] WSL environment detected: ${process.env.WSL_DISTRO_NAME}`);
@@ -1955,7 +1955,7 @@ export class BallerinaExtension {
                         message += `\n[WSL] Try running with proper permissions or check file system mount options`;
                     }
                 }
-                
+
                 log(`[AUTO_DETECT] Error executing 'bal home'.\n<---- cmd output ---->\n${message}<---- cmd output ---->\n`);
             } else {
                 debug("[AUTO_DETECT] No stderr received");
@@ -1981,13 +1981,13 @@ export class BallerinaExtension {
                 debug("[AUTO_DETECT] Windows special case: no output received, assuming old Ballerina distribution");
                 isOldBallerinaDist = true;
             }
-            
+
         } catch (er) {
             debug(`[AUTO_DETECT] Exception caught during execution: ${er}`);
             if (er instanceof Error) {
                 const { message, code, errno } = er as any;
                 debug(`[AUTO_DETECT] Exception details - message: ${message}, code: ${code}, errno: ${errno}`);
-                
+
                 // Check for specific error patterns in exception
                 const unknownCommandPattern = "bal: unknown command 'home'";
                 const commandNotFoundPatterns = [
@@ -1995,7 +1995,7 @@ export class BallerinaExtension {
                     'unknown command',
                     'is not recognized as an internal or external command'
                 ];
-                
+
                 if (message.includes(unknownCommandPattern)) {
                     debug("[AUTO_DETECT] Exception indicates old Ballerina distribution");
                     isOldBallerinaDist = true;
@@ -2009,7 +2009,7 @@ export class BallerinaExtension {
                     debug("[AUTO_DETECT] Exception EACCES - permission denied");
                     isBallerinaNotFound = true;
                 }
-                
+
                 log(`[AUTO_DETECT] Error executing 'bal home'.\n<---- cmd output ---->\n${message}<---- cmd output ---->\n`);
             }
         }
@@ -2019,12 +2019,12 @@ export class BallerinaExtension {
             isBallerinaNotFound,
             isOldBallerinaDist
         };
-        
+
         debug(`[AUTO_DETECT] Auto-detection completed:`);
         debug(`[AUTO_DETECT] - home: '${result.home}'`);
         debug(`[AUTO_DETECT] - isBallerinaNotFound: ${result.isBallerinaNotFound}`);
         debug(`[AUTO_DETECT] - isOldBallerinaDist: ${result.isOldBallerinaDist}`);
-        
+
         return result;
     }
 
@@ -2302,10 +2302,10 @@ export class TelemetryTracker {
 function updateProcessEnv(newEnv: NodeJS.ProcessEnv): void {
     debug("[UPDATE_ENV] Starting process environment update...");
     debug(`[UPDATE_ENV] Received ${Object.keys(newEnv).length} environment variables`);
-    
+
     const originalPath = isWindows() ? process.env.Path : process.env.PATH;
     debug(`[UPDATE_ENV] Original PATH length: ${originalPath?.length || 0} chars`);
-    
+
     // Update PATH/Path specially to preserve existing values that might not be in shell env
     if (isWindows() && newEnv.Path) {
         debug(`[UPDATE_ENV] Updating Windows Path (${newEnv.Path.length} chars)`);
@@ -2320,17 +2320,17 @@ function updateProcessEnv(newEnv: NodeJS.ProcessEnv): void {
     // Update other environment variables
     let updatedCount = 0;
     let skippedCount = 0;
-    
+
     for (const key in newEnv) {
         // Skip PATH as we've already handled it, and skip some internal variables
         if (key !== 'PATH' && key !== 'Path' && !key.startsWith('npm_') && !key.startsWith('_')) {
             const oldValue = process.env[key];
             const newValue = newEnv[key];
-            
+
             if (oldValue !== newValue) {
                 process.env[key] = newValue;
                 updatedCount++;
-                
+
                 // Log important variable changes
                 if (['HOME', 'USERPROFILE', 'WSL_DISTRO_NAME', 'JAVA_HOME'].includes(key)) {
                     debug(`[UPDATE_ENV] Updated ${key}: ${oldValue || '(unset)'} -> ${newValue || '(unset)'}`);
@@ -2340,7 +2340,7 @@ function updateProcessEnv(newEnv: NodeJS.ProcessEnv): void {
             skippedCount++;
         }
     }
-    
+
     const finalPath = isWindows() ? process.env.Path : process.env.PATH;
     debug(`[UPDATE_ENV] Final PATH length: ${finalPath?.length || 0} chars`);
     debug(`[UPDATE_ENV] Updated ${updatedCount} variables, skipped ${skippedCount} variables`);
@@ -2350,21 +2350,34 @@ function updateProcessEnv(newEnv: NodeJS.ProcessEnv): void {
 function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
     return new Promise((resolve, reject) => {
         debug('[SHELL_ENV] Starting shell environment retrieval...');
-        
+
         let command = '';
         const isWindowsPlatform = isWindows();
-        
+
         if (isWindowsPlatform) {
             debug('[SHELL_ENV] Windows platform detected');
             // Windows: use PowerShell to get environment
             command = 'powershell.exe -Command "[Environment]::GetEnvironmentVariables(\'Process\') | ConvertTo-Json"';
             debug(`[SHELL_ENV] Windows command: ${command}`);
+        } else if (isWSL()) {
+            debug("[SHELL_ENV] Windows WSL platform, using non-interactive shell");
+            // WSL: Use non-interactive shell to avoid job control issues
+            const shell = process.env.SHELL || '/bin/bash';
+            if (shell.includes('zsh')) {
+                // For zsh in WSL, source profile and get environment without interactive mode
+                command = 'zsh -c "test -f ~/.zshrc && source ~/.zshrc > /dev/null 2>&1; env"';
+                debug(`[SHELL_ENV] Windows zsh in WSL: ${command}`);
+            } else {
+                // For bash in WSL, source profile and get environment without interactive mode
+                command = 'bash -c "test -f ~/.bashrc && source ~/.bashrc > /dev/null 2>&1; env"';
+                debug(`[SHELL_ENV] Windows bash in WSL: ${command}`);
+            }
         } else {
             debug('[SHELL_ENV] Unix-like platform detected');
             // Unix-like systems: source profile files and print environment
             const shell = process.env.SHELL || '/bin/bash';
             debug(`[SHELL_ENV] Detected shell: ${shell}`);
-            
+
             if (shell.includes('zsh')) {
                 command = 'zsh -i -c "source ~/.zshrc > /dev/null 2>&1; env"';
                 debug('[SHELL_ENV] Using zsh command');
@@ -2380,25 +2393,25 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
             maxBuffer: 2 * 1024 * 1024, // 2MB buffer for environment
             env: { ...process.env }
         };
-        
+
         debug(`[SHELL_ENV] Exec options: timeout=${execOptions.timeout}ms, maxBuffer=${execOptions.maxBuffer}`);
 
         const startTime = Date.now();
         exec(command, execOptions, (error, stdout, stderr) => {
             const executionTime = Date.now() - startTime;
             debug(`[SHELL_ENV] Command execution completed in ${executionTime}ms`);
-            
+
             if (error) {
                 debug(`[SHELL_ENV] Error getting shell environment: ${error.message}`);
                 debug(`[SHELL_ENV] Error code: ${(error as any).code}`);
                 debug(`[SHELL_ENV] Error signal: ${(error as any).signal}`);
-                
+
                 // Provide WSL-specific debugging information
                 if (process.env.WSL_DISTRO_NAME) {
                     debug(`[SHELL_ENV] WSL environment detected: ${process.env.WSL_DISTRO_NAME}`);
                     debug(`[SHELL_ENV] WSL may have issues with shell initialization`);
                 }
-                
+
                 return reject(error);
             }
 
@@ -2416,11 +2429,11 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                     const envVars = JSON.parse(stdout);
                     const parsedVarCount = Object.keys(envVars).length;
                     debug(`[SHELL_ENV] Parsed ${parsedVarCount} environment variables from PowerShell`);
-                    
+
                     Object.keys(envVars).forEach(key => {
                         const value = envVars[key].toString();
                         env[key] = value;
-                        
+
                         // Log important environment variables
                         if (['PATH', 'Path', 'HOME', 'USERPROFILE', 'WSL_DISTRO_NAME'].includes(key)) {
                             debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
@@ -2431,21 +2444,21 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                     // Parse Unix env output (KEY=value format)
                     const lines = stdout.split('\n');
                     let parsedCount = 0;
-                    
+
                     lines.forEach(line => {
                         const match = line.match(/^([^=]+)=(.*)$/);
                         if (match) {
                             const [, key, value] = match;
                             env[key] = value;
                             parsedCount++;
-                            
+
                             // Log important environment variables
                             if (['PATH', 'HOME', 'SHELL', 'WSL_DISTRO_NAME'].includes(key)) {
                                 debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
                             }
                         }
                     });
-                    
+
                     debug(`[SHELL_ENV] Parsed ${parsedCount} environment variables from shell`);
                 }
 
@@ -2456,12 +2469,12 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                 debug(`[SHELL_ENV] Error parsing environment output: ${parseError}`);
                 debug(`[SHELL_ENV] Raw output length: ${stdout.length} chars`);
                 debug(`[SHELL_ENV] Output sample: ${stdout.substring(0, 500)}${stdout.length > 500 ? '...' : ''}`);
-                
+
                 if (parseError instanceof Error) {
                     debug(`[SHELL_ENV] Parse error name: ${parseError.name}`);
                     debug(`[SHELL_ENV] Parse error message: ${parseError.message}`);
                 }
-                
+
                 reject(parseError);
             }
         });
