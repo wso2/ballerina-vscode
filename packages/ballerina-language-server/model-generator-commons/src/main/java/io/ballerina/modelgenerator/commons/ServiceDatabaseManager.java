@@ -328,7 +328,7 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.type_constrain as typeConstrain, ");
                 sql2.append("sip.source_kind as sourceKind, ");
                 sql2.append("sip.selections ");
-                sql2.append("FROM ServiceInitializerProperty sip");
+                sql2.append("FROM ServiceInitializerProperty sip ");
                 sql2.append("WHERE sip.package_id = ?");
 
                 try (Connection conn2 = DriverManager.getConnection(dbPath);
