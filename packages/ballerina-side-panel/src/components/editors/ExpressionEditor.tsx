@@ -41,10 +41,12 @@ import {
     SubPanelView
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
+import { FieldProvider } from "./FieldContext";
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
     fieldKey?: string;
+    valueTypeConstraint?: string;
     placeholder?: string;
     required?: boolean;
     showHeader?: boolean;
@@ -54,6 +56,8 @@ export type ContextAwareExpressionEditorProps = {
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
     recordTypeField?: RecordTypeField;
+    helperPaneZIndex?: number;
+
 };
 
 type ExpressionEditorProps = ContextAwareExpressionEditorProps &
@@ -70,7 +74,7 @@ export namespace S {
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
-        fontFamily: 'var(--font-family)'
+        fontFamily: 'var(--font-family)',
     });
 
     export const Ribbon = styled.div({
@@ -287,6 +291,7 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
         <ExpressionEditor
             fileName={fileName}
             targetLineRange={targetLineRange}
+            helperPaneZIndex={props.helperPaneZIndex}
             {...props}
             {...form}
             {...expressionEditor}
@@ -320,9 +325,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         handleOnFieldFocus,
         targetLineRange,
         fileName,
-        helperPaneOrigin,
         helperPaneHeight,
         recordTypeField,
+        helperPaneZIndex,
         growRange = { start: 1, offset: 9 },
         rawExpression, // original expression
         sanitizedExpression // sanitized expression that will be rendered in the editor
@@ -404,7 +409,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             handleChangeHelperPaneState,
             helperPaneHeight,
             recordTypeField,
-            field.type === "LV_EXPRESSION"
+            field.type === "LV_EXPRESSION",
+            field.valueTypeConstraint,
         );
     };
 
@@ -421,102 +427,111 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
+
     return (
-        <S.Container id={id}>
-            {showHeader && (
-                <S.Header>
-                    <S.HeaderContainer>
-                        <S.LabelContainer>
-                            <S.Label>{field.label}</S.Label>
-                            {(required ?? !field.optional) && <RequiredFormInput />}
-                        </S.LabelContainer>
-                        {field.valueTypeConstraint && (
-                            <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>
-                                {sanitizeType(field.valueTypeConstraint as string)}
-                            </S.Type>
-                        )}
-                    </S.HeaderContainer>
+        <FieldProvider 
+        initialField={props.field} 
+        triggerCharacters={props.triggerCharacters}
+        >
+            <S.Container id={id}>
+                {showHeader && (
+                    <S.Header>
+                        <S.HeaderContainer>
+                            <S.LabelContainer>
+                                <S.Label>{field.label}</S.Label>
+                                {(required ?? !field.optional) && <RequiredFormInput />}
+                            </S.LabelContainer>
+                            {field.valueTypeConstraint && (
+                                <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>
+                                    {sanitizeType(field.valueTypeConstraint as string)}
+                                </S.Type>
+                            )}
+                        </S.HeaderContainer>
                         <S.EditorMdContainer>
                             {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                             {defaultValueText}
                         </S.EditorMdContainer>
                     </S.Header>
-            )}
-            <Controller
-                control={control}
-                name={key}
-                rules={{ required: required ?? (!field.optional && !field.placeholder) }}
-                render={({ field: { name, value, onChange }, fieldState: { error } }) => (
-                    <div>
-                        <FormExpressionEditor
-                            key={key}
-                            ref={exprRef}
-                            anchorRef={anchorRef}
-                            name={name}
-                            completions={completions}
-                            value={sanitizedExpression ? sanitizedExpression(value) : value}
-                            autoFocus={autoFocus}
-                            startAdornment={<EditorRibbon onClick={toggleHelperPaneState} />}
-                            ariaLabel={field.label}
-                            onChange={async (updatedValue: string, updatedCursorPosition: number) => {
-                                if (updatedValue === value) {
-                                    return;
-                                }
+                )}
+                <Controller
+                    control={control}
+                    name={key}
+                    rules={{ required: required ?? (!field.optional && !field.placeholder) }}
+                    render={({ field: { name, value, onChange }, fieldState: { error } }) => (
+                        <div>
+                            <FormExpressionEditor
+                                key={key}
+                                ref={exprRef}
+                                anchorRef={anchorRef}
+                                name={name}
+                                completions={completions}
+                                value={sanitizedExpression ? sanitizedExpression(value) : value}
+                                autoFocus={autoFocus}
+                                startAdornment={<EditorRibbon onClick={toggleHelperPaneState} />}
+                                ariaLabel={field.label}
+                                onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+                                    if (updatedValue === value) {
+                                        return;
+                                    }
 
                                 const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
                                 onChange(rawValue);
 
-                                if (getExpressionEditorDiagnostics) {
-                                    getExpressionEditorDiagnostics(
-                                        (required ?? !field.optional) || rawValue !== '',
-                                        rawValue,
-                                        key,
-                                        getPropertyFromFormField(field)
-                                    );
-                                }
+                                    if (getExpressionEditorDiagnostics) {
+                                        getExpressionEditorDiagnostics(
+                                            (required ?? !field.optional) || rawValue !== '',
+                                            rawValue,
+                                            key,
+                                            getPropertyFromFormField(field)
+                                        );
+                                    }
 
-                                // Check if the current character is a trigger character
-                                const triggerCharacter =
-                                    updatedCursorPosition > 0
-                                        ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
-                                        : undefined;
-                                if (triggerCharacter) {
-                                    await retrieveCompletions(
-                                        rawValue,
-                                        getPropertyFromFormField(field),
-                                        updatedCursorPosition,
-                                        triggerCharacter
-                                    );
-                                } else {
-                                    await retrieveCompletions(
-                                        rawValue,
-                                        getPropertyFromFormField(field),
-                                        updatedCursorPosition
-                                    );
-                                }
-                            }}
-                            extractArgsFromFunction={handleExtractArgsFromFunction}
-                            onCompletionSelect={handleCompletionSelect}
-                            onFocus={handleFocus}
-                            onBlur={handleBlur}
-                            onSave={onSave}
-                            onCancel={onCancel}
-                            onRemove={onRemove}
-                            enableExIcon={false}
-                            isHelperPaneOpen={isHelperPaneOpen}
-                            changeHelperPaneState={handleChangeHelperPaneState}
-                            helperPaneOrigin={helperPaneOrigin}
-                            getHelperPane={handleGetHelperPane}
-                            helperPaneHeight={helperPaneHeight}
-                            helperPaneWidth={recordTypeField ? 400 : undefined}
-                            growRange={growRange}
-                            sx={{ paddingInline: '0' }}
-                            placeholder={placeholder}
-                        />
-                        {error && <ErrorBanner errorMsg={error.message.toString()} />}
-                    </div>
-                )}
-            />
-        </S.Container>
+                                    // Check if the current character is a trigger character
+                                    const triggerCharacter =
+                                        updatedCursorPosition > 0
+                                            ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
+                                            : undefined;
+                                    if (triggerCharacter) {
+                                        await retrieveCompletions(
+                                            rawValue,
+                                            getPropertyFromFormField(field),
+                                            updatedCursorPosition,
+                                            triggerCharacter
+                                        );
+                                    } else {
+                                        await retrieveCompletions(
+                                            rawValue,
+                                            getPropertyFromFormField(field),
+                                            updatedCursorPosition
+                                        );
+                                    }
+                                }}
+                                extractArgsFromFunction={handleExtractArgsFromFunction}
+                                onCompletionSelect={handleCompletionSelect}
+                                onFocus={async () => {
+                                    handleFocus();
+                                }}
+                                onBlur={handleBlur}
+                                onSave={onSave}
+                                onCancel={onCancel}
+                                onRemove={onRemove}
+                                enableExIcon={false}
+                                isHelperPaneOpen={isHelperPaneOpen}
+                                changeHelperPaneState={handleChangeHelperPaneState}
+                                helperPaneOrigin="vertical"
+                                getHelperPane={handleGetHelperPane}
+                                helperPaneHeight={helperPaneHeight}
+                                helperPaneWidth={recordTypeField ? 400 : undefined}
+                                growRange={growRange}
+                                sx={{ paddingInline: '0' }}
+                                placeholder={placeholder}
+                                helperPaneZIndex={helperPaneZIndex}
+                            />
+                            {error && <ErrorBanner errorMsg={error.message.toString()} />}
+                        </div>
+                    )}
+                />
+            </S.Container>
+        </FieldProvider>
     );
 };

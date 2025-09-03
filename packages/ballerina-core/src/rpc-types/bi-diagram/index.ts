@@ -89,6 +89,7 @@ import {
     DeleteConfigVariableRequestV2,
     JsonToTypeRequest,
     JsonToTypeResponse,
+    ConfigVariableRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
     VerifyTypeDeleteRequest,
@@ -142,7 +143,7 @@ export interface BIDiagramAPI {
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
     getConfigVariables: () => Promise<ConfigVariableResponse>;
     updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
-    getConfigVariablesV2: () => Promise<ConfigVariableResponse>;
+    getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
     getConfigVariableNodeTemplate: (params: GetConfigVariableNodeTemplateRequest) => Promise<BINodeTemplateResponse>;

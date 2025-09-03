@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -18,7 +17,7 @@
  */
 import { AllDataMapperSourceRequest, CreateTempFileRequest, DatamapperModelContext, DataMapperModelResponse, ExtendedDataMapperMetadata, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment, DocGenerationRequest } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -85,4 +84,8 @@ export interface AIPanelAPI {
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
     generateHealthcareCode: (params: GenerateCodeRequest) => void;
     abortAIGeneration: () => void;
+    // ==================================
+    // Doc Generation Related Functions
+    // ==================================
+    getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
 }
