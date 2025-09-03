@@ -37,6 +37,7 @@ import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
 import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
+import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
 
 const Container = styled.div`
@@ -111,7 +112,7 @@ interface PanelManagerProps {
     onAddVectorKnowledgeBase?: () => void;
     onAddDataLoader?: () => void;
     onAddChunker?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean) => void;
+    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -576,6 +577,8 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        //TODO: this should be merged with onSubmit prop
+                        handleOnFormSubmit={onSubmitForm}
                         navigateToPanel={onNavigateToPanel}
                     />
                 );
