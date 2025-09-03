@@ -306,6 +306,58 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    private filterAdvancedAiNodes(response: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        const showAdvancedAiNodes = extension.ballerinaExtInstance.getShowAdvancedAiNodes();
+        if (showAdvancedAiNodes || !response) {
+            return response;
+        }
+
+        // List of node types/labels to hide when advanced AI nodes are disabled
+        const hiddenNodeTypes = [
+            'CHUNKERS',
+            'VECTOR_STORES', 
+            'EMBEDDING_PROVIDERS'
+        ];
+
+        const hiddenNodeLabels = [
+            'Recursive Document Chunker',
+            'Chunker',
+            'Vector Store',
+            'Embedding Provider'
+        ];
+
+        const filterItems = (items: any[]): any[] => {
+            if (!items) { return items; }
+            
+            return items.filter(item => {
+                if (item.codedata?.node && hiddenNodeTypes.includes(item.codedata.node)) {
+                    return false;
+                }
+                
+                if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
+                    return false;
+                }
+                
+                if (item.items) {
+                    item.items = filterItems(item.items);
+                }
+                
+                return true;
+            });
+        };
+
+        if (response.categories) {
+            response.categories = response.categories.map(category => {
+                if (category.items) {
+                    category.items = filterItems(category.items);
+                }
+                return category;
+            });
+        }
+
+        return response;
+    }
+
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
@@ -313,7 +365,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .getAvailableNodes(params)
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
-                    resolve(model);
+                    // Apply filtering for advanced AI nodes
+                    const filteredModel = this.filterAdvancedAiNodes(model);
+                    resolve(filteredModel);
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);
@@ -397,6 +451,43 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+
+    async getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available data loaders from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableDataLoaders(params)
+                .then((model) => {
+                    console.log(">>> bi available data loaders from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available data loaders from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
+    async getAvailableChunkers(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available chunkers from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableChunkers(params)
+                .then((model) => {
+                    console.log(">>> bi available chunkers from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available chunkers from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
+
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
@@ -425,7 +516,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(params.projectName, params.projectPath);
+        createBIProjectPure(params);
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {
