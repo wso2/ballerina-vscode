@@ -24,7 +24,7 @@ import { EntityHead, EntityName } from '../styles';
 import { CtrlClickGo2Source } from '../../../common/CtrlClickHandler/CtrlClickGo2Source';
 import { DiagramContext } from '../../../common';
 import styled from '@emotion/styled';
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
+import { Button, Icon, Confirm, Item, Menu, MenuItem, Popover, ThemeColors } from '@wso2/ui-toolkit';
 import { MoreVertIcon } from '../../../../resources';
 
 interface ServiceHeadProps {
@@ -36,11 +36,6 @@ interface ServiceHeadProps {
 const MenuButton = styled(Button)`
     border-radius: 5px;
 `;
-
-// const EditIconContainer = styled.div`
-//     z-index: 1000;
-//     cursor: pointer;
-// `;
 
 const HeaderButtonsContainer = styled.div`
     display: flex;
@@ -89,15 +84,27 @@ const GraphqlIconContainer = styled.div`
     width: 20px;
 `;
 
+interface Origin {
+    vertical: "top" | "center" | "bottom";
+    horizontal: "left" | "center" | "right";
+}
+
 export function EntityHeadWidget(props: ServiceHeadProps) {
     const { engine, node, isSelected } = props;
-    const { setFocusedNodeId, onEditNode, goToSource } = useContext(DiagramContext);
+    const { setFocusedNodeId, onEditNode, goToSource, onNodeDelete, verifyTypeDelete } = useContext(DiagramContext);
 
     const displayName: string = node.getID()?.slice(node.getID()?.lastIndexOf(':') + 1);
     const isImported = !node?.entityObject?.editable;
 
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(anchorEl);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [confirmEl, setConfirmEl] = React.useState<HTMLElement | SVGSVGElement | null>(null);
+    const [anchorOrigin, setAnchorOrigin] = useState<Origin>({ vertical: "bottom", horizontal: "left" });
+    const [transformOrigin, setTransformOrigin] = useState<Origin>({ vertical: "top", horizontal: "right" });
+
+    const [confirmMessage, setConfirmMessage] = useState<string>("Are you sure you want to delete this?");
+    const [isVerifyingDelete, setIsVerifyingDelete] = useState(false);
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         setAnchorEl(event.currentTarget);
@@ -114,6 +121,13 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         setAnchorEl(null);
     };
 
+    const onNodeDeleteWithConfirm = async () => {
+        if (node?.entityObject?.editable && onNodeDelete) {
+            onNodeDelete(node.getID());
+        }
+        setAnchorEl(null);
+    };
+
     const onGoToSource = () => {
         goToSource(node.entityObject);
         setAnchorEl(null);
@@ -124,6 +138,50 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
         setAnchorEl(null);
     }
 
+    // Keep this sync to satisfy Menu Item's onClick: () => void
+    const handleDeleteClick = () => {
+        const idLabel = node.getID();
+
+        // Position the confirm near the menu button
+        if (anchorEl) {
+            const rect = anchorEl.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+
+            if (spaceBelow < 200 && spaceAbove > 200) {
+                setAnchorOrigin({ vertical: "top", horizontal: "left" });
+                setTransformOrigin({ vertical: "bottom", horizontal: "right" });
+            } else {
+                setAnchorOrigin({ vertical: "bottom", horizontal: "left" });
+                setTransformOrigin({ vertical: "top", horizontal: "right" });
+            }
+            setConfirmEl(anchorEl);
+        }
+        setAnchorEl(null); // close menu
+
+        // Open confirm immediately in "verifying" mode
+        setIsVerifyingDelete(true);
+        setConfirmMessage("Checking usages...");
+        setIsConfirmOpen(true);
+
+        // Verify asynchronously and update the message
+        verifyTypeDelete(idLabel)
+            .then((canDelete) => {
+                setConfirmMessage(
+                    canDelete
+                        ? `Are you sure you want to delete ${idLabel}?`
+                        : `${idLabel} has usages. Deleting it may cause errors. Are you sure you want to proceed?`
+                );
+            })
+            .catch(() => {
+                setIsConfirmOpen(false);
+                setConfirmEl(null);
+            })
+            .finally(() => {
+                setIsVerifyingDelete(false);
+            });
+    };
+
     const menuItems: Item[] = [
         ...(node?.entityObject?.editable ? [
             {
@@ -132,20 +190,36 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 onClick: () => onNodeEdit(),
             },
             {
-                id: "goToSource", 
-                label: "Source", 
+                id: "goToSource",
+                label: "Source",
                 onClick: () => onGoToSource()
-            }
-        ] : []),
-        {
-            id: "focusView", 
-            label: "Focused View", 
+            },
+            ...(!node.isGraphqlRoot ? [{
+                id: "delete",
+                label: "Delete",
+                onClick: () => handleDeleteClick()
+            }] : []),
+
+        ] : [{
+            id: "focusView",
+            label: "Focused View",
             onClick: () => onFocusedView()
-        }
+        }])
     ];
 
-    const isClickable = true;
+    const handleConfirm = (state: boolean) => {
+        // Block confirm while verifying
+        if (isVerifyingDelete) {
+            return;
+        }
+        if (state) {
+            onNodeDeleteWithConfirm(); // Call the actual delete function
+        }
+        setIsConfirmOpen(false); // Close the confirmation dialog
+        setConfirmEl(null);
+    };
 
+    const isClickable = true;
 
     return (
         <CtrlClickGo2Source node={node.entityObject}>
@@ -178,20 +252,6 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                         )}
                     </EntityNameContainer>
                     <HeaderButtonsContainer>
-                        {/* {selectedNodeId === node.getID() && (
-                            <EditIconContainer>
-                                <Button
-                                    appearance="icon"
-                                    tooltip="Edit Type">
-                                    <Icon
-                                        name="editIcon"
-                                        sx={{ height: "14px", width: "14px" }}
-                                        onClick={onNodeEdit}
-                                        iconSx={{ color: ThemeColors.PRIMARY }}
-                                    />
-                                </Button>
-                            </EditIconContainer>
-                        )} */}
                         <MenuButton appearance="icon" onClick={handleOnMenuClick} data-testid={`type-node-${displayName}-menu`}>
                             <MoreVertIcon />
                         </MenuButton>
@@ -216,6 +276,16 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                         ))}
                     </Menu>
                 </Popover>
+                <Confirm
+                    isOpen={isConfirmOpen}
+                    onConfirm={handleConfirm}
+                    confirmText={isVerifyingDelete ? "Verifying the possibility to delete the type" : "Delete"}
+                    message={confirmMessage}
+                    anchorEl={confirmEl}
+                    anchorOrigin={anchorOrigin}
+                    transformOrigin={transformOrigin}
+                    sx={{ zIndex: 3002 }}
+                />
             </EntityHead>
         </CtrlClickGo2Source>
     )

@@ -48,6 +48,8 @@ import {
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
@@ -121,6 +123,7 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteType,
     deployProject,
     formDidClose,
     formDidOpen,
@@ -184,6 +187,9 @@ import {
     updateTypes,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    verifyTypeDelete
     ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -400,6 +406,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(updateTypes, HOST_EXTENSION, params);
     }
 
+    deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return this._messenger.sendRequest(deleteType, HOST_EXTENSION, params);
+    }
+
     getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
         return this._messenger.sendRequest(getTypeFromJson, HOST_EXTENSION, params);
     }
@@ -482,5 +492,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deleteOpenApiGeneratedModules(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this._messenger.sendRequest(deleteOpenApiGeneratedModules, HOST_EXTENSION, params);
+    }
+
+    verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
     }
 }

@@ -58,18 +58,21 @@ import {
     CreateComponentResponse,
     CurrentBreakpointsResponse,
     DIRECTORY_MAP,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
+    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ExpressionDiagnosticsRequest,
     ExpressionDiagnosticsResponse,
-    FlowNode,
     FormDidCloseParams,
     FormDidOpenParams,
-    FunctionNode,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -87,6 +90,7 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
+    LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
     OpenAPIClientDeleteRequest,
@@ -130,12 +134,11 @@ import {
     UpdatedArtifactsResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    LoginMethod,
-    Diagnostics,
+    deleteType
     ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
@@ -160,11 +163,11 @@ import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
+import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -304,6 +307,58 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    private filterAdvancedAiNodes(response: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        const showAdvancedAiNodes = extension.ballerinaExtInstance.getShowAdvancedAiNodes();
+        if (showAdvancedAiNodes || !response) {
+            return response;
+        }
+
+        // List of node types/labels to hide when advanced AI nodes are disabled
+        const hiddenNodeTypes = [
+            'CHUNKERS',
+            'VECTOR_STORES', 
+            'EMBEDDING_PROVIDERS'
+        ];
+
+        const hiddenNodeLabels = [
+            'Recursive Document Chunker',
+            'Chunker',
+            'Vector Store',
+            'Embedding Provider'
+        ];
+
+        const filterItems = (items: any[]): any[] => {
+            if (!items) { return items; }
+            
+            return items.filter(item => {
+                if (item.codedata?.node && hiddenNodeTypes.includes(item.codedata.node)) {
+                    return false;
+                }
+                
+                if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
+                    return false;
+                }
+                
+                if (item.items) {
+                    item.items = filterItems(item.items);
+                }
+                
+                return true;
+            });
+        };
+
+        if (response.categories) {
+            response.categories = response.categories.map(category => {
+                if (category.items) {
+                    category.items = filterItems(category.items);
+                }
+                return category;
+            });
+        }
+
+        return response;
+    }
+
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
@@ -311,7 +366,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .getAvailableNodes(params)
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
-                    resolve(model);
+                    // Apply filtering for advanced AI nodes
+                    const filteredModel = this.filterAdvancedAiNodes(model);
+                    resolve(filteredModel);
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);
@@ -460,7 +517,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(params.projectName, params.projectPath);
+        createBIProjectPure(params);
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {
@@ -1857,6 +1914,43 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                 })
                 .catch((error) => {
                     console.log(">>> error getting type from json", error);
+                    reject(error);
+                });
+        });
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return new Promise((resolve, reject) => {
+            const projectUri = StateMachine.context().projectUri;
+            const filePath = path.join(projectUri, params.filePath);
+            StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
+                .then(async (deleteTypeResponse: DeleteTypeResponse) => {
+                    if (deleteTypeResponse.textEdits) {
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
+                        resolve(deleteTypeResponse);
+                    } else {
+                        reject(deleteTypeResponse.errorMsg);
+                    }
+                }).catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        const projectUri = StateMachine.context().projectUri;
+        const filePath = path.join(projectUri, params.filePath);
+
+        const request: VerifyTypeDeleteRequest = {
+            filePath: filePath,
+            startPosition: params.startPosition,
+        };
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().verifyTypeDelete(request)
+                .then((response) => {                    
+                    resolve(response);
+                })
+                .catch((error) => {
                     reject(error);
                 });
         });
