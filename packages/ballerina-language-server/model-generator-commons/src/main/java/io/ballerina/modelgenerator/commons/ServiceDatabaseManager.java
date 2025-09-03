@@ -286,6 +286,113 @@ public class ServiceDatabaseManager {
         }
     }
 
+    public Optional<ServiceInitInfo> getServiceInitInfo(String orgName, String moduleName) {
+        StringBuilder sql = new StringBuilder("SELECT ");
+        sql.append("s.display_name, ");
+        sql.append("p.package_id, ");
+        sql.append("p.org, ");
+        sql.append("p.name AS package_name, ");
+        sql.append("p.version ");
+        sql.append("FROM ServiceDeclaration s ");
+        sql.append("JOIN Package p ON s.package_id = p.package_id ");
+        sql.append("WHERE p.name = ?");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
+
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            stmt.setString(1, moduleName);
+            if (orgName != null) {
+                stmt.setString(2, orgName);
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                ServiceDeclaration.Package packageInfo = new ServiceDeclaration.Package(
+                        rs.getInt("package_id"),
+                        rs.getString("org"),
+                        rs.getString("package_name"),
+                        rs.getString("version")
+                );
+                String displayName = rs.getString("display_name");
+                conn.close();
+
+                StringBuilder sql2 = new StringBuilder("SELECT ");
+                sql2.append("sip.initializer_id, ");
+                sql2.append("sip.key_name as keyName, ");
+                sql2.append("sip.label, ");
+                sql2.append("sip.description, ");
+                sql2.append("sip.default_value, ");
+                sql2.append("sip.value_type as valueType, ");
+                sql2.append("sip.type_constrain as typeConstrain, ");
+                sql2.append("sip.source_kind as sourceKind, ");
+                sql2.append("sip.selections ");
+                sql2.append("FROM ServiceInitializerProperty sip");
+                sql2.append("WHERE sip.package_id = ?");
+
+                try (Connection conn2 = DriverManager.getConnection(dbPath);
+                     PreparedStatement stmt2 = conn2.prepareStatement(sql2.toString())) {
+                    stmt2.setInt(1, packageInfo.packageId());
+
+                    ResultSet rs2 = stmt2.executeQuery();
+                    List<ServiceInitProperty> initProperties = new ArrayList<>();
+                    while (rs2.next()) {
+                        initProperties.add(getServiceInitProperty(rs2));
+                    }
+                    conn2.close();
+                    ServiceInitInfo serviceInitInfo = new ServiceInitInfo(packageInfo, displayName, initProperties);
+                    return Optional.of(serviceInitInfo);
+                }
+            }
+            conn.close();
+            return Optional.empty();
+        } catch (SQLException e) {
+            Logger.getGlobal().severe("Error executing query: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private ServiceInitProperty getServiceInitProperty(ResultSet rs) throws SQLException {
+        int initializerId = rs.getInt("initializer_id");
+        return new ServiceInitProperty(
+                rs.getString("keyName"),
+                rs.getString("label"),
+                rs.getString("description"),
+                rs.getString("default_value"),
+                rs.getString("valueType"),
+                rs.getString("typeConstrain"),
+                rs.getString("sourceKind"),
+                rs.getString("selections"),
+                getServiceInitPropertyMemberTypes(initializerId)
+        );
+    }
+
+    private List<ParameterMemberTypeData> getServiceInitPropertyMemberTypes(int initializerId) {
+        String sql = "SELECT pmt.type AS member_type, pmt.kind AS member_kind, pmt.package AS member_package " +
+                "FROM ServiceInitializerPropertyMemberType pmt WHERE pmt.initializer_id = ?";
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, initializerId);
+
+            ResultSet rs = stmt.executeQuery();
+            List<ParameterMemberTypeData> memberTypes = new ArrayList<>();
+            while (rs.next()) {
+                memberTypes.add(new ParameterMemberTypeData(
+                        rs.getString("member_type"),
+                        rs.getString("member_kind"),
+                        rs.getString("member_package"),
+                        rs.getString("member_package")
+                ));
+            }
+            conn.close();
+            return memberTypes;
+        } catch (SQLException e) {
+            Logger.getGlobal().severe("Error executing query: " + e.getMessage());
+            return List.of();
+        }
+    }
+
     public List<String> getServiceTypes(int packageId) {
         String sql = "SELECT DISTINCT name FROM ServiceType WHERE package_id = ?";
         List<String> serviceTypes = new ArrayList<>();

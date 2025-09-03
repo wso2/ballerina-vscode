@@ -29,15 +29,18 @@ import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
-import io.ballerina.servicemodelgenerator.extension.builder.NodeBuilder;
+import io.ballerina.modelgenerator.commons.ServiceInitInfo;
+import io.ballerina.modelgenerator.commons.ServiceInitProperty;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceNodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
@@ -104,10 +107,49 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServ
  *
  * @since 1.2.0
  */
-public abstract class AbstractServiceBuilder implements NodeBuilder<Service>, ServiceNodeBuilder {
+public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
 
     @Override
-    public void getServiceInitModel() {
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        Optional<ServiceInitInfo> serviceInitInfo = ServiceDatabaseManager.getInstance()
+                .getServiceInitInfo(context.orgName(), context.moduleName());
+        if (serviceInitInfo.isEmpty()) {
+            return null;
+        }
+        ServiceInitInfo initInfo = serviceInitInfo.get();
+        ServiceDeclaration.Package pkg = initInfo.packageInfo();
+
+        ServiceInitModel serviceInitModel =  new ServiceInitModel.Builder()
+                .setId(String.valueOf(pkg.packageId()))
+                .setDisplayName(initInfo.displayName())
+                .setDescription(initInfo.displayName())
+                .setOrgName(pkg.org())
+                .setVersion(pkg.version())
+                .setPackageName(pkg.name())
+                .setModuleName(context.moduleName())
+                .setType(context.moduleName())
+                .setIcon(CommonUtils.generateIcon(pkg.org(), pkg.name(), pkg.version()))
+                .build();
+
+        for (ServiceInitProperty property : initInfo.properties()) {
+            Codedata.Builder codedataBuilder = new Codedata.Builder()
+                    .setArgType(property.sourceKind());
+
+            String[] items = property.selections() != null && !property.selections().isEmpty() ?
+                    property.selections().split(",") : new String[0];
+            Value.ValueBuilder builder = new Value.ValueBuilder()
+                    .metadata(property.label(), property.description())
+                    .setCodedata(codedataBuilder.build())
+                    .setPlaceholder(property.defaultValue())
+                    .valueType(property.valueType())
+                    .setValueTypeConstraint(property.typeConstrain())
+                    .setItems(List.of(items))
+                    .setTypeMembers(property.memberTypes())
+                    .enabled(true)
+                    .editable(true);
+            serviceInitModel.addProperty(property.keyName(), builder.build());
+        }
+        return serviceInitModel;
     }
 
     @Override
