@@ -81,7 +81,7 @@ export async function removeMapping(mapping: Mapping, context: IDataMapperContex
 	return await context.deleteMapping( mapping, viewId)
 }
 
-export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
+function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext){
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -122,8 +122,21 @@ export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataM
 		parameters: params
 	}
 
-	await context.mapWithCustomFn(mapping, metadata, viewId);
+	return {
+		mapping,
+		metadata,
+		viewId
+	}
+}
 
+export async function mapWithCustomFn(link: DataMapperLinkModel, context: IDataMapperContext){
+	const { mapping, metadata, viewId } = getMapWithFnData(link, context);
+	await context.mapWithCustomFn(mapping, metadata, viewId);
+}
+
+export async function mapWithTransformFn(link: DataMapperLinkModel, context: IDataMapperContext){
+	const { mapping, metadata, viewId } = getMapWithFnData(link, context);
+	await context.mapWithTransformFn(mapping, metadata, viewId);
 }
 
 export async function mapWithQuery(link: DataMapperLinkModel, clauseType: ResultClauseType, context: IDataMapperContext) {
