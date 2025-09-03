@@ -95,6 +95,7 @@ export interface TomlPackage {
     org: string;
     name: string;
     version: string;
+    title: string;
 }
 
 export interface TomlValues {
