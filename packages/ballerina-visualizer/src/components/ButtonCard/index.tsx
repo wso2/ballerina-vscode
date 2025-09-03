@@ -23,7 +23,7 @@ import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 
 const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, disabled?: boolean, sx?: any }>`
     gap: 16px;
-    width: 132px;
+    max-width: 42rem;
     padding: 12px;
     border-radius: 4px;
     border: 1px solid
@@ -35,7 +35,6 @@ const Card = styled.div<{ active?: boolean; appearance?: ButtonCardAppearance, d
         background-color: ${ThemeColors.PRIMARY_CONTAINER};
         border: 1px solid ${ThemeColors.HIGHLIGHT};
     };
-    ${(props: { sx?: any }) => props.sx};
 `;
 
 const CardContainer = styled.div<{ active?: boolean }>`
@@ -118,7 +117,6 @@ export interface ButtonCardProps {
     disabled?: boolean;
     tooltip?: string;
     isBeta?: boolean;
-    sx?: any;
 }
 
 export function ButtonCard(props: ButtonCardProps) {
@@ -133,8 +131,7 @@ export function ButtonCard(props: ButtonCardProps) {
         onClick,
         disabled,
         tooltip,
-        isBeta,
-        sx
+        isBeta
     } = props;
 
     // Apply truncation by default for small appearance if not explicitly set
@@ -148,7 +145,6 @@ export function ButtonCard(props: ButtonCardProps) {
                 active={active ?? false}
                 appearance={appearance}
                 disabled={disabled}
-                sx={sx}
             >
                 <CardContainer>
                     {icon && <IconContainer>{icon}</IconContainer>}
