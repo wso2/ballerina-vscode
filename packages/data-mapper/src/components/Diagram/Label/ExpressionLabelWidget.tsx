@@ -28,7 +28,7 @@ import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
-import { mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
+import { mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
 
@@ -223,6 +223,10 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         await mapWithCustomFn(link, context);
     };
 
+    const onClickMapWithTransformFn = async () => {
+        await mapWithTransformFn(link, context);
+    }
+
     const codeActions = [];
 
     if (mappingType === MappingType.ArrayToArray) {
@@ -234,10 +238,15 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         // TODO: Add impl
     }
 
-    if (mappingType !== MappingType.Default) {
+    codeActions.push({
+        title: "Map with custom function",
+        onClick: onClickMapWithCustomFn
+    });
+
+    if (mappingType !== MappingType.Default) {   
         codeActions.push({
-            title: "Map with custom function",
-            onClick: onClickMapWithCustomFn
+            title: "Map with transform function",
+            onClick: onClickMapWithTransformFn
         });
     }
 
