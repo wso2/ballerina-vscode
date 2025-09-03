@@ -25,7 +25,7 @@
     "output": "myTypes2",
     "expression": "abc"
   },
-  "targetField": "myTypes2",
+  "targetField": "myTypes2.0",
   "output": {
     "query4.bal": [
       {
