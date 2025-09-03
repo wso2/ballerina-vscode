@@ -313,7 +313,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> MODEL_PROVIDER_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -343,7 +343,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> VECTOR_STORE_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -373,7 +373,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> EMBEDDING_PROVIDER_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -406,7 +406,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> VECTOR_KNOWLEDGE_BASE_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -434,7 +434,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> DATA_LOADER_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -462,7 +462,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> CHUNKER_LIST not found in navigation stack, closing panel");
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
 
@@ -630,7 +630,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return undefined;
     };
 
-    const handleOnCloseSidePanel = () => {
+    const resetNodeSelectionStates = () => {
         setShowSidePanel(false);
         setSidePanelView(SidePanelView.NODE_LIST);
         setSubPanel({ view: SubPanelView.UNDEFINED });
@@ -639,7 +639,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         topNodeRef.current = undefined;
         targetRef.current = undefined;
         changeTargetRange(undefined);
-
         selectedClientName.current = undefined;
         showEditForm.current = false;
         isCreatingNewModelProvider.current = false;
@@ -649,10 +648,24 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
         clearNavigationStack();
+    };
 
-        // restore original model
+    const closeSidePanelAndFetchUpdatedFlowModel = () => {
+        resetNodeSelectionStates();
+        // fetch new flow model
         if (originalFlowModel.current) {
             debouncedGetFlowModel();
+            originalFlowModel.current = undefined;
+            setSuggestedModel(undefined);
+            suggestedText.current = undefined;
+        }
+    };
+
+    const handleOnCloseSidePanel = () => {
+        resetNodeSelectionStates();
+        // return to previous flow model
+        if (originalFlowModel.current) {
+            setModel(originalFlowModel.current);
             originalFlowModel.current = undefined;
             setSuggestedModel(undefined);
             suggestedText.current = undefined;
@@ -739,7 +752,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 topNodeRef: topNodeRef.current,
                 targetRef: targetRef.current,
             });
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
             return;
         }
         // handle add new node
@@ -750,7 +763,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnAddNodePrompt = (parent: FlowNode | Branch, target: LineRange, prompt: string) => {
         if (topNodeRef.current || targetRef.current) {
-            handleOnCloseSidePanel();
+            closeSidePanelAndFetchUpdatedFlowModel();
             return;
         }
         topNodeRef.current = parent;
@@ -934,7 +947,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 identifier: currentIdentifier,
             },
         });
-        handleOnCloseSidePanel();
+        closeSidePanelAndFetchUpdatedFlowModel();
         debouncedGetFlowModel();
     };
 
@@ -1276,7 +1289,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     if (options?.shouldCloseSidePanel) {
                         selectedNodeRef.current = undefined;
-                        handleOnCloseSidePanel();
+                        closeSidePanelAndFetchUpdatedFlowModel();
                     }
                     if (options?.updateLineRangeForRecursiveInserts) {
                         onRerenderRef.current = options.updateLineRangeForRecursiveInserts;
@@ -1321,7 +1334,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await updateCurrentArtifactLocation(deleteNodeResponse);
 
         selectedNodeRef.current = undefined;
-        handleOnCloseSidePanel();
+        closeSidePanelAndFetchUpdatedFlowModel();
         setShowProgressIndicator(false);
         debouncedGetFlowModel();
     };
@@ -1369,7 +1382,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 if (response.artifacts.length > 0) {
                     selectedNodeRef.current = undefined;
                     await updateCurrentArtifactLocation(response);
-                    handleOnCloseSidePanel();
+                    closeSidePanelAndFetchUpdatedFlowModel();
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
@@ -1778,7 +1791,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         applyModifications(rpcClient, modifications);
 
         // clear diagram
-        handleOnCloseSidePanel();
+        closeSidePanelAndFetchUpdatedFlowModel();
         onDiscardSuggestions();
     };
 
@@ -2024,7 +2037,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({ filePath: projectPath, flowNode: selectedNode });
-        handleOnCloseSidePanel();
+        closeSidePanelAndFetchUpdatedFlowModel();
     };
 
     const handleOnDeleteTool = async (tool: ToolData, node: FlowNode) => {
