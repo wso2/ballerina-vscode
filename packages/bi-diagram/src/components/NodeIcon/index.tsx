@@ -90,7 +90,11 @@ const NODE_COLOR_GROUPS = {
         "VECTOR_STORES",
         "EMBEDDING_PROVIDER",
         "EMBEDDING_PROVIDERS",
-    ],    
+        "DATA_LOADER",
+        "DATA_LOADERS",
+        "CHUNKER",
+        "CHUNKERS"
+    ],
     // Data related - magenta variants
     MAGENTA_DATA_GROUP: ["VARIABLE", "NEW_DATA", "UPDATE_DATA", "ASSIGN"],
     
@@ -231,6 +235,10 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     VECTOR_STORES: ({ size, color }) => <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} />,
     EMBEDDING_PROVIDER: ({ size, color }) => <Icon name="bi-doc" sx={{ fontSize: size, width: size, height: size, color }} />,
     EMBEDDING_PROVIDERS: ({ size, color }) => <Icon name="bi-doc" sx={{ fontSize: size, width: size, height: size, color }} />,
+    DATA_LOADER: ({ size, color }) => <Icon name="bi-data-table" sx={{ fontSize: size, width: size, height: size, color }} />,
+    DATA_LOADERS: ({ size, color }) => <Icon name="bi-data-table" sx={{ fontSize: size, width: size, height: size, color }} />,
+    CHUNKER: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
+    CHUNKERS: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
     // Default case for any NodeKind not explicitly handled
 } as Record<NodeKind, React.FC<{ size: number; color: string }>>;
 

@@ -125,6 +125,7 @@ interface PanelManagerProps {
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
+    onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     setSidePanelView: (view: SidePanelView) => void;
 
     // AI Agent handlers
@@ -184,7 +185,8 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchDataLoader,
         onSearchChunker,
         onSelectNewConnection,
-        onUpdateNodeWithConnection
+        onUpdateNodeWithConnection,
+        onNavigateToPanel,
     } = props;
 
     const handleOnAddTool = () => {
@@ -540,7 +542,7 @@ export function PanelManager(props: PanelManagerProps) {
                         connectionKind={selectedConnectionKind}
                         selectedNode={selectedNode}
                         onSave={onUpdateNodeWithConnection}
-                        onCreateNew={() => setSidePanelView(SidePanelView.CONNECTION_SELECT)}
+                        onNavigateToSelectionList={() => onNavigateToPanel?.(SidePanelView.CONNECTION_SELECT)}
                     />
                 );
 
@@ -574,6 +576,7 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        navigateToPanel={onNavigateToPanel}
                     />
                 );
 
@@ -590,7 +593,6 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.ADD_MCP_SERVER:
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
-                return () => setSidePanelView(SidePanelView.CONNECTION_CONFIG);
             case SidePanelView.CONNECTION_CREATE:
             case SidePanelView.NEW_AGENT:
                 return onBack;
