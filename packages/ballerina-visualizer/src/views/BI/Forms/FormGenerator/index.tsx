@@ -86,6 +86,8 @@ import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
+import { SidePanelView } from "../../FlowDiagram/PanelManager";
+import { ConnectionKind } from "../../../../components/ConnectionSelector";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -121,6 +123,7 @@ interface FormProps {
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
+    navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
 // Styled component for the action button description
@@ -730,7 +733,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
             .getDataMapperRpcClient()
-            .getVisualizableFields({ filePath, codedata});
+            .getVisualizableFields({ filePath, codedata });
         setVisualizableField(res.visualizableProperties);
         importsCodedataRef.current = {};
     };
@@ -808,6 +811,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                 subPanelView={subPanelView}
                 disableSaveButton={disableSaveButton}
+                navigateToPanel={props.navigateToPanel}
             />
         );
     }
