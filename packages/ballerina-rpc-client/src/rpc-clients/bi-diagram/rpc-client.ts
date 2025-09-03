@@ -189,7 +189,7 @@ import {
     DeleteConfigVariableResponseV2,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
-    verifyTypeDelete
+    verifyTypeDelete,
     ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
