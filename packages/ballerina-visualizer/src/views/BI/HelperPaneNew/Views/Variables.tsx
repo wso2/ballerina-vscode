@@ -63,7 +63,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
             onClick={() => onItemSelect(item.label)}
             data
             sx={{
-                maxHeight: isHovered?"none":"32px" 
+                maxHeight: isHovered ? "none" : "32px" 
             }}
             endIcon={
                 <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
