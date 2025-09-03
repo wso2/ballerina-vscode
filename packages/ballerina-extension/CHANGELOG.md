@@ -6,7 +6,7 @@ All notable changes to the "Ballerina" extension will be documented in this file
 
 ### Major updates
 
-- **Improved Data Mapping / Data Mapper** — Revamped with a new model-based design, better type handling, and integration with the latest Language Server APIs.  
+- **Improved Data Mapper** — Revamped with a new model-based design, better type handling, and integration with the latest Language Server APIs.  
 - **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.  
 - **GraphQL Upgrades** — Introduced query sorting, advanced options, and visual improvements in design diagrams.  
 - **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.  
