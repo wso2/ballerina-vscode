@@ -138,7 +138,7 @@ import {
     VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    deleteType
+    BIIntelSecrets
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
