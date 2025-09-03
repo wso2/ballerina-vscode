@@ -16,32 +16,26 @@
  * under the License.
  */
 
-import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, keywords, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
+import { FunctionDefinition, ModulePart, STKindChecker } from "@wso2/syntax-tree";
+import { FormField, Attachment, AttachmentStatus, keywords, DiagnosticEntry, DataMapperModelResponse, ExpandedDMModel, MappingElement, Mapping, IOType, InputCategory, TypeKind } from "@wso2/ballerina-core";
 import { window } from 'vscode';
 
-import { StateMachine } from "../../stateMachine";
-import {
-    INVALID_PARAMETER_TYPE,
-    INVALID_PARAMETER_TYPE_MULTIPLE_ARRAY,
-    INVALID_RECORD_UNION_TYPE
-} from "../../views/ai-panel/errorCodes";
 import path from "path";
 import * as fs from 'fs';
 import { BACKEND_URL } from "../../features/ai/utils";
 import { AIChatError } from "./utils/errors";
-import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
-import { DatamapperResponse, Payload } from "../../../src/features/ai/service/datamapper/types";
+import { DatamapperResponse } from "../../../src/features/ai/service/datamapper/types";
 import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { ArrayEnumUnionType, ArrayRecordType, MetadataType, NUMERIC_AND_BOOLEAN_TYPES, Operation, PrimitiveType, RecordType, UnionEnumIntersectionType } from "./constants";
-import { FieldMetadata, InputMetadata, IntermediateMapping, MappingData, MappingFileRecord, NestedFieldDescriptor, OutputMetadata, ParameterDefinitions, ParameterField, ParameterMetadata, ProcessCombinedKeyResult, ProcessParentKeyResult, RecordDefinitonObject } from "./types";
+import { FieldMetadata, IntermediateMapping, MappingData, MappingFileRecord, ParameterDefinitions, ParameterField, ParameterMetadata, ProcessCombinedKeyResult, ProcessParentKeyResult, RecordDefinitonObject } from "./types";
+import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
 
-const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
+// const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
 const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/context-upload-api/v1.0";
 // const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
-const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
+// const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
 export const REQUEST_TIMEOUT = 2000000;
 
@@ -97,282 +91,9 @@ const isArrayEnumUnion = (type: string): boolean => {
     return Object.values(ArrayEnumUnionType).includes(type as ArrayEnumUnionType);
 };
 
-export async function getParamDefinitions(
-    fnSt: FunctionDefinition,
-    fileUri: string
-): Promise<ParameterDefinitions> {
-    try {
-        const inputs: NestedFieldDescriptor = {};
-        const inputMetadata: InputMetadata = {};
-        let output: NestedFieldDescriptor = {};
-        let outputMetadata: OutputMetadata = {};
-        let hasArrayParams = false;
-        let arrayParams = 0;
-        let isErrorExists = false;
-
-        for (const parameter of fnSt.functionSignature.parameters) {
-            if (!STKindChecker.isRequiredParam(parameter)) {
-                continue;
-            }
-
-            const param = parameter as RequiredParam;
-            let paramName = param.paramName.value;
-            let paramType = "";
-
-            if (STKindChecker.isArrayTypeDesc(param.typeName) && STKindChecker.isArrayTypeDesc(fnSt.functionSignature.returnTypeDesc.type)) {
-                paramName = `${paramName}Item`; 
-                arrayParams++;
-            }
-
-            if (param.typeData.typeSymbol.typeKind === "array") {
-                paramType = param.typeName.source;
-            } else if (param.typeData.typeSymbol.typeKind === "typeReference") {
-                paramType = param.typeData.typeSymbol.name;
-            } else {
-                paramType = param.typeName.source;
-            }
-
-            const position = STKindChecker.isQualifiedNameReference(param.typeName)
-                ? {
-                    line: (param.typeName as QualifiedNameReference).identifier.position.startLine,
-                    offset: (param.typeName as QualifiedNameReference).identifier.position.startColumn
-                }
-                : STKindChecker.isArrayTypeDesc(param.typeName) && STKindChecker.isQualifiedNameReference(
-                    (param.typeName as ArrayTypeDesc).memberTypeDesc)
-                    ? {
-                        line: ((param.typeName as ArrayTypeDesc).memberTypeDesc as QualifiedNameReference).identifier.position.startLine,
-                        offset: ((param.typeName as ArrayTypeDesc).memberTypeDesc as QualifiedNameReference).identifier.position.startColumn
-                    }
-                    : {
-                        line: parameter.position.startLine,
-                        offset: parameter.position.startColumn
-                    };
-            
-            const inputTypeDefinition = await StateMachine.langClient().getTypeFromSymbol({
-                documentIdentifier: {
-                    uri: fileUri
-                },
-                positions: [position]
-            });
-
-            if ('types' in inputTypeDefinition && inputTypeDefinition.types.length > 1) {
-                throw new Error(INVALID_PARAMETER_TYPE.message);
-            }
-
-            if ('types' in inputTypeDefinition && !inputTypeDefinition.types[0].hasOwnProperty('type')) {
-                if (STKindChecker.isQualifiedNameReference(parameter.typeName)) {
-                    throw new Error(`"${parameter.typeName["identifier"].value}" does not exist in the package "${parameter.typeName["modulePrefix"].value}". Please verify the record name or ensure that the correct package is imported.`);
-                }
-                throw new Error(INVALID_PARAMETER_TYPE.message);
-            }
-
-            const inputType = inputTypeDefinition["types"]?.[0].type;
-            if (inputType?.typeName === "union" && inputType.members?.some((m: { fields: string | any[]; }) => m.fields?.length > 0)) {
-                throw new Error(INVALID_RECORD_UNION_TYPE.message);
-            }
-
-            let inputDefinition: RecordDefinitonObject;
-            if (inputType?.fields) {
-                inputDefinition = navigateTypeInfo(inputType.fields, false);
-            } else {
-                inputDefinition = {
-                    "recordFields": { [paramName]: { "type": inputType.typeName, "comment": "" } },
-                    "recordFieldsMetadata": {
-                        [paramName]: {
-                            "typeName": inputType.typeName,
-                            "type": inputType.typeName,
-                            "typeInstance": paramName,
-                            "nullable": false,
-                            "optional": false
-                        }
-                    }
-                };
-            }
-
-            inputs[paramName] = inputDefinition.recordFields;
-            inputMetadata[paramName] = {
-                isArrayType: STKindChecker.isArrayTypeDesc(parameter.typeName),
-                parameterName: paramName,
-                parameterType: paramType,
-                type: STKindChecker.isArrayTypeDesc(parameter.typeName) ? "record[]" : "record",
-                fields: inputDefinition.recordFieldsMetadata,
-            };
-            if (STKindChecker.isArrayTypeDesc(parameter.typeName)) {
-                hasArrayParams = true;
-            }
-        }
-
-        if (STKindChecker.isUnionTypeDesc(fnSt.functionSignature.returnTypeDesc.type)) {
-            let unionType = fnSt.functionSignature.returnTypeDesc.type;
-            let leftType = unionType.leftTypeDesc;
-            let rightType = unionType.rightTypeDesc;
-
-            if (STKindChecker.isArrayTypeDesc(leftType) && STKindChecker.isErrorTypeDesc(rightType)) {
-                if (!STKindChecker.isSimpleNameReference(leftType.memberTypeDesc)) {
-                    throw new Error(INVALID_PARAMETER_TYPE.message);
-                }
-                isErrorExists = true;
-            } else if (STKindChecker.isArrayTypeDesc(rightType) && STKindChecker.isErrorTypeDesc(leftType)) {
-                if (!STKindChecker.isSimpleNameReference(rightType.memberTypeDesc)) {
-                    throw new Error(INVALID_PARAMETER_TYPE.message);
-                }
-                isErrorExists = true;
-            } else if (
-                (STKindChecker.isSimpleNameReference(leftType) || STKindChecker.isQualifiedNameReference(leftType)) &&
-                STKindChecker.isErrorTypeDesc(rightType)) {
-                isErrorExists = true;
-            } else if (
-                (STKindChecker.isSimpleNameReference(rightType) || STKindChecker.isQualifiedNameReference(rightType)) &&
-                STKindChecker.isErrorTypeDesc(leftType)) {
-                isErrorExists = true;
-            } else {
-                throw new Error(INVALID_PARAMETER_TYPE.message);
-            }
-        } else if (STKindChecker.isArrayTypeDesc(fnSt.functionSignature.returnTypeDesc.type)) {
-            if (arrayParams > 1) {
-                throw new Error(INVALID_PARAMETER_TYPE_MULTIPLE_ARRAY.message);
-            }
-            if (!hasArrayParams) {
-                throw new Error(INVALID_PARAMETER_TYPE_MULTIPLE_ARRAY.message);
-            }
-            if (!(STKindChecker.isSimpleNameReference(fnSt.functionSignature.returnTypeDesc.type.memberTypeDesc) ||
-                STKindChecker.isQualifiedNameReference(fnSt.functionSignature.returnTypeDesc.type.memberTypeDesc))) {
-                throw new Error(INVALID_PARAMETER_TYPE.message);
-            }
-        } else {
-            if (!STKindChecker.isSimpleNameReference(fnSt.functionSignature.returnTypeDesc.type) &&
-                !STKindChecker.isQualifiedNameReference(fnSt.functionSignature.returnTypeDesc.type)) {
-                throw new Error(INVALID_PARAMETER_TYPE.message);
-            }
-        }
-
-        let returnType = fnSt.functionSignature.returnTypeDesc.type;
-
-        const returnTypePosition = STKindChecker.isUnionTypeDesc(returnType)
-            ? {
-                line: STKindChecker.isErrorTypeDesc(returnType.leftTypeDesc)
-                    ? returnType.rightTypeDesc.position.startLine
-                    : returnType.leftTypeDesc.position.startLine,
-                offset: STKindChecker.isErrorTypeDesc(returnType.leftTypeDesc)
-                    ? returnType.rightTypeDesc.position.startColumn
-                    : returnType.leftTypeDesc.position.startColumn
-            }
-            : STKindChecker.isArrayTypeDesc(returnType) && STKindChecker.isQualifiedNameReference(returnType.memberTypeDesc)
-                ? {
-                    line: returnType.memberTypeDesc.identifier.position.startLine,
-                    offset: returnType.memberTypeDesc.identifier.position.startColumn
-                }
-                : STKindChecker.isQualifiedNameReference(returnType)
-                    ? {
-                        line: returnType.identifier.position.startLine,
-                        offset: returnType.identifier.position.startColumn
-                    }
-                    : {
-                        line: returnType.position.startLine,
-                        offset: returnType.position.startColumn
-                    };
-
-        const outputTypeDefinition = await StateMachine.langClient().getTypeFromSymbol({
-            documentIdentifier: {
-                uri: fileUri
-            },
-            positions: [returnTypePosition]
-        });
-
-        if ('types' in outputTypeDefinition && !outputTypeDefinition.types[0].hasOwnProperty('type')) {
-            if (STKindChecker.isQualifiedNameReference(returnType)) {
-                throw new Error(`"${returnType["identifier"].value}" does not exist in the package "${returnType["modulePrefix"].value}". Please verify the record name or ensure that the correct package is imported.`);
-            }
-            throw new Error(INVALID_PARAMETER_TYPE.message);
-        }
-
-        const outputType = outputTypeDefinition["types"]?.[0].type;
-        if (outputType?.typeName === "union" && outputType.members?.some((m) => m.fields)) {
-            throw new Error(INVALID_RECORD_UNION_TYPE.message);
-        }
-
-        const outputDefinition = navigateTypeInfo('types' in outputTypeDefinition && outputTypeDefinition.types[0].type.fields, false);
-        output = { ...outputDefinition.recordFields };
-        outputMetadata = { ...outputDefinition.recordFieldsMetadata };
-
-        const response = {
-            inputs,
-            output,
-            inputMetadata,
-            outputMetadata
-        };
-
-        return {
-            parameterMetadata: response,
-            errorStatus: isErrorExists
-        };
-    } catch (error) {
-        throw error;
-    }
-}
-
-export async function processMappings(
-    fnSt: FunctionDefinition,
-    fileUri: string,
-    file?: Attachment
-): Promise<SyntaxTree> {
-    let result = await getParamDefinitions(fnSt, fileUri);
-    let parameterDefinitions = result.parameterMetadata;
-    const isErrorExists = result.errorStatus;
-
-    if (file) {
-        let mappedResult = await mappingFileParameterDefinitions(file, parameterDefinitions);
-        parameterDefinitions = mappedResult as ParameterMetadata;
-    }
-
-    const codeObject = await getDatamapperCode(parameterDefinitions);
-    const { recordString, isCheckError } = await constructRecord(codeObject);
-    let codeString: string;
-    const parameter = fnSt.functionSignature.parameters[0] as RequiredParam;
-    const paramName = parameter.paramName.value;
-    const formattedRecordString = recordString.startsWith(":") ? recordString.substring(1) : recordString;
-
-    let returnType = fnSt.functionSignature.returnTypeDesc.type;
-
-    if (STKindChecker.isUnionTypeDesc(returnType)) {
-        const { leftTypeDesc: leftType, rightTypeDesc: rightType } = returnType;
-
-        if (STKindChecker.isArrayTypeDesc(leftType) || STKindChecker.isArrayTypeDesc(rightType)) {
-            codeString = isCheckError && !isErrorExists
-                ? `|error => from var ${paramName}Item in ${paramName}\n select ${formattedRecordString};`
-                : `=> from var ${paramName}Item in ${paramName}\n select ${formattedRecordString};`;
-        } else {
-            codeString = isCheckError && !isErrorExists ? `|error => ${recordString};` : `=> ${recordString};`;
-        }
-    } else if (STKindChecker.isArrayTypeDesc(returnType)) {
-        codeString = isCheckError
-            ? `|error => from var ${paramName}Item in ${paramName}\n select ${formattedRecordString};`
-            : `=> from var ${paramName}Item in ${paramName}\n select ${formattedRecordString};`;
-    } else {
-        codeString = isCheckError ? `|error => ${recordString};` : `=> ${recordString};`;
-    }
-
-    const modifications: STModification[] = [];
-    modifications.push({
-        type: "INSERT",
-        config: { STATEMENT: codeString },
-        endColumn: fnSt.functionBody.position.endColumn,
-        endLine: fnSt.functionBody.position.endLine,
-        startColumn: fnSt.functionBody.position.startColumn,
-        startLine: fnSt.functionBody.position.startLine,
-    });
-
-    const stModifyResponse = await StateMachine.langClient().stModify({
-        astModifications: modifications,
-        documentIdentifier: {
-            uri: fileUri
-        }
-    });
-
-    return stModifyResponse as SyntaxTree;
-}
-
-function isMappingData(obj: MappingData | IntermediateMapping): obj is MappingData {
+function isMappingData(
+    obj: MappingData | IntermediateMapping
+): obj is MappingData {
     return (
         typeof obj === "object" &&
         obj !== null &&
@@ -439,13 +160,19 @@ async function processMappingData(
 ): Promise<Record<string, string>> {
     const parameters = mappingData.parameters;
     const paths = parameters[0].split(".");
+    let path: string = "";
 
-    const path = await getMappingString(
-        mappingData,
-        parameterDefinitions,
-        nestedKey,
-        nestedKeyArray
-    );
+    try {
+        path = await getMappingString(
+            mappingData,
+            parameterDefinitions,
+            nestedKey,
+            nestedKeyArray
+        );
+    } catch (error) {
+        console.log(`Error in processMapping:`, error);
+        throw new Error(`Failed to process mappings`);
+    }
 
     if (typeof path !== "string" || path === "") {
         return {};
@@ -512,7 +239,7 @@ async function getMappingString(mapping: MappingData, parameterDefinitions: Para
     if (paths.length > 2) {
         modifiedInput = await getNestedType(paths.slice(1), parameterDefinitions.inputMetadata[recordObjectName]);
     } else if (paths.length === 2) {
-        modifiedInput = parameterDefinitions.inputMetadata[recordObjectName]["fields"][paths[1]];
+        modifiedInput = parameterDefinitions.inputMetadata[recordObjectName]?.["fields"]?.[paths[1]] || parameterDefinitions.inputMetadata[recordObjectName + 'Item']?.["fields"]?.[paths[1]];
     } else {
         modifiedInput = parameterDefinitions.configurables[recordObjectName] ||
                 parameterDefinitions.constants[recordObjectName] ||
@@ -1035,7 +762,7 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
         if (member.hasOwnProperty("typeName")) {
             memberName = member.typeName;
 
-            if (member.hasOwnProperty("name")) {
+            if (member.hasOwnProperty("name") && !member.hasOwnProperty("id")) {
                 this.addNamedSimpleMember(member, memberName, context);
             } else {
                 this.addUnnamedSimpleMember(memberName, member, context);
@@ -1302,10 +1029,10 @@ export function getBalRecFieldName(fieldName: string) {
     return keywords.includes(fieldName) ? `'${fieldName}` : fieldName;
 }
 
-export async function getDatamapperCode(parameterDefinitions: ParameterMetadata): Promise<Record<string, string>> {
+async function getDatamapperCode(dataMapperResponse: DataMapperModelResponse, parameterDefinitions: ParameterMetadata): Promise<Record<string, string>> {
     let nestedKeyArray: string[] = [];
     try {
-        let response: DatamapperResponse = await sendDatamapperRequest(parameterDefinitions);
+        let response: DatamapperResponse = await sendDatamapperRequest(dataMapperResponse);
         let intermediateMapping = response.mappings;
         let finalCode = await generateBallerinaCode(intermediateMapping, parameterDefinitions, "", nestedKeyArray);
         return finalCode;
@@ -1357,8 +1084,8 @@ export function notifyNoGeneratedMappings() {
     window.showInformationMessage(msg);
 }
 
-async function sendDatamapperRequest(parameterDefinitions: ParameterMetadata): Promise<DatamapperResponse> {
-    const response: DatamapperResponse = await generateAutoMappings(parameterDefinitions as Payload);
+async function sendDatamapperRequest(dataMapperResponse: DataMapperModelResponse): Promise<DatamapperResponse> {
+    const response: DatamapperResponse = await generateAutoMappings(dataMapperResponse);
     return response;
 }
 
@@ -1416,8 +1143,8 @@ export async function mappingFileParameterDefinitions(file: Attachment, paramete
     };
 }
 
-export async function mappingFileInlineDataMapperModel(file: Attachment, inlineDataMapperResponse: InlineDataMapperModelResponse): Promise<InlineDataMapperModelResponse> {
-    if (!file) { return inlineDataMapperResponse; }
+export async function mappingFileDataMapperModel(file: Attachment, dataMapperResponse: DataMapperModelResponse): Promise<DataMapperModelResponse> {
+    if (!file) { return dataMapperResponse; }
     const fileData = await attatchmentToFileData(file);
     const params: DataMapperRequest = {
         file: fileData,
@@ -1427,9 +1154,9 @@ export async function mappingFileInlineDataMapperModel(file: Attachment, inlineD
     let mappingFile: MappingFileRecord = JSON.parse(resp.fileContent) as MappingFileRecord;
 
     return {
-        ...inlineDataMapperResponse,
+        ...dataMapperResponse,
         mappingsModel: {
-            ...inlineDataMapperResponse.mappingsModel,
+            ...dataMapperResponse.mappingsModel,
             mapping_fields: mappingFile.mapping_fields
         }
     };
@@ -1859,6 +1586,414 @@ async function processCombinedKey(
         }
     }
     return { isinputRecordArrayNullable, isinputRecordArrayOptional, isinputArrayNullable, isinputArrayOptional, isinputNullableArray };
+}
+
+export async function processMappings(
+    request: ExpandedDMModel,
+    file?: Attachment
+): Promise<MappingElement> {
+    let dataMapperResponse = cleanDataMapperModelResponse(request);
+    const result = await getParamDefinitions(dataMapperResponse);
+    const parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
+    
+    if (file) {
+        const mappedResult = await mappingFileDataMapperModel(file, dataMapperResponse);
+        dataMapperResponse = mappedResult as DataMapperModelResponse;
+    }
+
+    const codeObject = await getDatamapperCode(dataMapperResponse, parameterDefinitions);
+    const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, dataMapperResponse);
+    return { mappings };
+}
+ 
+// Main function to clean the entire DataMapperModelResponse
+function cleanDataMapperModelResponse(
+    response: ExpandedDMModel
+): DataMapperModelResponse {
+    if (!response) {
+        throw new Error("Invalid response: missing mappingsModel");
+    }
+
+    const cleanedResponse: DataMapperModelResponse = {
+        mappingsModel: cleanExpandedDMModel(response as ExpandedDMModel)
+    };
+
+    return cleanedResponse;
+}
+
+// Clean ExpandedDMModel by removing null fields and cleaning nested structures
+function cleanExpandedDMModel(model: ExpandedDMModel): ExpandedDMModel {
+    const cleaned = model as ExpandedDMModel;
+
+    // Clean inputs array - remove null/undefined elements
+    if (model.inputs && Array.isArray(model.inputs)) {
+        const cleanedInputs = model.inputs
+            .filter(input => !isNullOrUndefined(input))
+            .map(input => cleanIOType(input))
+            .filter(input => input !== null) as IOType[];
+
+        cleaned.inputs = cleanedInputs;
+    }
+
+    // Clean output
+    if (model.output && !isNullOrUndefined(model.output)) {
+        const cleanedOutput = cleanIOType(model.output);
+        if (cleanedOutput !== null) {
+            cleaned.output = cleanedOutput;
+        }
+    }
+
+    // Clean subMappings array if it exists
+    if (model.subMappings && Array.isArray(model.subMappings)) {
+        const cleanedSubMappings = model.subMappings
+            .filter(subMapping => !isNullOrUndefined(subMapping))
+            .map(subMapping => cleanIOType(subMapping))
+            .filter(subMapping => subMapping !== null) as IOType[];
+
+        if (cleanedSubMappings.length > 0) {
+            cleaned.subMappings = cleanedSubMappings;
+        }
+    }
+
+    // Clean mappings array - remove null/undefined elements
+    if (model.mappings && Array.isArray(model.mappings)) {
+        const cleanedMappings = model.mappings.filter(mapping =>
+            !isNullOrUndefined(mapping) &&
+            !isNullOrUndefined(mapping.output) &&
+            !isNullOrUndefined(mapping.expression)
+        );
+
+        // Also clean inputs array within each mapping
+        cleanedMappings.forEach(mapping => {
+            if (mapping.inputs && Array.isArray(mapping.inputs)) {
+                mapping.inputs = mapping.inputs.filter(input => !isNullOrUndefined(input));
+            }
+        });
+
+        cleaned.mappings = cleanedMappings;
+    }
+
+    // Include query if it exists and is not null
+    if (model.query && !isNullOrUndefined(model.query)) {
+        cleaned.query = model.query;
+    }
+
+    return cleaned;
+}
+
+// Utility function to check if a value is null or undefined
+function isNullOrUndefined(value: any): boolean {
+    return value === null || value === undefined;
+}
+
+// Clean IOType by removing null/undefined fields and filtering arrays
+function cleanIOType(ioType: IOType | null | undefined): IOType | null {
+    if (isNullOrUndefined(ioType)) {
+        return null;
+    }
+
+    // Remove array records without fields
+    if (ioType.kind === "array" && ioType.typeName === "record" && 
+        (!ioType.fields || ioType.fields.length === 0)) {
+        return null;
+    }
+
+    // Remove records without fields
+    if (ioType.kind === "record" && (!ioType.fields || ioType.fields.length === 0)) {
+        return null;
+    }
+
+    const cleaned = ioType;
+
+    // Clean fields array - remove null/undefined elements and recursively clean
+    if (ioType.fields && Array.isArray(ioType.fields)) {
+        const cleanedFields = ioType.fields
+            .filter(field => !isNullOrUndefined(field))
+            .map(field => cleanIOType(field))
+            .filter(field => field !== null) as IOType[];
+
+        if (cleanedFields.length > 0) {
+            cleaned.fields = cleanedFields;
+        }
+    }
+
+    // Clean member recursively
+    if (ioType.member && !isNullOrUndefined(ioType.member)) {
+        const cleanedMember = cleanIOType(ioType.member);
+        if (cleanedMember !== null) {
+            cleaned.member = cleanedMember;
+        }
+    }
+
+    // Clean members array - remove null/undefined elements
+    if (ioType.members && Array.isArray(ioType.members)) {
+        const cleanedMembers = ioType.members.filter(member =>
+            !isNullOrUndefined(member) &&
+            !isNullOrUndefined(member.id) &&
+            !isNullOrUndefined(member.typeName)
+        );
+
+        if (cleanedMembers.length > 0) {
+            cleaned.members = cleanedMembers;
+        }
+    }
+
+    return cleaned;
+}
+
+export async function getParamDefinitions(
+    dataMapperResponse: DataMapperModelResponse
+): Promise<ParameterDefinitions> {
+    const inputs: { [key: string]: any } = {};
+    const inputMetadata: { [key: string]: any } = {};
+    
+    const { inputs: mappingInputs, output: mappingOutput } = dataMapperResponse.mappingsModel as ExpandedDMModel;
+    const transformedInputs = transformInputs(mappingInputs);
+    const transformedOutputs = transformOutput(mappingOutput);
+
+    for (const parameter of transformedInputs.parameters) {
+        const inputDefinition = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
+        
+        inputs[parameter.parameterName] = inputDefinition.recordFields;
+        inputMetadata[parameter.parameterName] = {
+            "isArrayType": parameter.isArrayType,
+            "parameterName": parameter.parameterName,
+            "parameterType": parameter.parameterType,
+            "type": parameter.type,
+            "fields": inputDefinition.recordFieldsMetadata
+        };
+    }
+
+    const outputDefinition = navigateTypeInfo(transformedOutputs, false);
+    const output = { ...outputDefinition.recordFields };
+    const outputMetadata = { ...outputDefinition.recordFieldsMetadata };
+
+    return {
+        parameterMetadata: {
+            inputs,
+            output,
+            inputMetadata,
+            outputMetadata,
+            constants: transformedInputs.constants,
+            configurables: transformedInputs.configurables,
+            variables: transformedInputs.variables
+        },
+        errorStatus: false
+    };
+}
+
+function transformInputs(inputs: IOType[]): {
+    constants: Record<string, FieldMetadata>;
+    configurables: Record<string, FieldMetadata>;
+    variables: Record<string, FieldMetadata>;
+    parameters: ParameterField[];
+    parameterFields: { [parameterName: string]: FormField[] };
+} {
+    const constants: Record<string, FieldMetadata> = {};
+    const configurables: Record<string, FieldMetadata> = {};
+    const variables: Record<string, FieldMetadata> = {};
+    const parameters: ParameterField[] = [];
+    const parameterFields: { [parameterName: string]: FormField[] } = {};
+
+    inputs.forEach((input) => {
+        // Helper function to create ParameterField
+        const createParameterField = (input: IOType): ParameterField => {
+            let typeName: string;
+
+            if (input.kind !== input.typeName) {
+                typeName = input.typeName;
+            } else if (!input.typeName) {
+                typeName = input.kind || "unknown";
+            } else {
+                typeName = input.typeName;
+            }
+
+            // Determine if it's an array type
+            const isArrayType = input.kind === TypeKind.Array;
+            const name = input.id;
+
+            // Determine the type string
+            let type: string;
+            if (isArrayType) {
+                // If it's an array, get the member type and append []
+                if (input.member) {
+                    const memberTypeName = input.member.kind || "unknown";
+                    type = `${memberTypeName}[]`;
+                } else {
+                    type = `${typeName}[]`;
+                }
+            } else {
+                type = input.kind;
+            }
+
+            return {
+                isArrayType,
+                parameterName: name,
+                parameterType: typeName,
+                type
+            };
+        };
+
+        const createFieldConfig = (input: IOType): FieldMetadata => {
+            if (!input.typeName) {
+                throw new Error("TypeName is missing");
+            }
+            return {
+                typeName: input.kind || "unknown",
+                type: input.kind || "unknown",
+                typeInstance: input.id,
+                nullable: false,
+                optional: input.optional 
+            };
+        };
+
+        // Handle different categories
+        if (input.category === InputCategory.Constant) {
+            constants[input.id] = createFieldConfig(input);
+            return;
+        }
+
+        if (input.category === InputCategory.Configurable) {
+            configurables[input.id] = createFieldConfig(input);
+            return;
+        }
+
+        if (input.category === InputCategory.Variable) {
+            variables[input.id] = createFieldConfig(input);
+            return;
+        }
+
+        if (input.category === InputCategory.Parameter) {
+            const parameterField = createParameterField(input);
+            parameters.push(parameterField);
+
+            const parameterName = input.id;
+
+            if (input.kind === "array" && input.member) {
+                if (input.member.fields) {
+                    parameterFields[parameterName] = input.member.fields.map(transformIOType);
+                } else {
+                    parameterFields[parameterName] = [transformIOType(input.member)];
+                }
+            } else {
+                // Handle non-array parameters
+                if (input.fields) {
+                    parameterFields[parameterName] = input.fields.map(transformIOType);
+                } else {
+                    parameterFields[parameterName] = [transformIOType(input)];
+                }
+            }
+        }
+    });
+
+    return { constants, configurables, variables, parameters, parameterFields };
+}
+
+function transformIOType(input: IOType): FormField {
+    const name = input.name || extractNameFromId(input.id);
+
+    let typeName: string;
+    if (input.kind && input.typeName && input.kind !== input.typeName && input.category) {
+        typeName = input.kind;
+    } else if (!input.typeName) {
+        typeName = input.kind || "unknown";
+    } else {
+        typeName = input.typeName;
+    }
+
+    const baseField = {
+        id: input.id,
+        name,
+        typeName,
+        optional: input.optional || false
+    };
+
+    // Handle arrays
+    if (input.kind === "array" && input.member) {
+        const memberTransformed = transformIOType(input.member) as FormField;
+        const { name, ...memberWithoutName } = memberTransformed;
+
+        return {
+            ...baseField,
+            typeName: "array",
+            memberType: memberWithoutName as FormField
+        } as FormField;
+    }
+
+    // Handle records
+    if (input.kind === "record" && input.fields) {
+        const recordField: FormField = {
+            ...baseField,
+            typeName: "record",
+            fields: input.fields.map(transformIOType) as FormField[]
+        };
+
+        if (
+            input.typeName &&
+            input.kind !== input.typeName &&
+            !input.category
+        ) {
+            recordField.typeInfo = {
+                orgName: "",
+                moduleName: "",
+                name: input.typeName
+            };
+        }
+
+        return recordField;
+    }
+
+    // Handle primitive types
+    const primitiveField: FormField = { ...baseField };
+
+    // Add typeInfo if conditions are met
+    if (
+        input.typeName &&
+        input.kind !== input.typeName &&
+        !input.category
+    ) {
+        primitiveField.typeInfo = {
+            orgName: "",
+            moduleName: "",
+            name: input.typeName
+        };
+    }
+
+    return primitiveField;
+}
+
+function extractNameFromId(id: string): string {
+    const parts = id.split('.').filter(part => !/^\d+$/.test(part));
+    return parts[parts.length - 1];
+}
+
+function transformOutput(output: IOType): FormField[] {
+    if (output.fields) {
+        return output.fields.map(transformIOType);
+    } else if (output.member) {
+        return output.member.fields.map(transformIOType);
+    } else {
+        return [transformIOType(output)];
+    }
+}
+
+function transformCodeObjectToMappings(codeObject: Record<string, string>, request: DataMapperModelResponse): Mapping[] {
+    const mappings: Mapping[] = [];
+
+    // Get the output variable name from the request
+    const { output: mappingOutput } = request.mappingsModel as ExpandedDMModel;
+    const outputVariableName = mappingOutput.name || extractNameFromId(mappingOutput.id);
+
+    // Iterate through each property in codeObject
+    Object.keys(codeObject).forEach(key => {
+        const mapping: Mapping = {
+            output: `${outputVariableName}.${key}`,
+            expression: codeObject[key]
+        };
+        mappings.push(mapping);
+    });
+
+    return mappings;
 }
 
 export async function requirementsSpecification(filepath: string): Promise<string> {

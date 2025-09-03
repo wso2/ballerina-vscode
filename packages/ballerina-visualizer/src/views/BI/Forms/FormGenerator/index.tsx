@@ -272,7 +272,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node.codedata.node === "VARIABLE") {
             const codedata = importsCodedataRef.current || { symbol: formProperties?.type.value };
             rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getVisualizableFields({ filePath: fileName, codedata })
                 .then((res) => {
                     setVisualizableField(res.visualizableProperties);
@@ -732,7 +732,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const fetchVisualizableFields = async (filePath: string, typeName?: string) => {
         const codedata = importsCodedataRef.current || { symbol: typeName };
         const res = await rpcClient
-            .getInlineDataMapperRpcClient()
+            .getDataMapperRpcClient()
             .getVisualizableFields({ filePath, codedata });
         setVisualizableField(res.visualizableProperties);
         importsCodedataRef.current = {};

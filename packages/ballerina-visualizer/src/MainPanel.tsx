@@ -25,13 +25,14 @@ import {
     PopupMachineStateValue,
     EVENT_TYPE,
     ParentPopupData,
+    CodeData,
+    LinePosition,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
-import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
@@ -45,7 +46,7 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
@@ -71,7 +72,7 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { InlineDataMapper } from "./views/InlineDataMapper";
+import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
 
 const globalStyles = css`
@@ -327,22 +328,35 @@ const MainPanel = () => {
                         setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
                         break;
                     case MACHINE_VIEW.DataMapper:
+                        let position: LinePosition = {
+                            line: value?.position?.startLine,
+                            offset: value?.position?.startColumn
+                        };
+                        if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
+                            STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
+                        ) {
+                            position = {
+                                line: value?.syntaxTree.functionBody.expression.position.startLine,
+                                offset: value?.syntaxTree.functionBody.expression.position.startColumn
+                            };
+                        }
                         setViewComponent(
                             <DataMapper
-                                projectPath={value.projectUri}
                                 filePath={value.documentUri}
-                                model={value?.syntaxTree as FunctionDefinition}
-                                functionName={value?.identifier}
-                                applyModifications={applyModifications}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                name={value?.dataMapperMetadata?.name}
+                                projectUri={value.projectUri}
+                                position={position}
+                                reusable
                             />
                         );
                         break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
-                            <InlineDataMapper
+                            <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.dataMapperMetadata?.name}
+                                name={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
