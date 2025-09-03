@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "1",
       "displayName": "HTTP Service",
-      "description": "HTTP Service",
+      "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
       "orgName": "ballerina",
       "packageName": "http",
       "moduleName": "http",

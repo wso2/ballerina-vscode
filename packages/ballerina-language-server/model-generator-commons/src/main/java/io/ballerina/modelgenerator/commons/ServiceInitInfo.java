@@ -20,6 +20,6 @@ package io.ballerina.modelgenerator.commons;
 
 import java.util.List;
 
-public record ServiceInitInfo(ServiceDeclaration.Package packageInfo, String displayName,
+public record ServiceInitInfo(ServiceDeclaration.Package packageInfo, String displayName, String description,
                               List<ServiceInitProperty> properties) {
 }

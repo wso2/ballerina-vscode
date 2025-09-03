@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "4",
       "displayName": "Directory Service",
-      "description": "Directory Service",
+      "description": "Create a service to monitor a directory for file events",
       "orgName": "ballerina",
       "packageName": "file",
       "moduleName": "file",
@@ -22,11 +22,12 @@
             "description": "Directory path to be monitored"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_FILED"
           },
           "placeholder": "\"/tmp\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -40,11 +41,12 @@
             "description": "Recursively monitor all sub-directories"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
           "placeholder": "false",
           "valueType": "FLAG",
           "valueTypeConstraint": "boolean",
+          "value": "false",
           "items": [],
           "typeMembers": [],
           "enabled": true,

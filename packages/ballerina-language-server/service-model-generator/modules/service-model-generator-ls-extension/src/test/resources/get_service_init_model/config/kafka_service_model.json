@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "10",
       "displayName": "Kafka Event Handler",
-      "description": "Kafka Event Handler",
+      "description": "Create a service to handle messages from Kafka topic(s)",
       "orgName": "ballerinax",
       "packageName": "kafka",
       "moduleName": "kafka",
@@ -22,11 +22,31 @@
             "description": "List of remote server endpoints of the Kafka brokers"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_REQUIRED"
           },
-          "placeholder": "\"\"",
+          "placeholder": "\"localhost:9092\"",
           "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "valueTypeConstraint": "string|string[]",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "topics": {
+          "metadata": {
+            "label": "Topic(s)",
+            "description": "The topic(s) to subscribe to"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_FILED"
+          },
+          "placeholder": "\"myTopic\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string|string[]",
+          "value": "",
           "items": [],
           "typeMembers": [],
           "enabled": true,

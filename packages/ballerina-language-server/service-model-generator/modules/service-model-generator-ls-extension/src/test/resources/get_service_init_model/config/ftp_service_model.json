@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "5",
       "displayName": "FTP Service",
-      "description": "FTP Service",
+      "description": "Create a service to monitor a directory in a FTP server for file events",
       "orgName": "ballerina",
       "packageName": "ftp",
       "moduleName": "ftp",
@@ -22,11 +22,12 @@
             "description": "Target FTP server url"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
           "placeholder": "\"127.0.0.1\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "\"127.0.0.1\"",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -40,11 +41,12 @@
             "description": "Target FTP server port"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
           "placeholder": "21",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
+          "value": "21",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -58,11 +60,12 @@
             "description": "The protocol to connect to the FTP server"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
           "placeholder": "\"FTP\"",
-          "valueType": "EXPRESSION",
+          "valueType": "SINGLE_SELECT",
           "valueTypeConstraint": "string",
+          "value": "\"FTP\"",
           "items": [
             "\"FTP\"",
             "\"SFTP\""
@@ -79,11 +82,12 @@
             "description": "The path to be monitored"
           },
           "codedata": {
-            "argType": "LISTENER_PARAMETER"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
-          "placeholder": "\"/tmp\"",
+          "placeholder": "\"/\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
+          "value": "\"/\"",
           "items": [],
           "typeMembers": [],
           "enabled": true,
