@@ -138,7 +138,7 @@ import {
     VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    deleteType
+    BIIntelSecrets
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -589,7 +589,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     let token: string;
                     const loginMethod = await getLoginMethod();
                     if (loginMethod === LoginMethod.BI_INTEL) {
-                        token = await getAccessToken();
+                        const credentials = await getAccessToken();
+                        const secrets = credentials.secrets as BIIntelSecrets;
+                        token = secrets.accessToken;
                     }
 
                     if (!token) {
@@ -627,7 +629,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         let token: string;
                         const loginMethod = await getLoginMethod();
                         if (loginMethod === LoginMethod.BI_INTEL) {
-                            token = await getAccessToken();
+                            const credentials = await getAccessToken();
+                            const secrets = credentials.secrets as BIIntelSecrets;
+                            token = secrets.accessToken;
                         }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
@@ -1127,7 +1131,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
         const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectUri);
-        
+
         // Helper function to perform the actual delete operation
         const performDelete = async (): Promise<any> => {
             return new Promise((resolve, reject) => {
