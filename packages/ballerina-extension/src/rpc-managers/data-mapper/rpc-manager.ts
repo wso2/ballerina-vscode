@@ -311,4 +311,9 @@ export class DataMapperRpcManager implements DataMapperAPI {
             };
         }
     }
+
+    async mapWithTransformFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }
