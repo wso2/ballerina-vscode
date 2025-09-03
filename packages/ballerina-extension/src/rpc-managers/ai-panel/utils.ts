@@ -1614,11 +1614,51 @@ function cleanDataMapperModelResponse(
         throw new Error("Invalid response: missing mappingsModel");
     }
 
+    // Check if both input and output are arrays
+    const hasInputArrays = response.inputs && response.inputs.some(input => input.kind === "array");
+    const isOutputArray = response.output && response.output.kind === "array";
+
+    let processedResponse = response;
+
+    // Transform the structure if both input and output are arrays
+    if (hasInputArrays && isOutputArray) {
+        processedResponse = transformArrayStructure(response);
+    }
+
     const cleanedResponse: DataMapperModelResponse = {
-        mappingsModel: cleanExpandedDMModel(response as ExpandedDMModel)
+        mappingsModel: cleanExpandedDMModel(processedResponse as ExpandedDMModel)
     };
 
     return cleanedResponse;
+}
+
+function transformArrayStructure(response: ExpandedDMModel): ExpandedDMModel {
+    const transformed = { ...response };
+    
+    if (transformed.inputs && transformed.inputs.length > 0) {
+        transformed.inputs = transformed.inputs.map(input => {
+            // Only transform inputs that are arrays
+            if (input.kind === "array" && input.member) {
+                const originalName = input.name;
+                
+                // Deep clone and transform IDs using JSON stringify/parse
+                const transformedInput = JSON.parse(
+                    JSON.stringify({
+                        ...input,
+                        id: `${input.id}Item`
+                    }).replace(
+                        new RegExp(`"id":"${originalName}\\.`, 'g'),
+                        `"id":"${originalName}Item.`
+                    )
+                );
+                
+                return transformedInput;
+            }
+            // Return non-array inputs unchanged
+            return input;
+        });
+    }
+    return transformed;
 }
 
 // Clean ExpandedDMModel by removing null fields and cleaning nested structures
@@ -1981,17 +2021,64 @@ function transformCodeObjectToMappings(codeObject: Record<string, string>, reque
     const mappings: Mapping[] = [];
 
     // Get the output variable name from the request
-    const { output: mappingOutput } = request.mappingsModel as ExpandedDMModel;
+    const { output: mappingOutput, inputs } = request.mappingsModel as ExpandedDMModel;
     const outputVariableName = mappingOutput.name || extractNameFromId(mappingOutput.id);
 
-    // Iterate through each property in codeObject
-    Object.keys(codeObject).forEach(key => {
-        const mapping: Mapping = {
-            output: `${outputVariableName}.${key}`,
-            expression: codeObject[key]
-        };
-        mappings.push(mapping);
-    });
+    // Check if any input is an array
+    const arrayInputs = inputs.filter(input => input.kind === "array");
+    const hasInputArrays = arrayInputs.length > 0;
+    const isOutputArray = mappingOutput.kind === "array";
+
+    if (hasInputArrays && isOutputArray) {
+        // If multiple array inputs, we might need to handle joins or multiple from clauses
+        if (arrayInputs.length === 1) {
+            // Single array input - simple select
+            const arrayInput = arrayInputs[0];
+            const inputName = arrayInput.name;
+            const itemVariableName = `${inputName}Item`;
+
+            // Build the select object from codeObject
+            const selectFields = Object.keys(codeObject).map(key => {
+                return `${[key]}: ${codeObject[key]}`;
+            }).join(',\n                        ');
+
+            const mapping: Mapping = {
+                output: outputVariableName,
+                expression: `from var ${itemVariableName} in ${inputName}
+                            select {
+                                ${selectFields}
+                            }`
+            };
+            mappings.push(mapping);
+        } else {
+            const primaryArrayInput = arrayInputs[0];
+            const primaryInputName = primaryArrayInput.name;
+            const primaryItemVariableName = `${primaryInputName}Item`;
+
+            // Build the select object from codeObject
+            const selectFields = Object.keys(codeObject).map(key => {
+                return `${[key]}: ${codeObject[key]}`;
+            }).join(',\n                        ');
+
+            const mapping: Mapping = {
+                output: outputVariableName,
+                expression: `from var ${primaryItemVariableName} in ${primaryInputName}
+                            select {
+                                ${selectFields}
+                            }`
+            };
+            mappings.push(mapping);
+        }
+    } else {
+        // Handle non-array mappings (original logic)
+        Object.keys(codeObject).forEach(key => {
+            const mapping: Mapping = {
+                output: `${outputVariableName}.${key}`,
+                expression: codeObject[key]
+            };
+            mappings.push(mapping);
+        });
+    }
 
     return mappings;
 }
