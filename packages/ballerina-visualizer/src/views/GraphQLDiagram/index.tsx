@@ -355,11 +355,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         newType={false}
                         isGraphql={true}
                         onTypeCreate={() => { }}
-                        getNewTypeCreateForm={function (): void {
-                            throw new Error("Function not implemented.");
-                        }} onSaveType={function (type: Type): void {
-                            throw new Error("Function not implemented.");
-                        }} refetchTypes={false} />
+                    />
                 </PanelContainer>
             )}
             {isTypeEditorOpen && editingType && editingType.codedata.node === "CLASS" && (
