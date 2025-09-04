@@ -44,7 +44,7 @@
         ],
         "name": "dog",
         "displayName": "dog",
-        "typeName": "Elephant|Dog|()",
+        "typeName": "Elephant|Dog",
         "kind": "union",
         "category": "local-variable",
         "ref": "1776332415"
@@ -132,13 +132,13 @@
               {
                 "name": "animal",
                 "displayName": "animal",
-                "typeName": "nil",
-                "kind": "nil"
+                "typeName": "()",
+                "kind": "()"
               }
             ],
             "name": "animal",
             "displayName": "animal",
-            "typeName": "",
+            "typeName": "Dog|Elephant|()",
             "kind": "union",
             "optional": false,
             "ref": "807791280"
