@@ -21,6 +21,8 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
+    addFilesToProject,
+    AddFilesToProjectRequest,
     addInlineCodeSegmentToWorkspace,
     addToProject,
     AddToProjectRequest,
@@ -116,7 +118,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onRequest(fetchData, (args: FetchDataRequest) => rpcManger.fetchData(args));
-    messenger.onNotification(addToProject, (args: AddToProjectRequest) => rpcManger.addToProject(args));
+    messenger.onRequest(addToProject, (args: AddToProjectRequest) => rpcManger.addToProject(args));
     messenger.onRequest(getFromFile, (args: GetFromFileRequest) => rpcManger.getFromFile(args));
     messenger.onRequest(getFileExists, (args: GetFromFileRequest) => rpcManger.getFileExists(args));
     messenger.onNotification(deleteFromProject, (args: DeleteFromProjectRequest) => rpcManger.deleteFromProject(args));
@@ -167,4 +169,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
     messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
+    messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
 }

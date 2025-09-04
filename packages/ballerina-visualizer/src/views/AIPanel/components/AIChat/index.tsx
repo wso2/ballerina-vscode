@@ -41,6 +41,7 @@ import {
     OperationType,
     GENERATE_TEST_AGAINST_THE_REQUIREMENT,
     GENERATE_CODE_AGAINST_THE_REQUIREMENT,
+    FileChanges,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -799,6 +800,8 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Add to integration called. Command: ", command);
+        const fileChanges: FileChanges[] = [];
+        
         for (let { segmentText, filePath } of codeSegments) {
             let originalContent = "";
             if (!tempStorage[filePath]) {
@@ -918,10 +921,11 @@ const AIChat: React.FC = () => {
             if (command === "test") {
                 isTestCode = true;
             }
+            fileChanges.push({ filePath, content: segmentText });
+        }
 
-            await rpcClient
-                .getAiPanelRpcClient()
-                .addToProject({ filePath: filePath, content: segmentText, isTestCode: isTestCode });
+        if (fileChanges.length > 0) {
+            await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
         }
 
         const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
@@ -981,7 +985,7 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Revert gration called. Command: ", command);
-
+        const fileChanges: FileChanges[] = [];
         for (const { filePath } of codeSegments) {
             let originalContent = tempStorage[filePath];
             if (originalContent === "" && !initialFiles.has(filePath) && !emptyFiles.has(filePath)) {
@@ -997,10 +1001,11 @@ const AIChat: React.FC = () => {
                     isTestCode = true;
                 }
                 const revertContent = emptyFiles.has(filePath) ? "" : originalContent;
-                await rpcClient
-                    .getAiPanelRpcClient()
-                    .addToProject({ filePath: filePath, content: revertContent, isTestCode: isTestCode });
+                fileChanges.push({ filePath, content: revertContent });
             }
+        }
+        if (fileChanges.length > 0) {
+            await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
         }
         rpcClient.getAiPanelRpcClient().updateDevelopmentDocument({
             content: previousDevelopmentDocumentContent,
