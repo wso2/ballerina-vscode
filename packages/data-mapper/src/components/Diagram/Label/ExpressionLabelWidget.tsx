@@ -243,7 +243,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         onClick: onClickMapWithCustomFn
     });
 
-    if (mappingType !== MappingType.Default) {   
+    if (mappingType !== MappingType.Default && mappingType !== MappingType.ContainsUnions) {   
         codeActions.push({
             title: "Map with transform function",
             onClick: onClickMapWithTransformFn
