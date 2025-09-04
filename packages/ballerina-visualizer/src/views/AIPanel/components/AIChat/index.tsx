@@ -142,6 +142,7 @@ const AIChat: React.FC = () => {
     const [testGenIntermediaryState, setTestGenIntermediaryState] = useState<TestGeneratorIntermediaryState | null>(
         null
     );
+    const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
 
@@ -802,7 +803,10 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Add to integration called. Command: ", command);
-        const fileChanges: FileChanges[] = [];
+        setIsAddingToWorkspace(true);
+        
+        try {
+            const fileChanges: FileChanges[] = [];
         for (let { segmentText, filePath } of codeSegments) {
             let originalContent = "";
             if (!tempStorage[filePath]) {
@@ -938,6 +942,7 @@ const AIChat: React.FC = () => {
         const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
         const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
         setIsCodeAdded(true);
+        setIsAddingToWorkspace(false);
 
         if (await rpcClient.getAiPanelRpcClient().isNaturalProgrammingDirectoryExists(chatLocation)) {
             fetchWithAuth({
@@ -968,6 +973,11 @@ const AIChat: React.FC = () => {
                     rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
                 });
         }
+        } catch (error) {
+            console.error("Error in handleAddAllCodeSegmentsToWorkspace:", error);
+            setIsAddingToWorkspace(false);
+            throw error;
+        }
     };
 
     async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
@@ -992,7 +1002,10 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Revert gration called. Command: ", command);
-        const fileChanges: FileChanges[] = [];
+        setIsAddingToWorkspace(true);
+        
+        try {
+            const fileChanges: FileChanges[] = [];
         for (const { filePath } of codeSegments) {
             let originalContent = tempStorage[filePath];
             if (originalContent === "" && !initialFiles.has(filePath) && !emptyFiles.has(filePath)) {
@@ -1025,6 +1038,12 @@ const AIChat: React.FC = () => {
         );
         tempStorage = {};
         setIsCodeAdded(false);
+        setIsAddingToWorkspace(false);
+        } catch (error) {
+            console.error("Error in handleRevertChanges:", error);
+            setIsAddingToWorkspace(false);
+            throw error;
+        }
     };
 
     async function processTestGeneration(
@@ -1888,6 +1907,7 @@ const AIChat: React.FC = () => {
                                                             isPromptExecutedInCurrentWindow
                                                         }
                                                         isErrorChunkReceived={isErrorChunkReceivedRef.current}
+                                                        isAddingToWorkspace={isAddingToWorkspace}
                                                     />
                                                 );
                                             }
