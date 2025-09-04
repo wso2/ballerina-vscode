@@ -27,6 +27,7 @@ import {
     SidePanelBody,
     CheckBox,
     Typography,
+    CompletionItem
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
@@ -44,6 +45,7 @@ import {
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
+    Type,
     VisualizableField,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
@@ -340,6 +342,7 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    handleSelectedTypeChange?: (type: CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -384,6 +387,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        handleSelectedTypeChange,
         scopeFieldAddon,
         newServerUrl,
         mcpTools,
@@ -438,7 +442,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                 } else {
                     defaultValues[field.key] = field.value ?? "";
                 }
-
+                if (field.key === "variable") {
+                    defaultValues[field.key] = formValues[field.key] ?? "";
+                }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
                 }
@@ -519,9 +525,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
     };
 
-    const handleOnTypeChange = () => {
+    const handleOnTypeChange = (value?: string) => {
         getVisualiableFields();
     };
+
+    const handleNewTypeSelected = (type: CompletionItem) => {
+        handleSelectedTypeChange && handleSelectedTypeChange(type);
+    }
 
     const getVisualiableFields = () => {
         const typeName = watch("type");
@@ -754,6 +764,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        handleNewTypeSelected={handleNewTypeSelected}
                                         newServerUrl={newServerUrl}
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
@@ -852,6 +863,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 handleOnTypeChange={handleOnTypeChange}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                handleNewTypeSelected={handleNewTypeSelected}
+
                             />
                         )}
                         {targetTypeField && (
@@ -861,6 +874,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleNewTypeSelected={handleNewTypeSelected}
                                     handleOnTypeChange={handleOnTypeChange}
                                 />
                                 {typeField && (

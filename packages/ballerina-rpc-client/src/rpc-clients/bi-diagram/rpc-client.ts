@@ -189,7 +189,8 @@ import {
     DeleteConfigVariableResponseV2,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
-    verifyTypeDelete
+    verifyTypeDelete,
+    ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -297,8 +298,8 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(updateConfigVariables, HOST_EXTENSION, params);
     }
 
-    getConfigVariablesV2(): Promise<ConfigVariableResponse> {
-        return this._messenger.sendRequest(getConfigVariablesV2, HOST_EXTENSION);
+    getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
+        return this._messenger.sendRequest(getConfigVariablesV2, HOST_EXTENSION, params);
     }
 
     updateConfigVariablesV2(params: UpdateConfigVariableRequestV2): Promise<UpdateConfigVariableResponseV2> {
