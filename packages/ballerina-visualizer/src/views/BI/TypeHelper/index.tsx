@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
+import { FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
 
 import { RefObject, useRef } from 'react';
 
@@ -51,6 +51,7 @@ type TypeHelperProps = {
     valueTypeConstraint: string;
     typeBrowserRef: RefObject<HTMLDivElement>;
     filePath: string;
+    exprRef: RefObject<FormExpressionEditorRef>;
     targetLineRange: LineRange;
     currentType: string;
     currentCursorPosition: number;
@@ -78,7 +79,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         typeBrowserRef,
         updateImports,
         onTypeCreate,
-        onCloseCompletions
+        onCloseCompletions,
+        exprRef
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -267,6 +269,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 onClose={handleTypeHelperClose}
                 onTypeCreate={handleTypeCreate}
                 onCloseCompletions={onCloseCompletions}
+                exprRef={exprRef}
             />
             {isAddingType && createPortal(
                 <>
