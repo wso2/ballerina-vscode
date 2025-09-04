@@ -33,7 +33,7 @@ type AnthropicModel =
  * @param region - AWS region string (e.g., 'us-east-1', 'eu-west-1', 'ap-southeast-1')
  * @returns The appropriate regional prefix for Bedrock model IDs
  */
-function getBedrockRegionalPrefix(region: string): string {
+export function getBedrockRegionalPrefix(region: string): string {
     const regionPrefix = region.split('-')[0].toLowerCase();
     
     switch (regionPrefix) {

@@ -24,30 +24,7 @@ import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
-
-/**
- * Maps AWS regions to their corresponding Bedrock inference profile prefixes
- * @param region - AWS region string (e.g., 'us-east-1', 'eu-west-1', 'ap-southeast-1')
- * @returns The appropriate regional prefix for Bedrock model IDs
- */
-function getBedrockRegionalPrefix(region: string): string {
-    const regionPrefix = region.split('-')[0].toLowerCase();
-    
-    switch (regionPrefix) {
-        case 'us':
-            return region.startsWith('us-gov-') ? 'us-gov' : 'us';
-        case 'eu':
-            return 'eu';
-        case 'ap':
-            return 'apac';
-        case 'ca':
-        case 'sa':
-            return 'us'; // Canada and South America regions use US prefix
-        default:
-            console.warn(`Unknown region prefix: ${regionPrefix}, defaulting to 'us'`);
-            return 'us';
-    }
-}
+import { getBedrockRegionalPrefix } from '../../features/ai/service/connection';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
