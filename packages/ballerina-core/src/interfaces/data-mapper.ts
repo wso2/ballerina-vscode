@@ -160,6 +160,7 @@ export interface IOTypeField {
     name: string;
     displayName?: string;
     member?: IOTypeField;
+    members?: IOTypeField[];
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;

@@ -570,7 +570,8 @@ function createBaseIOType(root: IORoot): IOType {
         name: root.name,
         typeName: root.typeName,
         kind: root.kind,
-        ...(root.category && { category: root.category })
+        ...(root.category && { category: root.category }),
+        ...(root.optional !== undefined && { optional: root.optional })
     };
 }
 
@@ -602,13 +603,21 @@ function processArray(
         name: member.name,
         typeName: member.typeName!,
         kind: member.kind,
-        ...(isFocused && { isFocused })
+        ...(isFocused && { isFocused }),
+        ...(member.optional !== undefined && { optional: member.optional })
     };
 
     if (member.kind === TypeKind.Array && member.member) {
         return {
             ...ioType,
             member: processArray(field, parentId, member.member, model, visitedRefs)
+        };
+    }
+
+    if (member.kind === TypeKind.Union && member.members) {
+        return {
+            ...ioType,
+            members: processUnion(member.members, fieldId, model, visitedRefs)
         };
     }
 
@@ -627,6 +636,44 @@ function processArray(
  */
 function generateFieldId(parentId: string, fieldName: string): string {
     return `${parentId}.${fieldName}`;
+}
+
+/**
+ * Processes union type members and returns an array of IOType objects
+ */
+function processUnion(
+    unionMembers: IOTypeField[],
+    parentFieldId: string,
+    model: DMModel,
+    visitedRefs: Set<string>
+): IOType[] {
+    return unionMembers.map(unionMember => {
+        const unionMemberType: IOType = {
+            id: generateFieldId(parentFieldId, unionMember.name || 'member'),
+            name: unionMember.name,
+            typeName: unionMember.typeName,
+            kind: unionMember.kind,
+            ...(unionMember.optional !== undefined && { optional: unionMember.optional })
+        };
+
+        // Process union member recursively if it has a reference
+        if (unionMember.ref) {
+            return {
+                ...unionMemberType,
+                ...processTypeReference(unionMember.ref, parentFieldId, model, visitedRefs)
+            };
+        }
+
+        // Process union member if it's an array
+        if (unionMember.kind === TypeKind.Array && unionMember.member) {
+            return {
+                ...unionMemberType,
+                member: processArray(unionMember, parentFieldId, unionMember.member, model, visitedRefs)
+            };
+        }
+
+        return unionMemberType;
+    });
 }
 
 /**
@@ -685,7 +732,8 @@ function processTypeFields(
             id: fieldId,
             name: field.name,
             typeName: field.typeName,
-            kind: field.kind
+            kind: field.kind,
+            ...(field.optional !== undefined && { optional: field.optional })
         };
 
         if (field.kind === TypeKind.Record && field.ref) {
@@ -699,6 +747,13 @@ function processTypeFields(
             return {
                 ...ioType,
                 member: processArray(field, fieldId, field.member, model, new Set(visitedRefs))
+            };
+        }
+
+        if (field.kind === TypeKind.Union && field.members) {
+            return {
+                ...ioType,
+                members: processUnion(field.members, fieldId, model, new Set(visitedRefs))
             };
         }
 
