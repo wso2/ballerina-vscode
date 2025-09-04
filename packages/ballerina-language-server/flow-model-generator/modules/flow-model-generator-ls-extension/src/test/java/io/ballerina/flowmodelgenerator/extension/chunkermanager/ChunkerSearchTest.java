@@ -43,7 +43,8 @@ public class ChunkerSearchTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("chunkers.json")}
+                {Path.of("chunkers.json")},
+                {Path.of("chunkers_with_existing_ai.json")},
         };
     }
 

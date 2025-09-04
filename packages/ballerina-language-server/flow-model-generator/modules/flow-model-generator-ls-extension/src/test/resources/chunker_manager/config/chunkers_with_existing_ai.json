@@ -1,5 +1,5 @@
 {
-  "source": "generated_chunker/connections.bal",
+  "source": "chunkers_with_existing_ai",
   "expectedChunkers": {
     "categories": [
       {
@@ -18,7 +18,8 @@
               "module": "ai",
               "packageName": "ai",
               "object": "GenericRecursiveChunker",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.3.0"
             },
             "enabled": true
           },
@@ -33,22 +34,8 @@
               "module": "ai",
               "packageName": "ai",
               "object": "MarkdownChunker",
-              "symbol": "init"
-            },
-            "enabled": true
-          },
-          {
-            "metadata": {
-              "label": "Html Chunker",
-              "description": "Represents an HTML document chunker.\nProvides functionality to recursively chunk a HTML document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
-            },
-            "codedata": {
-              "node": "CHUNKER",
-              "org": "ballerina",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "HtmlChunker",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.3.0"
             },
             "enabled": true
           },
@@ -63,7 +50,8 @@
               "module": "ai.devant",
               "packageName": "ai.devant",
               "object": "Chunker",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.0.0"
             },
             "enabled": true
           }

@@ -1,5 +1,5 @@
 {
-  "source": "generated_data_loader/connections.bal",
+  "source": "data_loaders_with_existing_ai",
   "expectedDataLoaders": {
     "categories": [
       {
@@ -7,21 +7,6 @@
           "label": "Data Loaders"
         },
         "items": [
-          {
-            "metadata": {
-              "label": "Text Data Loader",
-              "description": "Dataloader that can be used to load supported file types as `TextDocument`s.\nCurrently only supports `pdf`, `docx` and `pptx` file types."
-            },
-            "codedata": {
-              "node": "DATA_LOADER",
-              "org": "ballerina",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "TextDataLoader",
-              "symbol": "init"
-            },
-            "enabled": true
-          },
           {
             "metadata": {
               "label": "Devant Binary Data Loader",
@@ -33,7 +18,8 @@
               "module": "ai.devant",
               "packageName": "ai.devant",
               "object": "BinaryDataLoader",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.0.0"
             },
             "enabled": true
           }

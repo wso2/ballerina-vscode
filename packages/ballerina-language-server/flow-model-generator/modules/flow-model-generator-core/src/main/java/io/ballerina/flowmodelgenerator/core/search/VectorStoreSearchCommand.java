@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -29,6 +29,7 @@ import io.ballerina.tools.text.LineRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for vector stores.
@@ -36,7 +37,7 @@ import java.util.Map;
  * @since 1.1.0
  */
 public class VectorStoreSearchCommand extends SearchCommand {
-    private List<Item> cachedVectorStores;
+    private static final String VECTOR_STORE_LABEL = "Vector Stores";
 
     public VectorStoreSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -44,39 +45,26 @@ public class VectorStoreSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getVectorStores();
+        List<AvailableNode> modelProviders = AiUtils.getVectorStores(project);
+        Category category = new Category.Builder(null).metadata().label(VECTOR_STORE_LABEL)
+                .stepOut().items(List.copyOf(modelProviders)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> vectorStores = getVectorStores();
-        if (vectorStores.isEmpty()) {
-            return vectorStores;
-        }
+        List<AvailableNode> modelProviders = AiUtils.getVectorStores(project);
+        List<Item> matchingProviders = modelProviders.stream()
+                .filter(node -> node.codedata().module().contains(query))
+                .collect(Collectors.toList());
 
-        Category vectorStoreCategory = (Category) vectorStores.getFirst();
-        List<Item> stores = vectorStoreCategory.items();
-
-        List<Item> matchingStores = stores.stream()
-                .filter(item -> item instanceof AvailableNode availableNode &&
-                        availableNode.codedata().module().contains(query))
-                .toList();
-
-        stores.clear();
-        stores.addAll(matchingStores);
-
-        return List.of(vectorStoreCategory);
+        Category category = new Category.Builder(null).metadata().label(VECTOR_STORE_LABEL)
+                .stepOut().items(matchingProviders).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    private List<Item> getVectorStores() {
-        if (cachedVectorStores == null) {
-            cachedVectorStores = List.copyOf(LocalIndexCentral.getInstance().getVectorStores());
-        }
-        return cachedVectorStores;
     }
 }

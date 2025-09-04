@@ -1,6 +1,5 @@
 {
-  "source": "vector_store/store.bal",
-  "query": "pinecone",
+  "source": "vector_stores_with_existing_ai",
   "expectedVectorStores": {
     "categories": [
       {
@@ -8,6 +7,22 @@
           "label": "Vector Stores"
         },
         "items": [
+          {
+            "metadata": {
+              "label": "InMemory Vector Store",
+              "description": "An in-memory vector store implementation that provides simple storage for vector entries."
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "InMemoryVectorStore",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
           {
             "metadata": {
               "label": "Pinecone Vector Store",
@@ -19,7 +34,8 @@
               "module": "ai.pinecone",
               "packageName": "ai.pinecone",
               "object": "VectorStore",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.0.0"
             },
             "enabled": true
           }

@@ -44,7 +44,8 @@ public class ModelProviderSearchTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("model_providers.json")},
-                {Path.of("model_providers_search_deepseek.json")}
+                {Path.of("model_providers_search_deepseek.json")},
+                {Path.of("model_providers_with_existing_ai.json")}
         };
     }
 

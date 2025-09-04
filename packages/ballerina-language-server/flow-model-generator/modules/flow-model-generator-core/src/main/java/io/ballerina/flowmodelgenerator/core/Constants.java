@@ -93,6 +93,7 @@ public class Constants {
 
     // Constants used for AI
     public static final class Ai {
+
         private Ai() {}
 
         public static final String BALLERINA_ORG = "ballerina";
@@ -107,5 +108,15 @@ public class Constants {
         public static final String AGENT_RUN_METHOD_NAME = "run";
         public static final String CHUNK_DOCUMENT_RECURSIVELY_METHOD_NAME = "chunkDocumentRecursively";
         public static final String AUGMENT_USER_QUERY_METHOD_NAME = "augmentUserQuery";
+
+        public static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
+        public static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
+        public static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
+        public static final String CHUNKER_TYPE_NAME = "Chunker";
+        public static final String DATA_LOADER_TYPE_NAME = "DataLoader";
+        public static final String WSO2_MODEL_PROVIDER_NAME = "Wso2ModelProvider";
+        public static final String WSO2_EMBEDDING_PROVIDER_NAME = "Wso2EmbeddingProvider";
+        public static final String GET_DEFAULT_MODEL_PROVIDER_METHOD = "getDefaultModelProvider";
+        public static final String GET_DEFAULT_EMBEDDING_PROVIDER_METHOD = "getDefaultEmbeddingProvider";
     }
 }

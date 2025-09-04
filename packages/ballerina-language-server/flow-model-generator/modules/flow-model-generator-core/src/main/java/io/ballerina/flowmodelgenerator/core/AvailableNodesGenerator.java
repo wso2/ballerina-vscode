@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -251,9 +252,13 @@ public class AvailableNodesGenerator {
     }
 
     private List<Item> getAiNodes(boolean disableBallerinaAiNodes) {
+        String aiPackageVersion = AiUtils.getBallerinaAiModuleVersion(pkg.project());
+        Set<NodeKind> supportedFeatures = AiUtils.getSupportedFeatures(aiPackageVersion);
+
         AvailableNode modelProvider = new AvailableNode(new Metadata.Builder<>(null)
                 .label(ModelProviderBuilder.LABEL).description(ModelProviderBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.MODEL_PROVIDERS).build(), !disableBallerinaAiNodes);
+                new Codedata.Builder<>(null).node(NodeKind.MODEL_PROVIDERS).build(),
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.MODEL_PROVIDERS));
 
         AvailableNode npFunction = new AvailableNode(
                 new Metadata.Builder<>(null).label(NPFunctionCall.LABEL)
@@ -268,44 +273,43 @@ public class AvailableNodesGenerator {
                         .description(VectorKnowledgeBaseBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_KNOWLEDGE_BASES).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE)
-                        .object(Ai.VECTOR_KNOWLEDGE_BASE_TYPE_NAME).symbol("init").build(),
-                !disableBallerinaAiNodes);
+                        .object(Ai.VECTOR_KNOWLEDGE_BASE_TYPE_NAME).symbol("init").version(aiPackageVersion).build(),
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.VECTOR_KNOWLEDGE_BASES));
 
         AvailableNode recursiveDocumentChunker = new AvailableNode(new Metadata.Builder<>(null)
                 .label(Ai.RECURSIVE_DOCUMENT_CHUNKER_LABEL).build(), new Codedata.Builder<>(null)
                 .node(NodeKind.FUNCTION_CALL).org(Ai.BALLERINA_ORG).module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE)
-                .symbol(Ai.CHUNK_DOCUMENT_RECURSIVELY_METHOD_NAME).build(),
+                .symbol(Ai.CHUNK_DOCUMENT_RECURSIVELY_METHOD_NAME).version(aiPackageVersion).build(),
                 !disableBallerinaAiNodes);
-
         AvailableNode chunkers = new AvailableNode(
                 new Metadata.Builder<>(null).label(ChunkerBuilder.LABEL)
                         .description(ChunkerBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.CHUNKERS).build(),
-                !disableBallerinaAiNodes);
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.CHUNKERS));
 
         AvailableNode augmentUserQuery = new AvailableNode(
                 new Metadata.Builder<>(null).label(Ai.AUGMENT_QUERY_LABEL).build(),
                 new Codedata.Builder<>(null).node(NodeKind.FUNCTION_CALL).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE).symbol(Ai.AUGMENT_USER_QUERY_METHOD_NAME)
-                        .build(), !disableBallerinaAiNodes);
+                        .version(aiPackageVersion).build(), !disableBallerinaAiNodes);
 
         AvailableNode vectorStore = new AvailableNode(
                 new Metadata.Builder<>(null).label(VectorStoreBuilder.LABEL)
                         .description(VectorStoreBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.VECTOR_STORES).build(),
-                !disableBallerinaAiNodes);
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.VECTOR_STORES));
 
         AvailableNode embeddingProvider = new AvailableNode(
                 new Metadata.Builder<>(null).label(EmbeddingProviderBuilder.LABEL)
                         .description(EmbeddingProviderBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.EMBEDDING_PROVIDERS).build(),
-                !disableBallerinaAiNodes);
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.EMBEDDING_PROVIDERS));
 
         AvailableNode dataLoaders = new AvailableNode(
                 new Metadata.Builder<>(null).label(DataLoaderBuilder.LABEL)
                         .description(DataLoaderBuilder.DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.DATA_LOADERS).build(),
-                !disableBallerinaAiNodes);
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.DATA_LOADERS));
 
         Category ragCategory = new Category.Builder(null).name(Category.Name.RAG)
                 .items(List.of(vectorKnowledgeBase, dataLoaders, recursiveDocumentChunker, chunkers, augmentUserQuery,
