@@ -89,7 +89,12 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    ConfigVariableRequest,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -125,6 +130,8 @@ export const getAvailableModelProviders: RequestType<BIAvailableNodesRequest, BI
 export const getAvailableVectorStores: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableVectorStores` };
 export const getAvailableEmbeddingProviders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableEmbeddingProviders` };
 export const getAvailableVectorKnowledgeBases: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableVectorKnowledgeBases` };
+export const getAvailableDataLoaders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableDataLoaders` };
+export const getAvailableChunkers: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableChunkers` };
 export const getEnclosedFunction: RequestType<BIGetEnclosedFunctionRequest, BIGetEnclosedFunctionResponse> = { method: `${_preFix}/getEnclosedFunction` };
 export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getNodeTemplate` };
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
@@ -138,7 +145,7 @@ export const getVisibleVariableTypes: RequestType<BIGetVisibleVariableTypesReque
 export const getExpressionCompletions: RequestType<ExpressionCompletionsRequest, ExpressionCompletionsResponse> = { method: `${_preFix}/getExpressionCompletions` };
 export const getConfigVariables: RequestType<void, ConfigVariableResponse> = { method: `${_preFix}/getConfigVariables` };
 export const updateConfigVariables: RequestType<UpdateConfigVariableRequest, UpdateConfigVariableResponse> = { method: `${_preFix}/updateConfigVariables` };
-export const getConfigVariablesV2: RequestType<void, ConfigVariableResponse> = { method: `${_preFix}/getConfigVariablesV2` };
+export const getConfigVariablesV2: RequestType<ConfigVariableRequest, ConfigVariableResponse> = { method: `${_preFix}/getConfigVariablesV2` };
 export const updateConfigVariablesV2: RequestType<UpdateConfigVariableRequestV2, UpdateConfigVariableResponseV2> = { method: `${_preFix}/updateConfigVariablesV2` };
 export const deleteConfigVariableV2: RequestType<DeleteConfigVariableRequestV2, DeleteConfigVariableResponseV2> = { method: `${_preFix}/deleteConfigVariableV2` };
 export const getConfigVariableNodeTemplate: RequestType<GetConfigVariableNodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getConfigVariableNodeTemplate` };
@@ -164,6 +171,8 @@ export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
 export const updateTypes: RequestType<UpdateTypesRequest, UpdateTypesResponse> = { method: `${_preFix}/updateTypes` };
+export const deleteType: RequestType<DeleteTypeRequest, DeleteTypeResponse> = { method: `${_preFix}/deleteType` };
+export const verifyTypeDelete: RequestType<VerifyTypeDeleteRequest, VerifyTypeDeleteResponse> = { method: `${_preFix}/verifyTypeDelete` };
 export const getTypeFromJson: RequestType<JsonToTypeRequest, JsonToTypeResponse> = { method: `${_preFix}/getTypeFromJson` };
 export const getServiceClassModel: RequestType<ModelFromCodeRequest, ServiceClassModelResponse> = { method: `${_preFix}/getServiceClassModel` };
 export const updateClassField: RequestType<ClassFieldModifierRequest, SourceEditResponse> = { method: `${_preFix}/updateClassField` };

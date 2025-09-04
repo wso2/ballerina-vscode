@@ -27,6 +27,7 @@ import {
     SidePanelBody,
     CheckBox,
     Typography,
+    CompletionItem
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
@@ -44,6 +45,7 @@ import {
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
+    Type,
     VisualizableField,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
@@ -340,6 +342,7 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
+    handleSelectedTypeChange?: (type: CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -384,6 +387,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         concertMessage,
         formImports,
         preserveOrder = false,
+        handleSelectedTypeChange,
         scopeFieldAddon,
         newServerUrl,
         mcpTools,
@@ -438,7 +442,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                 } else {
                     defaultValues[field.key] = field.value ?? "";
                 }
-
+                if (field.key === "variable") {
+                    defaultValues[field.key] = formValues[field.key] ?? "";
+                }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
                 }
@@ -482,33 +488,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         }
     }, [formFields, reset]);
 
-    useEffect(() => {
-        if (updatedExpressionField) {
-            if (subPanelView === SubPanelView.INLINE_DATA_MAPPER) {
-                const { key, value } = updatedExpressionField;
-                // Update the form field value
-                setValue(key, value);
-                resetUpdatedExpressionField && resetUpdatedExpressionField();
-                // Update the inline data mapper view
-                handleOpenSubPanel({
-                    view: SubPanelView.INLINE_DATA_MAPPER,
-                    props: {
-                        inlineDataMapper: {
-                            filePath: fileName,
-                            flowNode: undefined,
-                            position: {
-                                line: updatedExpressionField.cursorPosition.line,
-                                offset: updatedExpressionField.cursorPosition.offset,
-                            },
-                            propertyKey: updatedExpressionField.key,
-                            editorKey: updatedExpressionField.key,
-                        },
-                    },
-                });
-            }
-        }
-    }, [updatedExpressionField]);
-
     const handleOnSave = (data: FormValues) => {
         console.log(">>> saved form fields", { data });
         onSubmit && onSubmit(data, dirtyFields);
@@ -546,28 +525,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
     };
 
-    const handleOpenSubPanel = (subPanel: SubPanel) => {
-        let updatedSubPanel = subPanel;
-        if (subPanel.view === SubPanelView.INLINE_DATA_MAPPER) {
-            const flowNode = mergeFormDataWithFlowNode(getValues(), targetLineRange);
-            const inlineDMProps = {
-                ...subPanel.props.inlineDataMapper,
-                flowNode: flowNode,
-            };
-            updatedSubPanel = {
-                ...subPanel,
-                props: {
-                    ...subPanel.props,
-                    inlineDataMapper: inlineDMProps,
-                },
-            };
-        }
-        openSubPanel(updatedSubPanel);
-    };
-
-    const handleOnTypeChange = () => {
+    const handleOnTypeChange = (value?: string) => {
         getVisualiableFields();
     };
+
+    const handleNewTypeSelected = (type: CompletionItem) => {
+        handleSelectedTypeChange && handleSelectedTypeChange(type);
+    }
 
     const getVisualiableFields = () => {
         const typeName = watch("type");
@@ -793,7 +757,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openRecordEditor &&
                                             ((open: boolean) => handleOpenRecordEditor(open, updatedField))
                                         }
-                                        openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
@@ -801,6 +764,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
+                                        handleNewTypeSelected={handleNewTypeSelected}
                                         newServerUrl={newServerUrl}
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
@@ -866,7 +830,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                                 openRecordEditor &&
                                                 ((open: boolean) => handleOpenRecordEditor(open, updatedField))
                                             }
-                                            openSubPanel={handleOpenSubPanel}
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
@@ -896,11 +859,12 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 openRecordEditor={
                                     openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
                                 }
-                                openSubPanel={handleOpenSubPanel}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                handleNewTypeSelected={handleNewTypeSelected}
+
                             />
                         )}
                         {targetTypeField && (
@@ -910,6 +874,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleNewTypeSelected={handleNewTypeSelected}
                                     handleOnTypeChange={handleOnTypeChange}
                                 />
                                 {typeField && (

@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import { css } from "@emotion/css";
 
 
@@ -313,5 +314,3 @@ export const useHelperPaneStyles = () => ({
         paddingLeft: '0px',
     }),
 });
-
-

@@ -76,6 +76,8 @@ interface VisualizerContext {
     setComponentInfo?: (componentInfo: ComponentInfo) => void;
     cacheTriggers: TriggerModelsResponse,
     setCacheTriggers: (componentInfo: TriggerModelsResponse) => void;
+    showOverlay: boolean;
+    setShowOverlay: (value: boolean) => void;
 }
 
 export const VisualizerContext = createContext({
@@ -89,6 +91,7 @@ export const VisualizerContext = createContext({
     setComponentInfo: (componentInfo: ComponentInfo) => { },
     cacheTriggers: undefined,
     setCacheTriggers: (triggers: TriggerModelsResponse) => { },
+    setShowOverlay: (value: boolean) => { },
 
 } as VisualizerContext);
 
@@ -101,6 +104,7 @@ export function VisualizerContextProvider({ children }: { children: ReactNode })
     const [componentInfo, setComponentInfo] = useState<ComponentInfo>();
     const [activeFileInfo, setActiveFileInfo] = useState<ActiveFileInfo>();
     const [cacheTriggers, setCacheTriggers] = useState<TriggerModelsResponse>({ local: [] });
+    const [showOverlay, setShowOverlay] = useState(false);
 
 
     const contextValue: VisualizerContext = {
@@ -119,7 +123,9 @@ export function VisualizerContextProvider({ children }: { children: ReactNode })
         componentInfo: componentInfo,
         setComponentInfo: setComponentInfo,
         cacheTriggers: cacheTriggers,
-        setCacheTriggers: setCacheTriggers
+        setCacheTriggers: setCacheTriggers,
+        showOverlay: showOverlay,
+        setShowOverlay: setShowOverlay
     };
 
     return <VisualizerContext.Provider value={contextValue}>{children}</VisualizerContext.Provider>;
