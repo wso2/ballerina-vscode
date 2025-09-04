@@ -19,7 +19,7 @@
 import { useState, useRef, KeyboardEvent, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from "react";
 import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
-import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExpandedDMModel, TemplateId } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExtendedDataMapperMetadata, TemplateId } from "@wso2/ballerina-core";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import { StyledInputComponent, StyledInputRef } from "./StyledInput";
 import { AttachmentOptions, useAttachments } from "./hooks/useAttachments";
@@ -473,9 +473,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
 
             // Extract and store metadata safely
             if (content?.type === 'command-template') {
-                setCurrentMetadata(content.metadata);
+                setCurrentMetadata(content.metadata as ExtendedDataMapperMetadata);
             } else {
-                setCurrentMetadata({});
+                setCurrentMetadata(null);
             }
         };
 
@@ -485,7 +485,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         const cleanChatInput = () => {
             setInputValue({ text: "" });
             removeAllAttachments();
-            setCurrentMetadata({});
+            setCurrentMetadata(null);
         };
 
         /**
