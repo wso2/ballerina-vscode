@@ -1220,14 +1220,20 @@ async function accessMetadata(
                     }
                     if (inputObject.typeName.includes("[]") && operation === Operation.LENGTH) {
                         let lastInputObject = await getMetadata(parameterDefinitions, paths, paths[paths.length - 1], MetadataType.INPUT_METADATA);
-                        let inputDataType = lastInputObject.typeName.replace(/\|\(\)$/, "");
+                        let inputDataType = lastInputObject.typeName
+                            // remove |() from union types
+                            .replace(/\|\(\)/g, "")
+                            // remove wrapping parentheses before []
+                            .replace(/^\((.*)\)\[\]$/, "$1[]")
+                            // remove single wrapping parentheses (non-array cases)
+                            .replace(/^\((.*)\)$/, "$1");
                         defaultValue = await getDefaultValue(inputDataType);
                         newPath[paths.length - 1] = `${paths[paths.length - 1]}?:${defaultValue}`;
                     }
                     if (inputObject.nullable && inputObject.optional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
                     }
-                    // Handle enum, union, and intersection types
+                // Handle enum, union, and intersection types    
                 } else if (isUnionEnumIntersectionType(inputObject.type)) {
                     if (inputObject.nullable && inputObject.optional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
@@ -1959,6 +1965,15 @@ function transformIOType(input: IOType): FormField {
             ...baseField,
             typeName: "array",
             memberType: memberWithoutName as FormField
+        } as FormField;
+    }
+
+    // Handle unions
+    if (input.kind === "union" && input.members) {
+        return {
+            ...baseField,
+            typeName: "union",
+            members: input.members.map(transformIOType) as FormField[]
         } as FormField;
     }
 
