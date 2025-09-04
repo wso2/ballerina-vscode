@@ -7,64 +7,64 @@
       "fileName": "main.bal",
       "startLine": {
         "line": 17,
-        "offset": 4
+        "offset": 12
       },
       "endLine": {
         "line": 17,
-        "offset": 23
+        "offset": 30
       }
     },
-    "sourceCode": "Output output = {};"
+    "sourceCode": "Student var1 = {};"
   },
   "mapping": {
-    "output": "output.age",
-    "expression": "input.age"
+    "output": "var1",
+    "expression": "user"
   },
   "functionMetadata": {
     "returnType": {
-      "type": "int|string",
-      "kind": "union"
+      "type": "Student",
+      "kind": "record"
     },
     "parameters": [
       {
-        "name": "age",
-        "type": "string|int",
+        "name": "user",
+        "type": "UserInfo",
         "isOptional": false,
         "isNullable": false,
-        "kind": "union"
+        "kind": "record"
       }
     ]
   },
-  "targetField": "output",
+  "targetField": "var1",
   "output": {
+    "proj2/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 64
+          },
+          "end": {
+            "line": 0,
+            "character": 64
+          }
+        },
+        "newText": "\nfunction mapRecordToRecord2(UserInfo user) returns Student => {}"
+      }
+    ],
     "proj2/main.bal": [
       {
         "range": {
           "start": {
             "line": 17,
-            "character": 21
+            "character": 27
           },
           "end": {
             "line": 17,
-            "character": 21
+            "character": 29
           }
         },
-        "newText": "age: mapUnionToUnion1(input.age)"
-      }
-    ],
-    "proj2/functions.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "\nfunction mapUnionToUnion1(string|int age) returns int|string {}"
+        "newText": "mapRecordToRecord2(user)"
       }
     ]
   }

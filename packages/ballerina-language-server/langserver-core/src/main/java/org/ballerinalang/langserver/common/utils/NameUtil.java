@@ -294,7 +294,7 @@ public final class NameUtil {
      * @param text text to be converted.
      * @return {@link String} converted string.
      */
-    private static String toCamelCase(String text) {
+    public static String toCamelCase(String text) {
         String[] words = text.split("[\\W_]+");
         StringBuilder result = new StringBuilder();
         if (words.length == 1) {

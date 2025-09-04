@@ -6,21 +6,19 @@
     "lineRange": {
       "fileName": "main.bal",
       "startLine": {
-        "line": 19,
+        "line": 17,
         "offset": 12
       },
       "endLine": {
-        "line": 19,
-        "offset": 56
+        "line": 17,
+        "offset": 30
       }
     },
-    "sourceCode": "Student student = {};"
+    "sourceCode": "Student var1 = {};"
   },
   "mapping": {
-    "output": "student.username",
-    "inputs": [],
-    "expression": "userInfo.username",
-    "diagnostics": []
+    "output": "var1",
+    "expression": "user"
   },
   "functionMetadata": {
     "returnType": {
@@ -29,44 +27,44 @@
     },
     "parameters": [
       {
-        "name": "student",
-        "type": "Student",
+        "name": "user",
+        "type": "UserInfo",
         "isOptional": false,
         "isNullable": false,
         "kind": "record"
       }
     ]
   },
-  "targetField": "student",
+  "targetField": "var1",
   "output": {
-    "proj/functions.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 2,
-            "character": 1
-          },
-          "end": {
-            "line": 2,
-            "character": 1
-          }
-        },
-        "newText": "\nfunction mapRecordToRecord1(Student student) returns Student {}"
-      }
-    ],
     "proj/main.bal": [
       {
         "range": {
           "start": {
-            "line": 19,
-            "character": 41
+            "line": 17,
+            "character": 27
           },
           "end": {
-            "line": 19,
-            "character": 54
+            "line": 17,
+            "character": 29
           }
         },
-        "newText": "mapRecordToRecord1(userInfo.username)"
+        "newText": "mapRecordToRecord1(user)"
+      }
+    ],
+    "proj/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction mapRecordToRecord1(UserInfo user) returns Student => {}"
       }
     ]
   }
