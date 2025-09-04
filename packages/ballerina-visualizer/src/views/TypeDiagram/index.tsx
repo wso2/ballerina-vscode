@@ -20,14 +20,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { VisualizerLocation, NodePosition, Type, EVENT_TYPE, MACHINE_VIEW, TypeNodeKind, ComponentInfo, Member } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TypeDiagram as TypeDesignDiagram } from "@wso2/type-diagram";
-import { BreadcrumbContainer, Button, Codicon, ProgressRing, ThemeColors, View, ViewContent } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, ThemeColors, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { TitleBar } from "../../components/TitleBar";
 import { FormTypeEditor } from "../BI/TypeEditor";
 import DynamicModal from "../../components/Modal";
-import { BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 
 const HeaderContainer = styled.div`
