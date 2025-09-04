@@ -83,5 +83,5 @@ export const generateTestPlan: NotificationType<TestPlanGenerationRequest> = { m
 export const generateFunctionTests: NotificationType<TestGeneratorIntermediaryState> = { method: `${_preFix}/generateFunctionTests` };
 export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateHealthcareCode` };
 export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
-export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> = { method: `${_preFix}/getGeneratedDocumentation` };
+export const getGeneratedDocumentation: NotificationType<DocGenerationRequest> = { method: `${_preFix}/getGeneratedDocumentation` };
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };

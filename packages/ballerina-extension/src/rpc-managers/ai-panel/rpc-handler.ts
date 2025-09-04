@@ -21,9 +21,9 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
+    addCodeSegmentToWorkspace,
     addFilesToProject,
     AddFilesToProjectRequest,
-    addCodeSegmentToWorkspace,
     addInlineCodeSegmentToWorkspace,
     addToProject,
     AddToProjectRequest,
@@ -174,6 +174,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
     messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
-    messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
+    messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
 }

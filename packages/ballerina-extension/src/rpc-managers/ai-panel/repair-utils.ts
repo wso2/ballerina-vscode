@@ -21,7 +21,7 @@ import { ExtendedLangClient } from "../../core";
 import { Uri, workspace } from "vscode";
 import { TextDocumentEdit } from "vscode-languageserver-types";
 import { fileURLToPath } from "url";
-import { modifyFileContent, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
+import { writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 
 export async function attemptRepairProject(langClient: ExtendedLangClient, tempDir: string): Promise<Diagnostics[]> {
     // check project diagnostics

@@ -25,7 +25,7 @@ import { langClient } from './activator';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from '../../utils/modification';
+import { writeBallerinaFileDidOpenTemp } from '../../utils/modification';
 import { closeAllBallerinaFiles } from './utils';
 import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
 

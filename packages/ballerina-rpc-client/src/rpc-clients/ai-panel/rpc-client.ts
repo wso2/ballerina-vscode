@@ -64,6 +64,7 @@ import {
     abortTestGeneration,
     addChatSummary,
     addCodeSegmentToWorkspace,
+    addFilesToProject,
     addInlineCodeSegmentToWorkspace,
     addToProject,
     applyDoOnFailBlocks,
@@ -165,7 +166,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
     }
 
     addToProject(params: AddToProjectRequest): Promise<boolean> {
-        return this._messenger.sendNotification(addToProject, HOST_EXTENSION, params);
+        return this._messenger.sendRequest(addToProject, HOST_EXTENSION, params);
     }
 
     getFromFile(params: GetFromFileRequest): Promise<string> {
