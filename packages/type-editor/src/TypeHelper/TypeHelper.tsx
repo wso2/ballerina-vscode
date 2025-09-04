@@ -211,7 +211,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
             currentType.slice(0, prefixCursorPosition) + item.insertText + currentType.slice(suffixCursorPosition),
             prefixCursorPosition + item.insertText.length
         );
-
+        onClose();
         onCloseCompletions?.();
     };
 
