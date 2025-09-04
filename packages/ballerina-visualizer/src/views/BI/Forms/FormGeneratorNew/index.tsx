@@ -813,7 +813,7 @@ export function FormGeneratorNew(props: FormProps) {
                             ))}
                         </BreadcrumbContainer>
                         <FormTypeEditor
-                            type={ defaultType()}
+                            type={ isGraphqlEditor? defaultType() : undefined}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
                             onTypeChange={handleTypeChange}
