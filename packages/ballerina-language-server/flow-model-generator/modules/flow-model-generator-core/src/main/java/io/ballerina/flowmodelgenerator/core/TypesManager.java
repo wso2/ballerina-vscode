@@ -124,6 +124,16 @@ public class TypesManager {
             if (SyntaxKind.SERVICE_DECLARATION == parentNode.kind()) {
                 optSymbol = semanticModel.symbol(parentNode);
             }
+        } else if (SyntaxKind.MARKDOWN_DOCUMENTATION_LINE == node.kind()) {
+            NonTerminalNode docNode = node.parent();
+            if (docNode.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION &&
+                    docNode.parent().kind() == SyntaxKind.METADATA) {
+                MetadataNode metadata = (MetadataNode) docNode.parent();
+                NonTerminalNode parentNode = metadata.parent();
+                if (SyntaxKind.SERVICE_DECLARATION == parentNode.kind()) {
+                    optSymbol = semanticModel.symbol(parentNode);
+                }
+            }
         } else {
             optSymbol = semanticModel.symbol(document, linePosition);
         }
