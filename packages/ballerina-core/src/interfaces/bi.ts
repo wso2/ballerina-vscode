@@ -26,6 +26,7 @@ export type Flow = {
     fileName: string;
     nodes: FlowNode[];
     connections?: FlowNode[];
+    variables?: FlowNode[];
 };
 
 export type Client = {
