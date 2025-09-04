@@ -17,11 +17,10 @@
  */
 
 import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, PropertyTypeMemberInfo, UpdateRecordConfigRequest, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography } from "@wso2/ui-toolkit";
+import { Dropdown, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { debounce } from "lodash";
 import { RecordConfigView } from "../../HelperPane/RecordConfigView";
 
 type ConfigureRecordPageProps = {
