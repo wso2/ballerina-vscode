@@ -392,7 +392,9 @@ export function NodeList(props: NodeListProps) {
     };
 
     const handleAddNode = (node: Node, category?: string) => {
-        onSelect(node.id, { node: node.metadata, category });
+        if (node.enabled) {
+            onSelect(node.id, { node: node.metadata, category });
+        }
     };
 
     const handleAddConnection = () => {
