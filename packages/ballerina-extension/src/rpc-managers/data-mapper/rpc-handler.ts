@@ -46,7 +46,8 @@ import {
     getVisualizableFields,
     InitialIDMSourceRequest,
     mapWithCustomFn,
-    MapWithCustomFnRequest,
+    MapWithFnRequest,
+    mapWithTransformFn,
     ProcessTypeReferenceRequest,
     PropertyRequest,
     VisualizableFieldsRequest
@@ -65,7 +66,8 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addClauses, (args: AddClausesRequest) => rpcManger.addClauses(args));
     messenger.onRequest(addSubMapping, (args: AddSubMappingRequest) => rpcManger.addSubMapping(args));
     messenger.onRequest(deleteMapping, (args: DeleteMappingRequest) => rpcManger.deleteMapping(args));
-    messenger.onRequest(mapWithCustomFn, (args: MapWithCustomFnRequest) => rpcManger.mapWithCustomFn(args));
+    messenger.onRequest(mapWithCustomFn, (args: MapWithFnRequest) => rpcManger.mapWithCustomFn(args));
+    messenger.onRequest(mapWithTransformFn, (args: MapWithFnRequest) => rpcManger.mapWithTransformFn(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
     messenger.onRequest(getAllDataMapperSource, (args: AllDataMapperSourceRequest) => rpcManger.getAllDataMapperSource(args));

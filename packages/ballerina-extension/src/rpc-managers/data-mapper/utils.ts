@@ -112,11 +112,11 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
         return await updateSourceCode(updateSourceCodeRequest);
     }
 
-    // need to prioritize if file path ends with functions.bal
+    // need to prioritize if file path ends with functions.bal or data_mappings.bal
     filePaths.sort((a, b) => {
-        // Prioritize files ending with functions.bal
-        const aEndsWithFunctions = a.endsWith('functions.bal') ? 1 : 0;
-        const bEndsWithFunctions = b.endsWith('functions.bal') ? 1 : 0;
+        // Prioritize files ending with functions.bal or data_mappings.bal
+        const aEndsWithFunctions = (a.endsWith("functions.bal") || a.endsWith("data_mappings.bal")) ? 1 : 0;
+        const bEndsWithFunctions = (b.endsWith("functions.bal") || b.endsWith("data_mappings.bal")) ? 1 : 0;
         return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
     });
 
