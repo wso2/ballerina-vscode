@@ -74,7 +74,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
-    const ANTHROPIC_CACHE_BLOCK_LIMIT = 20;
 
     // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
@@ -91,12 +90,9 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         {
             role: "system",
             content: getSystemPromptSuffix(LANGLIBS),
-            providerOptions:
-                historyMessages.length >= ANTHROPIC_CACHE_BLOCK_LIMIT - 2
-                    ? {
+            providerOptions: {
                           anthropic: { cacheControl: { type: "ephemeral" } },
                       }
-                    : undefined,
         },
         ...historyMessages,
         {
