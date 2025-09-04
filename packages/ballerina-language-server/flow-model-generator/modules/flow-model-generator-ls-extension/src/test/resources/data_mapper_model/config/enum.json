@@ -114,7 +114,7 @@
             ],
             "name": "code",
             "displayName": "code",
-            "typeName": "DepartmentCode",
+            "typeName": "FINANCE|IT|HR",
             "kind": "union",
             "optional": false,
             "ref": "-757557159"

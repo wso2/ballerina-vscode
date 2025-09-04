@@ -111,7 +111,7 @@
             ],
             "name": "password",
             "displayName": "password",
-            "typeName": "",
+            "typeName": "UserInfo|string[]",
             "kind": "union",
             "optional": false,
             "ref": "-233843293"

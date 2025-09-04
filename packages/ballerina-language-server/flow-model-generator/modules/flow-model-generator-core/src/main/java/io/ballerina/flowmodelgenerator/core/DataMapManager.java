@@ -1047,14 +1047,17 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
+                    List<String> memberNames = new ArrayList<>();
                     MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.hashCode);
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
+                            memberNames.add(memberPort.typeName);
                         }
                     }
+                    unionPort.typeName = String.join(PIPE, memberNames);
                     if (unionType.dependentTypes == null) {
                         return unionPort;
                     }
