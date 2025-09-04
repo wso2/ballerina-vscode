@@ -170,7 +170,7 @@ const LoginPanel: React.FC = () => {
                 <LegalNotice />
                 <StyledButton onClick={handleCopilotLogin}>Login to BI Copilot</StyledButton>
                 <Divider>or</Divider>
-                <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API Key</TextButton>
+                <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>
                 <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
             </FooterContent>
         </PanelWrapper>
