@@ -429,25 +429,34 @@ export function NodeList(props: NodeListProps) {
                         }
 
                         return (
-                            <S.Component
-                                key={node.id + index}
-                                enabled={node.enabled}
-                                onClick={() => handleAddNode(node)}
-                                title={node.label}
+                            <Tooltip 
+                                content={node.description} 
+                                sx={{ 
+                                    maxWidth: "280px",
+                                    whiteSpace: "normal",
+                                    wordWrap: "break-word",
+                                    overflowWrap: "break-word"
+                                }}
                             >
-                                <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
-                                <S.ComponentTitle
-                                    ref={(el) => {
-                                        if (el && el.scrollWidth > el.clientWidth) {
-                                            el.style.fontSize = "13px";
-                                            el.style.wordBreak = "break-word";
-                                            el.style.whiteSpace = "nowrap";
-                                        }
-                                    }}
+                                <S.Component
+                                    key={node.id + index}
+                                    enabled={node.enabled}
+                                    onClick={() => handleAddNode(node)}
                                 >
-                                    {node.label}
-                                </S.ComponentTitle>
-                            </S.Component>
+                                    <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
+                                    <S.ComponentTitle
+                                        ref={(el) => {
+                                            if (el && el.scrollWidth > el.clientWidth) {
+                                                el.style.fontSize = "13px";
+                                                el.style.wordBreak = "break-word";
+                                                el.style.whiteSpace = "nowrap";
+                                            }
+                                        }}
+                                    >
+                                        {node.label}
+                                    </S.ComponentTitle>
+                                </S.Component>
+                            </Tooltip>
                         );
                     })}
                 </S.Grid>
