@@ -648,18 +648,6 @@ public class DataMapManager {
         elements.add(mapping);
     }
 
-    private void genRootQueryMapping(Node expr, String name, List<Mapping> elements, SemanticModel semanticModel,
-                                     List<MappingPort> enumPorts) {
-        List<String> inputs = new ArrayList<>();
-        expr.accept(new GenInputsVisitor(inputs, enumPorts));
-        Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
-                getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
-                expr.kind() == SyntaxKind.QUERY_EXPRESSION,
-                expr.kind() == SyntaxKind.FUNCTION_CALL,
-                null);
-        elements.add(mapping);
-    }
-
     private LineRange getCustomFunctionRange(Node expr, Document functionDocument, Document dataMappingDocument) {
         if ((functionDocument == null && dataMappingDocument == null) || expr.kind() != SyntaxKind.FUNCTION_CALL) {
             return null;
@@ -667,26 +655,6 @@ public class DataMapManager {
         FunctionCallExpressionNode funcCall = (FunctionCallExpressionNode) expr;
         String funcName = funcCall.functionName().toSourceCode().trim();
         return findFunctionLineRange(funcName, functionDocument, dataMappingDocument);
-    }
-
-    private void genMapping(QueryExpressionNode queryExpr, List<Mapping> mappings, String name,
-                            SemanticModel semanticModel, Document functionDocument, Document dataMappingDocument,
-                            List<MappingPort> enumPorts) {
-        ClauseNode clauseNode = queryExpr.resultClause();
-        if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-            SelectClauseNode selectClauseNode = (SelectClauseNode) clauseNode;
-            ExpressionNode expr = selectClauseNode.expression();
-            if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                genMapping((MappingConstructorExpressionNode) expr, mappings,
-                        name, semanticModel, functionDocument, dataMappingDocument, enumPorts);
-            } else {
-                genMapping(expr, name, mappings, semanticModel, functionDocument, dataMappingDocument, enumPorts);
-            }
-        } else {
-            genMapping(((CollectClauseNode) clauseNode).expression(), name, mappings, semanticModel, functionDocument,
-                    dataMappingDocument,
-                    enumPorts);
-        }
     }
 
     private LineRange findFunctionLineRange(String funcName, Document functionDocument, Document dataMappingDocument) {
