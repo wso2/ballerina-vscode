@@ -356,12 +356,13 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                     onClick={() => onTypeCreate(newTypeName.current)}
                                 />
                             )}
-                            <FooterButtons
+                            {/* TODO: Decided to either rewrite or remove it */}
+                            {/* <FooterButtons
                                 sx={{ display: 'flex', justifyContent: 'space-between' }}
                                 startIcon='library'
                                 title="Open Type Browser"
                                 onClick={() => setIsTypeBrowserOpen(true)}
-                            />
+                            /> */}
                         </div>
                     </SlidingPane>
                 </SlidingWindow>
