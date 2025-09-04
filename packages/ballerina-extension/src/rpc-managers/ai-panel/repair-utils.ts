@@ -21,7 +21,7 @@ import { ExtendedLangClient } from "../../core";
 import { Uri, workspace } from "vscode";
 import { TextDocumentEdit } from "vscode-languageserver-types";
 import { fileURLToPath } from "url";
-import { modifyFileContent } from "../../utils/modification";
+import { writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 
 export async function attemptRepairProject(langClient: ExtendedLangClient, tempDir: string): Promise<Diagnostics[]> {
     // check project diagnostics
@@ -166,7 +166,7 @@ export async function addMissingImports(diagnosticsResult: Diagnostics[], langCl
         // Update file content
         const { source } = syntaxTree as SyntaxTree;
         const absolutePath = fileURLToPath(fielUri);
-        await modifyFileContent({ filePath: absolutePath, content: source, updateViewFlag: false });
+        writeBallerinaFileDidOpenTemp(absolutePath, source);
         if (astModifications.length > 0) {
             projectModified = true;
         }
@@ -214,7 +214,7 @@ export async function removeUnusedImports(diagnosticsResult: Diagnostics[], lang
             // Update file content
             const { source } = syntaxTree as SyntaxTree;
             const absolutePath = fileURLToPath(fielUri);
-            await modifyFileContent({ filePath: absolutePath, content: source, updateViewFlag: false });
+            writeBallerinaFileDidOpenTemp(absolutePath, source);
             projectModified = true;
     }
     return projectModified;
