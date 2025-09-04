@@ -249,7 +249,7 @@ public class ReferenceType {
             return refType;
         } else if (kind == TypeDescKind.NIL) {
             RefType refType = new RefType("nil");
-            refType.typeName = "nil";
+            refType.typeName = "()";
             return refType;
         } else if (kind == TypeDescKind.DECIMAL) {
             RefType refType = new RefType("decimal");

@@ -94,13 +94,13 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
-import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -114,6 +114,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefReco
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -1013,14 +1014,17 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
+                    List<String> memberNames = new ArrayList<>();
                     MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.hashCode);
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
+                            memberNames.add(memberPort.typeName);
                         }
                     }
+                    unionPort.typeName = String.join(PIPE, memberNames);
                     if (unionType.dependentTypes == null) {
                         return unionPort;
                     }
@@ -2085,23 +2089,23 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
-    public JsonElement genCustomFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
-                                         Path filePath, JsonElement cd, JsonElement mp, JsonElement fm,
-                                         String targetField) {
-        Codedata codedata = gson.fromJson(cd, Codedata.class);
+    public JsonElement genMappingFunction(WorkspaceManager workspaceManager, SemanticModel semanticModel,
+                                         Path filePath, JsonElement codeData, JsonElement mappings,
+                                          JsonElement functionMetaData,
+                                         String targetField, Boolean isCustomFunction) {
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         if (targetNode == null) {
             return null;
         }
 
-        FunctionMetadata functionMetadata = gson.fromJson(fm, FunctionMetadata.class);
-        Mapping mapping = gson.fromJson(mp, Mapping.class);
+        FunctionMetadata functionMetadata = gson.fromJson(functionMetaData, FunctionMetadata.class);
+        Mapping mapping = gson.fromJson(mappings, Mapping.class);
 
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        String functionName = genCustomFunctionDef(workspaceManager,
-                filePath, functionMetadata, textEditsMap, semanticModel);
-
+        String functionName = genFunctionDef(workspaceManager,
+                filePath, functionMetadata, textEditsMap, semanticModel, isCustomFunction);
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
         genSource(targetNode.matchingNode().expr(), mapping.output().split(DOT), 1, new StringBuilder(),
@@ -2138,9 +2142,9 @@ public class DataMapManager {
         }
     }
 
-    private String genCustomFunctionDef(WorkspaceManager workspaceManager, Path filePath,
+    private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,
                                         FunctionMetadata functionMetadata, Map<Path,
-                    List<TextEdit>> textEditsMap, SemanticModel semanticModel) {
+                    List<TextEdit>> textEditsMap, SemanticModel semanticModel, Boolean isCustomFunction) {
         List<Parameter> parameters = functionMetadata.parameters();
         List<String> paramNames = new ArrayList<>();
         for (Parameter parameter : parameters) {
@@ -2155,16 +2159,35 @@ public class DataMapManager {
             paramNames.add(paramName);
         }
 
-        Path functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
+        Path functionsFilePath;
+        String expressionBody = null;
+        if (isCustomFunction) {
+            functionsFilePath = workspaceManager.projectRoot(filePath).resolve("functions.bal");
+        } else {
+            functionsFilePath = workspaceManager.projectRoot(filePath).resolve("data_mappings.bal");
+            expressionBody = getExpressionBody(functionMetadata.returnType().type());
+        }
         try {
             workspaceManager.loadProject(filePath);
-            Document document = FileSystemUtils.getDocument(workspaceManager, functionsFilePath);
-            String returnType = functionMetadata.returnType();
-            Range functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            Range functionRange;
+            try {
+                Document document = workspaceManager.document(functionsFilePath).orElse(null);
+                assert document != null;
+                functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            } catch (ProjectException e) {
+                functionRange = new Range(new Position(0, 0), new Position(0, 0));
+            }
+            ReturnType returnType = functionMetadata.returnType();
             String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
-            textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
-                    functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType + " {}"));
+            if (isCustomFunction) {
+                textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " {}"));
+            } else {
+                textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
+                        functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " => " +
+                        expressionBody));
+            }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;
         } catch (WorkspaceDocumentException | EventSyncException e) {
@@ -2172,37 +2195,56 @@ public class DataMapManager {
         }
     }
 
-    private static String getFunctionName(List<Parameter> parameters, String returnType, SemanticModel semanticModel) {
-        String functionName = "map";
+    private static String getExpressionBody(String returnType) {
+        if (returnType == null || returnType.isEmpty()) {
+            return "{}";
+        }
+        if (returnType.contains("[]")) {
+            return "[]";
+        }
 
+        return  switch (returnType) {
+            case INT -> "0";
+            case FLOAT -> "0.0";
+            case DECIMAL -> "0.0d";
+            case BOOLEAN -> "true";
+            case STRING -> "\"\"";
+            default -> "{}";
+        };
+
+    }
+
+    private static String getFunctionName(List<Parameter> parameters, ReturnType returnType,
+                                          SemanticModel semanticModel) {
+        String functionName = "map";
         if (parameters.isEmpty()) {
             return functionName;
         }
         Parameter firstParam = parameters.getFirst();
-        if (firstParam.kind.equals("union")) {
-            return getUnionFunctionName(semanticModel);
-        }
-
-        return functionName + firstParam.type() + "To" + returnType;
+        return functionName + NameUtil.toCamelCase(getFunctionMappingName(firstParam, returnType, semanticModel));
     }
 
-    private static String getUnionFunctionName(SemanticModel semanticModel) {
-        int highestNumber = findHighestUnionNumber(semanticModel);
-        return "mapUnion" + (highestNumber + 1);
+    private static String getFunctionMappingName(Parameter firstParam, ReturnType returnType,
+                                                 SemanticModel semanticModel) {
+        String firstParamKind = firstParam.kind();
+        String returnTypeKind = returnType.kind();
+        int highestNumber = findHighestFunctionNumber(firstParamKind, returnTypeKind, semanticModel);
+        return " " + firstParamKind + " To " + returnTypeKind + (highestNumber + 1);
     }
 
-    private static int findHighestUnionNumber(SemanticModel semanticModel) {
+    private static int findHighestFunctionNumber(String firstParamKind, String returnTypeKind,
+                                                 SemanticModel semanticModel) {
         int highestNumber = 0;
-
+        String functionName = NameUtil.toCamelCase("map " + firstParamKind + " To " + returnTypeKind);
         for (Symbol symbol : semanticModel.moduleSymbols()) {
             if (symbol.kind() != SymbolKind.FUNCTION) {
                 continue;
             }
             Optional<String> name = symbol.getName();
-            if (name.isEmpty() || !name.get().startsWith("mapUnion")) {
+            if (name.isEmpty() || !name.get().startsWith(functionName)) {
                 continue;
             }
-            String suffix = name.get().substring("mapUnion".length());
+            String suffix = name.get().substring(functionName.length());
             if (!suffix.matches("\\d+")) {
                 continue;
             }
@@ -2295,10 +2337,13 @@ public class DataMapManager {
         }
     }
 
-    private record FunctionMetadata(List<Parameter> parameters, String returnType) {
+    private record FunctionMetadata(List<Parameter> parameters, ReturnType returnType) {
     }
 
     private record Parameter(String name, String type, boolean isOptional, boolean isNullable, String kind) {
+    }
+
+    private record ReturnType(String type, String kind) {
     }
 
     private record Query(String output, List<String> inputs, Clause fromClause,
