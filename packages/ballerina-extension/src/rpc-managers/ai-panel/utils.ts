@@ -2129,11 +2129,6 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
 
         formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
 
-        // const directory = path.dirname(balFilePath);
-        // if (!fs.existsSync(directory)) {
-        //     fs.mkdirSync(directory, { recursive: true });
-        // }
-
         formattedWorkspaceEdit.replace(
             fileUri,
             new Range(
