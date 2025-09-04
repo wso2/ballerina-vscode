@@ -88,6 +88,15 @@ export interface AddToProjectRequest {
     isTestCode: boolean;
 }
 
+export interface AddFilesToProjectRequest {
+    fileChanges: FileChanges[];
+}
+
+export interface FileChanges {
+    filePath: string;
+    content: string;
+}
+
 export interface GetFromFileRequest {
     filePath: string;
 }
