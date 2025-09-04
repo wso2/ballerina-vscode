@@ -19,7 +19,6 @@
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import {
     EVENT_TYPE,
-    ColorThemeKind,
     FlowNode,
     LineRange,
     NodePosition,
@@ -36,7 +35,9 @@ import {
     RecordTypeField,
     Imports,
     CodeData,
-    VisualizableField
+    VisualizableField,
+    Member,
+    TypeNodeKind
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -80,12 +81,17 @@ import {
     updateNodeWithProperties,
 } from "../form-utils";
 import ForkForm from "../ForkForm";
-import { getHelperPane } from "../../HelperPane";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
+import { FormSubmitOptions } from "../../FlowDiagram";
+import { getHelperPaneNew } from "../../HelperPaneNew";
+import { VariableForm } from "../DeclareVariableForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
+import { EditorContext, StackItem } from "@wso2/type-editor";
+import DynamicModal from "../../../../components/Modal";
+import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 
@@ -118,6 +124,8 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
+    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -149,6 +157,30 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
+export const BreadcrumbContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
+
+export const BreadcrumbItem = styled.span`
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: var(--vscode-font-size);
+    
+    &:last-child {
+        color: ${ThemeColors.ON_SURFACE};
+        font-weight: 500;
+    }
+`;
+
+export const BreadcrumbSeparator = styled.span`
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: var(--vscode-font-size);
+`;
+
 export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
@@ -168,6 +200,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         disableSaveButton,
         actionButtonConfig,
         submitText,
+        handleOnFormSubmit,
+        isInModal,
         scopeFieldAddon,
         newServerUrl,
         onChange,
@@ -189,7 +223,57 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+
+    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+
+    //stack for recursive type creation
+    const [stack, setStack] = useState<StackItem[]>([{
+        isDirty: false,
+        type: undefined
+    }]);
+    const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+
+    const pushTypeStack = (item: StackItem) => {
+        setStack((prev) => [...prev, item]);
+        setRefetchStates((prev) => [...prev, false]);
+    };
+
+    const popTypeStack = () => {
+        setStack((prev) => prev.slice(0, -1));
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            const currentState = newStates.pop();
+            if (currentState && newStates.length > 0) {
+                newStates[newStates.length - 1] = true;
+            }
+            return newStates;
+        });
+    };
+
+    const peekTypeStack = (): StackItem | null => {
+        return stack.length > 0 ? stack[stack.length - 1] : null;
+    };
+
+    const replaceTop = (item: StackItem) => {
+        if (stack.length === 0) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = item;
+            return newStack;
+        });
+    }
+
+    const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = shouldRefetch;
+            }
+            return newStates;
+        });
+    };
 
     useEffect(() => {
         if (rpcClient) {
@@ -347,6 +431,17 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setFields(updatedFields);
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
+
+    const handleTypeEditorStateChange = (state: boolean) => {
+        if (!state) {
+            if (stack.length > 1) {
+                popTypeStack();
+                return;
+            }
+            stack[0].type = undefined
+        }
+        setTypeEditorState({ isOpen: state });
+    }
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
         importsCodedataRef.current = codedata;
@@ -608,7 +703,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const onTypeEditorClosed = () => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ isOpen: stack.length !== 0 });
     };
 
     const onTypeChange = async (type: Type) => {
@@ -619,7 +714,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             return field;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ isOpen: true });
     };
 
     const handleGetHelperPane = (
@@ -632,7 +727,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -640,7 +736,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleExpressionEditorCancel();
         }
 
-        return getHelperPane({
+        return getHelperPaneNew({
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
@@ -653,7 +749,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             helperPaneHeight: helperPaneHeight,
             recordTypeField: recordTypeField,
             isAssignIdentifier: isAssignIdentifier,
-            updateImports: handleUpdateImports
+            updateImports: handleUpdateImports,
+            completions: completions,
+            projectPath: projectPath,
+            handleOnFormSubmit: handleOnFormSubmit,
+            selectedType: selectedType,
+            filteredCompletions: filteredCompletions,
+            isInModal: isInModal,
+            valueTypeConstraint: valueTypeConstraint,
+            handleRetrieveCompletions: handleRetrieveCompletions,
         });
     };
 
@@ -668,6 +772,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         changeHelperPaneState: (isOpen: boolean) => void,
         typeHelperHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef?: RefObject<FormExpressionEditorRef>,
     ) => {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
@@ -693,7 +798,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             changeTypeHelperState: changeHelperPaneState,
             updateImports: handleUpdateImports,
             onTypeCreate: handleCreateNewType,
-            onCloseCompletions: handleCloseCompletions
+            onCloseCompletions: handleCloseCompletions,
+            exprRef: exprRef,
         });
     }
 
@@ -712,8 +818,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
-            helperPaneOrigin: "left",
-            helperPaneHeight: "full",
+            helperPaneOrigin: "vertical",
+            helperPaneHeight: "default",
+            helperPaneZIndex: isInModal ? 40001 : undefined,
         } as FormExpressionEditorProps;
     }, [
         filteredCompletions,
@@ -739,8 +846,51 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
+        try {
+            setTypeEditorState({ isOpen: stack.length !== 0, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
+            popTypeStack()
+        } catch (e) {
+            console.error(e)
+        }
     };
+
+    const onSaveType = (type: Type) => {
+        if (stack.length > 0) {
+            setRefetchForCurrentModal(true);
+            popTypeStack();
+        } else {
+            setTypeEditorState({ isOpen: false });
+        }
+    }
+
+    const handleSelectedTypeChange = (type: CompletionItem) => {
+        setSelectedType(type);
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack({
+            type: {
+                name: "",
+                members: [] as Member[],
+                editable: true,
+                metadata: {
+                    description: "",
+                    label: ""
+                },
+                properties: {},
+                codedata: {
+                    node: "RECORD" as TypeNodeKind
+                },
+                includes: [] as string[],
+                allowAdditionalFields: false
+            },
+            isDirty: false
+        })
+        setTypeEditorState({
+            isOpen: true,
+            newTypeValue: ""
+        })
+    }
 
     // handle if node form
     if (node?.codedata.node === "IF") {
@@ -838,9 +988,79 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         </ActionButtonContainer>
     ) : undefined;
 
+    // handle declare variable node form
+    if (node?.codedata.node === "VARIABLE") {
+        return (
+            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
+                <VariableForm
+                    formFields={fields}
+                    projectPath={projectPath}
+                    selectedNode={node.codedata.node}
+                    openRecordEditor={handleOpenTypeEditor}
+                    onSubmit={handleOnSubmit}
+                    openView={handleOpenView}
+                    openSubPanel={openSubPanel}
+                    subPanelView={subPanelView}
+                    expressionEditor={expressionEditor}
+                    targetLineRange={targetLineRange}
+                    fileName={fileName}
+                    isSaving={showProgressIndicator}
+                    submitText={submitText}
+                    updatedExpressionField={updatedExpressionField}
+                    resetUpdatedExpressionField={resetUpdatedExpressionField}
+                    mergeFormDataWithFlowNode={mergeFormDataWithFlowNode}
+                    handleVisualizableFields={fetchVisualizableFields}
+                    visualizableField={visualizableField}
+                    infoLabel={infoLabel}
+                    disableSaveButton={disableSaveButton}
+                    actionButton={actionButton}
+                    recordTypeFields={recordTypeFields}
+                    isInferredReturnType={!!node.codedata?.inferredReturnType}
+                    formImports={formImports}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
+                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                />
+                {
+                    stack.map((item, i) => <DynamicModal
+                        key={i}
+                        width={420}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Create New Type"
+                        openState={typeEditorState.isOpen}
+                        setOpenState={handleTypeEditorStateChange}>
+                        <div style={{ padding: '0px 15px' }}>
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "New Type"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <FormTypeEditor
+                                type={peekTypeStack()?.type}
+                                newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                                newTypeValue={typeEditorState.newTypeValue}
+                                isGraphql={isGraphql}
+                                onTypeChange={onTypeChange}
+                                onSaveType={onSaveType}
+                                onTypeCreate={handleTypeCreate}
+                                getNewTypeCreateForm={getNewTypeCreateForm}
+                                refetchTypes={refetchStates[i]}
+                            />
+                        </div>
+                    </DynamicModal>)
+                }
+            </EditorContext.Provider>
+        );
+    }
+
     // default form
     return (
-        <>
+        <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
             {fields && fields.length > 0 && (
                 <Form
                     ref={ref}
@@ -868,6 +1088,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
+                    handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}
@@ -876,18 +1097,41 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onToolsChange={props.onToolsChange}
                 />
             )}
-            {typeEditorState.isOpen && (
-                <PanelContainer title={"New Type"} show={true} onClose={onTypeEditorClosed}>
-                    <FormTypeEditor
-                        newType={true}
-                        newTypeValue={typeEditorState.newTypeValue}
-                        isGraphql={isGraphql}
-                        onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate}
-                    />
-                </PanelContainer>
-            )}
-        </>
+            {
+                stack.map((item, i) => <DynamicModal
+                    key={i}
+                    width={420}
+                    height={600}
+                    anchorRef={undefined}
+                    title="Create New Type"
+                    openState={typeEditorState.isOpen}
+                    setOpenState={handleTypeEditorStateChange}>
+                    <div style={{ padding: '0px 20px' }}>
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                        {stackItem?.type?.name || "New Type"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                        <FormTypeEditor
+                            type={peekTypeStack()?.type}
+                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                            newTypeValue={typeEditorState.newTypeValue}
+                            isGraphql={isGraphql}
+                            onTypeChange={onTypeChange}
+                            onSaveType={onSaveType}
+                            onTypeCreate={handleTypeCreate}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
+                            refetchTypes={refetchStates[i]}
+                        />
+                    </div>
+                </DynamicModal>)
+            }
+        </EditorContext.Provider>
     );
 });
 

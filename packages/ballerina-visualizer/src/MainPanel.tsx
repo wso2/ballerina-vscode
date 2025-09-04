@@ -25,6 +25,8 @@ import {
     PopupMachineStateValue,
     EVENT_TYPE,
     ParentPopupData,
+    ProjectStructureArtifactResponse,
+    DIRECTORY_MAP,
     CodeData,
     LinePosition,
 } from "@wso2/ballerina-core";
@@ -48,7 +50,7 @@ import {
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
-import { Typography } from "@wso2/ui-toolkit";
+import { ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
@@ -150,6 +152,18 @@ const LoadingContent = styled.div`
     animation: fadeIn 1s ease-in-out;
 `;
 
+const Overlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    opacity: 0.4;
+    z-index: 2001;
+    pointer-events: auto;
+`;
+
 const LoadingTitle = styled.h1`
     color: var(--vscode-foreground);
     font-size: 1.5em;
@@ -174,7 +188,7 @@ const LoadingText = styled.div`
 
 const MainPanel = () => {
     const { rpcClient } = useRpcContext();
-    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel } = useVisualizerContext();
+    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
@@ -382,7 +396,10 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
-                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={value?.position} projectUri={value?.projectUri} />);
+                        const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: entryPoint?.path, position: entryPoint?.position } });
+                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position} projectUri={value?.projectUri} />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -503,7 +520,7 @@ const MainPanel = () => {
     useEffect(() => {
         debounceFetchContext();
     }, [breakpointState]);
-
+    
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();
 
@@ -530,6 +547,7 @@ const MainPanel = () => {
             <Global styles={globalStyles} />
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
+                {showOverlay && <Overlay onClick={() => setShowOverlay(false)} />}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
                 {!viewComponent && (
                     <ComponentViewWrapper>
