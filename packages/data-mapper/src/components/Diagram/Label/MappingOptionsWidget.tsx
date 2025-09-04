@@ -197,11 +197,13 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
             onClick: wrapWithProgress(onClickMapWithCustomFn)
         });
-        menuItems.push({
-            id: "a2a-a2s-transform-func",
-            label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
-            onClick: wrapWithProgress(onClickMapWithTransformFn)
-        });
+        if (pendingMappingType !== MappingType.ContainsUnions) {
+            menuItems.push({
+                id: "a2a-a2s-transform-func",
+                label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                onClick: wrapWithProgress(onClickMapWithTransformFn)
+            });
+        }
     }
     return (
         <div className={classes.arrayMappingMenu}>
