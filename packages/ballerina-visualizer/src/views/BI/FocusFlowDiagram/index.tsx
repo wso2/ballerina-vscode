@@ -681,7 +681,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                             connectionKind={selectedConnectionKind}
                             selectedNode={selectedNodeForConnection}
                             onSave={handleUpdateNodeWithConnection}
-                            onCreateNew={handleCreateNewConnection}
+                            // onCreateNew={handleCreateNewConnection}
                         />
                     )}
                     {connectionView === SidePanelView.CONNECTION_SELECT && (

@@ -55,7 +55,8 @@ import {
     ColorThemeKind,
     CompletionInsertText,
     SubPanel,
-    SubPanelView
+    SubPanelView,
+    NodeMetadata
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -82,10 +83,10 @@ export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-
 
 function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
     // Check if node should be filtered based on function type
-    if (functionType === FUNCTION_TYPE.REGULAR && node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
         return undefined;
     }
 
