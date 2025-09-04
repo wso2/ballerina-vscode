@@ -456,7 +456,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
                     if (existingType !== newType) {
                         setValue(field.key, newType);
-                        mergeFormDataWithFlowNode && getVisualiableFields();
+                        getVisualiableFields();
                     }
                 }
 
@@ -535,7 +535,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
     const getVisualiableFields = () => {
         const typeName = watch("type");
-        handleVisualizableFields && handleVisualizableFields(fileName, typeName);
+        typeName && handleVisualizableFields && handleVisualizableFields(fileName, typeName);
     };
 
     const handleGetExpressionDiagnostics = async (
