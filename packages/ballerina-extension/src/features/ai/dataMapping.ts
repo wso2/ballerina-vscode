@@ -26,7 +26,7 @@ import { Uri, workspace } from "vscode";
 import { langClient } from "./activator";
 import { getFunction, processMappings, typesFileParameterDefinitions } from "../../rpc-managers/ai-panel/utils";
 import { MODIFIYING_ERROR } from "../../views/ai-panel/errorCodes";
-import { writeBallerinaFileDidOpen } from "../../utils/modification";
+import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 
 
 export async function generateDataMapping(
@@ -76,7 +76,7 @@ async function getUpdatedFunctionSource(
     );
     fs.cpSync(projectRoot, tempDir, { recursive: true });
     const tempTestFilePath = path.join(tempDir, "temp.bal");
-    await writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
+    writeBallerinaFileDidOpenTemp(tempTestFilePath, fullSource);
 
     const fileUri = Uri.file(tempTestFilePath).toString();
     const st = (await langClient.getSyntaxTree({

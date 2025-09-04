@@ -17,8 +17,8 @@
  */
 
 import { ArrayTypeDesc, FunctionDefinition, ModulePart, QualifiedNameReference, RequiredParam, STKindChecker } from "@wso2/syntax-tree";
-import { FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, keywords, DiagnosticEntry, InlineDataMapperModelResponse } from "@wso2/ballerina-core";
-import { window } from 'vscode';
+import { FormField, STModification, SyntaxTree, Attachment, AttachmentStatus, keywords, DiagnosticEntry, InlineDataMapperModelResponse, FileChanges } from "@wso2/ballerina-core";
+import { Position, Range, Uri, window, workspace, WorkspaceEdit } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
 import {
@@ -36,6 +36,8 @@ import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { ArrayEnumUnionType, ArrayRecordType, MetadataType, NUMERIC_AND_BOOLEAN_TYPES, Operation, PrimitiveType, RecordType, UnionEnumIntersectionType } from "./constants";
 import { FieldMetadata, InputMetadata, IntermediateMapping, MappingData, MappingFileRecord, NestedFieldDescriptor, OutputMetadata, ParameterDefinitions, ParameterField, ParameterMetadata, ProcessCombinedKeyResult, ProcessParentKeyResult, RecordDefinitonObject } from "./types";
+import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { writeFileSync } from "fs";
 
 const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -1888,4 +1890,71 @@ export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticE
         code: entry.code || "",
         message: entry.message,
     }));
+}
+
+export async function addToIntegration(workspaceFolderPath: string, fileChanges: FileChanges[]) {
+    const formattedWorkspaceEdit = new WorkspaceEdit();
+    const nonBalFiles: FileChanges[] = [];
+
+    for (const fileChange of fileChanges) {
+        let balFilePath = path.join(workspaceFolderPath, fileChange.filePath);
+        const fileUri = Uri.file(balFilePath);
+        if (!fileChange.filePath.endsWith('.bal')) {
+            nonBalFiles.push(fileChange);
+            continue;
+        }
+
+        formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
+
+        // const directory = path.dirname(balFilePath);
+        // if (!fs.existsSync(directory)) {
+        //     fs.mkdirSync(directory, { recursive: true });
+        // }
+
+        formattedWorkspaceEdit.replace(
+            fileUri,
+            new Range(
+                new Position(0, 0),
+                new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+            ),
+            fileChange.content
+        );
+    }
+
+    // Apply all formatted changes at once
+    await workspace.applyEdit(formattedWorkspaceEdit);
+
+    // Write non ballerina files separately as ls doesn't need to be notified of those changes
+    for (const fileChange of nonBalFiles) {
+        let absoluteFilePath = path.join(workspaceFolderPath, fileChange.filePath);
+        const directory = path.dirname(absoluteFilePath);
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory, { recursive: true });
+        }
+        fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
+    }
+    return new Promise((resolve, reject) => {
+        // Get the artifact notification handler instance
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Subscribe to artifact updated notifications
+        let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            clearTimeout(timeoutId);
+            resolve(payload.data);
+            unsubscribe();
+        });
+
+        // Set a timeout to reject if no notification is received within 10 seconds
+        const timeoutId = setTimeout(() => {
+            console.log("No artifact update notification received within 10 seconds");
+            reject(new Error("Operation timed out. Please try again."));
+            unsubscribe();
+        }, 10000);
+
+        // Clear the timeout when notification is received
+        const originalUnsubscribe = unsubscribe;
+        unsubscribe = () => {
+            clearTimeout(timeoutId);
+            originalUnsubscribe();
+        };
+    });
 }

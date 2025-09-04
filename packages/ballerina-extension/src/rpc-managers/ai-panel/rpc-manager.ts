@@ -22,6 +22,7 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
@@ -113,7 +114,7 @@ import {
 } from "./constants";
 import { processInlineMappings } from "./inline-utils";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { addToIntegration, AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -198,7 +199,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async addToProject(req: AddToProjectRequest): Promise<void> {
+    async addToProject(req: AddToProjectRequest): Promise<boolean> {
 
         const workspaceFolders = workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -224,6 +225,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         updateView();
         const datamapperMetadata = StateMachine.context().dataMapperMetadata;
         await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
+        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -872,6 +874,28 @@ export class AiPanelRpcManager implements AIPanelAPI {
         } catch (error) {
             console.error(">>> Failed to add inline code segment to the workspace", error);
             throw error;
+        }
+    }
+    
+    async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        try {
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                throw new Error("No workspaces found.");
+            }
+
+            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            if (!fs.existsSync(ballerinaProjectFile)) {
+                throw new Error("Not a Ballerina project.");
+            }
+            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            updateView();
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add files to the project", error);
+            return false; //silently fail for timeout issues.
         }
     }
 }

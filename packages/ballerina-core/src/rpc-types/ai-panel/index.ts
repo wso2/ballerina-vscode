@@ -18,7 +18,7 @@
  */
 import { InlineAllDataMapperSourceRequest, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment, AddFilesToProjectRequest } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -32,7 +32,7 @@ export interface AIPanelAPI {
     getDefaultPrompt: () => Promise<AIPanelPrompt>;
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
     fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    addToProject: (params: AddToProjectRequest) => void;
+    addToProject: (params: AddToProjectRequest) => Promise<boolean>;
     getFromFile: (params: GetFromFileRequest) => Promise<string>;
     getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
     deleteFromProject: (params: DeleteFromProjectRequest) => void;
@@ -84,4 +84,5 @@ export interface AIPanelAPI {
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
     generateHealthcareCode: (params: GenerateCodeRequest) => void;
     abortAIGeneration: () => void;
+    addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
 }
