@@ -381,8 +381,12 @@ export function TypeDiagram(props: TypeDiagramProps) {
                         type={findSelectedType(typeEditorState.editingTypeId)}
                         newType={typeEditorState.editingTypeId ? false : true}
                         onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate}
-                    />
+                        onTypeCreate={handleTypeCreate} 
+                        getNewTypeCreateForm={function (): void {
+                            throw new Error("Function not implemented.");
+                        } } onSaveType={function (type: Type): void {
+                            throw new Error("Function not implemented.");
+                        } } refetchTypes={false}                    />
                 </PanelContainer>
             )}
         </>
