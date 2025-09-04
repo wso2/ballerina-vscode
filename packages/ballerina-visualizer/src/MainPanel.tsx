@@ -27,13 +27,14 @@ import {
     ParentPopupData,
     ProjectStructureArtifactResponse,
     DIRECTORY_MAP,
+    CodeData,
+    LinePosition,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
-import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
@@ -47,9 +48,9 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
-import { Typography } from "@wso2/ui-toolkit";
+import { ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useVisualizerContext } from "./Context";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
@@ -73,7 +74,7 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { InlineDataMapper } from "./views/InlineDataMapper";
+import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
 
 const globalStyles = css`
@@ -151,6 +152,18 @@ const LoadingContent = styled.div`
     animation: fadeIn 1s ease-in-out;
 `;
 
+const Overlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    opacity: 0.4;
+    z-index: 2001;
+    pointer-events: auto;
+`;
+
 const LoadingTitle = styled.h1`
     color: var(--vscode-foreground);
     font-size: 1.5em;
@@ -175,7 +188,7 @@ const LoadingText = styled.div`
 
 const MainPanel = () => {
     const { rpcClient } = useRpcContext();
-    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel } = useVisualizerContext();
+    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
@@ -329,22 +342,35 @@ const MainPanel = () => {
                         setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
                         break;
                     case MACHINE_VIEW.DataMapper:
+                        let position: LinePosition = {
+                            line: value?.position?.startLine,
+                            offset: value?.position?.startColumn
+                        };
+                        if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
+                            STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
+                        ) {
+                            position = {
+                                line: value?.syntaxTree.functionBody.expression.position.startLine,
+                                offset: value?.syntaxTree.functionBody.expression.position.startColumn
+                            };
+                        }
                         setViewComponent(
                             <DataMapper
-                                projectPath={value.projectUri}
                                 filePath={value.documentUri}
-                                model={value?.syntaxTree as FunctionDefinition}
-                                functionName={value?.identifier}
-                                applyModifications={applyModifications}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                name={value?.dataMapperMetadata?.name}
+                                projectUri={value.projectUri}
+                                position={position}
+                                reusable
                             />
                         );
                         break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
-                            <InlineDataMapper
+                            <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.dataMapperMetadata?.name}
+                                name={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
@@ -443,6 +469,14 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.AddCustomConnector:
+                        setViewComponent(
+                            <AddConnectionWizard
+                                fileName={value.documentUri || value.projectUri}
+                                openCustomConnectorView={true}
+                            />
+                        );
+                        break;
                     case MACHINE_VIEW.BIMainFunctionForm:
                         setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} isAutomation={true} />);
                         break;
@@ -486,7 +520,7 @@ const MainPanel = () => {
     useEffect(() => {
         debounceFetchContext();
     }, [breakpointState]);
-
+    
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();
 
@@ -513,6 +547,7 @@ const MainPanel = () => {
             <Global styles={globalStyles} />
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
+                {showOverlay && <Overlay onClick={() => setShowOverlay(false)} />}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
                 {!viewComponent && (
                     <ComponentViewWrapper>

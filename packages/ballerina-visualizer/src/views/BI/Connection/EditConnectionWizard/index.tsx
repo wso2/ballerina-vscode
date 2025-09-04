@@ -25,7 +25,9 @@ import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField, PanelContainer } from "@wso2/ballerina-side-panel";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { HelperView } from "../../HelperView";
-import { URI, Utils } from "vscode-uri";
+import { ConnectionKind, ConnectionSelectionList, ConnectionCreator } from "../../../../components/ConnectionSelector";
+import { SidePanelView } from "../../FlowDiagram/PanelManager";
+import { getNodeTemplateForConnection } from "../../FlowDiagram/utils";
 
 const Container = styled.div`
     width: 100%;
@@ -39,6 +41,13 @@ const SpinnerContainer = styled.div`
     height: 100%;
 `;
 
+// Navigation views for the wizard
+export enum WizardView {
+    CONNECTION_CONFIG = "CONNECTION_CONFIG",
+    CONNECTION_SELECT = "CONNECTION_SELECT",
+    CONNECTION_CREATE = "CONNECTION_CREATE"
+}
+
 interface EditConnectionWizardProps {
     projectUri: string;
     connectionName: string;
@@ -46,15 +55,19 @@ interface EditConnectionWizardProps {
 }
 
 export function EditConnectionWizard(props: EditConnectionWizardProps) {
-    const { projectUri, connectionName, onClose } = props;
+    const { connectionName, onClose } = props;
     const { rpcClient } = useRpcContext();
 
     const [connection, setConnection] = useState<FlowNode>();
     const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
-    const [showSubPanel, setShowSubPanel] = useState(false);
     const [updatingContent, setUpdatingContent] = useState(false);
     const [filePath, setFilePath] = useState("");
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
+
+    // Navigation state
+    const [currentView, setCurrentView] = useState<WizardView>(WizardView.CONNECTION_CONFIG);
+    const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
+    const [nodeFormTemplate, setNodeFormTemplate] = useState<FlowNode>();
 
     useEffect(() => {
         rpcClient
@@ -131,7 +144,6 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
     };
 
     const handleSubPanel = (subPanel: SubPanel) => {
-        setShowSubPanel(subPanel.view !== SubPanelView.UNDEFINED);
         setSubPanel(subPanel);
     };
 
@@ -161,6 +173,110 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
         setUpdatedExpressionField(undefined);
     };
 
+    // Navigation handlers
+    const handleNavigateToPanel = async (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => {
+        if (connectionKind) {
+            setSelectedConnectionKind(connectionKind);
+        }
+
+        switch (targetPanel) {
+            case SidePanelView.CONNECTION_SELECT:
+                setCurrentView(WizardView.CONNECTION_SELECT);
+                break;
+            case SidePanelView.CONNECTION_CREATE:
+                setCurrentView(WizardView.CONNECTION_CREATE);
+                break;
+            default:
+                setCurrentView(WizardView.CONNECTION_CONFIG);
+                break;
+        }
+    };
+
+    const handleSelectNewConnection = async (nodeId: string, metadata?: any) => {
+        try {
+            const { flowNode, connectionKind } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                connection?.codedata?.lineRange,
+                filePath,
+                rpcClient
+            );
+
+            setNodeFormTemplate(flowNode);
+            setSelectedConnectionKind(connectionKind as ConnectionKind);
+            setCurrentView(WizardView.CONNECTION_CREATE);
+        } catch (error) {
+            console.error('Error getting node template for connection:', error);
+        }
+    };
+
+    const handleConnectionCreated = (connectionNode: FlowNode) => {
+        setCurrentView(WizardView.CONNECTION_CONFIG);
+    };
+
+    const handleBack = () => {
+        switch (currentView) {
+            case WizardView.CONNECTION_SELECT:
+                setCurrentView(WizardView.CONNECTION_CONFIG);
+                break;
+            case WizardView.CONNECTION_CREATE:
+                setCurrentView(WizardView.CONNECTION_SELECT);
+                break;
+            default:
+                onClose ? onClose() : gotoHome();
+                break;
+        }
+    };
+
+    const getViewTitle = () => {
+        switch (currentView) {
+            case WizardView.CONNECTION_SELECT:
+                return `Select ${connection?.codedata?.module || ''} Connection`;
+            case WizardView.CONNECTION_CREATE:
+                return `Create ${connection?.codedata?.module || ''} Connection`;
+            default:
+                return `Configure ${connection?.codedata?.module || ''} Connector`;
+        }
+    };
+
+    const renderCurrentView = () => {
+        switch (currentView) {
+            case WizardView.CONNECTION_SELECT:
+                return (
+                    <ConnectionSelectionList
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={connection}
+                        onSelect={handleSelectNewConnection}
+                    />
+                );
+
+            case WizardView.CONNECTION_CREATE:
+                return (
+                    <ConnectionCreator
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={connection}
+                        nodeFormTemplate={nodeFormTemplate}
+                        onSave={handleConnectionCreated}
+                    />
+                );
+
+            default:
+                return (
+                    <ConnectionConfigView
+                        submitText={updatingContent ? "Saving..." : "Save"}
+                        fileName={filePath}
+                        selectedNode={connection}
+                        onSubmit={handleOnFormSubmit}
+                        updatedExpressionField={updatedExpressionField}
+                        resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                        openSubPanel={handleSubPanel}
+                        isSaving={updatingContent}
+                        navigateToPanel={handleNavigateToPanel}
+                    />
+                );
+        }
+    };
+
     return (
         <Container>
             {!connection && (
@@ -171,23 +287,14 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
             {connection && (
                 <PanelContainer
                     show={true}
-                    title={`Configure ${connection.codedata.module || ''} Connector`}
+                    title={getViewTitle()}
                     onClose={onClose ? onClose : gotoHome}
                     width={400}
-                    onBack={onClose ? onClose : gotoHome}
-                    subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+                    onBack={handleBack}
+                    subPanelWidth={400}
                     subPanel={findSubPanelComponent(subPanel)}
                 >
-                    <ConnectionConfigView
-                        submitText={updatingContent ? "Saving..." : "Save"}
-                        fileName={filePath}
-                        selectedNode={connection}
-                        onSubmit={handleOnFormSubmit}
-                        updatedExpressionField={updatedExpressionField}
-                        resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                        openSubPanel={handleSubPanel}
-                        isSaving={updatingContent}
-                    />
+                    {renderCurrentView()}
                 </PanelContainer>
             )}
         </Container>

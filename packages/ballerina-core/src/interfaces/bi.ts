@@ -308,6 +308,7 @@ export type NodePropertyKey =
     | "collection"
     | "comment"
     | "condition"
+    | "matchTarget"
     | "configValue"
     | "connection"
     | "defaultable"
@@ -394,6 +395,10 @@ export type NodeKind =
     | "VECTOR_KNOWLEDGE_BASES"
     | "EMBEDDING_PROVIDER"
     | "EMBEDDING_PROVIDERS"
+    | "DATA_LOADER"
+    | "DATA_LOADERS"
+    | "CHUNKER"
+    | "CHUNKERS"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"
@@ -415,7 +420,8 @@ export type NodeKind =
     | "VARIABLE"
     | "WAIT"
     | "WHILE"
-    | "WORKER";
+    | "WORKER"
+    | "VARIABLE";
 
 export type OverviewFlow = {
     entryPoints: EntryPoint[];

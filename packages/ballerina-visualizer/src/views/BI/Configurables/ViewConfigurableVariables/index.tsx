@@ -55,20 +55,6 @@ const Description = styled(Typography)`
     color: var(--vscode-descriptionForeground);
 `;
 
-const ButtonWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;
-    font-size: 10px;
-    width: auto;
-    margin-left: 15px;
-`;
-
-const ConfigValueField = styled.div`
-    display: flex;
-`;
-
 const TitleBoxShadow = styled.div`
     box-shadow: var(--vscode-scrollbar-shadow) 0 6px 6px -6px inset;
     height: 3px;
@@ -86,17 +72,6 @@ const SearchContainer = styled.div`
     justify-content: space-between;
     margin-bottom: 15px;
     gap: 40px;
-`;
-
-const ConfigNameTitle = styled.div`
-    font-size: 13px;
-    font-weight: 700;
-    height: 20px;
-    color: var(--vscode-settings-headerForeground);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
 `;
 
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
@@ -297,7 +272,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
         await rpcClient
             .getBIDiagramRpcClient()
-            .getConfigVariablesV2()
+            .getConfigVariablesV2({
+                includeLibraries: false,
+                projectPath: ''
+            })
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;

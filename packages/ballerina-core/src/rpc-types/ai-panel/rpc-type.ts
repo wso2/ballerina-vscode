@@ -17,9 +17,9 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { InlineAllDataMapperSourceRequest, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
+import { AllDataMapperSourceRequest, CreateTempFileRequest, DatamapperModelContext, DataMapperModelResponse, ExtendedDataMapperMetadata, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment, DocGenerationRequest } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
@@ -35,14 +35,17 @@ export const addToProject: NotificationType<AddToProjectRequest> = { method: `${
 export const getFromFile: RequestType<GetFromFileRequest, string> = { method: `${_preFix}/getFromFile` };
 export const getFileExists: RequestType<GetFromFileRequest, boolean> = { method: `${_preFix}/getFileExists` };
 export const deleteFromProject: NotificationType<DeleteFromProjectRequest> = { method: `${_preFix}/deleteFromProject` };
-export const generateMappings: RequestType<GenerateMappingsRequest, GenerateMappingsResponse> = { method: `${_preFix}/generateMappings` };
 export const notifyAIMappings: RequestType<NotifyAIMappingsRequest, boolean> = { method: `${_preFix}/notifyAIMappings` };
 export const stopAIMappings: RequestType<void, GenerateMappingsResponse> = { method: `${_preFix}/stopAIMappings` };
 export const getShadowDiagnostics: RequestType<ProjectSource, ProjectDiagnostics> = { method: `${_preFix}/getShadowDiagnostics` };
 export const checkSyntaxError: RequestType<ProjectSource, boolean> = { method: `${_preFix}/checkSyntaxError` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
-export const openInlineMappingChatWindow: NotificationType<void> = { method: `${_preFix}/openInlineMappingChatWindow` };
-export const getMappingsFromModel: RequestType<MetadataWithAttachments, InlineAllDataMapperSourceRequest> = { method: `${_preFix}/getMappingsFromModel` };
+export const openAIMappingChatWindow: NotificationType<DataMapperModelResponse> = { method: `${_preFix}/openAIMappingChatWindow` };
+export const generateDataMapperModel: RequestType<DatamapperModelContext, DataMapperModelResponse> = { method: `${_preFix}/generateDataMapperModel` };
+export const getTypesFromRecord: RequestType<GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse> = { method: `${_preFix}/getTypesFromRecord` };
+export const createTempFileAndGenerateMetadata: RequestType<CreateTempFileRequest, ExtendedDataMapperMetadata> = { method: `${_preFix}/createTempFileAndGenerateMetadata` };
+export const generateMappings: RequestType<MetadataWithAttachments, AllDataMapperSourceRequest> = { method: `${_preFix}/generateMappings` };
+export const addCodeSegmentToWorkspace: RequestType<CodeSegment, boolean> = { method: `${_preFix}/addCodeSegmentToWorkspace` };
 export const addInlineCodeSegmentToWorkspace: NotificationType<CodeSegment> = { method: `${_preFix}/addInlineCodeSegmentToWorkspace` };
 export const getGeneratedTests: RequestType<TestGenerationRequest, TestGenerationResponse> = { method: `${_preFix}/getGeneratedTests` };
 export const getTestDiagnostics: RequestType<TestGenerationResponse, ProjectDiagnostics> = { method: `${_preFix}/getTestDiagnostics` };
@@ -51,8 +54,6 @@ export const getResourceSourceForMethodAndPath: RequestType<string, string> = { 
 export const getServiceNames: RequestType<void, TestGenerationMentions> = { method: `${_preFix}/getServiceNames` };
 export const getResourceMethodAndPaths: RequestType<void, TestGenerationMentions> = { method: `${_preFix}/getResourceMethodAndPaths` };
 export const abortTestGeneration: NotificationType<void> = { method: `${_preFix}/abortTestGeneration` };
-export const getMappingsFromRecord: RequestType<GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse> = { method: `${_preFix}/getMappingsFromRecord` };
-export const getTypesFromRecord: RequestType<GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse> = { method: `${_preFix}/getTypesFromRecord` };
 export const applyDoOnFailBlocks: NotificationType<void> = { method: `${_preFix}/applyDoOnFailBlocks` };
 export const postProcess: RequestType<PostProcessRequest, PostProcessResponse> = { method: `${_preFix}/postProcess` };
 export const getActiveFile: RequestType<void, string> = { method: `${_preFix}/getActiveFile` };
@@ -82,3 +83,4 @@ export const generateTestPlan: NotificationType<TestPlanGenerationRequest> = { m
 export const generateFunctionTests: NotificationType<TestGeneratorIntermediaryState> = { method: `${_preFix}/generateFunctionTests` };
 export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateHealthcareCode` };
 export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
+export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> = { method: `${_preFix}/getGeneratedDocumentation` };

@@ -28,9 +28,9 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType } from "./inline-data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
-import { Attachment } from "../rpc-types/ai-panel/interfaces";
+import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
@@ -293,26 +293,27 @@ export interface InitialIDMSourceResponse {
     codedata?: CodeData;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface DataMapperModelRequest {
     filePath: string;
     codedata: CodeData;
     position: LinePosition;
     targetField?: string;
 }
 
-export interface InlineDataMapperBase {
+export interface DataMapperBase {
     filePath: string;
     codedata: CodeData;
     varName?: string;
     targetField?: string;
+    position?: LinePosition;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperBase {
+export interface DataMapperSourceRequest extends DataMapperBase {
     mapping: Mapping;
     withinSubMapping?: boolean;
 }
 
-export interface InlineAllDataMapperSourceRequest extends InlineDataMapperBase {
+export interface AllDataMapperSourceRequest extends DataMapperBase {
     mappings: Mapping[];
 }
 
@@ -322,7 +323,8 @@ export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
 
 export interface MetadataWithAttachments {
     metadata: ExtendedDataMapperMetadata;
-    attachment?: Attachment[];
+    attachments?: Attachment[];
+    useTemporaryFile?: boolean;
 }
 
 export interface VisualizableFieldsRequest {
@@ -330,16 +332,61 @@ export interface VisualizableFieldsRequest {
     codedata: CodeData;
 }
 
-export interface InlineDataMapperModelResponse {
+export interface DataMapperModelResponse {
     mappingsModel: ExpandedDMModel | DMModel;
 }
 
-export interface InlineDataMapperSourceResponse {
+export interface DataMapperSourceResponse {
     textEdits?: {
         [key: string]: TextEdit[];
     };
     error?: string;
     userAborted?: boolean;
+}
+
+export interface CreateTempFileRequest {
+    inputs: DataMappingRecord[];
+    output: DataMappingRecord;
+    functionName: string;
+    inputNames: string[];
+    imports: ImportInfo[];
+}
+
+export interface DatamapperModelContext {
+    documentUri?: string;
+    identifier?: string;
+    dataMapperMetadata?: any;
+}
+
+export interface ExpandModelOptions {
+    processInputs?: boolean;
+    processOutput?: boolean;
+    processSubMappings?: boolean;
+    previousModel?: ExpandedDMModel;
+}
+
+export interface DMModelRequest {
+    model: DMModel;
+    rootViewId: string;
+    options?: ExpandModelOptions;
+}
+
+export interface ExpandedDMModelResponse {
+    expandedModel: ExpandedDMModel;
+    success: boolean;
+    error?: string;
+}
+export interface ProcessTypeReferenceRequest {
+    ref: string;
+    fieldId: string;
+    model: DMModel;
+    visitedRefs?: Set<string>;
+}
+
+export interface ProcessTypeReferenceResponse {
+    result: Partial<IOType>;
+    success: boolean;
+    error?: string;
 }
 
 export interface VisualizableFieldsResponse {
@@ -400,7 +447,7 @@ export interface MapWithCustomFnRequest {
     targetField: string;
 }
 
-export interface GetInlineDataMapperCodedataRequest {
+export interface GetDataMapperCodedataRequest {
     filePath: string;
     codedata: CodeData;
     name: string;
@@ -412,7 +459,7 @@ export interface GetSubMappingCodedataRequest {
     view: string;
 }
 
-export interface GetInlineDataMapperCodedataResponse {
+export interface GetDataMapperCodedataResponse {
     codedata: CodeData;
 }
 
@@ -837,17 +884,32 @@ export type SearchQueryParams = {
     q?: string;
     limit?: number;
     offset?: number;
+    orgName?: string;
     includeAvailableFunctions?: string;
     includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION" | "MODEL_PROVIDER" | "VECTOR_STORE" | "EMBEDDING_PROVIDER" | "VECTOR_KNOWLEDGE_BASE" | "CLASS_INIT";
+export type SearchKind =
+    | "FUNCTION"
+    | "CONNECTOR"
+    | "TYPE"
+    | "NP_FUNCTION"
+    | "MODEL_PROVIDER"
+    | "VECTOR_STORE"
+    | "EMBEDDING_PROVIDER"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "DATA_LOADER"
+    | "CHUNKER"
+    | "AGENT"
+    | "MEMORY_MANAGER"
+    | "AGENT_TOOL"
+    | "CLASS_INIT";
 
 export type BISearchRequest = {
     position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 
@@ -939,6 +1001,7 @@ export type DeleteConfigVariableResponseV2 = {
 
 export interface GetConfigVariableNodeTemplateRequest {
     isNew: boolean;
+    isEnvVariable?: boolean;
 }
 
 export interface OpenConfigTomlRequest {
@@ -1377,6 +1440,30 @@ export interface UpdateTypesResponse {
     textEdits: {
         [filePath: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface DeleteTypeRequest {
+    filePath: string;
+    lineRange: LineRange;
+}
+
+export interface DeleteTypeResponse {
+    textEdits: {
+        [filePath: string]: TextEdit[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface VerifyTypeDeleteRequest {
+    filePath: string;
+    startPosition: LinePosition;
+}
+
+export interface VerifyTypeDeleteResponse {
+    canDelete: boolean;
     errorMsg?: string;
     stacktrace?: string;
 }
