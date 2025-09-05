@@ -26,6 +26,7 @@ import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { TitleBar } from "../../components/TitleBar";
 import { FormTypeEditor } from "../BI/TypeEditor";
+import { NodeSelector } from "./NodeSelector";
 
 const HeaderContainer = styled.div`
     align-items: center;
@@ -60,15 +61,37 @@ interface TypeEditorState {
 
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
-    console.log("selectedTypeId", selectedTypeId);
+    console.log("selectedTypeId, addType", selectedTypeId, addType);
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
     const [typesModel, setTypesModel] = React.useState<Type[]>(undefined);
     const [focusedNodeId, setFocusedNodeId] = React.useState<string | undefined>(undefined);
-    const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(undefined);
-    const prevSelectedTypeId = React.useRef<string | undefined>(selectedTypeId);
-    const [focusOnLargeDiagram, setFocusOnLargeDiagram] = React.useState<string | undefined>(selectedTypeId);
+    const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(selectedTypeId);
+
+    const [isModelLoaded, setIsModelLoaded] = React.useState<boolean>(false);
+
+    useEffect(() => {
+        if (!typesModel) {
+            return;
+        }
+
+        if (typesModel.length > 100) {
+            if (selectedTypeId) {
+                setFocusedNodeId(selectedTypeId);
+            } else {
+                setFocusedNodeId(undefined);
+            }
+
+        } else {
+            if (selectedTypeId) {
+                setHighlightedNodeId(selectedTypeId);
+            }
+            setFocusedNodeId(undefined);
+        }
+    }, [selectedTypeId, typesModel]);
+
+
     const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
         isTypeCreatorOpen: false,
         editingTypeId: undefined,
@@ -94,58 +117,18 @@ export function TypeDiagram(props: TypeDiagramProps) {
     }, [rpcClient]);
 
     useEffect(() => {
+        setIsModelLoaded(false);
         getComponentModel();
     }, [visualizerLocation]);
 
     rpcClient?.onProjectContentUpdated((state: boolean) => {
         if (state) {
+            console.log("Project content updated, refreshing type model");
+            setIsModelLoaded(false);
             getComponentModel();
         }
     });
 
-    // Handle focused node logic - clear focusedNodeId when selectedTypeId changes
-    useEffect(() => {
-        setFocusedNodeId(undefined);
-    }, [selectedTypeId, typesModel]);
-
-    // Handle focus on large diagram logic - determine when to show focused view vs node selector
-    useEffect(() => {
-        if (!typesModel) {
-            return;
-        }
-
-        if (typesModel.length > 100) {
-            if (selectedTypeId) {
-                console.log('Setting focusOnLargeDiagram from selectedTypeId:', selectedTypeId);
-                setFocusOnLargeDiagram(selectedTypeId);
-            } else if (prevSelectedTypeId.current !== undefined) {
-                // Only clear focus when selectedTypeId explicitly becomes undefined from a previous value
-                // This preserves user action focus when selectedTypeId was never set
-                console.log('Clearing focusOnLargeDiagram due to selectedTypeId becoming undefined');
-                setFocusOnLargeDiagram(undefined);
-            }
-        } else {
-            setFocusOnLargeDiagram(undefined);
-        }
-    }, [selectedTypeId, typesModel]);
-
-    // Handle highlighted node logic - only clear internal highlights when selectedTypeId changes to a new value
-    useEffect(() => {
-        if (prevSelectedTypeId.current !== selectedTypeId && selectedTypeId !== undefined) {
-            // selectedTypeId changed to a new value, clear internal highlights
-            setHighlightedNodeId(undefined);
-        }
-
-        prevSelectedTypeId.current = selectedTypeId;
-    }, [selectedTypeId]);
-
-    // Helper function to set focused view for large diagrams
-    const setFocusForLargeDiagram = (nodeId: string) => {
-        if (typesModel && typesModel.length > 100) {
-            console.log('Setting focusOnLargeDiagram from user action:', nodeId);
-            setFocusOnLargeDiagram(nodeId);
-        }
-    };
 
     const getComponentModel = async () => {
         if (!rpcClient || !visualizerLocation?.metadata?.recordFilePath) {
@@ -155,6 +138,13 @@ export function TypeDiagram(props: TypeDiagramProps) {
             .getBIDiagramRpcClient()
             .getTypes({ filePath: visualizerLocation?.metadata?.recordFilePath });
         setTypesModel(response.types);
+
+        // Set focused node immediately if we have selectedTypeId and more than 100 types
+        if (response.types && response.types.length > 100 && selectedTypeId) {
+            setFocusedNodeId(selectedTypeId);
+        }
+
+        setIsModelLoaded(true);
         console.log(response);
     };
 
@@ -208,7 +198,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
             editingTypeId: typeId,
         }));
         setHighlightedNodeId(typeId);
-        setFocusForLargeDiagram(typeId);
     };
 
     const onTypeEditorClosed = () => {
@@ -220,32 +209,11 @@ export function TypeDiagram(props: TypeDiagramProps) {
         });
     };
 
-    const onSwitchToTypeDiagram = () => {
-        setFocusedNodeId(undefined);
-        setFocusOnLargeDiagram(undefined);
-    };
-
     const onFocusedNodeIdChange = (typeId: string) => {
         setFocusedNodeId(typeId);
         onTypeEditorClosed();
         setHighlightedNodeId(undefined);
-        setFocusOnLargeDiagram(undefined);
     };
-
-    const Header = () => (
-        <HeaderContainer>
-            {focusedNodeId ? <Title>Type : {focusedNodeId}</Title> : <Title>Types</Title>}
-            {focusedNodeId ? (
-                <Button appearance="primary" onClick={onSwitchToTypeDiagram} tooltip="Switch to complete Type Diagram">
-                    <Codicon name="discard" sx={{ marginRight: 5 }} /> Switch to Type Diagram
-                </Button>
-            ) : (
-                <Button appearance="primary" onClick={addNewType} tooltip="Add New Type">
-                    <Codicon name="add" sx={{ marginRight: 5 }} /> Add Type
-                </Button>
-            )}
-        </HeaderContainer>
-    );
 
     const findSelectedType = (typeId: string): Type => {
         if (!typeId) {
@@ -276,8 +244,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 isTypeCreatorOpen: false,
                 newTypeName: undefined,
             });
-            setHighlightedNodeId(type.name);
-            setFocusForLargeDiagram(type.name);
             return;
         }
         setTypeEditorState({
@@ -286,8 +252,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
             isTypeCreatorOpen: false,
             newTypeName: undefined,
         });
-        setHighlightedNodeId(type.name); // Highlight the newly created type
-        setFocusForLargeDiagram(type.name);
     };
 
     // Helper function to convert TypeNodeKind to display name
@@ -317,11 +281,37 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }));
     };
 
+    const handleNodeSelect = (nodeId: string) => {
+        setFocusedNodeId(nodeId);
+    };
+
+    const renderView = () => {
+        if (typesModel && typesModel.length > 100 && focusedNodeId === undefined) {
+            return (
+                <NodeSelector
+                    nodes={typesModel || []}
+                    onNodeSelect={handleNodeSelect}
+                />
+            );
+        } else {
+            return (<TypeDesignDiagram
+                typeModel={typesModel}
+                selectedNodeId={highlightedNodeId}
+                focusedNodeId={focusedNodeId}
+                updateFocusedNodeId={onFocusedNodeIdChange}
+                showProblemPanel={showProblemPanel}
+                goToSource={handleOnGoToSource}
+                onTypeEdit={onTypeEdit}
+            />
+            );
+        }
+    }
+
     return (
         <>
             <View>
                 <TopNavigationBar />
-                {!focusedNodeId && !focusOnLargeDiagram && (
+                {!focusedNodeId && (
                     <TitleBar
                         title="Types"
                         subtitle={focusedNodeId || "View and edit types in the project"}
@@ -332,33 +322,23 @@ export function TypeDiagram(props: TypeDiagramProps) {
                         }
                     />
                 )}
-                {(focusedNodeId || focusOnLargeDiagram) && (
+                {focusedNodeId && (
                     <TitleBar
-                        title={focusedNodeId || focusOnLargeDiagram}
+                        title={focusedNodeId}
                         subtitle="Type"
                         onBack={() => {
                             setFocusedNodeId(undefined);
-                            setFocusOnLargeDiagram(undefined);
                         }}
                     />
                 )}
                 <ViewContent>
-                    {typesModel ? (
-                        <TypeDesignDiagram
-                            typeModel={typesModel}
-                            selectedNodeId={highlightedNodeId !== undefined ? highlightedNodeId : selectedTypeId}
-                            focusedNodeId={focusedNodeId}
-                            focusOnLargeDiagram={focusOnLargeDiagram}
-                            updateFocusedNodeId={onFocusedNodeIdChange}
-                            showProblemPanel={showProblemPanel}
-                            goToSource={handleOnGoToSource}
-                            onTypeEdit={onTypeEdit}
-                        />
-                    ) : (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                            <ProgressRing color={ThemeColors.PRIMARY} />
-                        </div>
-                    )}
+                    <>
+                        {!isModelLoaded ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                <ProgressRing color={ThemeColors.PRIMARY} />
+                            </div>
+                        ) : renderView()}
+                    </>
                 </ViewContent>
             </View>
             {/* Panel for editing and creating types */}
