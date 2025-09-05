@@ -22,7 +22,7 @@ import styled from '@emotion/styled';
 import { FileSelect } from '../style';
 import { FileSelector } from '../components/FileSelector';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
-import { JsonToTypeResponse, Type } from '@wso2/ballerina-core';
+import { EVENT_TYPE, Type, UpdateTypesResponse, JsonToTypeResponse } from '@wso2/ballerina-core';
 import { set } from 'lodash';
 
 interface RecordFromJsonProps {
@@ -100,10 +100,12 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
 
 
             if (otherRecords.length > 0) {
-                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                const response: UpdateTypesResponse = await rpcClient.getBIDiagramRpcClient().updateTypes({
                     filePath: 'types.bal',
                     types: otherRecords
                 });
+
+                await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } });
             }
 
             if (record) {
