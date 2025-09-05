@@ -29,7 +29,6 @@ import { dagreEngine } from './resources/constants';
 import { DesignDiagramContext } from './components/common';
 import { DiagramControls } from './components/Controls/DiagramControls';
 import { OverlayLayerModel } from './components/OverlayLoader';
-import { NodeSelector } from './components/NodeSelector';
 import { FilteringInfoBanner } from './components/FilteringInfoBanner';
 import { Type } from '@wso2/ballerina-core';
 import { focusToNode } from './utils/utils';
@@ -60,31 +59,20 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
     const [hasDiagnostics, setHasDiagnostics] = useState<boolean>(false);
     const [selectedDiagramNode, setSelectedDiagramNode] = useState<string>(selectedNodeId);
-    const [showNodeSelector, setShowNodeSelector] = useState<boolean>(false);
     const [isFirstLevelFiltered, setIsFirstLevelFiltered] = useState<boolean>(false);
 
     useEffect(() => {
         drawDiagram(focusedNodeId);
-    }, [typeModel, focusedNodeId, rootService, focusOnLargeDiagram]);
+    }, [typeModel, focusedNodeId, rootService]);
 
     useEffect(() => {
         setSelectedDiagramNode(selectedNodeId);
-        if (selectedNodeId === undefined) {
-            drawDiagram();
-        }
 
     }, [selectedNodeId]);
 
     const drawDiagram = (focusedNode?: string) => {
-        // Check if we have too many nodes and no focused node
-        if (!focusedNode && !focusOnLargeDiagram && typeModel && typeModel.length > 100) {
-            console.log(`Large diagram detected (${typeModel.length} nodes). Showing node selector.`);
-            setShowNodeSelector(true);
-            return;
-        }
 
         let diagramModel: DiagramModel;
-        setShowNodeSelector(false);
 
 
         // Create diagram model based on type
@@ -93,11 +81,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             diagramModel = graphqlModeller(rootService, typeModel);
         } else if (typeModel && !isGraphql) {
             console.log("Modeling entity diagram", focusedNode, selectedNodeId);
-            let nodeToFocus = focusedNode;
-            if (focusOnLargeDiagram) {
-                nodeToFocus = focusOnLargeDiagram;
-            }
-            const modellerResult: ModellerResult = entityModeller(typeModel, nodeToFocus);
+            const modellerResult: ModellerResult = entityModeller(typeModel, focusedNode);
             diagramModel = modellerResult.model;
             setIsFirstLevelFiltered(modellerResult.isFirstLevelDependenciesFiltered || false);
         }
@@ -158,23 +142,10 @@ export function TypeDiagram(props: TypeDiagramProps) {
         drawDiagram(focusedNodeId);
     };
 
-    const handleNodeSelect = (nodeId: string) => {
-        console.log(`Node selected: ${nodeId}`);
-        setShowNodeSelector(false);
-        if (updateFocusedNodeId) {
-            updateFocusedNodeId(nodeId);
-        }
-    };
-
 
     return (
         <DesignDiagramContext {...ctx}>
-            {showNodeSelector ? (
-                <NodeSelector
-                    nodes={typeModel || []}
-                    onNodeSelect={handleNodeSelect}
-                />
-            ) : diagramEngine?.getModel() && diagramModel ? (
+            {diagramEngine?.getModel() && diagramModel ? (
                 <>
                     {isFirstLevelFiltered && <FilteringInfoBanner />}
                     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
