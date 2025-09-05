@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       is_prerelease:
-        description: 'Create a pre-release (RC) version'
+        description: "Create a pre-release (RC) version"
         required: false
         type: boolean
         default: false
@@ -35,6 +35,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ballerina-
 
+      - name: Generate SBOM
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew cyclonedxBom
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "sbom"
+          scan-ref: "build/sbom.json"
+          format: "table"
+          timeout: "10m0s"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
+
       - name: Set version env variable
         run: |
           # Extract BASE_VERSION from gradle.properties (strip any suffix after '-')
@@ -45,10 +61,10 @@ jobs:
             # Pre release - determine the next RC number
             # Fetch all tags to check for existing RC tags
             git fetch --tags
-          
+
             # Find the highest RC number for this base version
             HIGHEST_RC=$(git tag -l "v${BASE_VERSION}-rc.*" | sed "s/v${BASE_VERSION}-rc.//" | sort -n | tail -1)
-          
+
             if [ -z "$HIGHEST_RC" ]; then
               # No RC tags found, start with rc1
               RC_NUMBER=1
@@ -56,7 +72,7 @@ jobs:
               # Increment the highest RC number
               RC_NUMBER=$((HIGHEST_RC + 1))
             fi
-          
+
             echo VERSION=${BASE_VERSION}-rc.${RC_NUMBER} >> $GITHUB_ENV
             echo PRE_RELEASE=true >> $GITHUB_ENV
           else
@@ -73,7 +89,7 @@ jobs:
           echo "Pre Release: ${PRE_RELEASE}"
           git config user.name ${{ secrets.BALLERINA_BOT_USERNAME }}
           git config user.email ${{ secrets.BALLERINA_BOT_EMAIL }}
-          
+
           # Check if release branch exists in origin
           if git ls-remote --heads origin release-${BASE_VERSION} | grep -q release-${BASE_VERSION}; then
             echo "Branch release-${BASE_VERSION} exists in origin, checking out..."

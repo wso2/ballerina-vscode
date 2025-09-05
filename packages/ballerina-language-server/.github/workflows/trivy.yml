@@ -28,7 +28,7 @@ jobs:
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew cyclonedxBom
 
-      - name: Run Trivy vulnerability scanner on SBOM
+      - name: Run Trivy vulnerability
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "sbom"
@@ -36,4 +36,3 @@ jobs:
           format: "table"
           timeout: "10m0s"
           exit-code: "1"
-          severity: "CRITICAL,HIGH"
