@@ -18,7 +18,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Type } from '@wso2/ballerina-core';
-import { ThemeColors, SearchBox, Typography, Codicon, Icon } from '@wso2/ui-toolkit';
+import { ThemeColors, SearchBox, Typography, Codicon, Icon, Tooltip } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 
 const ViewWrapper = styled.div`
@@ -37,6 +37,9 @@ const TopBar = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 `;
 
 const BodyText = styled.p`
@@ -64,8 +67,9 @@ const ListContainer = styled.div`
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 280px);
     overflow-y: scroll;
+    padding-top: 8px;
 `;
 
 const GridContainer = styled.div`
@@ -108,6 +112,8 @@ const IconContainer = styled.div`
 const ContentContainer = styled.div`
     flex: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 `;
 
 const NodeTitle = styled.p`
@@ -118,9 +124,7 @@ const NodeTitle = styled.p`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    width: 100%;
 `;
 
 const NodeTypeBadge = styled.span`
@@ -128,7 +132,6 @@ const NodeTypeBadge = styled.span`
     border-radius: 3px;
     font-size: 10px;
     font-weight: 500;
-    background-color: ${ThemeColors.PRIMARY}20;
     color: ${ThemeColors.PRIMARY};
     margin-top: 4px;
     display: inline-block;
@@ -140,19 +143,13 @@ const EmptyState = styled.div`
     align-items: center;
     height: 200px;
     flex-direction: column;
+    gap: 20px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     
     .codicon {
         font-size: 24px;
         margin-bottom: 0.5rem;
     }
-`;
-
-const SearchStats = styled.div`
-    padding: 8px 0;
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    opacity: 0.8;
 `;
 
 interface NodeSelectorProps {
@@ -195,7 +192,7 @@ export function NodeSelector({ nodes, onNodeSelect }: NodeSelectorProps) {
                 </TopBar>
 
                 <BodyText>
-                    This diagram contains {nodes.length} types. For a clearer view, select a specific type to explore its dependencies and relationships.
+                    {nodes.length} types detected. Select a type for a focused dependency diagram.
                 </BodyText>
 
                 <Row>
@@ -209,20 +206,11 @@ export function NodeSelector({ nodes, onNodeSelect }: NodeSelectorProps) {
                     />
                 </Row>
 
-                {searchTerm && (
-                    <SearchStats>
-                        Showing {filteredNodes.length} of {nodes.length} types
-                    </SearchStats>
-                )}
-
                 <ListContainer>
                     {filteredNodes.length === 0 ? (
                         <EmptyState>
                             <Codicon name="search" />
                             <div>No types found</div>
-                            <div style={{ fontSize: '12px', marginTop: '0.25rem', opacity: 0.8 }}>
-                                Try adjusting your search term
-                            </div>
                         </EmptyState>
                     ) : (
                         <GridContainer>
@@ -239,9 +227,11 @@ export function NodeSelector({ nodes, onNodeSelect }: NodeSelectorProps) {
                                             }} />
                                         </IconContainer>
                                         <ContentContainer>
-                                            <NodeTitle>
-                                                {node.name}
-                                            </NodeTitle>
+                                            <Tooltip content={node.name} position="top">
+                                                <NodeTitle>
+                                                    {node.name}
+                                                </NodeTitle>
+                                            </Tooltip>
                                             <NodeTypeBadge>
                                                 {formatNodeType(node.codedata?.node || 'Type')}
                                             </NodeTypeBadge>
