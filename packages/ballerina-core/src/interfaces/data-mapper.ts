@@ -160,6 +160,7 @@ export interface IOTypeField {
     name: string;
     displayName?: string;
     member?: IOTypeField;
+    members?: IOTypeField[];
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
@@ -212,17 +213,22 @@ export interface ResultClause {
     query?: Query;
 }
 
-export interface CustomFnMetadata {
-    returnType: string,
-    parameters: CustomFnParams[]
+export interface FnMetadata {
+    returnType: FnReturnType,
+    parameters: FnParams[]
 }
 
-export interface CustomFnParams{
+export interface FnParams{
     name: string,
     type: string,
     isOptional: boolean,
     isNullable: boolean,
     kind: TypeKind
+}
+
+export interface FnReturnType {
+    type: string;
+    kind: TypeKind;
 }
 
 export interface DMFormProps {

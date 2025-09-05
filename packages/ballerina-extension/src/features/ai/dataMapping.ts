@@ -22,7 +22,7 @@ import path from "path";
 import * as fs from 'fs';
 import * as os from 'os';
 import { typesFileParameterDefinitions } from "../../rpc-managers/ai-panel/utils";
-import { writeBallerinaFileDidOpen } from "../../utils/modification";
+import { writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { PrimitiveType } from "../../../src/rpc-managers/ai-panel/constants";
 
 // Generate Ballerina types from a record request
@@ -77,7 +77,7 @@ async function createTempBallerinaFile(
   );
   fs.cpSync(projectRoot, tempDir, { recursive: true });
   const tempTestFilePath = path.join(tempDir, "temp.bal");
-  await writeBallerinaFileDidOpen(tempTestFilePath, fullSource);
+  writeBallerinaFileDidOpenTemp(tempTestFilePath, fullSource);
 
   return tempTestFilePath;
 }
