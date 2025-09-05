@@ -323,7 +323,14 @@ const MainPanel = () => {
                         setViewComponent(<ERDiagram />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
-                        setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        const typeDiagramKey = value?.identifier ? `type-${value.identifier}` : `type-${Date.now()}`;
+                        console.log("+++TypeDiagram", typeDiagramKey, value.addType);
+                        if (value?.identifier) {
+                            setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        } else {
+                            console.log("+++TypeDiagram  KEY", typeDiagramKey, value.addType);
+                            setViewComponent(<TypeDiagram key={`type-${Date.now()}`} selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        }
                         break;
                     case MACHINE_VIEW.DataMapper:
                         setViewComponent(
