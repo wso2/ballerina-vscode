@@ -15,7 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useRef, useState, useEffect } from "react";
+
+import  { useState, useEffect } from "react";
 
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { TypeField } from "@wso2/ballerina-core";

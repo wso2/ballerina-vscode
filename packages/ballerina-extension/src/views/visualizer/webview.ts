@@ -26,7 +26,7 @@ import { extension } from "../../BalExtensionContext";
 import { StateMachine, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
+import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
@@ -74,7 +74,10 @@ export class VisualizerWebview {
                     editor.document.fileName === document.document.fileName
                 );
             const dataMapperModified = balFileModified &&
-                StateMachine.context().view === MACHINE_VIEW.InlineDataMapper &&
+                (
+                    StateMachine.context().view === MACHINE_VIEW.InlineDataMapper ||
+                    StateMachine.context().view === MACHINE_VIEW.DataMapper
+                ) &&
                 document.document.fileName === StateMachine.context().documentUri;
 
             if (dataMapperModified) {
@@ -165,13 +168,13 @@ export class VisualizerWebview {
                 padding-top: 30vh;
             }
             .loader {
-                width: 32px;
+                width: 36px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 4px solid var(--vscode-button-background);
+                border: 6px solid var(--vscode-button-background);
                 animation:
-                    l20-1 0.8s infinite linear alternate,
-                    l20-2 1.6s infinite linear;
+                    l20-1 0.5s infinite linear alternate,
+                    l20-2 1s infinite linear;
             }
             @keyframes l20-1{
                 0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}

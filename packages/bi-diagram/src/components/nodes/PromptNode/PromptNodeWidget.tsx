@@ -238,7 +238,8 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const fetchingStateRef = useRef<FetchCompletionsState>(FETCH_COMPLETIONS_STATE.IDLE);
     const invalidateCacheRef = useRef<boolean>(false);
     const field: ExpressionProperty = useMemo(() => model.node.properties['prompt'], [model]);
-    const nodeModelType = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata)?.module;
+    const nodeMetadata = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata);
+    const nodeModelType = nodeMetadata?.type === "ModelProvider" ? nodeMetadata?.module : nodeMetadata?.type;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (event.metaKey) {
