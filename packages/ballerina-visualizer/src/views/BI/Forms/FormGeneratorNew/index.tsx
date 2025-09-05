@@ -223,7 +223,7 @@ export function FormGeneratorNew(props: FormProps) {
                 allowAdditionalFields: false
             };
         } return {
-            name: typeEditorState.newTypeValue || "MyType2",
+            name: typeEditorState.newTypeValue || "MyType",
             editable: true,
             metadata: {
                 label: "",
