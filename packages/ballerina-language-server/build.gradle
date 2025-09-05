@@ -413,7 +413,6 @@ cyclonedxBom {
     outputName = "sbom"
     outputFormat = "json"
     includeBomSerialNumber = true
-    includeMetadataResolution = true
 }
 
 build.dependsOn test
