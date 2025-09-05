@@ -30,7 +30,7 @@ service /api on httpListener {
         return {body: 0};
     }
 
-    resource function get anonReturn() returns record {|*http:Ok; int body;|} {
+    resource function get anonReturn(DateInfo dateInfo) returns record {|*http:Ok; int body;|} {
         return {body: 0};
     }
 
@@ -56,3 +56,8 @@ public type OkResponse record {|
     *http:Ok;
     json body;
 |};
+
+public type DateInfo record {
+    string admitted;
+    string discharged?;
+};
