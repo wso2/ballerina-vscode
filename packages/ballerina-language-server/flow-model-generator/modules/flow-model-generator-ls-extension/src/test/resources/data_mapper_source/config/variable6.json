@@ -25,7 +25,7 @@
     "output": "credentials.username",
     "expression": "info.username"
   },
-  "targetField": "stores.credentials",
+  "targetField": "stores.0.credentials",
   "output": {
     "variable5.bal": [
       {

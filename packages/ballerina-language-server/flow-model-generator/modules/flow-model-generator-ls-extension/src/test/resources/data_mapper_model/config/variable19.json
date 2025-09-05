@@ -43,16 +43,7 @@
         "displayName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable",
-        "ref": "-481592369"
-      },
-      {
-        "fields": [],
-        "name": "item",
-        "displayName": "item",
-        "typeName": "UserInfo",
-        "kind": "record",
-        "focusExpression": "userInfo",
+        "category": "local-variable",
         "ref": "-481592369"
       }
     ],
@@ -73,49 +64,17 @@
     },
     "mappings": [
       {
-        "output": "credentials.username",
+        "output": "credentials",
         "inputs": [
-          "item.username"
+          "userInfo"
         ],
-        "expression": "item.username",
+        "expression": "from var item in userInfo select {username: item.username, password: item.password}",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
-      },
-      {
-        "output": "credentials.password",
-        "inputs": [
-          "item.password"
-        ],
-        "expression": "item.password",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false,
+        "isQueryExpression": true,
         "isFunctionCall": false
       }
     ],
-    "query": {
-      "output": "credentials",
-      "inputs": [
-        "userInfo"
-      ],
-      "fromClause": {
-        "type": "from",
-        "properties": {
-          "name": "item",
-          "type": "UserInfo",
-          "expression": "userInfo"
-        }
-      },
-      "intermediateClauses": [],
-      "resultClause": {
-        "type": "select",
-        "properties": {
-          "expression": "{username: item.username, password: item.password}"
-        }
-      }
-    },
     "refs": {
       "-481592369": {
         "fields": [

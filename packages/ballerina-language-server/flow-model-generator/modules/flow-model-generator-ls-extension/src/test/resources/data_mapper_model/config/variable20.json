@@ -21,7 +21,7 @@
     "offset": 64
   },
   "propertyKey": "expression",
-  "targetField": "stores.credentials",
+  "targetField": "stores.0.credentials",
   "model": {
     "inputs": [
       {

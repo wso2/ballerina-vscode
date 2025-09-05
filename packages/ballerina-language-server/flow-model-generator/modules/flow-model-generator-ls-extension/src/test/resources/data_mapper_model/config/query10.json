@@ -53,21 +53,21 @@
     "output": {
       "member": {
         "fields": [],
-        "name": "myTypes2",
-        "displayName": "<myTypes2Item>",
+        "name": "0",
+        "displayName": "<0Item>",
         "typeName": "MyType",
         "kind": "record",
         "ref": "2079019383"
       },
-      "name": "myTypes2",
-      "displayName": "myTypes2",
+      "name": "0",
+      "displayName": "0",
       "typeName": "MyType[]",
       "kind": "array",
       "ref": "2079019383"
     },
     "mappings": [
       {
-        "output": "myTypes2",
+        "output": "0",
         "inputs": [
           "x"
         ],
@@ -79,7 +79,7 @@
       }
     ],
     "query": {
-      "output": "myTypes2",
+      "output": "0",
       "inputs": [
         "myTypes1"
       ],

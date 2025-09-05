@@ -58,7 +58,9 @@
         "diagnostics": [
           "undefined symbol 'userInf'"
         ],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "refs": {

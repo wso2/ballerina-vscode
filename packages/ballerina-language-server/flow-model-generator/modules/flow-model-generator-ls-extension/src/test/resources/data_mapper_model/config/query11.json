@@ -79,10 +79,10 @@
         "inputs": [
           "newSecondaryPhones"
         ],
-        "expression": "let string num = \"10\" in from var secondaryPhonesItem in newSecondaryPhones\n                   select {code: secondaryPhonesItem.code, number: num}\n",
+        "expression": "from var secondaryPhonesItem in newSecondaryPhones\n                   select {code: secondaryPhonesItem.code, number: num}\n",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
+        "isQueryExpression": true,
         "isFunctionCall": false
       }
     ],
