@@ -63,6 +63,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAd
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateDesignApproach;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
@@ -96,6 +97,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
         ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
+        populateDesignApproach(context.service());
         if (Objects.nonNull(context.service().getOpenAPISpec())) {
             return new OpenApiServiceGenerator(Path.of(context.service().getOpenAPISpec().getValue()),
                     context.project().sourceRoot(), context.workspaceManager())
