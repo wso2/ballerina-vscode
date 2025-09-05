@@ -44,7 +44,8 @@ public class EmbeddingProviderSearchTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("embedding_providers.json")},
-                {Path.of("embedding_providers_search_openai.json")}
+                {Path.of("embedding_providers_search_openai.json")},
+                {Path.of("embedding_providers_with_existing_ai.json")},
         };
     }
 

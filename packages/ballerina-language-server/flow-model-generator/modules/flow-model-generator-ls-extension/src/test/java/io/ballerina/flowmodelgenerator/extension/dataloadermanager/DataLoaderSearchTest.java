@@ -43,7 +43,8 @@ public class DataLoaderSearchTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("data_loaders.json")}
+                {Path.of("data_loaders.json")},
+                {Path.of("data_loaders_with_existing_ai.json")},
         };
     }
 

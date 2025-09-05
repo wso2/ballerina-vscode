@@ -1,5 +1,5 @@
 {
-  "source": "embedding_provider/provider.bal",
+  "source": "embedding_providers_with_existing_ai",
   "expectedEmbeddingProviders": {
     "categories": [
       {
@@ -17,7 +17,8 @@
               "org": "ballerina",
               "module": "ai",
               "packageName": "ai",
-              "symbol": "getDefaultEmbeddingProvider"
+              "symbol": "getDefaultEmbeddingProvider",
+              "version": "1.0.0"
             },
             "enabled": true
           },
@@ -32,7 +33,8 @@
               "module": "ai.openai",
               "packageName": "ai.openai",
               "object": "EmbeddingProvider",
-              "symbol": "init"
+              "symbol": "init",
+              "version": "1.0.0"
             },
             "enabled": true
           }
