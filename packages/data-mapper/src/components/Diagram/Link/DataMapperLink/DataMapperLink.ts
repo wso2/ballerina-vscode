@@ -28,7 +28,8 @@ export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
 	ArrayToSingletonAggregate = "array-singleton-aggregate",
-	Incompatible = "Incompatible",
+	Incompatible = "incompatible",
+	ContainsUnions = "contains-unions",
 	Default = undefined // This is for non-array mappings currently
 }
 

@@ -93,6 +93,10 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         }
 
         const targetField = targetPort.attributes.field;
+
+        if (sourceField.kind === TypeKind.Union || targetField.kind === TypeKind.Union) {
+            return MappingType.ContainsUnions;
+        }
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
