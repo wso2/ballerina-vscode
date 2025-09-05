@@ -16,7 +16,7 @@
 
 import { GenerateOpenAPIRequest, Command } from "@wso2/ballerina-core";
 import { streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -28,6 +28,7 @@ export async function generateOpenAPISpecCore(
 ): Promise<void> {
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
+    const cacheOptions = await getProviderCacheControl();
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
         maxTokens: 8192,
@@ -36,9 +37,7 @@ export async function generateOpenAPISpecCore(
             {
                 role: "system",
                 content: getSystemPrompt(),
-                providerOptions: {
-                    anthropic: { cacheControl: { type: "ephemeral" } },
-                },
+                providerOptions: cacheOptions,
             },
             ...historyMessages,
             {
