@@ -46,6 +46,7 @@ import {
     ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
+    FileChanges,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -141,6 +142,7 @@ const AIChat: React.FC = () => {
     const [testGenIntermediaryState, setTestGenIntermediaryState] = useState<TestGeneratorIntermediaryState | null>(
         null
     );
+    const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
 
@@ -628,8 +630,8 @@ const AIChat: React.FC = () => {
                             break;
                         case "inline-mappings":
                             await processInlineMappingParameters(
-                                inputText, 
-                                metadata as ExtendedDataMapperMetadata, 
+                                inputText,
+                                metadata as ExtendedDataMapperMetadata,
                                 attachments
                             );
                             break;
@@ -801,6 +803,10 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Add to integration called. Command: ", command);
+        setIsAddingToWorkspace(true);
+        
+        try {
+            const fileChanges: FileChanges[] = [];
         for (let { segmentText, filePath } of codeSegments) {
             let originalContent = "";
             if (!tempStorage[filePath]) {
@@ -909,8 +915,8 @@ const AIChat: React.FC = () => {
                 segmentText = updatedContent.trim();
             } else if (command === "ai_map_inline") {
                 rpcClient.getAiPanelRpcClient().addInlineCodeSegmentToWorkspace(
-                    { 
-                        segmentText, 
+                    {
+                        segmentText,
                         filePath
                     }
                 );
@@ -926,14 +932,17 @@ const AIChat: React.FC = () => {
                 isTestCode = true;
             }
 
-            await rpcClient
-                .getAiPanelRpcClient()
-                .addToProject({ filePath: filePath, content: segmentText, isTestCode: isTestCode });
+            fileChanges.push({ filePath, content: segmentText });
+        }
+
+        if (fileChanges.length > 0) {
+            await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
         }
 
         const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
         const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
         setIsCodeAdded(true);
+        setIsAddingToWorkspace(false);
 
         if (await rpcClient.getAiPanelRpcClient().isNaturalProgrammingDirectoryExists(chatLocation)) {
             fetchWithAuth({
@@ -964,6 +973,11 @@ const AIChat: React.FC = () => {
                     rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
                 });
         }
+        } catch (error) {
+            console.error("Error in handleAddAllCodeSegmentsToWorkspace:", error);
+            setIsAddingToWorkspace(false);
+            throw error;
+        }
     };
 
     async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
@@ -988,7 +1002,10 @@ const AIChat: React.FC = () => {
         command: string
     ) => {
         console.log("Revert gration called. Command: ", command);
-
+        setIsAddingToWorkspace(true);
+        
+        try {
+            const fileChanges: FileChanges[] = [];
         for (const { filePath } of codeSegments) {
             let originalContent = tempStorage[filePath];
             if (originalContent === "" && !initialFiles.has(filePath) && !emptyFiles.has(filePath)) {
@@ -1004,10 +1021,11 @@ const AIChat: React.FC = () => {
                     isTestCode = true;
                 }
                 const revertContent = emptyFiles.has(filePath) ? "" : originalContent;
-                await rpcClient
-                    .getAiPanelRpcClient()
-                    .addToProject({ filePath: filePath, content: revertContent, isTestCode: isTestCode });
+                fileChanges.push({ filePath, content: revertContent });
             }
+        }
+        if (fileChanges.length > 0) {
+            await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
         }
         rpcClient.getAiPanelRpcClient().updateDevelopmentDocument({
             content: previousDevelopmentDocumentContent,
@@ -1020,6 +1038,12 @@ const AIChat: React.FC = () => {
         );
         tempStorage = {};
         setIsCodeAdded(false);
+        setIsAddingToWorkspace(false);
+        } catch (error) {
+            console.error("Error in handleRevertChanges:", error);
+            setIsAddingToWorkspace(false);
+            throw error;
+        }
     };
 
     async function processTestGeneration(
@@ -1328,16 +1352,16 @@ const AIChat: React.FC = () => {
             {
                 inputs,
                 output,
-                functionName, 
-                inputNames, 
+                functionName,
+                inputNames,
                 imports: Array.from(importsMap.values())
             }
         );
         allMappingsRequest = await rpcClient.getAiPanelRpcClient().generateMappings(
-            { 
-                metadata: tempFileMetadata, 
-                attachments, 
-                useTemporaryFile: true 
+            {
+                metadata: tempFileMetadata,
+                attachments,
+                useTemporaryFile: true
             }
         );
 
@@ -1345,17 +1369,17 @@ const AIChat: React.FC = () => {
         finalContent = response.textEdits[allMappingsRequest.filePath]?.[0]?.newText;
 
         await rpcClient.getAiPanelRpcClient().addCodeSegmentToWorkspace(
-            { 
-                segmentText: finalContent, 
-                filePath: tempFileMetadata.codeData.lineRange.fileName, 
-                metadata: tempFileMetadata, 
+            {
+                segmentText: finalContent,
+                filePath: tempFileMetadata.codeData.lineRange.fileName,
+                metadata: tempFileMetadata,
                 textEdit: response
             }
         );
         await new Promise(resolve => setTimeout(resolve, 100));
         finalContent = await rpcClient.getAiPanelRpcClient().getContentFromFile(
-            { 
-                filePath: tempFileMetadata.codeData.lineRange.fileName 
+            {
+                filePath: tempFileMetadata.codeData.lineRange.fileName
             }
         );
 
@@ -1883,6 +1907,7 @@ const AIChat: React.FC = () => {
                                                             isPromptExecutedInCurrentWindow
                                                         }
                                                         isErrorChunkReceived={isErrorChunkReceivedRef.current}
+                                                        isAddingToWorkspace={isAddingToWorkspace}
                                                     />
                                                 );
                                             }

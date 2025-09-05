@@ -34,7 +34,7 @@ import {
     TRIGGER_CHARACTERS,
     Mapping,
     CodeData,
-    CustomFnMetadata,
+    FnMetadata,
     NodePosition,
     EVENT_TYPE,
     LineRange,
@@ -391,7 +391,7 @@ export function DataMapperView(props: DataMapperProps) {
         }
     };
 
-    const mapWithCustomFn = async (mapping: Mapping, metadata: CustomFnMetadata, viewId: string) => {
+    const mapWithCustomFn = async (mapping: Mapping, metadata: FnMetadata, viewId: string) => {
         try {
             const resp = await rpcClient
                 .getDataMapperRpcClient()
@@ -404,6 +404,25 @@ export function DataMapperView(props: DataMapperProps) {
                     targetField: viewId,
                 });
             console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
+    const mapWithTransformFn = async (mapping: Mapping, metadata: FnMetadata, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .mapWithTransformFn({
+                    filePath,
+                    codedata,
+                    mapping,
+                    functionMetadata: metadata,
+                    varName: name,
+                    targetField: viewId,
+                });
+            console.log(">>> [Data Mapper] mapWithTransformFn response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -580,6 +599,7 @@ export function DataMapperView(props: DataMapperProps) {
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             mapWithCustomFn={mapWithCustomFn}
+                            mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             expressionBar={{
