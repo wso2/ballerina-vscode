@@ -208,7 +208,7 @@ export function FormGeneratorNew(props: FormProps) {
     const defaultType = (): Type => {
         if (typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
-                name: typeEditorState.newTypeValue || "MyType1",
+                name: typeEditorState.newTypeValue || "MyType",
                 editable: true,
                 metadata: {
                     label: "",
