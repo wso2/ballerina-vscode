@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateText, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage, extractResourceDocumentContent } from "../utils";
 import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
@@ -53,6 +53,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     ).libraries;
 
     const historyMessages = populateHistory(params.chatHistory);
+    const cacheOptions = await getProviderCacheControl();
     const allMessages: CoreMessage[] = [
         {
             role: "system",
@@ -61,17 +62,13 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         {
             role: "system",
             content: getSystemPromptSuffix(LANGLIBS),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
         },
         ...historyMessages,
         {
             role: "user",
             content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
         },
     ];
 
