@@ -20,6 +20,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "${shadowJarPluginVersion}"
     id "de.undercouch.download" version "${downloadPluginVersion}"
     id "net.researchgate.release" version "${releasePluginVersion}"
+    id "org.cyclonedx.bom" version "1.8.2"
     id "java"
 }
 apply plugin: 'maven-publish'
@@ -402,6 +403,17 @@ release {
         requireBranch = "release-${moduleVersion}"
         pushToRemote = 'origin'
     }
+}
+
+// Configure CycloneDX SBOM generation
+cyclonedxBom {
+    includeConfigs = ["externalJarDeps"]
+    schemaVersion = "1.4"
+    destination = file("$buildDir")
+    outputName = "sbom"
+    outputFormat = "json"
+    includeBomSerialNumber = true
+    includeMetadataResolution = true
 }
 
 build.dependsOn test
