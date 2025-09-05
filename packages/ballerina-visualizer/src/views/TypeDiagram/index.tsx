@@ -26,7 +26,7 @@ import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { TitleBar } from "../../components/TitleBar";
 import { FormTypeEditor } from "../BI/TypeEditor";
-import { NodeSelector } from "./NodeSelector";
+import { NodeSelector } from "./NodeSelectorView/NodeSelector";
 
 const HeaderContainer = styled.div`
     align-items: center;
