@@ -45,6 +45,8 @@ interface TypeDiagramProps {
     showProblemPanel?: () => void;
     goToSource: (node: Type) => void
     onTypeEdit: (typeId: string, isGraphqlRoot?: boolean) => void;
+    onTypeDelete: (typeId: string) => void;
+    verifyTypeDelete: (typeId: string) => Promise<boolean>;
 }
 
 export interface ModellerResult {
@@ -53,8 +55,7 @@ export interface ModellerResult {
 }
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, focusOnLargeDiagram } = props;
-    console.log("selectedNodeId in TypeDiagram, focusOnLargeDiagram, focusedNodeId", selectedNodeId, focusOnLargeDiagram, focusedNodeId);
+    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
     const [diagramEngine] = useState<DiagramEngine>(createEntitiesEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
     const [hasDiagnostics, setHasDiagnostics] = useState<boolean>(false);
@@ -127,6 +128,11 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setSelectedDiagramNode(nodeId);
     }
 
+    const onNodeDelete = (typeId: string) => {
+        console.log("Deleting node: ", selectedDiagramNode);
+        props.onTypeDelete(typeId);
+    }
+
     let ctx = {
         selectedNodeId: selectedDiagramNode,
         setSelectedNodeId: updateSelectionOnDiagram,
@@ -135,7 +141,9 @@ export function TypeDiagram(props: TypeDiagramProps) {
         focusedNodeId,
         setFocusedNodeId: updateFocusedNodeId,
         onEditNode: onTypeEdit,
-        goToSource
+        goToSource,
+        onNodeDelete,
+        verifyTypeDelete
     }
 
     const refreshDiagram = () => {

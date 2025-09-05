@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions } from 'vscode';
+import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions, workspace } from 'vscode';
 import { BallerinaExtension } from './core';
 import { activate as activateBBE } from './views/bbe';
 import {
@@ -119,13 +119,24 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
     const ballerinaExtInstance = new BallerinaExtension();
     extension.ballerinaExtInstance = ballerinaExtInstance;
     debug('Active the Ballerina VS Code extension.');
-    sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    try {
+        debug('Sending telemetry event.');
+        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    } catch (error) {
+        debug('Error sending telemetry event.');
+    }
+    debug('Setting context.');
     ballerinaExtInstance.setContext(extension.context);
+    await updateCodeServerConfig();
     // Enable URI handlers
+    debug('Activating URI handlers.');
     activateUriHandlers(ballerinaExtInstance);
     // Activate Subscription Commands
+    debug('Activating subscription commands.');
     activateSubscriptions();
+    debug('Starting ballerina extension initialization.');
     await ballerinaExtInstance.init(onBeforeInit).then(() => {
+        debug('Ballerina extension activated successfully.');
         // <------------ CORE FUNCTIONS ----------->
         // Activate Library Browser
         activateLibraryBrowser(ballerinaExtInstance);
@@ -187,6 +198,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         });
         isPluginStartup = false;
     }).catch((e) => {
+        debug('Failed to activate Ballerina extension.');
         log("Failed to activate Ballerina extension. " + (e.message ? e.message : e));
         const cmds: any[] = ballerinaExtInstance.extension.packageJSON.contributes.commands;
 
@@ -237,6 +249,15 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         }
     });
     return ballerinaExtInstance;
+}
+
+async function updateCodeServerConfig() {
+    if (!('CLOUD_STS_TOKEN' in process.env)) {
+        return;
+    }
+    log("Code server environment detected")
+    const config = workspace.getConfiguration('ballerina');
+    await config.update('enableRunFast', true);
 }
 
 export function deactivate(): Thenable<void> | undefined {

@@ -38,12 +38,13 @@ import { StateMachinePopup } from './stateMachinePopup';
 import { registerAiAgentRpcHandlers } from './rpc-managers/ai-agent/rpc-handler';
 import { registerConnectorWizardRpcHandlers } from './rpc-managers/connector-wizard/rpc-handler';
 import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diagram/rpc-handler';
-import { registerInlineDataMapperRpcHandlers } from './rpc-managers/inline-data-mapper/rpc-handler';
+import { registerDataMapperRpcHandlers } from './rpc-managers/data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
 import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
+import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 
 export class RPCLayer {
     static _messenger: Messenger = new Messenger();
@@ -96,11 +97,14 @@ export class RPCLayer {
         registerAiPanelRpcHandlers(RPCLayer._messenger);
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
 
-        // ----- Inline Data Mapper Webview RPC Methods
-        registerInlineDataMapperRpcHandlers(RPCLayer._messenger);
+        // ----- Data Mapper Webview RPC Methods
+        registerDataMapperRpcHandlers(RPCLayer._messenger);
 
         // ----- Popup Views RPC Methods
         RPCLayer._messenger.onRequest(getPopupVisualizerState, () => getPopupContext());
+
+        // ----- Register Integration Migration RPC Methods
+        registerMigrateIntegrationRpcHandlers(RPCLayer._messenger);
 
         // ----- Artifact Updated Common Notification
         RPCLayer._messenger.onRequest(onArtifactUpdatedRequest, (artifactData: ArtifactData) => {
