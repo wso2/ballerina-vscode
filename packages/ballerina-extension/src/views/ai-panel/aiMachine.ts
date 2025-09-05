@@ -21,8 +21,8 @@ import { createMachine, assign, interpret } from 'xstate';
 import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIUserToken, AIMachineSendableEvent, LoginMethod } from '@wso2/ballerina-core';
 import { AiPanelWebview } from './webview';
 import { extension } from '../../BalExtensionContext';
-import { getAccessToken } from '../../utils/ai/auth';
-import { checkToken, initiateInbuiltAuth, logout, validateApiKey } from './utils';
+import { getAccessToken, getLoginMethod } from '../../utils/ai/auth';
+import { checkToken, initiateInbuiltAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
 
 export const USER_CHECK_BACKEND_URL = '/user/usage';
 
@@ -122,6 +122,12 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                     actions: assign({
                         loginMethod: (_ctx) => LoginMethod.ANTHROPIC_KEY
                     })
+                },
+                [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: {
+                    target: 'Authenticating',
+                    actions: assign({
+                        loginMethod: (_ctx) => LoginMethod.AWS_BEDROCK
+                    })
                 }
             }
         },
@@ -137,6 +143,10 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                         {
                             cond: (context) => context.loginMethod === LoginMethod.ANTHROPIC_KEY,
                             target: 'apiKeyFlow'
+                        },
+                        {
+                            cond: (context) => context.loginMethod === LoginMethod.AWS_BEDROCK,
+                            target: 'awsBedrockFlow'
                         },
                         {
                             target: 'ssoFlow' // default
@@ -202,6 +212,41 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                             target: 'apiKeyFlow',
                             actions: assign({
                                 errorMessage: (_ctx, event) => event.data?.message || 'API key validation failed'
+                            })
+                        }
+                    }
+                },
+                awsBedrockFlow: {
+                    on: {
+                        [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+                            target: 'validatingAwsCredentials',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined
+                            })
+                        },
+                        [AIMachineEventType.CANCEL_LOGIN]: {
+                            target: '#ballerina-ai.Unauthenticated',
+                            actions: assign({
+                                loginMethod: (_ctx) => undefined,
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        }
+                    }
+                },
+                validatingAwsCredentials: {
+                    invoke: {
+                        id: 'validateAwsCredentials',
+                        src: 'validateAwsCredentials',
+                        onDone: {
+                            target: '#ballerina-ai.Authenticated',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        },
+                        onError: {
+                            target: 'awsBedrockFlow',
+                            actions: assign({
+                                errorMessage: (_ctx, event) => event.data?.message || 'AWS credentials validation failed'
                             })
                         }
                     }
@@ -290,12 +335,26 @@ const validateApiKeyService = async (_context: AIMachineContext, event: any) => 
     return await validateApiKey(apiKey, LoginMethod.ANTHROPIC_KEY);
 };
 
+const validateAwsCredentialsService = async (_context: AIMachineContext, event: any) => {
+    const { accessKeyId, secretAccessKey, region, sessionToken } = event.payload || {};
+    if (!accessKeyId || !secretAccessKey || !region) {
+        throw new Error('AWS access key ID, secret access key, and region are required');
+    }
+    return await validateAwsCredentials({
+        accessKeyId,
+        secretAccessKey,
+        region,
+        sessionToken
+    });
+};
+
 const getTokenAfterAuth = async () => {
     const result = await getAccessToken();
-    if (!result) {
+    const loginMethod = await getLoginMethod();
+    if (!result || !loginMethod) {
         throw new Error('No authentication credentials found');
     }
-    return { token: result, loginMethod: LoginMethod.BI_INTEL };
+    return { token: result, loginMethod: loginMethod };
 };
 
 const aiStateService = interpret(aiMachine.withConfig({
@@ -303,6 +362,7 @@ const aiStateService = interpret(aiMachine.withConfig({
         checkToken: checkToken,
         openLogin: openLogin,
         validateApiKey: validateApiKeyService,
+        validateAwsCredentials: validateAwsCredentialsService,
         getTokenAfterAuth: getTokenAfterAuth,
     },
     actions: {
