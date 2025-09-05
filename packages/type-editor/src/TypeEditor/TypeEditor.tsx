@@ -20,7 +20,7 @@ import React, { useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
-import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse } from "@wso2/ballerina-core";
+import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse } from "@wso2/ballerina-core";
 import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../TypeHelper";
 import { TypeHelperContext } from "../Context";
 import { ImportTab } from "./Tabs/ImportTab";
@@ -100,14 +100,16 @@ export function TypeEditor(props: TypeEditorProps) {
         // IF type nodeKind is CLASS then we call graphqlEndpoint
         // TODO: for TypeDiagram we need to give a generic class creation
         if (type.codedata.node === "CLASS") {
-            const response = await props.rpcClient
+            const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .createGraphqlClassType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
+            await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
 
         } else {
-            const response = await props.rpcClient
+            const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .updateType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
+            await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
         }
         props.onTypeChange(type);
         setIsSaving(false);
@@ -148,7 +150,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ padding: '10px' }}
                     >
-                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">                           
+                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">
                             <TypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -160,7 +162,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="import" data-testid="import-tab">                            
+                        <div id="import" data-testid="import-tab">
                             <ImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -170,7 +172,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         </div>
                     </TabPanel>
                 ) : (
-                    <div style={{ padding: '10px' }} data-testid="type-editor-content">                        
+                    <div style={{ padding: '10px' }} data-testid="type-editor-content">
                         <TypeCreatorTab
                             onTypeChange={props.onTypeChange}
                             editingType={type}
