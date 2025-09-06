@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapWithCustomFn, mapWithQuery } from '../utils/modification-utils';
+import { createNewMapping, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 
 export const useStyles = () => ({
@@ -84,11 +84,11 @@ const codiconStyles = {
     marginRight: '10px'
 }
 
-export interface ArrayMappingOptionsWidgetProps {
+export interface MappingOptionsWidgetProps {
     model: ExpressionLabelModel;
 }
 
-export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps) {
+export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     const classes = useStyles();
     const { link, context  } = props.model;
     const pendingMappingType = link.pendingMappingType;
@@ -120,6 +120,10 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
     const onClickMapWithCustomFn = async () => {
         await mapWithCustomFn(link, context);
     };
+
+    const onClickMapWithTransformFn = async () => {
+        await mapWithTransformFn(link, context);
+    }
 
     const onClickMapWithAggregateFn = async (fn: string) => {
         await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
@@ -189,10 +193,17 @@ export function ArrayMappingOptionsWidget(props: ArrayMappingOptionsWidgetProps)
 
     if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
         menuItems.push({
-            id: "a2a-a2s-func",
-            label: getItemElement("a2a-a2s-func", "Map Using Custom Function"),
+            id: "a2a-a2s-custom-func",
+            label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
             onClick: wrapWithProgress(onClickMapWithCustomFn)
         });
+        if (pendingMappingType !== MappingType.ContainsUnions) {
+            menuItems.push({
+                id: "a2a-a2s-transform-func",
+                label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                onClick: wrapWithProgress(onClickMapWithTransformFn)
+            });
+        }
     }
     return (
         <div className={classes.arrayMappingMenu}>

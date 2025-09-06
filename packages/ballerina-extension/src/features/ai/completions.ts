@@ -23,7 +23,7 @@ import {
     sendTelemetryException
 } from "./../telemetry";
 import { PALETTE_COMMANDS } from "./../project/cmds/cmd-runner";
-import { loginGithubCopilot } from '../../utils/ai/auth';
+import { clearAuthCredentials, loginGithubCopilot } from '../../utils/ai/auth';
 import { RPCLayer } from "../../RPCLayer";
 // import { VisualizerWebview } from "../../views/visualizer/webview";
 import { AiPanelWebview } from "../../views/ai-panel/webview";
@@ -47,8 +47,6 @@ export function activateCopilotLoginCommand() {
 
 export function resetBIAuth() {
     commands.registerCommand(PALETTE_COMMANDS.RESET_BI, async () => {
-        await extension.ballerinaExtInstance.context.secrets.delete('GITHUB_TOKEN');
-        await extension.ballerinaExtInstance.context.secrets.delete('GITHUB_COPILOT_TOKEN');
-        await extension.ballerinaExtInstance.context.secrets.delete('LOGIN_ALERT_SHOWN');
+        await clearAuthCredentials();
     });
 }
