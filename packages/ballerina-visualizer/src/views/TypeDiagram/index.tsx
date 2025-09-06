@@ -59,6 +59,8 @@ interface TypeEditorState {
     editingType: Type;
 }
 
+const MAX_TYPES_FOR_FULL_VIEW= 80;
+
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
     const { rpcClient } = useRpcContext();
@@ -80,7 +82,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
 
-        if (typesModel.length > 100) {
+        if (typesModel.length > MAX_TYPES_FOR_FULL_VIEW) {
             if (selectedTypeId) {
                 setFocusedNodeId(selectedTypeId);
             } else {
@@ -135,8 +137,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             .getTypes({ filePath: visualizerLocation?.metadata?.recordFilePath });
         setTypesModel(response.types);
 
-        // Set focused node immediately if we have selectedTypeId and more than 100 types
-        if (response.types && response.types.length > 100 && selectedTypeId) {
+        // Set focused node immediately if we have selectedTypeId and more than 80 types
+        if (response.types && response.types.length > MAX_TYPES_FOR_FULL_VIEW && selectedTypeId) {
             setFocusedNodeId(selectedTypeId);
         }
 
@@ -338,7 +340,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
     };
 
     const renderView = () => {
-        if (typesModel && typesModel.length > 100 && focusedNodeId === undefined) {
+        if (typesModel && typesModel.length > MAX_TYPES_FOR_FULL_VIEW && focusedNodeId === undefined) {
             return (
                 <NodeSelector
                     nodes={typesModel || []}

@@ -112,6 +112,8 @@ export function graphqlModeller(rootService: Type, refs: Type[]): DiagramModel {
     return model;
 }
 
+const MAX_TYPES_FOR_FOCUSED_VIEW= 60;
+
 export function entityModeller(components: Type[], selectedEntityId?: string): ModelResult {
     let filteredComponents = components;
     let firstLevelDependenciesFiltered = false;
@@ -123,7 +125,7 @@ export function entityModeller(components: Type[], selectedEntityId?: string): M
         filteredComponents = components.filter(comp => relatedEntities.has(comp.name));
         console.log(`Filtered to ${filteredComponents.length} related nodes for selected entity '${selectedEntityId}'`);
         
-        if (filteredComponents.length > 70) {
+        if (filteredComponents.length > MAX_TYPES_FOR_FOCUSED_VIEW) {
             // show only the selected entity + first level dependencies
             const firstLevelDeps = findFirstLevelDependencies(selectedEntityId, components);
             filteredComponents = components.filter(comp => firstLevelDeps.has(comp.name));
