@@ -40,7 +40,6 @@ interface TypeDiagramProps {
     isGraphql?: boolean;
     selectedNodeId?: string;
     focusedNodeId?: string;
-    focusOnLargeDiagram?: string;
     updateFocusedNodeId?: (nodeId: string) => void;
     showProblemPanel?: () => void;
     goToSource: (node: Type) => void
@@ -49,13 +48,14 @@ interface TypeDiagramProps {
     verifyTypeDelete: (typeId: string) => Promise<boolean>;
 }
 
-export interface ModellerResult {
+export interface ModelResult {
     model: DiagramModel;
     isFirstLevelDependenciesFiltered?: boolean;
 }
 
 export function TypeDiagram(props: TypeDiagramProps) {
     const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
+
     const [diagramEngine] = useState<DiagramEngine>(createEntitiesEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
     const [hasDiagnostics, setHasDiagnostics] = useState<boolean>(false);
@@ -68,7 +68,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
 
     useEffect(() => {
         setSelectedDiagramNode(selectedNodeId);
-
     }, [selectedNodeId]);
 
     const drawDiagram = (focusedNode?: string) => {
@@ -82,7 +81,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             diagramModel = graphqlModeller(rootService, typeModel);
         } else if (typeModel && !isGraphql) {
             console.log("Modeling entity diagram", focusedNode, selectedNodeId);
-            const modellerResult: ModellerResult = entityModeller(typeModel, focusedNode);
+            const modellerResult: ModelResult = entityModeller(typeModel, focusedNode);
             diagramModel = modellerResult.model;
             setIsFirstLevelFiltered(modellerResult.isFirstLevelDependenciesFiltered || false);
         }
@@ -149,7 +148,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const refreshDiagram = () => {
         drawDiagram(focusedNodeId);
     };
-
 
     return (
         <DesignDiagramContext {...ctx}>

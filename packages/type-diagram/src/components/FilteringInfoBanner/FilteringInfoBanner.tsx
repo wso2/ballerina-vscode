@@ -43,7 +43,6 @@ const BannerMessage = styled.div`
 `;
 
 
-
 export function FilteringInfoBanner() {
     return (
         <BannerContainer>

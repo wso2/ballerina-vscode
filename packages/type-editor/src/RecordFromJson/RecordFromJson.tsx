@@ -105,7 +105,9 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                     types: otherRecords
                 });
 
-                await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } });
+                await props.rpcClient.getVisualizerRpcClient().openView(
+                    { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                );
             }
 
             if (record) {
