@@ -381,8 +381,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
                         type={findSelectedType(typeEditorState.editingTypeId)}
                         newType={typeEditorState.editingTypeId ? false : true}
                         onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate}
-                    />
+                        onTypeCreate={handleTypeCreate} 
+                     />
                 </PanelContainer>
             )}
         </>
