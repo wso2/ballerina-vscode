@@ -116,9 +116,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
         onClose && onClose();
     };
 
-    if (openState) {
-        setShowOverlay(true);
-    }
+    setShowOverlay(openState === true);
 
     useEffect(() => {
         return () => {
