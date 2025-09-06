@@ -113,12 +113,26 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
     };
 
     const popTypeStack = () => {
-        setStack((prev) => prev.slice(0, -1));
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
         setRefetchStates((prev) => {
             const newStates = [...prev];
             const currentState = newStates.pop();
             if (currentState && newStates.length > 0) {
                 newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
             }
             return newStates;
         });
@@ -151,9 +165,8 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
-        } else {
-            setTypeEditorState({ isOpen: false });
         }
+        setTypeEditorState({ isOpen: stack.length !== 1 });
     }
 
     const handleTypeEditorStateChange = (state: boolean) => {

@@ -417,7 +417,6 @@ export type NodeKind =
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
-    | "VARIABLE"
     | "WAIT"
     | "WHILE"
     | "WORKER"

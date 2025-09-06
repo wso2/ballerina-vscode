@@ -91,7 +91,7 @@ const getDefaultCompletion = (newType: string) => {
 }
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { field, openRecordEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
+    const { field, openRecordEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus } = props;
     const { form, expressionEditor } = useFormContext();
     const { control } = form;
     const {
@@ -268,7 +268,6 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
-                                handleNewTypeSelected && handleNewTypeSelected(typeExists)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
                                     setShowDefaultCompletion(true);
