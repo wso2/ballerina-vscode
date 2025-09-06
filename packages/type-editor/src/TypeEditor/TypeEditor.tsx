@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
@@ -104,13 +104,17 @@ export function TypeEditor(props: TypeEditorProps) {
             const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .createGraphqlClassType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
-            await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            await props.rpcClient
+                .getVisualizerRpcClient()
+                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
 
         } else {
             const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .updateType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
-            await props.rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            await props.rpcClient
+                .getVisualizerRpcClient()
+                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
         }
         props.onTypeChange(type);
         props.onSaveType(type)
@@ -123,7 +127,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container style={{height: '100%'}} data-testid="type-editor-container">
+            <S.Container style={{ height: '100%' }} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : newType ? (

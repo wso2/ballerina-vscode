@@ -61,15 +61,19 @@ interface TypeEditorState {
 
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
-    console.log("selectedTypeId, addType", selectedTypeId, addType);
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
     const [typesModel, setTypesModel] = React.useState<Type[]>(undefined);
     const [focusedNodeId, setFocusedNodeId] = React.useState<string | undefined>(undefined);
     const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(selectedTypeId);
-
     const [isModelLoaded, setIsModelLoaded] = React.useState<boolean>(false);
+    const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
+        isTypeCreatorOpen: false,
+        editingTypeId: undefined,
+        newTypeName: undefined,
+        editingType: undefined,
+    });
 
     useEffect(() => {
         if (!typesModel) {
@@ -90,14 +94,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
             setFocusedNodeId(undefined);
         }
     }, [selectedTypeId, typesModel]);
-
-
-    const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
-        isTypeCreatorOpen: false,
-        editingTypeId: undefined,
-        newTypeName: undefined,
-        editingType: undefined,
-    });
 
     useEffect(() => {
         if (addType) {
@@ -350,17 +346,18 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 />
             );
         } else {
-            return (<TypeDesignDiagram
-                typeModel={typesModel}
-                selectedNodeId={highlightedNodeId}
-                focusedNodeId={focusedNodeId}
-                updateFocusedNodeId={onFocusedNodeIdChange}
-                showProblemPanel={showProblemPanel}
-                goToSource={handleOnGoToSource}
-                onTypeEdit={onTypeEdit}
-                onTypeDelete={onTypeDelete}
-                verifyTypeDelete={verifyTypeDelete}
-            />
+            return (
+                <TypeDesignDiagram
+                    typeModel={typesModel}
+                    selectedNodeId={highlightedNodeId}
+                    focusedNodeId={focusedNodeId}
+                    updateFocusedNodeId={onFocusedNodeIdChange}
+                    showProblemPanel={showProblemPanel}
+                    goToSource={handleOnGoToSource}
+                    onTypeEdit={onTypeEdit}
+                    onTypeDelete={onTypeDelete}
+                    verifyTypeDelete={verifyTypeDelete}
+                />
             );
         }
     }

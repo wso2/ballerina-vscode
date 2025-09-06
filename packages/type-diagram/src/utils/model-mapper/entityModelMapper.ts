@@ -19,7 +19,7 @@
 import { Member, Type, TypeFunctionModel, TypeNodeKind } from '@wso2/ballerina-core';
 import { DiagramModel } from '@projectstorm/react-diagrams';
 import { EntityLinkModel, EntityModel, EntityPortModel } from '../../components/entity-relationship';
-import { ModellerResult } from '../../Diagram';
+import { ModelResult } from '../../Diagram';
 
 function createEntityNodes(components: Type[], selectedEntityId?: string, isGraphqlRoot?: boolean): Map<string, EntityModel> {
     let entityNodes = new Map<string, EntityModel>();
@@ -112,7 +112,7 @@ export function graphqlModeller(rootService: Type, refs: Type[]): DiagramModel {
     return model;
 }
 
-export function entityModeller(components: Type[], selectedEntityId?: string): ModellerResult {
+export function entityModeller(components: Type[], selectedEntityId?: string): ModelResult {
     let filteredComponents = components;
     let firstLevelDependenciesFiltered = false;
 
