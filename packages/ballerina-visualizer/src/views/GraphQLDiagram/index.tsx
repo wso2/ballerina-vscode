@@ -175,7 +175,6 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
         }
         setTypeEditorState({ isOpen: state });
     }
@@ -468,22 +467,6 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                 />
             )}
             {isTypeEditorOpen && editingType && editingType.codedata.node !== "CLASS" && (
-                // <PanelContainer
-                //     title={`Edit Type${getTypeKindDisplayName(editingType?.codedata?.node) ?
-                //         ` : ${getTypeKindDisplayName(editingType?.codedata?.node)}` :
-                //         ''}`}
-                //     show={true}
-                //     onClose={onTypeEditorClosed}
-                // >
-                //     <FormTypeEditor
-                //         key={editingType.name}
-                //         type={editingType}
-                //         onTypeChange={onTypeChange}
-                //         newType={false}
-                //         isGraphql={true}
-                //         onTypeCreate={() => { }}
-                //     />
-                // </PanelContainer>
                 <>
                     {
                         stack.map((item, i) => <DynamicModal

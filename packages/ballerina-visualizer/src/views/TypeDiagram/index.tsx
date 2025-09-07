@@ -119,7 +119,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
     };
 
     const replaceTop = (item: StackItem) => {
-        console.log("this meses up")
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
