@@ -120,7 +120,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const request: GetRecordConfigRequest = {
             filePath: fileName,
             codedata: {
-                org: "org",
+                org: org,
                 module: module,
                 version: version,
                 packageName: packageName,
