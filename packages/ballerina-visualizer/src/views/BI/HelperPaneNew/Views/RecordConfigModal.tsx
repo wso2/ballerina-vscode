@@ -101,22 +101,29 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         let org = "";
         let module = "";
         let version = "";
+        let packageName = "";
 
-        // Parse packageInfo if it exists and contains colon separators
-        if (defaultSelection?.packageInfo) {
+        if (defaultSelection?.packageInfo.length > 0) {
             const parts = defaultSelection.packageInfo.split(':');
             if (parts.length === 3) {
                 [org, module, version] = parts;
+                packageName = defaultSelection.packageName;
             }
+        } else {
+            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+            org = tomValues?.package?.org || "";
+            module = tomValues?.package?.name || "";
+            version = tomValues?.package?.version || "";
+            packageName = `${org}/${module}`;
         }
 
         const request: GetRecordConfigRequest = {
             filePath: fileName,
             codedata: {
-                org: org,
+                org: "org",
                 module: module,
                 version: version,
-                packageName: defaultSelection?.packageName,
+                packageName: packageName,
             },
             typeConstraint: defaultSelection.type,
         }
