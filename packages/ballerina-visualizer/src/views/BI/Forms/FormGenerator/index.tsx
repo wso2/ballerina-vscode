@@ -1030,16 +1030,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         openState={typeEditorState.isOpen}
                         setOpenState={handleTypeEditorStateChange}>
                         <div style={{ padding: '0px 15px' }}>
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "New Type"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
+                            {stack.slice(0, i + 1).length > 1 && (
+                                <BreadcrumbContainer>
+                                    {stack.slice(0, i + 1).map((stackItem, index) => (
+                                        <React.Fragment key={index}>
+                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                            <BreadcrumbItem>
+                                                {stackItem?.type?.name || "New Type"}
+                                            </BreadcrumbItem>
+                                        </React.Fragment>
+                                    ))}
+                                </BreadcrumbContainer>
+                            )}
                             <FormTypeEditor
                                 type={peekTypeStack()?.type}
                                 newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -1107,16 +1109,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
                     <div style={{ padding: '0px 20px' }}>
-                        <BreadcrumbContainer>
-                            {stack.slice(0, i + 1).map((stackItem, index) => (
-                                <React.Fragment key={index}>
-                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                    <BreadcrumbItem>
-                                        {stackItem?.type?.name || "New Type"}
-                                    </BreadcrumbItem>
-                                </React.Fragment>
-                            ))}
-                        </BreadcrumbContainer>
+                        {stack.slice(0, i + 1).length > 2 && (
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                        )}
                         <FormTypeEditor
                             type={peekTypeStack()?.type}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
