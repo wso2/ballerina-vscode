@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
-import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse } from "@wso2/ballerina-core";
+import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse } from "@wso2/ballerina-core";
 import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../TypeHelper";
 import { TypeHelperContext } from "../Context";
 import { ImportTab } from "./Tabs/ImportTab";
@@ -101,14 +101,20 @@ export function TypeEditor(props: TypeEditorProps) {
         // IF type nodeKind is CLASS then we call graphqlEndpoint
         // TODO: for TypeDiagram we need to give a generic class creation
         if (type.codedata.node === "CLASS") {
-            const response = await props.rpcClient
+            const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .createGraphqlClassType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
+            await props.rpcClient
+                .getVisualizerRpcClient()
+                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
 
         } else {
-            const response = await props.rpcClient
+            const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .updateType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
+            await props.rpcClient
+                .getVisualizerRpcClient()
+                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
         }
         props.onTypeChange(type);
         props.onSaveType(type)
@@ -121,7 +127,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container style={{height: '100%'}} data-testid="type-editor-container">
+            <S.Container style={{ height: '100%' }} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : newType ? (
