@@ -23,14 +23,15 @@ import { TitleBar } from "../../../components/TitleBar";
 import { isBetaModule } from "../ComponentListView/componentListUtils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { LineRange, ServiceInitModel } from "@wso2/ballerina-core";
+import { EVENT_TYPE, LineRange, ServiceInitModel } from "@wso2/ballerina-core";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
+import { getImportsForProperty } from "../../../utils/bi";
 
 const Container = styled.div`
-    display: "flex";
-    flex-direction: "column";
+    display: flex;
+    flex-direction: column;
     gap: 10;
     margin: 20px;
     /* padding: 0 20px 20px; */
@@ -63,9 +64,9 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
     const { type } = props;
     const { rpcClient } = useRpcContext();
 
-    const [headerInfo, setHeaderInfo] = useState<HeaderInfo>(undefined);
-    const [serviceInitModel, setServiceInitModel] = useState<ServiceInitModel>(undefined);
-    const [formFields, setFormFields] = useState<FormField[]>(undefined);
+    const [headerInfo, setHeaderInfo] = useState<HeaderInfo>(null);
+    const [model, setServiceInitModel] = useState<ServiceInitModel>(null);
+    const [formFields, setFormFields] = useState<FormField[]>([]);
 
     const [filePath, setFilePath] = useState<string>("");
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -110,8 +111,37 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
         }
     }, [filePath, rpcClient]);
 
-    const handleOnSubmit = async (data: FormValues, fromImports: FormImports) => {
+    const handleOnSubmit = async (data: FormValues, formImports: FormImports) => {
+        setIsSaving(true);
+        formFields.forEach(val => {
+            if (val.type === "CHOICE") {
+                val.choices.forEach((choice, index) => {
+                    choice.enabled = false;
+                    if (data[val.key] === index) {
+                        choice.enabled = true;
+                        for (const key in choice.properties) {
+                            choice.properties[key].value = data[key];
+                        }
+                    }
+                })
+            } else if (data[val.key] !== undefined) {
+                val.value = data[val.key];
+            }
+            val.imports = getImportsForProperty(val.key, formImports);
+        })
+        const updatedModel = populateServiceInitModelFromFormFields(formFields, model);
 
+        const res = await rpcClient
+            .getServiceDesignerRpcClient()
+            .createServiceAndListener({ filePath: "", serviceInitModel: updatedModel });
+
+
+        const newArtifact = res.artifacts.find(res => res.isNew && model.moduleName === res.moduleName);
+        if (newArtifact) {
+            rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
+            setIsSaving(false);
+            return;
+        }
     }
 
     return (
@@ -126,7 +156,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                     <>
                         {formFields && formFields.length > 0 &&
                             <FormContainer>
-                                <FormHeader title={`${serviceInitModel.displayName} Configuration`} />
+                                <FormHeader title={`${model.displayName} Configuration`} />
                                 {filePath && targetLineRange &&
                                     <FormGeneratorNew
                                         fileName={filePath}
@@ -147,7 +177,12 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
     );
 }
 
-
+/**
+ * Maps a ServiceInitModel to an array of FormField objects.
+ * 
+ * @param model The ServiceInitModel to map.
+ * @returns An array of FormField objects.
+ */
 function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
     if (!model || !model.properties) return [];
 
@@ -187,4 +222,37 @@ function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
             lineRange: property?.codedata?.lineRange
         } as FormField;
     });
+}
+
+/**
+ * Populate the ServiceInitModel from the form fields.
+ * 
+ * @param formFields The form fields to update.
+ * @param model The ServiceInitModel to update.
+ * @returns The updated ServiceInitModel.
+ */
+function populateServiceInitModelFromFormFields(formFields: FormField[], model: ServiceInitModel): ServiceInitModel {
+    if (!model || !model.properties || !formFields) return model;
+
+    formFields.forEach(field => {
+        const property = model.properties[field.key];
+        if (!property) return;
+
+        const value = field.value;
+
+        // Handle MULTIPLE_SELECT and EXPRESSION_SET types
+        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+            property.values = Array.isArray(value) ? value : value ? [value] : [];
+        } else {
+            property.value = value as string;
+        }
+
+        // Enable property if it has a non-empty value
+        if (value !== undefined && value !== null && ((Array.isArray(value) && value.length > 0) || (!Array.isArray(value) && value !== ""))) {
+            property.enabled = true;
+        } else {
+            property.enabled = false;
+        }
+    });
+    return model;
 }
