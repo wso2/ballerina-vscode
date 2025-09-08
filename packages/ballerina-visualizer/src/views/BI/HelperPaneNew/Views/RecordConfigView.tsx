@@ -50,7 +50,7 @@ export const PanelBody = styled.div`
 `;
 
 
-export function RecordConfig(props: ConfigureViewProps) {
+export function RecordConfigView(props: ConfigureViewProps) {
     const { recordModel, onModelChange } = props;
 
     const handleOnChange = async () => {
