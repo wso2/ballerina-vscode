@@ -147,7 +147,7 @@ export function findRunningBallerinaProcesses(projectPath: string): Promise<Proc
     return new Promise((resolve, reject) => {
         exec(getPSCommand(platform, `-XX:HeapDumpPath=${projectPath}`), (error, stdout) => {
             if (error) {
-                debug(`Error executing ps command: ${error}`);
+                debug(`[Internal] ps command failed: ${error.message}`);
                 return reject(error);
             }
 
@@ -164,9 +164,12 @@ export function findRunningBallerinaProcesses(projectPath: string): Promise<Proc
 
             // Display the service information
             balProcesses = balProcesses.filter((process) => process.ports && process.ports.length > 0);
-            balProcesses.forEach((service) => {
-                debug(`Bal Process: ${service.pid}, Port(s): ${service.ports}`);
-            });
+            if (balProcesses.length > 0) {
+                debug(`Found ${balProcesses.length} Ballerina process(es) with listening ports`);
+                balProcesses.forEach((service) => {
+                    debug(`Process ${service.pid} listening on port(s): ${service.ports.join(', ')}`);
+                });
+            }
 
             return resolve(balProcesses);
         });
@@ -202,7 +205,7 @@ function getServicePorts(pid: string): number[] {
             return [parseInt(output.trim())];
         }
     } catch (error) {
-        debug(`Error retrieving port for process ${pid}: ${error}`);
+        // ignore port retrieval errors as some processes may not have listening ports
     }
     return [];
 }
