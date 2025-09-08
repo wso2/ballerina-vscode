@@ -147,7 +147,7 @@ export function findRunningBallerinaProcesses(projectPath: string): Promise<Proc
     return new Promise((resolve, reject) => {
         exec(getPSCommand(platform, `-XX:HeapDumpPath=${projectPath}`), (error, stdout) => {
             if (error) {
-                debug(`[Internal] ps command failed: ${error.message}`);
+                debug(`Failed to detect running Ballerina processes: ${error.message}`);
                 return reject(error);
             }
 
