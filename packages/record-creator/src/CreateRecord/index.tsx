@@ -23,7 +23,7 @@ import { RecordConfigTypeSelector } from "../RecordConfigTypeSelector";
 import { RecordFromJson } from "../RecordFromJson";
 import { RecordFromXml } from "../RecordFromXml";
 import { Context } from "../Context";
-import { UndoRedoManager } from "@wso2/ballerina-core";
+import { IUndoRedoManager } from "@wso2/ballerina-core";
 import { isSupportedSLVersion } from "../components/FormComponents/Utils";
 import { FormContainer } from "../style";
 
@@ -36,7 +36,7 @@ enum ConfigState {
 
 export interface CreateRecordProps {
     isDataMapper?: boolean;
-    undoRedoManager?: UndoRedoManager;
+    undoRedoManager?: IUndoRedoManager;
     onCancel: (createdNewRecord?: string) => void;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     showHeader?: boolean;

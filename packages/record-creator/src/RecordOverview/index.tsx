@@ -21,7 +21,7 @@ import { useIntl } from "react-intl";
 import { ModulePart, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 
 import { updatePropertyStatement } from "../utils";
-import { UndoRedoManager } from "@wso2/ballerina-core";
+import { IUndoRedoManager } from "@wso2/ballerina-core";
 import { RecordItemModel } from "../types";
 import {
     extractImportedRecordNames,
@@ -41,7 +41,7 @@ export interface RecordOverviewProps {
     definitions: TypeDefinition | ModulePart;
     prevST?: STNode;
     type: "XML" | "JSON";
-    undoRedoManager?: UndoRedoManager;
+    undoRedoManager?: IUndoRedoManager;
     onComplete: () => void;
     onCancel: () => void;
 }
@@ -145,8 +145,8 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
             }
         });
         setRecordNames(recordNameClone);
-        undoRedoManager.updateContent(currentFile.path, currentFile.content);
-        undoRedoManager.addModification(currentFile.content);
+        // undoRedoManager.updateContent(currentFile.path, currentFile.content);
+        // undoRedoManager.addModification(currentFile.content);
         applyModifications(getRemoveCreatedRecordRange(selectedRecords, fullST));
         if (recordNameClone.length === 0) {
             onCancel();
@@ -167,12 +167,12 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
 
     const handleUndo = () => {
         const lastUpdateSource = undoRedoManager.undo();
-        applyModifications([updatePropertyStatement(lastUpdateSource, fullST.position)]);
-        if (lastUpdateSource === originalSource.source) {
-            // If original source matches to last updated source we assume there are no newly created record.
-            // Hence, we are closing the form.
-            onCancel();
-        }
+        // applyModifications([updatePropertyStatement(lastUpdateSource, fullST.position)]);
+        // if (lastUpdateSource === originalSource.source) {
+        //     // If original source matches to last updated source we assume there are no newly created record.
+        //     // Hence, we are closing the form.
+        //     onCancel();
+        // }
     };
 
     return (
