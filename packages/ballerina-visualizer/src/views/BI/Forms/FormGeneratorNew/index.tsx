@@ -34,8 +34,6 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    TypeNodeKind,
-    Member,
     NodeProperties
 } from "@wso2/ballerina-core";
 import {
@@ -44,7 +42,6 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    PanelContainer,
     FormImports
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
