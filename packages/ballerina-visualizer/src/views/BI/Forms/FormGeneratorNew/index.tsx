@@ -35,7 +35,8 @@ import {
     CodeData,
     LinePosition,
     TypeNodeKind,
-    Member
+    Member,
+    NodeProperties
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -635,7 +636,7 @@ export function FormGeneratorNew(props: FormProps) {
         }
     };
 
-    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField) => {
+    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField, newType?: string) => {
         // Get f.value and assign that value to field value
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
@@ -645,7 +646,13 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen, field: editingField, newTypeValue: f[editingField?.key] });
+        setTypeEditorState({ 
+            isOpen, 
+            field: editingField, 
+            newTypeValue: newType 
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType) 
+                : f[editingField?.key] 
+        });
     };
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {

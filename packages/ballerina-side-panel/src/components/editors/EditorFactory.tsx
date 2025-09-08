@@ -48,7 +48,7 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 interface FormFieldEditorProps {
     field: FormField;
     selectedNode?: NodeKind;
-    openRecordEditor?: (open: boolean) => void;
+    openRecordEditor?: (open: boolean, newType?: string) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;

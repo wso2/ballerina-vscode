@@ -321,7 +321,7 @@ export interface FormProps {
     selectedNode?: NodeKind;
     onSubmit?: (data: FormValues, dirtyFields?: any) => void;
     isSaving?: boolean;
-    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField) => void;
+    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string) => void;
     openView?: (filePath: string, position: NodePosition) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
@@ -499,8 +499,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
         resetForm: (values) => reset(values),
     }));
 
-    const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
-        openRecordEditor?.(open, getValues(), typeField);
+    const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string) => {
+        openRecordEditor?.(open, getValues(), typeField, newType);
     };
 
     const handleOnShowAdvancedOptions = () => {
@@ -755,7 +755,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         selectedNode={selectedNode}
                                         openRecordEditor={
                                             openRecordEditor &&
-                                            ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                            ((open: boolean, newType?: string) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
