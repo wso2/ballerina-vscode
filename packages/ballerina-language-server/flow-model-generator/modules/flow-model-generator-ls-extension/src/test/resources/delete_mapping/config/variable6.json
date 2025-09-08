@@ -14,7 +14,7 @@
         "offset": 10
       }
     },
-    "sourceCode": "ArrType arr2 = {\n            rec: [{i: 0}]\n        };"
+    "sourceCode": "ArrType arr2 = {\n            rec: [{i: 0}, {i: 1}, {i: 2}]\n        };"
   },
   "mapping": {
     "output": "arr2.rec.1"
@@ -38,3 +38,4 @@
     ]
   }
 }
+

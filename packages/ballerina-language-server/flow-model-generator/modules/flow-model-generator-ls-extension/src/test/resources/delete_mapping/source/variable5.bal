@@ -4,7 +4,7 @@ type RecType record {|
 
 type ArrType record {|
     RecType[] rec;
-|}
+|};
 
 public function main() returns error? {
     do {
