@@ -163,7 +163,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.filePath,
                         params.codedata,
                         params.varName,
-                        params.targetField,params.withinSubMapping
+                        params.targetField, params.withinSubMapping
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
