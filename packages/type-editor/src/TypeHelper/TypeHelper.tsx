@@ -27,8 +27,7 @@ import {
     HelperPaneCustom,
     HelperPaneHeight,
     SearchBox,
-    ThemeColors,
-    Typography
+    ThemeColors
 } from '@wso2/ui-toolkit';
 import { TypeHelperOperator } from '..';
 import { TypeHelperCategory, TypeHelperItem } from '.';
@@ -197,22 +196,15 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         }
     };
 
+
     const handleTypeItemClick = (item: TypeHelperItem) => {
-
-        // Use this after implementing operators
-        const prefixRegex =  /[a-zA-Z0-9_':| ]*$/;
-        const suffixRegex = /^[a-zA-Z0-9_':]*/;
-        const prefixMatch = currentType.slice(0, currentCursorPosition).match(prefixRegex);
-        const suffixMatch = currentType.slice(currentCursorPosition).match(suffixRegex);
-        const prefixCursorPosition = currentCursorPosition - (prefixMatch?.[0]?.length ?? 0);
-        const suffixCursorPosition = currentCursorPosition + (suffixMatch?.[0]?.length ?? 0);
-
         onChange(
-            currentType.slice(0, prefixCursorPosition) + item.insertText + currentType.slice(suffixCursorPosition),
-            prefixCursorPosition + item.insertText.length
+            item.insertText,
+            item.insertText.length
         );
-        onClose();
+
         onCloseCompletions?.();
+        onClose();
     };
 
     const handleTypeBrowserItemClick = async (item: TypeHelperItem) => {
