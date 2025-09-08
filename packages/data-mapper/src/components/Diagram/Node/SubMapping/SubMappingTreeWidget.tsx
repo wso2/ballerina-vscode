@@ -47,6 +47,7 @@ const HeaderText = styled.span`
     font-size: 13px;
     font-weight: 600;
     color: var(--vscode-inputOption-activeForeground)
+    opacity: 0.7;
 `;
 
 export interface SubMappingTreeWidgetProps {
