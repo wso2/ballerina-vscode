@@ -298,16 +298,18 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                             <ExpandableList>
                                                 {importedTypes.map((category) => (
                                                     <ExpandableList.Section
-                                                        sx={{ marginTop: '20px' }}
+                                                        sx={{ marginTop: '20px' }}       
                                                         key={category.category}
-                                                        title={category.category}
+                                                        title={
+                                                            <span style={{ padding: '10px' }}>{category.category}</span>
+                                                        }
                                                         level={0}
                                                     >
                                                         {category.subCategory?.map((subCategory) => (
                                                             <ExpandableList.Section
                                                                 sx={{ marginTop: '10px' }}
                                                                 key={subCategory.category}
-                                                                title={subCategory.category}
+                                                                title={<><span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>{subCategory.category}</span></>}
                                                                 level={0}
                                                             >
                                                                 <div style={{ marginTop: '10px' }}>
