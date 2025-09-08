@@ -37,11 +37,12 @@ export enum TypeKind {
 
 export enum InputCategory {
     Constant = "constant",
-    ModuleVariable = "moduleVariable",
+    ModuleVariable = "module-variable",
     Configurable = "configurable",
     Enum = "enum",
     Parameter = "parameter",
-    Variable = "variable"
+    Variable = "variable",
+    LocalVariable = "local-variable"
 }
 
 export enum IntermediateClauseType {
