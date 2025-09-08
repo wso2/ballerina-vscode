@@ -199,12 +199,12 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                 label: "Delete",
                 onClick: () => handleDeleteClick()
             }] : []),
-
-        ] : [{
+        ] : []),
+        {
             id: "focusView",
             label: "Focused View",
             onClick: () => onFocusedView()
-        }])
+        }
     ];
 
     const handleConfirm = (state: boolean) => {
