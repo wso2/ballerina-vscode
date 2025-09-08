@@ -21,7 +21,7 @@ import { Dropdown, HelperPane, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { RecordConfigView } from "../../HelperPane/RecordConfigView";
+import { RecordConfigView } from "./RecordConfigView";
 
 type ConfigureRecordPageProps = {
     fileName: string;
