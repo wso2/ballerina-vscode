@@ -62,7 +62,9 @@ import {
     getTriggerModels,
     updateListenerSourceCode,
     updateResourceSourceCode,
-    updateServiceSourceCode
+    updateServiceSourceCode,
+    ServiceModelInitResponse,
+    getServiceInitModel
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -144,5 +146,9 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     updateResourceSourceCode(params: FunctionSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(updateResourceSourceCode, HOST_EXTENSION, params);
+    }
+
+    getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return this._messenger.sendRequest(getServiceInitModel, HOST_EXTENSION, params);
     }
 }

@@ -48,7 +48,8 @@ import {
     ServiceSourceCodeRequest,
     TriggerModelsRequest,
     TriggerModelsResponse,
-    UpdatedArtifactsResponse
+    UpdatedArtifactsResponse,
+    ServiceModelInitResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -410,6 +411,22 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(">>> error fetching function model", error);
+            }
+        });
+    }
+
+    async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const projectDir = path.join(StateMachine.context().projectUri);
+                const targetFile = path.join(projectDir, `main.bal`);
+                this.ensureFileExists(targetFile);
+                params.filePath = targetFile;
+                const res: ServiceModelInitResponse = await context.langClient.getServiceInitModel(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
             }
         });
     }
