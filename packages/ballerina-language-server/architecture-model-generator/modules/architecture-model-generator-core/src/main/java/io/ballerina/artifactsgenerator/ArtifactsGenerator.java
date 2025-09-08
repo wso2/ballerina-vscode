@@ -29,10 +29,10 @@ import io.ballerina.projects.Project;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -120,18 +120,10 @@ public class ArtifactsGenerator {
                     .forEach(artifact -> {
                         String category = Artifact.getCategory(artifact.type());
                         String artifactId = artifact.id();
-                        artifactMap.computeIfAbsent(category, k -> new HashMap<>()).put(artifactId, artifact);
+                        artifactMap.computeIfAbsent(category, k -> new TreeMap<>()).put(artifactId, artifact);
                         idMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
                     });
             documentMap.put(document.name(), idMap);
-        });
-
-        artifactMap.forEach((category, artifacts) -> {
-            Map<String, Artifact> sortedArtifacts = new LinkedHashMap<>();
-            artifacts.entrySet().stream()
-                    .sorted(Map.Entry.comparingByKey())
-                    .forEach(entry -> sortedArtifacts.put(entry.getKey(), entry.getValue()));
-            artifactMap.put(category, sortedArtifacts);
         });
 
         ArtifactsCache.getInstance().initializeProject(project.sourceRoot().toString(), documentMap);
