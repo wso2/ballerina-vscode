@@ -40,6 +40,16 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the field"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
       {
         "metadata": {
@@ -142,6 +152,16 @@
           "metadata": {
             "label": "Default Value",
             "description": "The default value of the argument"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the argument"
           },
           "enabled": true,
           "editable": true,

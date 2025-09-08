@@ -14,13 +14,27 @@
     "name": "GraphQL Service",
     "type": "graphql",
     "displayName": "GraphQL Service",
-    "description": "Add the service documentation",
     "moduleName": "graphql",
     "orgName": "ballerina",
     "version": "1.16.0",
     "packageName": "graphql",
     "listenerProtocol": "graphql",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -192,6 +206,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -290,6 +315,16 @@
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
@@ -404,6 +439,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -441,6 +487,16 @@
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
               },
               "enabled": true,
               "editable": true,
@@ -602,6 +658,16 @@
           "optional": false,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "parameters": [
           {
             "metadata": {
@@ -714,6 +780,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -761,6 +838,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -798,6 +886,16 @@
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
               },
               "enabled": true,
               "editable": true,
@@ -960,6 +1058,16 @@
           "optional": false,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "parameters": [
           {
             "metadata": {
@@ -1062,6 +1170,16 @@
               "metadata": {
                 "label": "Default Value",
                 "description": "The default value of the argument"
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
               },
               "enabled": true,
               "editable": true,

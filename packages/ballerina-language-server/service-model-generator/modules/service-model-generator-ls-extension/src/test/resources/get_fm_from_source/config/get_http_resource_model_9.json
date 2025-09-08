@@ -74,6 +74,17 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
