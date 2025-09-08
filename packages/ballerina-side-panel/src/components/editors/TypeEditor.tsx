@@ -41,7 +41,7 @@ import ReactMarkdown from "react-markdown";
 
 interface TypeEditorProps {
     field: FormField;
-    openRecordEditor: (open: boolean) => void;
+    openRecordEditor: (open: boolean, newType?: string) => void;
     handleOnFieldFocus?: (key: string) => void;
     handleOnTypeChange?: (value?: string) => void;
     handleNewTypeSelected?: (type: CompletionItem) => void;
@@ -150,8 +150,8 @@ export function TypeEditor(props: TypeEditorProps) {
         setShowDefaultCompletion(false);
     }
 
-    const handleDefaultCompletionSelect = () => {
-        openRecordEditor(true);
+    const handleDefaultCompletionSelect = (value: string) => {
+        openRecordEditor(true, value);
         handleCancel();
     }
 
@@ -285,7 +285,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 );
                             }}
                             onCompletionSelect={handleCompletionSelect}
-                            onDefaultCompletionSelect={handleDefaultCompletionSelect}
+                            onDefaultCompletionSelect={() => handleDefaultCompletionSelect(value)}
                             onFocus={() => handleFocus(value)}
                             enableExIcon={false}
                             isHelperPaneOpen={isTypeHelperOpen}
