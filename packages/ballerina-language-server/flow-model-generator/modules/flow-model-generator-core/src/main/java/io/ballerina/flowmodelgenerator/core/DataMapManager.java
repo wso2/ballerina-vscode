@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
@@ -1346,6 +1347,23 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
+                } else if (parent.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
+                    if (optSymbol.isEmpty()) {
+                        return;
+                    }
+                    Symbol symbol = optSymbol.get();
+                    if (symbol.kind() == SymbolKind.FUNCTION) {
+                        FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+                        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+                        if (returnType.isPresent()) {
+                            TypeSymbol returnTypeSymbol = returnType.get();
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(returnTypeSymbol).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {

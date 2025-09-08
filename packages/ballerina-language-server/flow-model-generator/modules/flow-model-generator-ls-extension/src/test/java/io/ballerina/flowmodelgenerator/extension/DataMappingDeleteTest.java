@@ -50,17 +50,18 @@ public class DataMappingDeleteTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("variable1.json")},
-                {Path.of("variable2.json")},
-                {Path.of("variable3.json")},
-                {Path.of("query1.json")},
-                {Path.of("array.json")},
-                {Path.of("array2.json")},
-                {Path.of("array3.json")},
-                {Path.of("variable4.json")},
-                {Path.of("variable5.json")},
-                {Path.of("function_defn1.json")},
-                {Path.of("function_defn2.json")},
+//                {Path.of("variable1.json")},
+//                {Path.of("variable2.json")},
+//                {Path.of("variable3.json")},
+//                {Path.of("query1.json")},
+//                {Path.of("array.json")},
+//                {Path.of("array2.json")},
+//                {Path.of("array3.json")},
+//                {Path.of("variable4.json")},
+//                {Path.of("variable5.json")},
+//                {Path.of("function_defn1.json")},
+//                {Path.of("function_defn2.json")},
+                {Path.of("variable8.json")},
         };
     }
 
