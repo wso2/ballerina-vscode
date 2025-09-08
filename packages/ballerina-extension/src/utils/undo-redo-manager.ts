@@ -1,0 +1,348 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import {
+    IUndoRedoManager,
+    FileChange,
+    BatchOperation,
+    UndoRedoOperationInfo,
+    UndoRedoUIState
+} from "@wso2/ballerina-core";
+
+
+export class UndoRedoManager implements IUndoRedoManager {
+    private undoStack: BatchOperation[];
+    private redoStack: BatchOperation[];
+    private currentTransaction: FileChange[] | null;
+    private transactionId: string | null;
+    private readonly MAX_STACK_SIZE = 20;
+
+    constructor() {
+        this.undoStack = [];
+        this.redoStack = [];
+        this.currentTransaction = null;
+        this.transactionId = null;
+    }
+
+    /**
+     * Start a new batch transaction with extension-specific logging
+     */
+    public startBatchOperation(): string {
+        if (this.currentTransaction) {
+            throw new Error('A batch operation is already in progress. Complete it before starting a new one.');
+        }
+        // Use a simple timestamp-based id for batch operations.
+        this.transactionId = `batch_${Date.now()}`;
+        this.currentTransaction = [];
+
+        // Extension-specific: Enhanced logging for debugging
+        console.log(`[Extension UndoRedoManager] Started batch operation: ${this.transactionId}`);
+
+        return this.transactionId;
+    }
+
+    /**
+     * Add a file change to the current batch operation with enhanced logging
+     */
+    public addFileToBatch(filePath: string, beforeContent: string, afterContent: string): void {
+        if (!this.currentTransaction) {
+            throw new Error('No batch operation in progress. Call startBatchOperation() first.');
+        }
+
+        // Check if this file is already in the transaction
+        const existingChange = this.currentTransaction.find(f => f.path === filePath);
+        if (existingChange) {
+            // Update the afterContent, but keep the original beforeContent
+            existingChange.afterContent = afterContent;
+            console.log(`[Extension UndoRedoManager] Updated existing change for: ${filePath}`);
+        } else {
+            // Add new file change to the transaction
+            this.currentTransaction.push({
+                path: filePath,
+                beforeContent,
+                afterContent
+            });
+            console.log(`[Extension UndoRedoManager] Added new change for: ${filePath}`);
+        }
+    }
+
+    /**
+     * Commit the current batch operation to the undo stack
+     * Returns the file changes that were committed
+     */
+    public commitBatchOperation(description?: string): Map<string, string> {
+        if (!this.currentTransaction || !this.transactionId) {
+            throw new Error('No batch operation in progress.');
+        }
+
+        if (this.currentTransaction.length === 0) {
+            // No changes were made, just clean up
+            console.log(`[UndoRedoManager] Committing empty batch operation: ${this.transactionId}`);
+            this.currentTransaction = null;
+            this.transactionId = null;
+            return new Map();
+        }
+
+        const batchOperation: BatchOperation = {
+            id: this.transactionId,
+            timestamp: Date.now(),
+            changes: [...this.currentTransaction],
+            description
+        };
+
+        // Add to undo stack
+        this.undoStack.push(batchOperation);
+
+        // Limit stack size
+        if (this.undoStack.length > this.MAX_STACK_SIZE) {
+            this.undoStack.shift();
+        }
+
+        // Clear redo stack as new operation invalidates it
+        this.redoStack = [];
+
+        // Extension-specific: Log the commit for debugging and telemetry
+        console.log(`[Extension UndoRedoManager] Committed batch operation: ${this.transactionId} with ${this.currentTransaction.length} file(s)`);
+
+        // Return the committed changes for external application
+        const committedChanges = new Map<string, string>();
+        for (const change of this.currentTransaction) {
+            committedChanges.set(change.path, change.afterContent);
+        }
+
+        // Clean up transaction
+        this.currentTransaction = null;
+        this.transactionId = null;
+
+        return committedChanges;
+    }
+
+    /**
+     * Cancel the current batch operation and return the original file states
+     */
+    public cancelBatchOperation(): Map<string, string> {
+        if (!this.currentTransaction) {
+            throw new Error('No batch operation in progress.');
+        }
+
+        console.log(`[Extension UndoRedoManager] Cancelling batch operation: ${this.transactionId}`);
+
+        // Return the original content for external restoration if needed
+        const originalStates = new Map<string, string>();
+        for (const change of this.currentTransaction) {
+            originalStates.set(change.path, change.beforeContent);
+        }
+
+        // Clean up transaction
+        this.currentTransaction = null;
+        this.transactionId = null;
+
+        return originalStates;
+    }
+
+    /**
+     * Undo the last batch operation
+     * Returns a map of file paths to their restored content
+     */
+    public undo(): Map<string, string> | null {
+        if (this.undoStack.length === 0) {
+            console.log(`[Extension UndoRedoManager] No operations to undo`);
+            return null;
+        }
+
+        const lastOperation = this.undoStack.pop()!;
+        console.log(`[Extension UndoRedoManager] Undoing operation: ${lastOperation.id}`);
+
+        // Create redo operation (reverse the changes)
+        const redoChanges: FileChange[] = lastOperation.changes.map(change => ({
+            path: change.path,
+            beforeContent: change.afterContent, // What we're changing from (current state)
+            afterContent: change.beforeContent  // What we're changing to (original state)
+        }));
+
+        const redoOperation: BatchOperation = {
+            id: `redo_${lastOperation.id}`,
+            timestamp: Date.now(),
+            changes: redoChanges,
+            description: `Redo: ${lastOperation.description || 'Batch operation'}`
+        };
+
+        this.redoStack.push(redoOperation);
+
+        // Limit redo stack size
+        if (this.redoStack.length > this.MAX_STACK_SIZE) {
+            this.redoStack.shift();
+        }
+
+        // Return the content to restore (beforeContent from original operation)
+        const restoredFiles = new Map<string, string>();
+        for (const change of lastOperation.changes) {
+            restoredFiles.set(change.path, change.beforeContent);
+        }
+
+        return restoredFiles;
+    }
+
+    /**
+     * Redo the last undone batch operation
+     * Returns a map of file paths to their restored content
+     */
+    public redo(): Map<string, string> | null {
+        if (this.redoStack.length === 0) {
+            console.log(`[UndoRedoManager] No operations to redo`);
+            return null;
+        }
+
+        const redoOperation = this.redoStack.pop()!;
+        console.log(`[UndoRedoManager] Redoing operation: ${redoOperation.id}`);
+
+        // Create undo operation (reverse the redo changes)
+        const undoChanges: FileChange[] = redoOperation.changes.map(change => ({
+            path: change.path,
+            beforeContent: change.afterContent, // What we're changing from
+            afterContent: change.beforeContent  // What we're changing to
+        }));
+
+        const undoOperation: BatchOperation = {
+            id: redoOperation.id.replace('redo_', ''),
+            timestamp: Date.now(),
+            changes: undoChanges,
+            description: redoOperation.description?.replace('Redo: ', '') || 'Batch operation'
+        };
+
+        this.undoStack.push(undoOperation);
+
+        // Return the content to restore (afterContent from redo operation)
+        const redoneFiles = new Map<string, string>();
+        for (const change of redoOperation.changes) {
+            redoneFiles.set(change.path, change.beforeContent);
+        }
+
+        return redoneFiles;
+    }
+
+    /**
+     * Check if a batch operation is in progress
+     */
+    public isBatchInProgress(): boolean {
+        return this.currentTransaction !== null;
+    }
+
+    /**
+     * Get information about available undo operations
+     */
+    public getUndoInfo(): UndoRedoOperationInfo[] {
+        return this.undoStack.map(op => ({
+            id: op.id,
+            timestamp: op.timestamp,
+            description: op.description,
+            fileCount: op.changes.length
+        }));
+    }
+
+    /**
+     * Get information about available redo operations
+     */
+    public getRedoInfo(): UndoRedoOperationInfo[] {
+        return this.redoStack.map(op => ({
+            id: op.id,
+            timestamp: op.timestamp,
+            description: op.description,
+            fileCount: op.changes.length
+        }));
+    }
+
+    /**
+     * Check if undo operation is available (for enabling/disabling undo button)
+     */
+    public canUndo(): boolean {
+        return this.undoStack.length > 0;
+    }
+
+    /**
+     * Check if redo operation is available (for enabling/disabling redo button)
+     */
+    public canRedo(): boolean {
+        return this.redoStack.length > 0;
+    }
+
+    /**
+     * Get the total count of available undo operations
+     */
+    public getUndoCount(): number {
+        return this.undoStack.length;
+    }
+
+    /**
+     * Get the total count of available redo operations
+     */
+    public getRedoCount(): number {
+        return this.redoStack.length;
+    }
+
+    /**
+     * Get the description of the next undo operation (useful for button tooltips)
+     */
+    public getNextUndoDescription(): string | null {
+        if (this.undoStack.length > 0) {
+            const lastOp = this.undoStack[this.undoStack.length - 1];
+            return lastOp.description || `Batch operation (${lastOp.changes.length} files)`;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the description of the next redo operation (useful for button tooltips)
+     */
+    public getNextRedoDescription(): string | null {
+        if (this.redoStack.length > 0) {
+            const lastOp = this.redoStack[this.redoStack.length - 1];
+            return lastOp.description || `Batch operation (${lastOp.changes.length} files)`;
+        }
+
+        return null;
+    }
+
+    /**
+     * Reset the undo-redo stack
+     */
+    public reset(): void {
+        console.log(`[UndoRedoManager] Resetting undo/redo stacks`);
+        this.undoStack = [];
+        this.redoStack = [];
+        this.currentTransaction = null;
+        this.transactionId = null;
+    }
+
+    /**
+     * Get comprehensive state for UI button management
+     */
+    public getUIState(): UndoRedoUIState {
+        return {
+            canUndo: this.canUndo(),
+            canRedo: this.canRedo(),
+            undoCount: this.getUndoCount(),
+            redoCount: this.getRedoCount(),
+            nextUndoDescription: this.getNextUndoDescription(),
+            nextRedoDescription: this.getNextRedoDescription(),
+            batchInProgress: this.isBatchInProgress()
+        };
+    }
+
+}

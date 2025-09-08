@@ -38,6 +38,7 @@ export interface UpdateSourceCodeRequest {
 export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, artifactData?: ArtifactData): Promise<ProjectStructureArtifactResponse[]> {
     let tomlFilesUpdated = false;
     StateMachine.setEditMode();
+    undoRedoManager.startBatchOperation();
     const modificationRequests: Record<string, { filePath: string; modifications: STModification[] }> = {};
     for (const [key, value] of Object.entries(updateSourceCodeRequest.textEdits)) {
         const fileUri = Uri.file(key);
@@ -64,6 +65,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             }
             continue;
         }
+
+        // Get the before content of the file by using the workspace api
+        const document = await workspace.openTextDocument(fileUri);
+        const beforeContent = document.getText();
+        undoRedoManager.addFileToBatch(fileUri.fsPath, beforeContent, beforeContent);
 
         if (edits && edits.length > 0) {
             const modificationList: STModification[] = [];
@@ -114,7 +120,6 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 
         // <-------- Format the document after applying all changes using the native formatting API-------->
         const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
-        undoRedoManager.startBatchOperation("Update Source Code");
         for (const [fileUriString, request] of Object.entries(modificationRequests)) {
             const fileUri = Uri.file(request.filePath);
             const formattedSources: { newText: string, range: { start: { line: number, character: number }, end: { line: number, character: number } } }[] = await StateMachine.langClient().sendRequest("textDocument/formatting", {
@@ -134,10 +139,10 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     ),
                     formattedSource.newText
                 );
-                undoRedoManager.addFileToBatch(fileUri.fsPath, formattedSource.newText);
+                undoRedoManager.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
             }
         }
-        undoRedoManager.commitBatchOperation("Update Source Code");
+        undoRedoManager.commitBatchOperation(artifactData ? `Change in ${artifactData.artifactType} ${artifactData.identifier}` : "Update Source Code");
 
         // Apply all formatted changes at once
         await workspace.applyEdit(formattedWorkspaceEdit);

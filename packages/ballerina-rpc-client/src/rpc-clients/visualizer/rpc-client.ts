@@ -18,6 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    AddToUndoStackRequest,
     ColorThemeKind,
     HistoryEntry,
     OpenViewRequest,
@@ -35,8 +36,7 @@ import {
     openView,
     redo,
     undo,
-    undoRedoState,
-    updateUndoRedoManager
+    undoRedoState
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -80,8 +80,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendRequest(redo, HOST_EXTENSION);
     }
 
-    addToUndoStack(source: string): void {
-        return this._messenger.sendNotification(addToUndoStack, HOST_EXTENSION, source);
+    addToUndoStack(params: AddToUndoStackRequest): void {
+        return this._messenger.sendNotification(addToUndoStack, HOST_EXTENSION, params);
     }
 
     undoRedoState(): Promise<UndoRedoStateResponse> {
@@ -90,10 +90,6 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     joinProjectPath(segments: string | string[]): Promise<string> {
         return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, segments);
-    }
-
-    updateUndoRedoManager(params: UpdateUndoRedoMangerRequest): void {
-        return this._messenger.sendNotification(updateUndoRedoManager, HOST_EXTENSION, params);
     }
 
     getThemeKind(): Promise<ColorThemeKind> {

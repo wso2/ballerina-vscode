@@ -16,6 +16,7 @@
  * under the License.
  */
 import {
+    AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
     HistoryEntry,
@@ -84,7 +85,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return new Promise((resolve, reject) => {
             StateMachine.setEditMode();
             const workspaceEdit = new WorkspaceEdit();
-            const revertedFiles = undoRedoManager.undoBatch();
+            const revertedFiles = undoRedoManager.undo();
             if (revertedFiles) {
                 for (const [filePath, content] of revertedFiles.entries()) {
                     workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
@@ -127,7 +128,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return new Promise((resolve, reject) => {
             StateMachine.setEditMode();
             const workspaceEdit = new WorkspaceEdit();
-            const revertedFiles = undoRedoManager.redoBatch();
+            const revertedFiles = undoRedoManager.redo();
             if (revertedFiles) {
                 for (const [filePath, content] of revertedFiles.entries()) {
                     workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
@@ -165,12 +166,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    addToUndoStack(source: string): void {
-        undoRedoManager.addModification(source);
-    }
-
-    updateUndoRedoManager(params: UpdateUndoRedoMangerRequest): void {
-        undoRedoManager.updateContent(params.filePath, params.fileContent);
+    addToUndoStack(params: AddToUndoStackRequest): void {
+        undoRedoManager.startBatchOperation();
+        undoRedoManager.addFileToBatch(params.filePath, "", params.source);
+        undoRedoManager.commitBatchOperation();
     }
 
     async getThemeKind(): Promise<ColorThemeKind> {

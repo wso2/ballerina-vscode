@@ -184,10 +184,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
         });
-
-        rpcClient.onArtifactUpdated(undefined, (artifacts: ProjectStructureArtifactResponse[]) => {
-            updateCurrentArtifactLocation({ artifacts: artifacts });
-        });
     }, [rpcClient]);
 
     const updateConnectionWithNewItem = (recentIdentifier: string) => {
