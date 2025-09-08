@@ -191,9 +191,9 @@ const AIChat: React.FC = () => {
     /* REFACTORED CODE END [2] */
 
     let codeSegmentRendered = false;
-    let tempStorage: { [filePath: string]: string } = {};
-    const initialFiles = new Set<string>();
-    const emptyFiles = new Set<string>();
+    const [tempStorage, setTempStorage] = useState<{ [filePath: string]: string }>({});
+    const [initialFiles, setInitialFiles] = useState<Set<string>>(new Set<string>());
+    const [emptyFiles, setEmptyFiles] = useState<Set<string>>(new Set<string>());
 
     async function fetchBackendUrl() {
         try {
@@ -812,14 +812,14 @@ const AIChat: React.FC = () => {
             if (!tempStorage[filePath]) {
                 try {
                     originalContent = await rpcClient.getAiPanelRpcClient().getFromFile({ filePath: filePath });
-                    tempStorage[filePath] = originalContent;
+                    setTempStorage(prev => ({ ...prev, [filePath]: originalContent }));
                     if (originalContent === "") {
-                        emptyFiles.add(filePath);
+                        setEmptyFiles(prev => new Set([...prev, filePath]));
                     } else {
-                        initialFiles.add(filePath);
+                        setInitialFiles(prev => new Set([...prev, filePath]));
                     }
                 } catch (error) {
-                    tempStorage[filePath] = "";
+                    setTempStorage(prev => ({ ...prev, [filePath]: "" }));
                 }
             }
 
@@ -1036,7 +1036,9 @@ const AIChat: React.FC = () => {
             `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
             JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
         );
-        tempStorage = {};
+        setTempStorage({});
+        setInitialFiles(new Set<string>());
+        setEmptyFiles(new Set<string>());
         setIsCodeAdded(false);
         setIsAddingToWorkspace(false);
         } catch (error) {
