@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useContext, useEffect, useReducer } from "react";
 
-import { DIAGNOSTIC_SEVERITY, XMLToRecord, UndoRedoManager } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, XMLToRecord, IUndoRedoManager } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 
 import { TextPreloaderVertical } from "../PreLoader/TextPerloaderVertical";
@@ -51,7 +51,7 @@ interface RecordState {
 }
 
 interface RecordFromXmlProps {
-    undoRedoManager?: UndoRedoManager;
+    undoRedoManager?: IUndoRedoManager;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     onCancel: () => void;
     isHeaderHidden?: boolean;

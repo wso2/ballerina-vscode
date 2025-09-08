@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useContext, useEffect, useReducer } from "react";
 
-import { DIAGNOSTIC_SEVERITY, JsonToRecord, UndoRedoManager } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, JsonToRecord, IUndoRedoManager } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 import debounce from "lodash.debounce";
 
@@ -53,7 +53,7 @@ interface RecordState {
 }
 
 interface RecordFromJsonProps {
-    undoRedoManager?: UndoRedoManager;
+    undoRedoManager?: IUndoRedoManager;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     onCancel: (createdRecordName?: string) => void;
     isHeaderHidden?: boolean;
