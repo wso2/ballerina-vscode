@@ -615,6 +615,7 @@ function processArray(
     const ioType: IOType = {
         id: fieldId,
         name: member.name,
+        displayName: member.displayName,
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused }),
@@ -665,6 +666,7 @@ function processUnion(
         const unionMemberType: IOType = {
             id: generateFieldId(parentFieldId, unionMember.name || 'member'),
             name: unionMember.name,
+            displayName: unionMember.displayName,
             typeName: unionMember.typeName,
             kind: unionMember.kind,
             ...(unionMember.optional !== undefined && { optional: unionMember.optional })
@@ -745,6 +747,7 @@ function processTypeFields(
         const ioType: IOType = {
             id: fieldId,
             name: field.name,
+            displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
             ...(field.optional !== undefined && { optional: field.optional })
