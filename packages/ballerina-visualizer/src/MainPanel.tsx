@@ -76,6 +76,7 @@ import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
+import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 
 const globalStyles = css`
     *,
@@ -428,8 +429,11 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AIChatAgentWizard:
                         setViewComponent(<AIChatAgentWizard />);
                         break;
+                    // case MACHINE_VIEW.BIServiceWizard:
+                    //     setViewComponent(<ServiceWizard type={value.serviceType} />);
+                    //     break;
                     case MACHINE_VIEW.BIServiceWizard:
-                        setViewComponent(<ServiceWizard type={value.serviceType} />);
+                        setViewComponent(<ServiceCreationView type={value.serviceType} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
