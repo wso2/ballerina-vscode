@@ -1322,7 +1322,7 @@ public class DataMapManager {
                         textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
                     } else {
                         if (memberIdx + 1 == expressions.size()) {
-                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().endLine();
                             LinePosition endPos = expr.lineRange().endLine();
                             textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
                         } else if (memberIdx == 0) {
@@ -1330,7 +1330,7 @@ public class DataMapManager {
                             LinePosition endPos = expressions.get(1).lineRange().startLine();
                             textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
                         } else {
-                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().startLine();
+                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().endLine();
                             LinePosition endPos = expr.lineRange().endLine();
                             textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
                         }
