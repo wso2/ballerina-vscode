@@ -16,7 +16,7 @@
 
 import { Command } from "@wso2/ballerina-core";
 import { generateText, CoreMessage } from "ai";
-import { getAnthropicClient } from "../connection";
+import { getAnthropicClient, getProviderCacheControl } from "../connection";
 import { 
     getServiceTestGenerationSystemPrompt, 
     getServiceTestDiagnosticsSystemPrompt, 
@@ -102,6 +102,19 @@ async function getStreamedTestResponse(request: TestGenerationRequest1): Promise
     } else {
         throw new Error(`Unsupported target type specified: ${request.targetType}. Please use 'service' or 'function'.`);
     }
+
+    // Apply provider-aware cache control to messages that have cacheControl
+    const cacheOptions = await getProviderCacheControl();
+    messages = messages.map(message => {
+        if (message.providerOptions && 
+            (message.providerOptions as any).anthropic?.cacheControl) {
+            return {
+                ...message,
+                providerOptions: cacheOptions
+            };
+        }
+        return message;
+    });
 
     const { text } = await generateText({
         model: await getAnthropicClient("claude-sonnet-4-20250514"),

@@ -174,19 +174,9 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
-    panelCategories.forEach((category) => {
-        category.items?.forEach((item) => {
-            if ((item as PanelNode).metadata?.codedata) {
-                const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
-                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            }
-        });
-    });
-    return panelCategories;
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
@@ -195,6 +185,37 @@ export function convertEmbeddingProviderCategoriesToSidePanelCategories(categori
 
 export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertCategoriesToSidePanelCategoriesWithIcon(
+    categories: Category[],
+    iconFactory: (codedata: any) => React.ReactElement
+): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = iconFactory(codedata);
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = iconFactory(codedata);
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertDataLoaderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertNodePropertiesToFormFields(

@@ -22,31 +22,35 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
+    AllDataMapperSourceRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
     CodeSegment,
     Command,
+    CreateTempFileRequest,
+    DMModel,
+    DataMapperModelResponse,
+    DatamapperModelContext,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
+    DocGenerationRequest,
     ExpandedDMModel,
+    ExtendedDataMapperMetadata,
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
-    GenerateMappingFromRecordResponse,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
     GenerateMappingsResponse,
     GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
-    InlineAllDataMapperSourceRequest,
-    InlineDataMapperModelResponse,
     LLMDiagnostics,
+    LinePosition,
     LoginMethod,
     MappingElement,
     MetadataWithAttachments,
@@ -72,7 +76,6 @@ import {
     TestPlanGenerationRequest,
     TextEdit
 } from "@wso2/ballerina-core";
-import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -80,15 +83,17 @@ import path from "path";
 import { parse } from 'toml';
 import { Uri, commands, window, workspace } from 'vscode';
 
+import { FunctionDefinition, ModulePart, STKindChecker, STNode } from "@wso2/syntax-tree";
 import { isNumber } from "lodash";
 import { URI } from "vscode-uri";
+import { NOT_SUPPORTED } from "../../../src/core/extended-language-client";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
-import { NOT_SUPPORTED } from "../../core";
-import { generateDataMapping, generateTypeCreation } from "../../features/ai/dataMapping";
+import { createTempDataMappingFile, generateTypeCreation } from "../../features/ai/dataMapping";
 import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
+import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
@@ -100,10 +105,9 @@ import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
-import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
+import { modifyFileContent, writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
-import { refreshDataMapper, updateAndRefreshDataMapper } from "../inline-data-mapper/utils";
+import { expandDMModel, refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -111,9 +115,8 @@ import {
     REQUIREMENT_TEXT_DOCUMENT,
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
-import { processInlineMappings } from "./inline-utils";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -198,7 +201,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async addToProject(req: AddToProjectRequest): Promise<void> {
+    async addToProject(req: AddToProjectRequest): Promise<boolean> {
 
         const workspaceFolders = workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -224,6 +227,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         updateView();
         const datamapperMetadata = StateMachine.context().dataMapperMetadata;
         await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
+        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -289,57 +293,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return true;
         }
         return false;
-    }
-
-    async generateMappings(params: GenerateMappingsRequest): Promise<GenerateMappingsResponse> {
-        let { filePath, position } = params;
-
-        const fileUri = Uri.file(filePath).toString();
-
-        const fnSTByRange = await StateMachine.langClient().getSTByRange(
-            {
-                lineRange: {
-                    start: {
-                        line: position.startLine,
-                        character: position.startColumn
-                    },
-                    end: {
-                        line: position.endLine,
-                        character: position.endColumn
-                    }
-                },
-                documentIdentifier: {
-                    uri: fileUri
-                }
-            }
-        );
-
-        if (fnSTByRange === NOT_SUPPORTED) {
-            return { error: UNKNOWN_ERROR };
-        }
-
-        const {
-            parseSuccess: fnSTByRangeParseSuccess,
-            syntaxTree: fnSTByRangeSyntaxTree,
-            source: oldSource
-        } = fnSTByRange as SyntaxTree;
-        const fnSt = fnSTByRangeSyntaxTree as STNode;
-
-        if (!fnSTByRangeParseSuccess || !STKindChecker.isFunctionDefinition(fnSt)) {
-            return { error: PARSING_ERROR };
-        }
-
-        const functionName = fnSt.functionName?.value || "";
-
-        commands.executeCommand("ballerina.close.ai.panel");
-        commands.executeCommand("ballerina.open.ai.panel", {
-            type: 'command-template',
-            command: Command.DataMap,
-            templateId: TemplateId.MappingsForFunction,
-            params: {
-                functionName: functionName
-            }
-        });
     }
 
     async notifyAIMappings(params: NotifyAIMappingsRequest): Promise<boolean> {
@@ -503,14 +456,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AIPanelAbortController.getInstance().abort();
     }
 
-    async getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
-        const projectRoot = await getBallerinaProjectRoot();
-        return await generateDataMapping(projectRoot, params);
-    }
-
     async getTypesFromRecord(params: GenerateTypesFromRecordRequest): Promise<GenerateTypesFromRecordResponse> {
-        const projectRoot = await getBallerinaProjectRoot();
-        return await generateTypeCreation(projectRoot, params);
+        return await generateTypeCreation(params);
     }
 
     async postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
@@ -727,7 +674,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getContentFromFile(content: GetFromFileRequest): Promise<string> {
         return new Promise(async (resolve) => {
             const projectFsPath = URI.parse(content.filePath).fsPath;
-            const fileContent = fs.promises.readFile(projectFsPath, 'utf-8');
+            const fileContent = await fs.promises.readFile(projectFsPath, 'utf-8');
             resolve(fileContent);
         });
     }
@@ -798,59 +745,242 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async abortAIGeneration(): Promise<void> {
         AIPanelAbortController.getInstance().abort();
     }
-    
-    async openInlineMappingChatWindow(): Promise<void> {
-        try {
-            let filePath = StateMachine.context().documentUri;
-            const datamapperMetadata = StateMachine.context().dataMapperMetadata;
-            const dataMapperModel = await StateMachine
-                .langClient()
-                .getInlineDataMapperMappings({
-                    filePath,
-                    codedata: datamapperMetadata.codeData,
-                    position: {
-                        line: datamapperMetadata.codeData.lineRange.startLine.line,
-                        offset: datamapperMetadata.codeData.lineRange.startLine.offset
-                    }
-                }) as InlineDataMapperModelResponse;
-            commands.executeCommand("ballerina.close.ai.panel");
-            commands.executeCommand("ballerina.open.ai.panel", {
-                type: 'command-template',
-                command: Command.DataMap,
-                templateId: TemplateId.InlineMappings,
-                metadata: {
-                    ...datamapperMetadata,
-                    mappingsModel: dataMapperModel.mappingsModel as ExpandedDMModel
+
+    async createTempFileAndGenerateMetadata(params: CreateTempFileRequest): Promise<ExtendedDataMapperMetadata> {
+        const projectRoot = await getBallerinaProjectRoot();
+        const filePath = await createTempDataMappingFile(
+            projectRoot,
+            params.inputs,
+            params.output,
+            params.functionName,
+            params.inputNames,
+            params.imports
+        );
+
+        // Get the complete syntax tree
+        const fileUri = Uri.file(filePath).toString();
+        const st = (await StateMachine.langClient().getSyntaxTree({
+            documentIdentifier: {
+                uri: fileUri,
+            },
+        })) as SyntaxTree;
+
+        let funcDefinitionNode: FunctionDefinition = null;
+        const modulePart = st.syntaxTree as ModulePart;
+
+        // Find the function definition by name
+        modulePart.members.forEach((member) => {
+            if (STKindChecker.isFunctionDefinition(member)) {
+                const funcDef = member as FunctionDefinition;
+                if (funcDef.functionName?.value === params.functionName) {
+                    funcDefinitionNode = funcDef;
                 }
-            });
+            }
+        });
+
+        if (!funcDefinitionNode) {
+            throw new Error(`Function ${params.functionName} not found in the generated file`);
+        }
+
+        // Create dataMapperMetadata with the found positions
+        const dataMapperMetadata = {
+            name: params.functionName,
+            codeData: {
+                lineRange: {
+                    fileName: filePath,
+                    startLine: {
+                        line: funcDefinitionNode.position.startLine,
+                        offset: funcDefinitionNode.position.startColumn,
+                    },
+                    endLine: {
+                        line: funcDefinitionNode.position.endLine,
+                        offset: funcDefinitionNode.position.endColumn,
+                    },
+                },
+            },
+        };
+
+        const dataMapperModel = await this.generateDataMapperModel({
+            documentUri: filePath,
+            identifier: params.functionName,
+            dataMapperMetadata: dataMapperMetadata
+        });
+
+        return {
+            mappingsModel: dataMapperModel.mappingsModel as ExpandedDMModel,
+            name: params.functionName,
+            codeData: dataMapperMetadata.codeData
+        };
+    }
+
+    async generateDataMapperModel(params: DatamapperModelContext): Promise<DataMapperModelResponse> {
+        try {
+            let filePath: string;
+            let identifier: string;
+            let dataMapperMetadata: any;
+
+            if (params && params.documentUri && params.identifier) {
+                filePath = params.documentUri;
+                identifier = params.identifier;
+                dataMapperMetadata = params.dataMapperMetadata;
+            } else {
+                const context = StateMachine.context();
+                filePath = context.documentUri;
+                identifier = context.identifier || context.dataMapperMetadata.name;
+                dataMapperMetadata = context.dataMapperMetadata;
+            }
+
+            let position: LinePosition = {
+                line: dataMapperMetadata.codeData.lineRange.startLine.line,
+                offset: dataMapperMetadata.codeData.lineRange.startLine.offset
+            };
+
+            if (dataMapperMetadata.codeData.node !== "VARIABLE") {
+                const fileUri = Uri.file(filePath).toString();
+                const fnSTByRange = await StateMachine.langClient().getSTByRange({
+                    lineRange: {
+                        start: {
+                            line: dataMapperMetadata.codeData.lineRange.startLine.line,
+                            character: dataMapperMetadata.codeData.lineRange.startLine.offset
+                        },
+                        end: {
+                            line: dataMapperMetadata.codeData.lineRange.endLine.line,
+                            character: dataMapperMetadata.codeData.lineRange.endLine.offset
+                        }
+                    },
+                    documentIdentifier: { uri: fileUri }
+                });
+
+                if (fnSTByRange === NOT_SUPPORTED) {
+                    throw new Error("Syntax tree retrieval not supported");
+                }
+
+                const fnSt = (fnSTByRange as SyntaxTree).syntaxTree as STNode;
+
+                if (STKindChecker.isFunctionDefinition(fnSt) &&
+                    STKindChecker.isExpressionFunctionBody(fnSt.functionBody)) {
+                    position = {
+                        line: fnSt.functionBody.expression.position.startLine,
+                        offset: fnSt.functionBody.expression.position.startColumn
+                    };
+                }
+            }
+
+            let dataMapperModel = await StateMachine
+                .langClient()
+                .getDataMapperMappings({
+                    filePath,
+                    codedata: dataMapperMetadata.codeData,
+                    targetField: identifier,
+                    position: position
+                }) as DataMapperModelResponse;
+
+            return {
+                mappingsModel: expandDMModel(
+                    dataMapperModel.mappingsModel as DMModel,
+                    identifier
+                )
+            };
         } catch (error) {
-            console.error("Failed to open AI chat window for inline mapping:", error);
+            console.error("Failed to generate data mapper model:", error);
             throw error;
         }
     }
 
-    async getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
-        let filePath = StateMachine.context().documentUri;
-        const file = params.attachment && params.attachment.length > 0
-            ? params.attachment[0]
-            : undefined;
-        const mappingElement = await processInlineMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
-        const allMappingsRequest = {
-            filePath,
-            codedata: params.metadata.codeData,
-            varName: params.metadata.name,
-            position: {
-                line: params.metadata.codeData.lineRange.startLine.line,
-                offset: params.metadata.codeData.lineRange.startLine.offset
-            },
-            mappings: (mappingElement as MappingElement).mappings
-        };
-        return allMappingsRequest;
+    async addCodeSegmentToWorkspace(params: CodeSegment): Promise<boolean> {
+        try {
+            let filePath = params.filePath && params.filePath.trim() !== ''
+                ? params.filePath
+                : StateMachine.context().documentUri;
+            const datamapperMetadata = params.metadata
+                ? params.metadata
+                : StateMachine.context().dataMapperMetadata;
+
+            let allTextEdits: { [key: string]: TextEdit[] };
+
+            if (params.textEdit && params.textEdit.textEdits) {
+                allTextEdits = params.textEdit.textEdits;
+            } else {
+                const textEdit: TextEdit = {
+                    newText: params.segmentText,
+                    range: {
+                        start: {
+                            line: datamapperMetadata.codeData.lineRange.startLine.line,
+                            character: datamapperMetadata.codeData.lineRange.startLine.offset
+                        },
+                        end: {
+                            line: datamapperMetadata.codeData.lineRange.endLine.line,
+                            character: datamapperMetadata.codeData.lineRange.endLine.offset
+                        }
+                    }
+                };
+                allTextEdits = {
+                    [filePath]: [textEdit]
+                };
+            }
+            await updateSourceCode({ textEdits: allTextEdits });
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add code segment to the workspace", error);
+            throw error;
+        }
+    }
+
+    async openAIMappingChatWindow(params: DataMapperModelResponse): Promise<void> {
+        try {
+            const context = StateMachine.context();
+            const { identifier, dataMapperMetadata } = context;
+
+            commands.executeCommand("ballerina.close.ai.panel");
+            commands.executeCommand("ballerina.open.ai.panel", {
+                type: 'command-template',
+                command: Command.DataMap,
+                templateId: identifier ? TemplateId.MappingsForFunction : TemplateId.InlineMappings,
+                ...(identifier && { params: { functionName: identifier } }),
+                metadata: {
+                    ...dataMapperMetadata,
+                    mappingsModel: params.mappingsModel as ExpandedDMModel
+                }
+            });
+        } catch (error) {
+            console.error("Failed to open AI chat window for mapping:", error);
+            throw error;
+        }
+    }
+
+    async generateMappings(params: MetadataWithAttachments): Promise<AllDataMapperSourceRequest> {
+        try {
+            const filePath = params.useTemporaryFile
+                ? params.metadata.codeData.lineRange.fileName
+                : StateMachine.context().documentUri;
+
+            const file = params.attachments && params.attachments.length > 0
+                ? params.attachments[0]
+                : undefined;
+
+            const mappingElement = await processMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
+
+            const allMappingsRequest: AllDataMapperSourceRequest = {
+                filePath,
+                codedata: params.metadata.codeData,
+                varName: params.metadata.name,
+                position: {
+                    line: params.metadata.codeData.lineRange.startLine.line,
+                    offset: params.metadata.codeData.lineRange.startLine.offset
+                },
+                mappings: (mappingElement as MappingElement).mappings
+            };
+
+            return allMappingsRequest;
+        } catch (error) {
+            console.error("Failed to generate mappings:", error);
+            throw error;
+        }
     }
 
     async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
         try {
-            let filePath = StateMachine.context().documentUri;
+            let filePath =  StateMachine.context().documentUri;
             const datamapperMetadata = StateMachine.context().dataMapperMetadata;
             const textEdit: TextEdit = {
                 newText: params.segmentText,
@@ -868,10 +998,43 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const allTextEdits: { [key: string]: TextEdit[] } = {
                 [filePath]: [textEdit]
             };
-            await updateAndRefreshDataMapper(allTextEdits, filePath, datamapperMetadata.codeData, datamapperMetadata.name);
+
+            await updateAndRefreshDataMapper(
+                allTextEdits,
+                filePath,
+                datamapperMetadata.codeData,
+                datamapperMetadata.name,
+                datamapperMetadata.name
+            );
         } catch (error) {
             console.error(">>> Failed to add inline code segment to the workspace", error);
             throw error;
+        }
+    }
+
+    async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+        await generateDocumentationForService(params);
+    }
+
+    async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        try {
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                throw new Error("No workspaces found.");
+            }
+
+            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            if (!fs.existsSync(ballerinaProjectFile)) {
+                throw new Error("Not a Ballerina project.");
+            }
+            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            updateView();
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add files to the project", error);
+            return false; //silently fail for timeout issues.
         }
     }
 }
@@ -932,7 +1095,7 @@ async function setupProjectEnvironment(project: ProjectSource): Promise<{ langCl
         // Update lastUpdatedBalFile if it's a .bal file
         if (sourceFile.filePath.endsWith('.bal')) {
             const tempFilePath = path.join(tempDir, sourceFile.filePath);
-            await writeBallerinaFileDidOpen(tempFilePath, sourceFile.content);
+            writeBallerinaFileDidOpenTemp(tempFilePath, sourceFile.content);
         }
     }
 

@@ -107,6 +107,11 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
 
     const disabled = model.node.suggested;
     const hasError = nodeHasError(model.node);
+    const condition = (
+        model.node.properties.condition?.value ||
+        model.node.properties.matchTarget?.value ||
+        ""
+    ).toString();
 
     return (
         <NodeStyles.Node
@@ -169,7 +174,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                 </NodeStyles.Column>
                 <NodeStyles.Header onClick={handleOnClick}>
                     <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
-                    <NodeStyles.Description>{model.node.properties.condition.value as ReactNode}</NodeStyles.Description>
+                    <NodeStyles.Description>{condition}</NodeStyles.Description>
                 </NodeStyles.Header>
                 {hasError && (
                     <NodeStyles.ErrorIcon>

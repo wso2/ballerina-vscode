@@ -78,6 +78,7 @@ export enum MACHINE_VIEW {
     BIImportIntegration = "BI Import Integration SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
     AddConfigVariables = "Add Config Variables",
@@ -242,7 +243,7 @@ export const breakpointChanged: NotificationType<boolean> = { method: 'breakpoin
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -251,6 +252,8 @@ export enum AIMachineEventType {
     LOGIN = 'LOGIN',
     AUTH_WITH_API_KEY = 'AUTH_WITH_API_KEY',
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
+    AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
+    SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -264,6 +267,13 @@ export type AIMachineEventMap = {
     [AIMachineEventType.LOGIN]: undefined;
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
+    [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: { 
+        accessKeyId: string; 
+        secretAccessKey: string; 
+        region: string; 
+        sessionToken?: string; 
+    };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
     [AIMachineEventType.COMPLETE_AUTH]: undefined;
@@ -280,7 +290,8 @@ export type AIMachineSendableEvent =
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
-    ANTHROPIC_KEY = 'anthropic_key'
+    ANTHROPIC_KEY = 'anthropic_key',
+    AWS_BEDROCK = 'aws_bedrock'
 }
 
 interface BIIntelSecrets {
@@ -292,6 +303,13 @@ interface AnthropicKeySecrets {
     apiKey: string;
 }
 
+interface AwsBedrockSecrets {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}
+
 export type AuthCredentials =
     | {
         loginMethod: LoginMethod.BI_INTEL;
@@ -300,6 +318,10 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.ANTHROPIC_KEY;
         secrets: AnthropicKeySecrets;
+    }
+    | {
+        loginMethod: LoginMethod.AWS_BEDROCK;
+        secrets: AwsBedrockSecrets;
     };
 
 export interface AIUserToken {
