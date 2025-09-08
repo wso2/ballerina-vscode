@@ -4,7 +4,7 @@
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "query7.bal",
+      "fileName": "query8.bal",
       "startLine": {
         "line": 14,
         "offset": 4
@@ -116,12 +116,19 @@
       }
     ],
     "output": {
-      "fields": [],
+      "member": {
+        "fields": [],
+        "name": "0",
+        "displayName": "<0Item>",
+        "typeName": "MyType",
+        "kind": "record",
+        "ref": "2079019383"
+      },
       "name": "0",
       "displayName": "0",
-      "typeName": "record {|string name1; int i;|}",
-      "kind": "record",
-      "ref": "-353186209"
+      "typeName": "MyType[]",
+      "kind": "array",
+      "ref": "2079019383"
     },
     "mappings": [
       {
@@ -205,26 +212,6 @@
           }
         ],
         "typeName": "Types",
-        "kind": "record"
-      },
-      "-353186209": {
-        "fields": [
-          {
-            "name": "name1",
-            "displayName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "i",
-            "displayName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "typeName": "record {|string name1; int i;|}",
         "kind": "record"
       }
     }

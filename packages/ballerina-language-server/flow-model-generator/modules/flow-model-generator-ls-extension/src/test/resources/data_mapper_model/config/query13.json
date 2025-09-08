@@ -21,26 +21,9 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "myTypes4.0.0",
+  "targetField": "myTypes4.0",
   "model": {
     "inputs": [
-      {
-        "member": {
-          "fields": [],
-          "name": "myType3",
-          "displayName": "<myType3Item>",
-          "typeName": "MyType",
-          "kind": "record",
-          "ref": "2079019383"
-        },
-        "name": "myType3",
-        "displayName": "myType3",
-        "typeName": "MyType[]",
-        "kind": "array",
-        "category": "variable",
-        "focusExpression": "myTypes3",
-        "ref": "2079019383"
-      },
       {
         "member": {
           "fields": [],
@@ -106,54 +89,75 @@
         "ref": "-1223228350"
       },
       {
-        "fields": [],
-        "name": "y",
-        "displayName": "y",
-        "typeName": "MyType",
-        "kind": "record",
-        "focusExpression": "myType3",
+        "member": {
+          "fields": [],
+          "name": "myType3",
+          "displayName": "<myType3Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "myType3",
+        "displayName": "myType3",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "focusExpression": "myTypes3",
         "ref": "2079019383"
       }
     ],
     "output": {
-      "fields": [],
+      "member": {
+        "member": {
+          "fields": [],
+          "name": "0",
+          "displayName": "<0ItemItem>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "2079019383"
+        },
+        "name": "0",
+        "displayName": "<0Item>",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "ref": "2079019383"
+      },
       "name": "0",
       "displayName": "0",
-      "typeName": "record {|string name1; int i;|}",
-      "kind": "record",
-      "ref": "-353186209"
+      "typeName": "MyType[][]",
+      "kind": "array",
+      "ref": "2079019383"
     },
     "mappings": [
       {
         "output": "0",
         "inputs": [
-          "y"
+          "myType3"
         ],
-        "expression": "y",
+        "expression": "from var y in myType3 select y",
         "diagnostics": [],
         "elements": [],
-        "isQueryExpression": false,
+        "isQueryExpression": true,
         "isFunctionCall": false
       }
     ],
     "query": {
       "output": "0",
       "inputs": [
-        "myType3"
+        "myTypes3"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "y",
-          "type": "MyType",
-          "expression": "myType3"
+          "name": "myType3",
+          "type": "MyType[]",
+          "expression": "myTypes3"
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "y"
+          "expression": "from var y in myType3 select y"
         }
       }
     },
@@ -205,26 +209,6 @@
           }
         ],
         "typeName": "Types",
-        "kind": "record"
-      },
-      "-353186209": {
-        "fields": [
-          {
-            "name": "name1",
-            "displayName": "name1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "i",
-            "displayName": "i",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "typeName": "record {|string name1; int i;|}",
         "kind": "record"
       }
     }
