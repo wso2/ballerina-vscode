@@ -55,10 +55,10 @@ public class ResolveModulesSubscriber implements EventSubscriber {
     @Override
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext serverContext) {
-        // Do this only for the load project or did open
+        // Do this only for the did open
         // TODO: Explore the UX on how we can provide this for each `didChange` with a proper interval
         LSOperation operation = context.operation();
-        if (!operation.equals(LSContextOperation.LOAD_PROJECT) && !operation.equals(LSContextOperation.TXT_DID_OPEN)) {
+        if (!operation.equals(LSContextOperation.TXT_DID_OPEN)) {
             return;
         }
 
