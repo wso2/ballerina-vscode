@@ -339,7 +339,24 @@ const MainPanel = () => {
                         setViewComponent(<ERDiagram />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
-                        setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        if (value?.identifier) {
+                            setViewComponent(
+                                <TypeDiagram
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        } else {
+                            // To support rerendering when user click on view all btn from left side panel
+                            setViewComponent(
+                                <TypeDiagram key={`type-${Date.now()}`}
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        }
                         break;
                     case MACHINE_VIEW.DataMapper:
                         let position: LinePosition = {
@@ -519,7 +536,7 @@ const MainPanel = () => {
     useEffect(() => {
         debounceFetchContext();
     }, [breakpointState]);
-    
+
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();
 
