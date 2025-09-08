@@ -108,7 +108,7 @@ type StyleBase = {
 namespace S {
     export const Container = styled.div<StyleBase>`
         position: absolute;
-        z-index: 2001;
+        z-index: 40001;
         filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.2));
 
         *,
@@ -243,9 +243,9 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
                                 open={open}
                                 typeBrowserRef={typeBrowserRef}
                                 onClose={onClose}
+                                exprRef={undefined}
                                 {...rest}
                             />
-                            <S.Arrow sx={position.arrow} />
                         </Transition>
                     </S.Container>,
                     document.body

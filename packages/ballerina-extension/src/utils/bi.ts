@@ -20,7 +20,7 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
@@ -147,26 +147,47 @@ export function getUsername(): string {
     return username;
 }
 
-export function createBIProjectPure(name: string, projectPath: string) {
-    const projectLocation = projectPath;
-
-    name = sanitizeName(name);
-    const projectRoot = path.join(projectLocation, name);
-    // Create project root directory
-    if (!fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot);
+function setupProjectInfo(projectRequest: ProjectRequest) {
+    const sanitizedPackageName = sanitizeName(projectRequest.packageName);
+    
+    const projectRoot = projectRequest.createDirectory 
+        ? path.join(projectRequest.projectPath, sanitizedPackageName)
+        : projectRequest.projectPath;
+    
+    // Create project root directory if needed
+    if (projectRequest.createDirectory && !fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot, { recursive: true });
     }
 
-    // Get current username from the system across different OS platforms
-    const username = getUsername();
+    let finalOrgName = projectRequest.orgName;
+    if (!finalOrgName) {
+        finalOrgName = getUsername();
+    }
+
+    const finalVersion = projectRequest.version || "0.1.0";
+
+    return {
+        sanitizedPackageName,
+        projectRoot,
+        finalOrgName,
+        finalVersion,
+        packageName: projectRequest.packageName,
+        integrationName: projectRequest.projectName
+    };
+}
+
+export function createBIProjectPure(projectRequest: ProjectRequest) {
+    const projectInfo = setupProjectInfo(projectRequest);
+    const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
 
     const EMPTY = "\n";
 
     const ballerinaTomlContent = `
 [package]
-org = "${username}"
-name = "${name}"
-version = "0.1.0"
+org = "${finalOrgName}"
+name = "${finalPackageName}"
+version = "${finalVersion}"
+title = "${integrationName}"
 
 [build-options]
 sticky = true
@@ -230,14 +251,8 @@ sticky = true
 }
 
 export async function createBIProjectFromMigration(params: MigrateRequest) {
-    const projectLocation = params.projectPath;
-    const projectName = sanitizeName(params.projectName);
-
-    const projectRoot = path.join(projectLocation, projectName);
-    // Create project root directory
-    if (!fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot);
-    }
+    const projectInfo = setupProjectInfo(params.project);
+    const { projectRoot, sanitizedPackageName } = projectInfo;
 
     const EMPTY = "\n";
     // Write files based on keys in params.textEdits
@@ -246,8 +261,9 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         const filePath = path.join(projectRoot, fileName);
 
         if (fileName === "Ballerina.toml") {
-            // Find the line with the string 'name =' and replace it with the project name
-            content = content.replace(/name = ".*?"/, `name = "${projectName}"`);
+            content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
+            content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
+            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
         }
         
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
@@ -270,7 +286,6 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
-
 
     debug(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
@@ -403,7 +418,7 @@ export async function handleFunctionCreation(targetFile: string, params: Compone
 // <---------- Function Source Generation END-------->
 // Test_Integration test_integration   Test Integration testIntegration -> testintegration
 export function sanitizeName(name: string): string {
-    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); // Replace invalid characters with underscores
+    return name.replace(/[^a-z0-9]_./gi, '_').toLowerCase(); // Replace invalid characters with underscores
 }
 
 // ------------------- HACKS TO MANIPULATE PROJECT FILES ---------------->
