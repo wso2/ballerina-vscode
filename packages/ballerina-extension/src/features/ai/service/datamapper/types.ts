@@ -89,6 +89,17 @@ export interface MetadataField {
     members?: { [key: string]: MetadataField };
 }
 
+export interface DataMappingResponse {
+    output: string;
+    inputs?: string[];
+    expression: string;
+}
+
+export interface DataMappingRequest {
+    input: IOType[];
+    output: IOType;
+}
+
 // =============================================================================
 // MAPPING HINT TYPES
 // =============================================================================
@@ -101,11 +112,6 @@ export interface MappingField {
 export type MappingFields = MappingField | { [key: string]: MappingFields };
 
 export type MetadataType = Metadata | MetadataField | { [key: string]: MetadataField };
-
-export interface Inputs {
-    input: { [key: string]: Metadata };
-    output: { [key: string]: MetadataField };
-}
 
 // =============================================================================
 // OPERATION METADATA STRUCTURES
@@ -163,16 +169,14 @@ export interface ChatResponse {
 }
 
 // =============================================================================
-// INLINE DATAMAPPING TYPES
+// VISITOR PATTERN TYPES
 // =============================================================================
 
-export interface InlineDataMapping {
-    output: string;
-    inputs?: string[];
-    expression: string;
+export interface VisitorContext {
+    targetPath: string;
+    found: IOType | null;
 }
 
-export interface InlineInputs {
-    input: IOType[];
-    output: IOType;
+export interface IOTypeVisitor {
+    visitIOType(ioType: IOType, context: VisitorContext): IOType | null;
 }

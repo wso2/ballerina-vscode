@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { ProjectRequest } from "../bi-diagram/interfaces";
+
 export interface MigrationTool {
     id: number;
     title: string;
@@ -60,8 +62,7 @@ export interface SaveMigrationReportRequest {
 }
 
 export interface MigrateRequest {
-    projectName: string;
-    projectPath: string;
+    project: ProjectRequest;
     textEdits: {
         [key: string]: string;
     };

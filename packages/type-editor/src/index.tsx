@@ -17,5 +17,6 @@
  */
 
 export { TypeEditor } from "./TypeEditor/TypeEditor";
+export * from "./TypeEditor/Contexts/TypeEditorContext"
 export type { TypeHelperCategory, TypeHelperOperator, TypeHelperItem } from "./TypeHelper";
 export { TypeHelperComponent } from "./TypeHelper/TypeHelper";

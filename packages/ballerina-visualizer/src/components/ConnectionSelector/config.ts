@@ -19,7 +19,10 @@
 import { ConnectionKind, ConnectionKindConfig, ConnectionSpecialConfig, ConnectionSearchConfig } from "./types";
 import { GET_DEFAULT_MODEL_PROVIDER, BALLERINAX } from "../../constants";
 import {
-    convertModelProviderCategoriesToSidePanelCategories
+    convertChunkerCategoriesToSidePanelCategories,
+    convertEmbeddingProviderCategoriesToSidePanelCategories,
+    convertModelProviderCategoriesToSidePanelCategories,
+    convertVectorStoreCategoriesToSidePanelCategories
 } from "../../utils/bi";
 
 export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfig> = {
@@ -32,6 +35,24 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
             query: "",
             searchKind: aiModuleOrg && aiModuleOrg === BALLERINAX ? "CLASS_INIT" : "MODEL_PROVIDER"
         })
+    },
+    VECTOR_STORE: {
+        displayName: "Vector Store",
+        valueTypeConstraint: "ai:VectorStore",
+        nodePropertyKey: "vectorStore",
+        categoryConverter: convertVectorStoreCategoriesToSidePanelCategories,
+    },
+    EMBEDDING_PROVIDER: {
+        displayName: "Embedding Provider",
+        valueTypeConstraint: "ai:EmbeddingProvider",
+        nodePropertyKey: "embeddingModel",
+        categoryConverter: convertEmbeddingProviderCategoriesToSidePanelCategories,
+    },
+    CHUNKER: {
+        displayName: "Chunker",
+        valueTypeConstraint: "ai:Chunker",
+        nodePropertyKey: "chunker",
+        categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     }
 };
 
