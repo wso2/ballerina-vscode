@@ -1364,6 +1364,17 @@ public class DataMapManager {
                         }
                     }
 
+                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(expr);
+                    if (optSymbol.isPresent()) {
+                        Symbol symbol = optSymbol.get();
+                        if (symbol.kind() == SymbolKind.VARIABLE) {
+                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
