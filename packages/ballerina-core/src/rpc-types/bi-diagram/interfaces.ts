@@ -23,8 +23,11 @@ import { RemoteFunction, ServiceType } from "../../interfaces/ballerina";
 
 export interface ProjectRequest {
     projectName: string;
+    packageName: string;
     projectPath: string;
-    isService: boolean;
+    createDirectory: boolean;
+    orgName?: string;
+    version?: string;
 }
 
 export interface WorkspacesResponse {
