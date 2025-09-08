@@ -1230,7 +1230,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
-        const hasFormSubmitOptions = options && Object.keys(options).length > 0;
+        const noFormSubmitOptions = !options || !(options?.shouldCloseSidePanel || options?.updateLineRangeForRecursiveInserts);
 
         if (openInDataMapper) {
             rpcClient
@@ -1280,7 +1280,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
                     }
-                    if (!hasFormSubmitOptions) {
+                    if (noFormSubmitOptions) {
                         selectedNodeRef.current = undefined;
                         await updateCurrentArtifactLocation(response);
                     }
