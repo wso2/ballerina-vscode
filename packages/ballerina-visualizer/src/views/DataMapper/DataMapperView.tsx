@@ -164,8 +164,8 @@ export function DataMapperView(props: DataMapperProps) {
             setModelState(prev => ({
                 model: {
                     ...prev.model!,
-                    mappings: (model as DMModel).mappings,
-                    query: (model as DMModel).query
+                    mappings: model.mappings,
+                    query: model.query
                 }
             }));
         }
