@@ -42,3 +42,8 @@ export interface UndoRedoStateResponse {
     nextRedoDescription: string | null;
     batchInProgress: boolean;
 }
+
+export interface AddToUndoStackRequest {
+    filePath: string;
+    source: string;
+}
