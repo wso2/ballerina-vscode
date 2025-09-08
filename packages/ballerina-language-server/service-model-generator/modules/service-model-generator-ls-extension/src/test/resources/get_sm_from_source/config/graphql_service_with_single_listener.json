@@ -30,6 +30,7 @@
       },
       "valueType": "STRING",
       "valueTypeConstraint": "string",
+      "value": "This GraphQL service demonstrates the use of queries, mutations, and subscriptions.\nIt consists of:\nA query to return a greeting message.\nA mutation to update a profile's name.\nA subscription to stream names from a predefined list.",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -133,7 +134,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 64,
           "offset": 1
         }
       },
@@ -245,11 +246,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 24,
+              "line": 29,
               "offset": 4
             },
             "endLine": {
-              "line": 29,
+              "line": 34,
               "offset": 5
             }
           },
@@ -531,11 +532,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 32,
+              "line": 37,
               "offset": 4
             },
             "endLine": {
-              "line": 34,
+              "line": 39,
               "offset": 5
             }
           },
@@ -930,11 +931,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 37,
+              "line": 42,
               "offset": 4
             },
             "endLine": {
-              "line": 49,
+              "line": 54,
               "offset": 5
             }
           },
@@ -1214,11 +1215,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 52,
+              "line": 57,
               "offset": 4
             },
             "endLine": {
-              "line": 58,
+              "line": 63,
               "offset": 5
             }
           },

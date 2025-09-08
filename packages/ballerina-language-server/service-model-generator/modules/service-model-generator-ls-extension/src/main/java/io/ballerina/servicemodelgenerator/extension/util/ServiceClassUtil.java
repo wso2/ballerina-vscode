@@ -25,13 +25,18 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Field;
@@ -48,7 +53,6 @@ import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +66,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTI
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
@@ -346,8 +349,7 @@ public class ServiceClassUtil {
 
     public static void addServiceClassDocTextEdits(ServiceClass serviceClass, ClassDefinitionNode classDef,
                                                    List<TextEdit> edits) {
-        List<String> docEdits = getDocumentationEdits(serviceClass);
-        String docEdit = String.join(System.lineSeparator(), docEdits);
+        String docEdit = getDocumentationEdits(serviceClass);
         Optional<MetadataNode> metadata =  classDef.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
             if (!docEdit.isEmpty()) {
@@ -359,7 +361,7 @@ public class ServiceClassUtil {
 
         Optional<Node> documentationString = metadata.get().documentationString();
         if (documentationString.isEmpty()) { // metadata is present but no documentation
-            if (!docEdits.isEmpty()) {
+            if (!docEdit.isEmpty()) {
                 docEdit += System.lineSeparator();
                 edits.add(new TextEdit(Utils.toRange(metadata.get().lineRange()), docEdit));
             }
@@ -373,18 +375,24 @@ public class ServiceClassUtil {
 }
 
     public static Value addServiceClassDoc(ClassDefinitionNode classDef) {
-        Optional<MetadataNode> metadata =  classDef.metadata();
         Value serviceClassDoc = getServiceDocumentation();
-        if (metadata.isPresent()) {
-            Optional<Node> docString = metadata.get().documentationString();
-            if (docString.isPresent()) {
-                String[] docs = docString.get().toString().trim().split(NEW_LINE);
-                StringBuilder docBuilder = new StringBuilder();
-                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
-                serviceClassDoc.setValue(docBuilder.toString().trim());
-                return serviceClassDoc;
+        Optional<MetadataNode> metadata = classDef.metadata();
+        if (metadata.isEmpty()) {
+            return serviceClassDoc;
+        }
+        Optional<Node> docString = metadata.get().documentationString();
+        if (docString.isEmpty() || docString.get().kind() != SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            return serviceClassDoc;
+        }
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder serviceDoc = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (CommonUtils.isMarkdownDocumentationLine(documentationLine)) {
+                NodeList<Node> nodes = ((MarkdownDocumentationLineNode) documentationLine).documentElements();
+                nodes.stream().forEach(node -> serviceDoc.append(node.toSourceCode()));
             }
         }
+        serviceClassDoc.setValue(serviceDoc.toString().stripTrailing());
         return serviceClassDoc;
     }
 }

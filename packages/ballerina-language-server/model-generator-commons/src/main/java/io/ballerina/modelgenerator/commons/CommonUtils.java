@@ -1046,4 +1046,17 @@ public class CommonUtils {
         }
         return moduleName;
     }
+
+    /**
+     * Checks if the given node is a Markdown documentation line.
+     *
+     * @param node the node to check
+     * @return true if the node is a Markdown documentation line, false otherwise
+     */
+    public static boolean isMarkdownDocumentationLine(Node node) {
+        SyntaxKind nodeKind = node.kind();
+        return nodeKind == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_REFERENCE_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE;
+    }
 }

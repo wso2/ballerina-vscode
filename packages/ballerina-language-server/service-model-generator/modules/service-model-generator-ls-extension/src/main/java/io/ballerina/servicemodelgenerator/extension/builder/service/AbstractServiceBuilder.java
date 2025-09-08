@@ -311,9 +311,9 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
      * @param builder the StringBuilder to append the service node string
      */
     static void buildServiceNodeStr(Service service, StringBuilder builder) {
-        List<String> docEdits = getDocumentationEdits(service);
+        String docEdits = getDocumentationEdits(service);
         if (!docEdits.isEmpty()) {
-            builder.append(String.join(NEW_LINE, docEdits)).append(NEW_LINE);
+            builder.append(docEdits).append(NEW_LINE);
         }
 
         List<String> annotationEdits = getAnnotationEdits(service);

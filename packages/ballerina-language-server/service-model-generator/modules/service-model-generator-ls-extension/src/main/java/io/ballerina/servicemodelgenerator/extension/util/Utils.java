@@ -33,6 +33,9 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
+import io.ballerina.compiler.syntax.tree.MarkdownParameterDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -49,6 +52,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -85,6 +89,8 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
@@ -93,7 +99,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
@@ -454,27 +459,76 @@ public final class Utils {
     }
 
     public static void updateServiceDocs(ServiceDeclarationNode serviceNode, Service service) {
-        if (serviceNode.metadata().isPresent()) {
-            Optional<Node> docString = serviceNode.metadata().get().documentationString();
-            if (docString.isPresent()) {
-                String[] docs = docString.get().toString().trim().split(NEW_LINE);
-                StringBuilder docBuilder = new StringBuilder();
-                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
-                service.getDocumentation().setValue(docBuilder.toString().trim());
+        Optional<MetadataNode> metadata = serviceNode.metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+        Optional<Node> docString = metadata.get().documentationString();
+        if (docString.isEmpty() || docString.get().kind() != SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            return;
+        }
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder serviceDoc = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (CommonUtils.isMarkdownDocumentationLine(documentationLine)) {
+                NodeList<Node> nodes = ((MarkdownDocumentationLineNode) documentationLine).documentElements();
+                nodes.stream().forEach(node -> serviceDoc.append(node.toSourceCode()));
             }
         }
+        service.getDocumentation().setValue(serviceDoc.toString().stripTrailing());
     }
 
     public static void updateFunctionDocs(FunctionDefinitionNode functionDef, Function function) {
-        if (functionDef.metadata().isPresent()) {
-            Optional<Node> docString = functionDef.metadata().get().documentationString();
-            if (docString.isPresent()) {
-                String[] docs = docString.get().toString().trim().split(NEW_LINE);
-                StringBuilder docBuilder = new StringBuilder();
-                Arrays.stream(docs).forEach(doc -> docBuilder.append(doc.trim()).append(NEW_LINE));
-                function.getDocumentation().setValue(docBuilder.toString().trim());
+        Optional<MetadataNode> metadata = functionDef.metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+        Optional<Node> docString = metadata.get().documentationString();
+        if (docString.isEmpty() || docString.get().kind() != SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            return;
+        }
+        String doc = getFunctionDesc(functionDef);
+        function.getDocumentation().setValue(doc);
+        function.getParameters().forEach(parameter -> {
+            if (!parameter.getName().getValue().equals(GRAPHQL_CONTEXT) &&
+                    !parameter.getName().getValue().equals(GRAPHQL_FIELD)) {
+                String paramDesc = getParamDesc(functionDef, parameter.getName().getValue());
+                parameter.getDocumentation().setValue(paramDesc);
+            }
+        });
+    }
+
+    private static String getFunctionDesc(FunctionDefinitionNode funcDefNode) {
+        Optional<MetadataNode> metadata = funcDefNode.metadata();
+        Optional<Node> docString = metadata.get().documentationString();
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder description = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (CommonUtils.isMarkdownDocumentationLine(documentationLine)) {
+                NodeList<Node> nodes = ((MarkdownDocumentationLineNode) documentationLine).documentElements();
+                nodes.stream().forEach(node -> description.append(node.toSourceCode()));
             }
         }
+        return description.toString().stripTrailing();
+    }
+
+    private static String getParamDesc(FunctionDefinitionNode funcDefNode, String paramName) {
+        Optional<MetadataNode> metadata = funcDefNode.metadata();
+        Optional<Node> docString = metadata.get().documentationString();
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder paramDoc = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (documentationLine.kind() == SyntaxKind.MARKDOWN_PARAMETER_DOCUMENTATION_LINE) {
+                MarkdownParameterDocumentationLineNode docLine =
+                        (MarkdownParameterDocumentationLineNode) documentationLine;
+                String name = docLine.parameterName().text().trim();
+                NodeList<Node> nodes = docLine.documentElements();
+                if (paramName.equals(name) && !nodes.isEmpty()) {
+                    nodes.stream().forEach(node -> paramDoc.append(node.toSourceCode()));
+                }
+            }
+        }
+        return paramDoc.toString().stripTrailing();
     }
 
     private static String getListenerExprName(ExpressionNode expressionNode) {
@@ -553,42 +607,59 @@ public final class Utils {
         return annots;
     }
 
-    public static List<String> getDocumentationEdits(Service service) {
-        List<String> docs = new ArrayList<>();
+    public static String getDocumentationEdits(Service service) {
+        String docs = "";
         if (Objects.nonNull(service.getDocumentation()) && service.getDocumentation().getValue() != null) {
-            String formatted = service.getDocumentation().getValue().isBlank() ? "" : "# " + service.getDocumentation();
-            docs.add(formatted);
+            String formatted = getFormattedDesc(service.getDocumentation().getValue());
+            docs += formatted;
         }
         return docs;
     }
 
-    public static List<String> getDocumentationEdits(ServiceClass serviceClass) {
-        List<String> docs = new ArrayList<>();
+    public static String getDocumentationEdits(ServiceClass serviceClass) {
+        String docs = "";
         if (Objects.nonNull(serviceClass.documentation()) && serviceClass.documentation().getValue() != null) {
-            String formatted = serviceClass.documentation().getValue().isBlank() ? "" :
-                    "# " + serviceClass.documentation();
-            docs.add(formatted);
+            String formatted = getFormattedDesc(serviceClass.documentation().getValue());
+            docs += formatted;
         }
         return docs;
     }
 
-    public static List<String> getDocumentationEdits(Function function) {
-
-        List<String> docs = new ArrayList<>();
+    public static String getDocumentationEdits(Function function) {
+        String docEdits = "";
         if (Objects.nonNull(function.getDocumentation()) && function.getDocumentation().getValue() != null) {
-            String formatted = function.getDocumentation().getValue().isBlank() ? "" :
-                    "# " + function.getDocumentation().getValue();
-            docs.add(formatted);
+            String formatted = getFormattedDesc(function.getDocumentation().getValue());
+            docEdits = formatted.isEmpty() ? docEdits : formatted;
         }
         for (Parameter parameter : function.getParameters()) {
             Value doc = parameter.getDocumentation();
             if (Objects.nonNull(doc) && parameter.isEnabled() && doc.getValue() != null) {
-                String formatted = doc.getValue().isBlank() ? "" :
-                        "# + " + parameter.getName().getValue() + " - " + doc;
-                docs.add(formatted);
+                String formatted = getFormattedParamDesc(doc.getValue(), parameter.getName().getValue());
+                docEdits = formatted.isEmpty() ? docEdits : docEdits + NEW_LINE + formatted;
             }
         }
-        return docs;
+        return docEdits;
+    }
+
+    public static final String NEW_LINE = System.lineSeparator();
+
+    public static String getFormattedDesc(String desc) {
+        if (desc.isBlank()) {
+            return "";
+        }
+        String doc = CommonUtils.convertToBalDocs(desc);
+        return doc.stripTrailing();
+    }
+
+    public static String getFormattedParamDesc(String desc, String paramName) {
+        if (desc.isBlank()) {
+            return "";
+        }
+        StringBuilder docBuilder = new StringBuilder();
+        String[] docs = desc.trim().split("\\R");
+        String paramDoc = String.join(" ", docs);
+        docBuilder.append("# + ").append(paramName).append(" - ").append(paramDoc);
+        return docBuilder.toString();
     }
 
     public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
@@ -632,8 +703,7 @@ public final class Utils {
                                               List<TextEdit> edits) {
         Token serviceKeyword = serviceNode.serviceKeyword();
 
-        List<String> docs = getDocumentationEdits(service);
-        String docEdit = String.join(System.lineSeparator(), docs);
+        String docEdit = getDocumentationEdits(service);
 
         Optional<MetadataNode> metadata = serviceNode.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
@@ -701,8 +771,7 @@ public final class Utils {
                                                List<TextEdit> edits) {
         Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
                 : functionDef.qualifierList().get(0);
-        List<String> docEdits = getDocumentationEdits(function);
-        String docEdit = String.join(System.lineSeparator(), docEdits);
+        String docEdit = getDocumentationEdits(function);
         Optional<MetadataNode> metadata = functionDef.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
             if (!docEdit.isEmpty()) {
@@ -714,7 +783,7 @@ public final class Utils {
 
         Optional<Node> documentationString = metadata.get().documentationString();
         if (documentationString.isEmpty()) { // metadata is present but no documentation
-            if (!docEdits.isEmpty()) {
+            if (!docEdit.isEmpty()) {
                 docEdit += System.lineSeparator();
                 edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
             }
@@ -771,9 +840,9 @@ public final class Utils {
                                                    FunctionSignatureContext signatureContext,
                                                    Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
-        List<String> documentation = getDocumentationEdits(function);
+        String documentation = getDocumentationEdits(function);
         if (!documentation.isEmpty()) {
-            builder.append(String.join(NEW_LINE, documentation)).append(NEW_LINE);
+            builder.append(documentation).append(NEW_LINE);
         }
 
         List<String> functionAnnotations = getAnnotationEdits(function, imports);
