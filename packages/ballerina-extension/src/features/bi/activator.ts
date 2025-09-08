@@ -81,7 +81,7 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
-    }); 
+    });
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
@@ -120,7 +120,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     //HACK: Open all Ballerina files in the project
-    openAllBallerinaFiles(context);
+    // openAllBallerinaFiles(context);
 }
 
 function openAllBallerinaFiles(context: BallerinaExtension) {
@@ -307,13 +307,13 @@ function isFilePathsEqual(filePath1: string, filePath2: string) {
 
 function toggleTraceLogs() {
     const config = workspace.getConfiguration();
-    
+
     const currentTraceServer = config.get<string>(TRACE_SERVER);
     const currentDebugLog = config.get<boolean>(ENABLE_DEBUG_LOG);
     const currentTraceLog = config.get<boolean>(ENABLE_TRACE_LOG);
-    
+
     const isTraceEnabled = currentTraceServer === TRACE_SERVER_VERBOSE && currentDebugLog && currentTraceLog;
-    
+
     if (isTraceEnabled) {
         config.update(TRACE_SERVER, TRACE_SERVER_OFF, ConfigurationTarget.Global);
         config.update(ENABLE_DEBUG_LOG, false, ConfigurationTarget.Global);
