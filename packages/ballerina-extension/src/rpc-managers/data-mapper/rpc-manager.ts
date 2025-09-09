@@ -105,7 +105,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -142,7 +142,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -163,7 +163,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.filePath,
                         params.codedata,
                         params.varName,
-                        params.targetField,params.withinSubMapping
+                        params.targetField,params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -185,7 +185,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -263,7 +263,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -285,7 +285,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
@@ -359,7 +359,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                         params.codedata,
                         params.varName,
                         params.targetField,
-                        params.withinSubMapping
+                        params.subMappingName
                     )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });

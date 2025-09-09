@@ -318,11 +318,11 @@ export async function updateAndRefreshDataMapper(
     codedata: CodeData,
     varName: string,
     targetField?: string,
-    withinSubMapping?: boolean
+    subMappingName?: string
 ): Promise<void> {
     try {
-        const newCodeData = withinSubMapping
-            ? await updateSubMappingSource(textEdits, filePath, codedata, targetField)
+        const newCodeData = subMappingName
+            ? await updateSubMappingSource(textEdits, filePath, codedata, subMappingName)
             : await updateSource(textEdits, filePath, codedata, varName);
         updateView(newCodeData, varName);
     } catch (error) {
