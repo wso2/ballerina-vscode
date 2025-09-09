@@ -399,7 +399,7 @@ export interface AddArrayElementRequest {
     varName?: string;
     targetField?: string;
     propertyKey?: string;
-    subMappingName?: boolean;
+    subMappingName?: string;
 }
 
 export interface ConvertToQueryRequest {
@@ -410,7 +410,7 @@ export interface ConvertToQueryRequest {
     varName?: string;
     targetField: string;
     propertyKey?: string;
-    subMappingName?: boolean;
+    subMappingName?: string;
 }
 
 export interface AddClausesRequest {
@@ -421,7 +421,7 @@ export interface AddClausesRequest {
     varName?: string;
     targetField: string;
     propertyKey?: string;
-    subMappingName?: boolean;
+    subMappingName?: string;
 }
 
 export interface AddSubMappingRequest {
@@ -439,7 +439,7 @@ export interface DeleteMappingRequest {
     mapping: Mapping;
     varName?: string;
     targetField: string;
-    subMappingName?: boolean;
+    subMappingName?: string;
 }
 
 export interface MapWithFnRequest {
@@ -449,7 +449,7 @@ export interface MapWithFnRequest {
     functionMetadata: FnMetadata;
     varName?: string;
     targetField: string;
-    subMappingName?: boolean;
+    subMappingName?: string;
 }
 
 export interface GetDataMapperCodedataRequest {
