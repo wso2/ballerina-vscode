@@ -880,22 +880,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setTypeEditorState({ isOpen: stack.length !== 1 });
     }
 
-        /**
-         * Updates record type fields and value type constraints when a type is selected.
-         * This is used in variable declaration forms where the variable type dynamically changes.
-         */
-        const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string } }) => {
-            if (!type) {
-                setValueTypeConstraints([]);
-                return;
-            }
-            setValueTypeConstraints(type.label);
-    
-            // If not a Record, remove the 'expression' entry from recordTypeFields and return
-            if (type?.labelDetails?.description !== "Record") {
-                setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
-                return;
-            }
+    /**
+     * Updates record type fields and value type constraints when a type is selected.
+     * This is used in variable declaration forms where the variable type dynamically changes.
+     */
+    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string } }) => {
+        if (!type) {
+            setValueTypeConstraints([]);
+            return;
+        }
+        setValueTypeConstraints(type.label);
+
+        // If not a Record, remove the 'expression' entry from recordTypeFields and return
+        if (type?.labelDetails?.description !== "Record") {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
+            return;
+        }
 
         // Find the Expression property
         const expressionEntry = Object.entries(getFormProperties(node))
