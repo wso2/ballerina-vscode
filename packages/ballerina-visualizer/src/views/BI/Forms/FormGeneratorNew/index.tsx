@@ -34,8 +34,7 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    TypeNodeKind,
-    Member
+    NodeProperties
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -43,7 +42,6 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    PanelContainer,
     FormImports
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -635,7 +633,7 @@ export function FormGeneratorNew(props: FormProps) {
         }
     };
 
-    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField) => {
+    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField, newType?: string | NodeProperties) => {
         // Get f.value and assign that value to field value
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
@@ -645,7 +643,13 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen, field: editingField, newTypeValue: f[editingField?.key] });
+        setTypeEditorState({ 
+            isOpen, 
+            field: editingField, 
+            newTypeValue: newType 
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType) 
+                : f[editingField?.key] 
+        });
     };
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
