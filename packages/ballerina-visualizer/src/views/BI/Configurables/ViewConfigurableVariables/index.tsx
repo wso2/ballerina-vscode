@@ -273,7 +273,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         await rpcClient
             .getBIDiagramRpcClient()
             .getConfigVariablesV2({
-                includeLibraries: false,
                 projectPath: ''
             })
             .then((variables) => {
