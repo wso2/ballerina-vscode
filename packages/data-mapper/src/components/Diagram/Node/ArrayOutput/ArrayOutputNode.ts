@@ -115,7 +115,7 @@ export class ArrayOutputNode extends DataMapperNodeModel {
 
             const mapping = mappings[0]; // There is only one mapping for the output root
             this.isBodyArrayliteralExpr = mapping?.elements.length > 0
-                || (mapping?.elements.length === 0 && mapping.expression === '[]');
+                || (mapping?.elements.length === 0 && /^\s*\[\s*\]\s*$/.test(mapping.expression));
         }
     }
 

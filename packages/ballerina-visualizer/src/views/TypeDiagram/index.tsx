@@ -398,7 +398,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             setTypeEditorState({
                 editingTypeId: type.name,
                 editingType: type,
-                isTypeCreatorOpen: true,
+                isTypeCreatorOpen: false,
                 newTypeName: undefined,
             });
             return;
@@ -406,7 +406,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setTypeEditorState({
             editingTypeId: undefined,
             editingType: undefined,
-            isTypeCreatorOpen: true,
+            isTypeCreatorOpen: false,
             newTypeName: undefined,
         });
     };
