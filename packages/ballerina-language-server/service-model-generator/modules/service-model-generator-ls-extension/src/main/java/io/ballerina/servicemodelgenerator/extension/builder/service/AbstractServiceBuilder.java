@@ -163,9 +163,36 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+
+        ListenerDTO result = buildListenerDTO(context, properties, serviceInitModel, modulePartNode);
+
+        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
+
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(result.listenerDeclaration())
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(result.listenerProtocol()))
+                .append(SPACE).append(ON).append(SPACE).append(result.listenerVarName()).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        List<TextEdit> edits = new ArrayList<>();
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        return Map.of(context.filePath(), edits);
+    }
+
+    protected static ListenerDTO buildListenerDTO(AddServiceInitModelContext context, Map<String, Value> properties,
+                                                  ServiceInitModel serviceInitModel, ModulePartNode modulePartNode) {
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
-        List<TextEdit> edits = new ArrayList<>();
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
             Value value = entry.getValue();
             Codedata codedata = value.getCodedata();
@@ -178,33 +205,16 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                 modulePartNode.lineRange().endLine(), LISTENER_VAR_NAME.formatted(listenerProtocol));
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
                 listenerProtocol, "Listener", listenerVarName, args);
+        return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
+    }
 
-        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
-        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
-
-        StringBuilder builder = new StringBuilder(NEW_LINE)
-                .append(listenerDeclaration)
-                .append(NEW_LINE)
-                .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(listenerProtocol))
-                .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
-                .append(NEW_LINE)
-                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
-                .append(CLOSE_BRACE).append(NEW_LINE);
-
-        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
-            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
-            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
-        }
-        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
-
-        return Map.of(context.filePath(), edits);
+    protected record ListenerDTO(String listenerProtocol, String listenerVarName, String listenerDeclaration) {
     }
 
     @Override
