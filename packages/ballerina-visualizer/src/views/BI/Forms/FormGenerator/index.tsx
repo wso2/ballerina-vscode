@@ -210,7 +210,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
-
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
@@ -1132,6 +1131,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
                                 onTypeCreate={handleTypeCreate}
+                                isPopupTypeForm={true}
                                 getNewTypeCreateForm={getNewTypeCreateForm}
                                 refetchTypes={refetchStates[i]}
                             />
@@ -1207,6 +1207,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             type={peekTypeStack()?.type}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
