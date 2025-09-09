@@ -315,10 +315,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		isFocused: boolean,
 		collapseByDefault: boolean
 	) {
-		if (isArray){
-			return isFocused ? false : expandedFields && !expandedFields.includes(portName);
-		}
-		if (collapseByDefault) {
+		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
 		}
 		return !hidden && collapsedFields && collapsedFields.includes(portName);
