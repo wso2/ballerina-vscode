@@ -1346,6 +1346,33 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
+                } else if (parent.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
+                    if (optSymbol.isEmpty()) {
+                        return;
+                    }
+                    Symbol symbol = optSymbol.get();
+                    if (symbol.kind() == SymbolKind.FUNCTION) {
+                        FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+                        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+                        if (returnType.isPresent()) {
+                            TypeSymbol returnTypeSymbol = returnType.get();
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(returnTypeSymbol).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(expr);
+                    if (optSymbol.isPresent()) {
+                        Symbol symbol = optSymbol.get();
+                        if (symbol.kind() == SymbolKind.VARIABLE) {
+                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {

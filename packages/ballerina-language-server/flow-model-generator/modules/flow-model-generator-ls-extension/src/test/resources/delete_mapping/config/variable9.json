@@ -1,0 +1,47 @@
+{
+  "source": "variable6.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable6.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 14
+      }
+    }
+  },
+  "mapping": {
+    "output": "rec",
+    "inputs": [
+      "recItem"
+    ],
+    "expression": "recItem\n",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false
+  },
+  "targetField": "v2.rec",
+  "output": {
+    "variable6.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 27
+          },
+          "end": {
+            "line": 19,
+            "character": 34
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}
