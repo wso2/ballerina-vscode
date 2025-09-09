@@ -183,7 +183,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         // Verify the client was called with the expected artifacts
         Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
         Object capturedValue = artifactsCaptor.getValue();
-        
+
         @SuppressWarnings("unchecked")
         ArtifactsParams artifactsParams = (ArtifactsParams) capturedValue;
         Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
@@ -221,6 +221,137 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
     @Override
     protected String getApiName() {
         return "publishArtifacts";
+    }
+
+    @Test
+    public void testReloadProjectWithPreExistingArtifacts() throws Exception {
+        // Create mock document service context for reload project operation
+        String sourcePath = getSourcePath("old");
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+        Path filePath = Path.of(sourcePath);
+        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
+        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.RELOAD_PROJECT,
+                languageServer.getServerContext()
+        );
+
+        // Invoke the subscriber
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                documentServiceContext,
+                languageServer.getServerContext()
+        );
+
+        // Wait for debouncer to complete (using project-level key)
+        Path projectPath = workspaceManager.projectRoot(filePath);
+        String projectKey = projectPath.toUri().toString();
+        waitForDebouncerCompletion(projectKey);
+
+        // Verify the client was called
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
+        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
+
+        // Verify URI is project-level
+        Assert.assertEquals(artifactsParams.uri(), projectKey);
+
+        // Verify delta changes contain deletions and additions
+        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+        Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
+
+        // Should have deletions (from cached artifacts) and additions/updates (from current project)
+        boolean hasDeletions = publishedArtifacts.values().stream()
+                .anyMatch(categoryMap -> categoryMap.containsKey("deletions"));
+        boolean hasAdditions = publishedArtifacts.values().stream()
+                .anyMatch(categoryMap -> categoryMap.containsKey("additions"));
+
+        Assert.assertTrue(hasDeletions || hasAdditions,
+                "Should have either deletions or additions/updates in reload project delta");
+    }
+
+    @Test
+    public void testReloadProjectWithoutPreExistingArtifacts() throws Exception {
+        // Setup: Clear cache to simulate no pre-existing artifacts
+        clearProjectCache();
+
+        // Create mock document service context for reload project operation
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+        String sourcePath = getSourcePath("old");
+        Path filePath = Path.of(sourcePath);
+        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
+
+        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.RELOAD_PROJECT,
+                languageServer.getServerContext()
+        );
+
+        // Invoke the subscriber
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                documentServiceContext,
+                languageServer.getServerContext()
+        );
+
+        // Wait for debouncer to complete (using project-level key)
+        Path projectPath = workspaceManager.projectRoot(filePath);
+        String projectKey = projectPath.toUri().toString();
+        waitForDebouncerCompletion(projectKey);
+
+        // Verify the client was called
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
+        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
+
+        // Verify URI is project-level
+        Assert.assertEquals(artifactsParams.uri(), projectKey);
+
+        // Verify delta changes contain only additions (no pre-existing artifacts)
+        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+        Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
+
+        // Should only have additions, no deletions or updates
+        boolean hasDeletions = publishedArtifacts.values().stream()
+                .anyMatch(categoryMap -> categoryMap.containsKey("deletions"));
+        boolean hasAdditions = publishedArtifacts.values().stream()
+                .anyMatch(categoryMap -> categoryMap.containsKey("additions"));
+
+        Assert.assertFalse(hasDeletions, "Should not have deletions when no pre-existing artifacts");
+        Assert.assertTrue(hasAdditions, "Should have additions for new project artifacts");
+    }
+
+    private void waitForDebouncerCompletion(String key) throws Exception {
+        ArtifactGenerationDebouncer debouncer = ArtifactGenerationDebouncer.getInstance();
+        long startTime = System.currentTimeMillis();
+        long timeout = 5000; // 5 seconds timeout
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            Field delayedMapField = ArtifactGenerationDebouncer.class.getDeclaredField("delayedMap");
+            delayedMapField.setAccessible(true);
+            ConcurrentHashMap<?, ?> map = (ConcurrentHashMap<?, ?>) delayedMapField.get(debouncer);
+
+            if (map.get(key) == null) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        Assert.fail("Timed out waiting for debouncer to finish processing");
+    }
+
+    private void clearProjectCache() throws Exception {
+        ArtifactsCache cache = ArtifactsCache.getInstance();
+        Field projectCacheField = ArtifactsCache.class.getDeclaredField("projectCache");
+        projectCacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> projectMap = (Map<String, Object>) projectCacheField.get(cache);
+        if (projectMap != null) {
+            projectMap.clear();
+        }
     }
 
     private record TestConfig(String source, String description,
