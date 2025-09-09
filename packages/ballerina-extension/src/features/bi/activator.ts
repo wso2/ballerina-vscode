@@ -119,8 +119,32 @@ export function activate(context: BallerinaExtension) {
         }
     });
 
-    //HACK: Open all Ballerina files in the project
-    // openAllBallerinaFiles(context);
+    // Open the ballerina toml file as the first file for LS to trigger the project loading
+    openBallerinaTomlFile(context);
+}
+
+
+function openBallerinaTomlFile(context: BallerinaExtension) {
+    const projectRoot = StateMachine.context().projectUri;
+    const ballerinaTomlFile = path.join(projectRoot, "Ballerina.toml");
+    try {
+        const content = readFileSync(ballerinaTomlFile, "utf8");
+        if (content) {
+            context.langClient.didOpen({
+                textDocument: {
+                    uri: Uri.file(ballerinaTomlFile).toString(),
+                    languageId: "toml",
+                    version: 1,
+                    text: content,
+                },
+            });
+            console.log(`>>> Opened file: ${ballerinaTomlFile}`);
+        } else {
+            console.error(`>>> No content found for file ${ballerinaTomlFile}`);
+        }
+    } catch (error) {
+        console.error(`Error opening file ${ballerinaTomlFile}:`, error);
+    }
 }
 
 function openAllBallerinaFiles(context: BallerinaExtension) {
