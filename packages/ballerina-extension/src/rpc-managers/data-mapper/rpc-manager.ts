@@ -136,7 +136,14 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 })
                 .then((resp) => {
                     console.log(">>> Data mapper add array element response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
@@ -151,7 +158,13 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .convertToQuery(params)
                 .then((resp) => {
                     console.log(">>> Data mapper convert to query response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField, params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
@@ -166,7 +179,14 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .addClauses(params)
                 .then((resp) => {
                     console.log(">>> Data mapper add clauses response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
@@ -237,7 +257,14 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .deleteMapping(params)
                 .then((resp) => {
                     console.log(">>> Data mapper delete mapping response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
@@ -252,7 +279,14 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .mapWithCustomFn(params)
                 .then((resp) => {
                     console.log(">>> Data mapper map with custom fn response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
@@ -319,7 +353,14 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .mapWithTransformFn(params)
                 .then((resp) => {
                     console.log(">>> Data mapper map with transform fn response", resp);
-                    updateAndRefreshDataMapper(resp.textEdits, params.filePath, params.codedata, params.varName)
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.withinSubMapping
+                    )
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });

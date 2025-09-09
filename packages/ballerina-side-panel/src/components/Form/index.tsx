@@ -47,6 +47,7 @@ import {
     RecordTypeField,
     Type,
     VisualizableField,
+    NodeProperties,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -321,7 +322,7 @@ export interface FormProps {
     selectedNode?: NodeKind;
     onSubmit?: (data: FormValues, dirtyFields?: any) => void;
     isSaving?: boolean;
-    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField) => void;
+    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
     openView?: (filePath: string, position: NodePosition) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
@@ -499,8 +500,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
         resetForm: (values) => reset(values),
     }));
 
-    const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
-        openRecordEditor?.(open, getValues(), typeField);
+    const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
+        openRecordEditor?.(open, getValues(), typeField, newType);
     };
 
     const handleOnShowAdvancedOptions = () => {
@@ -760,7 +761,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         selectedNode={selectedNode}
                                         openRecordEditor={
                                             openRecordEditor &&
-                                            ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
                                         openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
@@ -834,7 +835,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             field={updatedField}
                                             openRecordEditor={
                                                 openRecordEditor &&
-                                                ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                             }
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
@@ -863,7 +864,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
                             <EditorFactory
                                 field={typeField}
                                 openRecordEditor={
-                                    openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
+                                    openRecordEditor &&
+                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                                 }
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}
