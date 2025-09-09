@@ -33,7 +33,7 @@ import org.eclipse.lsp4j.ShowMessageRequestParams;
 import java.util.List;
 
 /**
- * Subscriber to popup notification and resolve compilation errors on project updates.
+ * Subscriber should gracefully handle compilation errors by notifying the extension.
  *
  * @since 1.2.0
  */
@@ -42,6 +42,8 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
 
     public static final String NAME = "Resolve compilation errors subscriber";
     private static final String PULL_MODULES_ACTION = "Pull Modules";
+    private static final String ERROR_MESSAGE =
+            "Language Server has stopped working. Compilation has failed due to corrupted modules.";
 
     @Override
     public EventKind eventKind() {
@@ -51,6 +53,8 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
     @Override
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext serverContext) {
+        // TODO: Skip this subscriber once diagnostic mentioned in
+        //  https://github.com/ballerina-platform/ballerina-lang/issues/44275 is available in the distribution.
         try {
             context.workspace().waitAndGetPackageCompilation(context.filePath());
         } catch (BLangCompilerException e) {
@@ -58,8 +62,7 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
             if (message != null && message.startsWith("failed to load the module")) {
                 ShowMessageRequestParams showMessageRequestParams = new ShowMessageRequestParams();
                 showMessageRequestParams.setType(MessageType.Error);
-                showMessageRequestParams.setMessage(
-                        "Language Server has stopped working. Compilation has failed due to corrupted modules.");
+                showMessageRequestParams.setMessage(ERROR_MESSAGE);
                 showMessageRequestParams.setActions(List.of(new MessageActionItem(PULL_MODULES_ACTION)));
 
                 client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
