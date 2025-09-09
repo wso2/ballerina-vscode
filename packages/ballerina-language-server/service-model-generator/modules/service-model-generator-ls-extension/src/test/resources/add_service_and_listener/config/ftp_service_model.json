@@ -58,13 +58,13 @@
         "codedata": {
           "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
         },
-        "placeholder": "\"FTP\"",
+        "placeholder": "\"ftp\"",
         "valueType": "SINGLE_SELECT",
         "valueTypeConstraint": "string",
-        "value": "\"FTP\"",
+        "value": "\"ftp\"",
         "items": [
-          "\"FTP\"",
-          "\"SFTP\""
+          "\"ftp\"",
+          "\"sftp\""
         ],
         "typeMembers": [],
         "enabled": true,

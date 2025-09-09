@@ -414,15 +414,15 @@
         "protocol": {
           "label": "Protocol",
           "description": "The protocol to connect to the FTP server",
-          "defaultValue": "\"FTP\"",
-          "placeholder": "\"FTP\"",
+          "defaultValue": "\"ftp\"",
+          "placeholder": "\"ftp\"",
           "valueType": "SINGLE_SELECT",
           "typeConstrain": "string",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
           "selections": [
-            "\"FTP\"",
-            "\"SFTP\""
+            "\"ftp\"",
+            "\"sftp\""
           ]
         },
         "path": {
@@ -1002,7 +1002,7 @@
               "kind": "RECORD_TYPE"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
           "selections": []
         }
       }
