@@ -223,7 +223,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         return "publishArtifacts";
     }
 
-    @Test
+    @Test(dependsOnMethods = "testReloadProjectWithPreExistingArtifacts")
     public void testReloadProjectWithoutPreExistingArtifacts() throws Exception {
         // Setup: Clear cache to simulate no pre-existing artifacts
         clearProjectCache();
@@ -266,24 +266,23 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
         Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
 
-        // Should only have additions, no deletions or updates
-        boolean hasDeletions = publishedArtifacts.values().stream()
-                .anyMatch(categoryMap -> categoryMap.containsKey("deletions"));
-        boolean hasAdditions = publishedArtifacts.values().stream()
-                .anyMatch(categoryMap -> categoryMap.containsKey("additions"));
+        Path resourcesDir = configDir.getParent().resolve("resources");
+        Path configJsonPath = resourcesDir.resolve("no_preexisting_project.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
 
-        Assert.assertFalse(hasDeletions, "Should not have deletions when no pre-existing artifacts");
-        Assert.assertTrue(hasAdditions, "Should have additions for new project artifacts");
+        if (!publishedArtifacts.equals(expectedArtifacts)) {
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
+            // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
+        }
     }
 
     @Test
     public void testReloadProjectWithPreExistingArtifacts() throws Exception {
-        // Load expected results from JSON
-        Path resourcesDir = configDir.getParent().resolve("resources");
-        Path configJsonPath = resourcesDir.resolve("existing_project.json");
-        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
-
-        // Setup: didChange for config.bal to populate cache
+        initializeProject();
         WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
         String sourcePath = getSourcePath("new");
         Path filePath = Path.of(sourcePath);
@@ -334,12 +333,16 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         ArtifactsParams artifactsParams = artifactsCaptor.getValue();
 
         // Assert the published artifacts
+        Path resourcesDir = configDir.getParent().resolve("resources");
+        Path configJsonPath = resourcesDir.resolve("existing_project.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+
         Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
         Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
         if (!publishedArtifacts.equals(expectedArtifacts)) {
             TestConfig updatedConfig =
                     new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-            updateConfig(configJsonPath, updatedConfig);
+            // updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
         }

@@ -1,9 +1,27 @@
 {
-  "source": "new/config.bal",
-  "description": "Test reload project with pre-existing artifacts",
+  "source": "old/config.bal",
+  "description": "Test reload project without pre-existing artifacts",
   "output": {
     "Variables": {
-      "updates": {
+      "additions": {
+        "menuItems": {
+          "id": "menuItems",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 7,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 11,
+              "offset": 2
+            }
+          },
+          "type": "VARIABLE",
+          "name": "menuItems",
+          "scope": "Global",
+          "children": {}
+        },
         "_telegramAgentAgent": {
           "id": "_telegramAgentAgent",
           "location": {
@@ -22,21 +40,21 @@
           "scope": "Global",
           "children": {}
         },
-        "menuItems": {
-          "id": "menuItems",
+        "orderCounter": {
+          "id": "orderCounter",
           "location": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 5,
+              "line": 16,
               "offset": 0
             },
             "endLine": {
-              "line": 10,
-              "offset": 2
+              "line": 16,
+              "offset": 21
             }
           },
           "type": "VARIABLE",
-          "name": "menuItems",
+          "name": "orderCounter",
           "scope": "Global",
           "children": {}
         },
@@ -45,34 +63,16 @@
           "location": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 12,
+              "line": 13,
               "offset": 0
             },
             "endLine": {
-              "line": 31,
-              "offset": 2
+              "line": 13,
+              "offset": 44
             }
           },
           "type": "VARIABLE",
           "name": "orders",
-          "scope": "Global",
-          "children": {}
-        },
-        "orderCounter": {
-          "id": "orderCounter",
-          "location": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 34,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 34,
-              "offset": 21
-            }
-          },
-          "type": "VARIABLE",
-          "name": "orderCounter",
           "scope": "Global",
           "children": {}
         },
@@ -97,7 +97,7 @@
       }
     },
     "Connections": {
-      "updates": {
+      "additions": {
         "httpEp": {
           "id": "httpEp",
           "location": {
@@ -108,7 +108,7 @@
             },
             "endLine": {
               "line": 2,
-              "offset": 64
+              "offset": 42
             }
           },
           "type": "CONNECTION",
@@ -121,7 +121,7 @@
       }
     },
     "Types": {
-      "updates": {
+      "additions": {
         "Order": {
           "id": "Order",
           "location": {
@@ -137,6 +137,24 @@
           },
           "type": "TYPE",
           "name": "Order",
+          "scope": "Global",
+          "children": {}
+        },
+        "MenuItem": {
+          "id": "MenuItem",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "MenuItem",
           "scope": "Global",
           "children": {}
         },
@@ -175,45 +193,39 @@
           "name": "OrderItem",
           "scope": "Global",
           "children": {}
-        },
-        "MenuItem": {
-          "id": "MenuItem",
-          "location": {
-            "fileName": "types.bal",
-            "startLine": {
-              "line": 0,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 4,
-              "offset": 3
-            }
-          },
-          "type": "TYPE",
-          "name": "MenuItem",
-          "scope": "Global",
-          "children": {}
         }
       }
     },
     "Listeners": {
-      "deletions": {
+      "additions": {
         "telegramAgentListener": {
           "id": "telegramAgentListener",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 97
+            }
+          },
+          "type": "LISTENER",
+          "name": "telegramAgentListener",
+          "scope": "Global",
           "children": {}
-        }
-      },
-      "updates": {
+        },
         "httpListener": {
           "id": "httpListener",
           "location": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 2,
+              "line": 4,
               "offset": 0
             },
             "endLine": {
-              "line": 2,
+              "line": 4,
               "offset": 49
             }
           },
@@ -227,13 +239,7 @@
       }
     },
     "Functions": {
-      "deletions": {
-        "calculateOrderTotal": {
-          "id": "calculateOrderTotal",
-          "children": {}
-        }
-      },
-      "updates": {
+      "additions": {
         "isPalindrome": {
           "id": "isPalindrome",
           "location": {
@@ -270,21 +276,21 @@
           "scope": "Global",
           "children": {}
         },
-        "factorial": {
-          "id": "factorial",
+        "calculateOrderTotal": {
+          "id": "calculateOrderTotal",
           "location": {
-            "fileName": "functions.bal",
+            "fileName": "data_mappings.bal",
             "startLine": {
-              "line": 18,
+              "line": 33,
               "offset": 0
             },
             "endLine": {
-              "line": 23,
+              "line": 37,
               "offset": 1
             }
           },
           "type": "FUNCTION",
-          "name": "factorial",
+          "name": "calculateOrderTotal",
           "scope": "Global",
           "children": {}
         },
@@ -323,77 +329,57 @@
           "name": "findMax",
           "scope": "Global",
           "children": {}
+        },
+        "factorial": {
+          "id": "factorial",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 23,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "factorial",
+          "scope": "Global",
+          "children": {}
         }
       }
     },
     "Data Mappers": {
       "additions": {
-        "calculateOrderTotal": {
-          "id": "calculateOrderTotal",
-          "location": {
-            "fileName": "data_mappings.bal",
-            "startLine": {
-              "line": 20,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 20,
-              "offset": 91
-            }
-          },
-          "type": "DATA_MAPPER",
-          "name": "calculateOrderTotal",
-          "scope": "Global",
-          "children": {}
-        },
-        "toOrder": {
-          "id": "toOrder",
-          "location": {
-            "fileName": "data_mappings.bal",
-            "startLine": {
-              "line": 16,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 16,
-              "offset": 88
-            }
-          },
-          "type": "DATA_MAPPER",
-          "name": "toOrder",
-          "scope": "Global",
-          "children": {}
-        }
-      },
-      "deletions": {
         "orderRequestToOrder": {
           "id": "orderRequestToOrder",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 30,
+              "offset": 2
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "orderRequestToOrder",
+          "scope": "Global",
           "children": {}
         },
-        "jsonToOrderItem": {
-          "id": "jsonToOrderItem",
-          "children": {}
-        },
-        "jsonToOrder": {
-          "id": "jsonToOrder",
-          "children": {}
-        },
-        "jsonToMenuItem": {
-          "id": "jsonToMenuItem",
-          "children": {}
-        }
-      },
-      "updates": {
         "mapMenuItemV1ToV2": {
           "id": "mapMenuItemV1ToV2",
           "location": {
             "fileName": "data_mappings.bal",
             "startLine": {
-              "line": 23,
+              "line": 40,
               "offset": 0
             },
             "endLine": {
-              "line": 31,
+              "line": 48,
               "offset": 2
             }
           },
@@ -420,8 +406,44 @@
           "scope": "Global",
           "children": {}
         },
-        "orderItemToJson": {
-          "id": "orderItemToJson",
+        "jsonToOrderItem": {
+          "id": "jsonToOrderItem",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 19,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 19,
+              "offset": 100
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToOrderItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "jsonToOrder": {
+          "id": "jsonToOrder",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 22,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 22,
+              "offset": 92
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToOrder",
+          "scope": "Global",
+          "children": {}
+        },
+        "jsonToMenuItem": {
+          "id": "jsonToMenuItem",
           "location": {
             "fileName": "data_mappings.bal",
             "startLine": {
@@ -429,7 +451,25 @@
               "offset": 0
             },
             "endLine": {
+              "line": 10,
+              "offset": 98
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToMenuItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "orderItemToJson": {
+          "id": "orderItemToJson",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
               "line": 13,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
               "offset": 2
             }
           },
@@ -442,16 +482,54 @@
     },
     "Entry Points": {
       "additions": {
-        "-611373993": {
-          "id": "-611373993",
+        "-611392686": {
+          "id": "-611392686",
           "location": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 36,
+              "line": 18,
               "offset": 0
             },
             "endLine": {
-              "line": 69,
+              "line": 24,
+              "offset": 1
+            }
+          },
+          "type": "SERVICE",
+          "name": "/telegramAgent",
+          "scope": "Global",
+          "children": {
+            "post#chat": {
+              "id": "post#chat",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 19,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 23,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "chat",
+              "accessor": "post",
+              "scope": "Global",
+              "children": {}
+            }
+          }
+        },
+        "-611384068": {
+          "id": "-611384068",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 26,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 54,
               "offset": 1
             }
           },
@@ -461,16 +539,35 @@
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.4.png",
           "module": "http",
           "children": {
+            "get#menu": {
+              "id": "get#menu",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 27,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 29,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "menu",
+              "accessor": "get",
+              "scope": "Global",
+              "children": {}
+            },
             "post#orders": {
               "id": "post#orders",
               "location": {
                 "fileName": "main.bal",
                 "startLine": {
-                  "line": 46,
+                  "line": 31,
                   "offset": 4
                 },
                 "endLine": {
-                  "line": 68,
+                  "line": 53,
                   "offset": 5
                 }
               },
@@ -479,95 +576,8 @@
               "accessor": "post",
               "scope": "Global",
               "children": {}
-            },
-            "get#items": {
-              "id": "get#items",
-              "location": {
-                "fileName": "main.bal",
-                "startLine": {
-                  "line": 38,
-                  "offset": 4
-                },
-                "endLine": {
-                  "line": 44,
-                  "offset": 5
-                }
-              },
-              "type": "RESOURCE",
-              "name": "items",
-              "accessor": "get",
-              "scope": "Global",
-              "children": {}
             }
           }
-        }
-      },
-      "deletions": {
-        "-611392686": {
-          "id": "-611392686",
-          "children": {}
-        },
-        "-611384068": {
-          "id": "-611384068",
-          "children": {}
-        }
-      }
-    },
-    "Configurations": {
-      "additions": {
-        "telegramToken": {
-          "id": "telegramToken",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 1,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 1,
-              "offset": 38
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "telegramToken",
-          "scope": "Global",
-          "children": {}
-        },
-        "port": {
-          "id": "port",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 0,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 0,
-              "offset": 26
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "port",
-          "scope": "Global",
-          "children": {}
-        },
-        "telegramChatId": {
-          "id": "telegramChatId",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 39
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "telegramChatId",
-          "scope": "Global",
-          "children": {}
         }
       }
     }
