@@ -116,7 +116,7 @@ public class ArtifactsGenerator {
 
         // Process each document in parallel to calculate deltas
         Map<String, Map<String, List<String>>> cachedArtifactsByDocument =
-                ArtifactsCache.getInstance().getAllProjectArtifactIdsByDocument(projectId);
+                ArtifactsCache.getInstance().getProjectDocuments(projectId);
         ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas = new ConcurrentHashMap<>();
         ConcurrentMap<String, Map<String, List<String>>> newDocumentMap = new ConcurrentHashMap<>();
         defaultModule.documentIds().stream().parallel().forEach(documentId -> {
