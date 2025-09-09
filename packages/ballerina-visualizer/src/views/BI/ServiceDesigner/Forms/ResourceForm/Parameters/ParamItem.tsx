@@ -16,12 +16,11 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import React from "react";
 
 import { ParamIcon } from "./ParamIcon";
-import { CheckBox, Codicon } from "@wso2/ui-toolkit";
+import { Codicon } from "@wso2/ui-toolkit";
 import { ActionIconWrapper, ContentSection, DeleteIconWrapper, EditIconWrapper, HeaderLabel, IconTextWrapper, IconWrapper, OptionLabel, disabledHeaderLabel, headerLabelStyles } from "../../../styles";
-import { ParameterModel } from "@wso2/ballerina-core";
+import { ParameterModel, PropertyModel } from "@wso2/ballerina-core";
 
 interface ParamItemProps {
     param: ParameterModel;
@@ -33,7 +32,10 @@ interface ParamItemProps {
 export function ParamItem(props: ParamItemProps) {
     const { param, readonly, onDelete, onEditClick } = props;
 
-    const label = param?.type.value ? `${param.type.value} ${param.name.value}${param.defaultValue?.value ? ` = ${param.defaultValue.value}` : ""}`
+    const label = param?.type.value
+        ? `${param.type.value} ${param.name.value}${
+              (param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel).value}` : ""
+          }`
         : `${param.name.value}`;
 
     const handleDelete = () => {

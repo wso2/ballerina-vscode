@@ -565,15 +565,28 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
  * Creates a base IOType from an IORoot
  */
 function createBaseIOType(root: IORoot): IOType {
-    return {
-        id: root.name,
-        name: root.name,
-        displayName: root.displayName,
+    const isEnum = root.kind === 'enum' || root.category === 'enum';
+
+    const baseType: IOType = {
+        id: isEnum ? root.typeName : root.name,
+        name: isEnum ? root.typeName : root.name,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
         ...(root.optional !== undefined && { optional: root.optional })
     };
+
+    if (isEnum && root.members) {
+        baseType.members = root.members.map(member => ({
+            id: member.name,
+            name: member.displayName || member.name,
+            typeName: member.typeName,
+            kind: member.kind,
+            ...(member.optional !== undefined && { optional: member.optional })
+        }));
+    }
+
+    return baseType;
 }
 
 /**

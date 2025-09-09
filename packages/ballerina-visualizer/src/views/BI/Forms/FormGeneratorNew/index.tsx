@@ -34,8 +34,7 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    TypeNodeKind,
-    Member
+    NodeProperties
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -43,7 +42,6 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    PanelContainer,
     FormImports
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -171,12 +169,26 @@ export function FormGeneratorNew(props: FormProps) {
     };
 
     const popTypeStack = () => {
-        setStack((prev) => prev.slice(0, -1));
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
         setRefetchStates((prev) => {
             const newStates = [...prev];
             const currentState = newStates.pop();
             if (currentState && newStates.length > 0) {
                 newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
             }
             return newStates;
         });
@@ -635,7 +647,7 @@ export function FormGeneratorNew(props: FormProps) {
         }
     };
 
-    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField) => {
+    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField, newType?: string | NodeProperties) => {
         // Get f.value and assign that value to field value
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
@@ -645,7 +657,13 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen, field: editingField, newTypeValue: f[editingField?.key] });
+        setTypeEditorState({ 
+            isOpen, 
+            field: editingField, 
+            newTypeValue: newType 
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType) 
+                : f[editingField?.key] 
+        });
     };
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
@@ -693,9 +711,8 @@ export function FormGeneratorNew(props: FormProps) {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
-        } else {
-            setTypeEditorState({ isOpen: false });
         }
+        setTypeEditorState({ isOpen: stack.length !== 1 });
     }
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
