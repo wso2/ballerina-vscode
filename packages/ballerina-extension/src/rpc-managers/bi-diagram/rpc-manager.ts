@@ -138,8 +138,10 @@ import {
     VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    deleteType,
     ConfigVariableRequest,
+    AvailableNode,
+    Item,
+    Category,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -327,20 +329,20 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             'Embedding Provider'
         ];
 
-        const filterItems = (items: any[]): any[] => {
+        const filterItems = (items: Item[]): Item[] => {
             if (!items) { return items; }
             
             return items.filter(item => {
-                if (item.codedata?.node && hiddenNodeTypes.includes(item.codedata.node)) {
+                if ((item as AvailableNode).codedata?.node && hiddenNodeTypes.includes((item as AvailableNode).codedata.node)) {
                     return false;
                 }
                 
                 if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
                     return false;
                 }
-                
-                if (item.items) {
-                    item.items = filterItems(item.items);
+
+                if ((item as Category).items) {
+                    (item as Category).items = filterItems((item as Category).items);
                 }
                 
                 return true;
@@ -359,6 +361,44 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return response;
     }
 
+    private updateNodeDescriptions(availableNodes: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        if (!availableNodes) {
+            return availableNodes;
+        }
+        // Adding descriptions for AI nodes
+        const updateItems = (items: Item[], isInAICategory: boolean): Item[] => {
+            if (!items) { return items; }
+            
+            return items.map(item => {
+                if ((item as AvailableNode).enabled === false && isInAICategory) {
+                    item.metadata = {
+                        ...item.metadata,
+                        description: "Please update AI package version to latest version to use this feature"
+                    };
+                }
+                
+                // Recursively handle nested items
+                if ((item as Category).items) {
+                    (item as Category).items = updateItems((item as Category).items, isInAICategory);
+                }
+                
+                return item;
+            });
+        };
+
+        if (availableNodes.categories) {
+            availableNodes.categories = availableNodes.categories.map(category => {
+                const isAICategory = category.metadata?.label === "AI";
+                if (category.items) {
+                    category.items = updateItems(category.items, isAICategory);
+                }
+                return category;
+            });
+        }
+
+        return availableNodes;
+    }
+
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
@@ -366,9 +406,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .getAvailableNodes(params)
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
-                    // Apply filtering for advanced AI nodes
                     const filteredModel = this.filterAdvancedAiNodes(model);
-                    resolve(filteredModel);
+                    const updatedModel = this.updateNodeDescriptions(filteredModel);
+                    resolve(updatedModel);
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);

@@ -346,7 +346,7 @@ export interface FormProps {
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[]; 
+    mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
     injectedComponents?: {
         component: React.ReactNode;
@@ -442,7 +442,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                 } else {
                     defaultValues[field.key] = field.value ?? "";
                 }
-
+                if (field.key === "variable") {
+                    defaultValues[field.key] = formValues[field.key] ?? "";
+                }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
                 }
@@ -454,7 +456,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
                     if (existingType !== newType) {
                         setValue(field.key, newType);
-                        mergeFormDataWithFlowNode && getVisualiableFields();
+                        getVisualiableFields();
                     }
                 }
 
@@ -523,6 +525,11 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
     };
 
+    const handleOpenSubPanel = (subPanel: SubPanel) => {
+        let updatedSubPanel = subPanel;
+        openSubPanel(updatedSubPanel);
+    };
+
     const handleOnTypeChange = (value?: string) => {
         getVisualiableFields();
     };
@@ -533,7 +540,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
     const getVisualiableFields = () => {
         const typeName = watch("type");
-        handleVisualizableFields && handleVisualizableFields(fileName, typeName);
+        typeName && handleVisualizableFields && handleVisualizableFields(fileName, typeName);
     };
 
     const handleGetExpressionDiagnostics = async (
@@ -630,7 +637,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
-            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
@@ -670,7 +677,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
             prevValuesRef.current = { ...watchedValues };
         }
     }, [watchedValues]);
-    
+
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
@@ -755,6 +762,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openRecordEditor &&
                                             ((open: boolean) => handleOpenRecordEditor(open, updatedField))
                                         }
+                                        openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}

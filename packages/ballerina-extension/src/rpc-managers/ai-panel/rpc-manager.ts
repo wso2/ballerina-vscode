@@ -22,6 +22,7 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
     AllDataMapperSourceRequest,
     BIModuleNodesRequest,
@@ -92,19 +93,19 @@ import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
 import { createTempDataMappingFile, generateTypeCreation } from "../../features/ai/dataMapping";
 import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
+import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
 import { Library } from "../../features/ai/service/libs/libs_types";
 import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
 import { generateTestPlan } from "../../features/ai/service/test/test_plan";
-import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
-import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
+import { modifyFileContent, writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { expandDMModel, refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
 import {
@@ -115,7 +116,7 @@ import {
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -200,7 +201,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async addToProject(req: AddToProjectRequest): Promise<void> {
+    async addToProject(req: AddToProjectRequest): Promise<boolean> {
 
         const workspaceFolders = workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -226,6 +227,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         updateView();
         const datamapperMetadata = StateMachine.context().dataMapperMetadata;
         await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
+        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -1013,6 +1015,28 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
         await generateDocumentationForService(params);
     }
+
+    async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        try {
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                throw new Error("No workspaces found.");
+            }
+
+            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            if (!fs.existsSync(ballerinaProjectFile)) {
+                throw new Error("Not a Ballerina project.");
+            }
+            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            updateView();
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add files to the project", error);
+            return false; //silently fail for timeout issues.
+        }
+    }
 }
 
 function getModifiedAssistantResponse(originalAssistantResponse: string, tempDir: string, project: ProjectSource): string {
@@ -1071,7 +1095,7 @@ async function setupProjectEnvironment(project: ProjectSource): Promise<{ langCl
         // Update lastUpdatedBalFile if it's a .bal file
         if (sourceFile.filePath.endsWith('.bal')) {
             const tempFilePath = path.join(tempDir, sourceFile.filePath);
-            await writeBallerinaFileDidOpen(tempFilePath, sourceFile.content);
+            writeBallerinaFileDidOpenTemp(tempFilePath, sourceFile.content);
         }
     }
 

@@ -135,6 +135,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         mapWithCustomFn,
+        mapWithTransformFn,
         goToFunction,
         enrichChildFields
     } = props;
@@ -221,6 +222,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 convertToQuery,
                 deleteMapping,
                 mapWithCustomFn,
+                mapWithTransformFn,
                 goToFunction,
                 enrichChildFields
             );

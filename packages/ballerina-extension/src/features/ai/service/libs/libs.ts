@@ -23,7 +23,7 @@ import {
 } from "@wso2/ballerina-core";
 import { Library } from "./libs_types";
 import { selectRequiredFunctions } from "./funcs";
-import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../connection";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -63,13 +63,12 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     if (allLibraries.length === 0) {
         return [];
     }
+    const cacheOptions = await getProviderCacheControl();
     const messages: CoreMessage[] = [
         {
             role: "system",
             content: getSystemPrompt(allLibraries),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
         },
         {
             role: "user",
