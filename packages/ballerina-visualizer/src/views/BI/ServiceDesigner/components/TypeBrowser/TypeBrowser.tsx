@@ -149,9 +149,10 @@ export const TypeBrowser: React.FC<TypeBrowserProps> = (props: TypeBrowserProps)
     const { rpcClient } = useRpcContext();
 
 
+    //TODO: Remove this if not needed in future
     const fetchTypes = async () => {
-        const types = await rpcClient.getCommonRpcClient().getTypes();
-        setItems(types.data.map((type: any) => type.insertText));
+        // const response = await rpcClient.getCommonRpcClient().getTypeCompletions;
+        // setItems(response.data.map((type: any) => type.insertText));
     };
 
     useEffect(() => {
