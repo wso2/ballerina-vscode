@@ -263,7 +263,7 @@ export interface DMFormFieldValues {
 export interface DMViewState {
     viewId: string;
     codedata?: CodeData;
-    isSubMapping?: boolean;
+    subMappingName?: string;
 }
 
 export interface VisualizableField {
