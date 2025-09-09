@@ -526,6 +526,11 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
     };
 
+    const handleOpenSubPanel = (subPanel: SubPanel) => {
+        let updatedSubPanel = subPanel;
+        openSubPanel(updatedSubPanel);
+    };
+
     const handleOnTypeChange = (value?: string) => {
         getVisualiableFields();
     };
@@ -758,6 +763,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             openRecordEditor &&
                                             ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
+                                        openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
