@@ -42,8 +42,8 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
 
     public static final String NAME = "Resolve compilation errors subscriber";
     private static final String PULL_MODULES_ACTION = "Pull Modules";
-    private static final String ERROR_MESSAGE =
-            "Language Server has stopped working. Compilation has failed due to corrupted modules.";
+    private static final String ERROR_MESSAGE = "Language server has stopped working due to unresolved modules " +
+            "in your project. Please resolve them to proceed.";
 
     @Override
     public EventKind eventKind() {
