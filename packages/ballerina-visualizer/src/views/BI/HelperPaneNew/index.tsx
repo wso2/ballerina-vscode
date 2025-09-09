@@ -337,6 +337,7 @@ const HelperPaneNewEl = ({
                             recordTypeField={recordTypeField}
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            onClose={onClose}
                         />
                     </SlidingPane>
 
@@ -376,6 +377,7 @@ const HelperPaneNewEl = ({
                             onChange={handleChange}
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
+                            onClose={onClose}
                         />
                     </SlidingPane>
                 </SlidingWindow>
