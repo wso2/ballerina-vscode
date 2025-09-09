@@ -60,40 +60,21 @@ public class ArtifactsGenerator {
         Map<String, List<String>> newIdMap = new HashMap<>();
 
         Map<String, Map<String, Map<String, Artifact>>> categoryMap = new HashMap<>();
-        ModulePartNode rootNode = syntaxTree.rootNode();
-        ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
-        rootNode.members().stream()
-                .map(member -> member.apply(moduleNodeTransformer))
-                .flatMap(Optional::stream)
-                .forEach(artifact -> {
-                    String category = Artifact.getCategory(artifact.type());
-                    String artifactId = artifact.id();
+        List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+        artifacts.forEach(artifact -> {
+            String category = Artifact.getCategory(artifact.type());
+            String artifactId = artifact.id();
 
-                    // Determine if this is an update or an addition
-                    List<String> prevIds = prevIdMap.get(category);
-                    String eventType;
-                    if (prevIds != null && prevIds.remove(artifactId)) {
-                        eventType = UPDATES;
-                    } else {
-                        eventType = ADDITIONS;
-                    }
+            // Determine if this is an update or an addition
+            String eventType = determineEventTypeAndRemove(prevIdMap.get(category), artifactId);
 
-                    // Update the new artifact
-                    categoryMap.computeIfAbsent(category, k -> new HashMap<>())
-                            .computeIfAbsent(eventType, k -> new HashMap<>())
-                            .put(artifactId, artifact);
-                    newIdMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
-                });
+            // Update the new artifact using helper
+            putArtifactInMap(categoryMap, category, eventType, artifactId, artifact);
+            newIdMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
+        });
 
         // Process remaining items in prevIdMap as deletions
-        prevIdMap.forEach((category, remainingIds) -> {
-            if (!remainingIds.isEmpty()) {
-                remainingIds.forEach(id -> categoryMap
-                        .computeIfAbsent(category, k -> new HashMap<>())
-                        .computeIfAbsent(DELETIONS, k -> new HashMap<>())
-                        .put(id, Artifact.emptyArtifact(id)));
-            }
-        });
+        addDeletionsToCategoryMap(categoryMap, prevIdMap);
 
         // Update the artifacts cache
         ArtifactsCache.getInstance().updateArtifactIds(projectPath, syntaxTree.filePath(), newIdMap);
@@ -112,17 +93,13 @@ public class ArtifactsGenerator {
             Document document = defaultModule.document(documentId);
             Map<String, List<String>> idMap = new HashMap<>();
             SyntaxTree syntaxTree = document.syntaxTree();
-            ModulePartNode rootNode = syntaxTree.rootNode();
-            ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
-            rootNode.members().stream()
-                    .map(member -> member.apply(moduleNodeTransformer))
-                    .flatMap(Optional::stream)
-                    .forEach(artifact -> {
-                        String category = Artifact.getCategory(artifact.type());
-                        String artifactId = artifact.id();
-                        artifactMap.computeIfAbsent(category, k -> new TreeMap<>()).put(artifactId, artifact);
-                        idMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
-                    });
+            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+            artifacts.forEach(artifact -> {
+                String category = Artifact.getCategory(artifact.type());
+                String artifactId = artifact.id();
+                artifactMap.computeIfAbsent(category, k -> new TreeMap<>()).put(artifactId, artifact);
+                idMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
+            });
             documentMap.put(document.name(), idMap);
         });
 
@@ -155,44 +132,26 @@ public class ArtifactsGenerator {
             Map<String, List<String>> newArtifactsForDoc = new HashMap<>();
             Map<String, Map<String, Map<String, Artifact>>> documentDeltas = new HashMap<>();
 
-            ModulePartNode rootNode = syntaxTree.rootNode();
-            ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
-            rootNode.members().stream()
-                    .map(member -> member.apply(moduleNodeTransformer))
-                    .flatMap(Optional::stream)
-                    .forEach(artifact -> {
-                        String category = Artifact.getCategory(artifact.type());
-                        String artifactId = artifact.id();
+            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+            artifacts.forEach(artifact -> {
+                String category = Artifact.getCategory(artifact.type());
+                String artifactId = artifact.id();
 
-                        // Determine if this is an update or an addition
-                        List<String> cachedIds = new ArrayList<>(
-                                cachedArtifactsForDoc.getOrDefault(category, new ArrayList<>()));
-                        String eventType;
-                        if (cachedIds.remove(artifactId)) {
-                            eventType = UPDATES;
-                        } else {
-                            eventType = ADDITIONS;
-                        }
+                // Determine if this is an update or an addition
+                List<String> cachedIds = new ArrayList<>(
+                        cachedArtifactsForDoc.getOrDefault(category, new ArrayList<>()));
+                String eventType = determineEventTypeAndRemove(cachedIds, artifactId);
 
-                        // Add to document deltas
-                        documentDeltas.computeIfAbsent(category, k -> new HashMap<>())
-                                .computeIfAbsent(eventType, k -> new HashMap<>())
-                                .put(artifactId, artifact);
+                // Add to document deltas using helper
+                putArtifactInMap(documentDeltas, category, eventType, artifactId, artifact);
 
-                        // Track new artifacts for cache update
-                        newArtifactsForDoc.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
-                        cachedArtifactsForDoc.put(category, cachedIds);
-                    });
+                // Track new artifacts for cache update
+                newArtifactsForDoc.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
+                cachedArtifactsForDoc.put(category, cachedIds);
+            });
 
             // Process remaining cached artifacts as deletions
-            cachedArtifactsForDoc.forEach((category, remainingIds) -> {
-                if (!remainingIds.isEmpty()) {
-                    remainingIds.forEach(id -> documentDeltas
-                            .computeIfAbsent(category, k -> new HashMap<>())
-                            .computeIfAbsent(DELETIONS, k -> new HashMap<>())
-                            .put(id, Artifact.emptyArtifact(id)));
-                }
-            });
+            addDeletionsToCategoryMap(documentDeltas, cachedArtifactsForDoc);
 
             // Store new artifacts for cache update
             newDocumentMap.put(documentName, newArtifactsForDoc);
@@ -204,6 +163,50 @@ public class ArtifactsGenerator {
         // Update cache with new project artifacts
         ArtifactsCache.getInstance().initializeProject(projectId, newDocumentMap);
         return combinedDeltas;
+    }
+
+    private static List<Artifact> collectArtifactsFromSyntaxTree(SyntaxTree syntaxTree, SemanticModel semanticModel) {
+        List<Artifact> artifacts = new ArrayList<>();
+        if (!syntaxTree.containsModulePart()) {
+            return artifacts;
+        }
+        ModulePartNode rootNode = syntaxTree.rootNode();
+        ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
+        rootNode.members().stream()
+                .map(member -> member.apply(moduleNodeTransformer))
+                .flatMap(Optional::stream)
+                .forEach(artifacts::add);
+        return artifacts;
+    }
+
+    // New helpers to remove duplicated logic
+    private static String determineEventTypeAndRemove(List<String> ids, String artifactId) {
+        if (ids != null && ids.remove(artifactId)) {
+            return UPDATES;
+        }
+        return ADDITIONS;
+    }
+
+    private static void putArtifactInMap(Map<String, Map<String, Map<String, Artifact>>> categoryMap,
+                                         String category,
+                                         String eventType,
+                                         String artifactId,
+                                         Artifact artifact) {
+        categoryMap.computeIfAbsent(category, k -> new HashMap<>())
+                .computeIfAbsent(eventType, k -> new HashMap<>())
+                .put(artifactId, artifact);
+    }
+
+    private static void addDeletionsToCategoryMap(Map<String, Map<String, Map<String, Artifact>>> categoryMap,
+                                                  Map<String, List<String>> idsMap) {
+        idsMap.forEach((category, remainingIds) -> {
+            if (!remainingIds.isEmpty()) {
+                remainingIds.forEach(id -> categoryMap
+                        .computeIfAbsent(category, k -> new HashMap<>())
+                        .computeIfAbsent(DELETIONS, k -> new HashMap<>())
+                        .put(id, Artifact.emptyArtifact(id)));
+            }
+        });
     }
 
     private static void combineDeltas(ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas,
