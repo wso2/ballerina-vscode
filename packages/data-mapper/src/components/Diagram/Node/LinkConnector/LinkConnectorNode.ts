@@ -76,7 +76,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
 
 
         const views = this.context.views;
-        const parentSourceField = views[1]?.sourceField;
+        const lastViewIndex = views.length - 1;
 
         this.mapping.inputs.forEach((field) => {
             const inputField = field?.split('.').pop();
@@ -84,7 +84,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
 
             if (!matchedSearch) return;
 
-            const inputNode = findInputNode(field, this, parentSourceField);
+            const inputNode = findInputNode(field, this, views, lastViewIndex);
             if (inputNode) {
                 const inputPort = getInputPort(inputNode, field?.replace(/\.\d+/g, ''));
                 if (!this.sourcePorts.some(port => port?.getID() === inputPort?.getID())) {
