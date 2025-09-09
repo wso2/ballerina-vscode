@@ -23,7 +23,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { isBetaModule } from "../ComponentListView/componentListUtils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { EVENT_TYPE, LineRange, ServiceInitModel } from "@wso2/ballerina-core";
+import { EVENT_TYPE, LineRange, Property, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
@@ -71,6 +71,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
     const [filePath, setFilePath] = useState<string>("");
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     const MAIN_BALLERINA_FILE = "main.bal";
 
@@ -86,8 +87,6 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                 setServiceInitModel(res?.serviceInitModel);
                 setFormFields(mapServiceInitModelToFormFields(res?.serviceInitModel));
             });
-
-        // TODO: Need to handle record config
 
         rpcClient
             .getVisualizerRpcClient()
@@ -110,6 +109,71 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                 });
         }
     }, [filePath, rpcClient]);
+
+    useEffect(() => {
+        if (model) {
+            const hasPropertiesWithChoices = model?.moduleName === "http" &&
+                Object.values(model.properties).some(property => property.choices);
+
+            if (hasPropertiesWithChoices) {
+                const choiceRecordTypeFields = Object.entries(model.properties)
+                    .filter(([_, property]) => property.choices)
+                    .flatMap(([parentKey, property]) =>
+                        Object.entries(property.choices).flatMap(([choiceKey, choice]) =>
+                            Object.entries(choice.properties || {})
+                                .filter(([_, choiceProperty]) =>
+                                    choiceProperty.typeMembers &&
+                                    choiceProperty.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                                )
+                                .map(([choicePropertyKey, choiceProperty]) => ({
+                                    key: choicePropertyKey,
+                                    property: {
+                                        ...choiceProperty,
+                                        metadata: {
+                                            label: choiceProperty.metadata?.label || choicePropertyKey,
+                                            description: choiceProperty.metadata?.description || ''
+                                        },
+                                        valueType: choiceProperty?.valueType || 'string',
+                                        diagnostics: {
+                                            hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
+                                            diagnostics: choiceProperty.diagnostics
+                                        }
+                                    } as Property,
+                                    recordTypeMembers: choiceProperty.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                                }))
+                        )
+                    );
+                console.log(">>> recordTypeFields of http serviceModel", choiceRecordTypeFields);
+
+                setRecordTypeFields(choiceRecordTypeFields);
+            } else {
+                const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
+                    .filter(([_, property]) =>
+                        property.typeMembers &&
+                        property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                    )
+                    .map(([key, property]) => ({
+                        key,
+                        property: {
+                            ...property,
+                            metadata: {
+                                label: property.metadata?.label || key,
+                                description: property.metadata?.description || ''
+                            },
+                            valueType: property?.valueType || 'string',
+                            diagnostics: {
+                                hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                                diagnostics: property.diagnostics
+                            }
+                        } as Property,
+                        recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                    }));
+                console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
+
+                setRecordTypeFields(recordTypeFields);
+            }
+        }
+    }, [model]);
 
     const handleOnSubmit = async (data: FormValues, formImports: FormImports) => {
         setIsSaving(true);
@@ -165,7 +229,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                         isSaving={isSaving}
                                         onSubmit={handleOnSubmit}
                                         preserveFieldOrder={true}
-                                        recordTypeFields={[]}
+                                        recordTypeFields={recordTypeFields}
                                     />
                                 }
                             </FormContainer>
@@ -202,6 +266,11 @@ function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
             }
         }
 
+        let items = undefined;
+        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+            items = property.items;
+        }
+        
         return {
             key,
             label: property?.metadata?.label,
@@ -215,7 +284,7 @@ function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
             valueTypeConstraint: property.valueTypeConstraint,
             advanced: property.advanced,
             diagnostics: [],
-            items: property.items,
+            items,
             choices: property.choices,
             placeholder: property.placeholder,
             addNewButton: property.addNewButton,
