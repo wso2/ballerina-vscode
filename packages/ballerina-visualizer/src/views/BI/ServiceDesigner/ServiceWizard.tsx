@@ -85,6 +85,7 @@ export function ServiceWizard(props: ServiceWizardProps) {
                 rpcClient.getServiceDesignerRpcClient().getServiceModel({ filePath: "", moduleName: type, listenerName: "" }).then(res => {
                     console.log("Service Model: ", res);
                     res.service.properties["listener"].editable = true;
+                    res.service.properties["listener"].addNewButton = true;
                     setServiceModel(res.service);
                     setStep(1);
                 });
