@@ -103,6 +103,8 @@ export function DataMapperView(props: DataMapperProps) {
         setViewState(prevState => ({
             viewId: positionChanged ? name : prevState.viewId || name,
             codedata: codedata,
+            // Preserve subMappingName only if the position hasn't changed and there is an existing sub-mapping name.
+            // This ensures that changing the position resets the sub-mapping context.
             subMappingName: !positionChanged && prevState.subMappingName
         }));
         
