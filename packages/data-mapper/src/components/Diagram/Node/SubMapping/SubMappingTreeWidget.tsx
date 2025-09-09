@@ -46,7 +46,7 @@ const HeaderText = styled.span`
     min-width: 280px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--vscode-inputOption-activeForeground)
+    color: var(--vscode-inputOption-activeForeground);
     opacity: 0.7;
 `;
 

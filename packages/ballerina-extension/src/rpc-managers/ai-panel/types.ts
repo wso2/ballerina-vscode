@@ -92,6 +92,7 @@ export interface ParameterMetadata {
     constants?: Record<string, FieldMetadata>;
     configurables?: Record<string, FieldMetadata>;
     variables?: Record<string, FieldMetadata>;
+    enums?: Record<string, FieldMetadata>;
 }
 
 export interface ParameterDefinitions {

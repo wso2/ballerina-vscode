@@ -114,7 +114,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
     private createLinks(mappings: Mapping[]) {
 
         const views = this.context.views;
-        const focusedSourceField = views[1]?.sourceField;
+        const lastViewIndex = views.length - 1;
         const { inputs: queryInputs, output: queryOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
@@ -125,7 +125,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
                 return;
             }
             
-            const inputNode = findInputNode(inputs[0], this, focusedSourceField);
+            const inputNode = findInputNode(inputs[0], this, views, lastViewIndex);
             let inPort: InputOutputPortModel;
             if (inputNode) {
                 inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));
@@ -164,7 +164,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
             }
         });
 
-        const inputNode = findInputNode(queryInputs[0], this, focusedSourceField);
+        const inputNode = findInputNode(queryInputs[0], this, views, lastViewIndex);
         let inPort: InputOutputPortModel;
         if (inputNode) {
             inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
