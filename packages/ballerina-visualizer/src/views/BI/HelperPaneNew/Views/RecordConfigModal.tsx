@@ -16,93 +16,216 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordTypeField, TypeField } from "@wso2/ballerina-core";
-import { useEffect, useState } from "react";
-import { RecordConfig } from "./RecordConfigView";
-import { useRpcContext } from "@wso2/ballerina-rpc-client/lib/context/ballerina-web-context";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField,  RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse } from "@wso2/ballerina-core";
+import { Dropdown, HelperPane, Typography } from "@wso2/ui-toolkit";
+import styled from "@emotion/styled";
+import { useEffect, useRef, useState } from "react";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { RecordConfigView } from "./RecordConfigView";
 
-const getPropertyMember = (field: RecordTypeField) => {
-    return field?.recordTypeMembers.at(0);
-}
-
-type RecordConfigModalProps = {
-    recordTypeField: RecordTypeField;
+type ConfigureRecordPageProps = {
     fileName: string;
-    handleModalChange: (updatedModel: TypeField[])=>void;
-    valueTypeConstraint: string | string[];
+    targetLineRange?: LineRange;
+    onChange: (value: string, isRecordConfigureChange: boolean) => void;
+    currentValue: string;
+    recordTypeField: RecordTypeField;
+    onClose: () => void;
 };
 
-export const RecordConfigModal = (props: RecordConfigModalProps) => {
-    const { recordTypeField, fileName , handleModalChange, valueTypeConstraint} = props;
-    const [recordModel, setRecordModel] = useState<TypeField[]>([]);
+export const LabelContainer = styled.div({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    paddingBottom: '20px'
+});
 
-    const propertyMember = getPropertyMember(recordTypeField)
-
+export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
+    const { fileName, targetLineRange, onChange, currentValue, recordTypeField, onClose } = props;
     const { rpcClient } = useRpcContext();
 
+    const [recordModel, setRecordModel] = useState<TypeField[]>([]);
+    const [selectedMemberName, setSelectedMemberName] = useState<string>("");
+    const firstRender = useRef<boolean>(true);
+    const sourceCode = useRef<string>(currentValue);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
     useEffect(() => {
-        fetchRecordModel()
-    }, []);
+        if (firstRender.current) {
+            firstRender.current = false;
+            if (currentValue) {
+                getExistingRecordModel();
+            } else {
+                getNewRecordModel();
+            }
+        } else if (currentValue !== sourceCode.current) {
+            // Close helper pane if user changed the value in the expression editor
+            onClose();
+        }
+    }, [currentValue]);
 
+    const fetchRecordModelFromSource = async (currentValue: string) => {
+        setIsLoading(true);
+        const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
+            filePath: fileName,
+            typeMembers: recordTypeField.recordTypeMembers,
+            expr: currentValue
+        }
 
-    const passPackageInfoIfExists = (recordTypeMember: PropertyTypeMemberInfo) => {
+        const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
+            await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
+        console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
+        const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
+
+        if (newRecordModel) {
+            const recordConfig: TypeField = {
+                name: newRecordModel.name,
+                ...newRecordModel
+            }
+
+            setRecordModel([recordConfig]);
+            setSelectedMemberName(newRecordModel.name);
+        }
+
+        setIsLoading(false);
+    }
+
+    const getExistingRecordModel = async () => {
+        await fetchRecordModelFromSource(currentValue);
+    };
+
+    const getNewRecordModel = async () => {
+        setIsLoading(true);
+        const defaultSelection = recordTypeField.recordTypeMembers[0];
+        setSelectedMemberName(defaultSelection.type);
+
         let org = "";
         let module = "";
         let version = "";
-        if (recordTypeMember?.packageInfo) {
-            const parts = recordTypeMember?.packageInfo.split(':');
+
+        // Parse packageInfo if it exists and contains colon separators
+        if (defaultSelection?.packageInfo) {
+            const parts = defaultSelection.packageInfo.split(':');
             if (parts.length === 3) {
                 [org, module, version] = parts;
             }
         }
-        return { org, module, version }
-    }
 
-    const getRecordConfigRequest = async () => {
-        if (recordTypeField) {
-            const packageInfo = passPackageInfoIfExists(recordTypeField?.recordTypeMembers.at(0))
-            return {
-                filePath: fileName,
-                codedata: {
-                    org: packageInfo.org,
-                    module: packageInfo.module,
-                    version: packageInfo.version,
-                    packageName: propertyMember?.packageName,
-                },
-                typeConstraint: propertyMember?.type,
-            }
+        const request: GetRecordConfigRequest = {
+            filePath: fileName,
+            codedata: {
+                org: org,
+                module: module,
+                version: version,
+                packageName: defaultSelection?.packageName,
+            },
+            typeConstraint: defaultSelection.type,
         }
-        else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            return {
-                filePath: fileName,
-                codedata: {
-                    org: tomValues.package.org,
-                    module: tomValues.package.name,
-                    version: tomValues.package.version,
-                    packageName: propertyMember?.packageName,
-                },
-                typeConstraint: propertyMember?.type || Array.isArray(valueTypeConstraint) ? valueTypeConstraint[0] : valueTypeConstraint,
-            }
-        }
-    }
-
-    const fetchRecordModel = async () => {
-        const request = await getRecordConfigRequest();
         const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+        console.log(">>> GetRecordConfigResponse", typeFieldResponse);
         if (typeFieldResponse.recordConfig) {
             const recordConfig: TypeField = {
-                name: propertyMember?.type,
+                name: defaultSelection.type,
                 ...typeFieldResponse.recordConfig
             }
 
             setRecordModel([recordConfig]);
         }
+        setIsLoading(false);
     }
+
+    const handleMemberChange = async (value: string) => {
+        const member = recordTypeField.recordTypeMembers.find(m => m.type === value);
+        if (member) {
+            setIsLoading(true);
+            setSelectedMemberName(member.type);
+
+            let org = "";
+            let module = "";
+            let version = "";
+
+            // Parse packageInfo if it exists
+            if (member.packageInfo) {
+                const parts = member.packageInfo.split(':');
+                if (parts.length === 3) {
+                    [org, module, version] = parts;
+                }
+            }
+
+            const request: GetRecordConfigRequest = {
+                filePath: fileName,
+                codedata: {
+                    org: org,
+                    module: module,
+                    version: version,
+                    packageName: member?.packageName,
+                },
+                typeConstraint: member.type,
+            }
+
+            const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+            if (typeFieldResponse.recordConfig) {
+
+                const recordConfig: TypeField = {
+                    name: member.type,
+                    ...typeFieldResponse.recordConfig
+                }
+
+                setRecordModel([recordConfig]);
+            }
+        }
+
+        setIsLoading(false);
+    };
+
+    const handleModelChange = async (updatedModel: TypeField[]) => {
+        const request: RecordSourceGenRequest = {
+            filePath: fileName,
+            type: updatedModel[0]
+        }
+        const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
+        console.log(">>> recordSourceResponse", recordSourceResponse);
+
+        if (recordSourceResponse.recordValue !== undefined) {
+            const content = recordSourceResponse.recordValue;
+            sourceCode.current = content;
+            onChange(content, true);
+        }
+    }
+
     return (
-        <RecordConfig
-            recordModel={recordModel}
-            onModelChange={handleModalChange}
-        />
+        <>
+            <HelperPane.Body>
+                {isLoading ? (
+                    <HelperPane.Loader />
+                ) : (
+                    <>
+                        {recordTypeField?.recordTypeMembers.length > 1 && (
+                            <LabelContainer>
+                                <Dropdown
+                                    id="type-selector"
+                                    label="Type"
+                                    value={selectedMemberName}
+                                    items={recordTypeField.recordTypeMembers.map((member) => ({
+                                        label: member.type,
+                                        value: member.type
+                                    }))}
+                                    onValueChange={(value) => handleMemberChange(value)}
+                                />
+
+                            </LabelContainer>
+                        )}
+                        {selectedMemberName && recordModel?.length > 0 ?
+                            (
+                                <RecordConfigView
+                                    recordModel={recordModel}
+                                    onModelChange={handleModelChange}
+                                />
+                            ) : (
+                                <Typography variant="body3">Record construction assistance is unavailable. Please check the Suggestions tab.</Typography>
+                            )}
+                    </>
+                )}
+            </HelperPane.Body>
+        </>
     );
-};
+}

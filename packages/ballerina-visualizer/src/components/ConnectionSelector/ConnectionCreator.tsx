@@ -90,7 +90,6 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
                         fields={connectionFields}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}
-                        compact={true}
                         disableSaveButton={savingForm}
                         helperPaneSide="left"
                         isSaving={savingForm}
