@@ -837,6 +837,7 @@ export function FormGeneratorNew(props: FormProps) {
                             newTypeValue={typeEditorState.newTypeValue}
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
+                            isPopupTypeForm={true}
                             onTypeCreate={handleTypeCreate}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
