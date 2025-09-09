@@ -224,55 +224,6 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
     }
 
     @Test
-    public void testReloadProjectWithPreExistingArtifacts() throws Exception {
-        // Create mock document service context for reload project operation
-        String sourcePath = getSourcePath("old");
-        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
-        Path filePath = Path.of(sourcePath);
-        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
-        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
-                fileUri,
-                workspaceManager,
-                LSContextOperation.RELOAD_PROJECT,
-                languageServer.getServerContext()
-        );
-
-        // Invoke the subscriber
-        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
-        publishArtifactsSubscriber.onEvent(
-                mockClient,
-                documentServiceContext,
-                languageServer.getServerContext()
-        );
-
-        // Wait for debouncer to complete (using project-level key)
-        Path projectPath = workspaceManager.projectRoot(filePath);
-        String projectKey = projectPath.toUri().toString();
-        waitForDebouncerCompletion(projectKey);
-
-        // Verify the client was called
-        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
-        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
-        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
-
-        // Verify URI is project-level
-        Assert.assertEquals(artifactsParams.uri(), projectKey);
-
-        // Verify delta changes contain deletions and additions
-        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
-        Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
-
-        // Should have deletions (from cached artifacts) and additions/updates (from current project)
-        boolean hasDeletions = publishedArtifacts.values().stream()
-                .anyMatch(categoryMap -> categoryMap.containsKey("deletions"));
-        boolean hasAdditions = publishedArtifacts.values().stream()
-                .anyMatch(categoryMap -> categoryMap.containsKey("additions"));
-
-        Assert.assertTrue(hasDeletions || hasAdditions,
-                "Should have either deletions or additions/updates in reload project delta");
-    }
-
-    @Test
     public void testReloadProjectWithoutPreExistingArtifacts() throws Exception {
         // Setup: Clear cache to simulate no pre-existing artifacts
         clearProjectCache();
@@ -323,6 +274,75 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
 
         Assert.assertFalse(hasDeletions, "Should not have deletions when no pre-existing artifacts");
         Assert.assertTrue(hasAdditions, "Should have additions for new project artifacts");
+    }
+
+    @Test
+    public void testReloadProjectWithPreExistingArtifacts() throws Exception {
+        // Load expected results from JSON
+        Path resourcesDir = configDir.getParent().resolve("resources");
+        Path configJsonPath = resourcesDir.resolve("existing_project.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+
+        // Setup: didChange for config.bal to populate cache
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+        String sourcePath = getSourcePath("new");
+        Path filePath = Path.of(sourcePath);
+        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
+        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+        VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier();
+        List<TextDocumentContentChangeEvent> changeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(sourcePath)));
+        try {
+            workspaceManager.didChange(filePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, changeEvents));
+        } catch (WorkspaceDocumentException e) {
+            Assert.fail("Error while sending didChange notification", e);
+        }
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                documentServiceContext,
+                languageServer.getServerContext());
+        waitForDebouncerCompletion(fileUri);
+
+        // Now perform the reload project test
+        DocumentServiceContext reloadContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.RELOAD_PROJECT,
+                languageServer.getServerContext()
+        );
+
+        // Invoke the subscriber for reload
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                reloadContext,
+                languageServer.getServerContext()
+        );
+
+        // Wait for debouncer to complete
+        waitForDebouncerCompletion(fileUri);
+
+        // Verify the client was called once (only for reload)
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
+        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
+
+        // Assert the published artifacts
+        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
+        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+        if (!publishedArtifacts.equals(expectedArtifacts)) {
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
+            updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
+        }
     }
 
     private void waitForDebouncerCompletion(String key) throws Exception {
