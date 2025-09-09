@@ -29,7 +29,9 @@ import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.ballerinalang.langserver.commons.eventsync.EventKind;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -64,19 +66,22 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
         }
 
         Path projectPath = context.workspace().projectRoot(context.filePath());
+        String projectKey = projectPath.toUri().toString();
 
         // Handle reloadProject operation
         if (RELOAD_PROJECT.equals(operationName)) {
-            Optional<Project> project = context.workspace().project(context.filePath());
-            if (project.isEmpty()) {
+            Project project;
+            try {
+                project = context.workspace().loadProject(context.filePath());
+            } catch (WorkspaceDocumentException | EventSyncException e) {
                 return;
             }
 
             // Use the debouncer to schedule the full project artifact generation
-            ArtifactGenerationDebouncer.getInstance().debounceProject(projectPath.toUri().toString(), () -> {
+            ArtifactGenerationDebouncer.getInstance().debounceProject(projectKey, () -> {
                 ArtifactsParams artifactsParams = new ArtifactsParams();
-                artifactsParams.setUri(projectPath.toUri().toString());
-                artifactsParams.setArtifacts(ArtifactsGenerator.projectArtifactChanges(project.get()));
+                artifactsParams.setUri(projectKey);
+                artifactsParams.setArtifacts(ArtifactsGenerator.projectArtifactChanges(project));
                 client.publishArtifacts(artifactsParams);
             });
             return;
@@ -90,11 +95,12 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
         }
 
         // Use the debouncer to schedule the artifact generation
-        ArtifactGenerationDebouncer.getInstance().debounceFile(context.fileUri(), projectPath.toUri().toString(), () -> {
+        ArtifactGenerationDebouncer.getInstance().debounceFile(context.fileUri(), projectKey, () -> {
             ArtifactsParams artifactsParams = new ArtifactsParams();
-            artifactsParams.setUri(projectPath.toUri().toString());
+            artifactsParams.setUri(projectKey);
             artifactsParams.setArtifacts(
-                    ArtifactsGenerator.artifactChanges(projectPath.toString(), syntaxTree.get(), semanticModel.get()));
+                    ArtifactsGenerator.artifactChanges(projectPath.toString(), syntaxTree.get(),
+                            semanticModel.get()));
             client.publishArtifacts(artifactsParams);
         });
     }

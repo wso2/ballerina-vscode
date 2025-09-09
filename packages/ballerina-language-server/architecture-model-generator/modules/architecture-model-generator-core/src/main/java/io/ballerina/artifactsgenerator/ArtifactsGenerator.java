@@ -131,69 +131,61 @@ public class ArtifactsGenerator {
     }
 
     public static Map<String, Map<String, Map<String, Artifact>>> projectArtifactChanges(Project project) {
-        String projectPath = project.sourceRoot().toString();
+        String projectId = project.sourceRoot().toString();
         Package currentPackage = project.currentPackage();
         Module defaultModule = currentPackage.getDefaultModule();
         SemanticModel semanticModel =
                 PackageUtil.getCompilation(currentPackage).getSemanticModel(defaultModule.moduleId());
 
-        // Get cached artifacts organized by document
-        ArtifactsCache cache = ArtifactsCache.getInstance();
-        Map<String, Map<String, List<String>>> cachedArtifactsByDocument = 
-                cache.getAllProjectArtifactIdsByDocument(projectPath);
-
-        // Generate new artifacts and calculate document-level deltas
-        Map<String, Map<String, Map<String, Artifact>>> combinedCategoryMap = new HashMap<>();
+        // Process each document in parallel to calculate deltas
+        Map<String, Map<String, List<String>>> cachedArtifactsByDocument =
+                ArtifactsCache.getInstance().getAllProjectArtifactIdsByDocument(projectId);
+        ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas = new ConcurrentHashMap<>();
         ConcurrentMap<String, Map<String, List<String>>> newDocumentMap = new ConcurrentHashMap<>();
-
         defaultModule.documentIds().stream().parallel().forEach(documentId -> {
             Document document = defaultModule.document(documentId);
             String documentName = document.name();
-            
-            // Get cached artifacts for this specific document
-            Map<String, List<String>> cachedForDocument = 
-                    cachedArtifactsByDocument.getOrDefault(documentName, new HashMap<>());
-            Map<String, List<String>> prevIdMap = deepCopyStringListMap(cachedForDocument);
+            SyntaxTree syntaxTree = document.syntaxTree();
+
+            // Get cached artifacts for this document
+            Map<String, List<String>> cachedArtifactsForDoc = cachedArtifactsByDocument.getOrDefault(
+                    documentName, new HashMap<>());
 
             // Generate new artifacts for this document
-            Map<String, Map<String, Artifact>> newArtifactMap = new HashMap<>();
-            Map<String, List<String>> newIdMap = new HashMap<>();
-            SyntaxTree syntaxTree = document.syntaxTree();
+            Map<String, List<String>> newArtifactsForDoc = new HashMap<>();
+            Map<String, Map<String, Map<String, Artifact>>> documentDeltas = new HashMap<>();
+
             ModulePartNode rootNode = syntaxTree.rootNode();
             ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
-            
             rootNode.members().stream()
                     .map(member -> member.apply(moduleNodeTransformer))
                     .flatMap(Optional::stream)
                     .forEach(artifact -> {
                         String category = Artifact.getCategory(artifact.type());
                         String artifactId = artifact.id();
-                        newArtifactMap.computeIfAbsent(category, k -> new TreeMap<>()).put(artifactId, artifact);
-                        newIdMap.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
+
+                        // Determine if this is an update or an addition
+                        List<String> cachedIds = new ArrayList<>(
+                                cachedArtifactsForDoc.getOrDefault(category, new ArrayList<>()));
+                        String eventType;
+                        if (cachedIds.remove(artifactId)) {
+                            eventType = UPDATES;
+                        } else {
+                            eventType = ADDITIONS;
+                        }
+
+                        // Add to document deltas
+                        documentDeltas.computeIfAbsent(category, k -> new HashMap<>())
+                                .computeIfAbsent(eventType, k -> new HashMap<>())
+                                .put(artifactId, artifact);
+
+                        // Track new artifacts for cache update
+                        newArtifactsForDoc.computeIfAbsent(category, k -> new ArrayList<>()).add(artifactId);
+                        cachedArtifactsForDoc.put(category, cachedIds);
                     });
 
-            // Calculate deltas for this document
-            Map<String, Map<String, Map<String, Artifact>>> documentDeltas = new HashMap<>();
-            
-            // Process new artifacts to determine additions and updates
-            newArtifactMap.forEach((category, artifacts) -> {
-                artifacts.forEach((artifactId, artifact) -> {
-                    List<String> prevIds = prevIdMap.get(category);
-                    String eventType;
-                    if (prevIds != null && prevIds.remove(artifactId)) {
-                        eventType = UPDATES;
-                    } else {
-                        eventType = ADDITIONS;
-                    }
-
-                    documentDeltas.computeIfAbsent(category, k -> new HashMap<>())
-                            .computeIfAbsent(eventType, k -> new HashMap<>())
-                            .put(artifactId, artifact);
-                });
-            });
-
-            // Process remaining cached artifacts as deletions for this document
-            prevIdMap.forEach((category, remainingIds) -> {
+            // Process remaining cached artifacts as deletions
+            cachedArtifactsForDoc.forEach((category, remainingIds) -> {
                 if (!remainingIds.isEmpty()) {
                     remainingIds.forEach(id -> documentDeltas
                             .computeIfAbsent(category, k -> new HashMap<>())
@@ -202,40 +194,25 @@ public class ArtifactsGenerator {
                 }
             });
 
-            // Store new document artifacts for cache update
-            newDocumentMap.put(documentName, newIdMap);
+            // Store new artifacts for cache update
+            newDocumentMap.put(documentName, newArtifactsForDoc);
 
-            // Combine document deltas into the final result (thread-safe)
-            synchronized (combinedCategoryMap) {
-                combineDeltas(combinedCategoryMap, documentDeltas);
-            }
+            // Combine document deltas into combined result
+            combineDeltas(combinedDeltas, documentDeltas);
         });
 
-        // Update the cache with new artifacts
-        cache.initializeProject(projectPath, newDocumentMap);
-        return combinedCategoryMap;
+        // Update cache with new project artifacts
+        ArtifactsCache.getInstance().initializeProject(projectId, newDocumentMap);
+        return combinedDeltas;
     }
 
-    /**
-     * Combines document-level deltas into the overall project deltas.
-     */
-    private static void combineDeltas(Map<String, Map<String, Map<String, Artifact>>> target,
-                                     Map<String, Map<String, Map<String, Artifact>>> source) {
-        source.forEach((category, eventMap) -> {
-            eventMap.forEach((eventType, artifacts) -> {
-                target.computeIfAbsent(category, k -> new HashMap<>())
-                      .computeIfAbsent(eventType, k -> new HashMap<>())
-                      .putAll(artifacts);
-            });
-        });
-    }
-
-    /**
-     * Creates a deep copy of a Map<String, List<String>> to avoid concurrent modification.
-     */
-    private static Map<String, List<String>> deepCopyStringListMap(Map<String, List<String>> original) {
-        Map<String, List<String>> copy = new HashMap<>();
-        original.forEach((key, list) -> copy.put(key, new ArrayList<>(list)));
-        return copy;
+    private static void combineDeltas(ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas,
+                                      Map<String, Map<String, Map<String, Artifact>>> documentDeltas) {
+        documentDeltas.forEach((category, eventTypeMap) ->
+                eventTypeMap.forEach((eventType, artifactMap) ->
+                        artifactMap.forEach((artifactId, artifact) ->
+                                combinedDeltas.computeIfAbsent(category, k -> new ConcurrentHashMap<>())
+                                        .computeIfAbsent(eventType, k -> new ConcurrentHashMap<>())
+                                        .put(artifactId, artifact))));
     }
 }
