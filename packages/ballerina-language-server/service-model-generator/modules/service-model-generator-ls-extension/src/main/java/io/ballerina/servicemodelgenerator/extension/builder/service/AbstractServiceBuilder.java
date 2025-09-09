@@ -65,9 +65,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_SERVICE_TYPE_DESCRIPTOR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -84,6 +82,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
@@ -187,22 +186,17 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
                 listenerProtocol, "Listener", listenerVarName, args);
 
+        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
+
         StringBuilder builder = new StringBuilder(NEW_LINE)
                 .append(listenerDeclaration)
                 .append(NEW_LINE)
-                .append(SERVICE).append(SPACE);
-
-        Value basePath = serviceInitModel.getProperties().get("basePath");
-        if (basePath != null && !basePath.getValue().isEmpty()) {
-            if (basePath.getCodedata().getArgType().equals(ARG_TYPE_SERVICE_TYPE_DESCRIPTOR)) {
-                builder.append(listenerProtocol).append(COLON);
-            }
-            builder.append(basePath.getValue()).append(SPACE);
-        } else {
-            builder.append(listenerProtocol).append(COLON).append("Service").append(SPACE);
-        }
-        builder.append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
-                .append(NEW_LINE).append(CLOSE_BRACE).append(NEW_LINE);
+                .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(listenerProtocol))
+                .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
 
         if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
             String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
@@ -291,7 +285,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         Map<String, String> imports = new HashMap<>();
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        List<String> functionsStr = buildMethodDefinitions(service, TRIGGER_ADD, imports);
+        List<String> functionsStr = buildMethodDefinitions(service.getFunctions(), TRIGGER_ADD, imports);
         buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
@@ -454,15 +448,15 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     /**
      * Return a list of required method definitions for the service.
      *
-     * @param service the service model
+     * @param serviceFunctions the list of functions in the service model
      * @param context the function-add context
      * @param imports a map of imports to be used in the function definitions
      * @return a list of method definitions as strings
      */
-    static List<String> buildMethodDefinitions(Service service, Utils.FunctionAddContext context,
+    static List<String> buildMethodDefinitions(List<Function> serviceFunctions, Utils.FunctionAddContext context,
                                                Map<String, String> imports) {
         List<String> functions = new ArrayList<>();
-        service.getFunctions().forEach(function -> {
+        serviceFunctions.forEach(function -> {
             if (function.isEnabled()) {
                 String functionNode = TAB;
                 functionNode += generateFunctionDefSource(function, new ArrayList<>(), context, FUNCTION_ADD, imports)

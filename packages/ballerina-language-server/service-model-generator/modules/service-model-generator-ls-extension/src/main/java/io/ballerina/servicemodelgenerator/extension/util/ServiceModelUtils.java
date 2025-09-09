@@ -42,6 +42,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
@@ -90,7 +91,7 @@ public class ServiceModelUtils {
         updateValue(target.getName(), source.getName());
 
         List<Parameter> sourceParameters = source.getParameters();
-        for (Parameter targetParameter: target.getParameters()) {
+        for (Parameter targetParameter : target.getParameters()) {
             AtomicReference<Optional<Parameter>> parameter = new AtomicReference<>(Optional.empty());
             sourceParameters.removeIf(sourceParam -> {
                 if (isEqual(targetParameter.getType(), sourceParam.getType())) {
@@ -131,6 +132,16 @@ public class ServiceModelUtils {
                 : "Service";
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceTypeName)
                 .forEach(function -> service.getFunctions().add(getFunction(function)));
+    }
+
+    public static List<Function> getRequiredFunctionsForServiceType(ServiceInitModel model) {
+        int packageId = Integer.parseInt(model.getId());
+        String serviceTypeName = model.getServiceTypeName();
+        return ServiceDatabaseManager.getInstance()
+                .getMatchingServiceTypeFunctions(packageId, serviceTypeName)
+                .stream()
+                .map(ServiceModelUtils::getFunction)
+                .toList();
     }
 
     public static Function getFunction(ServiceTypeFunction function) {

@@ -141,7 +141,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         Map<String, String> imports = new HashMap<>();
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        List<String> functionsStr = buildMethodDefinitions(service, HTTP_SERVICE_ADD, imports);
+        List<String> functionsStr = buildMethodDefinitions(service.getFunctions(), HTTP_SERVICE_ADD, imports);
         buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
