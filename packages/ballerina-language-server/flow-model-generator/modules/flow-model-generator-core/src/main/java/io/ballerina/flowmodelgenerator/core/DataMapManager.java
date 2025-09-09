@@ -1362,7 +1362,6 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
-
                 } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(expr);
                     if (optSymbol.isPresent()) {
