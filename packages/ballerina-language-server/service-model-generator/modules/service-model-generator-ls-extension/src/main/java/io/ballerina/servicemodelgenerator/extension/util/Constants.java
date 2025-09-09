@@ -67,6 +67,7 @@ public class Constants {
     public static final String PROPERTY_REQUIRED_FUNCTIONS = "requiredFunctions";
     public static final String PROPERTY_DESIGN_APPROACH = "designApproach";
     public static final String PROPERTY_NAME = "name";
+    public static final String PROPERTY_BASE_PATH = "basePath";
 
     public static final String KIND_QUERY = "QUERY";
     public static final String KIND_MUTATION = "MUTATION";

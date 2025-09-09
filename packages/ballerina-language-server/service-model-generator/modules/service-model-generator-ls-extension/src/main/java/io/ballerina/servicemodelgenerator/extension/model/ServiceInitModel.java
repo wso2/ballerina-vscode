@@ -18,8 +18,16 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
+import io.ballerina.servicemodelgenerator.extension.util.Constants;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_SERVICE_TYPE_DESCRIPTOR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 
 /**
  * Represents a model unifying service initialization and listener creation.
@@ -94,6 +102,34 @@ public class ServiceInitModel {
     public void addProperty(String key, Value value) {
         this.properties.put(key, value);
     }
+
+    public String getServiceTypeName() {
+        Value basePath = properties.get(PROPERTY_BASE_PATH);
+        if (basePath == null) {
+            return "Service";
+        }
+        Object value = basePath.getValue();
+        Codedata codedata = basePath.getCodedata();
+        if (value == null || codedata == null) {
+            return "Service";
+        }
+        return ARG_TYPE_SERVICE_TYPE_DESCRIPTOR.equals(codedata.getArgType()) ? value.toString() : "Service";
+    }
+
+    public String getBasePath(String listenerProtocol) {
+        StringBuilder builder = new StringBuilder();
+        Value basePath = properties.get(PROPERTY_BASE_PATH);
+        if (basePath != null && !basePath.getValue().isEmpty()) {
+            if (basePath.getCodedata().getArgType().equals(ARG_TYPE_SERVICE_TYPE_DESCRIPTOR)) {
+                builder.append(listenerProtocol).append(COLON);
+            }
+            builder.append(basePath.getValue());
+        } else {
+            builder.append(listenerProtocol).append(COLON).append("Service");
+        }
+        return builder.toString();
+    }
+
 
     public static class Builder {
         private String id;
