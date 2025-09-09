@@ -261,7 +261,9 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	}
 
 	private isFocusedField(focusedFieldFQNs: string[], fieldFQN: string): boolean {
-		return focusedFieldFQNs && focusedFieldFQNs.length > 0 && focusedFieldFQNs.some(fqn => fqn.startsWith(fieldFQN));
+		return focusedFieldFQNs &&
+			focusedFieldFQNs.length > 0 &&
+			focusedFieldFQNs.some(fqn => fqn.startsWith(fieldFQN + ".") || fqn === fieldFQN);
 	}
 
 	private getInputFieldFQN(parentId: string, fieldName: string, isOptional: boolean): string {
