@@ -37,7 +37,8 @@ import {
     CodeData,
     VisualizableField,
     Member,
-    TypeNodeKind
+    TypeNodeKind,
+    NodeKind
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -242,12 +243,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const popTypeStack = () => {
-        setStack((prev) => prev.slice(0, -1));
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
         setRefetchStates((prev) => {
             const newStates = [...prev];
             const currentState = newStates.pop();
             if (currentState && newStates.length > 0) {
                 newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
             }
             return newStates;
         });
@@ -861,9 +876,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
-        } else {
-            setTypeEditorState({ isOpen: false });
         }
+        setTypeEditorState({ isOpen: stack.length !== 1 });
     }
 
         /**
@@ -1086,7 +1100,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                 />
                 {
                     stack.map((item, i) => <DynamicModal
@@ -1159,7 +1173,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}
                     onChange={onChange}

@@ -291,3 +291,8 @@ export function getTargetField(viewId: string, outputId: string){
     }
     return [...viewId.split("."), ...outputIdParts].join(".");
 }
+
+
+export function isWithinSubMappingRootView(views: View[]): boolean {
+    return views.length > 1 && views[views.length - 1].subMappingInfo?.focusedOnSubMappingRoot;
+}

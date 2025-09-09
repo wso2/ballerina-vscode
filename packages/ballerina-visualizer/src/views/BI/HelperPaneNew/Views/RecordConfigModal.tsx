@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, PropertyTypeMemberInfo, UpdateRecordConfigRequest, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse } from "@wso2/ballerina-core";
-import { Dropdown, Typography } from "@wso2/ui-toolkit";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField,  RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse } from "@wso2/ballerina-core";
+import { Dropdown, HelperPane, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { RecordConfigView } from "../../HelperPane/RecordConfigView";
+import { RecordConfigView } from "./RecordConfigView";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -201,30 +201,38 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     return (
         <>
-            {recordTypeField?.recordTypeMembers.length > 1 && (
-                <LabelContainer>
-                    <Dropdown
-                        id="type-selector"
-                        label="Type"
-                        value={selectedMemberName}
-                        items={recordTypeField.recordTypeMembers.map((member) => ({
-                            label: member.type,
-                            value: member.type
-                        }))}
-                        onValueChange={(value) => handleMemberChange(value)}
-                    />
-
-                </LabelContainer>
-            )}
-            {selectedMemberName && recordModel?.length > 0 ?
-                (
-                    <RecordConfigView
-                        recordModel={recordModel}
-                        onModelChange={handleModelChange}
-                    />
+            <HelperPane.Body>
+                {isLoading ? (
+                    <HelperPane.Loader />
                 ) : (
-                    <Typography variant="body3">Record construction assistance is unavailable. Please check the Suggestions tab.</Typography>
+                    <>
+                        {recordTypeField?.recordTypeMembers.length > 1 && (
+                            <LabelContainer>
+                                <Dropdown
+                                    id="type-selector"
+                                    label="Type"
+                                    value={selectedMemberName}
+                                    items={recordTypeField.recordTypeMembers.map((member) => ({
+                                        label: member.type,
+                                        value: member.type
+                                    }))}
+                                    onValueChange={(value) => handleMemberChange(value)}
+                                />
+
+                            </LabelContainer>
+                        )}
+                        {selectedMemberName && recordModel?.length > 0 ?
+                            (
+                                <RecordConfigView
+                                    recordModel={recordModel}
+                                    onModelChange={handleModelChange}
+                                />
+                            ) : (
+                                <Typography variant="body3">Record construction assistance is unavailable. Please check the Suggestions tab.</Typography>
+                            )}
+                    </>
                 )}
+            </HelperPane.Body>
         </>
     );
 }

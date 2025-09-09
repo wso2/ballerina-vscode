@@ -339,7 +339,24 @@ const MainPanel = () => {
                         setViewComponent(<ERDiagram />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
-                        setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        if (value?.identifier) {
+                            setViewComponent(
+                                <TypeDiagram
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        } else {
+                            // To support rerendering when user click on view all btn from left side panel
+                            setViewComponent(
+                                <TypeDiagram key={`type-${Date.now()}`}
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        }
                         break;
                     case MACHINE_VIEW.DataMapper:
                         let position: LinePosition = {
@@ -398,7 +415,6 @@ const MainPanel = () => {
                     case MACHINE_VIEW.GraphQLDiagram:
                         const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
                         const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
-                        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: entryPoint?.path, position: entryPoint?.position } });
                         setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position} projectUri={value?.projectUri} />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
@@ -520,7 +536,7 @@ const MainPanel = () => {
     useEffect(() => {
         debounceFetchContext();
     }, [breakpointState]);
-    
+
     useEffect(() => {
         const mouseTrapClient = KeyboardNavigationManager.getClient();
 

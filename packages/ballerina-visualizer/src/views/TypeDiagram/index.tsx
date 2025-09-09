@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import React, { useEffect, useRef } from "react";
-import { VisualizerLocation, NodePosition, Type, EVENT_TYPE, MACHINE_VIEW, TypeNodeKind, ComponentInfo } from "@wso2/ballerina-core";
+import React, { useEffect, useState } from "react";
+import { VisualizerLocation, NodePosition, Type, EVENT_TYPE, MACHINE_VIEW, TypeNodeKind, Member } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TypeDiagram as TypeDesignDiagram } from "@wso2/type-diagram";
 import { Button, Codicon, ProgressRing, ThemeColors, View, ViewContent } from "@wso2/ui-toolkit";
@@ -26,20 +26,10 @@ import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { TitleBar } from "../../components/TitleBar";
 import { FormTypeEditor } from "../BI/TypeEditor";
-
-const HeaderContainer = styled.div`
-    align-items: center;
-    color: ${ThemeColors.ON_SURFACE};
-    display: flex;
-    flex-direction: row;
-    font-family: GilmerBold;
-    font-size: 16px;
-    height: 50px;
-    justify-content: space-between;
-    min-width: 350px;
-    padding-inline: 10px;
-    width: calc(100vw - 20px);
-`;
+import { NodeSelector } from "./NodeSelectorView/NodeSelector";
+import DynamicModal from "../../components/Modal";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
+import { EditorContext, StackItem } from "@wso2/type-editor";
 
 export const Title: React.FC<any> = styled.div`
     color: ${ThemeColors.ON_SURFACE};
@@ -58,6 +48,8 @@ interface TypeEditorState {
     editingType: Type;
 }
 
+const MAX_TYPES_FOR_FULL_VIEW= 80;
+
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
     const { rpcClient } = useRpcContext();
@@ -66,12 +58,93 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const [typesModel, setTypesModel] = React.useState<Type[]>(undefined);
     const [focusedNodeId, setFocusedNodeId] = React.useState<string | undefined>(undefined);
     const [highlightedNodeId, setHighlightedNodeId] = React.useState<string | undefined>(selectedTypeId);
+    const [isModelLoaded, setIsModelLoaded] = React.useState<boolean>(false);
     const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
         isTypeCreatorOpen: false,
         editingTypeId: undefined,
         newTypeName: undefined,
         editingType: undefined,
     });
+
+    const [stack, setStack] = useState<StackItem[]>([{
+        isDirty: false,
+        type: undefined
+    }]);
+
+    const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+
+    const pushTypeStack = (item: StackItem) => {
+        setStack((prev) => [...prev, item]);
+        setRefetchStates((prev) => [...prev, false]);
+    };
+
+    const popTypeStack = () => {
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            const currentState = newStates.pop();
+            if (currentState && newStates.length > 0) {
+                newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
+            }
+            return newStates;
+        });
+    };
+
+    const peekTypeStack = (): StackItem | null => {
+        return stack.length > 0 ? stack[stack.length - 1] : null;
+    };
+
+    const replaceTop = (item: StackItem) => {
+        if (stack.length === 0) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = item;
+            return newStack;
+        });
+    }
+
+    const replaceFirst = (item: StackItem) => {
+        if (stack.length === 0) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[0] = item;
+            return newStack;
+        });
+    }
+
+    useEffect(() => {
+        if (!typesModel) {
+            return;
+        }
+
+        if (typesModel.length > MAX_TYPES_FOR_FULL_VIEW) {
+            if (selectedTypeId) {
+                setFocusedNodeId(selectedTypeId);
+            } else {
+                setFocusedNodeId(undefined);
+            }
+
+        } else {
+            if (selectedTypeId) {
+                setHighlightedNodeId(selectedTypeId);
+            }
+            setFocusedNodeId(undefined);
+        }
+    }, [selectedTypeId, typesModel]);
 
     useEffect(() => {
         if (addType) {
@@ -91,19 +164,88 @@ export function TypeDiagram(props: TypeDiagramProps) {
     }, [rpcClient]);
 
     useEffect(() => {
+        setIsModelLoaded(false);
         getComponentModel();
     }, [visualizerLocation]);
 
     rpcClient?.onProjectContentUpdated((state: boolean) => {
         if (state) {
+            console.log("Project content updated, refreshing type model");
+            setIsModelLoaded(false);
             getComponentModel();
         }
     });
 
-    useEffect(() => {
-        setFocusedNodeId(undefined);
-        setHighlightedNodeId(selectedTypeId);
-    }, [selectedTypeId]);
+
+
+    const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = shouldRefetch;
+            }
+            return newStates;
+        });
+    };
+
+    const handleTypeEditorStateChange = (state: boolean) => {
+        if (!state) {
+            if (stack.length > 1) {
+                popTypeStack();
+                return;
+            }
+            setStack([{
+                isDirty: false,
+                type: undefined
+            }])
+        }
+        setTypeEditorState((prevState) => ({
+            ...prevState,
+            isTypeCreatorOpen: state,
+        }));
+    }
+
+    const onSaveType = () => {
+        if (stack.length > 0) {
+            setRefetchForCurrentModal(true);
+            popTypeStack();
+        }
+        setTypeEditorState({
+            editingTypeId: undefined,
+            editingType: undefined,
+            isTypeCreatorOpen: stack.length !== 1,
+            newTypeName: undefined,
+        });
+    }
+
+    const createNewType = (): Type => ({
+        name: "",
+        members: [] as Member[],
+        editable: true,
+        metadata: {
+            description: "",
+            label: ""
+        },
+        properties: {},
+        codedata: {
+            node: "RECORD" as TypeNodeKind
+        },
+        includes: [] as string[],
+        allowAdditionalFields: false
+    });
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack({
+            type: createNewType(),
+            isDirty: false
+        });
+        setTypeEditorState({
+            isTypeCreatorOpen: true,
+            editingTypeId: undefined,
+            newTypeName: "",
+            editingType: undefined,
+        })
+    }
 
     const getComponentModel = async () => {
         if (!rpcClient || !visualizerLocation?.metadata?.recordFilePath) {
@@ -113,6 +255,13 @@ export function TypeDiagram(props: TypeDiagramProps) {
             .getBIDiagramRpcClient()
             .getTypes({ filePath: visualizerLocation?.metadata?.recordFilePath });
         setTypesModel(response.types);
+
+        // Set focused node immediately if we have selectedTypeId and more than 80 types
+        if (response.types && response.types.length > MAX_TYPES_FOR_FULL_VIEW && selectedTypeId) {
+            setFocusedNodeId(selectedTypeId);
+        }
+
+        setIsModelLoaded(true);
         console.log(response);
     };
 
@@ -231,10 +380,10 @@ export function TypeDiagram(props: TypeDiagramProps) {
             isTypeCreatorOpen: false,
             newTypeName: undefined,
         });
-    };
-
-    const onSwitchToTypeDiagram = () => {
-        setFocusedNodeId(undefined);
+        setStack([{
+            isDirty: false,
+            type: undefined
+        }])
     };
 
     const onFocusedNodeIdChange = (typeId: string) => {
@@ -243,60 +392,23 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setHighlightedNodeId(undefined);
     };
 
-    const Header = () => (
-        <HeaderContainer>
-            {focusedNodeId ? <Title>Type : {focusedNodeId}</Title> : <Title>Types</Title>}
-            {focusedNodeId ? (
-                <Button appearance="primary" onClick={onSwitchToTypeDiagram} tooltip="Switch to complete Type Diagram">
-                    <Codicon name="discard" sx={{ marginRight: 5 }} /> Switch to Type Diagram
-                </Button>
-            ) : (
-                <Button appearance="primary" onClick={addNewType} tooltip="Add New Type">
-                    <Codicon name="add" sx={{ marginRight: 5 }} /> Add Type
-                </Button>
-            )}
-        </HeaderContainer>
-    );
-
-    const findSelectedType = (typeId: string): Type => {
-        if (!typeId) {
-            return {
-                name: typeEditorState.newTypeName ?? "MyType",
-                editable: true,
-                metadata: {
-                    label: "",
-                    description: "",
-                },
-                codedata: {
-                    node: "RECORD",
-                },
-                properties: {},
-                members: [],
-                includes: [] as string[],
-                allowAdditionalFields: false
-            };
-        }
-        return typesModel.find((type: Type) => type.name === typeId);
-    };
 
     const onTypeChange = async (type: Type, rename?: boolean) => {
         if (rename) {
             setTypeEditorState({
                 editingTypeId: type.name,
                 editingType: type,
-                isTypeCreatorOpen: false,
+                isTypeCreatorOpen: true,
                 newTypeName: undefined,
             });
-            setHighlightedNodeId(type.name);
             return;
         }
         setTypeEditorState({
             editingTypeId: undefined,
             editingType: undefined,
-            isTypeCreatorOpen: false,
+            isTypeCreatorOpen: true,
             newTypeName: undefined,
         });
-        setHighlightedNodeId(type.name); // Highlight the newly created type
     };
 
     // Helper function to convert TypeNodeKind to display name
@@ -326,6 +438,35 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }));
     };
 
+    const handleNodeSelect = (nodeId: string) => {
+        setFocusedNodeId(nodeId);
+    };
+
+    const renderView = () => {
+        if (typesModel && typesModel.length > MAX_TYPES_FOR_FULL_VIEW && focusedNodeId === undefined) {
+            return (
+                <NodeSelector
+                    nodes={typesModel || []}
+                    onNodeSelect={handleNodeSelect}
+                />
+            );
+        } else {
+            return (
+                <TypeDesignDiagram
+                    typeModel={typesModel}
+                    selectedNodeId={highlightedNodeId}
+                    focusedNodeId={focusedNodeId}
+                    updateFocusedNodeId={onFocusedNodeIdChange}
+                    showProblemPanel={showProblemPanel}
+                    goToSource={handleOnGoToSource}
+                    onTypeEdit={onTypeEdit}
+                    onTypeDelete={onTypeDelete}
+                    verifyTypeDelete={verifyTypeDelete}
+                />
+            );
+        }
+    }
+
     return (
         <>
             <View>
@@ -342,49 +483,89 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     />
                 )}
                 {focusedNodeId && (
-                    <TitleBar title={focusedNodeId} subtitle="Type" onBack={() => setFocusedNodeId(undefined)} />
+                    <TitleBar
+                        title={focusedNodeId}
+                        subtitle="Type"
+                        onBack={() => {
+                            setFocusedNodeId(undefined);
+                        }}
+                    />
                 )}
                 <ViewContent>
-                    {typesModel ? (
-                        <TypeDesignDiagram
-                            typeModel={typesModel}
-                            selectedNodeId={highlightedNodeId}
-                            focusedNodeId={focusedNodeId}
-                            updateFocusedNodeId={onFocusedNodeIdChange}
-                            showProblemPanel={showProblemPanel}
-                            goToSource={handleOnGoToSource}
-                            onTypeEdit={onTypeEdit}
-                            onTypeDelete={onTypeDelete}
-                            verifyTypeDelete={verifyTypeDelete}
-                        />
-                    ) : (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                            <ProgressRing color={ThemeColors.PRIMARY} />
-                        </div>
-                    )}
+                    <>
+                        {!isModelLoaded ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                <ProgressRing color={ThemeColors.PRIMARY} />
+                            </div>
+                        ) : renderView()}
+                    </>
                 </ViewContent>
             </View>
             {/* Panel for editing and creating types */}
-            {(typeEditorState.editingTypeId || typeEditorState.isTypeCreatorOpen) && typeEditorState.editingType?.codedata?.node !== "CLASS" && (
-                <PanelContainer
-                    title={typeEditorState.editingTypeId ?
-                        `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
-                            ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
-                            ''}` :
-                        "New Type"
-                    }
-                    show={true}
-                    onClose={onTypeEditorClosed}
-                >
-                    <FormTypeEditor
-                        key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
-                        type={findSelectedType(typeEditorState.editingTypeId)}
-                        newType={typeEditorState.editingTypeId ? false : true}
-                        onTypeChange={onTypeChange}
-                        onTypeCreate={handleTypeCreate} 
-                     />
-                </PanelContainer>
-            )}
+            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceFirst }}>
+                {(typeEditorState.editingTypeId || typeEditorState.isTypeCreatorOpen) && typeEditorState.editingType?.codedata?.node !== "CLASS" && (
+                    <PanelContainer
+                        title={typeEditorState.editingTypeId ?
+                            `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
+                                ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
+                                ''}` :
+                            "New Type"
+                        }
+                        show={true}
+                        onClose={onTypeEditorClosed}
+                    >
+                        <FormTypeEditor
+                            key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
+                            type={stack[0]?.type}
+                            newType={stack[0]?.isDirty}
+                            onTypeChange={onTypeChange}
+                            onTypeCreate={handleTypeCreate}
+                            onSaveType={onSaveType}
+                            getNewTypeCreateForm={getNewTypeCreateForm}
+                            refetchTypes={true}
+                        />
+                    </PanelContainer>
+                )}
+            </EditorContext.Provider>
+            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
+
+                {stack.slice(1).map((item, i) => {
+                    return (
+                        <DynamicModal
+                            key={i}
+                            width={420}
+                            height={600}
+                            anchorRef={undefined}
+                            title="Create New Type"
+                            openState={typeEditorState.isTypeCreatorOpen}
+                            setOpenState={handleTypeEditorStateChange}>
+                            <div style={{ padding: '0px 20px' }}>
+                                <BreadcrumbContainer>
+                                    {stack.slice(1, i + 2).map((stackItem, index) => (
+                                        <React.Fragment key={index}>
+                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                            <BreadcrumbItem>
+                                                {stackItem?.type?.name || "NewType"}
+                                            </BreadcrumbItem>
+                                        </React.Fragment>
+                                    ))}
+                                </BreadcrumbContainer>
+                                <FormTypeEditor
+                                    key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
+                                    type={peekTypeStack()?.type}
+                                    newType={peekTypeStack()?.isDirty}
+                                    onTypeChange={onTypeChange}
+                                    onTypeCreate={handleTypeCreate}
+                                    onSaveType={onSaveType}
+                                    getNewTypeCreateForm={getNewTypeCreateForm}
+                                    refetchTypes={refetchStates[i + 1]}
+                                />
+                            </div>
+                        </DynamicModal>
+                    )
+                })}
+            </EditorContext.Provider>
+
         </>
     );
 }
