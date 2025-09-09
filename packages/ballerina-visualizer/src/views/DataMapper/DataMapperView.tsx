@@ -102,7 +102,8 @@ export function DataMapperView(props: DataMapperProps) {
         
         setViewState(prevState => ({
             viewId: positionChanged ? name : prevState.viewId || name,
-            codedata: codedata
+            codedata: codedata,
+            isSubMapping: positionChanged ? false : prevState.isSubMapping
         }));
         
         prevPositionRef.current = position;
@@ -233,7 +234,8 @@ export function DataMapperView(props: DataMapperProps) {
                 codedata: viewState.codedata,
                 varName: name,
                 targetField: outputId,
-                propertyKey: "expression" // TODO: Remove this once the API is updated
+                propertyKey: "expression", // TODO: Remove this once the API is updated
+                withinSubMapping: viewState.isSubMapping
             };
             const resp = await rpcClient
                 .getDataMapperRpcClient()
@@ -296,7 +298,8 @@ export function DataMapperView(props: DataMapperProps) {
                 clauseType,
                 varName: name,
                 targetField: viewId,
-                propertyKey: "expression" // TODO: Remove this once the API is updated
+                propertyKey: "expression", // TODO: Remove this once the API is updated
+                withinSubMapping: viewState.isSubMapping
             };
             const resp = await rpcClient
                 .getDataMapperRpcClient()
@@ -319,7 +322,8 @@ export function DataMapperView(props: DataMapperProps) {
                 index,
                 clause,
                 targetField,
-                varName: name
+                varName: name,
+                withinSubMapping: viewState.isSubMapping
             };
             console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
 
@@ -383,6 +387,7 @@ export function DataMapperView(props: DataMapperProps) {
                     mapping,
                     varName: name,
                     targetField: viewId,
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Data Mapper] deleteMapping response:", resp);
         } catch (error) {
@@ -402,6 +407,7 @@ export function DataMapperView(props: DataMapperProps) {
                     functionMetadata: metadata,
                     varName: name,
                     targetField: viewId,
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
         } catch (error) {
@@ -421,6 +427,7 @@ export function DataMapperView(props: DataMapperProps) {
                     functionMetadata: metadata,
                     varName: name,
                     targetField: viewId,
+                    withinSubMapping: viewState.isSubMapping
                 });
             console.log(">>> [Data Mapper] mapWithTransformFn response:", resp);
         } catch (error) {
