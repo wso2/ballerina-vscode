@@ -101,7 +101,6 @@ const VariablesMoreIconContainer = styled.div`
     justify-content: center;
     padding: 4px;
      &:hover {
-        background-color:  ${ThemeColors.ON_SURFACE_VARIANT};
         cursor: pointer;
     }
 `;
