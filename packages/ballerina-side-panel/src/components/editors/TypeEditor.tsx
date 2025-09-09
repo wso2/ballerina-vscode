@@ -38,7 +38,7 @@ import { sanitizeType } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
-import { NodeProperties } from "@wso2/ballerina-core/lib/interfaces/bi";
+import { NodeProperties } from "@wso2/ballerina-core";
 
 interface TypeEditorProps {
     field: FormField;
