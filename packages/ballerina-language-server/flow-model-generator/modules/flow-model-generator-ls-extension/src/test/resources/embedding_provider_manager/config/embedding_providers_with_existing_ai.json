@@ -1,0 +1,45 @@
+{
+  "source": "embedding_providers_with_existing_ai",
+  "expectedEmbeddingProviders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Embedding Providers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Default Embedding Provider (WSO2)",
+              "description": "WSO2 embedding provider implementation that provides embedding capabilities using WSO2's AI service."
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "symbol": "getDefaultEmbeddingProvider",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Open Embedding Provider",
+              "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openai",
+              "packageName": "ai.openai",
+              "object": "EmbeddingProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}

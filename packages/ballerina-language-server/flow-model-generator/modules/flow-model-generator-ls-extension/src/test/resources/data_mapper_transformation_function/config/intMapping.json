@@ -1,0 +1,71 @@
+{
+  "source": "proj/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 30
+      }
+    },
+    "sourceCode": "zoh3k4w7rimf2fy6ob"
+  },
+  "mapping": {
+    "output": "var1.age",
+    "expression": "student"
+  },
+  "functionMetadata": {
+    "returnType": {
+      "type": "int",
+      "kind": "int"
+    },
+    "parameters": [
+      {
+        "name": "student",
+        "type": "Student",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "record"
+      }
+    ]
+  },
+  "targetField": "var1",
+  "output": {
+    "proj/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 28
+          },
+          "end": {
+            "line": 17,
+            "character": 28
+          }
+        },
+        "newText": "age: mapRecordToInt1(student)"
+      }
+    ],
+    "proj/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction mapRecordToInt1(Student student) returns int => 0"
+      }
+    ]
+  }
+}

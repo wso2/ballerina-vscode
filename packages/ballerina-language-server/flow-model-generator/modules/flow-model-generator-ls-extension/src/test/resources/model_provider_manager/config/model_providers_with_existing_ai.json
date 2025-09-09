@@ -1,0 +1,125 @@
+{
+  "source": "model_providers_with_existing_ai",
+  "expectedModelProviders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Model Providers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Default Model Provider (WSO2)",
+              "description": "WSO2 model provider implementation that provides chat completion capabilities using WSO2's AI services."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "symbol": "getDefaultModelProvider",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Anthropic Model Provider",
+              "description": "Provider is a client class that provides an interface for interacting with Anthropic Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.anthropic",
+              "packageName": "ai.anthropic",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Azure OpenAI Model Provider",
+              "description": "OpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.azure",
+              "packageName": "ai.azure",
+              "object": "OpenAiModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Deepseek Model Provider",
+              "description": "Deepseek is a client class that provides an interface for interacting with Deepseek Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.deepseek",
+              "packageName": "ai.deepseek",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Mistral Model Provider",
+              "description": "MistralAiProvider is a client class that provides an interface for interacting with Mistral AI Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.mistral",
+              "packageName": "ai.mistral",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Ollama Model Provider",
+              "description": "Provider represents a client for interacting with an Ollama language models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.ollama",
+              "packageName": "ai.ollama",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Open Model Provider",
+              "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openai",
+              "packageName": "ai.openai",
+              "object": "ModelProvider",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}

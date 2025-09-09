@@ -21,8 +21,12 @@ package io.ballerina.servicemodelgenerator.extension.builder.function;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.Types;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -128,6 +132,10 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
 
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = functionModel.getParameters();
+
+        Types types = semanticModel.types();
+        MapTypeSymbol mapTypeSymbol = types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build();
+
         parameters.forEach(parameterNode -> {
             Optional<Parameter> param = getParameterModel(parameterNode);
             if (param.isEmpty()) {
@@ -143,20 +151,28 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     Parameter parameter = parameterModels.get(0);
                     parameter.getName().setValue(parameterModel.getName().getValue());
                     parameter.setEnabled(true);
-                    parameterModels.add(parameter);
                     return;
                 } else if (typeName.equals(HTTP_CALLER_TYPE)) {
                     Parameter parameter = parameterModels.get(1);
-                    parameterModels.add(parameter);
                     parameter.setEnabled(true);
                     return;
                 } else if (typeName.equals(HTTP_HEADERS_TYPE)) {
                     Parameter parameter = parameterModels.get(2);
                     parameter.setEnabled(true);
-                    parameterModels.add(parameter);
                     return;
                 }
                 if (!typeName.equals(HTTP_REQUEST_CONTEXT_TYPE)) {
+                    Optional<Symbol> paramSymbol = semanticModel.symbol(parameterNode);
+                    if (paramSymbol.isPresent() && paramSymbol.get() instanceof ParameterSymbol parameterSymbol) {
+                        TypeSymbol paramType = parameterSymbol.typeDescriptor();
+                        if (paramType.subtypeOf(mapTypeSymbol)) {
+                            parameterModel.setHttpParamType(Constants.HTTP_PARAM_TYPE_PAYLOAD);
+                            parameterModel.setEditable(true);
+                            parameterModels.add(parameterModel);
+                            return;
+                        }
+                    }
+
                     parameterModel.setHttpParamType(Constants.HTTP_PARAM_TYPE_QUERY);
                     parameterModel.setEditable(true);
                 }

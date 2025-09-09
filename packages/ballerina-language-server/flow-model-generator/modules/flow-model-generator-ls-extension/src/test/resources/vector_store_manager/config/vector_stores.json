@@ -9,23 +9,8 @@
         "items": [
           {
             "metadata": {
-              "label": "Pinecone Vector Store",
-              "description": "Pinecone vector store implementation with support for dense, sparse, and hybrid vector search modes."
-            },
-            "codedata": {
-              "node": "VECTOR_STORE",
-              "org": "ballerinax",
-              "module": "ai.pinecone",
-              "packageName": "ai.pinecone",
-              "object": "VectorStore",
-              "symbol": "init"
-            },
-            "enabled": true
-          },
-          {
-            "metadata": {
-              "label": "In-Memory Vector Store",
-              "description": "In-memory vector store implementation for testing and development purposes."
+              "label": "InMemory Vector Store",
+              "description": "An in-memory vector store implementation that provides simple storage for vector entries."
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -39,23 +24,8 @@
           },
           {
             "metadata": {
-              "label": "Weaviate Vector Store",
-              "description": "Weaviate vector store implementation with support for dense and hybrid vector search modes."
-            },
-            "codedata": {
-              "node": "VECTOR_STORE",
-              "org": "ballerinax",
-              "module": "ai.weaviate",
-              "packageName": "ai.weaviate",
-              "object": "VectorStore",
-              "symbol": "init"
-            },
-            "enabled": true
-          },
-          {
-            "metadata": {
               "label": "Milvus Vector Store",
-              "description": "Milvus vector store implementation with support for dense and hybrid vector search modes."
+              "description": "Milvus Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Milvus vector database\nto provide functionality for vector upsert, query, and deletion.\n"
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -70,13 +40,43 @@
           {
             "metadata": {
               "label": "Pgvector Vector Store",
-              "description": "Pgvector vector store implementation with support for dense, sparse and hybrid vector search modes."
+              "description": "Pgvector Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pgvector vector database\nto provide functionality for vector upsert, query, and deletion.\n"
             },
             "codedata": {
               "node": "VECTOR_STORE",
               "org": "ballerinax",
               "module": "ai.pgvector",
               "packageName": "ai.pgvector",
+              "object": "VectorStore",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Pinecone Vector Store",
+              "description": "Pinecone Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pinecone vector database\nto provide functionality for vector upsert, query, and deletion.\n\n- pineconeClient: Underlying client used to communicate with Pinecone\n- queryMode: The search mode (DENSE, SPARSE, or HYBRID)\n- namespace: Optional namespace to isolate vectors within Pinecone\n- filters: Metadata filters applied during search\n- similarityTopK: Number of top similar vectors to return in queries\n- id: Unique identifier for the vector store instance"
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.pinecone",
+              "packageName": "ai.pinecone",
+              "object": "VectorStore",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Weaviate Vector Store",
+              "description": "Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Weaviate vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.weaviate",
+              "packageName": "ai.weaviate",
               "object": "VectorStore",
               "symbol": "init"
             },

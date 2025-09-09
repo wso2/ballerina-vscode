@@ -93,6 +93,7 @@ public class Constants {
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
+    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";

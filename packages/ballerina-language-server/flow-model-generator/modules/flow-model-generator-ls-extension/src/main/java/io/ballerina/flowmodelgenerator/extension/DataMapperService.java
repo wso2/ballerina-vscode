@@ -32,6 +32,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertR
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperTransformFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
@@ -376,9 +377,41 @@ public class DataMapperService implements ExtendedLanguageServerService {
                     return response;
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
-                response.setTextEdits(dataMapManager.genCustomFunction(this.workspaceManager, semanticModel.get(),
+                response.setTextEdits(dataMapManager.genMappingFunction(this.workspaceManager, semanticModel.get(),
                         filePath, request.codedata(), request.mapping(), request.functionMetadata(),
-                        request.targetField()));
+                        request.targetField(), true));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Generates text edits for transformation function and its function call.
+     * @param request The request containing information needed to generate the transformation function,
+     *                including file path, code data, mapping details, function metadata and target field
+     * @return Two text edits to apply to the codebase - one for the function definition and one for the function call
+     *
+     * @since 1.2.0
+     */
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponse> transformationFunction(
+            DataMapperTransformFunctionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.genMappingFunction(this.workspaceManager, semanticModel.get(),
+                        filePath, request.codedata(), request.mapping(), request.functionMetadata(),
+                        request.targetField(), false));
             } catch (Throwable e) {
                 response.setError(e);
             }

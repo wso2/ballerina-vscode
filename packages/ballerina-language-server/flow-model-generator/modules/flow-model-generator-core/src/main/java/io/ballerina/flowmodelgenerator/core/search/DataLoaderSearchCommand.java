@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -29,6 +29,7 @@ import io.ballerina.tools.text.LineRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for data loaders.
@@ -36,7 +37,7 @@ import java.util.Map;
  * @since 1.1.1
  */
 public class DataLoaderSearchCommand extends SearchCommand {
-    private List<Item> cachedDataLoaders;
+    private static final String DATA_LOADER_LABEL = "Data Loaders";
 
     public DataLoaderSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -44,37 +45,27 @@ public class DataLoaderSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getDataLoaders();
+        List<AvailableNode> modelProviders = AiUtils.getDataLoaders(project);
+        Category category = new Category.Builder(null).metadata().label(DATA_LOADER_LABEL)
+                .stepOut().items(List.copyOf(modelProviders)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> dataLoaders = getDataLoaders();
-        if (dataLoaders.isEmpty()) {
-            return dataLoaders;
-        }
+        List<AvailableNode> modelProviders = AiUtils.getDataLoaders(project);
+        List<Item> matchingProviders = modelProviders.stream()
+                .filter(node -> node.codedata().module().contains(query))
+                .collect(Collectors.toList());
 
-        Category dataLoaderCategory = (Category) dataLoaders.getFirst();
-        List<Item> loaders = dataLoaderCategory.items();
-        List<Item> matchingLoaders = loaders.stream()
-                .filter(item -> item instanceof AvailableNode availableNode &&
-                        availableNode.codedata().module().contains(query)).toList();
-
-        loaders.clear();
-        loaders.addAll(matchingLoaders);
-        return List.of(dataLoaderCategory);
+        Category category = new Category.Builder(null).metadata().label(DATA_LOADER_LABEL)
+                .stepOut().items(matchingProviders).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    private List<Item> getDataLoaders() {
-        if (cachedDataLoaders == null) {
-            cachedDataLoaders = List.copyOf(LocalIndexCentral.getInstance().getDataLoaders());
-        }
-        return cachedDataLoaders;
     }
 }
 

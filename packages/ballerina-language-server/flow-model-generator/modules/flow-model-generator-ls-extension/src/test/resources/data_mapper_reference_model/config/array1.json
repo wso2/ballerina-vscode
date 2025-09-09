@@ -39,19 +39,7 @@
       "kind": "array",
       "ref": "-163075825"
     },
-    "mappings": [
-      {
-        "output": "finalNote",
-        "inputs": [],
-        "expression": "{}",
-        "diagnostics": [
-          "a type compatible with mapping constructor expressions not found in type 'FinalNote[]'"
-        ],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
-      }
-    ],
+    "mappings": [],
     "refs": {
       "897207248": {
         "fields": [

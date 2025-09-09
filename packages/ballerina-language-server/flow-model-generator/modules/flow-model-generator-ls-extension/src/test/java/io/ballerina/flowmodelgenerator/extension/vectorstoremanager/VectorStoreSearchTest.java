@@ -44,7 +44,8 @@ public class VectorStoreSearchTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("vector_stores.json")},
-                {Path.of("vector_stores_search_pinecone.json")}
+                {Path.of("vector_stores_search_pinecone.json")},
+                {Path.of("vector_stores_with_existing_ai.json")}
         };
     }
 

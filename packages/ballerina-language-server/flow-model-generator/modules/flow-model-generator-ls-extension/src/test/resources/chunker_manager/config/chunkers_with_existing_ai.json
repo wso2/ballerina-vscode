@@ -1,0 +1,62 @@
+{
+  "source": "chunkers_with_existing_ai",
+  "expectedChunkers": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Chunkers"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Generic Recursive Chunker",
+              "description": "Represents a Genereric document chunker.\nProvides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "GenericRecursiveChunker",
+              "symbol": "init",
+              "version": "1.3.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Markdown Chunker",
+              "description": "Represents a Markdown document chunker.\nProvides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "MarkdownChunker",
+              "symbol": "init",
+              "version": "1.3.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Devant Chunker",
+              "description": "Splits documents loaded by the `devant:BinaryDataLoader` into smaller chunks \nusing the Devant AI service."
+            },
+            "codedata": {
+              "node": "CHUNKER",
+              "org": "ballerinax",
+              "module": "ai.devant",
+              "packageName": "ai.devant",
+              "object": "Chunker",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "source": "vector_stores_with_existing_ai",
+  "expectedVectorStores": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Vector Stores"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "InMemory Vector Store",
+              "description": "An in-memory vector store implementation that provides simple storage for vector entries."
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerina",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "InMemoryVectorStore",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Pinecone Vector Store",
+              "description": "Pinecone Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pinecone vector database\nto provide functionality for vector upsert, query, and deletion.\n\n- pineconeClient: Underlying client used to communicate with Pinecone\n- queryMode: The search mode (DENSE, SPARSE, or HYBRID)\n- namespace: Optional namespace to isolate vectors within Pinecone\n- filters: Metadata filters applied during search\n- similarityTopK: Number of top similar vectors to return in queries\n- id: Unique identifier for the vector store instance"
+            },
+            "codedata": {
+              "node": "VECTOR_STORE",
+              "org": "ballerinax",
+              "module": "ai.pinecone",
+              "packageName": "ai.pinecone",
+              "object": "VectorStore",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}
