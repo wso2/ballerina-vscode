@@ -47,6 +47,54 @@ type VariablesPageProps = {
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
 }
 
+type VariableItemProps = {
+    item: CompletionItem;
+    onItemSelect: (value: string) => void;
+    onMoreIconClick: (value: string) => void;
+}
+
+const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    return (
+        <SlidingPaneNavContainer
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={() => onItemSelect(item.label)}
+            data
+            sx={{
+                maxHeight: isHovered ? "none" : "32px" 
+            }}
+            endIcon={
+                <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
+                    event.stopPropagation();
+                    onMoreIconClick(item.label);
+                }}>
+                    <VariableTypeIndicator >
+                        {item.description}
+                    </VariableTypeIndicator>
+                    <Codicon name="chevron-right" />
+                </VariablesMoreIconContainer>}
+        >
+            <ExpandableList.Item>
+                {getIcon(item.kind)}
+                <Typography 
+                    variant="body3"
+                    sx={{
+                        maxWidth: isHovered ? 'none' : '20ch',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: isHovered ? 'normal' : 'nowrap',
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    {item.label}
+                </Typography>
+            </ExpandableList.Item>
+        </SlidingPaneNavContainer>
+    );
+};
+
 const VariablesMoreIconContainer = styled.div`
     display: flex;
     align-items: center;
@@ -153,31 +201,14 @@ export const Variables = (props: VariablesPageProps) => {
             <>
                 {
                     filteredDropDownItems.map((item) => (
-                        <SlidingPaneNavContainer
-                            onClick={() => handleItemSelect(item.label)}
-                            data
-                            endIcon={
-                                <VariablesMoreIconContainer onClick={(event) => {
-                                    event.stopPropagation()
-                                    handleVariablesMoreIconClick(item.label)
-                                }}>
-                                    <VariableTypeIndicator>
-                                        {item.description}
-                                    </VariableTypeIndicator>
-                                    <Codicon name="chevron-right" />
-                                </VariablesMoreIconContainer>}
-                        >
-                            <ExpandableList.Item>
-                                {getIcon(item.kind)}
-                                <Typography variant="body3">
-                                    {item.label}
-                                </Typography>
-
-                            </ExpandableList.Item>
-                        </SlidingPaneNavContainer>
+                        <VariableItem
+                            key={item.label}
+                            item={item}
+                            onItemSelect={handleItemSelect}
+                            onMoreIconClick={handleVariablesMoreIconClick}
+                        />
                     ))
                 }
-
             </>
         )
     }

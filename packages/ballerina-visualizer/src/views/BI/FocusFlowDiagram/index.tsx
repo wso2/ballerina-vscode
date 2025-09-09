@@ -584,7 +584,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         getFlowModel();
     };
 
-    const handleCreateNewConnection = () => {
+    const handleNavigateToSelectionList = () => {
         setConnectionView(SidePanelView.CONNECTION_SELECT);
     };
 
@@ -681,7 +681,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                             connectionKind={selectedConnectionKind}
                             selectedNode={selectedNodeForConnection}
                             onSave={handleUpdateNodeWithConnection}
-                            onCreateNew={handleCreateNewConnection}
+                            onNavigateToSelectionList={handleNavigateToSelectionList}
                         />
                     )}
                     {connectionView === SidePanelView.CONNECTION_SELECT && (

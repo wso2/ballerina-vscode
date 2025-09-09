@@ -17,8 +17,8 @@
  */
 
 import { FunctionDefinition, ModulePart, STKindChecker } from "@wso2/syntax-tree";
-import { FormField, Attachment, AttachmentStatus, keywords, DiagnosticEntry, DataMapperModelResponse, ExpandedDMModel, MappingElement, Mapping, IOType, InputCategory, TypeKind } from "@wso2/ballerina-core";
-import { window } from 'vscode';
+import { FormField, Attachment, AttachmentStatus, keywords, DiagnosticEntry, DataMapperModelResponse, ExpandedDMModel, MappingElement, Mapping, IOType, InputCategory, TypeKind, FileChanges } from "@wso2/ballerina-core";
+import { Position, Range, Uri, window, workspace, WorkspaceEdit } from 'vscode';
 
 import path from "path";
 import * as fs from 'fs';
@@ -30,6 +30,8 @@ import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { ArrayEnumUnionType, ArrayRecordType, MetadataType, NUMERIC_AND_BOOLEAN_TYPES, Operation, PrimitiveType, RecordType, UnionEnumIntersectionType } from "./constants";
 import { FieldMetadata, IntermediateMapping, MappingData, MappingFileRecord, ParameterDefinitions, ParameterField, ParameterMetadata, ProcessCombinedKeyResult, ProcessParentKeyResult, RecordDefinitonObject } from "./types";
 import { generateAutoMappings } from "../../../src/features/ai/service/datamapper/datamapper";
+import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { writeFileSync } from "fs";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -1203,7 +1205,7 @@ async function accessMetadata(
             }
             if (isArrayRecord(inputObject.typeName) || isArrayEnumUnion(inputObject.type)) {
                 isUsingArray = inputObject.nullableArray;
-            } 
+            }
             if (isUsingArray && isRecordType(inputObject.typeName)) {
                 newPath[index] = `${paths[index]}?`;
             }
@@ -1218,14 +1220,20 @@ async function accessMetadata(
                     }
                     if (inputObject.typeName.includes("[]") && operation === Operation.LENGTH) {
                         let lastInputObject = await getMetadata(parameterDefinitions, paths, paths[paths.length - 1], MetadataType.INPUT_METADATA);
-                        let inputDataType = lastInputObject.typeName.replace(/\|\(\)$/, "");
+                        let inputDataType = lastInputObject.typeName
+                            // remove |() from union types
+                            .replace(/\|\(\)/g, "")
+                            // remove wrapping parentheses before []
+                            .replace(/^\((.*)\)\[\]$/, "$1[]")
+                            // remove single wrapping parentheses (non-array cases)
+                            .replace(/^\((.*)\)$/, "$1");
                         defaultValue = await getDefaultValue(inputDataType);
                         newPath[paths.length - 1] = `${paths[paths.length - 1]}?:${defaultValue}`;
                     }
                     if (inputObject.nullable && inputObject.optional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
                     }
-                    // Handle enum, union, and intersection types    
+                // Handle enum, union, and intersection types    
                 } else if (isUnionEnumIntersectionType(inputObject.type)) {
                     if (inputObject.nullable && inputObject.optional) {
                         newPath[index - 1] = `${paths[index - 1]}?`;
@@ -1595,7 +1603,7 @@ export async function processMappings(
     let dataMapperResponse = cleanDataMapperModelResponse(request);
     const result = await getParamDefinitions(dataMapperResponse);
     const parameterDefinitions = (result as ParameterDefinitions).parameterMetadata;
-    
+
     if (file) {
         const mappedResult = await mappingFileDataMapperModel(file, dataMapperResponse);
         dataMapperResponse = mappedResult as DataMapperModelResponse;
@@ -1605,7 +1613,7 @@ export async function processMappings(
     const mappings: Mapping[] = transformCodeObjectToMappings(codeObject, dataMapperResponse);
     return { mappings };
 }
- 
+
 // Main function to clean the entire DataMapperModelResponse
 function cleanDataMapperModelResponse(
     response: ExpandedDMModel
@@ -1634,13 +1642,13 @@ function cleanDataMapperModelResponse(
 
 function transformArrayStructure(response: ExpandedDMModel): ExpandedDMModel {
     const transformed = { ...response };
-    
+
     if (transformed.inputs && transformed.inputs.length > 0) {
         transformed.inputs = transformed.inputs.map(input => {
             // Only transform inputs that are arrays
             if (input.kind === "array" && input.member) {
                 const originalName = input.name;
-                
+
                 // Deep clone and transform IDs using JSON stringify/parse
                 const transformedInput = JSON.parse(
                     JSON.stringify({
@@ -1651,7 +1659,7 @@ function transformArrayStructure(response: ExpandedDMModel): ExpandedDMModel {
                         `"id":"${originalName}Item.`
                     )
                 );
-                
+
                 return transformedInput;
             }
             // Return non-array inputs unchanged
@@ -1733,7 +1741,7 @@ function cleanIOType(ioType: IOType | null | undefined): IOType | null {
     }
 
     // Remove array records without fields
-    if (ioType.kind === "array" && ioType.typeName === "record" && 
+    if (ioType.kind === "array" && ioType.typeName === "record" &&
         (!ioType.fields || ioType.fields.length === 0)) {
         return null;
     }
@@ -1786,14 +1794,14 @@ export async function getParamDefinitions(
 ): Promise<ParameterDefinitions> {
     const inputs: { [key: string]: any } = {};
     const inputMetadata: { [key: string]: any } = {};
-    
+
     const { inputs: mappingInputs, output: mappingOutput } = dataMapperResponse.mappingsModel as ExpandedDMModel;
     const transformedInputs = transformInputs(mappingInputs);
     const transformedOutputs = transformOutput(mappingOutput);
 
     for (const parameter of transformedInputs.parameters) {
         const inputDefinition = navigateTypeInfo(transformedInputs.parameterFields[parameter.parameterName], false);
-        
+
         inputs[parameter.parameterName] = inputDefinition.recordFields;
         inputMetadata[parameter.parameterName] = {
             "isArrayType": parameter.isArrayType,
@@ -1883,7 +1891,7 @@ function transformInputs(inputs: IOType[]): {
                 type: input.kind || "unknown",
                 typeInstance: input.id,
                 nullable: false,
-                optional: input.optional 
+                optional: input.optional
             };
         };
 
@@ -1957,6 +1965,15 @@ function transformIOType(input: IOType): FormField {
             ...baseField,
             typeName: "array",
             memberType: memberWithoutName as FormField
+        } as FormField;
+    }
+
+    // Handle unions
+    if (input.kind === "union" && input.members) {
+        return {
+            ...baseField,
+            typeName: "union",
+            members: input.members.map(transformIOType) as FormField[]
         } as FormField;
     }
 
@@ -2110,4 +2127,67 @@ export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticE
         code: entry.code || "",
         message: entry.message,
     }));
+}
+
+
+export async function addToIntegration(workspaceFolderPath: string, fileChanges: FileChanges[]) {
+    const formattedWorkspaceEdit = new WorkspaceEdit();
+    const nonBalFiles: FileChanges[] = [];
+
+    for (const fileChange of fileChanges) {
+        let balFilePath = path.join(workspaceFolderPath, fileChange.filePath);
+        const fileUri = Uri.file(balFilePath);
+        if (!fileChange.filePath.endsWith('.bal')) {
+            nonBalFiles.push(fileChange);
+            continue;
+        }
+
+        formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
+
+        formattedWorkspaceEdit.replace(
+            fileUri,
+            new Range(
+                new Position(0, 0),
+                new Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+            ),
+            fileChange.content
+        );
+    }
+
+    // Apply all formatted changes at once
+    await workspace.applyEdit(formattedWorkspaceEdit);
+
+    // Write non ballerina files separately as ls doesn't need to be notified of those changes
+    for (const fileChange of nonBalFiles) {
+        let absoluteFilePath = path.join(workspaceFolderPath, fileChange.filePath);
+        const directory = path.dirname(absoluteFilePath);
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory, { recursive: true });
+        }
+        fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
+    }
+    return new Promise((resolve, reject) => {
+        // Get the artifact notification handler instance
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Subscribe to artifact updated notifications
+        let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            clearTimeout(timeoutId);
+            resolve(payload.data);
+            unsubscribe();
+        });
+
+        // Set a timeout to reject if no notification is received within 10 seconds
+        const timeoutId = setTimeout(() => {
+            console.log("No artifact update notification received within 10 seconds");
+            reject(new Error("Operation timed out. Please try again."));
+            unsubscribe();
+        }, 10000);
+
+        // Clear the timeout when notification is received
+        const originalUnsubscribe = unsubscribe;
+        unsubscribe = () => {
+            clearTimeout(timeoutId);
+            originalUnsubscribe();
+        };
+    });
 }
