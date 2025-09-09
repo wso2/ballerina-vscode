@@ -387,6 +387,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
                 .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
         serviceModel.getServiceType().setValue(serviceType);
+        serviceModel.getServiceType().setEditable(false);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         extractServicePathInfo(serviceNode, serviceModel);
