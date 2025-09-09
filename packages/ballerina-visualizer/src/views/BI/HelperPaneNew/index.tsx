@@ -31,7 +31,7 @@ import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEdito
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { RecordConfigModal } from './Views/RecordConfigModal';
+import { ConfigureRecordPage } from './Views/RecordConfigModal';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
@@ -388,12 +388,14 @@ const HelperPaneNewEl = ({
                     openState={isModalOpen}
                     setOpenState={setIsModalOpen}>
                  <div style={{padding: '0px 16px'}}>
-                       <RecordConfigModal
-                        valueTypeConstraint={valueTypeConstraint}
-                        fileName={fileName}
-                        recordTypeField={recordTypeField}
-                        handleModalChange={handleModalChange}
-                    />
+                       <ConfigureRecordPage
+                           fileName={fileName}
+                           targetLineRange={targetLineRange}
+                           onChange={handleChange}
+                           currentValue={currentValue}
+                           recordTypeField={recordTypeField}
+                           onClose={onClose}
+                       />
                  </div>
                 </DynamicModal>
             </HelperPaneCustom.Body>

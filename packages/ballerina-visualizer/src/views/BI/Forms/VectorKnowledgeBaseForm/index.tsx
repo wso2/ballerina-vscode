@@ -253,7 +253,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                                 hideSaveButton={false}
                                 nestedForm={true}
-                                compact={true}
                                 onSubmit={handleSubmit}
                                 disableSaveButton={!isFormValid}
                                 isSaving={showProgressIndicator || saving}
