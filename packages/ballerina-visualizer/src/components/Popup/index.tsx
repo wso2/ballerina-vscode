@@ -25,6 +25,7 @@ export type PopupProps = {
     onClose?: () => void;
     width?: number;
     height?: number;
+    title: string;
 };
 
 const PopupContentContainer = styled.div`
@@ -45,13 +46,14 @@ const Popup: React.FC<PopupProps> = ({
     children,
     onClose,
     width,
-    height
+    height,
+    title
 }) => {
 
 
     return (
         <PopupContentContainer>
-            <PopupForm onClose={onClose} height={height} width={width} title="New Variable">
+            <PopupForm onClose={onClose} height={height} width={width} title={title}>
                 {children}
             </PopupForm>
         </PopupContentContainer>

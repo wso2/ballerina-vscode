@@ -196,7 +196,7 @@ export const Variables = (props: VariablesPageProps) => {
                 showProgressIndicator={false}
                 resetUpdatedExpressionField={() => { }}
                 isInModal={true}
-            />, POPUP_IDS.VARIABLE, 600);
+            />, POPUP_IDS.VARIABLE,"New Variable", 600);
             onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {

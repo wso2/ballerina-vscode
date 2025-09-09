@@ -181,7 +181,7 @@ export const FunctionsPage = ({
                 functionName={undefined}
                 isDataMapper={false}
                 defaultType={selectedType?.label}
-            />, POPUP_IDS.FUNCTION, 600, 400);
+            />, POPUP_IDS.FUNCTION, "New Function", 600, 400);
         onClose();
     }
 
