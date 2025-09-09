@@ -270,7 +270,7 @@ function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
         if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
             items = property.items;
         }
-        
+
         return {
             key,
             label: property?.metadata?.label,
