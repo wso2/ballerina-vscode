@@ -91,7 +91,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 		expanded = false;
 	}
 
-	const indentation = (portIn && (!hasValue || !expanded)) ? 0 : 24;
+	const indentation = (portIn && !hasValue) ? 0 : 24;
 	const shouldPortVisible = !hasValue || !expanded || !isBodyArrayLitExpr || elements.length === 0;
 	const hasElementConnectedViaLink = elements.some(expr => expr.mappings.some(m => m.inputs.length > 0));
 
