@@ -38,10 +38,11 @@ import { sanitizeType } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
+import { NodeProperties } from "@wso2/ballerina-core/lib/interfaces/bi";
 
 interface TypeEditorProps {
     field: FormField;
-    openRecordEditor: (open: boolean, newType?: string) => void;
+    openRecordEditor: (open: boolean, newType?: string | NodeProperties) => void;
     handleOnFieldFocus?: (key: string) => void;
     handleOnTypeChange?: (value?: string) => void;
     handleNewTypeSelected?: (type: CompletionItem) => void;
@@ -150,7 +151,7 @@ export function TypeEditor(props: TypeEditorProps) {
         setShowDefaultCompletion(false);
     }
 
-    const handleDefaultCompletionSelect = (value: string) => {
+    const handleDefaultCompletionSelect = (value: string | NodeProperties) => {
         openRecordEditor(true, value);
         handleCancel();
     }

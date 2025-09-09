@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { NodeKind, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -48,7 +48,7 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 interface FormFieldEditorProps {
     field: FormField;
     selectedNode?: NodeKind;
-    openRecordEditor?: (open: boolean, newType?: string) => void;
+    openRecordEditor?: (open: boolean, newType?: string | NodeProperties) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
