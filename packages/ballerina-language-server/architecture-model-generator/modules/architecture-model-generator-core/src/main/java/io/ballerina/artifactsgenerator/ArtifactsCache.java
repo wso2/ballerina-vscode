@@ -18,7 +18,9 @@
 
 package io.ballerina.artifactsgenerator;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,5 +129,29 @@ public class ArtifactsCache {
             Lock lock = getOrCreateLock(projectId, fileUri);
             lock.unlock();
         }
+    }
+
+    /**
+     * Gets all cached artifact IDs for a project organized by document without acquiring locks.
+     * This method returns artifact IDs with document context preserved for accurate delta calculation.
+     *
+     * @param projectId The project ID
+     * @return Map of document ID to category to artifact IDs
+     */
+    public Map<String, Map<String, List<String>>> getAllProjectArtifactIdsByDocument(String projectId) {
+        Map<String, Map<String, List<String>>> documentArtifactIds = new HashMap<>();
+        ConcurrentMap<String, Map<String, List<String>>> documentMap = projectCache.get(projectId);
+        
+        if (documentMap != null) {
+            // Create deep copies to avoid concurrent modification issues
+            documentMap.forEach((documentId, fileArtifacts) -> {
+                Map<String, List<String>> copiedFileArtifacts = new HashMap<>();
+                fileArtifacts.forEach((category, ids) -> 
+                    copiedFileArtifacts.put(category, new ArrayList<>(ids)));
+                documentArtifactIds.put(documentId, copiedFileArtifacts);
+            });
+        }
+        
+        return documentArtifactIds;
     }
 }
