@@ -50,5 +50,5 @@ export function isEnumMember(parent: InputNode): boolean {
     if (!parent) {
         return false;
     }
-    return parent.filteredInputType.kind === TypeKind.Enum;
+    return parent.filteredInputType?.kind === TypeKind.Enum;
 }

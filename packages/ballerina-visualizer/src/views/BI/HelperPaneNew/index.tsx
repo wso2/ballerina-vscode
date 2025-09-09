@@ -31,7 +31,7 @@ import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEdito
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { ConfigureRecordPage } from '../HelperPane/ConfigureRecordPage';
+import { ConfigureRecordPage } from './Views/RecordConfigModal';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
