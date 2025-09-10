@@ -144,7 +144,7 @@ export const getSearchConfig = (connectionKind: ConnectionKind, aiModuleOrg?: st
 
 export const updateNodeLineRange = (selectedNode: FlowNode, artifacts: ProjectStructureArtifactResponse[]): void => {
     const selectedNodeArtifact = artifacts.find((artifact) => {
-        return artifact.name === selectedNode.properties.variable.value;
+        return artifact.name === selectedNode?.properties?.variable?.value;
     });
     if (selectedNodeArtifact && selectedNodeArtifact.position && !selectedNode?.codedata?.isNew) {
         selectedNode.codedata.lineRange = {

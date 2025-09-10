@@ -112,12 +112,18 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
         return await updateSourceCode(updateSourceCodeRequest);
     }
 
-    // need to prioritize if file path ends with functions.bal or data_mappings.bal
+    // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
     filePaths.sort((a, b) => {
-        // Prioritize files ending with functions.bal or data_mappings.bal
-        const aEndsWithFunctions = (a.endsWith("functions.bal") || a.endsWith("data_mappings.bal")) ? 1 : 0;
-        const bEndsWithFunctions = (b.endsWith("functions.bal") || b.endsWith("data_mappings.bal")) ? 1 : 0;
-        return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
+        // Priority: functions.bal > data_mappings.bal > any other file
+        const getPriority = (filePath: string): number => {
+            if (filePath.endsWith("functions.bal")) return 2;
+            if (filePath.endsWith("data_mappings.bal")) return 1;
+            return 0;
+        };
+        
+        const aPriority = getPriority(a);
+        const bPriority = getPriority(b);
+        return bPriority - aPriority; // Sort descending (highest priority first)
     });
 
     const requests: UpdateSourceCodeRequest[] = filePaths.map(filePath => ({
@@ -318,11 +324,11 @@ export async function updateAndRefreshDataMapper(
     codedata: CodeData,
     varName: string,
     targetField?: string,
-    withinSubMapping?: boolean
+    subMappingName?: string
 ): Promise<void> {
     try {
-        const newCodeData = withinSubMapping
-            ? await updateSubMappingSource(textEdits, filePath, codedata, targetField)
+        const newCodeData = subMappingName
+            ? await updateSubMappingSource(textEdits, filePath, codedata, subMappingName)
             : await updateSource(textEdits, filePath, codedata, varName);
         updateView(newCodeData, varName);
     } catch (error) {
@@ -565,15 +571,28 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
  * Creates a base IOType from an IORoot
  */
 function createBaseIOType(root: IORoot): IOType {
-    return {
-        id: root.name,
-        name: root.name,
-        displayName: root.displayName,
+    const isEnum = root.kind === 'enum' || root.category === 'enum';
+
+    const baseType: IOType = {
+        id: isEnum ? root.typeName : root.name,
+        name: isEnum ? root.typeName : root.name,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
         ...(root.optional !== undefined && { optional: root.optional })
     };
+
+    if (isEnum && root.members) {
+        baseType.members = root.members.map(member => ({
+            id: member.name,
+            name: member.displayName || member.name,
+            typeName: member.typeName,
+            kind: member.kind,
+            ...(member.optional !== undefined && { optional: member.optional })
+        }));
+    }
+
+    return baseType;
 }
 
 /**

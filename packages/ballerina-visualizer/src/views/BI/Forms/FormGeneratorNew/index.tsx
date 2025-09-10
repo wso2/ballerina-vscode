@@ -34,8 +34,7 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    TypeNodeKind,
-    Member
+    NodeProperties
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -43,7 +42,6 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    PanelContainer,
     FormImports
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -170,13 +168,45 @@ export function FormGeneratorNew(props: FormProps) {
         setRefetchStates((prev) => [...prev, false]);
     };
 
+    const resetStack = () => {
+        setStack([{
+            type: defaultType(),
+            isDirty: false
+        }]);
+    }
+
+    useEffect(() => {
+        const tempStack = [...stack];
+        const firstItem = tempStack[0];
+        if (firstItem) {
+            firstItem.type = defaultType();
+            tempStack[0] = firstItem;
+            setStack(tempStack);
+            return;
+        }
+    }, [typeEditorState.field]);
+
     const popTypeStack = () => {
-        setStack((prev) => prev.slice(0, -1));
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
         setRefetchStates((prev) => {
             const newStates = [...prev];
             const currentState = newStates.pop();
             if (currentState && newStates.length > 0) {
                 newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
             }
             return newStates;
         });
@@ -206,7 +236,7 @@ export function FormGeneratorNew(props: FormProps) {
     };
 
     const defaultType = (): Type => {
-        if (typeEditorState.field?.type === 'PARAM_MANAGER') {
+        if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
                 name: typeEditorState.newTypeValue || "MyType",
                 editable: true,
@@ -576,7 +606,10 @@ export function FormGeneratorNew(props: FormProps) {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: formField });
+            resetStack();
         }
+
+        console.log("#STACK", stack);
 
         const handleCloseCompletions = () => {
             debouncedGetVisibleTypes.cancel();
@@ -602,8 +635,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
     }
 
-    const handleTypeChange = async (type: Type) => {
-        setTypeEditorState({ isOpen: true });
+    const handleTypeChange = async (type: Type,) => {
+        setTypeEditorState({ ...typeEditorState, isOpen: true });
 
         if (typeEditorState.field) {
             const updatedFields = fieldsValues.map(field => {
@@ -612,6 +645,7 @@ export function FormGeneratorNew(props: FormProps) {
                     if (typeEditorState.field.type === 'PARAM_MANAGER'
                         && field.type === 'PARAM_MANAGER'
                         && field.paramManagerProps.formFields
+                        && stack.length === 1
                     ) {
                         return {
                             ...field,
@@ -635,7 +669,7 @@ export function FormGeneratorNew(props: FormProps) {
         }
     };
 
-    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField) => {
+    const handleOpenTypeEditor = (isOpen: boolean, f: FormValues, editingField?: FormField, newType?: string | NodeProperties) => {
         // Get f.value and assign that value to field value
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
@@ -645,7 +679,13 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ isOpen, field: editingField, newTypeValue: f[editingField?.key] });
+        setTypeEditorState({
+            isOpen,
+            field: editingField,
+            newTypeValue: newType
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType)
+                : f[editingField?.key]
+        });
     };
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
@@ -668,7 +708,7 @@ export function FormGeneratorNew(props: FormProps) {
     }
 
     const onCloseTypeEditor = () => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ ...typeEditorState, isOpen: false });
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
@@ -677,14 +717,14 @@ export function FormGeneratorNew(props: FormProps) {
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
+            resetStack();
         }
-        setTypeEditorState({ isOpen: state });
+        setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
-            type: defaultType(), 
+            type: defaultType(),
             isDirty: false
         })
     }
@@ -693,9 +733,8 @@ export function FormGeneratorNew(props: FormProps) {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
-        } else {
-            setTypeEditorState({ isOpen: false });
         }
+        setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
@@ -754,10 +793,6 @@ export function FormGeneratorNew(props: FormProps) {
         importsCodedataRef.current = {};
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: typeEditorState.field });
-    };
-
     // default form
     return (
         <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
@@ -801,27 +836,30 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 15px' }}>
-                        <BreadcrumbContainer>
-                            {stack.slice(0, i + 1).map((stackItem, index) => (
-                                <React.Fragment key={index}>
-                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                    <BreadcrumbItem>
-                                        {stackItem?.type?.name || "New Type"}
-                                    </BreadcrumbItem>
-                                </React.Fragment>
-                            ))}
-                        </BreadcrumbContainer>
+                    <div style={{ padding: '0px 20px' }}>
+                        {stack.slice(0, i + 1).length > 1 && (
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                        )}
                         <FormTypeEditor
-                            type={ isGraphqlEditor? defaultType() : undefined}
+                            type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
+                            isGraphql={isGraphqlEditor}
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={handleTypeCreate}
+                            onTypeCreate={() => { }}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
-                            isGraphql={isGraphqlEditor}
                         />
                     </div>
                 </DynamicModal>)
