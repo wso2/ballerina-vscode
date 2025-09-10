@@ -21,6 +21,7 @@ import {
     AddArrayElementRequest,
     ConvertToQueryRequest,
     AddClausesRequest,
+    DeleteClauseRequest,
     DataMapperModelRequest,
     DataMapperModelResponse,
     DataMapperSourceRequest,
@@ -54,6 +55,7 @@ export const getVisualizableFields: RequestType<VisualizableFieldsRequest, Visua
 export const addNewArrayElement: RequestType<AddArrayElementRequest, DataMapperSourceResponse> = { method: `${_preFix}/addNewArrayElement` };
 export const convertToQuery: RequestType<ConvertToQueryRequest, DataMapperSourceResponse> = { method: `${_preFix}/convertToQuery` };
 export const addClauses: RequestType<AddClausesRequest, DataMapperSourceResponse> = { method: `${_preFix}/addClauses` };
+export const deleteClause: RequestType<DeleteClauseRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteClause` };
 export const addSubMapping: RequestType<AddSubMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/addSubMapping` };
 export const deleteMapping: RequestType<DeleteMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteMapping` };
 export const deleteSubMapping: RequestType<DeleteSubMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteSubMapping` };
