@@ -257,7 +257,8 @@ import {
     ImportIntegrationResponse,
     onMigrationToolStateChanged,
     onMigrationToolLogs,
-    GetMigrationToolsResponse
+    GetMigrationToolsResponse,
+    DeleteSubMappingRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -348,6 +349,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_ADD_CLAUSES = 'dataMapper/addClauses',
     DATA_MAPPER_ADD_SUB_MAPPING = 'dataMapper/addSubMapping',
     DATA_MAPPER_DELETE_MAPPING = 'dataMapper/deleteMapping',
+    DATA_MAPPER_DELETE_SUB_MAPPING = 'dataMapper/deleteSubMapping',
     DATA_MAPPER_MAP_WITH_CUSTOM_FN = 'dataMapper/customFunction',
     DATA_MAPPER_MAP_WITH_TRANSFORM_FN = 'dataMapper/transformationFunction',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
@@ -773,6 +775,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_MAPPING, params);
+    }
+
+    async deleteSubMapping(params: DeleteSubMappingRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_SUB_MAPPING, params);
     }
 
     async mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
