@@ -67,9 +67,8 @@ export const FunctionsPage = ({
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    const { addModal } = useModalStack();
+    const { addModal , closeModal} = useModalStack();
 
 
 
@@ -166,6 +165,12 @@ export const FunctionsPage = ({
         }
     };
 
+    const handleFunctionSave = (value: string) => {
+        onChange(value);
+        closeModal(POPUP_IDS.FUNCTION);
+        onClose();
+    }
+
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
         const { value, cursorOffset } = await onFunctionItemSelect(item);
         onChange({ value, cursorOffset });
@@ -177,7 +182,7 @@ export const FunctionsPage = ({
             <FunctionFormStatic
                 projectPath={projectUri}
                 filePath={defaultFunctionsFile}
-                handleSubmit={onChange}
+                handleSubmit={handleFunctionSave}
                 functionName={undefined}
                 isDataMapper={false}
                 defaultType={selectedType?.label}

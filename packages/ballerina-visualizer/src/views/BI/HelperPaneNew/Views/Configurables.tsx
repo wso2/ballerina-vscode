@@ -60,14 +60,13 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const { rpcClient } = useRpcContext();
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [configVarNode, setCofigVarNode] = useState<FlowNode>();
     const [isSaving, setIsSaving] = useState(false);
     const [packageInfo, setPackageInfo] = useState<TomlPackage>();
     const [isImportEnv, setIsImportEnv] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
 
-    const { addModal } = useModalStack();
+    const { addModal, closeModal } = useModalStack();
 
     useEffect(() => {
         const fetchNode = async () => {
@@ -126,12 +125,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         setErrorMessage(errorMsg);
     };
 
-    const handleFormClose = () => {
-        setIsModalOpen(false)
-    }
-
     const handleSave = async (node: FlowNode) => {
-        setIsModalOpen(false);
+        closeModal(POPUP_IDS.CONFIGURABLES);
         //TODO: Need to disable the form before saving and move form close to finally block
         setIsSaving(true);
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({

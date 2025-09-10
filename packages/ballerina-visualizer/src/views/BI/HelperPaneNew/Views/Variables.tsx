@@ -23,16 +23,14 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
+import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import DynamicModal from "../../../../components/Modal"
 import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
-import { PopupForm } from "../../../../components/Popup/Form"
 
 type VariablesPageProps = {
     fileName: string;
@@ -126,7 +124,7 @@ export const Variables = (props: VariablesPageProps) => {
         label: "Variables",
         replaceText: ""
     }]);
-    const { addModal } = useModalStack()
+    const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -156,6 +154,7 @@ export const Variables = (props: VariablesPageProps) => {
             : "";
         newNodeNameRef.current = varName;
         handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        closeModal(POPUP_IDS.VARIABLE);
         if (isModalOpen) {
             setIsModalOpen(false)
         }
