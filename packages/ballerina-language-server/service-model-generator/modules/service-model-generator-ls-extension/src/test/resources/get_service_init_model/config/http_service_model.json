@@ -114,59 +114,84 @@
         },
         "listener": {
           "metadata": {
-            "label": "Listener",
-            "description": "Use default listener on port 8080"
+            "label": "Listener Configuration",
+            "description": "Configure the HTTP listener for the service"
           },
-          "codedata": {
-            "argType": "LISTENER_PARAM_REQUIRED"
-          },
-          "placeholder": "true",
-          "valueType": "CONDITIONAL_FIELDS",
-          "valueTypeConstraint": "boolean",
-          "value": "true",
+          "placeholder": "",
+          "valueType": "CHOICE",
+          "value": "",
           "items": [],
-          "choices": [],
-          "typeMembers": [],
-          "properties": {
-            "port": {
+          "choices": [
+            {
               "metadata": {
-                "label": "Port",
-                "description": "Provide a port number for the listener"
+                "label": "Use Default Listener on Port 8080",
+                "description": "Use the default HTTP listener on port 8080"
               },
-              "codedata": {
-                "originalName": "port"
-              },
-              "placeholder": "8080",
-              "valueType": "EXPRESSION",
-              "valueTypeConstraint": "int",
-              "value": "8080",
-              "items": [],
-              "typeMembers": [],
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {},
               "enabled": true,
               "editable": true,
               "optional": false,
               "advanced": false
             },
-            "listenerVarName": {
+            {
               "metadata": {
-                "label": "Name for the listener",
-                "description": "Provide a name for the listener artifact"
+                "label": "Configure Listener with Custom Port",
+                "description": "Configure a custom HTTP listener with a specific port"
               },
-              "codedata": {
-                "originalName": "listenerVarName"
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "port": {
+                  "metadata": {
+                    "label": "Port",
+                    "description": "Provide a port number for the listener"
+                  },
+                  "codedata": {
+                    "argType": "LISTENER_PARAM_REQUIRED"
+                  },
+                  "placeholder": "8080",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "int",
+                  "value": "8080",
+                  "items": [],
+                  "typeMembers": [],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "type": "LISTENER_VAR_NAME"
+                  },
+                  "placeholder": "httpListener",
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "string",
+                  "value": "httpListener",
+                  "items": [],
+                  "typeMembers": [],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
               },
-              "placeholder": "httpListener",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
-              "value": "httpListener",
-              "items": [],
-              "typeMembers": [],
-              "enabled": true,
+              "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
             }
-          },
+          ],
+          "typeMembers": [],
+          "properties": {},
           "enabled": true,
           "editable": true,
           "optional": false,

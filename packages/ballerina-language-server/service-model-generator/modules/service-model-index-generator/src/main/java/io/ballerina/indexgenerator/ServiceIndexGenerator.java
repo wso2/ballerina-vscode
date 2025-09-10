@@ -100,6 +100,7 @@ class ServiceIndexGenerator {
     }.getType();
     private static final Logger LOGGER = Logger.getLogger(ServiceIndexGenerator.class.getName());
     private static final String PACKAGE_JSON_FILE = "packages.json";
+    private static final Gson GSON = new Gson();
 
     public static void main(String[] args) {
         DatabaseManager.createDatabase();
@@ -222,7 +223,7 @@ class ServiceIndexGenerator {
                 int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
                         property.label(), property.description(), property.defaultValue(), property.placeholder(),
                         property.valueType(), property.typeConstrain(), property.sourceKind(),
-                        String.join(",", property.selections()));
+                        GSON.toJson(property.selections()));
                 for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
                     DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
                             memberType.kind(), memberType.packageInfo());
@@ -653,7 +654,7 @@ class ServiceIndexGenerator {
     record ServiceInitializerProperty(String label, String description, String defaultValue, String placeholder,
                                       String valueType, String typeConstrain,
                                       List<ServiceInitializerPropertyMemberType> typeMembers, String sourceKind,
-                                      List<String> selections) {
+                                      List<Object> selections) {
     }
 
     record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {

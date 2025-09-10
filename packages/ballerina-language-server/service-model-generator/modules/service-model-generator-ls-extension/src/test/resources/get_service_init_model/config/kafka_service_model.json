@@ -56,7 +56,7 @@
         },
         "listenerVarName": {
           "metadata": {
-            "label": "Name",
+            "label": "Listener Name",
             "description": "Provide a name for the listener being created"
           },
           "codedata": {
@@ -64,7 +64,7 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
-          "value": "kafkaListener",
+          "value": "kafkaListenerResult",
           "enabled": true,
           "editable": true,
           "optional": false,
