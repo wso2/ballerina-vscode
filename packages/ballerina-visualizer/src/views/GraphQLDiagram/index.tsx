@@ -493,6 +493,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                                     newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                                     newTypeValue={typeEditorState.newTypeValue}
                                     isGraphql={true}
+                                    isPopupTypeForm={true}
                                     onTypeChange={onTypeChange}
                                     onSaveType={onSaveType}
                                     onTypeCreate={handleTypeCreate}
