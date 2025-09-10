@@ -112,7 +112,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
 
                 {(adding === clauses.length) ? (
                     <ClauseEditor
-                        isSaving={saving === clauses.length}
+                        isSaving={saving === undefined}
                         onCancel={() => setAdding(-1)}
                         onSubmit={onAdd}
                         generateForm={generateForm}
