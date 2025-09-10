@@ -569,7 +569,7 @@ const MainPanel = () => {
             <Global styles={globalStyles} />
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
-                {(showOverlay || modalStack.length>0) && <Overlay/>}
+                {(showOverlay || modalStack.length > 0) && <Overlay/>}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
                 {!viewComponent && (
                     <ComponentViewWrapper>
