@@ -222,74 +222,45 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
 }
 
 function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): string {
-    const basePrompt = `# QUESTION
-Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query. Use the LibraryProviderTool to fetch details (name, description, clients, functions, types) for only the selected libraries. The tool description contains all available libraries and their descriptions. Do not assume library contents unless provided by the tool.
-
-# Example
-**Context**:
-${JSON.stringify(
-    [
-        {
-            name: "ballerinax/azure.openai.chat",
-            description: "Provides a Ballerina client for the Azure OpenAI Chat API.",
-        },
-        {
-            name: "ballerinax/github",
-            description: "Provides a Ballerina client for the GitHub API.",
-        },
-        {
-            name: "ballerinax/slack",
-            description: "Provides a Ballerina client for the Slack API.",
-        },
-        {
-            name: "ballerinax/http",
-            description: "Allows to interact with HTTP services.",
-        },
-    ],
-    null,
-    2
-)}
-**Query**: Write an application to read GitHub issues, summarize them, and post the summary to a Slack channel.
-**LibraryProviderTool Call**: Call LibraryProviderTool with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
+    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the API documentation provided by the LibraryProviderTool.
 
 # Instructions
 1. Analyze the user query to determine the required functionality.
-2. Select the minimal set of libraries that can fulfill the query based on their descriptions.
-3. Call the LibraryProviderTool with the selected libraryNames and the user query to fetch detailed information (clients, functions, types).
-4. Use the tool's output to generate accurate Ballerina code.
-5. Do not include libraries unless they are explicitly needed for the query.
-${
-    generationType === GenerationType.HEALTHCARE_GENERATION
-        ? "6. For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
+2. Use the LibraryProviderTool to fetch detailed information (clients, functions, types) for only the relevant Ballerina libraries based on the user query.
+3. Use the tool's output as API documentation in the context of the query to generate accurate Ballerina code.
+4. Do not include libraries unless they are explicitly needed for the query.
+${generationType === GenerationType.HEALTHCARE_GENERATION
+            ? "5. For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
         : ""
-}
-You are an expert assistant specializing in Ballerina code generation.`;
+        }`;
 
     if (op === "CODE_FOR_USER_REQUIREMENT") {
-        return getRequirementAnalysisCodeGenPrefix([], extractResourceDocumentContent(sourceFiles)) + `\n${basePrompt}`;
+        return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
     } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
-        return getRequirementAnalysisTestGenPrefix([], extractResourceDocumentContent(sourceFiles)) + `\n${basePrompt}`;
+        return getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(sourceFiles));
     }
     return basePrompt;
 }
 
 function getSystemPromptSuffix(langlibs: Library[]) {
     return `You will be provided with default langlibs which are already imported in the Ballerina code.
-    Langlibs
+
+Langlibs
 <langlibs>
 ${JSON.stringify(langlibs)}
 </langlibs>
 
-If the query doesn't require code examples, answer the code by utilizing the api documentation.
+If the query doesn't require code examples, answer the code by utilizing the API documentation (Tool Output).
+
 If the query requires code, Follow these steps to generate the Ballerina code:
 
-1. Carefully analyze the provided API documentation:
-   - Identify the available libraries, clients, their functions and their relevant types.
+1. Carefully analyze the provided API documentation (Tool Output):
+   - Identify the available libraries, clients, their functions, and their relevant types.
 
 2. Thoroughly read and understand the given query:
    - Identify the main requirements and objectives of the integration.
-   - Determine which libraries, functions and their relevant records and types from the API documentation which are needed to achieve the query and forget about unused API docs.
-   - Note the libraries needed to achieve the query and plan the control flow of the application based input and output parameters of each function of the connector according to the API documentation.
+   - Determine which libraries, functions, and their relevant records and types from the API documentation which are needed to achieve the query and ignore unused API docs.
+   - Note the libraries needed to achieve the query and plan the control flow of the application based on input and output parameters of each function of the connector according to the API documentation.
 
 3. Plan your code structure:
    - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
@@ -300,9 +271,10 @@ If the query requires code, Follow these steps to generate the Ballerina code:
    - Based on the types of identified functions, plan the data flow. Transform data as necessary.
 
 4. Generate the Ballerina code:
-   - Start with the required import statements.
+   - Start with the required import statements IN EACH FILE that uses external libraries or types.
+   - Each .bal file MUST include its own import statements for any external libraries, types, or clients it references.
    - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations).
+   - Initialize any necessary clients with the correct configuration at the module level (before any function or service declarations), resolving unions explicitly.
    - Implement the main function OR service to address the query requirements.
    - Use defined connectors based on the query by following the API documentation.
    - Use only the functions, types, and clients specified in the API documentation.
@@ -313,40 +285,39 @@ If the query requires code, Follow these steps to generate the Ballerina code:
 
 5. Review and refine your code:
    - Check that all query requirements are met.
-   - Verify that you're only using elements from the provided API documentation.
-   - Ensure the code follows Ballerina best practices and conventions.
+   - Verify that you're only using elements from the provided API documentation, with unions resolved to avoid compiler errors.
+   - Ensure the code follows Ballerina best practices and conventions, including type-safe handling of all return types and configurations.
 
 Provide a brief explanation of how your code addresses the query and then output your generated Ballerina code.
 
 Important reminders:
-- Only use the libraries, functions, types, services and clients specified in the provided API documentation.
+- Only use the libraries, functions, types, services, and clients specified in the provided API documentation.
 - Always strictly respect the types given in the API Docs.
 - Do not introduce any additional libraries or functions not mentioned in the API docs.
-- Only use specified fields in records according to the api docs. this applies to array types of that record as well.
+- Only use specified fields in records according to the API docs; this applies to array types of that record as well.
 - Ensure your code is syntactically correct and follows Ballerina conventions.
 - Do not use dynamic listener registrations.
 - Do not write code in a way that requires updating/assigning values of function parameters.
-- ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
-- If the library name contains a . Always use an alias in the import statement. (import org/package.one as one;)
+- ALWAYS use two-word camel case identifiers (variable, function parameter, resource function parameter, and field names).
+- If the library name contains a dot, always use an alias in the import statement (e.g., import org/package.one as one;).
 - Treat generated connectors/clients inside the generated folder as submodules.
-- A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder structure generated/fooApi the import should be \`import my_pkg.fooApi;\`
+- A submodule MUST BE imported before being used. The import statement should only contain the package name and submodule name. For package my_pkg, folder structure generated/fooApi, the import should be \`import my_pkg.fooApi;\`.
 - If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
 - Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
-- When invoking resource function from a client, use the correct paths with accessor and parameters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
-- When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
+- When invoking resource functions from a client, use the correct paths with accessor and parameters (e.g., exampleClient->/path1/["param"]/path2.get(key="value")).
+- When accessing a field of a record, always assign it to a new variable and use that variable in the next statement.
 - Avoid long comments in the code. Use // for single line comments.
-- Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
+- Always use named arguments when providing values to any parameter (e.g., .get(key="value")).
 - Mention types EXPLICITLY in variable declarations and foreach statements.
-- Do not modify the README.md file unless asked to be modified explicitly in the query.
-- Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
-- In the library API documentation if the service type is specified as generic, adhere to the instructions specified there on writing the service.
-- For GraphQL service related queries, If the user haven't specified their own GraphQL Schema, Write the proposed GraphQL schema for the user query right after explanation before generating the Ballerina code. Use same names as the GraphQL Schema when defining record types.
+- Do not modify the README.md file unless explicitly asked to be modified in the query.
+- Do not add/modify toml files (Config.toml/Ballerina.toml) unless asked.
+- In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
+- For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
-Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response.
+Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments (if any) at the end of the response.
 The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
-Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change.
-The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
+Each file that needs modifications should have a codeblock segment, and it MUST contain the complete file content with the proposed change. The codeblock segments should only contain .bal contents and should not generate or modify any other file types. Politely decline if the query requests such cases.
 
 Example Codeblock segment:
 <code filename="main.bal">
@@ -376,7 +347,7 @@ Content: ${file.content}`
     .join("\n")}`;
     }
 
-    return `QUERY: The query you need to answer using the provided api documentation.
+    return `QUERY: The query you need to answer.
 <query>
 ${usecase}
 </query>
@@ -425,7 +396,7 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         {
             role: "user",
             content:
-                "Generated code returns the following errors. Use the context from previous messages, including tool calls and tool results, to identify relevant library details (functions, types, clients). Double-check all functions, types, and record field access against these details to fix the compiler errors and return the corrected response. \n Errors: \n " +
+                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the LibraryProviderTool if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy. Fix the compiler errors and return the corrected response. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
@@ -439,7 +410,6 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         maxTokens: 4096 * 4,
         temperature: 0,
         tools,
-        toolChoice: "none",
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });

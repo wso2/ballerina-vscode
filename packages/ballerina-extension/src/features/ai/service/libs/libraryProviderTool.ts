@@ -80,6 +80,38 @@ export function getLibraryProviderTool(libraryDescriptions: string, generationTy
         description: `Fetches detailed information about Ballerina libraries, including clients, functions, and types.
 This tool analyzes a user query and returns **only the relevant** clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
 
+To use this tool:
+- Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query. 
+- Select the minimal set of libraries that can fulfill the query based on their descriptions. Do not assume library contents unless provided by the tool.
+- Call this tool with the selected libraryNames and the user query.
+
+# Example
+**Context** (library descriptions):
+${JSON.stringify(
+    [
+        {
+            name: "ballerinax/azure.openai.chat",
+            description: "Provides a Ballerina client for the Azure OpenAI Chat API.",
+        },
+        {
+            name: "ballerinax/github",
+            description: "Provides a Ballerina client for the GitHub API.",
+        },
+        {
+            name: "ballerinax/slack",
+            description: "Provides a Ballerina client for the Slack API.",
+        },
+        {
+            name: "ballerinax/http",
+            description: "Allows to interact with HTTP services.",
+        },
+    ],
+    null,
+    2
+)}
+**Query**: Write an application to read GitHub issues, summarize them, and post the summary to a Slack channel.
+**Tool Call**: Call with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
+
 Before calling this tool:
 - **Review all library descriptions** below.
 - Select only the libraries that might be needed to fulfill the user query.
