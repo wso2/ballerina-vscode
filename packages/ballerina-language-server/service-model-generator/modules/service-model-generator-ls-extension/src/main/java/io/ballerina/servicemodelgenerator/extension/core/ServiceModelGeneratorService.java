@@ -916,6 +916,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
+                workspaceManager.loadProject(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
                 Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {

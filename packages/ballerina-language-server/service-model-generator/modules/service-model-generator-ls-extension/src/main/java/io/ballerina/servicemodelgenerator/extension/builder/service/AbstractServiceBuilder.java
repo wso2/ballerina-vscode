@@ -97,6 +97,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAd
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceDocTextEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.deserializeSelections;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
@@ -144,8 +145,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             Codedata.Builder codedataBuilder = new Codedata.Builder()
                     .setArgType(property.sourceKind());
 
-            String[] items = property.selections() != null && !property.selections().isEmpty() ?
-                    property.selections().split(",") : new String[0];
+            List<Object> items = property.selections() != null && !property.selections().isEmpty() ?
+                    deserializeSelections(property.selections()) : List.of();
+
             Value.ValueBuilder builder = new Value.ValueBuilder()
                     .metadata(property.label(), property.description())
                     .setCodedata(codedataBuilder.build())
@@ -153,7 +155,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     .setPlaceholder(property.placeholder())
                     .valueType(property.valueType())
                     .setValueTypeConstraint(property.typeConstrain())
-                    .setItems(List.of(items))
+                    .setItems(items)
                     .setTypeMembers(property.memberTypes())
                     .enabled(true)
                     .editable(true);

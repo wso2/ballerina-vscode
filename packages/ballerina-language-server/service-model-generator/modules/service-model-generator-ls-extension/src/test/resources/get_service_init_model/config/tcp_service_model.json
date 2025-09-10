@@ -27,7 +27,7 @@
           "placeholder": "80",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
-          "value": "",
+          "value": "80",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -37,7 +37,7 @@
         },
         "listenerVarName": {
           "metadata": {
-            "label": "Name",
+            "label": "Listener Name",
             "description": "Provide a name for the listener being created"
           },
           "codedata": {

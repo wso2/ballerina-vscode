@@ -67,8 +67,14 @@
           "valueTypeConstraint": "string",
           "value": "\"ftp\"",
           "items": [
-            "\"ftp\"",
-            "\"sftp\""
+            {
+              "label": "ftp",
+              "value": "\"ftp\""
+            },
+            {
+              "label": "sftp",
+              "value": "\"sftp\""
+            }
           ],
           "typeMembers": [],
           "enabled": true,
@@ -97,7 +103,7 @@
         },
         "listenerVarName": {
           "metadata": {
-            "label": "Name",
+            "label": "Listener Name",
             "description": "Provide a name for the listener being created"
           },
           "codedata": {

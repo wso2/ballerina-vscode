@@ -195,7 +195,7 @@
         "localPort": {
           "label": "TCP Port",
           "description": "The port on which the TCP service listens",
-          "defaultValue": "",
+          "defaultValue": "80",
           "placeholder": "80",
           "valueType": "EXPRESSION",
           "typeConstrain": "int",
@@ -432,8 +432,14 @@
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
           "selections": [
-            "\"ftp\"",
-            "\"sftp\""
+            {
+              "label": "ftp",
+              "value": "\"ftp\""
+            },
+            {
+              "label": "sftp",
+              "value": "\"sftp\""
+            }
           ]
         },
         "path": {
@@ -1064,7 +1070,7 @@
             "MilestoneService",
             "PushService",
             "ProjectCardService"
-            ]
+          ]
         }
       }
     },

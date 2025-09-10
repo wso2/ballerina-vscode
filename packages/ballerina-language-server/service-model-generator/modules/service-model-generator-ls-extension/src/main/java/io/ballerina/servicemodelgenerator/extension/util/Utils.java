@@ -19,6 +19,10 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -77,6 +81,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1090,4 +1095,39 @@ public final class Utils {
         }
         return input;
     }
+
+    public static List<Object> deserializeSelections(String jsonString) {
+        JsonElement jsonElement = JsonParser.parseString(jsonString);
+        Gson gson = new Gson();
+
+        if (!jsonElement.isJsonArray()) {
+            return new ArrayList<>();
+        }
+
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+
+        if (jsonArray.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Check the type of first element
+        JsonElement firstElement = jsonArray.get(0);
+
+        if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
+            // It's a List<String>
+            Type listType = new TypeToken<List<String>>() {}.getType();
+            return gson.fromJson(jsonString, listType);
+        } else if (firstElement.isJsonObject()) {
+            // Check if it has label and value properties (SelectionRecord)
+            if (firstElement.getAsJsonObject().has("label") &&
+                    firstElement.getAsJsonObject().has("value")) {
+                Type listType = new TypeToken<List<SelectionRecord>>() {}.getType();
+                return gson.fromJson(jsonString, listType);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public record SelectionRecord(String label, String value) {}
 }
