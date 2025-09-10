@@ -28,6 +28,7 @@ import {
     DataMapperModelResponse,
     DataMapperSourceRequest,
     DataMapperSourceResponse,
+    DeleteClauseRequest,
     DeleteMappingRequest,
     DeleteSubMappingRequest,
     DMModelRequest,
@@ -390,5 +391,10 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     });
                 });
         });
+    }
+
+    async deleteClause(params: DeleteClauseRequest): Promise<DataMapperSourceResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }
