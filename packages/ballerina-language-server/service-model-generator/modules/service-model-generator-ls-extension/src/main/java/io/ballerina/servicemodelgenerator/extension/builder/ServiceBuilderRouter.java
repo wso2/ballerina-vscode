@@ -122,10 +122,11 @@ public class ServiceBuilderRouter {
         return serviceBuilder.updateModel(context);
     }
 
-    public static ServiceInitModel getServiceInitModel(ServiceModelRequest request) {
+    public static ServiceInitModel getServiceInitModel(ServiceModelRequest request, SemanticModel semanticModel,
+                                                       Document document) {
         ServiceNodeBuilder serviceBuilder = getServiceBuilder(request.moduleName());
         GetServiceInitModelContext context = new GetServiceInitModelContext(
-                request.orgName(), request.pkgName(), request.moduleName());
+                request.orgName(), request.pkgName(), request.moduleName(), semanticModel, document);
         return serviceBuilder.getServiceInitModel(context);
     }
 

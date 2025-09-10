@@ -18,14 +18,20 @@
 
 package io.ballerina.servicemodelgenerator.extension.model.context;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.projects.Document;
+
 /**
  * Context for getting the initial service model.
  *
  * @param orgName     the organization name of the Ballerina package
  * @param packageName the name of the Ballerina package
  * @param moduleName  the name of the Ballerina module
+ * @param semanticModel the semantic model of the Ballerina source code
+ * @param document   the Ballerina document
  *
  * @since 1.3.0
  */
-public record GetServiceInitModelContext(String orgName, String packageName, String moduleName) {
+public record GetServiceInitModelContext(String orgName, String packageName, String moduleName,
+                                         SemanticModel semanticModel, Document document) {
 }

@@ -123,7 +123,11 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return new Gson().fromJson(reader, ServiceInitModel.class);
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Value listenerNameProp = listenerNameProperty(context);
+            serviceInitModel.getProperties().get("listener").getProperties().get("listenerVarName")
+                    .setValue(listenerNameProp.getValue());
+            return serviceInitModel;
         } catch (IOException e) {
             return null;
         }
@@ -141,12 +145,12 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
         Value listenerProperty = properties.get("listener");
         String listenerVarName = listenerProperty.getProperties().get("listenerVarName").getValue();
-        StringBuilder listenerDeclaration = new StringBuilder("listener http:Listener ")
-                .append(listenerVarName).append(" = ");
+        StringBuilder listenerDeclaration = new StringBuilder("listener http:Listener ");
         if (listenerProperty.getValue().equals("true")) {
-            listenerDeclaration.append("http:getDefaultListener();");
+            listenerVarName = "httpDefaultListener";
+            listenerDeclaration.append(listenerVarName).append(" = ").append("http:getDefaultListener();");
         } else {
-            listenerDeclaration.append("new (")
+            listenerDeclaration.append(listenerVarName).append(" = ").append("new (")
                     .append(listenerProperty.getProperties().get("port").getValue()).append(");");
         }
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
