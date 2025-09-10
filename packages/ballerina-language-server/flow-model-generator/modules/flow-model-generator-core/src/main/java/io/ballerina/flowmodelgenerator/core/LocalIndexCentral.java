@@ -56,11 +56,6 @@ public class LocalIndexCentral {
     private Map<String, List<Item>> connectionMap;
     private static final String NODE_TEMPLATES_JSON = "node_templates.json";
     private static final String CONNECTORS_JSON = "connectors.json";
-    private static final String MODEL_PROVIDERS_JSON = "model_providers.json";
-    private static final String VECTOR_STORES_JSON = "vector_stores.json";
-    private static final String EMBEDDING_PROVIDERS_JSON = "embedding_providers.json";
-    private static final String DATA_LOADERS_JSON = "data_loaders.json";
-    private static final String CHUNKERS_JSON = "chunkers.json";
     private static final String CONNECTIONS_JSON = "connections.json";
     private static final String FUNCTIONS_JSON = "functions.json";
     private static final String AGENTS_JSON = "agents.json";
@@ -93,31 +88,6 @@ public class LocalIndexCentral {
     public List<Item> getConnectors() {
         Category connectors = readJsonResource(CONNECTORS_JSON, Category.class);
         return connectors.items();
-    }
-
-    public List<Item> getModelProviders() {
-        Category modelProviders = readJsonResource(MODEL_PROVIDERS_JSON, Category.class);
-        return modelProviders.items();
-    }
-
-    public List<Item> getEmbeddingProviders() {
-        Category embeddingProviders = readJsonResource(EMBEDDING_PROVIDERS_JSON, Category.class);
-        return embeddingProviders.items();
-    }
-
-    public List<Item> getVectorStores() {
-        Category vectorStores = readJsonResource(VECTOR_STORES_JSON, Category.class);
-        return vectorStores.items();
-    }
-
-    public List<Item> getDataLoaders() {
-        Category vectorStores = readJsonResource(DATA_LOADERS_JSON, Category.class);
-        return vectorStores.items();
-    }
-
-    public List<Item> getChunkers() {
-        Category vectorStores = readJsonResource(CHUNKERS_JSON, Category.class);
-        return vectorStores.items();
     }
 
     public List<Item> getFunctions() {

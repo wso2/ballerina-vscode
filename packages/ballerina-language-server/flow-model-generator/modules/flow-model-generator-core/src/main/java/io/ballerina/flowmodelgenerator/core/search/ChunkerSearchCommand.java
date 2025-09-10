@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -29,6 +29,7 @@ import io.ballerina.tools.text.LineRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for chunkers.
@@ -36,7 +37,7 @@ import java.util.Map;
  * @since 1.1.1
  */
 public class ChunkerSearchCommand extends SearchCommand {
-    private List<Item> cachedChunkers;
+    private static final String CHUNKER_LABEL = "Chunkers";
 
     public ChunkerSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -44,37 +45,27 @@ public class ChunkerSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getChunkers();
+        List<AvailableNode> modelProviders = AiUtils.getChunkers(project);
+        Category category = new Category.Builder(null).metadata().label(CHUNKER_LABEL)
+                .stepOut().items(List.copyOf(modelProviders)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> chunkers = getChunkers();
-        if (chunkers.isEmpty()) {
-            return chunkers;
-        }
+        List<AvailableNode> modelProviders = AiUtils.getChunkers(project);
+        List<Item> matchingProviders = modelProviders.stream()
+                .filter(node -> node.codedata().module().contains(query))
+                .collect(Collectors.toList());
 
-        Category chunkerCategory = (Category) chunkers.getFirst();
-        List<Item> existingChunkers = chunkerCategory.items();
-        List<Item> matchingChunkers = existingChunkers.stream()
-                .filter(item -> item instanceof AvailableNode availableNode &&
-                        availableNode.codedata().module().contains(query)).toList();
-
-        existingChunkers.clear();
-        existingChunkers.addAll(matchingChunkers);
-        return List.of(chunkerCategory);
+        Category category = new Category.Builder(null).metadata().label(CHUNKER_LABEL)
+                .stepOut().items(matchingProviders).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    private List<Item> getChunkers() {
-        if (cachedChunkers == null) {
-            cachedChunkers = List.copyOf(LocalIndexCentral.getInstance().getChunkers());
-        }
-        return cachedChunkers;
     }
 }
 

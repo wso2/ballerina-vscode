@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceSourceRequest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
@@ -61,6 +62,32 @@ public class AddServiceTest extends AbstractLSTest {
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
 
+        assertResults(actualTextEdits, testConfig, configJsonPath);
+    }
+
+    @Test
+    public void testAddingUsingOpenAPISpec() throws IOException {
+        Path configJsonPath = configDir.resolve("add_http_service_from_openapi_spec.json");
+        BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
+        TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
+        bufferedReader.close();
+
+        Service service = testConfig.service();
+        Value designApproach = service.getDesignApproach();
+        Value openApiSpecChoice = designApproach.getChoices().get(1);
+        Value specProperty = openApiSpecChoice.getProperty("spec");
+        Path openApiSpecPath = sourceDir.resolve("sample1/openapi.yaml").toAbsolutePath();
+        specProperty.setValue(openApiSpecPath.toString());
+        ServiceSourceRequest request = new ServiceSourceRequest(
+                sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString(), testConfig.service());
+        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
+
+        assertResults(actualTextEdits, testConfig, configJsonPath);
+    }
+
+    private void assertResults(Map<String, List<TextEdit>> actualTextEdits, TestConfig testConfig, Path configJsonPath)
+            throws IOException {
         boolean assertFailure = false;
 
         if (actualTextEdits.size() != testConfig.output().size()) {
@@ -90,6 +117,13 @@ public class AddServiceTest extends AbstractLSTest {
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @Override
+    protected String[] skipList() {
+        return new String[]{
+                "add_http_service_from_openapi_spec.json"
+        };
     }
 
     @Override

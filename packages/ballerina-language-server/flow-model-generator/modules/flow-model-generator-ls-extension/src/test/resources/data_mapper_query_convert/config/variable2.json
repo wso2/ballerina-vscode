@@ -23,7 +23,7 @@
     "diagnostics": []
   },
   "propertyKey": "expression",
-  "targetField": "stores.credentials",
+  "targetField": "stores.0.credentials",
   "clauseType": "select",
   "output": {
     "variable1_1.bal": [

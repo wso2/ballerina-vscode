@@ -1,0 +1,30 @@
+{
+  "source": "data_loaders_with_existing_ai",
+  "expectedDataLoaders": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Data Loaders"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "Devant Binary Data Loader",
+              "description": "Loads documents as `ai:BinaryDocument` instances from a specified file or directory path.\nThis loader can handle either a single file or a directory containing multiple files.\nTypically used in conjunction with `devant:Chunker` to split documents into chunks for processing."
+            },
+            "codedata": {
+              "node": "DATA_LOADER",
+              "org": "ballerinax",
+              "module": "ai.devant",
+              "packageName": "ai.devant",
+              "object": "BinaryDataLoader",
+              "symbol": "init",
+              "version": "1.0.0"
+            },
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  }
+}

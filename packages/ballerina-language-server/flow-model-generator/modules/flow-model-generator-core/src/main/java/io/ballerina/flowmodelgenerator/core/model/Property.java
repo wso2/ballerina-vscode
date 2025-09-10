@@ -474,6 +474,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             this.advancedValue = null;
             this.defaultValue = null;
             this.commentProperty = null;
+            this.imports = null;
             return property;
         }
     }

@@ -1,13 +1,17 @@
 {
   "filePath": "sample4/main.bal",
   "description": "",
-  "start": {
-    "line": 6,
-    "offset": 4
-  },
-  "end": {
-    "line": 17,
-    "offset": 5
+  "codedata": {
+    "lineRange": {
+      "startLine": {
+        "line": 6,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 5
+      }
+    }
   },
   "response": {
     "metadata": {

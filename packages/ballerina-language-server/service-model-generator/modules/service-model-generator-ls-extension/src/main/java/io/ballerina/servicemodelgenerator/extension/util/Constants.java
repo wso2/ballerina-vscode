@@ -94,6 +94,7 @@ public class Constants {
     public static final String VALUE_TYPE_TYPE = "TYPE";
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
+    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";
@@ -101,6 +102,7 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
+    public static final String VARIABLE_NAME_KEY = "variableNameKey";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";

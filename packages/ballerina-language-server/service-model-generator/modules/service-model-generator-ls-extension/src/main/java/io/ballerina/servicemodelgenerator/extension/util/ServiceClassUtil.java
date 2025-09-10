@@ -344,7 +344,8 @@ public class ServiceClassUtil {
         TYPE_DIAGRAM,
         GRAPHQL_DIAGRAM,
         SERVICE_DIAGRAM,
-        HTTP_DIAGRAM
+        HTTP_DIAGRAM,
+        CLASS
     }
 
     public static void addServiceClassDocTextEdits(ServiceClass serviceClass, ClassDefinitionNode classDef,
@@ -372,7 +373,7 @@ public class ServiceClassUtil {
         LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
         LineRange range = LineRange.from(classDef.lineRange().fileName(), docStartLinePos, docEndLinePos);
         edits.add(new TextEdit(Utils.toRange(range), docEdit));
-}
+    }
 
     public static Value addServiceClassDoc(ClassDefinitionNode classDef) {
         Value serviceClassDoc = getServiceDocumentation();

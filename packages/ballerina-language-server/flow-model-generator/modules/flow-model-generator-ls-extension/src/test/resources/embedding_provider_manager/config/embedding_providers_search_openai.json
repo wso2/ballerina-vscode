@@ -10,8 +10,8 @@
         "items": [
           {
             "metadata": {
-              "label": "OpenAI Embedding Provider",
-              "description": "Provides an interface to interact with OpenAI embedding models."
+              "label": "Open Embedding Provider",
+              "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",

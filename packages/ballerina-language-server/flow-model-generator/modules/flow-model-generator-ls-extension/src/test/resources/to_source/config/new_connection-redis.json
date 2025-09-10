@@ -42,7 +42,10 @@
         "valueType": "TYPE",
         "value": "redis:Client|redis:Error",
         "optional": false,
-        "editable": true
+        "editable": true,
+        "imports": {
+          "redis": "ballerinax/redis"
+        }
       },
       "variable": {
         "metadata": {

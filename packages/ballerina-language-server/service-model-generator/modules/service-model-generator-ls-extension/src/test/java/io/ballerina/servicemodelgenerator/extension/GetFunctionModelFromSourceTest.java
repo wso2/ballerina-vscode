@@ -25,8 +25,6 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.request.CommonModelFromSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.response.FunctionFromSourceResponse;
-import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.LineRange;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -52,9 +50,8 @@ public class GetFunctionModelFromSourceTest extends AbstractLSTest {
         bufferedReader.close();
 
         String sourcePath = sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString();
-        Codedata codedata = new Codedata(LineRange.from(sourcePath, testConfig.start(), testConfig.end()));
-        CommonModelFromSourceRequest sourceRequest = new CommonModelFromSourceRequest(sourcePath, codedata);
-        JsonObject jsonMap = getResponseAndCloseFile(sourceRequest, sourcePath);
+        CommonModelFromSourceRequest request = new CommonModelFromSourceRequest(sourcePath, testConfig.codedata());
+        JsonObject jsonMap = getResponseAndCloseFile(request, sourcePath);
         FunctionFromSourceResponse serviceFromSourceResponse = gson.fromJson(jsonMap, FunctionFromSourceResponse.class);
 
         Function actualFunctionModel = serviceFromSourceResponse.function();
@@ -63,7 +60,7 @@ public class GetFunctionModelFromSourceTest extends AbstractLSTest {
         if (!actualServiceModelJson.equals(testConfig.response())) {
             GetFunctionModelFromSourceTest.TestConfig updatedConfig =
                     new GetFunctionModelFromSourceTest.TestConfig(testConfig.filePath(), testConfig.description(),
-                            testConfig.start(), testConfig.end(), actualServiceModelJson);
+                            testConfig.codedata(), actualServiceModelJson);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -94,11 +91,10 @@ public class GetFunctionModelFromSourceTest extends AbstractLSTest {
      *
      * @param filePath    The path to the source file
      * @param description The description of the test
-     * @param start       The start position of the service declaration node
-     * @param end         The end position of the service declaration node
+     * @param codedata    The codedata for the function to be extracted
      * @param response    The expected response
      */
-    private record TestConfig(String filePath, String description, LinePosition start, LinePosition end,
+    private record TestConfig(String filePath, String description, Codedata codedata,
                               JsonElement response) {
 
         public String description() {

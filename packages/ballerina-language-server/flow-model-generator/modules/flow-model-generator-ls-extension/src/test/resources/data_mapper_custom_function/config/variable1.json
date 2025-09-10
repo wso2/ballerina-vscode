@@ -23,7 +23,10 @@
     "diagnostics": []
   },
   "functionMetadata": {
-    "returnType": "Student",
+    "returnType": {
+      "type": "Student",
+      "kind": "record"
+    },
     "parameters": [
       {
         "name": "student",
@@ -48,7 +51,7 @@
             "character": 1
           }
         },
-        "newText": "\nfunction mapStudentToStudent(Student student) returns Student {}"
+        "newText": "\nfunction mapRecordToRecord1(Student student) returns Student {}"
       }
     ],
     "proj/main.bal": [
@@ -63,7 +66,7 @@
             "character": 54
           }
         },
-        "newText": "mapStudentToStudent(userInfo.username)"
+        "newText": "mapRecordToRecord1(userInfo.username)"
       }
     ]
   }

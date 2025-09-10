@@ -1,13 +1,18 @@
 {
   "filePath": "sample1/main.bal",
   "description": "",
-  "start": {
-    "line": 32,
-    "offset": 4
-  },
-  "end": {
-    "line": 34,
-    "offset": 5
+  "codedata": {
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 32,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 34,
+        "offset": 5
+      }
+    }
   },
   "response": {
     "metadata": {
@@ -148,6 +153,65 @@
         "editable": true,
         "optional": true,
         "advanced": true,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "dateInfo",
+          "description": "dateInfo"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "DateInfo",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "dateInfo",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "PAYLOAD",
         "hidden": false
       }
     ],

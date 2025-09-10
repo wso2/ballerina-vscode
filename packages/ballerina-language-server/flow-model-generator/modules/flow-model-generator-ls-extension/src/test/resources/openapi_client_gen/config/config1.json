@@ -11,6 +11,7 @@
   "codedata": {
     "node": "NEW_CONNECTION",
     "org": "oas",
+    "packageName": "client1",
     "module": "mod1",
     "object": "Client",
     "symbol": "init",
@@ -22,12 +23,13 @@
     "metadata": {
       "label": "New Connection",
       "description": "",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/oas_null_null.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/oas_client1_null.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
       "org": "oas",
       "module": "mod1",
+      "packageName": "client1",
       "object": "Client",
       "symbol": "init",
       "isNew": true,
@@ -88,7 +90,6 @@
             "selected": false
           }
         ],
-        "imports": {},
         "defaultValue": "\"\""
       },
       "type": {
@@ -104,7 +105,9 @@
         "advanced": false,
         "hidden": true,
         "codedata": {},
-        "imports": {}
+        "imports": {
+          "mod1": "oas/client1.mod1"
+        }
       },
       "variable": {
         "metadata": {
@@ -116,8 +119,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {}
+        "hidden": false
       },
       "scope": {
         "metadata": {
@@ -129,8 +131,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true,
-        "imports": {}
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -142,8 +143,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": true,
-        "imports": {}
+        "hidden": true
       }
     },
     "flags": 0

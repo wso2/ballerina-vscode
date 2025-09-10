@@ -317,9 +317,6 @@
                 "selected": false
               }
             ],
-            "imports": {
-              "http": "ballerina/http"
-            },
             "defaultValue": "0.0d"
           },
           "forwarded": {
@@ -347,9 +344,6 @@
                 "selected": false
               }
             ],
-            "imports": {
-              "http": "ballerina/http"
-            },
             "defaultValue": "\"\""
           },
           "poolConfig": {
@@ -617,9 +611,6 @@
                 "selected": false
               }
             ],
-            "imports": {
-              "http": "ballerina/http"
-            },
             "defaultValue": "false"
           },
           "checkError": {
@@ -632,10 +623,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "http": "ballerina/http"
-            }
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -647,10 +635,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "http": "ballerina/http"
-            }
+            "hidden": true
           }
         },
         "flags": 1

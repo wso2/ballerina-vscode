@@ -21,6 +21,7 @@
     "offset": 65
   },
   "propertyKey": "expression",
+  "targetField": "student",
   "model": {
     "inputs": [
       {

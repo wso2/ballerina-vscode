@@ -10,7 +10,7 @@
           {
             "metadata": {
               "label": "Default Embedding Provider (WSO2)",
-              "description": "Provides an interface to interact with embedding models hosted by WSO2."
+              "description": "WSO2 embedding provider implementation that provides embedding capabilities using WSO2's AI service."
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",
@@ -23,8 +23,8 @@
           },
           {
             "metadata": {
-              "label": "OpenAI Embedding Provider",
-              "description": "Provides an interface to interact with OpenAI embedding models."
+              "label": "Open Embedding Provider",
+              "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",

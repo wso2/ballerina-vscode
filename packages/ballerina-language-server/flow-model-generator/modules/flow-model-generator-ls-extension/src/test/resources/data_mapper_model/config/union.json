@@ -63,7 +63,7 @@
       ],
       "name": "animal1",
       "displayName": "animal1",
-      "typeName": "Animal",
+      "typeName": "Dog|Elephant",
       "kind": "union",
       "ref": "-390580094"
     },

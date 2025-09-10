@@ -125,10 +125,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "hidden": true
           },
           "returnType": {
             "metadata": {
@@ -146,9 +143,6 @@
             "codedata": {
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "returnType"
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             },
             "defaultValue": "anydata"
           },
@@ -175,9 +169,6 @@
                   "offset": 16
                 }
               }
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             }
           },
           "type": {
@@ -192,10 +183,7 @@
             "editable": false,
             "advanced": false,
             "hidden": true,
-            "codedata": {},
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "codedata": {}
           }
         },
         "flags": 1
@@ -467,10 +455,7 @@
             "optional": false,
             "editable": false,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "hidden": true
           },
           "scope": {
             "metadata": {
@@ -482,10 +467,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "hidden": true
           },
           "variable": {
             "metadata": {
@@ -510,9 +492,6 @@
                   "offset": 30
                 }
               }
-            },
-            "imports": {
-              "sql": "ballerina/sql"
             }
           },
           "type": {
@@ -527,10 +506,7 @@
             "editable": false,
             "advanced": false,
             "hidden": true,
-            "codedata": {},
-            "imports": {
-              "sql": "ballerina/sql"
-            }
+            "codedata": {}
           }
         },
         "flags": 1

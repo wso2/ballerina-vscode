@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -29,6 +29,7 @@ import io.ballerina.tools.text.LineRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for embedding providers.
@@ -36,7 +37,7 @@ import java.util.Map;
  * @since 1.1.0
  */
 public class EmbeddingProviderSearchCommand extends SearchCommand {
-    private List<Item> cachedEmbeddingProviders;
+    private static final String EMBEDDING_PROVIDER_LABEL = "Embedding Providers";
 
     public EmbeddingProviderSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -44,39 +45,26 @@ public class EmbeddingProviderSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getEmbeddingProviders();
+        List<AvailableNode> modelProviders = AiUtils.getEmbeddingProviders(project);
+        Category category = new Category.Builder(null).metadata().label(EMBEDDING_PROVIDER_LABEL)
+                .stepOut().items(List.copyOf(modelProviders)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> embeddingProviders = getEmbeddingProviders();
-        if (embeddingProviders.isEmpty()) {
-            return embeddingProviders;
-        }
+        List<AvailableNode> modelProviders = AiUtils.getEmbeddingProviders(project);
+        List<Item> matchingProviders = modelProviders.stream()
+                .filter(node -> node.codedata().module().contains(query))
+                .collect(Collectors.toList());
 
-        Category embeddingProviderCategory = (Category) embeddingProviders.getFirst();
-        List<Item> providers = embeddingProviderCategory.items();
-
-        List<Item> matchingProviders = providers.stream()
-                .filter(item -> item instanceof AvailableNode availableNode &&
-                        availableNode.codedata().module().contains(query))
-                .toList();
-
-        providers.clear();
-        providers.addAll(matchingProviders);
-
-        return List.of(embeddingProviderCategory);
+        Category category = new Category.Builder(null).metadata().label(EMBEDDING_PROVIDER_LABEL)
+                .stepOut().items(matchingProviders).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    private List<Item> getEmbeddingProviders() {
-        if (cachedEmbeddingProviders == null) {
-            cachedEmbeddingProviders = List.copyOf(LocalIndexCentral.getInstance().getEmbeddingProviders());
-        }
-        return cachedEmbeddingProviders;
     }
 }

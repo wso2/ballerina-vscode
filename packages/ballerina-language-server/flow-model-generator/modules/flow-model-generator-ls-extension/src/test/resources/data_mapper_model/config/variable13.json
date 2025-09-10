@@ -56,7 +56,9 @@
         ],
         "expression": "userInfo",
         "diagnostics": [],
-        "elements": []
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
       }
     ],
     "refs": {

@@ -190,7 +190,7 @@
         "hidden": true,
         "codedata": {},
         "imports": {
-          "sql": "ballerina/sql"
+          "snowflake": "ballerinax/snowflake"
         }
       },
       "variable": {
@@ -203,10 +203,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "hidden": false
       },
       "scope": {
         "metadata": {
@@ -218,10 +215,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true,
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "hidden": true
       },
       "checkError": {
         "metadata": {
@@ -233,10 +227,7 @@
         "optional": false,
         "editable": false,
         "advanced": true,
-        "hidden": true,
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "hidden": true
       }
     },
     "flags": 0

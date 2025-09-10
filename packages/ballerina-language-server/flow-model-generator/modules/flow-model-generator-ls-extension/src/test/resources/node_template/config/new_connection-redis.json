@@ -159,7 +159,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "redis": "ballerinax/redis"
+        }
       },
       "variable": {
         "metadata": {

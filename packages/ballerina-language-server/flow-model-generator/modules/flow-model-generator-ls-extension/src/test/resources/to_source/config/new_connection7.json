@@ -84,7 +84,10 @@
         },
         "value": "http:Client",
         "optional": false,
-        "editable": true
+        "editable": true,
+        "imports": {
+          "http": "ballerina/http"
+        }
       }
     },
     "flags": 1

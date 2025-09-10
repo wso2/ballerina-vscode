@@ -985,6 +985,154 @@
     ],
     "connections": [
       {
+        "id": "62561",
+        "metadata": {
+          "label": "New Connection",
+          "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerina",
+          "module": "http",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "new_connection.bal",
+            "startLine": {
+              "line": 31,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 33,
+              "offset": 3
+            }
+          },
+          "sourceCode": "http:Client cl = check new(url = \"http://example.com\", config = {\n    timeout: 10000\n});"
+        },
+        "returning": false,
+        "properties": {
+          "url": {
+            "metadata": {
+              "label": "Url",
+              "description": "URL of the target service"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"http://example.com\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "url"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "config": {
+            "metadata": {
+              "label": "Config",
+              "description": "The configurations to be used when initializing the `client`"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientConfiguration",
+            "value": "{\n    timeout: 10000\n}",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_RECORD",
+              "originalName": "config"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientConfiguration",
+                "packageInfo": "ballerina:http:2.14.2",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "cl",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "new_connection.bal",
+                "startLine": {
+                  "line": 31,
+                  "offset": 12
+                },
+                "endLine": {
+                  "line": 31,
+                  "offset": 14
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "http:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
         "id": "34787",
         "metadata": {
           "label": "New Connection",

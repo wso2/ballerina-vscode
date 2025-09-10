@@ -41,7 +41,10 @@
           "editable": false,
           "advanced": false,
           "hidden": false,
-          "codedata": {}
+          "codedata": {},
+          "imports": {
+            "ai": "ballerina/ai"
+          }
         },
         "variable": {
           "metadata": {
@@ -222,9 +225,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "0.0d"
         },
         "forwarded": {
@@ -252,9 +252,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "\"\""
         },
         "poolConfig": {
@@ -522,9 +519,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "false"
         },
         "scope": {
@@ -537,10 +531,7 @@
           "optional": false,
           "editable": true,
           "advanced": true,
-          "hidden": true,
-          "imports": {
-            "http": "ballerina/http"
-          }
+          "hidden": true
         },
         "checkError": {
           "metadata": {
@@ -552,10 +543,7 @@
           "optional": false,
           "editable": false,
           "advanced": true,
-          "hidden": true,
-          "imports": {
-            "http": "ballerina/http"
-          }
+          "hidden": true
         }
       },
       "flags": 0

@@ -28,3 +28,7 @@ service / on new http:Listener(8080) {
 
     }
 }
+
+http:Client cl = check new(url = "http://example.com", config = {
+    timeout: 10000
+});

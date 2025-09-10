@@ -91,4 +91,9 @@ public class RemoteCentral implements CentralAPI {
     public String latestPackageVersion(String org, String name) {
         return restClient.latestPackageVersion(org, name);
     }
+
+    @Override
+    public boolean hasAuthorizedAccess() {
+        return restClient.hasAuthorizedAccess();
+    }
 }

@@ -39,9 +39,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOUR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.TYPE_DIAGRAM;
 
 /**
  * Represents a function in a service declaration or in a service class.
@@ -86,39 +83,75 @@ public class Function {
     }
 
     public static Function getNewFunctionModel(ServiceClassUtil.ServiceClassContext context) {
-        FunctionBuilder functionBuilder = new FunctionBuilder()
+        return switch (context) {
+            case GRAPHQL_DIAGRAM -> buildGraphqlFunction();
+            case TYPE_DIAGRAM -> buildTypeDiagramFunction();
+            case SERVICE_DIAGRAM -> buildServiceFunction();
+            default -> buildDefaultFunction();
+        };
+    }
+
+    private static FunctionBuilder createBaseFunctionBuilder() {
+        return new FunctionBuilder()
                 .metadata("", "")
                 .accessor(functionAccessor())
                 .parameters(new ArrayList<>())
                 .kind(KIND_OBJECT_METHOD)
                 .enabled(true);
-        if (context == GRAPHQL_DIAGRAM) {
-            functionBuilder
-                    .name(name(FIELD_NAME_METADATA))
-                    .documentation(documentation(FIELD_DOCUMENTAION_METADATA))
-                    .returnType(returnType(FIELD_TYPE_METADATA))
-                    .schema(Map.of(Constants.PARAMETER, Parameter.graphqlParamSchema()));
-        } else if (context == TYPE_DIAGRAM) {
-            functionBuilder
-                    .name(name(RESOURCE_NAME_METADATA))
-                    .documentation(documentation(RESOURCE_FUNCTION_DOCUMENTATION_METADATA))
-                    .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
-                    .schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
-            Annotation annotation = new Annotation("ResourceConfig",
-                    "Resource Configuration",
-                    "Configuration related to the resource function.", "ResourceConfig", null, null, null);
-            Value annot = createAnnotation(annotation);
-            annot.setEnabled(false);
-            functionBuilder.setProperties(Map.of(ANNOT_PREFIX + annotation.annotationName(), annot));
-        } else {
-            functionBuilder
-                    .name(name(FUNCTION_NAME_METADATA))
-                    .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA));
-        }
-        if (context == SERVICE_DIAGRAM) {
-            functionBuilder.schema(Map.of(Constants.PARAMETER, Parameter.functionParamSchema()));
-        }
-        return functionBuilder.build();
+    }
+
+    private static Function buildGraphqlFunction() {
+        return createBaseFunctionBuilder()
+                .name(name(FIELD_NAME_METADATA))
+                .documentation(documentation(FIELD_DOCUMENTAION_METADATA))
+                .returnType(returnType(FIELD_TYPE_METADATA))
+                .schema(createParameterSchema(Parameter.graphqlParamSchema()))
+                .build();
+    }
+
+    private static Function buildServiceFunction() {
+        return createBaseFunctionBuilder()
+                .name(name(FUNCTION_NAME_METADATA))
+                .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA))
+                .schema(createParameterSchema(Parameter.functionParamSchema()))
+                .build();
+    }
+
+    private static Function buildDefaultFunction() {
+        return createBaseFunctionBuilder()
+                .name(name(FUNCTION_NAME_METADATA))
+                .returnType(returnType(FUNCTION_RETURN_TYPE_METADATA))
+                .schema(createParameterSchema(Parameter.functionParamSchema()))
+                .build();
+    }
+
+    private static Function buildTypeDiagramFunction() {
+        return createBaseFunctionBuilder()
+                .name(name(RESOURCE_NAME_METADATA))
+                .documentation(documentation(RESOURCE_FUNCTION_DOCUMENTATION_METADATA))
+                .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
+                .schema(createParameterSchema(Parameter.functionParamSchema()))
+                .setProperties(createResourceConfigAnnotation())
+                .build();
+    }
+
+    private static Map<String, Parameter> createParameterSchema(Parameter paramSchema) {
+        return Map.of(Constants.PARAMETER, paramSchema);
+    }
+
+    private static Map<String, Value> createResourceConfigAnnotation() {
+        Annotation annotation = new Annotation(
+                "ResourceConfig",
+                "Resource Configuration",
+                "Configuration related to the resource function.",
+                "ResourceConfig",
+                null, null, null
+        );
+
+        Value annotationValue = createAnnotation(annotation);
+        annotationValue.setEnabled(false);
+
+        return Map.of(ANNOT_PREFIX + annotation.annotationName(), annotationValue);
     }
 
     private static Value functionAccessor() {

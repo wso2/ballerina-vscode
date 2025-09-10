@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -29,6 +29,7 @@ import io.ballerina.tools.text.LineRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for model providers.
@@ -36,7 +37,7 @@ import java.util.Map;
  * @since 1.1.0
  */
 public class ModelProviderSearchCommand extends SearchCommand {
-    private List<Item> cachedModelProviders;
+    private static final String MODEL_PROVIDER_LABEL = "Model Providers";
 
     public ModelProviderSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -44,38 +45,26 @@ public class ModelProviderSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getModelProviders();
+        List<AvailableNode> modelProviders = AiUtils.getModelProviders(project);
+        Category category = new Category.Builder(null).metadata().label(MODEL_PROVIDER_LABEL)
+                .stepOut().items(List.copyOf(modelProviders)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> modelProviders = getModelProviders();
-        if (modelProviders.isEmpty()) {
-            return modelProviders;
-        }
+        List<AvailableNode> modelProviders = AiUtils.getModelProviders(project);
+        List<Item> matchingProviders = modelProviders.stream()
+                .filter(node -> node.codedata().module().contains(query))
+                .collect(Collectors.toList());
 
-        Category modelProviderCategory = (Category) modelProviders.getFirst();
-        List<Item> providers = modelProviderCategory.items();
-
-        List<Item> matchingProviders = providers.stream()
-                .filter(item -> item instanceof AvailableNode availableNode
-                        && availableNode.codedata().module().contains(query)).toList();
-
-        providers.clear();
-        providers.addAll(matchingProviders);
-
-        return List.of(modelProviderCategory);
+        Category category = new Category.Builder(null).metadata().label(MODEL_PROVIDER_LABEL)
+                .stepOut().items(matchingProviders).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    private List<Item> getModelProviders() {
-        if (cachedModelProviders == null) {
-            cachedModelProviders = List.copyOf(LocalIndexCentral.getInstance().getModelProviders());
-        }
-        return cachedModelProviders;
     }
 }

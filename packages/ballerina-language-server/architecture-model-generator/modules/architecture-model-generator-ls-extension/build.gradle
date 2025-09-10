@@ -140,6 +140,7 @@ test {
 }
 
 test.dependsOn pullBallerinaTool('migrate-tibco', migrateTibcoVersion)
+test.dependsOn pullBallerinaTool('migrate-mule', migrateMuleVersion)
 
 ext.moduleName = 'io.ballerina.architecturemodelgenerator.extension'
 
