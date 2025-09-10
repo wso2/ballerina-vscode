@@ -31,7 +31,7 @@ import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEdito
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { RecordConfigModal } from './Views/RecordConfigModal';
+import { ConfigureRecordPage } from './Views/RecordConfigModal';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
@@ -56,6 +56,7 @@ export type HelperPaneNewProps = {
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
     valueTypeConstraint?: string | string[];
+    forcedValueTypeConstraint?: string | string[];
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
 };
 
@@ -81,7 +82,8 @@ const HelperPaneNewEl = ({
     filteredCompletions,
     isInModal,
     valueTypeConstraint,
-    handleRetrieveCompletions
+    handleRetrieveCompletions,
+    forcedValueTypeConstraint
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -253,7 +255,7 @@ const HelperPaneNewEl = ({
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
-                                {valueTypeConstraint && (
+                                {(valueTypeConstraint || forcedValueTypeConstraint) && (
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
                                             <ExpandableList.Item>
@@ -346,7 +348,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={valueTypeConstraint}
+                            selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
                             anchorRef={anchorRef} />
                     </SlidingPane>
@@ -388,12 +390,14 @@ const HelperPaneNewEl = ({
                     openState={isModalOpen}
                     setOpenState={setIsModalOpen}>
                  <div style={{padding: '0px 16px'}}>
-                       <RecordConfigModal
-                        valueTypeConstraint={valueTypeConstraint}
-                        fileName={fileName}
-                        recordTypeField={recordTypeField}
-                        handleModalChange={handleModalChange}
-                    />
+                       <ConfigureRecordPage
+                           fileName={fileName}
+                           targetLineRange={targetLineRange}
+                           onChange={handleChange}
+                           currentValue={currentValue}
+                           recordTypeField={recordTypeField}
+                           onClose={onClose}
+                       />
                  </div>
                 </DynamicModal>
             </HelperPaneCustom.Body>
@@ -442,7 +446,8 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         isInModal,
-        valueTypeConstraint
+        valueTypeConstraint,
+        forcedValueTypeConstraint,
     } = props;
 
     return (
@@ -468,6 +473,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             isInModal={isInModal}
             valueTypeConstraint={valueTypeConstraint}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
+            forcedValueTypeConstraint={forcedValueTypeConstraint}
         />
     );
 };

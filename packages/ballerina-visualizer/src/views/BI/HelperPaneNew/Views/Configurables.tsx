@@ -89,7 +89,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 setPackageInfo({
                     org: "",
                     name: "",
-                    version: ""
+                    version: "",
+                    title: ""
                 });
             }
         };

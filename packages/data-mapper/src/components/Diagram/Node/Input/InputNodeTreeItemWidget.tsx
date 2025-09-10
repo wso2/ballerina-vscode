@@ -89,21 +89,18 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     );
 
     const handleExpand = () => {
-        if (dmType.kind === TypeKind.Array || dmType.isDeepNested) {
-            const expandedFields = expandedFieldsStore.fields;
-            if (expanded) {
-                expandedFieldsStore.setFields(expandedFields.filter((element) => element !== fieldId));
-            } else {
-                expandedFieldsStore.setFields([...expandedFields, fieldId]);
-            }
+        const expandedFields = expandedFieldsStore.fields;
+        const collapsedFields = collapsedFieldsStore.fields;
+
+        if (expanded) {
+            expandedFieldsStore.setFields(expandedFields.filter((element) => element !== fieldId));
+            collapsedFieldsStore.setFields([...collapsedFields, fieldId]);
+
         } else {
-            const collapsedFields = collapsedFieldsStore.fields;
-            if (!expanded) {
-                collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== fieldId));
-            } else {
-                collapsedFieldsStore.setFields([...collapsedFields, fieldId]);
-            }
+            expandedFieldsStore.setFields([...expandedFields, fieldId]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== fieldId));
         }
+
     };
 
     const handlePortState = (state: PortState) => {

@@ -36,6 +36,7 @@ export class SubMappingNode extends DataMapperNodeModel {
     public hasNoMatchingFields: boolean;
     public x: number;
     public numberOfFields:  number;
+    public filteredSubMappings: DMSubMapping[];
 
     constructor(
         public context: IDataMapperContext,
@@ -48,9 +49,11 @@ export class SubMappingNode extends DataMapperNodeModel {
         );
         this.numberOfFields = 1;
         this.subMappings = subMappings;
+        this.filteredSubMappings = [];
     }
 
     async initPorts() {
+        this.filteredSubMappings = [];
         const { views } = this.context;
         const searchValue = useDMSearchStore.getState().inputSearch;
         const focusedView = views[views.length - 1];
@@ -118,11 +121,13 @@ export class SubMappingNode extends DataMapperNodeModel {
                         focusedFieldFQNs
                     });
                 }
+
+                this.filteredSubMappings.push({name: varName, type});
             }
 
         });
 
-        this.hasNoMatchingFields = searchValue && this.subMappings.length === 0;
+        this.hasNoMatchingFields = searchValue && this.filteredSubMappings.length === 0;
     }
 
     async initLinks() {
