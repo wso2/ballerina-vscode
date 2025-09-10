@@ -398,7 +398,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
             setTypeEditorState({
                 editingTypeId: type.name,
                 editingType: type,
-                isTypeCreatorOpen: true,
+                isTypeCreatorOpen: false,
                 newTypeName: undefined,
             });
             return;
@@ -406,7 +406,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setTypeEditorState({
             editingTypeId: undefined,
             editingType: undefined,
-            isTypeCreatorOpen: true,
+            isTypeCreatorOpen: false,
             newTypeName: undefined,
         });
     };
@@ -518,6 +518,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                             key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
                             type={stack[0]?.type}
                             newType={stack[0]?.isDirty}
+                            isPopupTypeForm={false}
                             onTypeChange={onTypeChange}
                             onTypeCreate={handleTypeCreate}
                             onSaveType={onSaveType}
@@ -554,6 +555,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                                     key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
                                     type={peekTypeStack()?.type}
                                     newType={peekTypeStack()?.isDirty}
+                                    isPopupTypeForm={true}
                                     onTypeChange={onTypeChange}
                                     onTypeCreate={handleTypeCreate}
                                     onSaveType={onSaveType}
