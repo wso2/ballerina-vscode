@@ -404,6 +404,25 @@ export function DataMapperView(props: DataMapperProps) {
         }
     };
 
+    const deleteSubMapping = async (index: number, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .deleteSubMapping({
+                    filePath,
+                    codedata: viewState.codedata,
+                    index,
+                    varName: name,
+                    targetField: viewId,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] deleteSubMapping response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     const mapWithCustomFn = async (mapping: Mapping, metadata: FnMetadata, viewId: string) => {
         try {
             const resp = await rpcClient
@@ -613,6 +632,7 @@ export function DataMapperView(props: DataMapperProps) {
                             addClauses={addClauses}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
+                            deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
