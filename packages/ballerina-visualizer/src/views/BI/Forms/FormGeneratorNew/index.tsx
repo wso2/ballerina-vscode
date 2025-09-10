@@ -771,10 +771,6 @@ export function FormGeneratorNew(props: FormProps) {
         importsCodedataRef.current = {};
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: typeEditorState.field });
-    };
-
     // default form
     return (
         <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
@@ -838,7 +834,7 @@ export function FormGeneratorNew(props: FormProps) {
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
                             isPopupTypeForm={true}
-                            onTypeCreate={handleTypeCreate}
+                            onTypeCreate={() => {}}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                             isGraphql={isGraphqlEditor}
