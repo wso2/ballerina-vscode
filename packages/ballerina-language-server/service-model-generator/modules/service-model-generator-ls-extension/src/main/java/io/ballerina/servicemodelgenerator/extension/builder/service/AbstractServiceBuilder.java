@@ -158,7 +158,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             serviceInitModel.addProperty(property.keyName(), builder.build());
         }
 
-        serviceInitModel.addProperty("listenerVarName", listenerNameProperty(getProtocol(context.moduleName())));
+        serviceInitModel.addProperty("listenerVarName", listenerNameProperty(context));
         return serviceInitModel;
     }
 
@@ -211,8 +211,6 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-//        String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
-//                modulePartNode.lineRange().endLine(), LISTENER_VAR_NAME.formatted(listenerProtocol));
         String listenerVarName = properties.get("listenerVarName").getValue();
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
@@ -519,13 +517,17 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
 
     public abstract String kind();
 
-    protected static Value listenerNameProperty(String listenerProtocol) {
+    protected static Value listenerNameProperty(GetServiceInitModelContext context) {
+
+        String listenerName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                context.document().syntaxTree().rootNode().lineRange().endLine(),
+                LISTENER_VAR_NAME.formatted(getProtocol(context.moduleName())));
 
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(new MetaData("Name", "Provide a name for the listener being created"))
                 .setCodedata(new Codedata("LISTENER_VAR_NAME"))
-                .value(listenerProtocol + "Listener")
+                .value(listenerName)
                 .valueType("IDENTIFIER")
                 .setValueTypeConstraint("Global")
                 .editable(true)

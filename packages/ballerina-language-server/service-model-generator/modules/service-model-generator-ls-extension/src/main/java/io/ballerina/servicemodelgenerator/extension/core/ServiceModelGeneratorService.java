@@ -916,7 +916,14 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<ServiceInitModelResponse> getServiceInitModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request));
+                Path filePath = Path.of(request.filePath());
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    throw new IllegalStateException("Failed to load the document or semantic model");
+                }
+                return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request,
+                        semanticModel.get(), document.get()));
             } catch (Throwable e) {
                 return new ServiceInitModelResponse(e);
             }
