@@ -51,7 +51,7 @@ import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { PanelType, useVisualizerContext } from "./Context";
+import { PanelType, useModalStack, useVisualizerContext } from "./Context";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
 import { RecordEditor } from "./views/RecordEditor/RecordEditor";
@@ -76,6 +76,7 @@ import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
+import Popup from "./components/Popup";
 
 const globalStyles = css`
     *,
@@ -189,6 +190,7 @@ const LoadingText = styled.div`
 const MainPanel = () => {
     const { rpcClient } = useRpcContext();
     const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
+    const {modalStack, closeModal} = useModalStack()
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
@@ -558,12 +560,16 @@ const MainPanel = () => {
             .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
     };
 
+    const handlePopupClose = (id: string) => {
+        closeModal(id);
+    }
+
     return (
         <>
             <Global styles={globalStyles} />
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
-                {showOverlay && <Overlay onClick={() => setShowOverlay(false)} />}
+                {(showOverlay || modalStack.length > 0) && <Overlay/>}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
                 {!viewComponent && (
                     <ComponentViewWrapper>
@@ -609,9 +615,14 @@ const MainPanel = () => {
                 {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
                     <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
                 )}
+                {
+                    modalStack.map((modal) => (
+                       <Popup title={modal.title} onClose={() => handlePopupClose(modal.id)} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                    ))
+                }
             </VisualizerContainer>
         </>
     );
-};
+};  
 
 export default MainPanel;

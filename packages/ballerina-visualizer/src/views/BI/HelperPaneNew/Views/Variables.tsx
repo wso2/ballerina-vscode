@@ -22,15 +22,15 @@ import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/Express
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
-import {  useEffect, useMemo, useRef, useState } from "react"
-import { getPropertyFromFormField, HelperPaneVariableInfo, useFieldContext } from "@wso2/ballerina-side-panel"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import DynamicModal from "../../../../components/Modal"
 import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
+import { POPUP_IDS, useModalStack } from "../../../../Context"
 
 type VariablesPageProps = {
     fileName: string;
@@ -45,6 +45,7 @@ type VariablesPageProps = {
     recordTypeField?: RecordTypeField;
     isInModal?: boolean;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+    onClose?: () => void;
 }
 
 type VariableItemProps = {
@@ -63,7 +64,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
             onClick={() => onItemSelect(item.label)}
             data
             sx={{
-                maxHeight: isHovered ? "none" : "32px" 
+                maxHeight: isHovered ? "none" : "32px"
             }}
             endIcon={
                 <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
@@ -78,7 +79,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
         >
             <ExpandableList.Item>
                 {getIcon(item.kind)}
-                <Typography 
+                <Typography
                     variant="body3"
                     sx={{
                         maxWidth: isHovered ? '30ch' : '20ch',
@@ -111,7 +112,7 @@ type BreadCrumbStep = {
 }
 
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, anchorRef, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
+    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -122,6 +123,7 @@ export const Variables = (props: VariablesPageProps) => {
         label: "Variables",
         replaceText: ""
     }]);
+    const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -151,6 +153,7 @@ export const Variables = (props: VariablesPageProps) => {
             : "";
         newNodeNameRef.current = varName;
         handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        closeModal(POPUP_IDS.VARIABLE);
         if (isModalOpen) {
             setIsModalOpen(false)
         }
@@ -159,7 +162,7 @@ export const Variables = (props: VariablesPageProps) => {
     const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
     const dropdownItems =
-        currentValue.length >0
+        currentValue.length > 0
             ? fields.concat(methods)
             : fields;
 
@@ -178,6 +181,22 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(value, false);
     }
 
+    const handleAddNewVariable = () => {
+        addModal(
+            <FormGenerator
+                fileName={fileName}
+                node={selectedNode}
+                connections={[]}
+                targetLineRange={targetLineRange}
+                projectPath={projectPathUri}
+                editForm={false}
+                onSubmit={handleSubmit}
+                showProgressIndicator={false}
+                resetUpdatedExpressionField={() => { }}
+                isInModal={true}
+            />, POPUP_IDS.VARIABLE,"New Variable", 600);
+            onClose && onClose();
+    }
     const handleVariablesMoreIconClick = (value: string) => {
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
@@ -188,10 +207,10 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        const replaceText = step.replaceText === ''? step.replaceText : step.replaceText + '.';
+        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
         onChange(replaceText, true);
         const index = breadCrumbSteps.findIndex(item => item.label === step.label);
-        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index+1) : breadCrumbSteps;
+        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
         setBreadCrumbSteps(newSteps);
     }
 
@@ -335,32 +354,7 @@ export const Variables = (props: VariablesPageProps) => {
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            {!isInModal &&
-                <div style={{ marginTop: "auto", padding: '8px' }}>
-                    <DynamicModal
-                        width={420}
-                        height={600}
-                        anchorRef={anchorRef}
-                        title="Declare Variable"
-                        openState={isModalOpen}
-                        setOpenState={setIsModalOpen}>
-                        <DynamicModal.Trigger>
-                            <FooterButtons startIcon='add' title="New Variable" />
-                        </DynamicModal.Trigger>
-                        <FormGenerator
-                            fileName={fileName}
-                            node={selectedNode}
-                            connections={[]}
-                            targetLineRange={targetLineRange}
-                            projectPath={projectPathUri}
-                            editForm={false}
-                            onSubmit={handleSubmit}
-                            showProgressIndicator={false}
-                            resetUpdatedExpressionField={() => { }}
-                            isInModal={true}
-                        />
-                    </DynamicModal>
-                </div>}
+            {isInModal ? null : <div style={{ padding: '3px' }}><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
         </div>
     )
 }
