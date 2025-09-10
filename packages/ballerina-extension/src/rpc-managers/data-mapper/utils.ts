@@ -112,12 +112,18 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
         return await updateSourceCode(updateSourceCodeRequest);
     }
 
-    // need to prioritize if file path ends with functions.bal or data_mappings.bal
+    // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
     filePaths.sort((a, b) => {
-        // Prioritize files ending with functions.bal or data_mappings.bal
-        const aEndsWithFunctions = (a.endsWith("functions.bal") || a.endsWith("data_mappings.bal")) ? 1 : 0;
-        const bEndsWithFunctions = (b.endsWith("functions.bal") || b.endsWith("data_mappings.bal")) ? 1 : 0;
-        return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
+        // Priority: functions.bal > data_mappings.bal > any other file
+        const getPriority = (filePath: string): number => {
+            if (filePath.endsWith("functions.bal")) return 2;
+            if (filePath.endsWith("data_mappings.bal")) return 1;
+            return 0;
+        };
+        
+        const aPriority = getPriority(a);
+        const bPriority = getPriority(b);
+        return bPriority - aPriority; // Sort descending (highest priority first)
     });
 
     const requests: UpdateSourceCodeRequest[] = filePaths.map(filePath => ({
