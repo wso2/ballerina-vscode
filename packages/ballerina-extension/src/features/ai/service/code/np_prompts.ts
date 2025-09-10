@@ -14,11 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 
 export const REQUIREMENTS_DOCUMENT_KEY: string = "user_requirements_file";
 
-export function getRequirementAnalysisCodeGenPrefix(apidocs: Library[], requirementAnalysisDocument: string) {
+export async function getRequirementAnalysisCodeGenPrefix(prompt: string, requirementAnalysisDocument: string) {
+  const apidocs: Library[] = ( await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.CODE_GENERATION)
+    ).libraries;
     return `You are an expert assistant specializing in the Ballerina programming language. Your goal is to provide accurate and functional Ballerina code in response to queries while adhering to the constraints outlined in the given API documentation.
 
 You are tasked with generating Ballerina code based on a requirement analysis document for a system. The document contains an overview of the system and its use cases. Your objective is to create a Ballerina implementation that reflects the requirements described in the document.
@@ -112,7 +115,10 @@ public function main() {
 
 
 
-export function getRequirementAnalysisTestGenPrefix(apidocs: Library[], requirementAnalysisDocument: string) {
+export async function getRequirementAnalysisTestGenPrefix(prompt: string, requirementAnalysisDocument: string) {
+  const apidocs: Library[] = ( await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.CODE_GENERATION)
+    ).libraries;
+
     return `**Objective**:  
 You are an expert test automation engineer specializing in generating test artifacts for Ballerina entities. Your task is to create comprehensive test implementations based on the provided requirement specification, service interfaces, and a test plan written in the console.
 
