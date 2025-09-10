@@ -500,6 +500,10 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
+    const labelDetails = {
+        description,
+        detail: completion.detail,
+    };
 
     return {
         tag,
@@ -509,7 +513,8 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
         kind,
         sortText,
         additionalTextEdits,
-        cursorOffset
+        cursorOffset,
+        labelDetails
     };
 }
 
@@ -721,6 +726,7 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
         value: type.insertText,
         kind: convertCompletionItemKind(type.kind),
         insertText: type.insertText,
+        labelDetails: type.labelDetails,
     }));
 }
 
