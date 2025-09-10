@@ -98,6 +98,7 @@ public class Constants {
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
 
+    public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
     public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
     public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED = "LISTENER_PARAM_INCLUDED_FILED";
     public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED =

@@ -62,13 +62,13 @@
           "codedata": {
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
           },
-          "placeholder": "\"FTP\"",
+          "placeholder": "\"ftp\"",
           "valueType": "SINGLE_SELECT",
           "valueTypeConstraint": "string",
-          "value": "\"FTP\"",
+          "value": "\"ftp\"",
           "items": [
-            "\"FTP\"",
-            "\"SFTP\""
+            "\"ftp\"",
+            "\"sftp\""
           ],
           "typeMembers": [],
           "enabled": true,
@@ -94,6 +94,22 @@
           "editable": true,
           "optional": false,
           "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "ftpListener",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
         }
       }
     }

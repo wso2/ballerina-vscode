@@ -72,6 +72,22 @@
           "editable": true,
           "optional": false,
           "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "rabbitmqListener",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
         }
       }
     }

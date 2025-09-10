@@ -35,6 +35,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceNodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -156,6 +157,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     .editable(true);
             serviceInitModel.addProperty(property.keyName(), builder.build());
         }
+
+        serviceInitModel.addProperty("listenerVarName", listenerNameProperty(getProtocol(context.moduleName())));
         return serviceInitModel;
     }
 
@@ -197,6 +200,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             Value value = entry.getValue();
             Codedata codedata = value.getCodedata();
             String argType = codedata.getArgType();
+            if (Objects.isNull(argType) || argType.isEmpty()) {
+                continue;
+            }
             if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
                 requiredParams.add(value.getValue());
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED)
@@ -205,8 +211,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-        String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
-                modulePartNode.lineRange().endLine(), LISTENER_VAR_NAME.formatted(listenerProtocol));
+//        String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+//                modulePartNode.lineRange().endLine(), LISTENER_VAR_NAME.formatted(listenerProtocol));
+        String listenerVarName = properties.get("listenerVarName").getValue();
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
@@ -511,5 +518,22 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     }
 
     public abstract String kind();
+
+    protected static Value listenerNameProperty(String listenerProtocol) {
+
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        valueBuilder
+                .setMetadata(new MetaData("Name", "Provide a name for the listener being created"))
+                .setCodedata(new Codedata("LISTENER_VAR_NAME"))
+                .value(listenerProtocol + "Listener")
+                .valueType("IDENTIFIER")
+                .setValueTypeConstraint("Global")
+                .editable(true)
+                .enabled(true)
+                .optional(false)
+                .setAdvanced(true);
+
+        return valueBuilder.build();
+    }
 }
 
