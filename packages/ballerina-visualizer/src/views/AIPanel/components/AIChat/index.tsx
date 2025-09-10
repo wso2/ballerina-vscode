@@ -35,6 +35,7 @@ import {
     GenerateCodeRequest,
     TestPlanGenerationRequest,
     TestGeneratorIntermediaryState,
+    DocumentationGeneratorIntermediaryState,
     SourceFiles,
     ChatEntry,
     OperationType,
@@ -140,6 +141,9 @@ const AIChat: React.FC = () => {
     const [isReqFileExists, setIsReqFileExists] = useState(false);
     const [isPromptExecutedInCurrentWindow, setIsPromptExecutedInCurrentWindow] = useState(false);
     const [testGenIntermediaryState, setTestGenIntermediaryState] = useState<TestGeneratorIntermediaryState | null>(
+        null
+    );
+    const [docGenIntermediaryState, setDocGenIntermediaryState] = useState<DocumentationGeneratorIntermediaryState | null>(
         null
     );
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
@@ -288,7 +292,12 @@ const AIChat: React.FC = () => {
             });
         } else if (type === "intermediary_state") {
             const state = response.state;
-            setTestGenIntermediaryState(state);
+            // Check if it's a documentation state by looking for specific properties
+            if ('serviceName' in state && 'documentation' in state) {
+                setDocGenIntermediaryState(state as DocumentationGeneratorIntermediaryState);
+            } else {
+                setTestGenIntermediaryState(state as TestGeneratorIntermediaryState);
+            }
         } else if (type === "diagnostics") {
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
@@ -1787,6 +1796,40 @@ const AIChat: React.FC = () => {
         });
     };
 
+    const saveDocumentation = async () => {
+        if (!docGenIntermediaryState) return;
+        
+        setIsAddingToWorkspace(true);
+        try {
+            await rpcClient.getAiPanelRpcClient().addFilesToProject({
+                fileChanges: [{
+                    filePath: `docs/api_doc.md`,
+                    content: docGenIntermediaryState.documentation,
+                }]
+            });
+        } catch (error) {
+            console.error("Error saving documentation:", error);
+        } finally {
+            setIsAddingToWorkspace(false);
+        }
+    };
+
+    const regenerateDocumentation = async () => {
+        if (!docGenIntermediaryState) return;
+        
+        setMessages((prevMessages) => {
+            const newMessages = [...prevMessages];
+            newMessages[newMessages.length - 1].content = "";
+            return newMessages;
+        });
+
+        setIsLoading(true);
+        await rpcClient.getAiPanelRpcClient().getGeneratedDocumentation({
+            type: DocGenerationType.User,
+            serviceName: docGenIntermediaryState.serviceName,
+        });
+    };
+
     const handleRetryRepair = async () => {
         const currentDiagnostics = currentDiagnosticsRef.current;
         if (currentDiagnostics.length === 0) return;
@@ -2001,6 +2044,30 @@ const AIChat: React.FC = () => {
                                                             title="Regenerate test scenarios"
                                                             appearance="secondary"
                                                             onClick={regenerateScenarios}
+                                                        >
+                                                            <Codicon name="refresh" />
+                                                        </VSCodeButton>
+                                                    </div>
+                                                );
+                                            } else if (
+                                                "buttonType" in segment &&
+                                                segment.buttonType === "save_documentation" &&
+                                                !isCodeLoading &&
+                                                isLastResponse &&
+                                                !isLoading
+                                            ) {
+                                                return (
+                                                    <div style={{ display: "flex", gap: "10px" }}>
+                                                        <VSCodeButton
+                                                            title="Save Documentation"
+                                                            onClick={saveDocumentation}
+                                                        >
+                                                            {"Save Documentation"}
+                                                        </VSCodeButton>
+                                                        <VSCodeButton
+                                                            title="Regenerate documentation"
+                                                            appearance="secondary"
+                                                            onClick={regenerateDocumentation}
                                                         >
                                                             <Codicon name="refresh" />
                                                         </VSCodeButton>
