@@ -81,7 +81,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                 <Typography 
                     variant="body3"
                     sx={{
-                        maxWidth: isHovered ? 'none' : '20ch',
+                        maxWidth: isHovered ? '30ch' : '20ch',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: isHovered ? 'normal' : 'nowrap',
@@ -101,7 +101,6 @@ const VariablesMoreIconContainer = styled.div`
     justify-content: center;
     padding: 4px;
      &:hover {
-        background-color:  ${ThemeColors.ON_SURFACE_VARIANT};
         cursor: pointer;
     }
 `;
