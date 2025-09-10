@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateText, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import {
@@ -74,6 +74,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
+    const cacheOptions = await getProviderCacheControl();
 
     // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
@@ -85,14 +86,17 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: await getSystemPromptPrefix(prompt, sourceFiles, params.operationType, GenerationType.CODE_GENERATION),
+            content: await getSystemPromptPrefix(
+                prompt,
+                sourceFiles,
+                params.operationType,
+                GenerationType.CODE_GENERATION
+            ),
         },
         {
             role: "system",
             content: getSystemPromptSuffix(LANGLIBS),
-            providerOptions: {
-                          anthropic: { cacheControl: { type: "ephemeral" } },
-                      }
+            providerOptions: cacheOptions,
         },
         ...historyMessages,
         {
@@ -104,9 +108,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 packageName,
                 params.operationType
             ),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
             // Note: This cache control block can be removed if needed, as we use 3 out of 4 allowed cache blocks.
         },
     ];

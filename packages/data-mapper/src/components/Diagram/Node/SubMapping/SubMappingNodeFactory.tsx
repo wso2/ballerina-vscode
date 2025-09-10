@@ -39,7 +39,7 @@ export class SubMappingNodeFactory extends AbstractReactFactory<SubMappingNode, 
                 ) : (
                     <SubMappingTreeWidget
                         engine={this.engine}
-                        subMappings={event.model.subMappings}
+                        subMappings={event.model.filteredSubMappings}
                         context={event.model.context}
                         getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
                     />

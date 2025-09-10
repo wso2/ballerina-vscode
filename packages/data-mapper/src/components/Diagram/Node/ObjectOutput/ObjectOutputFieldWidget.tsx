@@ -264,11 +264,13 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
             onClick: () => handleAddEnumValue(member.typeName)
         })) || [];
 
-    const valConfigMenuItems = [
-        !isWithinArray && !isEnum && addOrEditValueMenuItem,
-        ...(isEnum ? addEnumValueMenuItems : []),
-        (expression || hasDefaultValue || isWithinArray) && deleteValueMenuItem
-    ];
+    const valConfigMenuItems = isDisabled
+        ? [(expression || hasDefaultValue || isWithinArray) && deleteValueMenuItem]
+        : [
+            !isWithinArray && !isEnum && addOrEditValueMenuItem,
+            ...(isEnum ? addEnumValueMenuItems : []),
+            (expression || hasDefaultValue || isWithinArray) && deleteValueMenuItem
+        ];
 
     return (
         <>
@@ -311,14 +313,14 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                     </span>
                     {(isLoading) ? (
                         <ProgressRing />
-                    ) : (((expression && !connectedViaLink) || !isDisabled) && (
+                    ) : (
                         <FieldActionWrapper>
                             <ValueConfigMenu
                                 menuItems={valConfigMenuItems}
                                 portName={portIn?.getName()}
                             />
                         </FieldActionWrapper>
-                    ))}
+                    )}
                 </div>
             )}
             {isArray && (

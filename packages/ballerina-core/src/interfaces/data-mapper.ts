@@ -37,11 +37,12 @@ export enum TypeKind {
 
 export enum InputCategory {
     Constant = "constant",
-    ModuleVariable = "moduleVariable",
+    ModuleVariable = "module-variable",
     Configurable = "configurable",
     Enum = "enum",
     Parameter = "parameter",
-    Variable = "variable"
+    Variable = "variable",
+    LocalVariable = "local-variable"
 }
 
 export enum IntermediateClauseType {
@@ -160,6 +161,7 @@ export interface IOTypeField {
     name: string;
     displayName?: string;
     member?: IOTypeField;
+    members?: IOTypeField[];
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
@@ -212,17 +214,22 @@ export interface ResultClause {
     query?: Query;
 }
 
-export interface CustomFnMetadata {
-    returnType: string,
-    parameters: CustomFnParams[]
+export interface FnMetadata {
+    returnType: FnReturnType,
+    parameters: FnParams[]
 }
 
-export interface CustomFnParams{
+export interface FnParams{
     name: string,
     type: string,
     isOptional: boolean,
     isNullable: boolean,
     kind: TypeKind
+}
+
+export interface FnReturnType {
+    type: string;
+    kind: TypeKind;
 }
 
 export interface DMFormProps {
@@ -256,7 +263,7 @@ export interface DMFormFieldValues {
 export interface DMViewState {
     viewId: string;
     codedata?: CodeData;
-    isSubMapping?: boolean;
+    subMappingName?: string;
 }
 
 export interface VisualizableField {
