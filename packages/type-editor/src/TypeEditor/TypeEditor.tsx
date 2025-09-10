@@ -42,6 +42,7 @@ interface TypeEditorProps {
     onSaveType: (type: Type) => void;
     newType: boolean;
     newTypeValue?: string;
+    isPopupTypeForm: boolean;
     isGraphql?: boolean;
     typeHelper: {
         loading?: boolean;
@@ -61,7 +62,7 @@ interface TypeEditorProps {
 
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { isGraphql, newType } = props;
+    const { isGraphql, newType, isPopupTypeForm } = props;
 
     let initialTypeKind = props.type?.codedata?.node ?? "RECORD" as TypeNodeKind;
     const [isSaving, setIsSaving] = useState(false);
@@ -104,17 +105,21 @@ export function TypeEditor(props: TypeEditorProps) {
             const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .createGraphqlClassType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
-            await props.rpcClient
-                .getVisualizerRpcClient()
-                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            if (!isPopupTypeForm) {
+                await props.rpcClient
+                    .getVisualizerRpcClient()
+                    .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            }
 
         } else {
             const response: UpdateTypeResponse = await props.rpcClient
                 .getBIDiagramRpcClient()
                 .updateType({ filePath: type.codedata?.lineRange?.fileName || 'types.bal', type, description: "" });
-            await props.rpcClient
-                .getVisualizerRpcClient()
-                .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            if (!isPopupTypeForm) {
+                await props.rpcClient
+                    .getVisualizerRpcClient()
+                    .openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: response.name, addType: false } });
+            }
         }
         props.onTypeChange(type);
         props.onSaveType(type)
@@ -173,6 +178,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 type={type}
                                 onTypeSave={onTypeSave}
                                 isSaving={isSaving}
+                                isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
                             />
                         </div>
