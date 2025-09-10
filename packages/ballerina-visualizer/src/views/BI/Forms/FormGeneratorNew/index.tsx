@@ -217,7 +217,6 @@ export function FormGeneratorNew(props: FormProps) {
     };
 
     const replaceTop = (item: StackItem) => {
-        console.log("REPLACE TOP", item);
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
