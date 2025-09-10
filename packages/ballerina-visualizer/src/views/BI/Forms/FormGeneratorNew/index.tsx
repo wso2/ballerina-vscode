@@ -175,6 +175,17 @@ export function FormGeneratorNew(props: FormProps) {
         }]);
     }
 
+    useEffect(() => {
+        const tempStack = [...stack];
+        const firstItem = tempStack[0];
+        if (firstItem) {
+            firstItem.type = defaultType();
+            tempStack[0] = firstItem;
+            setStack(tempStack);
+            return;
+        }
+    }, [typeEditorState.field]);
+
     const popTypeStack = () => {
         setStack((prev) => {
             const newStack = prev.slice(0, -1);
@@ -206,6 +217,7 @@ export function FormGeneratorNew(props: FormProps) {
     };
 
     const replaceTop = (item: StackItem) => {
+        console.log("REPLACE TOP", item);
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
@@ -225,7 +237,7 @@ export function FormGeneratorNew(props: FormProps) {
     };
 
     const defaultType = (): Type => {
-        if (typeEditorState.field?.type === 'PARAM_MANAGER') {
+        if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
                 name: typeEditorState.newTypeValue || "MyType",
                 editable: true,
@@ -595,7 +607,10 @@ export function FormGeneratorNew(props: FormProps) {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: formField });
+            resetStack();
         }
+
+        console.log("#STACK", stack);
 
         const handleCloseCompletions = () => {
             debouncedGetVisibleTypes.cancel();
@@ -836,7 +851,7 @@ export function FormGeneratorNew(props: FormProps) {
                             </BreadcrumbContainer>
                         )}
                         <FormTypeEditor
-                            type={peekTypeStack()?.type}
+                            type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
                             isPopupTypeForm={true}
