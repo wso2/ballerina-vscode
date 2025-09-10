@@ -191,6 +191,15 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             } else if (data[val.key] !== undefined) {
                 val.value = data[val.key];
             }
+            if (val.type === "CONDITIONAL_FIELDS") {
+                val.advanceProps.forEach(subField => {
+                    const subProperty = model.properties[val.key]?.properties?.[subField.key];
+                    if (subProperty) {
+                        subProperty.value = data[subField.key];
+                    }
+                });
+            }
+
             val.imports = getImportsForProperty(val.key, formImports);
         })
         const updatedModel = populateServiceInitModelFromFormFields(formFields, model);
@@ -247,7 +256,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
  * @param properties The properties to map.
  * @returns An array of FormField objects.
  */
-function mapPropertiesToFormFields(properties: {[key: string]: PropertyModel;}): FormField[] {
+function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }): FormField[] {
     if (!properties) return [];
 
     return Object.entries(properties).map(([key, property]) => {
@@ -315,13 +324,6 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
             property.values = Array.isArray(value) ? value : value ? [value] : [];
         } else {
             property.value = value as string;
-        }
-
-        // Enable property if it has a non-empty value
-        if (value !== undefined && value !== null && ((Array.isArray(value) && value.length > 0) || (!Array.isArray(value) && value !== ""))) {
-            property.enabled = true;
-        } else {
-            property.enabled = false;
         }
     });
     return model;
