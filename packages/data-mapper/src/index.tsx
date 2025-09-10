@@ -69,6 +69,7 @@ export interface DataMapperEditorProps {
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
+    deleteSubMapping: (index: number, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
