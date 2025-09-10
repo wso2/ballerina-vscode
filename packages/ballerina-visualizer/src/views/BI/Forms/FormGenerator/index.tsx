@@ -280,6 +280,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     }
 
+    const resetStack = () => {
+        setStack([getDefaultValue()]);
+    }
+
     const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
         setRefetchStates((prev) => {
             const newStates = [...prev];
@@ -453,9 +457,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
+            resetStack();
         }
-        setTypeEditorState({ isOpen: state });
+        setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
@@ -717,10 +721,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleExpressionEditorCancel();
     };
 
-    const onTypeEditorClosed = () => {
-        setTypeEditorState({ isOpen: stack.length !== 0 });
-    };
-
     const onTypeChange = async (type: Type) => {
         const updatedFields = fields.map((field) => {
             if (field.key === typeEditorState.fieldKey) {
@@ -730,7 +730,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
         handleSelectedTypeByName(type.name);
         setFields(updatedFields);
-        setTypeEditorState({ isOpen: true });
     };
 
     const handleGetHelperPane = (
@@ -862,21 +861,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         importsCodedataRef.current = {};
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        try {
-            setTypeEditorState({ isOpen: stack.length !== 0, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
-            popTypeStack()
-        } catch (e) {
-            console.error(e)
-        }
-    };
-
     const onSaveType = (type: Type) => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
         }
-        setTypeEditorState({ isOpen: stack.length !== 1 });
+        setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
     /**
@@ -948,10 +938,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         updateRecordTypeFields(type);
     };
 
-    const getNewTypeCreateForm = () => {
-        pushTypeStack({
+    const getDefaultValue = () => {
+        return ({
             type: {
-                name: "",
+                name: "MyType",
                 members: [] as Member[],
                 editable: true,
                 metadata: {
@@ -967,10 +957,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             },
             isDirty: false
         })
-        setTypeEditorState({
-            isOpen: true,
-            newTypeValue: ""
-        })
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack(getDefaultValue());
     }
 
     // handle if node form
@@ -1130,7 +1120,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 isGraphql={isGraphql}
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
-                                onTypeCreate={handleTypeCreate}
+                                onTypeCreate={()=>{}}
                                 isPopupTypeForm={true}
                                 getNewTypeCreateForm={getNewTypeCreateForm}
                                 refetchTypes={refetchStates[i]}
@@ -1211,7 +1201,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={handleTypeCreate}
+                            onTypeCreate={()=>{}}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                         />
