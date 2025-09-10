@@ -16,25 +16,6 @@
       "type": "http",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
       "properties": {
-        "port": {
-          "metadata": {
-            "label": "Port",
-            "description": "The port on which the service will listen for incoming requests"
-          },
-          "codedata": {
-            "argType": "LISTENER_PARAM_REQUIRED"
-          },
-          "placeholder": "8080",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
-          "value": "8080",
-          "items": [],
-          "typeMembers": [],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
         "designApproach": {
           "metadata": {
             "label": "Contract",
@@ -69,32 +50,6 @@
                   "editable": true,
                   "optional": false,
                   "advanced": false
-                },
-                "annotServiceConfig": {
-                  "metadata": {
-                    "label": "Service Configuration",
-                    "description": "Define advanced configurations like service level security, etc."
-                  },
-                  "codedata": {
-                    "type": "ANNOTATION_ATTACHMENT",
-                    "originalName": "ServiceConfig"
-                  },
-                  "placeholder": "{}",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "http:HttpServiceConfig",
-                  "value": "",
-                  "typeMembers": [
-                    {
-                      "type": "HttpServiceConfig",
-                      "packageInfo": "ballerina:http:2.14.0",
-                      "kind": "RECORD_TYPE",
-                      "selected": true
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": true,
-                  "advanced": true
                 }
               },
               "enabled": true,
@@ -152,6 +107,66 @@
               "advanced": false
             }
           ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listener": {
+          "metadata": {
+            "label": "Listener",
+            "description": "Use default listener on port 8080"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "true",
+          "valueType": "CONDITIONAL_FIELDS",
+          "valueTypeConstraint": "boolean",
+          "value": "true",
+          "items": [],
+          "choices": [],
+          "typeMembers": [],
+          "properties": {
+            "port": {
+              "metadata": {
+                "label": "Port",
+                "description": "Provide a port number for the listener"
+              },
+              "codedata": {
+                "originalName": "port"
+              },
+              "placeholder": "8080",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "int",
+              "value": "8080",
+              "items": [],
+              "typeMembers": [],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "listenerVarName": {
+              "metadata": {
+                "label": "Name for the listener",
+                "description": "Provide a name for the listener artifact"
+              },
+              "codedata": {
+                "originalName": "listenerVarName"
+              },
+              "placeholder": "httpListener",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "value": "httpListener",
+              "items": [],
+              "typeMembers": [],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          },
           "enabled": true,
           "editable": true,
           "optional": false,
