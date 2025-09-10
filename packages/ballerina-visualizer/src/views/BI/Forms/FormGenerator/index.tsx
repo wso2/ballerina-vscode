@@ -210,12 +210,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
-
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string | string[]>([]);
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -728,6 +728,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }
             return field;
         });
+        handleSelectedTypeByName(type.name);
         setFields(updatedFields);
         setTypeEditorState({ isOpen: true });
     };
@@ -743,7 +744,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string,
+        defaultValueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -771,8 +772,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: isInModal,
-            valueTypeConstraint: valueTypeConstraint,
+            valueTypeConstraint: defaultValueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
+            forcedValueTypeConstraint: valueTypeConstraints,
         });
     };
 
@@ -877,9 +879,74 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setTypeEditorState({ isOpen: stack.length !== 1 });
     }
 
+    /**
+     * Updates record type fields and value type constraints when a type is selected.
+     * This is used in variable declaration forms where the variable type dynamically changes.
+     */
+    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string } }) => {
+        if (!type) {
+            setValueTypeConstraints([]);
+            return;
+        }
+        setValueTypeConstraints(type.label);
+
+        // If not a Record, remove the 'expression' entry from recordTypeFields and return
+        if (type?.labelDetails?.description !== "Record") {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
+            return;
+        }
+
+        // Find the Expression property
+        const expressionEntry = Object.entries(getFormProperties(node))
+            .find(([_, property]) => property.metadata?.label === "Expression");
+
+        if (!expressionEntry) return;
+
+        const [key, property] = expressionEntry;
+        const recordTypeField = {
+            key,
+            property,
+            recordTypeMembers: [{
+                kind: "RECORD_TYPE",
+                type: type.label || "",
+                packageInfo: '',
+                selected: false
+            }]
+        };
+
+        setRecordTypeFields(prevFields => {
+            const prevIndex = prevFields.findIndex(f => f.key === key);
+            if (prevIndex !== -1) {
+                const updated = [...prevFields];
+                updated[prevIndex] = recordTypeField;
+                return updated;
+            } else {
+                return [...prevFields, recordTypeField];
+            }
+        });
+    };
+
+    /**
+     * Handles type selection from completion items (used in type editor)
+     */
     const handleSelectedTypeChange = (type: CompletionItem) => {
         setSelectedType(type);
-    }
+        updateRecordTypeFields(type);
+    };
+
+    /**
+     * Handles type selection by type name (used when type is created/changed)
+     */
+    const handleSelectedTypeByName = async (typeName: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const type = newTypes.find(t => t.label === typeName);
+        if (!type) return;
+
+        updateRecordTypeFields(type);
+    };
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
@@ -1044,16 +1111,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         openState={typeEditorState.isOpen}
                         setOpenState={handleTypeEditorStateChange}>
                         <div style={{ padding: '0px 15px' }}>
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "New Type"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
+                            {stack.slice(0, i + 1).length > 1 && (
+                                <BreadcrumbContainer>
+                                    {stack.slice(0, i + 1).map((stackItem, index) => (
+                                        <React.Fragment key={index}>
+                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                            <BreadcrumbItem>
+                                                {stackItem?.type?.name || "New Type"}
+                                            </BreadcrumbItem>
+                                        </React.Fragment>
+                                    ))}
+                                </BreadcrumbContainer>
+                            )}
                             <FormTypeEditor
                                 type={peekTypeStack()?.type}
                                 newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -1062,6 +1131,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
                                 onTypeCreate={handleTypeCreate}
+                                isPopupTypeForm={true}
                                 getNewTypeCreateForm={getNewTypeCreateForm}
                                 refetchTypes={refetchStates[i]}
                             />
@@ -1121,20 +1191,23 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
                     <div style={{ padding: '0px 20px' }}>
-                        <BreadcrumbContainer>
-                            {stack.slice(0, i + 1).map((stackItem, index) => (
-                                <React.Fragment key={index}>
-                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                    <BreadcrumbItem>
-                                        {stackItem?.type?.name || "New Type"}
-                                    </BreadcrumbItem>
-                                </React.Fragment>
-                            ))}
-                        </BreadcrumbContainer>
+                        {stack.slice(0, i + 1).length > 2 && (
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                        )}
                         <FormTypeEditor
                             type={peekTypeStack()?.type}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
