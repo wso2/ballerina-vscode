@@ -66,6 +66,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
@@ -77,6 +78,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVIC
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
@@ -525,10 +527,10 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
 
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
-                .setMetadata(new MetaData("Name", "Provide a name for the listener being created"))
-                .setCodedata(new Codedata("LISTENER_VAR_NAME"))
+                .setMetadata(new MetaData("Listener Name", "Provide a name for the listener being created"))
+                .setCodedata(new Codedata(ARG_TYPE_LISTENER_VAR_NAME))
                 .value(listenerName)
-                .valueType("IDENTIFIER")
+                .valueType(VALUE_TYPE_IDENTIFIER)
                 .setValueTypeConstraint("Global")
                 .editable(true)
                 .enabled(true)

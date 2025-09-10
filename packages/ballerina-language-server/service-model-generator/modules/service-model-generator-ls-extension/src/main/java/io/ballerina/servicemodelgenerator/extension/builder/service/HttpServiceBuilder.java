@@ -26,15 +26,8 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
-import io.ballerina.modelgenerator.commons.ServiceDeclaration;
-import io.ballerina.modelgenerator.commons.ServiceInitInfo;
-import io.ballerina.modelgenerator.commons.ServiceInitProperty;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
-import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -74,15 +67,14 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NE
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateDesignApproach;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerConfigApproach;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
@@ -125,8 +117,8 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Value listenerNameProp = listenerNameProperty(context);
-            serviceInitModel.getProperties().get("listener").getProperties().get("listenerVarName")
-                    .setValue(listenerNameProp.getValue());
+            Value listener = serviceInitModel.getProperties().get("listener");
+            listener.getChoices().get(1).getProperties().get("listenerVarName").setValue(listenerNameProp.getValue());
             return serviceInitModel;
         } catch (IOException e) {
             return null;
@@ -137,21 +129,24 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         populateDesignApproach(serviceInitModel);
-        if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
-            return null; // TODO: Handle open api spec case
-        }
+        populateListenerConfigApproach(serviceInitModel);
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        Value listenerProperty = properties.get("listener");
-        String listenerVarName = listenerProperty.getProperties().get("listenerVarName").getValue();
         StringBuilder listenerDeclaration = new StringBuilder("listener http:Listener ");
-        if (listenerProperty.getValue().equals("true")) {
-            listenerVarName = "httpDefaultListener";
-            listenerDeclaration.append(listenerVarName).append(" = ").append("http:getDefaultListener();");
-        } else {
+        String listenerVarName;
+        if (Objects.nonNull(properties.get("port")) && Objects.nonNull(properties.get("listenerVarName"))) {
+            listenerVarName = properties.get("listenerVarName").getValue();
             listenerDeclaration.append(listenerVarName).append(" = ").append("new (")
-                    .append(listenerProperty.getProperties().get("port").getValue()).append(");");
+                    .append(properties.get("port").getValue()).append(");");
+        } else {
+            listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), "httpDefaultListener");
+            listenerDeclaration.append(listenerVarName).append(" = ").append("http:getDefaultListener();");
+        }
+
+        if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
+            return null; // TODO: Handle open api spec case
         }
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 

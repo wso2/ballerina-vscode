@@ -141,6 +141,10 @@ public class ServiceInitModel {
         return properties.get("designApproach");
     }
 
+    public Value getListener() {
+        return properties.get("listener");
+    }
+
     public Value getOpenAPISpec() {
         return properties.get("spec");
     }

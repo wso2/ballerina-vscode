@@ -199,6 +199,17 @@ public final class Utils {
         }
     }
 
+    public static void populateListenerConfigApproach(ServiceInitModel service) {
+        Value listenerApproach = service.getListener();
+        if (Objects.nonNull(listenerApproach) && listenerApproach.isEnabled()
+                && Objects.nonNull(listenerApproach.getChoices()) && !listenerApproach.getChoices().isEmpty()) {
+            listenerApproach.getChoices().stream()
+                    .filter(Value::isEnabled).findFirst()
+                    .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
+            service.getProperties().remove("listener");
+        }
+    }
+
     private static Optional<Service> getServiceByServiceType(String serviceType) {
         InputStream resourceStream = Utils.class.getClassLoader()
                 .getResourceAsStream(String.format("services/%s.json", serviceType.replaceAll(":", ".")));
