@@ -222,14 +222,15 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             <TopNavigationBar />
             {
                 headerInfo &&
-                <TitleBar title={headerInfo.title} isBetaFeature={isBetaModule(headerInfo.moduleName)} />
+                <TitleBar title={headerInfo.title} isBetaFeature={isBetaModule(headerInfo.moduleName)} 
+                subtitle={model.description} />
             }
             <ViewContent>
                 <Container>
                     <>
                         {formFields && formFields.length > 0 &&
                             <FormContainer>
-                                <FormHeader title={`${model.displayName} Configuration`} />
+                                <FormHeader title={`Create ${model.displayName}`} />
                                 {filePath && targetLineRange &&
                                     <FormGeneratorNew
                                         fileName={filePath}
