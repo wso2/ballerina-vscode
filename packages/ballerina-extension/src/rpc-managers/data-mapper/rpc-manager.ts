@@ -274,6 +274,28 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async deleteSubMapping(params: DeleteSubMappingRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .deleteSubMapping(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper delete sub-mapping response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
     async mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -368,10 +390,5 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     });
                 });
         });
-    }
-
-    async deleteSubMapping(params: DeleteSubMappingRequest): Promise<DataMapperSourceResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 }
