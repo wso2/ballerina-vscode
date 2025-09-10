@@ -23,7 +23,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { isBetaModule } from "../ComponentListView/componentListUtils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { EVENT_TYPE, LineRange, Property, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
+import { EVENT_TYPE, LineRange, Property, PropertyModel, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
@@ -85,7 +85,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                     moduleName: res?.serviceInitModel.moduleName
                 });
                 setServiceInitModel(res?.serviceInitModel);
-                setFormFields(mapServiceInitModelToFormFields(res?.serviceInitModel));
+                setFormFields(mapPropertiesToFormFields(res?.serviceInitModel.properties));
             });
 
         rpcClient
@@ -242,15 +242,15 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 }
 
 /**
- * Maps a ServiceInitModel to an array of FormField objects.
+ * Maps the properties to an array of FormField objects.
  * 
- * @param model The ServiceInitModel to map.
+ * @param properties The properties to map.
  * @returns An array of FormField objects.
  */
-function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
-    if (!model || !model.properties) return [];
+function mapPropertiesToFormFields(properties: {[key: string]: PropertyModel;}): FormField[] {
+    if (!properties) return [];
 
-    return Object.entries(model.properties).map(([key, property]) => {
+    return Object.entries(properties).map(([key, property]) => {
 
         // Determine value for MULTIPLE_SELECT
         let value: any = property.value;
@@ -288,7 +288,8 @@ function mapServiceInitModelToFormFields(model: ServiceInitModel): FormField[] {
             choices: property.choices,
             placeholder: property.placeholder,
             addNewButton: property.addNewButton,
-            lineRange: property?.codedata?.lineRange
+            lineRange: property?.codedata?.lineRange,
+            advanceProps: mapPropertiesToFormFields(property.properties)
         } as FormField;
     });
 }
