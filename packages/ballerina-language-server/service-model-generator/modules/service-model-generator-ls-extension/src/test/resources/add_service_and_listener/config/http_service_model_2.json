@@ -1,0 +1,111 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Create a http service from scratch without default listener",
+  "serviceInitModel": {
+    "id": "0",
+    "displayName": "HTTP Service",
+    "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http",
+    "version": "2.14.0",
+    "type": "http",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listener",
+          "description": "Use default listener on port 8080"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "true",
+        "valueType": "CONDITIONAL_FIELDS",
+        "valueTypeConstraint": "boolean",
+        "value": "true",
+        "items": [],
+        "choices": [],
+        "typeMembers": [],
+        "properties": {
+          "port": {
+            "metadata": {
+              "label": "Port",
+              "description": "Provide a port number for the listener"
+            },
+            "codedata": {
+              "originalName": "port"
+            },
+            "placeholder": "8080",
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "value": "9092",
+            "items": [],
+            "typeMembers": [],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "listenerVarName": {
+            "metadata": {
+              "label": "Name for the listener",
+              "description": "Provide a name for the listener artifact"
+            },
+            "codedata": {
+              "originalName": "listenerVarName"
+            },
+            "placeholder": "httpListener",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "value": "customHttpListener",
+            "items": [],
+            "typeMembers": [],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Service Base Path",
+          "description": ""
+        },
+        "codedata": {
+          "type": "SERVICE_BASEPATH"
+        },
+        "placeholder": "",
+        "valueType": "SERVICE_PATH",
+        "valueTypeConstraint": "string",
+        "value": "/api",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener http:Listener customHttpListener = http:getDefaultListener();\nservice /api on customHttpListener {\n    resource function get greeting() returns error|json|http:InternalServerError {\n        do {\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n"
+      }
+    ]
+  }
+}

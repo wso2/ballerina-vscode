@@ -34,10 +34,12 @@ import io.ballerina.modelgenerator.commons.ServiceInitProperty;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
+import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
@@ -60,15 +62,23 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -120,6 +130,50 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
     }
 
     @Override
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        populateDesignApproach(serviceInitModel);
+        if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
+            return null; // TODO: Handle open api spec case
+        }
+
+        Map<String, Value> properties = serviceInitModel.getProperties();
+
+        Value listenerProperty = properties.get("listener");
+        String listenerVarName = listenerProperty.getProperties().get("listenerVarName").getValue();
+        StringBuilder listenerDeclaration = new StringBuilder("listener http:Listener ")
+                .append(listenerVarName).append(" = ");
+        if (listenerProperty.getValue().equals("true")) {
+            listenerDeclaration.append("http:getDefaultListener();");
+        } else {
+            listenerDeclaration.append("new (")
+                    .append(listenerProperty.getProperties().get("port").getValue()).append(");");
+        }
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+
+        List<String> functionsStr = List.of(defaultGreetingsDefinition());
+
+        String basePath = properties.get("basePath").getValue();
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(listenerDeclaration)
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE).append(basePath)
+                .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        List<TextEdit> edits = new ArrayList<>();
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        return Map.of(context.filePath(), edits);
+    }
+
+    @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
         ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
         populateDesignApproach(context.service());
@@ -166,6 +220,17 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         return Map.of(context.filePath(), edits);
+    }
+
+    private static String defaultGreetingsDefinition() {
+        String f = "    resource function get greeting() returns error|json|http:InternalServerError {%n" +
+                "        do {%n" +
+                "        } on fail error err {%n" +
+                "            // handle error%n" +
+                "            return error(\"unhandled error\", err);%n" +
+                "        }%n" +
+                "    }";
+        return f.formatted();
     }
 
     @Override
