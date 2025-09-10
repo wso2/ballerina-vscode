@@ -32,6 +32,7 @@ interface RecordFromJsonProps {
     rpcClient: BallerinaRpcClient;
     isSaving: boolean;
     setIsSaving: (isSaving: boolean) => void;
+    isPopupTypeForm: boolean;
 }
 
 namespace S {
@@ -53,7 +54,7 @@ namespace S {
 }
 
 export const RecordFromJson = (props: RecordFromJsonProps) => {
-    const { name, onImport, rpcClient, isTypeNameValid, isSaving, setIsSaving } = props;
+    const { name, onImport, rpcClient, isTypeNameValid, isSaving, setIsSaving, isPopupTypeForm } = props;
     const [json, setJson] = useState<string>("");
     const [error, setError] = useState<string>("");
 
@@ -105,9 +106,11 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                     types: otherRecords
                 });
 
-                await props.rpcClient.getVisualizerRpcClient().openView(
-                    { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
-                );
+                if (!isPopupTypeForm) {
+                    await props.rpcClient.getVisualizerRpcClient().openView(
+                        { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                    );
+                }
             }
 
             if (record) {

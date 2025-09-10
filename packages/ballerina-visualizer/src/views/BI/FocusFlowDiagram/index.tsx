@@ -90,7 +90,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
     const [showConnectionPanel, setShowConnectionPanel] = useState(false);
-    const [selectedNodeForConnection, setSelectedNodeForConnection] = useState<FlowNode | undefined>();
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [connectionView, setConnectionView] = useState<SidePanelView.CONNECTION_CONFIG | SidePanelView.CONNECTION_SELECT | SidePanelView.CONNECTION_CREATE>();
 
@@ -319,6 +318,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 if (response.artifacts.length > 0) {
                     // clear memory
                     selectedNodeRef.current = undefined;
+                    getFlowModel();
                     handleOnCloseSidePanel();
                 } else {
                     console.error(">>> Error updating source code", response);
@@ -572,7 +572,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
 
     const handleOnEditNPFunctionModel = (node: FlowNode) => {
         console.log(">>> on edit np function model provider", node);
-        setSelectedNodeForConnection(node);
+        selectedNodeRef.current = node;
         setSelectedConnectionKind('MODEL_PROVIDER');
         setConnectionView(SidePanelView.CONNECTION_CONFIG);
         setShowConnectionPanel(true);
@@ -580,7 +580,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
 
     const handleCloseConnectionPanel = () => {
         setShowConnectionPanel(false);
-        setSelectedNodeForConnection(undefined);
+        selectedNodeRef.current = undefined;
         getFlowModel();
     };
 
@@ -667,7 +667,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 </Container>
             </View>
 
-            {showConnectionPanel && selectedNodeForConnection && (
+            {showConnectionPanel && selectedNodeRef.current && (
                 <PanelContainer
                     title="Configure Model Provider Connection"
                     show={showConnectionPanel}
@@ -679,7 +679,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     {connectionView === SidePanelView.CONNECTION_CONFIG && (
                         <ConnectionConfig
                             connectionKind={selectedConnectionKind}
-                            selectedNode={selectedNodeForConnection}
+                            selectedNode={selectedNodeRef.current}
                             onSave={handleUpdateNodeWithConnection}
                             onNavigateToSelectionList={handleNavigateToSelectionList}
                             // onCreateNew={handleCreateNewConnection}
@@ -688,7 +688,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                     {connectionView === SidePanelView.CONNECTION_SELECT && (
                         <ConnectionSelectionList
                             connectionKind={selectedConnectionKind}
-                            selectedNode={selectedNodeForConnection}
+                            selectedNode={selectedNodeRef.current}
                             onSelect={handleSelectConnection}
                         />
                     )}
@@ -696,7 +696,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         <ConnectionCreator
                             connectionKind={selectedConnectionKind}
                             nodeFormTemplate={nodeTemplateRef.current}
-                            selectedNode={selectedNodeForConnection}
+                            selectedNode={selectedNodeRef.current}
                             onSave={handleUpdateNodeWithConnection}
                         />
                     )}

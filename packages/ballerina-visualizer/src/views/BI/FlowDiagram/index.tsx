@@ -1183,6 +1183,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .then((response) => {
                         console.log(">>> FlowNode template", response);
                         selectedNodeRef.current = response.flowNode;
+                        nodeTemplateRef.current = response.flowNode;
                         showEditForm.current = false;
 
                         // if agent_call node, then show agent config panel
