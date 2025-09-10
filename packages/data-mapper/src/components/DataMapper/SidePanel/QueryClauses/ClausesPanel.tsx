@@ -110,7 +110,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
                     ))}
                 </ClauseItemListContainer>
 
-                {(adding === clauses.length) ? (
+                {adding === undefined ? (
                     <ClauseEditor
                         isSaving={saving === undefined}
                         onCancel={() => setAdding(-1)}
@@ -118,7 +118,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
                         generateForm={generateForm}
                     />
                 ) : (
-                    <AddButton onClick={() => setAdding(clauses.length)} />
+                    <AddButton onClick={() => setAdding(undefined)} />
                 )}
             </SidePanelBody>
         </SidePanel>
