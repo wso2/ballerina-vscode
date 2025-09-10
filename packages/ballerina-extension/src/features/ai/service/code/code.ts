@@ -86,8 +86,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: await getSystemPromptPrefix(
-                prompt,
+            content: getSystemPromptPrefix(
                 sourceFiles,
                 params.operationType,
                 GenerationType.CODE_GENERATION
@@ -223,7 +222,7 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-async function getSystemPromptPrefix(prompt: string, sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): Promise<string> {
+function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): string {
     const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the API documentation provided by the LibraryProviderTool.
 
 # Instructions
@@ -237,9 +236,9 @@ ${generationType === GenerationType.HEALTHCARE_GENERATION
         }`;
 
     if (op === "CODE_FOR_USER_REQUIREMENT") {
-        return await getRequirementAnalysisCodeGenPrefix(prompt, extractResourceDocumentContent(sourceFiles));
+        return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
     } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
-        return await getRequirementAnalysisTestGenPrefix(prompt, extractResourceDocumentContent(sourceFiles));
+        return getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(sourceFiles));
     }
     return basePrompt;
 }
