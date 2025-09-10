@@ -70,14 +70,26 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
     const { register, control, watch } = form;
     const [conditionalFields, setConditionalFields] = useState<FormField[]>([]);
 
+    const { setValue } = form;
+
     const checked = watch(field.key, true);
 
     console.log("Conditional Fields: ", field.advanceProps);
 
     useEffect(() => {
-        console.log("Conditional Fields: ", field.advanceProps);
         setConditionalFields(field.advanceProps);
     }, []);
+
+    // Add useEffect to set initial values
+    useEffect(() => {
+        if (conditionalFields.length > 0) {
+            Object.entries(conditionalFields).forEach(([_, propValue]) => {
+                if (propValue.value !== undefined) {
+                    setValue(propValue.key, propValue.value);
+                }
+            });
+        }
+    }, [conditionalFields]);
 
     return (
         <Form>
