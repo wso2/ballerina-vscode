@@ -168,6 +168,13 @@ export function FormGeneratorNew(props: FormProps) {
         setRefetchStates((prev) => [...prev, false]);
     };
 
+    const resetStack = () => {
+        setStack([{
+            type: defaultType(),
+            isDirty: false
+        }]);
+    }
+
     const popTypeStack = () => {
         setStack((prev) => {
             const newStack = prev.slice(0, -1);
@@ -614,8 +621,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
     }
 
-    const handleTypeChange = async (type: Type) => {
-        setTypeEditorState({ isOpen: true });
+    const handleTypeChange = async (type: Type,) => {
+        setTypeEditorState({ ...typeEditorState, isOpen: true });
 
         if (typeEditorState.field) {
             const updatedFields = fieldsValues.map(field => {
@@ -624,6 +631,7 @@ export function FormGeneratorNew(props: FormProps) {
                     if (typeEditorState.field.type === 'PARAM_MANAGER'
                         && field.type === 'PARAM_MANAGER'
                         && field.paramManagerProps.formFields
+                        && stack.length === 1
                     ) {
                         return {
                             ...field,
@@ -657,12 +665,12 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ 
-            isOpen, 
-            field: editingField, 
-            newTypeValue: newType 
-                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType) 
-                : f[editingField?.key] 
+        setTypeEditorState({
+            isOpen,
+            field: editingField,
+            newTypeValue: newType
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType)
+                : f[editingField?.key]
         });
     };
 
@@ -686,7 +694,7 @@ export function FormGeneratorNew(props: FormProps) {
     }
 
     const onCloseTypeEditor = () => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ ...typeEditorState, isOpen: false });
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
@@ -695,14 +703,14 @@ export function FormGeneratorNew(props: FormProps) {
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
+            resetStack();
         }
-        setTypeEditorState({ isOpen: state });
+        setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
-            type: defaultType(), 
+            type: defaultType(),
             isDirty: false
         })
     }
@@ -712,7 +720,7 @@ export function FormGeneratorNew(props: FormProps) {
             setRefetchForCurrentModal(true);
             popTypeStack();
         }
-        setTypeEditorState({ isOpen: stack.length !== 1 });
+        setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
@@ -814,30 +822,30 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 15px' }}>
-                        {stack.slice(0, i + 1).slice(0, i + 1).length > 1 && (
+                    <div style={{ padding: '0px 20px' }}>
+                        {stack.slice(0, i + 1).length > 1 && (
                             <BreadcrumbContainer>
                                 {stack.slice(0, i + 1).map((stackItem, index) => (
                                     <React.Fragment key={index}>
                                         {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                                         <BreadcrumbItem>
-                                            {stackItem?.type?.name || "New Type"}
+                                            {stackItem?.type?.name || "NewType"}
                                         </BreadcrumbItem>
                                     </React.Fragment>
                                 ))}
                             </BreadcrumbContainer>
                         )}
                         <FormTypeEditor
-                            type={ isGraphqlEditor? defaultType() : undefined}
+                            type={peekTypeStack()?.type}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
+                            isGraphql={isGraphqlEditor}
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
-                            isPopupTypeForm={true}
-                            onTypeCreate={() => {}}
+                            onTypeCreate={() => { }}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
-                            isGraphql={isGraphqlEditor}
                         />
                     </div>
                 </DynamicModal>)
