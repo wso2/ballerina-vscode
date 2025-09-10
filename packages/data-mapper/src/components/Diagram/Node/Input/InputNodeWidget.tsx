@@ -27,7 +27,7 @@ import { InputSearchHighlight } from '../commons/Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
-import { useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 
@@ -46,6 +46,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
+
+    const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
 
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
@@ -91,12 +93,19 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     );
 
     const handleExpand = () => {
+
         const expandedFields = expandedFieldsStore.fields;
+        const collapsedFields = collapsedFieldsStore.fields;
+
         if (expanded) {
             expandedFieldsStore.setFields(expandedFields.filter((element) => element !== id));
+            collapsedFieldsStore.setFields([...collapsedFields, id]);
+
         } else {
             expandedFieldsStore.setFields([...expandedFields, id]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== id));
         }
+
     }
 
     const handlePortState = (state: PortState) => {

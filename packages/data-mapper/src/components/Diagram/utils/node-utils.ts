@@ -17,8 +17,10 @@
  */
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { InputNode, SubMappingNode } from "../Node";
+import { View } from "../../DataMapper/Views/DataMapperView";
 
-export function findInputNode(field: string, outputNode: DataMapperNodeModel, focusedField?: string): InputNode {
+
+export function findInputNode(field: string, outputNode: DataMapperNodeModel, views?: View[], lastViewIndex?: number): InputNode {
     const nodes = outputNode.getModel().getNodes();
     
     // Helper function to find input node by field path
@@ -36,9 +38,10 @@ export function findInputNode(field: string, outputNode: DataMapperNodeModel, fo
     // try finding input node using 'field' (map from other input ports)
     let inputNode = findNodeByField(field);
     
-    // if not found and focusedField exists, try with focusedField (map from focused input port)
-    if (!inputNode && focusedField) {
-        inputNode = findNodeByField(focusedField);
+    // if not found, try with parentSourceField
+    if (!inputNode && views && lastViewIndex) {
+        const parentSourceField = views[lastViewIndex].sourceField;
+        inputNode = findInputNode(parentSourceField, outputNode, views, lastViewIndex - 1);
     }
 
     return inputNode;
