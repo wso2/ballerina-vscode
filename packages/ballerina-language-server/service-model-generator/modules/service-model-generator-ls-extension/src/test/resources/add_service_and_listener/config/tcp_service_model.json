@@ -59,7 +59,20 @@
             "character": 3
           }
         },
-        "newText": "\nlistener tcp:Listener tcpListener = new (80);\nservice tcp:Service on tcpListener {\n}\n"
+        "newText": "\nlistener tcp:Listener tcpListener = new (80);\nservice tcp:Service on tcpListener {\n    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {\n        do {\n            TcpEchoService connectionService = new TcpEchoService();\n            return connectionService;\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nservice class TcpEchoService {\n    *tcp:ConnectionService;\n\n    remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n\n    remote function onError(tcp:Error tcpError) returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n\n    remote function onClose() returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n\n"
       }
     ]
   }

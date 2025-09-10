@@ -62,6 +62,7 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
@@ -177,6 +178,17 @@ public final class Utils {
     }
 
     public static void populateDesignApproach(Service service) {
+        Value designApproach = service.getDesignApproach();
+        if (Objects.nonNull(designApproach) && designApproach.isEnabled()
+                && Objects.nonNull(designApproach.getChoices()) && !designApproach.getChoices().isEmpty()) {
+            designApproach.getChoices().stream()
+                    .filter(Value::isEnabled).findFirst()
+                    .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
+            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
+        }
+    }
+
+    public static void populateDesignApproach(ServiceInitModel service) {
         Value designApproach = service.getDesignApproach();
         if (Objects.nonNull(designApproach) && designApproach.isEnabled()
                 && Objects.nonNull(designApproach.getChoices()) && !designApproach.getChoices().isEmpty()) {

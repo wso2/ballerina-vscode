@@ -103,6 +103,13 @@ public class ServiceInitModel {
         this.properties.put(key, value);
     }
 
+    public void addProperties(Map<String, Value> properties) {
+        if (Objects.isNull(properties)) {
+            return;
+        }
+        this.properties.putAll(properties);
+    }
+
     public String getServiceTypeName() {
         Value basePath = properties.get(PROPERTY_BASE_PATH);
         if (basePath == null) {
@@ -130,6 +137,13 @@ public class ServiceInitModel {
         return builder.toString();
     }
 
+    public Value getDesignApproach() {
+        return properties.get("designApproach");
+    }
+
+    public Value getOpenAPISpec() {
+        return properties.get("spec");
+    }
 
     public static class Builder {
         private String id;

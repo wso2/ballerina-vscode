@@ -111,6 +111,17 @@
         }
       },
       "initForm": {
+        "port": {
+          "label": "Port",
+          "description": "The port on which the GraphQL service listens",
+          "defaultValue": "8080",
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "typeConstrain": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
         "basePath": {
           "label": "Base Path",
           "description": "The base path of the GraphQL service",
