@@ -415,7 +415,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.GraphQLDiagram:
                         const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
                         const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
-                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position} projectUri={value?.projectUri} />);
+                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position ?? value?.position} projectUri={value?.projectUri} />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
