@@ -18,6 +18,7 @@
 
 import styled from "@emotion/styled";
 import { VSCodeTag } from "@vscode/webview-ui-toolkit/react";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 export const VariableTypeIndicator = styled(VSCodeTag)`
     ::part(control) {
@@ -27,5 +28,15 @@ export const VariableTypeIndicator = styled(VSCodeTag)`
         display: flex;
         align-items: center;
         justify-content: center;
+        max-width: 60px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0px 2px;
+    }
+
+    &:hover::part(control) {
+        background-color: ${ThemeColors.PRIMARY};
+        cursor: pointer;
     }
 `;

@@ -56,6 +56,7 @@ export type HelperPaneNewProps = {
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
     valueTypeConstraint?: string | string[];
+    forcedValueTypeConstraint?: string | string[];
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
 };
 
@@ -81,7 +82,8 @@ const HelperPaneNewEl = ({
     filteredCompletions,
     isInModal,
     valueTypeConstraint,
-    handleRetrieveCompletions
+    handleRetrieveCompletions,
+    forcedValueTypeConstraint
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -253,7 +255,7 @@ const HelperPaneNewEl = ({
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
-                                {valueTypeConstraint && (
+                                {(valueTypeConstraint || forcedValueTypeConstraint) && (
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
                                             <ExpandableList.Item>
@@ -337,6 +339,7 @@ const HelperPaneNewEl = ({
                             recordTypeField={recordTypeField}
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            onClose={onClose}
                         />
                     </SlidingPane>
 
@@ -346,7 +349,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={valueTypeConstraint}
+                            selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
                             anchorRef={anchorRef} />
                     </SlidingPane>
@@ -376,6 +379,7 @@ const HelperPaneNewEl = ({
                             onChange={handleChange}
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
+                            onClose={onClose}
                         />
                     </SlidingPane>
                 </SlidingWindow>
@@ -444,7 +448,8 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         isInModal,
-        valueTypeConstraint
+        valueTypeConstraint,
+        forcedValueTypeConstraint,
     } = props;
 
     return (
@@ -470,6 +475,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             isInModal={isInModal}
             valueTypeConstraint={valueTypeConstraint}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
+            forcedValueTypeConstraint={forcedValueTypeConstraint}
         />
     );
 };
