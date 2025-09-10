@@ -116,8 +116,8 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
     filePaths.sort((a, b) => {
         // Priority: functions.bal > data_mappings.bal > any other file
         const getPriority = (filePath: string): number => {
-            if (filePath.endsWith("functions.bal")) return 2;
-            if (filePath.endsWith("data_mappings.bal")) return 1;
+            if (filePath.endsWith("functions.bal")) { return 2; }
+            if (filePath.endsWith("data_mappings.bal")) { return 1; }
             return 0;
         };
         
