@@ -860,7 +860,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             .getDataMapperRpcClient()
             .getVisualizableFields({ filePath, codedata });
         setVisualizableField(res.visualizableProperties);
-        importsCodedataRef.current = {};
+        importsCodedataRef.current = null;
     };
 
     const handleTypeCreate = (typeName?: string) => {
