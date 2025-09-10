@@ -442,6 +442,12 @@ export interface DeleteMappingRequest {
     subMappingName?: string;
 }
 
+export interface DeleteSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+}
+
 export interface MapWithFnRequest {
     filePath: string;
     codedata: CodeData;
