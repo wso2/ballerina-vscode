@@ -24,6 +24,7 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
@@ -187,6 +188,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setTextEdits(dataMapManager.addClauses(filePath, request.codedata(), request.clause(),
                         request.index(), request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponse> deleteClause(DataMapperDeleteClauseRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.deleteClause(filePath, request.codedata(), request.index(),
+                        request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }

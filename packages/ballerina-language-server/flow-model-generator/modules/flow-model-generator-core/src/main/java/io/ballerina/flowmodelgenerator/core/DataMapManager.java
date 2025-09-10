@@ -1434,6 +1434,28 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
+    public JsonElement deleteClause(Path filePath, JsonElement cd, int index, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        ExpressionNode expr = getMappingExpr(node);
+        if (expr == null) {
+            return gson.toJsonTree(textEditsMap);
+        }
+        QueryExpressionNode queryExpr = getQueryExpr(expr, targetField);
+        NodeList<IntermediateClauseNode> intermediateClauseNodes = queryExpr.queryPipeline().intermediateClauses();
+        if (index >= intermediateClauseNodes.size()) {
+            return gson.toJsonTree(textEditsMap);
+        }
+        IntermediateClauseNode intermediateClauseNode = intermediateClauseNodes.get(index);
+        textEdits.add(new TextEdit(CommonUtils.toRange(intermediateClauseNode.lineRange()), ""));
+        return gson.toJsonTree(textEditsMap);
+    }
+
     private QueryExpressionNode getQueryExpr(ExpressionNode expressionNode, String targetField) {
         if (targetField == null) {
             if (expressionNode.kind() == SyntaxKind.QUERY_EXPRESSION) {
