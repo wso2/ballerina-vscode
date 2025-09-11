@@ -90,11 +90,12 @@ import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
 import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
-import { EditorContext, StackItem } from "@wso2/type-editor";
+import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
+import { getImportedTypes } from "../../TypeEditor/utils";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -216,6 +217,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string | string[]>([]);
+    const [currentFilePath, setCurrentFilePath] = useState<string>("");
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -325,6 +327,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleFormClose();
         };
     }, [node]);
+
+    useEffect(() => {
+        if (rpcClient) {
+            rpcClient.getVisualizerLocation().then((machineView) => {
+                setCurrentFilePath(machineView.metadata.recordFilePath);
+            });
+        }
+    }, [rpcClient]);
 
     const handleFormOpen = () => {
         rpcClient
@@ -870,6 +880,27 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     /**
+     * Creates a record type field for the expression property
+     */
+    const createExpressionRecordTypeField = (
+        key: string,
+        property: any,
+        packageInfo: string,
+        type: { label: string; labelDetails?: { description?: string } }
+    ) => {
+        return {
+            key,
+            property,
+            recordTypeMembers: [{
+                kind: "RECORD_TYPE",
+                type: type.label || "",
+                packageInfo: packageInfo,
+                selected: false
+            }]
+        };
+    };
+
+    /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
      */
@@ -886,26 +917,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             return;
         }
 
-        // Find the Expression property
+        // Create the record type field for expression
         const expressionEntry = Object.entries(getFormProperties(node))
             .find(([_, property]) => property.metadata?.label === "Expression");
 
         if (!expressionEntry) return;
 
         const [key, property] = expressionEntry;
-        const recordTypeField = {
-            key,
-            property,
-            recordTypeMembers: [{
-                kind: "RECORD_TYPE",
-                type: type.label || "",
-                packageInfo: '',
-                selected: false
-            }]
-        };
+        const recordTypeField = createExpressionRecordTypeField(key, property, '', type);
+        if (!recordTypeField) return;
 
         setRecordTypeFields(prevFields => {
-            const prevIndex = prevFields.findIndex(f => f.key === key);
+            const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
             if (prevIndex !== -1) {
                 const updated = [...prevFields];
                 updated[prevIndex] = recordTypeField;
@@ -916,26 +939,77 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     };
 
+
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem) => {
+    const handleSelectedTypeChange = (type: CompletionItem | string) => {
+        if (typeof type === "string") {
+            handleSelectedTypeByName(type);
+            return;
+        }
         setSelectedType(type);
         updateRecordTypeFields(type);
     };
+
+    const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
+        return items?.find(item => `${item.codedata.module}:${item.insertText}` === typeName);
+    }
 
     /**
      * Handles type selection by type name (used when type is created/changed)
      */
     const handleSelectedTypeByName = async (typeName: string) => {
-        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
-            filePath: fileName,
-            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
-        });
-        const type = newTypes.find(t => t.label === typeName);
+        const newTypes = await rpcClient
+            .getBIDiagramRpcClient()
+            .search({
+                filePath: currentFilePath,
+                position: targetLineRange,
+                queryMap: {
+                    q: '',
+                    offset: 0,
+                    limit: 60
+                },
+                searchKind: 'TYPE'
+            })
+            .then((response) => {
+                return getImportedTypes(response.categories);
+            })
+            .finally(() => {
+
+            });
+        let type: TypeHelperItem | undefined;
+        for (const category of newTypes[0].subCategory) {
+            const matchedType = findMatchedType(category.items, typeName);
+            if (matchedType) {
+                type = matchedType;
+                break;
+            }
+        }
         if (!type) return;
 
-        updateRecordTypeFields(type);
+        setValueTypeConstraints(type.insertText);
+        // Create the record type field for expression
+        const expressionEntry = Object.entries(getFormProperties(node))
+            .find(([_, property]) => property.metadata?.label === "Expression");
+
+        if (!expressionEntry) return;
+
+        const [key, property] = expressionEntry;
+        const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
+        const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
+        if (!recordTypeField) return;
+
+        setRecordTypeFields(prevFields => {
+            const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
+            if (prevIndex !== -1) {
+                const updated = [...prevFields];
+                updated[prevIndex] = recordTypeField;
+                return updated;
+            } else {
+                return [...prevFields, recordTypeField];
+            }
+        });
     };
 
     const getDefaultValue = () => {
@@ -1120,7 +1194,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 isGraphql={isGraphql}
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
-                                onTypeCreate={()=>{}}
+                                onTypeCreate={() => { }}
                                 isPopupTypeForm={true}
                                 getNewTypeCreateForm={getNewTypeCreateForm}
                                 refetchTypes={refetchStates[i]}
@@ -1201,7 +1275,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={()=>{}}
+                            onTypeCreate={() => { }}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                         />

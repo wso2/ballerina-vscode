@@ -703,10 +703,6 @@ export function FormGeneratorNew(props: FormProps) {
         }
     }
 
-    const handleSelectedTypeChange = (type: CompletionItem) => {
-        setSelectedType(type);
-    }
-
     const onCloseTypeEditor = () => {
         setTypeEditorState({ ...typeEditorState, isOpen: false });
     };
@@ -824,7 +820,6 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
-                    handleSelectedTypeChange={handleSelectedTypeChange}
                 />
             )}
             {

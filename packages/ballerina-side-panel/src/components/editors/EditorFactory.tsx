@@ -57,7 +57,7 @@ interface FormFieldEditorProps {
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
-    handleNewTypeSelected?: (type: CompletionItem) => void;
+    handleNewTypeSelected?: (type: string | CompletionItem) => void;
 
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
