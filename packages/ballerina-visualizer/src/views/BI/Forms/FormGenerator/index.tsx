@@ -74,7 +74,7 @@ import {
     updateLineRange,
 } from "../../../../utils/bi";
 import IfForm from "../IfForm";
-import { cloneDeep, debounce, set } from "lodash";
+import { cloneDeep, debounce } from "lodash";
 import {
     createNodeWithUpdatedLineRange,
     processFormData,
