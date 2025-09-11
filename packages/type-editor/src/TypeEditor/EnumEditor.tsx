@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Icon, Codicon } from "@wso2/ui-toolkit";
+import { TextField, Button, Codicon, Tooltip } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { Type, Member } from "@wso2/ballerina-core";
 import { IdentifierField } from "./IdentifierField";
@@ -215,18 +215,24 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
                 <div style={{ display: 'flex', gap: '8px' }} data-testid="add-member-button">
-                    <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                    <Tooltip content="Add Member">
+                        <Button appearance="icon" onClick={addMember}>
+                            <Codicon name="add" />
+                        </Button>
+                    </Tooltip>
                 </div>
             </S.Header>
             {type.members.map((member, index) => (
                 <>
                     <S.MemberRow>
-                        <S.ExpandIconButton
-                            appearance="icon"
-                            onClick={() => toggleFunctionExpand(index)}
-                        >
-                            <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
-                        </S.ExpandIconButton>
+                        <Tooltip content={expandedFunctions.includes(index) ? 'Collapse' : 'Expand'}>
+                            <S.ExpandIconButton
+                                appearance="icon"
+                                onClick={() => toggleFunctionExpand(index)}
+                            >
+                                <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
+                            </S.ExpandIconButton>
+                        </Tooltip>
                         <div style={{ flexGrow: 1 }}>
                             <IdentifierField
                                 value={member.name}
