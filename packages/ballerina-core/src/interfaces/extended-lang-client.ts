@@ -28,7 +28,7 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, CustomFnMetadata, ResultClauseType, IOType } from "./data-mapper";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
@@ -310,7 +310,7 @@ export interface DataMapperBase {
 
 export interface DataMapperSourceRequest extends DataMapperBase {
     mapping: Mapping;
-    withinSubMapping?: boolean;
+    subMappingName?: string;
 }
 
 export interface AllDataMapperSourceRequest extends DataMapperBase {
@@ -399,6 +399,7 @@ export interface AddArrayElementRequest {
     varName?: string;
     targetField?: string;
     propertyKey?: string;
+    subMappingName?: string;
 }
 
 export interface ConvertToQueryRequest {
@@ -409,6 +410,7 @@ export interface ConvertToQueryRequest {
     varName?: string;
     targetField: string;
     propertyKey?: string;
+    subMappingName?: string;
 }
 
 export interface AddClausesRequest {
@@ -419,6 +421,7 @@ export interface AddClausesRequest {
     varName?: string;
     targetField: string;
     propertyKey?: string;
+    subMappingName?: string;
 }
 
 export interface AddSubMappingRequest {
@@ -436,15 +439,17 @@ export interface DeleteMappingRequest {
     mapping: Mapping;
     varName?: string;
     targetField: string;
+    subMappingName?: string;
 }
 
-export interface MapWithCustomFnRequest {
+export interface MapWithFnRequest {
     filePath: string;
     codedata: CodeData;
     mapping: Mapping;
-    functionMetadata: CustomFnMetadata;
+    functionMetadata: FnMetadata;
     varName?: string;
     targetField: string;
+    subMappingName?: string;
 }
 
 export interface GetDataMapperCodedataRequest {
