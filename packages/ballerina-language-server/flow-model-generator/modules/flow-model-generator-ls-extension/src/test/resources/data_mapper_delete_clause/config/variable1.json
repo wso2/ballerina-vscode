@@ -1,0 +1,39 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 127
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "index": 0,
+  "targetField": "credentials",
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 66
+          },
+          "end": {
+            "line": 19,
+            "character": 91
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
