@@ -156,7 +156,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleAddNewConfigurable = () => {
-        console.log("#LINERANGE", targetLineRange)
         addModal(
             <FormGenerator
                 fileName={fileName}
