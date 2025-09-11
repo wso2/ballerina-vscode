@@ -155,15 +155,6 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                     </SlidingPaneNavContainer>
                 </ExpandableList>
             )}
-            {isSelectedTypeContainsType(selectedType, "string[]") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("[\"\"]") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create a string array
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
             {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
                 <ExpandableList>
                     <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `TEXT_HERE`") }}>
@@ -178,6 +169,33 @@ const NonRecordCreateValue = (props: CreateValuePageProps) => {
                     <SlidingPaneNavContainer onClick={() => { handleValueSelect("error(\"ERROR_MESSAGE_HERE\")") }}>
                         <ExpandableList.Item sx={{ width: "100%" }}>
                             Create an error
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+            {isSelectedTypeContainsType(selectedType, "json") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("{}") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create an empty json
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+            {isSelectedTypeContainsType(selectedType, "xml") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("xml ``") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create a xml
+                        </ExpandableList.Item>
+                    </SlidingPaneNavContainer>
+                </ExpandableList>
+            )}
+            {isSelectedTypeContainsType(selectedType, "anydata") && (
+                <ExpandableList>
+                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("{}") }}>
+                        <ExpandableList.Item sx={{ width: "100%" }}>
+                            Create an empty object
                         </ExpandableList.Item>
                     </SlidingPaneNavContainer>
                 </ExpandableList>

@@ -157,6 +157,7 @@ export function FormGeneratorNew(props: FormProps) {
     const [formImports, setFormImports] = useState<FormImports>({});
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -234,6 +235,21 @@ export function FormGeneratorNew(props: FormProps) {
             return newStates;
         });
     };
+
+    const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
+        if (matchedReferenceType) {
+            if (matchedReferenceType.labelDetails.detail === "Structural Types" || matchedReferenceType.labelDetails.detail === "Behaviour Types") {
+                setValueTypeConstraints('');
+                return;
+            }
+        }
+        setValueTypeConstraints(valueTypeConstraint);
+    }
 
     const defaultType = (): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
@@ -586,6 +602,8 @@ export function FormGeneratorNew(props: FormProps) {
             isInModal: false,
             valueTypeConstraint: valueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
+            handleValueTypeConstChange: handleValueTypeConstChange,
+            forcedValueTypeConstraint: valueTypeConstraints,
         });
     };
 

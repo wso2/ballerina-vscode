@@ -55,9 +55,10 @@ export type HelperPaneNewProps = {
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
-    valueTypeConstraint?: string | string[];
-    forcedValueTypeConstraint?: string | string[];
+    valueTypeConstraint?: string;
+    forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+    handleValueTypeConstChange: (valueTypeConstraint: string)=>void;
 };
 
 const TitleContainer = styled.div`
@@ -83,7 +84,8 @@ const HelperPaneNewEl = ({
     isInModal,
     valueTypeConstraint,
     handleRetrieveCompletions,
-    forcedValueTypeConstraint
+    forcedValueTypeConstraint,
+    handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -126,6 +128,12 @@ const HelperPaneNewEl = ({
             }
         }
     }, [anchorRef]);
+
+    useEffect(()=>{
+        if (valueTypeConstraint?.length > 0) {
+            handleValueTypeConstChange(valueTypeConstraint)
+        }
+    }, [valueTypeConstraint, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -255,7 +263,7 @@ const HelperPaneNewEl = ({
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
-                                {((valueTypeConstraint && valueTypeConstraint.length > 0) || (forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
+                                {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
                                             <ExpandableList.Item>
@@ -450,6 +458,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         isInModal,
         valueTypeConstraint,
         forcedValueTypeConstraint,
+        handleValueTypeConstChange,
     } = props;
 
     return (
@@ -476,6 +485,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             valueTypeConstraint={valueTypeConstraint}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
+            handleValueTypeConstChange={handleValueTypeConstChange}
         />
     );
 };
