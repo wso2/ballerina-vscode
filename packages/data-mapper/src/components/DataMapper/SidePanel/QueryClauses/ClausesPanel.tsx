@@ -29,12 +29,13 @@ export interface ClausesPanelProps {
     query: Query;
     targetField: string;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    deleteClause: (targetField: string, index: number) => Promise<void>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
-    const { query, targetField, addClauses, generateForm } = props;
+    const { query, targetField, addClauses, deleteClause, generateForm } = props;
 
     const [adding, setAdding] = React.useState<number>(-1);
     const [editing, setEditing] = React.useState<number>(-1);
@@ -56,7 +57,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
 
     const onDelete = async (index: number) => {
         setDeleting(index);
-        await setClauses( undefined, false, index);
+        await deleteClause(targetField, index);
         setDeleting(-1);
     }
 
@@ -109,15 +110,15 @@ export function ClausesPanel(props: ClausesPanelProps) {
                     ))}
                 </ClauseItemListContainer>
 
-                {(adding === clauses.length) ? (
+                {adding === undefined ? (
                     <ClauseEditor
-                        isSaving={saving === clauses.length}
+                        isSaving={saving === undefined}
                         onCancel={() => setAdding(-1)}
                         onSubmit={onAdd}
                         generateForm={generateForm}
                     />
                 ) : (
-                    <AddButton onClick={() => setAdding(clauses.length)} />
+                    <AddButton onClick={() => setAdding(undefined)} />
                 )}
             </SidePanelBody>
         </SidePanel>

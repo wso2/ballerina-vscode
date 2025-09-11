@@ -49,7 +49,7 @@ export interface SubMappingItemProps {
 
 export function SubMappingItemWidget(props: SubMappingItemProps) {
     const { index, id, name, type, engine, context, subMappings, getPort } = props;
-    const { views, addView, applyModifications } = context;
+    const { views, addView } = context;
     const isOnRootView = views.length === 1;
 
     const classes = useIONodesStyles();
@@ -141,8 +141,11 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
 
     const onClickOnDelete = async () => {
         setDeleteInProgress(true);
-        // TODO: Update mappings array and apply modification
-        setDeleteInProgress(false);
+        try {
+            await context.deleteSubMapping(index, views[views.length - 1].targetField);
+        } finally {
+            setDeleteInProgress(false);
+        }
     };
 
     return (
@@ -180,6 +183,7 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
                         data-testid={`go-to-sub-mapping-btn-${index}`}
                         tooltip="Go to sub mapping"
                         onClick={onClickOnExpand}
+                        sx={{ marginRight: "5px" }}
                         data-field-action
                     >
                         <Codicon
@@ -187,19 +191,21 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
                             iconSx={{ color: "var(--vscode-input-placeholderForeground)" }}
                         />
                     </Button>
-                    {deleteInProgress ? <ProgressRing sx={{ height: '16px', width: '16px' }} /> :
-                        <Button
-                            appearance="icon"
-                            tooltip="Delete sub mapping"
-                            onClick={onClickOnDelete}
-                            data-testid={`delete-sub-mapping-btn-${index}`}
-                            data-field-action
-                        >
-                            <Codicon
-                                name="trash"
-                                iconSx={{ marginLeft: "5px", color: "var(--vscode-errorForeground)" }}
-                            />
-                        </Button>
+                    {deleteInProgress
+                        ? (<ProgressRing sx={{ height: '16px', width: '16px' }} />)
+                        : (
+                            <Button
+                                id={`delete-sub-mapping-btn-${index}`}
+                                appearance="icon"
+                                tooltip="Delete sub mapping"
+                                onClick={onClickOnDelete}
+                            >
+                                <Codicon
+                                    name="trash"
+                                    iconSx={{ color: "var(--vscode-errorForeground)" }}
+                                />
+                            </Button>
+                        )
                     }
                 </span>
                 <span className={classes.outPort}>
