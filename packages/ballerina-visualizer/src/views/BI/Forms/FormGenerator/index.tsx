@@ -942,6 +942,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         };
     };
 
+    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
+        return ["()"].includes(typeLabel);
+    }
+
     /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
@@ -954,7 +958,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description !== "Record") {
-            if (type.labelDetails.detail === "Structural Types" || type.labelDetails.detail === "Behaviour Types") {
+            if (type.labelDetails.detail === "Structural Types" || type.labelDetails.detail === "Behaviour Types" || isTypeExcludedFromValueTypeConstraint(type.label)) {
                 setValueTypeConstraints('');
             }
             else {

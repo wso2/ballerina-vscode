@@ -24,6 +24,8 @@ export const DEFAULT_VALUE_MAP: Record<string, string> = {
     "float": "0.0",
     "boolean": "false",
     "any": "null",
+    "decimal": "0.0",
+    "byte": "0"
 }
 
 export const isRowType = (type: string | string[]) => {
