@@ -19,9 +19,9 @@
 import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordTypeField, TypeField } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RefObject, useEffect, useRef, useState } from "react";
-import { getDefaultValue, isRowType } from "../Utils/types";
 import ExpandableList from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
+import { ValueCreationOption } from "..";
 
 type CreateValuePageProps = {
     fileName: string;
@@ -30,6 +30,7 @@ type CreateValuePageProps = {
     selectedType?: string | string[];
     recordTypeField?: RecordTypeField;
     anchorRef: RefObject<HTMLDivElement>;
+    valueCreationOptions?: ValueCreationOption[];
 }
 
 const passPackageInfoIfExists = (recordTypeMember: PropertyTypeMemberInfo) => {
@@ -50,7 +51,7 @@ const getPropertyMember = (field: RecordTypeField) => {
 }
 
 export const CreateValue = (props: CreateValuePageProps) => {
-    const { fileName, currentValue, onChange, selectedType, recordTypeField, anchorRef } = props;
+    const { fileName, currentValue, onChange, selectedType, recordTypeField, valueCreationOptions } = props;
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -114,6 +115,7 @@ export const CreateValue = (props: CreateValuePageProps) => {
                 currentValue={currentValue}
                 onChange={onChange}
                 selectedType={selectedType}
+                valueCreationOptions={valueCreationOptions}
                 {...props}
             />
     )
@@ -128,78 +130,26 @@ const isSelectedTypeContainsType = (selectedType: string | string[], searchType:
 }
 
 const NonRecordCreateValue = (props: CreateValuePageProps) => {
-    const { selectedType, onChange } = props;
+    const { selectedType, onChange, valueCreationOptions } = props;
 
     const handleValueSelect = (value: string) => {
         onChange(value, false);
     }
 
-    const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
     return (
         <div style={{ padding: '8px 0px' }}>
-            {defaultValue && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect(defaultValue) }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Initialize to {defaultValue}
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "string") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("\"TEXT_HERE\"") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create a string value
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "log:PrintableRawTemplate") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("string `TEXT_HERE`") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create a printable template
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "error") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("error(\"ERROR_MESSAGE_HERE\")") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create an error
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "json") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("{}") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create an empty json
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "xml") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("xml ``") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create a xml
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
-            {isSelectedTypeContainsType(selectedType, "anydata") && (
-                <ExpandableList>
-                    <SlidingPaneNavContainer onClick={() => { handleValueSelect("{}") }}>
-                        <ExpandableList.Item sx={{ width: "100%" }}>
-                            Create an empty object
-                        </ExpandableList.Item>
-                    </SlidingPaneNavContainer>
-                </ExpandableList>
-            )}
+            {valueCreationOptions
+                .filter(option => option.typeCheck === null || isSelectedTypeContainsType(selectedType, option.typeCheck))
+                .map((option, index) => (
+                    <ExpandableList key={(option.typeCheck || 'default') + index}>
+                        <SlidingPaneNavContainer onClick={() => { handleValueSelect(option.value) }}>
+                            <ExpandableList.Item sx={{ width: "100%" }}>
+                                {option.label}
+                            </ExpandableList.Item>
+                        </SlidingPaneNavContainer>
+                    </ExpandableList>
+                ))
+            }
         </div>
     );
 }

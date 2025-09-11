@@ -33,8 +33,15 @@ import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
+import { getDefaultValue } from './Utils/types';
 
 const MAX_MENU_ITEM_COUNT = 4;
+
+export type ValueCreationOption = {
+    typeCheck: string | null;
+    value: string;
+    label: string;
+}
 
 export type HelperPaneNewProps = {
     fieldKey: string;
@@ -259,6 +266,62 @@ const HelperPaneNewEl = ({
         }
     }, [selectedItem]);
 
+    const isSelectedTypeContainsType = (selectedType: string | string[], searchType: string) => {
+        if (Array.isArray(selectedType)) {
+            return selectedType.some(type => type.includes(searchType));
+        }
+        const unionTypes = selectedType.split("|").map(type => type.trim());
+        return unionTypes.includes(searchType);
+    };
+
+    const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
+
+    const allValueCreationOptions = [
+        {
+            typeCheck: "string",
+            value: "\"TEXT_HERE\"",
+            label: "Create a string value"
+        },
+        {
+            typeCheck: "log:PrintableRawTemplate",
+            value: "string `TEXT_HERE`",
+            label: "Create a printable template"
+        },
+        {
+            typeCheck: "error",
+            value: "error(\"ERROR_MESSAGE_HERE\")",
+            label: "Create an error"
+        },
+        {
+            typeCheck: "json",
+            value: "{}",
+            label: "Create an empty json"
+        },
+        {
+            typeCheck: "xml",
+            value: "xml ``",
+            label: "Create a xml template"
+        },
+        {
+            typeCheck: "anydata",
+            value: "{}",
+            label: "Create an empty object"
+        }
+    ];
+
+    // Filter options based on type matching, and add default value if it exists
+    const valueCreationOptions = [
+        ...(defaultValue ? [{
+            typeCheck: null, // Special case for default value (if type is primitive)
+            value: defaultValue,
+            label: `Initialize to ${defaultValue}`
+        }] : []),
+        ...allValueCreationOptions.filter(option => 
+            forcedValueTypeConstraint && 
+            isSelectedTypeContainsType(forcedValueTypeConstraint, option.typeCheck)
+        )
+    ];
+
     const openRecordConfigView = () => {
         addModal(
             <div style={{ padding: '0px 10px' }}>
@@ -292,19 +355,22 @@ const HelperPaneNewEl = ({
                                                 </Typography>
                                             </ExpandableList.Item>
                                         </SlidingPaneNavContainer> :
-                                        <SlidingPaneNavContainer
-                                            ref={el => menuItemRefs.current[0] = el}
-                                            to="CREATE_VALUE"
-                                            data={recordTypeField}
-                                            sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
-                                        >
-                                            <ExpandableList.Item>
-                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
-                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                    Create Value
-                                                </Typography>
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer>
+                                        <>
+                                            {valueCreationOptions.length > 0 && (
+                                                <SlidingPaneNavContainer
+                                                    ref={el => menuItemRefs.current[0] = el}
+                                                    to="CREATE_VALUE"
+                                                    data={recordTypeField}
+                                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
+                                                >
+                                                    <ExpandableList.Item>
+                                                        {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                            Create Value
+                                                        </Typography>
+                                                    </ExpandableList.Item>
+                                                </SlidingPaneNavContainer>
+                                            )}</>
                                 )}
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[1] = el}
@@ -378,6 +444,7 @@ const HelperPaneNewEl = ({
                             currentValue={currentValue}
                             selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
+                            valueCreationOptions={valueCreationOptions}
                             anchorRef={anchorRef} />
                     </SlidingPane>
 

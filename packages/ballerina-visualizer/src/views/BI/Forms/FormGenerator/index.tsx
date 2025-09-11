@@ -217,7 +217,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
-    const [currentFilePath, setCurrentFilePath] = useState<string>("");
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -317,6 +316,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!node) {
             return;
         }
+        if (node.codedata.node === "VARIABLE" && 
+            node.properties?.type?.value &&
+            (node.properties.type.value as string).length > 0) {
+            handleValueTypeConstChange(node.properties.type.value as string);
+        }
         if (node.codedata.node === "IF") {
             return;
         }
@@ -327,14 +331,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleFormClose();
         };
     }, [node]);
-
-    useEffect(() => {
-        if (rpcClient) {
-            rpcClient.getVisualizerLocation().then((machineView) => {
-                setCurrentFilePath(machineView.metadata.recordFilePath);
-            });
-        }
-    }, [rpcClient]);
 
     const handleFormOpen = () => {
         rpcClient
@@ -750,6 +746,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
             updateRecordTypeFields(matchedReferenceType)
+            setValueTypeConstraints(valueTypeConstraint);
         }
         else {
             const type = await searchImportedTypeByName(valueTypeConstraint);
@@ -1014,10 +1011,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
      * Searches for a type by name from the available types
      */
     const searchImportedTypeByName = async (typeName: string): Promise<TypeHelperItem | undefined> => {
+        // Return early if required data is not available
+        if (!fileName || !typeName) {
+            return undefined;
+        }
+
         const newTypes = await rpcClient
             .getBIDiagramRpcClient()
             .search({
-                filePath: currentFilePath,
+                filePath: fileName,
                 position: targetLineRange,
                 queryMap: {
                     q: '',
@@ -1048,8 +1050,17 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
      * Handles type selection by type name (used when type is created/changed)
      */
     const handleSelectedTypeByName = async (typeName: string) => {
+        // Early return for invalid input
+        if (!typeName || typeName.length === 0) {
+            setValueTypeConstraints('');
+            return;
+        }
+
         const type = await searchImportedTypeByName(typeName);
-        if (!type) return;
+        if (!type) {
+            setValueTypeConstraints('');
+            return;
+        }
 
         setValueTypeConstraints(type.insertText);
         // Create the record type field for expression

@@ -65,6 +65,25 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
+         let org = "";
+        let module = "";
+        let version = "";
+        let packageInfo = "";
+
+        if (recordTypeField.recordTypeMembers[0].packageInfo?.length > 0) {
+            const parts = recordTypeField.recordTypeMembers[0].packageInfo.split(':');
+            if (parts.length === 3) {
+                [org, module, version] = parts;
+                packageInfo = recordTypeField.recordTypeMembers[0].packageInfo;
+            }
+        } else {
+            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+            org = tomValues?.package?.org || "";
+            module = tomValues?.package?.name || "";
+            version = tomValues?.package?.version || "";
+        }
+        packageInfo = `${org}:${module}:${version}`;
+        recordTypeField.recordTypeMembers[0].packageInfo = packageInfo;
         const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
             filePath: fileName,
             typeMembers: recordTypeField.recordTypeMembers,
