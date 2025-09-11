@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, CheckBox, Codicon } from '@wso2/ui-toolkit';
+import { Button, CheckBox, Codicon, Tooltip } from '@wso2/ui-toolkit';
 import { Type } from '@wso2/ballerina-core';
 
 interface AdvancedOptionsProps {
@@ -24,15 +24,17 @@ export function AdvancedOptions({ type, onChange }: AdvancedOptionsProps) {
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', marginBottom: '5px', cursor: 'pointer' }}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <Button
-                    appearance='icon'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsExpanded(!isExpanded);
-                    }}
-                >
-                    <Codicon name={isExpanded ? "chevron-up" : "chevron-down"} />
-                </Button>
+                <Tooltip content={isExpanded ? 'Collapse' : 'Expand'}>
+                    <Button
+                        appearance='icon'
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsExpanded(!isExpanded);
+                        }}
+                    >
+                        <Codicon name={isExpanded ? "chevron-up" : "chevron-down"} />
+                    </Button>
+                </Tooltip>
                 <span>Advanced Options</span>
             </div>
             {isExpanded && (
