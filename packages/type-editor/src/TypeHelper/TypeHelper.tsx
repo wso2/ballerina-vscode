@@ -250,20 +250,24 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                 <div style={{ height: '100%', overflow: 'hidden', display: isTypeBrowserOpen ? 'none' : 'block' }}>
 
                     <SlidingWindow>
-                        <SlidingPane name="PAGE1" paneWidth={typeFieldRef?.width} paneHeight='170px'>                         <div style={{
-                            justifyContent: "center",
-                            alignItems: "center",
-                            margin: "3px 8px",
-                            display: isTypeBrowserOpen ? 'none' : 'flex'
-                        }}>
+                        <SlidingPane
+                            name="PAGE1"
+                            paneWidth={typeFieldRef?.width}
+                            paneHeight='170px'>
+                            <div style={{
+                                justifyContent: "center",
+                                alignItems: "center",
+                                margin: "3px 8px",
+                                display: isTypeBrowserOpen ? 'none' : 'flex'
+                            }}>
 
-                            <SearchBox
-                                sx={{ width: "100%" }}
-                                placeholder='Search'
-                                value={searchValue}
-                                onChange={handleHelperPaneSearch}
-                            />
-                        </div>
+                                <SearchBox
+                                    sx={{ width: "100%" }}
+                                    placeholder='Search'
+                                    value={searchValue}
+                                    onChange={handleHelperPaneSearch}
+                                />
+                            </div>
                             {
                                 loading ? (
                                     <HelperPane.Loader />
@@ -310,12 +314,16 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                                 <ExpandableList.Section
                                                                     sx={{ marginTop: '10px' }}
                                                                     key={subCategory.category}
-                                                                    title={<><span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>{subCategory.category}</span></>}
+                                                                    title={
+                                                                        <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                                            {subCategory.category}
+                                                                        </span>}
                                                                     level={0}
                                                                 >
                                                                     <div style={{ marginTop: '10px' }}>
                                                                         {subCategory.items?.map((item) => (
-                                                                            <SlidingPaneNavContainer onClick={() => handleTypeBrowserItemClick(item)}>
+                                                                            <SlidingPaneNavContainer
+                                                                                onClick={() => handleTypeBrowserItemClick(item)}>
                                                                                 <ExpandableList.Item
                                                                                     key={`${subCategory.category}-${item.name}`}
                                                                                 >
