@@ -22,7 +22,7 @@ import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
-import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/src/components/ExpressionEditor/components/Common/SlidingPane';
+import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
@@ -32,7 +32,7 @@ import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './Utils/types';
-import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/src/components/ExpressionEditor/components/Form';
+import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
