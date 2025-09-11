@@ -66,7 +66,7 @@ export interface DataMapperEditorProps {
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
-    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
