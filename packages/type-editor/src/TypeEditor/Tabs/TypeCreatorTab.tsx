@@ -199,8 +199,9 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
     }, [editingType?.name, newType]);
 
     const handleSetType = (type: Type | ((currentType: any) => any)) => {
+        if (typeof type === "function") return;
         replaceTop({
-            type: typeof type === "function" ? type(type) : type,
+            type: type,
             isDirty: true
         })
         setType(type)
