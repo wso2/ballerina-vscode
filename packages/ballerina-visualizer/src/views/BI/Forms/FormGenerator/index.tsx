@@ -216,7 +216,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [valueTypeConstraints, setValueTypeConstraints] = useState<string | string[]>([]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
     const [currentFilePath, setCurrentFilePath] = useState<string>("");
 
     /* Expression editor related state and ref variables */
@@ -742,6 +742,47 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setFields(updatedFields);
     };
 
+    const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
+        if (matchedReferenceType) {
+            updateRecordTypeFields(matchedReferenceType)
+        }
+        else {
+            const type = await searchImportedTypeByName(valueTypeConstraint);
+            if (!type) {
+                setValueTypeConstraints(valueTypeConstraint);
+                return;
+            };
+
+            setValueTypeConstraints(type.insertText);
+            // Create the record type field for expression
+            const expressionEntry = Object.entries(getFormProperties(node))
+                .find(([_, property]) => property.metadata?.label === "Expression");
+
+            if (!expressionEntry) return;
+
+            const [key, property] = expressionEntry;
+            const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
+            const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
+            if (!recordTypeField) return;
+
+            setRecordTypeFields(prevFields => {
+                const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
+                if (prevIndex !== -1) {
+                    const updated = [...prevFields];
+                    updated[prevIndex] = recordTypeField;
+                    return updated;
+                } else {
+                    return [...prevFields, recordTypeField];
+                }
+            });
+        }
+    }
+
     const handleGetHelperPane = (
         fieldKey: string,
         exprRef: RefObject<FormExpressionEditorRef>,
@@ -784,6 +825,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             valueTypeConstraint: defaultValueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
             forcedValueTypeConstraint: valueTypeConstraints,
+            handleValueTypeConstChange: handleValueTypeConstChange
         });
     };
 
@@ -899,14 +941,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }]
         };
     };
-    
+
     /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
      */
     const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string, detail?: string } }) => {
         if (!type) {
-            setValueTypeConstraints([]);
+            setValueTypeConstraints('');
             return;
         }
 
@@ -921,7 +963,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
             return;
         }
-        else{
+        else {
             setValueTypeConstraints(type.label);
         }
 
@@ -965,9 +1007,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     /**
-     * Handles type selection by type name (used when type is created/changed)
+     * Searches for a type by name from the available types
      */
-    const handleSelectedTypeByName = async (typeName: string) => {
+    const searchImportedTypeByName = async (typeName: string): Promise<TypeHelperItem | undefined> => {
         const newTypes = await rpcClient
             .getBIDiagramRpcClient()
             .search({
@@ -986,6 +1028,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             .finally(() => {
 
             });
+
         let type: TypeHelperItem | undefined;
         for (const category of newTypes[0].subCategory) {
             const matchedType = findMatchedType(category.items, typeName);
@@ -994,6 +1037,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 break;
             }
         }
+        return type;
+    };
+
+    /**
+     * Handles type selection by type name (used when type is created/changed)
+     */
+    const handleSelectedTypeByName = async (typeName: string) => {
+        const type = await searchImportedTypeByName(typeName);
         if (!type) return;
 
         setValueTypeConstraints(type.insertText);
