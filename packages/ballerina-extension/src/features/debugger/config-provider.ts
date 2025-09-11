@@ -41,7 +41,7 @@ import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import { log, debug as debugLog, isSupportedSLVersion, isWindows, isWSL } from "../../utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -697,7 +697,8 @@ class BIRunAdapter extends LoggingDebugSession {
             task: 'run'
         };
 
-        let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+        // Use 'bal run' instead of full path for better compatibility
+        let runCommand: string = 'bal run';
 
         const programArgs = (args as any).programArgs;
         if (programArgs && programArgs.length > 0) {
@@ -708,7 +709,18 @@ class BIRunAdapter extends LoggingDebugSession {
             runCommand = `${runCommand} --experimental`;
         }
 
-        const execution = new ShellExecution(runCommand);
+        // Set up environment variables for WSL
+        const env = { ...process.env };
+        if (isWSL() && process.env.JAVA_HOME) {
+            env.JAVA_HOME = process.env.JAVA_HOME;
+            // Ensure Java bin is in PATH
+            const javaBinPath = join(process.env.JAVA_HOME, 'bin');
+            if (env.PATH && !env.PATH.includes(javaBinPath)) {
+                env.PATH = `${javaBinPath}:${env.PATH}`;
+            }
+        }
+
+        const execution = new ShellExecution(runCommand, { env });
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open

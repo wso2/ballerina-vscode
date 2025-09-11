@@ -68,6 +68,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import path from 'path';
+import * as glob from 'glob';
 import { RPCLayer } from "../RPCLayer";
 import { VisualizerWebview } from "../views/visualizer/webview";
 
@@ -1441,6 +1442,20 @@ export class BallerinaExtension {
         let exeExtension = "";
         if (isWindows()) {
             exeExtension = ".bat";
+        } else if (isWSL()) {
+            // In WSL, check if we have a Linux installation in the WSL filesystem
+            const wslBallerinaPath = process.env.HOME + '/.ballerina';
+            const fs = require('fs');
+            if (fs.existsSync(wslBallerinaPath)) {
+                const wslInstallationPath = join(wslBallerinaPath, "ballerina-home");
+                if (fs.existsSync(wslInstallationPath)) {
+                    exeExtension = "";
+                    debug("[SETUP] WSL environment detected with Linux Ballerina installation, using no extension");
+                }
+            } else {
+                exeExtension = ".bat";
+                debug("[SETUP] WSL environment detected, using .bat extension for Windows executables");
+            }
         }
 
         // Set the Ballerina Home and Command
@@ -1700,17 +1715,110 @@ export class BallerinaExtension {
                 debug(`[VERSION] Error setting up distribution path: ${error}`);
                 throw error;
             }
+        } else if (isWSL()) {
+            // In WSL, try to detect Ballerina installation dynamically
+            // First try to use 'bal' command to get the home directory
+            try {
+                const { execSync } = require('child_process');
+                const balHomeOutput = execSync('bal home', { 
+                    encoding: 'utf8', 
+                    timeout: 10000,
+                    env: { ...process.env }
+                }).trim();
+                
+                if (balHomeOutput) {
+                    const wslBinPath = join(balHomeOutput, "bin");
+                    const fs = require('fs');
+                    if (fs.existsSync(wslBinPath)) {
+                        distPath = wslBinPath + sep;
+                        debug(`[VERSION] Using WSL Ballerina installation from 'bal home': ${distPath}`);
+                    }
+                }
+            } catch (error) {
+                debug(`[VERSION] Failed to get Ballerina home via 'bal home' command: ${error}`);
+                // Fallback to checking common installation paths
+                const commonPaths = [
+                    process.env.HOME + '/.ballerina/ballerina-home',
+                    '/usr/lib/ballerina/distributions/ballerina-*',
+                ];
+                
+                const fs = require('fs');
+                for (const pathPattern of commonPaths) {
+                    if (pathPattern.includes('*')) {
+                        // Handle glob patterns
+                        const glob = require('glob');
+                        const matches = glob.sync(pathPattern);
+                        for (const match of matches) {
+                            const binPath = join(match, "bin");
+                            if (fs.existsSync(binPath)) {
+                                distPath = binPath + sep;
+                                debug(`[VERSION] Using WSL Ballerina installation from glob pattern: ${distPath}`);
+                                break;
+                            }
+                        }
+                    } else {
+                        const binPath = join(pathPattern, "bin");
+                        if (fs.existsSync(binPath)) {
+                            distPath = binPath + sep;
+                            debug(`[VERSION] Using WSL Ballerina installation from common path: ${distPath}`);
+                            break;
+                        }
+                    }
+                    if (distPath) { break; }
+                }
+            }
         }
 
         let exeExtension = "";
         if (isWindows()) {
             exeExtension = ".bat";
             debug("[VERSION] Windows platform detected, using .bat extension");
+        } else if (isWSL()) {
+            // In WSL, determine extension based on the detected installation
+            if (distPath) {
+                // If we found a Linux installation path, use no extension
+                exeExtension = "";
+                debug("[VERSION] WSL environment detected with Linux Ballerina installation, using no extension");
+            } else {
+                // Fallback to .bat extension for Windows executables
+                exeExtension = ".bat";
+                debug("[VERSION] WSL environment detected, using .bat extension for Windows executables");
+            }
         } else {
             debug("[VERSION] Non-Windows platform detected, no extension needed");
         }
 
-        const ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        
+        // Handle WSL environment - prefer native Linux installation over Windows .bat files
+        if (isWSL()) {
+            if (exeExtension === ".bat") {
+                // Try to find a native Linux installation first
+                try {
+                    const { execSync } = require('child_process');
+                    // Check if 'bal' command is available in PATH
+                    execSync('which bal', { encoding: 'utf8', timeout: 5000 });
+                    // If we get here, 'bal' is available, use it instead of .bat
+                    ballerinaCommand = 'bal version';
+                    debug("[VERSION] WSL detected native 'bal' command, using it instead of .bat file");
+                } catch (error) {
+                    debug("[VERSION] No native 'bal' command found in WSL, will try .bat file");
+                    // If the path contains Windows-style paths, we need to handle them properly
+                    if (ballerinaCommand.includes('\\') || ballerinaCommand.match(/^[A-Za-z]:/)) {
+                        debug("[VERSION] WSL detected with Windows path, attempting to convert to WSL path");
+                        // Try to convert Windows path to WSL path
+                        const wslPath = ballerinaCommand.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
+                        debug(`[VERSION] Converted Windows path to WSL path: ${wslPath}`);
+                        ballerinaCommand = wslPath;
+                    }
+                }
+            } else {
+                // We have a native Linux installation, use it directly
+                ballerinaCommand = 'bal version';
+                debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
+            }
+        }
+        
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
         let ballerinaExecutor = '';
@@ -1720,9 +1828,10 @@ export class BallerinaExtension {
                 timeout: 30000, // 30 second timeout
                 maxBuffer: 1024 * 1024, // 1MB buffer
                 env: { ...process.env }, // Use current environment
-                cwd: process.cwd() // Use current working directory
+                cwd: process.env.HOME || process.cwd() // Use current working directory
             };
 
+            debug(`[VERSION] Exec environment PATH: ${execOptions.cwd}...`);
             debug(`[VERSION] Exec options: timeout=${execOptions.timeout}ms, maxBuffer=${execOptions.maxBuffer}, cwd=${execOptions.cwd}`);
 
             const startTime = Date.now();
@@ -1748,6 +1857,11 @@ export class BallerinaExtension {
                     if (process.env.WSL_DISTRO_NAME) {
                         errorMessage += `\n[WSL Environment Detected: ${process.env.WSL_DISTRO_NAME}]`;
                         errorMessage += `\nCommon WSL issues: Path case sensitivity, Windows/Linux path mixing, file permissions`;
+                        errorMessage += `\nWSL-specific solutions:`;
+                        errorMessage += `\n- Ensure Ballerina is installed on Windows and accessible from WSL`;
+                        errorMessage += `\n- Check if the Windows PATH is properly accessible in WSL`;
+                        errorMessage += `\n- Try running 'wsl.exe bal version' from Windows Command Prompt to test`;
+                        errorMessage += `\n- Consider installing Ballerina directly in WSL if Windows installation is not accessible`;
                     }
 
                     if (err.code === 'ENOENT') {
@@ -1998,6 +2112,29 @@ export class BallerinaExtension {
                 execOptions.shell = true;
                 response = spawnSync('cmd.exe', ['/c', this.ballerinaCmd, ...args], execOptions);
                 debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${this.ballerinaCmd} ${args.join(' ')}`);
+            } else if (isWSL()) {
+                debug("[AUTO_DETECT] WSL environment detected");
+                // In WSL, try to use native 'bal' command first
+                try {
+                    const { execSync } = require('child_process');
+                    // Check if 'bal' command is available in PATH
+                    execSync('which bal', { encoding: 'utf8', timeout: 5000 });
+                    // If we get here, 'bal' is available, use it
+                    response = spawnSync('bal', args, execOptions);
+                    debug(`[AUTO_DETECT] WSL using native 'bal' command: bal ${args.join(' ')}`);
+                } catch (error) {
+                    debug("[AUTO_DETECT] No native 'bal' command found in WSL, trying .bat file");
+                    if (this.ballerinaCmd.endsWith('.bat')) {
+                        // Fallback to .bat file with shell execution
+                        execOptions.shell = true;
+                        response = spawnSync(this.ballerinaCmd, args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                    } else {
+                        // Use the configured command
+                        response = spawnSync(this.ballerinaCmd, args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                    }
+                }
             } else {
                 debug("[AUTO_DETECT] Non-Windows platform, using spawnSync directly");
                 // On other platforms, use spawnSync directly
@@ -2301,6 +2438,12 @@ export class BallerinaExtension {
             const freshEnv = await getShellEnvironment();
             debug('[SYNC_ENV] Syncing process environment with shell environment');
             updateProcessEnv(freshEnv);
+            
+            // For WSL environments, ensure JAVA_HOME is properly set
+            if (isWSL()) {
+                await this.setupJavaHomeForWSL();
+            }
+            
             debug('[SYNC_ENV] Environment synchronization completed successfully');
         } catch (error) {
             debug(`[SYNC_ENV] Failed to sync environment: ${error}`);
@@ -2312,6 +2455,99 @@ export class BallerinaExtension {
             }
             // Don't throw the error, as this is not critical for basic functionality
         }
+    }
+
+    /**
+     * Setup JAVA_HOME for WSL environments
+     * This is needed when Ballerina is installed manually in WSL
+     */
+    private async setupJavaHomeForWSL(): Promise<void> {
+        debug("[JAVA_HOME] Setting up JAVA_HOME for WSL environment...");
+        
+        // Check if JAVA_HOME is already set and valid
+        if (process.env.JAVA_HOME) {
+            try {
+                const fs = require('fs');
+                const javaHome = process.env.JAVA_HOME;
+                if (fs.existsSync(javaHome) && fs.existsSync(join(javaHome, 'bin', 'java'))) {
+                    debug(`[JAVA_HOME] JAVA_HOME is already set and valid: ${javaHome}`);
+                    return;
+                }
+            } catch (error) {
+                debug(`[JAVA_HOME] Current JAVA_HOME is invalid: ${error}`);
+            }
+        }
+
+        // Try to find Java installation - prioritize Java 21 for Ballerina 2201.12.9
+        const javaPaths = [
+            '/usr/lib/jvm/java-21-openjdk-amd64',
+            '/usr/lib/jvm/java-21-openjdk',
+            '/usr/lib/jvm/default-java',
+            '/usr/lib/jvm/java-17-openjdk-amd64',
+            '/usr/lib/jvm/java-11-openjdk-amd64',
+            '/usr/lib/jvm/java-8-openjdk-amd64',
+            '/opt/java',
+            '/usr/local/java'
+        ];
+
+        const fs = require('fs');
+        for (const javaPath of javaPaths) {
+            try {
+                if (fs.existsSync(javaPath) && fs.existsSync(join(javaPath, 'bin', 'java'))) {
+                    process.env.JAVA_HOME = javaPath;
+                    debug(`[JAVA_HOME] Set JAVA_HOME to: ${javaPath}`);
+                    
+                    // Also update PATH to include Java bin directory
+                    const javaBinPath = join(javaPath, 'bin');
+                    if (process.env.PATH && !process.env.PATH.includes(javaBinPath)) {
+                        process.env.PATH = `${javaBinPath}:${process.env.PATH}`;
+                        debug(`[JAVA_HOME] Added Java bin to PATH: ${javaBinPath}`);
+                    }
+                    return;
+                }
+            } catch (error) {
+                debug(`[JAVA_HOME] Error checking Java path ${javaPath}: ${error}`);
+            }
+        }
+
+        // Try to find Java using 'which java' command
+        try {
+            const { execSync } = require('child_process');
+            const javaPath = execSync('which java', { encoding: 'utf8', timeout: 5000 }).trim();
+            if (javaPath) {
+                // Extract JAVA_HOME from java executable path
+                const javaHome = javaPath.replace('/bin/java', '');
+                if (fs.existsSync(javaHome)) {
+                    process.env.JAVA_HOME = javaHome;
+                    debug(`[JAVA_HOME] Set JAVA_HOME from 'which java': ${javaHome}`);
+                    
+                    // Also update PATH to include Java bin directory
+                    const javaBinPath = join(javaHome, 'bin');
+                    if (process.env.PATH && !process.env.PATH.includes(javaBinPath)) {
+                        process.env.PATH = `${javaBinPath}:${process.env.PATH}`;
+                        debug(`[JAVA_HOME] Added Java bin to PATH: ${javaBinPath}`);
+                    }
+                    return;
+                }
+            }
+        } catch (error) {
+            debug(`[JAVA_HOME] Failed to find Java using 'which java': ${error}`);
+        }
+
+        debug("[JAVA_HOME] No suitable Java installation found for WSL environment");
+        
+        // Show helpful message to user
+        window.showWarningMessage(
+            'JAVA_HOME is not set. Ballerina requires Java 21+ to run. Please install Java 21 or set JAVA_HOME environment variable.',
+            'Install Java 21',
+            'View Documentation'
+        ).then(selection => {
+            if (selection === 'Install Java 21') {
+                commands.executeCommand('vscode.open', Uri.parse('https://adoptium.net/'));
+            } else if (selection === 'View Documentation') {
+                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/install-ballerina/'));
+            }
+        });
     }
 }
 
@@ -2545,7 +2781,7 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                         env[key] = value;
 
                         // Log important environment variables
-                        if (['PATH', 'Path', 'HOME', 'USERPROFILE', 'WSL_DISTRO_NAME'].includes(key)) {
+                        if (['PATH', 'Path', 'HOME', 'USERPROFILE', 'WSL_DISTRO_NAME', 'JAVA_HOME'].includes(key)) {
                             debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
                         }
                     });
@@ -2562,10 +2798,10 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                             env[key] = value;
                             parsedCount++;
 
-                            // Log important environment variables
-                            if (['PATH', 'HOME', 'SHELL', 'WSL_DISTRO_NAME'].includes(key)) {
-                                debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
-                            }
+                        // Log important environment variables
+                        if (['PATH', 'HOME', 'SHELL', 'WSL_DISTRO_NAME', 'JAVA_HOME'].includes(key)) {
+                            debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
+                        }
                         }
                     });
 

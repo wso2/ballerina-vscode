@@ -9,12 +9,13 @@ import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri,
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
+import { join } from 'path';
 import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName } from './utils';
+import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, isWSL } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
@@ -390,15 +391,21 @@ const stateMachine = createMachine<MachineContext>(
                         task: 'run'
                     };
 
+                    // Use 'bal build' directly for better compatibility
                     let buildCommand = 'bal build';
 
-                    const config = workspace.getConfiguration('ballerina');
-                    const ballerinaHome = config.get<string>('home');
-                    if (ballerinaHome) {
-                        buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
+                    // Set up environment variables for WSL
+                    const env = { ...process.env };
+                    if (isWSL() && process.env.JAVA_HOME) {
+                        env.JAVA_HOME = process.env.JAVA_HOME;
+                        // Ensure Java bin is in PATH
+                        const javaBinPath = join(process.env.JAVA_HOME, 'bin');
+                        if (env.PATH && !env.PATH.includes(javaBinPath)) {
+                            env.PATH = `${javaBinPath}:${env.PATH}`;
+                        }
                     }
 
-                    const execution = new ShellExecution(buildCommand);
+                    const execution = new ShellExecution(buildCommand, { env });
 
                     if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
                         resolve(true);
