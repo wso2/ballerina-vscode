@@ -38,7 +38,8 @@ import {
     VisualizableField,
     Member,
     TypeNodeKind,
-    NodeKind
+    NodeKind,
+    DataMapperDisplayMode
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -113,7 +114,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, openInDataMapper?: boolean, formImports?: FormImports, rawFormValues?: FormValues) => void;
+    onSubmit: (node?: FlowNode, dataMapperMode?: DataMapperDisplayMode, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -125,7 +126,7 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
-    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
@@ -409,8 +410,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             console.log(">>> Updated node", updatedNode);
 
-            const openInDataMapper = data["openInDataMapper"];
-            onSubmit(updatedNode, openInDataMapper, formImports);
+            const dataMapperMode = data["openInDataMapper"] ? DataMapperDisplayMode.VIEW : DataMapperDisplayMode.NONE;
+
+            onSubmit( updatedNode, dataMapperMode, formImports);
         }
     };
 

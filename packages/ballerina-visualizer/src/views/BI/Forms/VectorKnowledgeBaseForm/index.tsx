@@ -17,10 +17,10 @@
  */
 
 import { useEffect, useState } from "react";
-import { Button, Codicon, ProgressRing, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { Codicon, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import {
     FormValues,
     ExpressionFormField,
@@ -99,7 +99,7 @@ interface VectorKnowledgeBaseFormProps {
     showProgressIndicator?: boolean;
     onSubmit: (
         node?: FlowNode,
-        openInDataMapper?: boolean,
+        dataMapperMode?: DataMapperDisplayMode,
         formImports?: FormImports,
         rawFormValues?: FormValues
     ) => void;
@@ -215,7 +215,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         try {
             setSaving(true);
             const knowledgeBaseNode = mergeFormDataWithFlowNode(knowledgeBaseFormValues, targetLineRange);
-            onSubmit(knowledgeBaseNode, false, formImports);
+            onSubmit(knowledgeBaseNode, DataMapperDisplayMode.NONE, formImports);
         } catch (error) {
             console.error("Error creating vector knowledge base:", error);
         } finally {
