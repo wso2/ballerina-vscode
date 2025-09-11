@@ -80,13 +80,6 @@ const Container = styled.div`
     height: calc(100vh - 50px);
 `;
 
-const SpinnerContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-`;
-
 export interface BIFlowDiagramProps {
     projectPath: string;
     breakpointState?: boolean;
@@ -112,6 +105,8 @@ export type FormSubmitOptions = {
 };
 
 const LOADING_MESSAGE = "Loading...";
+const AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT = 3000; // Timeout (ms) before showing the 'fetching from Central' progress message
+const AI_COMPONENT_PROGRESS_MESSAGE = "Fetching resources from Ballerina Central. This may take a few moments...";
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
@@ -1585,8 +1580,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setProgressMessage(LOADING_MESSAGE);
         // hack: fetching from Central to build module dependency map in LSP may take time, so show a different message after 3 seconds
         const messageTimeout = setTimeout(() => {
-            setProgressMessage("Fetching resources from Ballerina Central. This may take a few moments...");
-        }, 3000);
+            setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
+        }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
         return messageTimeout;
     };
 
