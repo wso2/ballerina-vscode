@@ -18,13 +18,10 @@
 
 package org.ballerinalang.langserver.eventsync.subscribers;
 
-import io.ballerina.compiler.api.SemanticModel;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.LSContextOperation;
+import org.ballerinalang.compiler.BLangCompilerException;
 import org.ballerinalang.langserver.command.executors.PullModuleExecutor;
-import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
-import org.ballerinalang.langserver.commons.LSOperation;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.ballerinalang.langserver.commons.eventsync.EventKind;
@@ -34,18 +31,19 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.ShowMessageRequestParams;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Publisher to popup notification and resolve the missing dependencies on project updates.
+ * Subscriber should gracefully handle compilation errors by notifying the extension.
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber")
-public class ResolveModulesSubscriber implements EventSubscriber {
+public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
 
-    public static final String NAME = "Resolve modules subscriber";
+    public static final String NAME = "Resolve compilation errors subscriber";
     private static final String PULL_MODULES_ACTION = "Pull Modules";
+    private static final String ERROR_MESSAGE = "Language server has stopped working due to unresolved modules " +
+            "in your project. Please resolve them to proceed.";
 
     @Override
     public EventKind eventKind() {
@@ -55,34 +53,26 @@ public class ResolveModulesSubscriber implements EventSubscriber {
     @Override
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext serverContext) {
-        // Do this only for the did open
-        // TODO: Explore the UX on how we can provide this for each `didChange` with a proper interval
-        LSOperation operation = context.operation();
-        if (!operation.equals(LSContextOperation.TXT_DID_OPEN)) {
-            return;
-        }
+        // TODO: Skip this subscriber once diagnostic mentioned in
+        //  https://github.com/ballerina-platform/ballerina-lang/issues/44275 is available in the distribution.
+        try {
+            context.workspace().waitAndGetPackageCompilation(context.filePath());
+        } catch (BLangCompilerException e) {
+            String message = e.getMessage();
+            if (message != null && message.startsWith("failed to load the module")) {
+                ShowMessageRequestParams showMessageRequestParams = new ShowMessageRequestParams();
+                showMessageRequestParams.setType(MessageType.Error);
+                showMessageRequestParams.setMessage(ERROR_MESSAGE);
+                showMessageRequestParams.setActions(List.of(new MessageActionItem(PULL_MODULES_ACTION)));
 
-        Optional<SemanticModel> semanticModel = context.currentSemanticModel();
-        if (semanticModel.isEmpty()) {
-            return;
-        }
-
-        if (!CommonUtil.hasUnresolvedModules(semanticModel.get())) {
-            return;
-        }
-
-        ShowMessageRequestParams showMessageRequestParams = new ShowMessageRequestParams();
-        showMessageRequestParams.setType(MessageType.Warning);
-        showMessageRequestParams.setMessage(
-                "There are unresolved modules in your project. Some of the features may not work as expected.");
-        showMessageRequestParams.setActions(List.of(new MessageActionItem(PULL_MODULES_ACTION)));
-
-        client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
-            if (action != null && PULL_MODULES_ACTION.equals(action.getTitle())) {
-                PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
-                        context.languageServercontext());
+                client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
+                    if (action != null && PULL_MODULES_ACTION.equals(action.getTitle())) {
+                        PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
+                                context.languageServercontext());
+                    }
+                });
             }
-        });
+        }
     }
 
     @Override

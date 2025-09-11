@@ -183,7 +183,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         // Verify the client was called with the expected artifacts
         Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
         Object capturedValue = artifactsCaptor.getValue();
-        
+
         @SuppressWarnings("unchecked")
         ArtifactsParams artifactsParams = (ArtifactsParams) capturedValue;
         Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
@@ -221,6 +221,160 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
     @Override
     protected String getApiName() {
         return "publishArtifacts";
+    }
+
+    @Test(dependsOnMethods = "testReloadProjectWithPreExistingArtifacts")
+    public void testReloadProjectWithoutPreExistingArtifacts() throws Exception {
+        // Setup: Clear cache to simulate no pre-existing artifacts
+        clearProjectCache();
+
+        // Create mock document service context for reload project operation
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+        String sourcePath = getSourcePath("old");
+        Path filePath = Path.of(sourcePath);
+        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
+
+        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.RELOAD_PROJECT,
+                languageServer.getServerContext()
+        );
+
+        // Invoke the subscriber
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                documentServiceContext,
+                languageServer.getServerContext()
+        );
+
+        // Wait for debouncer to complete (using project-level key)
+        Path projectPath = workspaceManager.projectRoot(filePath);
+        String projectKey = projectPath.toUri().toString();
+        waitForDebouncerCompletion(projectKey);
+
+        // Verify the client was called
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
+        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
+
+        // Verify URI is project-level
+        Assert.assertEquals(artifactsParams.uri(), projectKey);
+
+        // Verify delta changes contain only additions (no pre-existing artifacts)
+        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+        Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
+
+        Path resourcesDir = configDir.getParent().resolve("resources");
+        Path configJsonPath = resourcesDir.resolve("no_preexisting_project.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
+
+        if (!publishedArtifacts.equals(expectedArtifacts)) {
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
+            // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
+        }
+    }
+
+    @Test
+    public void testReloadProjectWithPreExistingArtifacts() throws Exception {
+        initializeProject();
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+        String sourcePath = getSourcePath("new");
+        Path filePath = Path.of(sourcePath);
+        String fileUri = filePath.toAbsolutePath().normalize().toUri().toString();
+        DocumentServiceContext documentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+        VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier();
+        List<TextDocumentContentChangeEvent> changeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(sourcePath)));
+        try {
+            workspaceManager.didChange(filePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, changeEvents));
+        } catch (WorkspaceDocumentException e) {
+            Assert.fail("Error while sending didChange notification", e);
+        }
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                documentServiceContext,
+                languageServer.getServerContext());
+        waitForDebouncerCompletion(fileUri);
+
+        // Now perform the reload project test
+        DocumentServiceContext reloadContext = ContextBuilder.buildDocumentServiceContext(
+                fileUri,
+                workspaceManager,
+                LSContextOperation.RELOAD_PROJECT,
+                languageServer.getServerContext()
+        );
+
+        // Invoke the subscriber for reload
+        publishArtifactsSubscriber.onEvent(
+                mockClient,
+                reloadContext,
+                languageServer.getServerContext()
+        );
+
+        // Wait for debouncer to complete
+        waitForDebouncerCompletion(fileUri);
+
+        // Verify the client was called once (only for reload)
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient).publishArtifacts(artifactsCaptor.capture());
+        ArtifactsParams artifactsParams = artifactsCaptor.getValue();
+
+        // Assert the published artifacts
+        Path resourcesDir = configDir.getParent().resolve("resources");
+        Path configJsonPath = resourcesDir.resolve("existing_project.json");
+        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+
+        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
+        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+        if (!publishedArtifacts.equals(expectedArtifacts)) {
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
+            // updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
+        }
+    }
+
+    private void waitForDebouncerCompletion(String key) throws Exception {
+        ArtifactGenerationDebouncer debouncer = ArtifactGenerationDebouncer.getInstance();
+        long startTime = System.currentTimeMillis();
+        long timeout = 5000; // 5 seconds timeout
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            Field delayedMapField = ArtifactGenerationDebouncer.class.getDeclaredField("delayedMap");
+            delayedMapField.setAccessible(true);
+            ConcurrentHashMap<?, ?> map = (ConcurrentHashMap<?, ?>) delayedMapField.get(debouncer);
+
+            if (map.get(key) == null) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        Assert.fail("Timed out waiting for debouncer to finish processing");
+    }
+
+    private void clearProjectCache() throws Exception {
+        ArtifactsCache cache = ArtifactsCache.getInstance();
+        Field projectCacheField = ArtifactsCache.class.getDeclaredField("projectCache");
+        projectCacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> projectMap = (Map<String, Object>) projectCacheField.get(cache);
+        if (projectMap != null) {
+            projectMap.clear();
+        }
     }
 
     private record TestConfig(String source, String description,

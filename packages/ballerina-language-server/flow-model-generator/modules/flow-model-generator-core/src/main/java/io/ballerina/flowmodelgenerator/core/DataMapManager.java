@@ -444,7 +444,7 @@ public class DataMapManager {
         String[] fieldSplits = targetField.split(DOT);
         int idx = 1;
         if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            if (fieldSplits.length == 2 && fieldSplits[1].equals("0")) {
+            if (fieldSplits.length >= 2 && fieldSplits[1].equals(ZERO)) {
                 idx = 2;
             }
         }
@@ -1337,6 +1337,33 @@ public class DataMapManager {
                     }
                 } else if (parent.kind() == SyntaxKind.LOCAL_VAR_DECL) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(parent);
+                    if (optSymbol.isPresent()) {
+                        Symbol symbol = optSymbol.get();
+                        if (symbol.kind() == SymbolKind.VARIABLE) {
+                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                } else if (parent.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
+                    if (optSymbol.isEmpty()) {
+                        return;
+                    }
+                    Symbol symbol = optSymbol.get();
+                    if (symbol.kind() == SymbolKind.FUNCTION) {
+                        FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+                        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+                        if (returnType.isPresent()) {
+                            TypeSymbol returnTypeSymbol = returnType.get();
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(returnTypeSymbol).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    Optional<Symbol> optSymbol = semanticModel.symbol(expr);
                     if (optSymbol.isPresent()) {
                         Symbol symbol = optSymbol.get();
                         if (symbol.kind() == SymbolKind.VARIABLE) {
