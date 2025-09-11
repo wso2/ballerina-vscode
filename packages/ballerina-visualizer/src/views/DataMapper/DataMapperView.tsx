@@ -41,7 +41,8 @@ import {
     ResultClauseType,
     IOType,
     MACHINE_VIEW,
-    VisualizerLocation
+    VisualizerLocation,
+    DeleteClauseRequest
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -345,6 +346,28 @@ export function DataMapperView(props: DataMapperProps) {
         }
     }
 
+    const deleteClause = async (targetField: string, index: number) => {
+        try {
+            const deleteClauseRequest: DeleteClauseRequest = {
+                filePath,
+                codedata: viewState.codedata,
+                index,
+                targetField,
+                varName: name,
+                subMappingName: viewState.subMappingName
+            };
+            console.log(">>> [Data Mapper] deleteClause request:", deleteClauseRequest);
+
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .deleteClause(deleteClauseRequest);
+            console.log(">>> [Data Mapper] deleteClause response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    }
+
     const addSubMapping = async (
         subMappingName: string,
         type: string,
@@ -398,6 +421,25 @@ export function DataMapperView(props: DataMapperProps) {
                     subMappingName: viewState.subMappingName
                 });
             console.log(">>> [Data Mapper] deleteMapping response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
+    const deleteSubMapping = async (index: number, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .deleteSubMapping({
+                    filePath,
+                    codedata: viewState.codedata,
+                    index,
+                    varName: name,
+                    targetField: viewId,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] deleteSubMapping response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -611,8 +653,10 @@ export function DataMapperView(props: DataMapperProps) {
                             generateForm={generateForm}
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
+                            deleteClause={deleteClause}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
+                            deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
