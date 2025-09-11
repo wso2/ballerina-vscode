@@ -22,18 +22,17 @@ import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
-import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
+import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/src/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
-import DynamicModal from '../../../components/Modal';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
-import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Form';
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './Utils/types';
+import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/src/components/ExpressionEditor/components/Form';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
@@ -280,32 +279,32 @@ const HelperPaneNewEl = ({
         {
             typeCheck: "string",
             value: "\"TEXT_HERE\"",
-            label: "Create string value"
+            label: "Create a string value"
         },
         {
             typeCheck: "log:PrintableRawTemplate",
             value: "string `TEXT_HERE`",
-            label: "Create printable template"
+            label: "Create a printable template"
         },
         {
             typeCheck: "error",
             value: "error(\"ERROR_MESSAGE_HERE\")",
-            label: "Create error"
+            label: "Create an error"
         },
         {
             typeCheck: "json",
             value: "{}",
-            label: "Create empty json"
+            label: "Create an empty json"
         },
         {
             typeCheck: "xml",
             value: "xml ``",
-            label: "Create xml template"
+            label: "Create an xml template"
         },
         {
             typeCheck: "anydata",
             value: "{}",
-            label: "Create empty object"
+            label: "Create an empty object"
         }
     ];
 

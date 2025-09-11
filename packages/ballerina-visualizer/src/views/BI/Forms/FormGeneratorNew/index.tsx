@@ -247,7 +247,10 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" || matchedReferenceType.labelDetails.detail === "Behaviour Types" || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)) {
+            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+                || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
+            ) {
                 setValueTypeConstraints('');
                 return;
             }
