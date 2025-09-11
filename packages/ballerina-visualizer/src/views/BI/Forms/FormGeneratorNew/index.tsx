@@ -236,6 +236,10 @@ export function FormGeneratorNew(props: FormProps) {
         });
     };
 
+    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
+        return ["()"].includes(typeLabel);
+    }
+
     const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
         const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
             filePath: fileName,
@@ -243,7 +247,7 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" || matchedReferenceType.labelDetails.detail === "Behaviour Types") {
+            if (matchedReferenceType.labelDetails.detail === "Structural Types" || matchedReferenceType.labelDetails.detail === "Behaviour Types" || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)) {
                 setValueTypeConstraints('');
                 return;
             }
