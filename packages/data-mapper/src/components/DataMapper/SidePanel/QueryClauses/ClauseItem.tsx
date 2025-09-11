@@ -76,16 +76,6 @@ export function ClauseItem(props: ClauseItemProps) {
     
     return (
         <>
-            {isAdding ? (
-                <ClauseEditor
-                    isSaving={isSaving}
-                    onCancel={() => setAdding(-1)}
-                    onSubmit={onHandleAdd}
-                    generateForm={generateForm} />
-            ) : (
-                <AddButton onClick={() => setAdding(index)} />
-            )}
-
             <HeaderLabel data-testid={`${index}-${clauseType}-item`}>
                 <ContentWrapper onClick={() => setEditing(index)}>
                     <IconTextWrapper>
@@ -118,9 +108,19 @@ export function ClauseItem(props: ClauseItemProps) {
                     onSubmitText="Update"
                     isSaving={isSaving}
                     onSubmit={onHandleEdit}
-                    onCancel={() => setEditing(-1)}
+                    onCancel={() => setEditing(undefined)}
                     generateForm={generateForm}
                 />
+            )}
+
+            {isAdding ? (
+                <ClauseEditor
+                    isSaving={isSaving}
+                    onCancel={() => setAdding(undefined)}
+                    onSubmit={onHandleAdd}
+                    generateForm={generateForm} />
+            ) : (
+                <AddButton onClick={() => setAdding(index)} />
             )}
         </>
     );

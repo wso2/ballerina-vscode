@@ -37,33 +37,34 @@ export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
     const { query, targetField, addClauses, deleteClause, generateForm } = props;
 
-    const [adding, setAdding] = React.useState<number>(-1);
-    const [editing, setEditing] = React.useState<number>(-1);
-    const [deleting, setDeleting] = React.useState<number>(-1);
-    const [saving, setSaving] = React.useState<number>(-1);
+    const [adding, setAdding] = React.useState<number>();
+    const [editing, setEditing] = React.useState<number>();
+    const [deleting, setDeleting] = React.useState<number>();
+    const [saving, setSaving] = React.useState<number>();
 
     const clauses = query?.intermediateClauses || [];
 
-    const setClauses = async (clause: IntermediateClause, isNew: boolean, index?: number) => {
+    const setClauses = async (clause: IntermediateClause, isNew: boolean, index: number) => {
         setSaving(index);
         await addClauses(clause, targetField, isNew, index);
-        setSaving(-1);
+        setSaving(undefined);
     }
 
-    const onAdd = async (clause: IntermediateClause, index?: number) => {
+    const onAdd = async (clause: IntermediateClause, index: number = -1) => {
         await setClauses(clause, true, index);
-        setAdding(-1);
+        setAdding(undefined);
     }
 
     const onDelete = async (index: number) => {
         setDeleting(index);
         await deleteClause(targetField, index);
-        setDeleting(-1);
+        setDeleting(undefined);
     }
 
     const onEdit = async (clause: IntermediateClause, index: number) => {
+        clauses[index] = clause;
         await setClauses(clause, false, index);
-        setEditing(-1);
+        setEditing(undefined);
     }
 
     return (
@@ -91,6 +92,17 @@ export function ClausesPanel(props: ClausesPanelProps) {
             <SidePanelBody>
                 <span>Add filters or local variables to the query expression</span>
 
+                {adding === -1 ? (
+                    <ClauseEditor
+                        isSaving={saving === -1}
+                        onCancel={() => setAdding(undefined)}
+                        onSubmit={onAdd}
+                        generateForm={generateForm}
+                    />
+                ) : (
+                    <AddButton onClick={() => setAdding(-1)} />
+                )}
+
                 <ClauseItemListContainer>
                     {clauses.map((clause, index) => (
                         <ClauseItem
@@ -110,16 +122,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
                     ))}
                 </ClauseItemListContainer>
 
-                {adding === undefined ? (
-                    <ClauseEditor
-                        isSaving={saving === undefined}
-                        onCancel={() => setAdding(-1)}
-                        onSubmit={onAdd}
-                        generateForm={generateForm}
-                    />
-                ) : (
-                    <AddButton onClick={() => setAdding(undefined)} />
-                )}
+                
             </SidePanelBody>
         </SidePanel>
     );
