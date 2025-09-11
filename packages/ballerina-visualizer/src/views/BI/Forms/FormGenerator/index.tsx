@@ -37,7 +37,8 @@ import {
     CodeData,
     VisualizableField,
     Member,
-    TypeNodeKind
+    TypeNodeKind,
+    NodeKind
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -209,12 +210,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
-
     const [fields, setFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string | string[]>([]);
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -241,12 +242,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const popTypeStack = () => {
-        setStack((prev) => prev.slice(0, -1));
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
         setRefetchStates((prev) => {
             const newStates = [...prev];
             const currentState = newStates.pop();
             if (currentState && newStates.length > 0) {
                 newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
             }
             return newStates;
         });
@@ -263,6 +278,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             newStack[newStack.length - 1] = item;
             return newStack;
         });
+    }
+
+    const resetStack = () => {
+        setStack([getDefaultValue()]);
     }
 
     const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
@@ -438,9 +457,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
+            resetStack();
         }
-        setTypeEditorState({ isOpen: state });
+        setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
     const handleUpdateImports = (key: string, imports: Imports, codedata?: CodeData) => {
@@ -702,10 +721,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleExpressionEditorCancel();
     };
 
-    const onTypeEditorClosed = () => {
-        setTypeEditorState({ isOpen: stack.length !== 0 });
-    };
-
     const onTypeChange = async (type: Type) => {
         const updatedFields = fields.map((field) => {
             if (field.key === typeEditorState.fieldKey) {
@@ -713,8 +728,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }
             return field;
         });
+        handleSelectedTypeByName(type.name);
         setFields(updatedFields);
-        setTypeEditorState({ isOpen: true });
     };
 
     const handleGetHelperPane = (
@@ -728,7 +743,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string,
+        defaultValueTypeConstraint?: string,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -756,8 +771,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: isInModal,
-            valueTypeConstraint: valueTypeConstraint,
+            valueTypeConstraint: defaultValueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
+            forcedValueTypeConstraint: valueTypeConstraints,
         });
     };
 
@@ -845,32 +861,87 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         importsCodedataRef.current = {};
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        try {
-            setTypeEditorState({ isOpen: stack.length !== 0, newTypeValue: typeName, fieldKey: typeEditorState.fieldKey });
-            popTypeStack()
-        } catch (e) {
-            console.error(e)
-        }
-    };
-
     const onSaveType = (type: Type) => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
-        } else {
-            setTypeEditorState({ isOpen: false });
         }
+        setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
+    /**
+     * Updates record type fields and value type constraints when a type is selected.
+     * This is used in variable declaration forms where the variable type dynamically changes.
+     */
+    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string } }) => {
+        if (!type) {
+            setValueTypeConstraints([]);
+            return;
+        }
+        setValueTypeConstraints(type.label);
+
+        // If not a Record, remove the 'expression' entry from recordTypeFields and return
+        if (type?.labelDetails?.description !== "Record") {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
+            return;
+        }
+
+        // Find the Expression property
+        const expressionEntry = Object.entries(getFormProperties(node))
+            .find(([_, property]) => property.metadata?.label === "Expression");
+
+        if (!expressionEntry) return;
+
+        const [key, property] = expressionEntry;
+        const recordTypeField = {
+            key,
+            property,
+            recordTypeMembers: [{
+                kind: "RECORD_TYPE",
+                type: type.label || "",
+                packageInfo: '',
+                selected: false
+            }]
+        };
+
+        setRecordTypeFields(prevFields => {
+            const prevIndex = prevFields.findIndex(f => f.key === key);
+            if (prevIndex !== -1) {
+                const updated = [...prevFields];
+                updated[prevIndex] = recordTypeField;
+                return updated;
+            } else {
+                return [...prevFields, recordTypeField];
+            }
+        });
+    };
+
+    /**
+     * Handles type selection from completion items (used in type editor)
+     */
     const handleSelectedTypeChange = (type: CompletionItem) => {
         setSelectedType(type);
-    }
+        updateRecordTypeFields(type);
+    };
 
-    const getNewTypeCreateForm = () => {
-        pushTypeStack({
+    /**
+     * Handles type selection by type name (used when type is created/changed)
+     */
+    const handleSelectedTypeByName = async (typeName: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const type = newTypes.find(t => t.label === typeName);
+        if (!type) return;
+
+        updateRecordTypeFields(type);
+    };
+
+    const getDefaultValue = () => {
+        return ({
             type: {
-                name: "",
+                name: "MyType",
                 members: [] as Member[],
                 editable: true,
                 metadata: {
@@ -886,10 +957,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             },
             isDirty: false
         })
-        setTypeEditorState({
-            isOpen: true,
-            newTypeValue: ""
-        })
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack(getDefaultValue());
     }
 
     // handle if node form
@@ -1018,7 +1089,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                 />
                 {
                     stack.map((item, i) => <DynamicModal
@@ -1030,16 +1101,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         openState={typeEditorState.isOpen}
                         setOpenState={handleTypeEditorStateChange}>
                         <div style={{ padding: '0px 15px' }}>
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "New Type"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
+                            {stack.slice(0, i + 1).length > 1 && (
+                                <BreadcrumbContainer>
+                                    {stack.slice(0, i + 1).map((stackItem, index) => (
+                                        <React.Fragment key={index}>
+                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                            <BreadcrumbItem>
+                                                {stackItem?.type?.name || "New Type"}
+                                            </BreadcrumbItem>
+                                        </React.Fragment>
+                                    ))}
+                                </BreadcrumbContainer>
+                            )}
                             <FormTypeEditor
                                 type={peekTypeStack()?.type}
                                 newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -1047,7 +1120,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 isGraphql={isGraphql}
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
-                                onTypeCreate={handleTypeCreate}
+                                onTypeCreate={()=>{}}
+                                isPopupTypeForm={true}
                                 getNewTypeCreateForm={getNewTypeCreateForm}
                                 refetchTypes={refetchStates[i]}
                             />
@@ -1089,7 +1163,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    preserveOrder={node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE"}
+                    preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}
                     onChange={onChange}
@@ -1107,24 +1181,27 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
                     <div style={{ padding: '0px 20px' }}>
-                        <BreadcrumbContainer>
-                            {stack.slice(0, i + 1).map((stackItem, index) => (
-                                <React.Fragment key={index}>
-                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                    <BreadcrumbItem>
-                                        {stackItem?.type?.name || "New Type"}
-                                    </BreadcrumbItem>
-                                </React.Fragment>
-                            ))}
-                        </BreadcrumbContainer>
+                        {stack.slice(0, i + 1).length > 2 && (
+                            <BreadcrumbContainer>
+                                {stack.slice(0, i + 1).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                        )}
                         <FormTypeEditor
                             type={peekTypeStack()?.type}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={handleTypeCreate}
+                            onTypeCreate={()=>{}}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                         />

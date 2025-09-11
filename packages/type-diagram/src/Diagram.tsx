@@ -29,6 +29,7 @@ import { dagreEngine } from './resources/constants';
 import { DesignDiagramContext } from './components/common';
 import { DiagramControls } from './components/Controls/DiagramControls';
 import { OverlayLayerModel } from './components/OverlayLoader';
+import { FilteringInfoBanner } from './components/FilteringInfoBanner';
 import { Type } from '@wso2/ballerina-core';
 import { focusToNode } from './utils/utils';
 import { graphqlModeller } from './utils/model-mapper/entityModelMapper';
@@ -47,6 +48,11 @@ interface TypeDiagramProps {
     verifyTypeDelete: (typeId: string) => Promise<boolean>;
 }
 
+export interface ModelResult {
+    model: DiagramModel;
+    isFirstLevelDependenciesFiltered?: boolean;
+}
+
 export function TypeDiagram(props: TypeDiagramProps) {
     const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
 
@@ -54,6 +60,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
     const [hasDiagnostics, setHasDiagnostics] = useState<boolean>(false);
     const [selectedDiagramNode, setSelectedDiagramNode] = useState<string>(selectedNodeId);
+    const [isFirstLevelFiltered, setIsFirstLevelFiltered] = useState<boolean>(false);
 
     useEffect(() => {
         drawDiagram(focusedNodeId);
@@ -64,15 +71,19 @@ export function TypeDiagram(props: TypeDiagramProps) {
     }, [selectedNodeId]);
 
     const drawDiagram = (focusedNode?: string) => {
-        let diagramModel;
+
+        let diagramModel: DiagramModel;
+
 
         // Create diagram model based on type
         if (isGraphql && rootService) {
             console.log("Modeling  graphql diagram");
             diagramModel = graphqlModeller(rootService, typeModel);
         } else if (typeModel && !isGraphql) {
-            console.log("Modeling entity diagram");
-            diagramModel = entityModeller(typeModel, focusedNode);
+            console.log("Modeling entity diagram", focusedNode, selectedNodeId);
+            const modellerResult: ModelResult = entityModeller(typeModel, focusedNode);
+            diagramModel = modellerResult.model;
+            setIsFirstLevelFiltered(modellerResult.isFirstLevelDependenciesFiltered || false);
         }
 
         if (diagramModel) {
@@ -140,23 +151,27 @@ export function TypeDiagram(props: TypeDiagramProps) {
 
     return (
         <DesignDiagramContext {...ctx}>
-            {diagramEngine?.getModel() && diagramModel ?
-                <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                    <DiagramContainer data-testid="type-diagram">
-                        <NavigationWrapperCanvasWidget
-                            diagramEngine={diagramEngine}
-                            className={styles.canvas}
-                            focusedNode={diagramEngine?.getModel()?.getNode(selectedDiagramNode)}
+            {diagramEngine?.getModel() && diagramModel ? (
+                <>
+                    {isFirstLevelFiltered && <FilteringInfoBanner />}
+                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+                        <DiagramContainer data-testid="type-diagram">
+                            <NavigationWrapperCanvasWidget
+                                diagramEngine={diagramEngine}
+                                className={styles.canvas}
+                                focusedNode={diagramEngine?.getModel()?.getNode(selectedDiagramNode)}
+                            />
+                        </DiagramContainer>
+                        <DiagramControls
+                            engine={diagramEngine}
+                            refreshDiagram={refreshDiagram}
+                            showProblemPanel={showProblemPanel}
                         />
-                    </DiagramContainer>
-                    <DiagramControls
-                        engine={diagramEngine}
-                        refreshDiagram={refreshDiagram}
-                        showProblemPanel={showProblemPanel}
-                    />
-                </div> :
+                    </div>
+                </>
+            ) : (
                 <ProgressRing sx={{ color: ThemeColors.PRIMARY }} />
-            }
+            )}
         </DesignDiagramContext>
     );
 }

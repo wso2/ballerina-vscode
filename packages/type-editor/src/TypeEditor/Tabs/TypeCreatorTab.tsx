@@ -447,7 +447,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         rpcClient={rpcClient}
                         onValidationError={handleValidationError}
                     />
-                    <AdvancedOptions type={type} onChange={setType} />
+                    <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             case TypeKind.CLASS:
@@ -467,7 +467,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
-                    <AdvancedOptions type={type} onChange={setType} />
+                    <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             default:

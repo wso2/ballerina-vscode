@@ -41,6 +41,10 @@ export type TypeHelperItem = {
     type: CompletionItemKind;
     codedata?: CodeData;
     kind?: FunctionKind;
+    labelDetails?: {
+        description: string;
+        detail: string;
+    };
 };
 
 export type TypeHelperCategory = {

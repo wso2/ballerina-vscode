@@ -25,7 +25,7 @@ import { langClient } from './activator';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { writeBallerinaFileDidOpen } from '../../utils/modification';
+import { writeBallerinaFileDidOpenTemp } from '../../utils/modification';
 import { closeAllBallerinaFiles } from './utils';
 import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
 
@@ -230,7 +230,7 @@ export async function getDiagnostics(
         fs.mkdirSync(tempTestFolderPath, { recursive: true });
     }
     const tempTestFilePath = path.join(tempTestFolderPath, 'test.bal');
-    await writeBallerinaFileDidOpen(tempTestFilePath, generatedTestSource.testSource);
+    writeBallerinaFileDidOpenTemp(tempTestFilePath, generatedTestSource.testSource);
 
     const diagnosticsResult = await langClient.getDiagnostics({ documentIdentifier: { uri: Uri.file(tempTestFilePath).toString() } });
     await closeAllBallerinaFiles(tempDir);
