@@ -283,6 +283,15 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         }
     };
 
+    const handleArrayInitWithElement = async () => {
+        setLoading(true);
+        try {
+            await addValue(fieldFQNFromPortName(portName), `[${getDefaultValue(arrayField.kind)}]`, context);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleArrayDeletion = async () => {
         setLoading(true);
         try {
@@ -313,15 +322,20 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         setIsHovered(false);
     };
 
-    const valConfigMenuItems: ValueConfigMenuItem[] = hasElements || hasDefaultValue
+    const valConfigMenuItems: ValueConfigMenuItem[] = isDisabled
         ? [
-            // { title: ValueConfigOption.EditValue, onClick: handleEditValue }, // TODO: Enable this after adding support for editing array values
-            { title: ValueConfigOption.AddElement, onClick: handleAddArrayElement },
             { title: ValueConfigOption.DeleteArray, onClick: handleArrayDeletion },
         ]
-        : [
-            { title: ValueConfigOption.InitializeArray, onClick: handleArrayInitialization }
-        ];
+        : hasElements || hasDefaultValue
+            ? [
+                { title: ValueConfigOption.AddElement, onClick: handleAddArrayElement },
+                { title: ValueConfigOption.EditValue, onClick: handleEditValue },
+                { title: ValueConfigOption.DeleteArray, onClick: handleArrayDeletion },
+            ]
+            : [
+                { title: ValueConfigOption.InitializeArray, onClick: handleArrayInitialization },
+                { title: ValueConfigOption.InitializeArrayWithElement, onClick: handleArrayInitWithElement }
+            ];
 
     return (
         <div
@@ -367,14 +381,14 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     </span>
                     {(isLoading) ? (
                         <ProgressRing />
-                    ) : (((expression && !connectedViaLink) || !isDisabled) && (
+                    ) : (
                         <FieldActionWrapper>
                             <ValueConfigMenu
                                 menuItems={valConfigMenuItems}
                                 portName={portIn?.getName()}
                             />
                         </FieldActionWrapper>
-                    ))}
+                    )}
                 </div>
             )}
             {(expanded && !connectedViaLink && !!elements?.length) && (

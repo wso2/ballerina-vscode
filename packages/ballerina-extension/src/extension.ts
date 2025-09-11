@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions } from 'vscode';
+import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions, workspace } from 'vscode';
 import { BallerinaExtension } from './core';
 import { activate as activateBBE } from './views/bbe';
 import {
@@ -127,6 +127,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
     }
     debug('Setting context.');
     ballerinaExtInstance.setContext(extension.context);
+    await updateCodeServerConfig();
     // Enable URI handlers
     debug('Activating URI handlers.');
     activateUriHandlers(ballerinaExtInstance);
@@ -248,6 +249,15 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         }
     });
     return ballerinaExtInstance;
+}
+
+async function updateCodeServerConfig() {
+    if (!('CLOUD_STS_TOKEN' in process.env)) {
+        return;
+    }
+    log("Code server environment detected");
+    const config = workspace.getConfiguration('ballerina');
+    await config.update('enableRunFast', true);
 }
 
 export function deactivate(): Thenable<void> | undefined {

@@ -596,7 +596,7 @@ function getExternalTypeDefRefs(
     
     // Check type definition fields
     for (const typeDef of allTypeDefs) {
-        if (typeDef.type === 'record') {
+        if (typeDef.type === 'Record') {
             const recordDef = typeDef as RecordTypeDefinition;
             for (const field of recordDef.fields) {
                 addExternalRecord(field.type, externalRecords);
