@@ -114,7 +114,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             org = tomValues?.package?.org || "";
             module = tomValues?.package?.name || "";
             version = tomValues?.package?.version || "";
-            packageName = `${org}/${module}`;
+            packageName = tomValues?.package?.name || "";
         }
 
         const request: GetRecordConfigRequest = {
