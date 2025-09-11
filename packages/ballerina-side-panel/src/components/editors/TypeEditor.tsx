@@ -269,7 +269,6 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
-                                console.log("#VAL", typeExists)
                                 handleNewTypeSelected && handleNewTypeSelected(typeExists? typeExists : updatedValue)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
