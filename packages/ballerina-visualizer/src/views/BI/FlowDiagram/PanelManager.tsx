@@ -40,12 +40,46 @@ import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
 import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
+import { RelativeLoader } from "../../../components/RelativeLoader";
 
 const Container = styled.div`
     display: flex;
     flex-direction: column;
     height: 100%;
 `;
+
+export const LoaderContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+`;
+
+const LoaderMessageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+`;
+
+const LoaderMessage = styled.div`
+    font-size: 14px;
+    text-align: center;
+`;
+
+interface LoaderWithMessageProps {
+    message?: string;
+}
+
+const LoaderWithMessage: React.FC<LoaderWithMessageProps> = ({ message }) => (
+    <LoaderContainer>
+        <LoaderMessageContainer>
+            <RelativeLoader />
+            {message && <LoaderMessage>{message}</LoaderMessage>}
+        </LoaderMessageContainer>
+    </LoaderContainer>
+);
 
 export enum SidePanelView {
     NODE_LIST = "NODE_LIST",
@@ -98,6 +132,8 @@ interface PanelManagerProps {
     canGoBack?: boolean;
     selectedMcpToolkitName?: string;
     selectedConnectionKind?: ConnectionKind;
+    showProgressSpinner?: boolean;
+    progressMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -160,6 +196,8 @@ export function PanelManager(props: PanelManagerProps) {
         canGoBack,
         selectedMcpToolkitName,
         selectedConnectionKind,
+        showProgressSpinner = false,
+        progressMessage = "Loading...",
         setSidePanelView,
         onClose,
         onBack,
@@ -616,7 +654,7 @@ export function PanelManager(props: PanelManagerProps) {
             subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>{showProgressSpinner ? <LoaderWithMessage message={progressMessage} /> : renderPanelContent()}</Container>
         </PanelContainer>
     );
 }
