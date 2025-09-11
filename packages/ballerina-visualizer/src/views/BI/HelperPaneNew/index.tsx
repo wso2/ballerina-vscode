@@ -255,7 +255,7 @@ const HelperPaneNewEl = ({
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
-                                {(valueTypeConstraint || forcedValueTypeConstraint) && (
+                                {((valueTypeConstraint && valueTypeConstraint.length > 0) || (forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
                                             <ExpandableList.Item>

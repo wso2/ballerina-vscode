@@ -74,7 +74,7 @@ import {
     updateLineRange,
 } from "../../../../utils/bi";
 import IfForm from "../IfForm";
-import { cloneDeep, debounce } from "lodash";
+import { cloneDeep, debounce, set } from "lodash";
 import {
     createNodeWithUpdatedLineRange,
     processFormData,
@@ -899,22 +899,30 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }]
         };
     };
-
+    
     /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
      */
-    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string } }) => {
+    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string, detail?: string } }) => {
         if (!type) {
             setValueTypeConstraints([]);
             return;
         }
-        setValueTypeConstraints(type.label);
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description !== "Record") {
+            if (type.labelDetails.detail === "Structural Types" || type.labelDetails.detail === "Behaviour Types") {
+                setValueTypeConstraints('');
+            }
+            else {
+                setValueTypeConstraints(type.label);
+            }
             setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
             return;
+        }
+        else{
+            setValueTypeConstraints(type.label);
         }
 
         // Create the record type field for expression
