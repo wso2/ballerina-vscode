@@ -22,6 +22,7 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
     AllDataMapperSourceRequest,
     CodeSegment,
@@ -63,6 +64,7 @@ import {
     abortTestGeneration,
     addChatSummary,
     addCodeSegmentToWorkspace,
+    addFilesToProject,
     addInlineCodeSegmentToWorkspace,
     addToProject,
     applyDoOnFailBlocks,
@@ -163,8 +165,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(fetchData, HOST_EXTENSION, params);
     }
 
-    addToProject(params: AddToProjectRequest): void {
-        return this._messenger.sendNotification(addToProject, HOST_EXTENSION, params);
+    addToProject(params: AddToProjectRequest): Promise<boolean> {
+        return this._messenger.sendRequest(addToProject, HOST_EXTENSION, params);
     }
 
     getFromFile(params: GetFromFileRequest): Promise<string> {
@@ -373,5 +375,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
         return this._messenger.sendRequest(getGeneratedDocumentation, HOST_EXTENSION, params);
+    }
+
+    addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        return this._messenger.sendRequest(addFilesToProject, HOST_EXTENSION, params);
     }
 }
