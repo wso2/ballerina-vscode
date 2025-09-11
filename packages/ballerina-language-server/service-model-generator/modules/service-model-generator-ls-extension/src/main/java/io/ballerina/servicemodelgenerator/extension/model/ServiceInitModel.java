@@ -28,6 +28,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
  * Represents a model unifying service initialization and listener creation.
@@ -147,6 +148,14 @@ public class ServiceInitModel {
 
     public Value getOpenAPISpec() {
         return properties.get("spec");
+    }
+
+    public String getServiceContractTypeName() {
+        Value serviceContractType = properties.get("serviceTypeName");
+        if (Objects.isNull(serviceContractType)) {
+            return "Service";
+        }
+        return getValueString(serviceContractType);
     }
 
     public static class Builder {
