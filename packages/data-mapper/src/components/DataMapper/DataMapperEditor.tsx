@@ -135,6 +135,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         deleteSubMapping,
         generateForm,
         addClauses,
+        deleteClause,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
@@ -341,6 +342,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 query={model.query}
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
+                                deleteClause={deleteClause}
                                 generateForm={generateForm}
                             />
                         )}

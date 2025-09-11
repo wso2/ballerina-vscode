@@ -29,6 +29,8 @@ import {
     ConvertToQueryRequest,
     DataMapperModelRequest,
     DataMapperSourceRequest,
+    deleteClause,
+    DeleteClauseRequest,
     deleteMapping,
     DeleteMappingRequest,
     deleteSubMapping,
@@ -66,6 +68,7 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addNewArrayElement, (args: AddArrayElementRequest) => rpcManger.addNewArrayElement(args));
     messenger.onRequest(convertToQuery, (args: ConvertToQueryRequest) => rpcManger.convertToQuery(args));
     messenger.onRequest(addClauses, (args: AddClausesRequest) => rpcManger.addClauses(args));
+    messenger.onRequest(deleteClause, (args: DeleteClauseRequest) => rpcManger.deleteClause(args));
     messenger.onRequest(addSubMapping, (args: AddSubMappingRequest) => rpcManger.addSubMapping(args));
     messenger.onRequest(deleteMapping, (args: DeleteMappingRequest) => rpcManger.deleteMapping(args));
     messenger.onRequest(deleteSubMapping, (args: DeleteSubMappingRequest) => rpcManger.deleteSubMapping(args));

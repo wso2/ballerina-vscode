@@ -28,6 +28,7 @@ import {
     DataMapperModelResponse,
     DataMapperSourceRequest,
     DataMapperSourceResponse,
+    DeleteClauseRequest,
     DeleteMappingRequest,
     DeleteSubMappingRequest,
     DMModelRequest,
@@ -377,6 +378,28 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .mapWithTransformFn(params)
                 .then((resp) => {
                     console.log(">>> Data mapper map with transform fn response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async deleteClause(params: DeleteClauseRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .deleteClause(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper delete clause response", resp);
                     updateAndRefreshDataMapper(
                         resp.textEdits,
                         params.filePath,

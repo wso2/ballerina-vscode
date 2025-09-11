@@ -105,13 +105,7 @@ export function ClauseItem(props: ClauseItemProps) {
                             </ProgressRingWrapper>
                         ) : (
                             <DeleteIconWrapper>
-                                <Codicon
-                                    name="trash"
-                                    sx={{
-                                        opacity: 0.5,
-                                        cursor: 'not-allowed'
-                                    }}
-                                />
+                                <Codicon name="trash" onClick={onHandleDelete} />
                             </DeleteIconWrapper>
                         )}
                     </ActionIconWrapper>

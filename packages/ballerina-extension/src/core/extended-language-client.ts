@@ -258,7 +258,8 @@ import {
     onMigrationToolStateChanged,
     onMigrationToolLogs,
     GetMigrationToolsResponse,
-    DeleteSubMappingRequest
+    DeleteSubMappingRequest,
+    DeleteClauseRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -347,6 +348,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_ADD_ELEMENT = 'dataMapper/addElement',
     DATA_MAPPER_CONVERT_TO_QUERY = 'dataMapper/convertToQuery',
     DATA_MAPPER_ADD_CLAUSES = 'dataMapper/addClauses',
+    DATA_MAPPER_DELETE_CLAUSE = 'dataMapper/deleteClause',
     DATA_MAPPER_ADD_SUB_MAPPING = 'dataMapper/addSubMapping',
     DATA_MAPPER_DELETE_MAPPING = 'dataMapper/deleteMapping',
     DATA_MAPPER_DELETE_SUB_MAPPING = 'dataMapper/deleteSubMapping',
@@ -767,6 +769,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async addClauses(params: AddClausesRequest): Promise<DataMapperSourceResponse> {
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_ADD_CLAUSES, params);
+    }
+
+    async deleteClause(params: DeleteClauseRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_DELETE_CLAUSE, params);
     }
 
     async addSubMapping(params: AddSubMappingRequest): Promise<DataMapperSourceResponse> {
