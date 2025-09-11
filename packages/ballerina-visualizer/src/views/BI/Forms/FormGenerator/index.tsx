@@ -955,7 +955,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description !== "Record") {
-            if (type.labelDetails.detail === "Structural Types" || type.labelDetails.detail === "Behaviour Types" || isTypeExcludedFromValueTypeConstraint(type.label)) {
+            if (type.labelDetails.detail === "Structural Types" 
+                || type.labelDetails.detail === "Behaviour Types" 
+                || isTypeExcludedFromValueTypeConstraint(type.label)
+            ) {
                 setValueTypeConstraints('');
             }
             else {
