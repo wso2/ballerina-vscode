@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { Codicon, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
@@ -65,29 +65,10 @@ namespace S {
         flex: 1;
     `;
 
-    export const Footer = styled.div`
-        display: flex;
-        gap: 8px;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: center;
-        padding: 16px;
-        border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-        background: ${ThemeColors.SURFACE_DIM};
-        flex-shrink: 0;
-    `;
-
     export const FormWrapper = styled.div`
         & > div:first-child {
             padding: 0px;
         }
-    `;
-
-    export const SpinnerContainer = styled.div`
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
     `;
 }
 
@@ -111,10 +92,6 @@ interface VectorKnowledgeBaseFormProps {
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
-interface ComponentData {
-    [key: string]: FlowNode;
-}
-
 export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     const {
         fileName,
@@ -126,14 +103,12 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         updatedExpressionField,
         resetUpdatedExpressionField,
         subPanelView,
-        showProgressIndicator,
-        disableSaveButton,
+        showProgressIndicator
     } = props;
 
     const { rpcClient } = useRpcContext();
     const [knowledgeBaseFields, setKnowledgeBaseFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [isInitialized, setIsInitialized] = useState(false);
     const [isFormValid, setIsFormValid] = useState(true);
     const [knowledgeBaseFormValues, setKnowledgeBaseFormValues] = useState<FormValues>({});
     const [saving, setSaving] = useState<boolean>(false);
@@ -200,7 +175,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         });
         setKnowledgeBaseFields(fields);
         setFormImports(getImportsForFormFields(fields));
-        setIsInitialized(true);
     };
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange): FlowNode => {
@@ -222,18 +196,6 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             setSaving(false);
         }
     };
-
-    if (!isInitialized) {
-        return (
-            <S.Container>
-                <S.ScrollableContent>
-                    <S.SpinnerContainer>
-                        <ProgressRing color={ThemeColors.PRIMARY} />
-                    </S.SpinnerContainer>
-                </S.ScrollableContent>
-            </S.Container>
-        );
-    }
 
     return (
         <S.Container>
