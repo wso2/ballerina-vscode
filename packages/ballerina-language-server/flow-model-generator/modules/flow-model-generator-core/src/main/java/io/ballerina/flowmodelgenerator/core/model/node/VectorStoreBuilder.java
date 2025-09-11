@@ -20,14 +20,18 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.ParameterData;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -97,5 +101,66 @@ public class VectorStoreBuilder extends CallBuilder {
         }
         setParameterProperties(functionData);
         properties().scope(Property.GLOBAL_SCOPE).checkError(true, CHECK_ERROR_DOC, false);
+    }
+
+    protected void setParameterProperties(FunctionData function) {
+        boolean hasOnlyRestParams = function.parameters().size() == 1;
+
+        for (ParameterData paramResult : function.parameters().values()) {
+            if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
+                buildInferredTypeProperty(this, paramResult, null);
+                continue;
+            }
+
+            if (paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
+                continue;
+            }
+
+            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
+            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = properties().custom();
+            String label = paramResult.label();
+            customPropBuilder
+                    .metadata()
+                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                        .description(paramResult.description())
+                        .stepOut()
+                    .codedata()
+                        .kind(paramResult.kind().name())
+                        .originalName(paramResult.name())
+                        .stepOut()
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
+                    .typeConstraint(paramResult.type())
+                    .typeMembers(paramResult.typeMembers())
+                    .editable()
+                    .defaultable(paramResult.optional());
+
+            switch (paramResult.kind()) {
+                case INCLUDED_RECORD_REST -> {
+                    if (hasOnlyRestParams) {
+                        customPropBuilder.defaultable(false);
+                    }
+                    unescapedParamName = "additionalValues";
+                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                }
+                case REST_PARAMETER -> {
+                    if (hasOnlyRestParams) {
+                        customPropBuilder.defaultable(false);
+                    }
+                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                }
+                default -> {
+                    if (paramResult.type() instanceof List<?>) {
+                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
+                    } else {
+                        customPropBuilder.type(Property.ValueType.EXPRESSION);
+                    }
+                }
+            }
+
+            customPropBuilder
+                    .stepOut()
+                    .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
+        }
     }
 }
