@@ -28,7 +28,7 @@ import { DMFormProps, IntermediateClause, Query } from "@wso2/ballerina-core";
 export interface ClausesPanelProps {
     query: Query;
     targetField: string;
-    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index?:number) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
