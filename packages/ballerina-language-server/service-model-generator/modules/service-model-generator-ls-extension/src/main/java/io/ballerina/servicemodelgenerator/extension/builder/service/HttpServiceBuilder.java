@@ -26,6 +26,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -38,6 +39,9 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
@@ -126,7 +130,9 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
     }
 
     @Override
-    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         populateDesignApproach(serviceInitModel);
         populateListenerConfigApproach(serviceInitModel);
@@ -146,8 +152,11 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
-            return null; // TODO: Handle open api spec case
+            return new OpenApiServiceGenerator(Path.of(serviceInitModel.getOpenAPISpec().getValue()),
+                    context.project().sourceRoot(), context.workspaceManager())
+                    .generateService(serviceInitModel, listenerVarName, listenerDeclaration.toString());
         }
+
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 
         List<String> functionsStr = List.of(defaultGreetingsDefinition());

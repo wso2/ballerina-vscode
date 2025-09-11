@@ -42,5 +42,5 @@ public interface ServiceNodeBuilder extends NodeBuilder<Service> {
     /**
      * Get the listener and service declaration source.
      */
-    Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context);
+    Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) throws Exception;
 }

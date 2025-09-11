@@ -31,6 +31,7 @@ import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceInitInfo;
 import io.ballerina.modelgenerator.commons.ServiceInitProperty;
+import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceNodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -50,8 +51,12 @@ import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -167,7 +172,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     }
 
     @Override
-    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException, EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
