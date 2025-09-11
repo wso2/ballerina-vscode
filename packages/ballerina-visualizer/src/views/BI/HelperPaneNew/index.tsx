@@ -22,7 +22,7 @@ import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
-import {  SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
+import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { CreateValue } from './Views/CreateValue';
 import DynamicModal from '../../../components/Modal';
 import { FunctionsPage } from './Views/Functions';
@@ -32,6 +32,7 @@ import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
+import { POPUP_IDS, useModalStack } from '../../../Context';
 
 const MAX_MENU_ITEM_COUNT = 4;
 
@@ -58,7 +59,7 @@ export type HelperPaneNewProps = {
     valueTypeConstraint?: string;
     forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
-    handleValueTypeConstChange: (valueTypeConstraint: string)=>void;
+    handleValueTypeConstChange: (valueTypeConstraint: string) => void;
 };
 
 const TitleContainer = styled.div`
@@ -93,6 +94,9 @@ const HelperPaneNewEl = ({
     const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ? 4 : 3
+
+    const { addModal, closeModal } = useModalStack()
+
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -129,7 +133,7 @@ const HelperPaneNewEl = ({
         }
     }, [anchorRef]);
 
-    useEffect(()=>{
+    useEffect(() => {
         if (valueTypeConstraint?.length > 0) {
             handleValueTypeConstChange(valueTypeConstraint)
         }
@@ -255,6 +259,21 @@ const HelperPaneNewEl = ({
         }
     }, [selectedItem]);
 
+    const openRecordConfigView = () => {
+        addModal(
+            <div style={{ padding: '0px 10px' }}>
+                <ConfigureRecordPage
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
+                    onChange={handleChange}
+                    currentValue={currentValue}
+                    recordTypeField={recordTypeField}
+                    onClose={onClose}
+                />
+            </div>
+            , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
+    }
+
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
@@ -265,7 +284,7 @@ const HelperPaneNewEl = ({
 
                                 {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
                                     recordTypeField ?
-                                        <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
+                                        <SlidingPaneNavContainer onClick={openRecordConfigView}>
                                             <ExpandableList.Item>
                                                 {getIcon(COMPLETION_ITEM_KIND.Value)}
                                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
@@ -391,25 +410,6 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
                 </SlidingWindow>
-
-                <DynamicModal
-                    width={500}
-                    height={600}
-                    anchorRef={anchorRef}
-                    title="Record Configuration"
-                    openState={isModalOpen}
-                    setOpenState={setIsModalOpen}>
-                 <div style={{padding: '0px 16px'}}>
-                       <ConfigureRecordPage
-                           fileName={fileName}
-                           targetLineRange={targetLineRange}
-                           onChange={handleChange}
-                           currentValue={currentValue}
-                           recordTypeField={recordTypeField}
-                           onClose={onClose}
-                       />
-                 </div>
-                </DynamicModal>
             </HelperPaneCustom.Body>
         </HelperPaneCustom >
     );
