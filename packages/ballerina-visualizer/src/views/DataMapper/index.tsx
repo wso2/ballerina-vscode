@@ -31,6 +31,7 @@ export interface DataMapperProps {
     projectUri?: string;
     position?: LinePosition;
     reusable?: boolean;
+    onClose?: () => void;
 }
 
 export function DataMapper(props: DataMapperProps) {

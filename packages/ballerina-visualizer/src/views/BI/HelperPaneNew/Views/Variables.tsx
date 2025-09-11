@@ -38,7 +38,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -152,7 +152,7 @@ export const Variables = (props: VariablesPageProps) => {
             ? updatedNode.properties.variable.value
             : "";
         newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(updatedNode, openInDataMapper, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        handleOnFormSubmit?.(updatedNode, openInDataMapper, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true }, openInDataMapper);
         closeModal(POPUP_IDS.VARIABLE);
         if (isModalOpen) {
             setIsModalOpen(false)

@@ -159,6 +159,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
+            if (parent.dataMapperMetadata) {
+                return;
+            }
             console.log(">>> on parent popup submitted", parent);
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
@@ -1224,7 +1227,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = (
+        updatedNode?: FlowNode,
+        openInDataMapper?: boolean,
+        options?: FormSubmitOptions,
+        openDMInPopup?: boolean
+    ) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
@@ -1258,12 +1266,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     name: updatedNode.properties?.variable?.value as string,
                                     codeData: response.codedata,
                                 }
-                            }
+                            },
+                            isPopup: openDMInPopup
                         });
                     }
                 })
                 .finally(() => {
-                    setShowSidePanel(false);
+                    if (!openDMInPopup) setShowSidePanel(false);
                     setShowProgressIndicator(false);
                 });
             return;
