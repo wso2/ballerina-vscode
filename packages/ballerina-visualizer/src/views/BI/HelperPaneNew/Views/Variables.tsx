@@ -152,7 +152,7 @@ export const Variables = (props: VariablesPageProps) => {
             ? updatedNode.properties.variable.value
             : "";
         newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        handleOnFormSubmit?.(updatedNode, openInDataMapper, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
         closeModal(POPUP_IDS.VARIABLE);
         if (isModalOpen) {
             setIsModalOpen(false)
@@ -284,7 +284,7 @@ export const Variables = (props: VariablesPageProps) => {
                 },
                 valueType: "ACTION_OR_EXPRESSION",
                 value: "",
-                optional: false,
+                optional: true,
                 editable: true,
                 advanced: false,
                 hidden: false,
