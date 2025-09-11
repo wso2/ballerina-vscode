@@ -280,32 +280,32 @@ const HelperPaneNewEl = ({
         {
             typeCheck: "string",
             value: "\"TEXT_HERE\"",
-            label: "Create a string value"
+            label: "Create string value"
         },
         {
             typeCheck: "log:PrintableRawTemplate",
             value: "string `TEXT_HERE`",
-            label: "Create a printable template"
+            label: "Create printable template"
         },
         {
             typeCheck: "error",
             value: "error(\"ERROR_MESSAGE_HERE\")",
-            label: "Create an error"
+            label: "Create error"
         },
         {
             typeCheck: "json",
             value: "{}",
-            label: "Create an empty json"
+            label: "Create empty json"
         },
         {
             typeCheck: "xml",
             value: "xml ``",
-            label: "Create a xml template"
+            label: "Create xml template"
         },
         {
             typeCheck: "anydata",
             value: "{}",
-            label: "Create an empty object"
+            label: "Create empty object"
         }
     ];
 
