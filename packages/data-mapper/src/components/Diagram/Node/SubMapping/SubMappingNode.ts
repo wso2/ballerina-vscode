@@ -59,16 +59,17 @@ export class SubMappingNode extends DataMapperNodeModel {
         const focusedView = views[views.length - 1];
         const subMappingView = focusedView.subMappingInfo;
 
-        this.subMappings.forEach((subMapping, index) => {
+        for (let index = 0; index < this.subMappings.length; index++) {
             // Constraint: Only one variable declaration is allowed in a local variable statement.
 
             if (subMappingView) {
                 if (index >= subMappingView.index) {
                     // Skip the variable declarations that are after the focused sub-mapping
-                    return;
+                    continue;
                 }
             }
-
+            
+            const subMapping = this.subMappings[index];
             const varName = subMapping.name;
             const typeWithoutFilter: IOType = subMapping.type;
 
@@ -92,7 +93,10 @@ export class SubMappingNode extends DataMapperNodeModel {
                 if (type.kind === TypeKind.Record) {
                     const fields = type.fields;
                     fields.forEach(subField => {
-                        this.numberOfFields += 1 + this.addPortsForInputField({
+                        
+                    });
+                    for (const subField of fields) {
+                        this.numberOfFields += 1 + await this.addPortsForInputField({
                             field: subField,
                             portType: "OUT",
                             parentId: varName,
@@ -105,9 +109,9 @@ export class SubMappingNode extends DataMapperNodeModel {
                             isOptional: subField.optional,
                             focusedFieldFQNs
                         });
-                    });
+                    }
                 } else {
-                    this.addPortsForInputField({
+                    await this.addPortsForInputField({
                         field: type,
                         portType: "OUT",
                         parentId: varName,
@@ -125,7 +129,7 @@ export class SubMappingNode extends DataMapperNodeModel {
                 this.filteredSubMappings.push({name: varName, type});
             }
 
-        });
+        }
 
         this.hasNoMatchingFields = searchValue && this.filteredSubMappings.length === 0;
     }
