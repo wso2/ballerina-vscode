@@ -41,20 +41,12 @@ import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
 import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
 import { RelativeLoader } from "../../../components/RelativeLoader";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     display: flex;
     flex-direction: column;
     height: 100%;
-`;
-
-export const LoaderContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 16px;
-    text-align: center;
 `;
 
 export enum SidePanelView {
