@@ -18,8 +18,7 @@
 
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
-import { isSupportedSLVersion, isWindows, isWSL } from "../../../utils";
-import { join } from 'path';
+import { isSupportedSLVersion, isWindows } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
 
 
@@ -164,18 +163,7 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
             const configs = env['BAL_CONFIG_FILES'] ? `${env['BAL_CONFIG_FILES']}:${confPath}` : confPath;
             Object.assign(env, { BAL_CONFIG_FILES: configs });
         }
-        // Set up environment variables for WSL
-        // Merge env and process.env, ensuring all keys are string-indexed
-        const finalEnv: { [key: string]: string | undefined } = { ...process.env, ...env };
-        if (isWSL() && process.env.JAVA_HOME) {
-            finalEnv["JAVA_HOME"] = process.env.JAVA_HOME;
-            // Ensure Java bin is in PATH
-            const javaBinPath = join(process.env.JAVA_HOME, 'bin');
-            if (finalEnv["PATH"] && !finalEnv["PATH"]?.includes(javaBinPath)) {
-                finalEnv["PATH"] = `${javaBinPath}:${finalEnv["PATH"]}`;
-            }
-        }
-        terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env: finalEnv });
+        terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env });
     }
     terminal.sendText(isWindows() ? 'cls' : 'clear', true);
     terminal.show(true);
@@ -189,17 +177,7 @@ export function runTerminalCommand(executor: string, file?: BallerinaProject | s
     let filePath = '';
     typeof file === 'string' ? filePath = file : filePath = file?.path!;
     if (!terminal) {
-        // Set up environment variables for WSL
-        const finalEnv = { ...env, ...process.env };
-        if (isWSL() && process.env.JAVA_HOME) {
-            finalEnv.JAVA_HOME = process.env.JAVA_HOME;
-            // Ensure Java bin is in PATH
-            const javaBinPath = join(process.env.JAVA_HOME, 'bin');
-            if (finalEnv.PATH && !finalEnv.PATH.includes(javaBinPath)) {
-                finalEnv.PATH = `${javaBinPath}:${finalEnv.PATH}`;
-            }
-        }
-        terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env: finalEnv });
+        terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env: env });
     }
     terminal.sendText(executor);
 }
