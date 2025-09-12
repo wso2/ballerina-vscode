@@ -20,7 +20,7 @@ import { ExpandableList } from "../Components/ExpandableList"
 import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
+import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
@@ -38,7 +38,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -145,14 +145,18 @@ export const Variables = (props: VariablesPageProps) => {
         setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
+    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
             ? updatedNode.properties.variable.value
             : "";
         newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
+        handleOnFormSubmit?.(
+            updatedNode,
+            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
+            { shouldCloseSidePanel: false, shouldUpdateTargetLine: true }
+        );
         closeModal(POPUP_IDS.VARIABLE);
         if (isModalOpen) {
             setIsModalOpen(false)
@@ -284,7 +288,7 @@ export const Variables = (props: VariablesPageProps) => {
                 },
                 valueType: "ACTION_OR_EXPRESSION",
                 value: "",
-                optional: false,
+                optional: true,
                 editable: true,
                 advanced: false,
                 hidden: false,
