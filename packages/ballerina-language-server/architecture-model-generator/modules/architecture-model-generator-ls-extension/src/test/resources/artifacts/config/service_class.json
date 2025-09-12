@@ -1,0 +1,157 @@
+{
+  "description": "Service class with resource methods test case",
+  "source": "service_class.bal",
+  "output": {
+    "Types": {
+      "Album": {
+        "id": "Album",
+        "location": {
+          "fileName": "service_class.bal",
+          "startLine": {
+            "line": 2,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 5,
+            "offset": 3
+          }
+        },
+        "type": "TYPE",
+        "name": "Album",
+        "scope": "Global",
+        "children": {}
+      },
+      "MusicService": {
+        "id": "MusicService",
+        "location": {
+          "fileName": "service_class.bal",
+          "startLine": {
+            "line": 7,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 47,
+            "offset": 1
+          }
+        },
+        "type": "TYPE",
+        "name": "MusicService",
+        "scope": "Global",
+        "children": {
+          "init": {
+            "id": "init",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 40,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 42,
+                "offset": 5
+              }
+            },
+            "type": "FUNCTION",
+            "name": "init",
+            "scope": "Global",
+            "children": {}
+          },
+          "getAlbumCount": {
+            "id": "getAlbumCount",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 44,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 46,
+                "offset": 5
+              }
+            },
+            "type": "FUNCTION",
+            "name": "getAlbumCount",
+            "scope": "Global",
+            "children": {}
+          },
+          "post#albums": {
+            "id": "post#albums",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 19,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 22,
+                "offset": 5
+              }
+            },
+            "type": "RESOURCE",
+            "name": "albums",
+            "accessor": "post",
+            "scope": "Global",
+            "children": {}
+          },
+          "get#albums": {
+            "id": "get#albums",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 15,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 17,
+                "offset": 5
+              }
+            },
+            "type": "RESOURCE",
+            "name": "albums",
+            "accessor": "get",
+            "scope": "Global",
+            "children": {}
+          },
+          "get#albums/[string title]": {
+            "id": "get#albums/[string title]",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 24,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 30,
+                "offset": 5
+              }
+            },
+            "type": "RESOURCE",
+            "name": "albums/[string title]",
+            "accessor": "get",
+            "scope": "Global",
+            "children": {}
+          },
+          "delete#albums/[string title]": {
+            "id": "delete#albums/[string title]",
+            "location": {
+              "fileName": "service_class.bal",
+              "startLine": {
+                "line": 32,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 38,
+                "offset": 5
+              }
+            },
+            "type": "RESOURCE",
+            "name": "albums/[string title]",
+            "accessor": "delete",
+            "scope": "Global",
+            "children": {}
+          }
+        }
+      }
+    }
+  }
+}
