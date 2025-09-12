@@ -2438,12 +2438,6 @@ export class BallerinaExtension {
             const freshEnv = await getShellEnvironment();
             debug('[SYNC_ENV] Syncing process environment with shell environment');
             updateProcessEnv(freshEnv);
-            
-            // For WSL environments, ensure JAVA_HOME is properly set
-            if (isWSL()) {
-                await this.setupJavaHomeForWSL();
-            }
-            
             debug('[SYNC_ENV] Environment synchronization completed successfully');
         } catch (error) {
             debug(`[SYNC_ENV] Failed to sync environment: ${error}`);
@@ -2455,99 +2449,6 @@ export class BallerinaExtension {
             }
             // Don't throw the error, as this is not critical for basic functionality
         }
-    }
-
-    /**
-     * Setup JAVA_HOME for WSL environments
-     * This is needed when Ballerina is installed manually in WSL
-     */
-    private async setupJavaHomeForWSL(): Promise<void> {
-        debug("[JAVA_HOME] Setting up JAVA_HOME for WSL environment...");
-        
-        // Check if JAVA_HOME is already set and valid
-        if (process.env.JAVA_HOME) {
-            try {
-                const fs = require('fs');
-                const javaHome = process.env.JAVA_HOME;
-                if (fs.existsSync(javaHome) && fs.existsSync(join(javaHome, 'bin', 'java'))) {
-                    debug(`[JAVA_HOME] JAVA_HOME is already set and valid: ${javaHome}`);
-                    return;
-                }
-            } catch (error) {
-                debug(`[JAVA_HOME] Current JAVA_HOME is invalid: ${error}`);
-            }
-        }
-
-        // Try to find Java installation - prioritize Java 21 for Ballerina 2201.12.9
-        const javaPaths = [
-            '/usr/lib/jvm/java-21-openjdk-amd64',
-            '/usr/lib/jvm/java-21-openjdk',
-            '/usr/lib/jvm/default-java',
-            '/usr/lib/jvm/java-17-openjdk-amd64',
-            '/usr/lib/jvm/java-11-openjdk-amd64',
-            '/usr/lib/jvm/java-8-openjdk-amd64',
-            '/opt/java',
-            '/usr/local/java'
-        ];
-
-        const fs = require('fs');
-        for (const javaPath of javaPaths) {
-            try {
-                if (fs.existsSync(javaPath) && fs.existsSync(join(javaPath, 'bin', 'java'))) {
-                    process.env.JAVA_HOME = javaPath;
-                    debug(`[JAVA_HOME] Set JAVA_HOME to: ${javaPath}`);
-                    
-                    // Also update PATH to include Java bin directory
-                    const javaBinPath = join(javaPath, 'bin');
-                    if (process.env.PATH && !process.env.PATH.includes(javaBinPath)) {
-                        process.env.PATH = `${javaBinPath}:${process.env.PATH}`;
-                        debug(`[JAVA_HOME] Added Java bin to PATH: ${javaBinPath}`);
-                    }
-                    return;
-                }
-            } catch (error) {
-                debug(`[JAVA_HOME] Error checking Java path ${javaPath}: ${error}`);
-            }
-        }
-
-        // Try to find Java using 'which java' command
-        try {
-            const { execSync } = require('child_process');
-            const javaPath = execSync('which java', { encoding: 'utf8', timeout: 5000 }).trim();
-            if (javaPath) {
-                // Extract JAVA_HOME from java executable path
-                const javaHome = javaPath.replace('/bin/java', '');
-                if (fs.existsSync(javaHome)) {
-                    process.env.JAVA_HOME = javaHome;
-                    debug(`[JAVA_HOME] Set JAVA_HOME from 'which java': ${javaHome}`);
-                    
-                    // Also update PATH to include Java bin directory
-                    const javaBinPath = join(javaHome, 'bin');
-                    if (process.env.PATH && !process.env.PATH.includes(javaBinPath)) {
-                        process.env.PATH = `${javaBinPath}:${process.env.PATH}`;
-                        debug(`[JAVA_HOME] Added Java bin to PATH: ${javaBinPath}`);
-                    }
-                    return;
-                }
-            }
-        } catch (error) {
-            debug(`[JAVA_HOME] Failed to find Java using 'which java': ${error}`);
-        }
-
-        debug("[JAVA_HOME] No suitable Java installation found for WSL environment");
-        
-        // Show helpful message to user
-        window.showWarningMessage(
-            'JAVA_HOME is not set. Ballerina requires Java 21+ to run. Please install Java 21 or set JAVA_HOME environment variable.',
-            'Install Java 21',
-            'View Documentation'
-        ).then(selection => {
-            if (selection === 'Install Java 21') {
-                commands.executeCommand('vscode.open', Uri.parse('https://adoptium.net/'));
-            } else if (selection === 'View Documentation') {
-                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/install-ballerina/'));
-            }
-        });
     }
 }
 
@@ -2781,7 +2682,7 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                         env[key] = value;
 
                         // Log important environment variables
-                        if (['PATH', 'Path', 'HOME', 'USERPROFILE', 'WSL_DISTRO_NAME', 'JAVA_HOME'].includes(key)) {
+                        if (['PATH', 'Path', 'HOME', 'USERPROFILE', 'WSL_DISTRO_NAME'].includes(key)) {
                             debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
                         }
                     });
@@ -2798,10 +2699,10 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
                             env[key] = value;
                             parsedCount++;
 
-                        // Log important environment variables
-                        if (['PATH', 'HOME', 'SHELL', 'WSL_DISTRO_NAME', 'JAVA_HOME'].includes(key)) {
-                            debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
-                        }
+                            // Log important environment variables
+                            if (['PATH', 'HOME', 'SHELL', 'WSL_DISTRO_NAME'].includes(key)) {
+                                debug(`[SHELL_ENV] Important var ${key}: ${value.length > 100 ? value.substring(0, 100) + '...' : value}`);
+                            }
                         }
                     });
 
