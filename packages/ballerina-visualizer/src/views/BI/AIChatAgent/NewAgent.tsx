@@ -98,7 +98,7 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, projectPath.current);
         setAgentNode(agentNodeTemplate);
 
-        // hack: fetching from Central to build module dependency map in LSP may take time
+        // hack: fetching from Central to build module dependency map in LS may take time
         setTimeout(() => {
             setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
         }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
