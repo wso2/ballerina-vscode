@@ -44,6 +44,7 @@ import {
     ParentMetadata,
     NodeMetadata,
     SearchKind,
+    DataMapperDisplayMode,
 } from "@wso2/ballerina-core";
 
 import {
@@ -159,6 +160,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
+            if (parent.dataMapperMetadata) {
+                // Skip if the parent is a data mapper popup
+                return;
+            }
             console.log(">>> on parent popup submitted", parent);
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
@@ -1224,7 +1229,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = (
+        updatedNode?: FlowNode,
+        dataMapperMode?: DataMapperDisplayMode,
+        options?: FormSubmitOptions
+    ) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
@@ -1233,7 +1242,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         const noFormSubmitOptions = !options || !(options?.shouldCloseSidePanel || options?.updateLineRangeForRecursiveInserts);
 
-        if (openInDataMapper) {
+        if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
             rpcClient
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
@@ -1258,12 +1267,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     name: updatedNode.properties?.variable?.value as string,
                                     codeData: response.codedata,
                                 }
-                            }
+                            },
+                            isPopup: dataMapperMode === DataMapperDisplayMode.POPUP
                         });
                     }
                 })
                 .finally(() => {
-                    setShowSidePanel(false);
+                    if (dataMapperMode !== DataMapperDisplayMode.POPUP) setShowSidePanel(false);
                     setShowProgressIndicator(false);
                 });
             return;
@@ -1273,7 +1283,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getSourceCode({
                 filePath: model.fileName,
                 flowNode: updatedNode,
-                isFunctionNodeUpdate: openInDataMapper,
+                isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
             })
             .then(async (response) => {
                 console.log(">>> Updated source code", response);

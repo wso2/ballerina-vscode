@@ -25,6 +25,7 @@ import {
     FUNCTION_TYPE,
     ToolData,
     NodeMetadata,
+    DataMapperDisplayMode,
 } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
@@ -112,7 +113,7 @@ interface PanelManagerProps {
     onAddVectorKnowledgeBase?: () => void;
     onAddDataLoader?: () => void;
     onAddChunker?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    onSubmitForm: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
