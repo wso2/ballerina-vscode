@@ -1853,13 +1853,6 @@ export class BallerinaExtension {
                         errorMessage += `\n- Consider installing Ballerina directly in WSL if Windows installation is not accessible`;
                     }
 
-                    if (err.code === 'ENOENT') {
-                        errorMessage += `\nCommand not found. Check if Ballerina is installed and in PATH.`;
-                        errorMessage += `\nSearched for: ${ballerinaCommand}`;
-                    } else if (err.code === 'EACCES') {
-                        errorMessage += `\nPermission denied. Check file permissions for: ${ballerinaCommand}`;
-                    }
-
                     reject(new Error(errorMessage));
                     return;
                 }
