@@ -156,7 +156,6 @@ export const Variables = (props: VariablesPageProps) => {
             dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
             {
                 closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
-                    onChange(newNodeNameRef.current, false, true);
                     onClose()
                     closeModal(POPUP_IDS.VARIABLE);
                 }
