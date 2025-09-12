@@ -1112,7 +1112,8 @@ public class DataMapManager {
         Codedata codedata = gson.fromJson(codeData, Codedata.class);
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-
+        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+        TypeSymbol typeSymbol = targetNode != null ? targetNode.typeSymbol : null;
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
@@ -1128,7 +1129,7 @@ public class DataMapManager {
             if (targetMappingExpr != null) {
                 expr = targetMappingExpr.expr();
             }
-            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits);
+            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, typeSymbol);
         }
 
         return gson.toJsonTree(textEditsMap);
@@ -1219,7 +1220,7 @@ public class DataMapManager {
     }
 
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
-                                        List<TextEdit> textEdits) {
+                                        List<TextEdit> textEdits, TypeSymbol targetSymbol) {
         if (idx == names.length) {
             NonTerminalNode currentNode = expr;
             NonTerminalNode highestEmptyField = null;
@@ -1363,15 +1364,11 @@ public class DataMapManager {
                         }
                     }
                 } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
-                    Optional<Symbol> optSymbol = semanticModel.symbol(expr);
-                    if (optSymbol.isPresent()) {
-                        Symbol symbol = optSymbol.get();
-                        if (symbol.kind() == SymbolKind.VARIABLE) {
-                            VariableSymbol varSymbol = (VariableSymbol) symbol;
-                            String defaultVal = getDefaultValue(
-                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
-                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
-                        }
+                    if (targetSymbol != null) {
+                        ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) targetSymbol;
+                        String defaultVal = getDefaultValue(
+                                CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()).typeKind().getName());
+                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                     }
                 }
             }
@@ -1382,7 +1379,7 @@ public class DataMapManager {
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode != null) {
                 genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits);
+                        textEdits, targetSymbol);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
@@ -1391,7 +1388,7 @@ public class DataMapManager {
                 int index = Integer.parseInt(name);
                 if (index < listCtrExpr.expressions().size()) {
                     genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
-                            names, idx + 1, textEdits);
+                            names, idx + 1, textEdits, targetSymbol);
                 }
             }
         }
