@@ -29,7 +29,7 @@ import {
     UPDATE_BALLERINA_VERSION
 } from "./messages";
 import { join, sep } from 'path';
-import { exec, spawnSync } from 'child_process';
+import { exec, spawnSync, execSync } from 'child_process';
 import { LanguageClientOptions, State as LS_STATE, RevealOutputChannelOn, ServerOptions } from "vscode-languageclient/node";
 import { getServerOptions } from '../utils/server/server';
 import { ExtendedLangClient } from './extended-language-client';
@@ -1445,7 +1445,6 @@ export class BallerinaExtension {
         } else if (isWSL()) {
             // In WSL, check if we have a Linux installation in the WSL filesystem
             const wslBallerinaPath = process.env.HOME + '/.ballerina';
-            const fs = require('fs');
             if (fs.existsSync(wslBallerinaPath)) {
                 const wslInstallationPath = join(wslBallerinaPath, "ballerina-home");
                 if (fs.existsSync(wslInstallationPath)) {
@@ -1536,7 +1535,6 @@ export class BallerinaExtension {
 
         // Validate the home directory exists
         try {
-            const fs = require('fs');
             const homeStats = fs.statSync(homeDir);
             if (homeStats.isDirectory()) {
                 debug(`[HOME_DIR] Home directory is valid and accessible: ${homeDir}`);
@@ -1684,7 +1682,6 @@ export class BallerinaExtension {
 
             // Check if the directory exists
             try {
-                const fs = require('fs');
                 const homeStats = fs.statSync(ballerinaHome);
                 if (!homeStats.isDirectory()) {
                     throw new Error(`Ballerina home path is not a directory: ${ballerinaHome}`);
@@ -1705,7 +1702,6 @@ export class BallerinaExtension {
                 debug(`[VERSION] Using distribution path: ${distPath}`);
 
                 // Check if bin directory exists
-                const fs = require('fs');
                 const binPath = join(ballerinaHome, "bin");
                 if (!fs.existsSync(binPath)) {
                     throw new Error(`Ballerina bin directory not found: ${binPath}`);
@@ -1719,16 +1715,14 @@ export class BallerinaExtension {
             // In WSL, try to detect Ballerina installation dynamically
             // First try to use 'bal' command to get the home directory
             try {
-                const { execSync } = require('child_process');
-                const balHomeOutput = execSync('bal home', { 
-                    encoding: 'utf8', 
+                const balHomeOutput = execSync('bal home', {
+                    encoding: 'utf8',
                     timeout: 10000,
                     env: { ...process.env }
                 }).trim();
-                
+
                 if (balHomeOutput) {
                     const wslBinPath = join(balHomeOutput, "bin");
-                    const fs = require('fs');
                     if (fs.existsSync(wslBinPath)) {
                         distPath = wslBinPath + sep;
                         debug(`[VERSION] Using WSL Ballerina installation from 'bal home': ${distPath}`);
@@ -1741,12 +1735,9 @@ export class BallerinaExtension {
                     process.env.HOME + '/.ballerina/ballerina-home',
                     '/usr/lib/ballerina/distributions/ballerina-*',
                 ];
-                
-                const fs = require('fs');
                 for (const pathPattern of commonPaths) {
                     if (pathPattern.includes('*')) {
                         // Handle glob patterns
-                        const glob = require('glob');
                         const matches = glob.sync(pathPattern);
                         for (const match of matches) {
                             const binPath = join(match, "bin");
@@ -1789,13 +1780,12 @@ export class BallerinaExtension {
         }
 
         let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
-        
+
         // Handle WSL environment - prefer native Linux installation over Windows .bat files
         if (isWSL()) {
             if (exeExtension === ".bat") {
                 // Try to find a native Linux installation first
                 try {
-                    const { execSync } = require('child_process');
                     // Check if 'bal' command is available in PATH
                     execSync('which bal', { encoding: 'utf8', timeout: 5000 });
                     // If we get here, 'bal' is available, use it instead of .bat
@@ -1818,12 +1808,11 @@ export class BallerinaExtension {
                 debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
             }
         }
-        
+
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
         let ballerinaExecutor = '';
         return new Promise((resolve, reject) => {
-            const { exec } = require('child_process');
             const execOptions = {
                 timeout: 30000, // 30 second timeout
                 maxBuffer: 1024 * 1024, // 1MB buffer
@@ -2116,7 +2105,6 @@ export class BallerinaExtension {
                 debug("[AUTO_DETECT] WSL environment detected");
                 // In WSL, try to use native 'bal' command first
                 try {
-                    const { execSync } = require('child_process');
                     // Check if 'bal' command is available in PATH
                     execSync('which bal', { encoding: 'utf8', timeout: 5000 });
                     // If we get here, 'bal' is available, use it
@@ -2155,7 +2143,6 @@ export class BallerinaExtension {
                 // Validate the output path
                 if (balHomeOutput) {
                     try {
-                        const fs = require('fs');
                         const homeStats = fs.statSync(balHomeOutput);
                         if (homeStats.isDirectory()) {
                             debug(`[AUTO_DETECT] Detected home directory is valid: ${balHomeOutput}`);
