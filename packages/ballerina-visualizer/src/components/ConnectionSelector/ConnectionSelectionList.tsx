@@ -37,9 +37,16 @@ export function ConnectionSelectionList(props: ConnectionSelectionListProps): JS
     const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const searchConfig = useRef<ConnectionSearchConfig>();
+    const progressTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         initPanel();
+        return () => {
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+                progressTimeoutRef.current = null;
+            }
+        };
     }, []);
 
     const initPanel = async () => {
@@ -47,8 +54,9 @@ export function ConnectionSelectionList(props: ConnectionSelectionListProps): JS
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
         aiModuleOrg.current = await getAiModuleOrg(rpcClient, selectedNode?.codedata?.node);
         searchConfig.current = getSearchConfig(connectionKind, aiModuleOrg.current);
-        setTimeout(() => {
+        progressTimeoutRef.current = setTimeout(() => {
             setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
+            progressTimeoutRef.current = null;
         }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
         await fetchConnections();
         setLoading(false);
