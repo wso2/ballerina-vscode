@@ -23,3 +23,7 @@ service OASServiceType on new http:Listener(9090) {
 		}
 	}
 }
+
+type Credentials record {|
+   UserInfo[] userInfo;
+|};

@@ -1,47 +1,45 @@
 {
-  "source": "variable1.bal",
+  "source": "variable2.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable1.bal",
+      "fileName": "variable2.bal",
       "startLine": {
         "line": 19,
         "offset": 12
       },
       "endLine": {
         "line": 19,
-        "offset": 101
+        "offset": 122
       }
     },
     "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
     "isNew": true
   },
   "propertyKey": "expression",
-  "index": -1,
+  "index": 0,
   "clause": {
-    "type": "from",
+    "type": "where",
     "properties": {
-      "name": "item",
-      "type": "var",
-      "expression": "userInfo"
+      "expression": "userInfo.username == \"Alex\""
     }
   },
   "targetField": "credentials",
   "output": {
-    "variable1.bal": [
+    "variable2.bal": [
       {
         "range": {
           "start": {
             "line": 19,
-            "character": 65
+            "character": 86
           },
           "end": {
             "line": 19,
-            "character": 65
+            "character": 86
           }
         },
-        "newText": "\nfrom var item in userInfo"
+        "newText": "\nwhere userInfo.username == \"Alex\""
       }
     ]
   }
