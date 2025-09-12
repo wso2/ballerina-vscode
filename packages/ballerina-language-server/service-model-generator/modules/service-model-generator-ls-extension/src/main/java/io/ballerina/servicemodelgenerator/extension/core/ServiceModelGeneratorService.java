@@ -922,6 +922,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     throw new IllegalStateException("Failed to load the document or semantic model");
                 }
+                // TODO: need to add the module pulling logic here
+
                 return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request,
                         semanticModel.get(), document.get()));
             } catch (Throwable e) {
