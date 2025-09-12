@@ -204,6 +204,11 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         Artifact.Builder typeBuilder = new Artifact.Builder(classDefinitionNode)
                 .name(classDefinitionNode.className().text())
                 .type(Artifact.Type.TYPE);
+
+        classDefinitionNode.members().forEach(member -> {
+            member.apply(this).ifPresent(typeBuilder::child);
+        });
+
         return Optional.of(typeBuilder.build());
     }
 
