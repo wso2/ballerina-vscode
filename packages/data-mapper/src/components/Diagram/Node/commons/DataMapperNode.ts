@@ -157,7 +157,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		});
 	}
 
-	protected addPortsForOutputField(attributes: OutputPortAttributes) {
+	protected async addPortsForOutputField(attributes: OutputPortAttributes): Promise<void> {
 		const {
 			field,
 			type,
@@ -182,7 +182,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			portName, isArray, field.isDeepNested, mapping, mappings, fieldFQN);
 
 		if (field.isDeepNested && !isCollapsed && !hidden) {
-			this.context.enrichChildFields(field);
+			await this.context.enrichChildFields(field);
 		}
 
 		const outputPort = new InputOutputPortModel({
@@ -200,7 +200,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		});
 		this.addPort(outputPort);
 
-		this.processOutputFieldKind({
+		await this.processOutputFieldKind({
 			...attributes,
 			parentId: fieldFQN,
 			parent: outputPort,
@@ -208,11 +208,11 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		});
 	}
 
-	protected processOutputFieldKind(attributes: OutputPortAttributes) {
+	protected async processOutputFieldKind(attributes: OutputPortAttributes) {
 		if (attributes.field?.kind === TypeKind.Record) {
-			this.processRecordField(attributes);
+			await this.processRecordField(attributes);
 		} else if (attributes.field?.kind === TypeKind.Array) {
-			this.processArrayField(attributes);
+			await this.processArrayField(attributes);
 		}
 	}
 
@@ -401,32 +401,33 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		return attributes.field?.member;
 	}
 
-	private processRecordField(attributes: OutputPortAttributes) {
+	private async processRecordField(attributes: OutputPortAttributes) {
 		const fields = attributes.field?.fields?.filter(f => !!f);
 		if (fields && fields.length) {
-			fields.forEach((subField) => {
-				this.addPortsForOutputField({
+			for(const subField of fields) {
+				await this.addPortsForOutputField({
 					...attributes,
 					field: subField,
 					elementIndex: undefined
 				});
-			});
+			}
 		}
 	}
 
-	private processArrayField(attributes: OutputPortAttributes) {
+	private async processArrayField(attributes: OutputPortAttributes) {
 		const elements: MappingElement[] = findMappingByOutput(attributes.mappings, attributes.parentId)?.elements || [];
 		if (elements.length > 0) {
-			elements.forEach((element, index) => {
-				this.addPortsForOutputField({
+			for (let index = 0; index < elements.length; index++) {
+				const element = elements[index];
+				await this.addPortsForOutputField({
 					...attributes,
 					field: attributes.field?.member,
 					mappings: element.mappings,
 					elementIndex: index
 				});
-			});
+			}
 		} else {
-			this.addPortsForOutputField({
+			await this.addPortsForOutputField({
 				...attributes,
 				field: attributes.field?.member,
 				isPreview: true

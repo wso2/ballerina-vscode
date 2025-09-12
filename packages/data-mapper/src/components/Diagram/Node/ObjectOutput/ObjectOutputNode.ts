@@ -79,9 +79,9 @@ export class ObjectOutputNode extends DataMapperNodeModel {
     
             if (this.filteredOutputType.kind === TypeKind.Record) {
                 if (this.filteredOutputType.fields.length) {
-                    this.filteredOutputType.fields.forEach(field => {
-                        if (!field) return;
-                        this.addPortsForOutputField({
+                    for (const field of this.filteredOutputType.fields) {
+                        if (!field) continue;
+                        await this.addPortsForOutputField({
                             field,
                             type: "IN",
                             parentId: this.rootName,
@@ -92,7 +92,7 @@ export class ObjectOutputNode extends DataMapperNodeModel {
                             expandedFields,
                             hidden: parentPort.attributes.collapsed
                         });
-                    });
+                    }
                 }
             }
         }
