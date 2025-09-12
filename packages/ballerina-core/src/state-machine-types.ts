@@ -47,6 +47,7 @@ export enum EVENT_TYPE {
     FILE_EDIT = "FILE_EDIT",
     EDIT_DONE = "EDIT_DONE",
     CLOSE_VIEW = "CLOSE_VIEW",
+    VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
 }
 
@@ -163,6 +164,7 @@ export interface PopupVisualizerLocation extends VisualizerLocation {
 export interface ParentPopupData {
     recentIdentifier: string;
     artifactType: DIRECTORY_MAP;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface DownloadProgress {
