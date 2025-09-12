@@ -23,7 +23,7 @@
       "listenerProtocol": "http",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
       "properties": {
-        "name": {
+        "variableNameKey": {
           "metadata": {
             "label": "Name",
             "description": "The name of the listener"
