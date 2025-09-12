@@ -21,10 +21,10 @@ import { Category, CardList } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RelativeLoader } from "../RelativeLoader";
 import { ConnectionSearchConfig, ConnectionSelectionListProps } from "./types";
-import { LoaderContainer } from "./styles";
 import { convertConnectionCategories, getSearchConfig } from "./utils";
 import { getAiModuleOrg } from "../../views/BI/AIChatAgent/utils";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, LOADING_MESSAGE } from "../../constants";
+import { LoaderContainer } from "../RelativeLoader/styles";
 
 export function ConnectionSelectionList(props: ConnectionSelectionListProps): JSX.Element {
     const { connectionKind, selectedNode, onSelect } = props;
