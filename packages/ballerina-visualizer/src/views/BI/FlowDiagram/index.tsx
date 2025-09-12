@@ -887,12 +887,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Updating current artifact location", { artifacts });
         // Get the updated component and update the location
         const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
+        const currentType = (await rpcClient.getVisualizerLocation()).type;
+
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
-        artifacts.artifacts.forEach((artifact) => {
-            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+        for (const artifact of artifacts.artifacts) {
+            if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
+                currentArtifact = artifact;
+                if (artifact.resources && artifact.resources.length > 0) {
+                    const resource = artifact.resources.find(
+                        (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                    );
+                    if (resource) {
+                        currentArtifact = resource;
+                        break;
+                    }
+                }
+
+            } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
+
             // Check if artifact has resources and find within those
             if (artifact.resources && artifact.resources.length > 0) {
                 const resource = artifact.resources.find(
@@ -902,7 +917,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     currentArtifact = resource;
                 }
             }
-        });
+        }
         if (currentArtifact) {
             console.log(">>> currentArtifact", currentArtifact);
             if (isCreatingNewModelProvider.current) {
