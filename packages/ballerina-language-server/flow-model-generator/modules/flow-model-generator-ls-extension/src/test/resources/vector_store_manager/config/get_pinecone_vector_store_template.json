@@ -134,9 +134,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "ai": "ballerina/ai"
-          },
           "defaultValue": "\"HYBRID\""
         },
         "config": {
@@ -190,9 +187,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "vector": "ballerinax/pinecone.vector"
-          },
           "defaultValue": "{}"
         },
         "scope": {
