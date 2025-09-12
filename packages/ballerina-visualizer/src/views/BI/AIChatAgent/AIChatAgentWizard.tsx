@@ -27,7 +27,7 @@ import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
-import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+import { AI, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
 
 const FormContainer = styled.div`
     display: flex;
@@ -71,7 +71,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const steps = [
         { label: "Creating Agent", description: "Creating the AI chat agent" },
         { label: "Initializing", description: "Setting up the agent configuration" },
-        { label: "Pulling Modules", description: "Pulling the required modules" },
+        { label: "Pulling Modules", description: "Pulling the required modules. This may take a few moments." },
         { label: "Creating Listener", description: "Configuring the service listener" },
         { label: "Creating Service", description: "Setting up the AI chat service" },
         { label: "Completing", description: "Finalizing the agent setup" }
@@ -130,6 +130,11 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             // Generate template from agent node
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
+
+            // hack: fetching from Central to build module dependency map in LSP may take time
+            setTimeout(() => {
+                setCurrentStep(2);
+            }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
 
             // Search for model providers
             const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
