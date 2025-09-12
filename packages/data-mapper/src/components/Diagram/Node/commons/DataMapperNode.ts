@@ -96,7 +96,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	abstract initPorts(): void;
 	abstract initLinks(): void;
 
-	protected addPortsForInputField(attributes: InputPortAttributes): number {
+	protected async addPortsForInputField(attributes: InputPortAttributes): Promise<number> {
 		const {
 			field,
 			portType,
@@ -131,7 +131,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 			portName, isArray, isFocused, collapseByDefault);
 
 		if (isEnrichRequired || (!isCollapsed && !hidden && field.isDeepNested)) {
-			this.context.enrichChildFields(field);
+			await this.context.enrichChildFields(field);
 		}
 
 		const inputPort = new InputOutputPortModel({
@@ -147,7 +147,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		});
 		this.addPort(inputPort);
 
-		return this.createInputPortsForNestedFields({
+		return await this.createInputPortsForNestedFields({
 			...attributes,
 			parentId: fieldFQN,
 			unsafeParentId: unsafeFieldFQN,
@@ -345,16 +345,16 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		return parentField.kind === TypeKind.Array && focusedFieldFQNs && !focusedFieldFQNs.includes(parentField.id) ;
 	}
 
-	private createInputPortsForNestedFields(attributes: InputPortAttributes): number {
+	private async createInputPortsForNestedFields(attributes: InputPortAttributes): Promise<number> {
 		const isHidden = attributes.hidden || attributes.collapsed;
 		let numberOfFields = 1;
 
 		switch (attributes.field?.kind) {
 			case TypeKind.Record:
-				numberOfFields += this.createInputPortsForRecordField(attributes, isHidden);
+				numberOfFields += await this.createInputPortsForRecordField(attributes, isHidden);
 				break;
 			case TypeKind.Array:
-				numberOfFields += this.createInputPortsForArrayField(attributes, isHidden);
+				numberOfFields += await this.createInputPortsForArrayField(attributes, isHidden);
 				break;
 			default:
 				break;
@@ -363,24 +363,26 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		return attributes.hidden ? 0 : numberOfFields;
 	}
 
-	private createInputPortsForRecordField(attributes: InputPortAttributes, isHidden: boolean): number {
+	private async createInputPortsForRecordField(attributes: InputPortAttributes, isHidden: boolean): Promise<number> {
 		const fields = attributes.field?.fields?.filter(f => !!f) || [];
 		if (fields.length === 0) {
 			return 0;
 		}
-		return fields.reduce((total, subField) => {
-			return total + this.addPortsForInputField({
+		let total = 0;
+		for (const subField of fields) {
+			total += await this.addPortsForInputField({
 				...attributes,
 				hidden: isHidden,
 				field: subField,
 				isOptional: subField.optional || attributes.isOptional
 			});
-		}, 0);
+		}
+		return total;
 	}
 
-	private createInputPortsForArrayField(attributes: InputPortAttributes, isHidden: boolean): number {
+	private async createInputPortsForArrayField(attributes: InputPortAttributes, isHidden: boolean): Promise<number> {
 		const memberField = this.resolveArrayMemberField(attributes);
-		return this.addPortsForInputField({
+		return await this.addPortsForInputField({
 			...attributes,
 			hidden: isHidden,
 			field: memberField,
