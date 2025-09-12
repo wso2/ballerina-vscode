@@ -198,13 +198,12 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
-    const handleSetType = (type: Type | ((currentType: any) => any)) => {
-        if (typeof type === "function") return;
+    const handleSetType = (type: Type) => {
         replaceTop({
             type: type,
             isDirty: true
         })
-        setType(type)
+        setType(type);
     }
 
 
@@ -232,16 +231,17 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
 
         const typeValue = selectedKind === TypeKind.CLASS ? "CLASS" : selectedKind.toUpperCase();
 
-        // Always create a new type with the selected kind
-        handleSetType((currentType) => ({
-            ...currentType!,
+        // Always create a new type with the selected kind, preserving the name
+        handleSetType({
+            ...type!,
+            name: type!.name, // Explicitly preserve the name
             kind: typeValue,
             members: [] as Member[],
             codedata: {
-                ...currentType!.codedata, // Check the location of the type
+                ...type!.codedata, // Check the location of the type
                 node: typeValue.toUpperCase() as TypeNodeKind
             }
-        }));
+        } as any);
     };
 
     // Add a helper function to get the display label
