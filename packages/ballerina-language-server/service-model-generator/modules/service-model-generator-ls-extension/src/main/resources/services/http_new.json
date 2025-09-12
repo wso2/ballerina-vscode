@@ -163,7 +163,6 @@
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "int",
               "value": "8080",
-              "items": [],
               "typeMembers": [],
               "enabled": true,
               "editable": true,
