@@ -131,7 +131,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             // Generate template from agent node
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
-            // hack: fetching from Central to build module dependency map in LSP may take time
+            // hack: fetching from Central to build module dependency map in LS may take time
             setTimeout(() => {
                 setCurrentStep(2);
             }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);

@@ -1574,7 +1574,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // Common function to handle progress message with timeout
     const setupProgressMessageTimeout = () => {
         setProgressMessage(LOADING_MESSAGE);
-        // hack: fetching from Central to build module dependency map in LSP may take time, so show a different message after 3 seconds
+        // hack: fetching from Central to build module dependency map in LS may take time, so show a different message after 3 seconds
         const messageTimeout = setTimeout(() => {
             setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
         }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
