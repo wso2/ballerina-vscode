@@ -79,13 +79,13 @@
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "",
+          "value": "request",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": false,
+        "enabled": true,
         "editable": true,
         "optional": true,
         "advanced": true,
@@ -143,16 +143,64 @@
           "placeholder": "headers",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "",
+          "value": "headers",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": false,
+        "enabled": true,
         "editable": true,
         "optional": true,
         "advanced": true,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "name",
+          "description": "name"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "name",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "QUERY",
         "hidden": false
       }
     ],
