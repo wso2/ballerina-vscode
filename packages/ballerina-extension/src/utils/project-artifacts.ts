@@ -165,6 +165,14 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
                 entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
             }
             break;
+        case DIRECTORY_MAP.TYPE:
+            if (artifact.children && Object.keys(artifact.children).length > 0) {
+                const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
+                const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
+                const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
+                entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
+            }
+            break;
         case DIRECTORY_MAP.LISTENER:
             // Do things related to listener
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
