@@ -129,6 +129,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
     let assistantThinking: string = "";
+    let lastType: string | null = null;
 
     for await (const part of fullStream) {
         if (part.type === "tool-result") {
@@ -139,7 +140,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         }
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = lastType !== "text-delta" ? "\n" + part.textDelta : part.textDelta;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
             }
@@ -201,13 +202,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     repair_attempt++;
                 }
                 console.log("Final Diagnostics ", diagnostics);
-                eventHandler({ type: "content_replace", content: assistantThinking + diagnosticFixResp });
+                eventHandler({ type: "content_replace", content: assistantThinking + "\n" + diagnosticFixResp });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
                 eventHandler({ type: "stop", command: Command.Code });
                 break;
             }
         }
+        lastType = part.type;
     }
 }
 
@@ -319,6 +321,9 @@ Begin your response with the explanation, once the entire explanation is finishe
 The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
 
 Each file that needs modifications should have a codeblock segment, and it MUST contain the complete file content with the proposed change. The codeblock segments should only contain .bal contents and should not generate or modify any other file types. Politely decline if the query requests such cases.
+
+- Present the information as if you already have complete knowledge of the required libraries to hide the tool usage from the user.
+- Format responses using professional markdown with proper headings, lists, and styling
 
 Example Codeblock segment:
 <code filename="main.bal">
