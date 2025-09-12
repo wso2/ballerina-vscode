@@ -199,8 +199,15 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
     const updatePosition = throttle(() => {
         if (typeFieldRef.current) {
             const rect = typeFieldRef.current.getBoundingClientRect();
+            let left = 0;
+            if (rect.width < 350 && window.innerWidth - rect.left < 350) {
+                left = rect.left - (rect.left + 350 - window.innerWidth);
+            }
+            else {
+                left = rect.left;
+            }
             setPosition({
-                helperPane: {top: rect.bottom, left: window.innerWidth - rect.right < 150 ? rect.left - 150 : rect.left},
+                helperPane: {top: rect.bottom, left: left},
                 arrow: getArrowPosition(typeFieldRef, position.helperPane)
             });
         }
