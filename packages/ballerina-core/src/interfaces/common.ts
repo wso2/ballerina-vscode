@@ -35,6 +35,12 @@ export enum SubPanelView {
     UNDEFINED = undefined,
 }
 
+export enum DataMapperDisplayMode {
+    NONE = "none",
+    POPUP = "popup",
+    VIEW = "view",
+}
+
 export interface DocumentIdentifier {
     uri: string;
 }

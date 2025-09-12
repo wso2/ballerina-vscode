@@ -44,6 +44,7 @@ import {
     ParentMetadata,
     NodeMetadata,
     SearchKind,
+    DataMapperDisplayMode,
 } from "@wso2/ballerina-core";
 
 import {
@@ -159,6 +160,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
+            if (parent.dataMapperMetadata) {
+                // Skip if the parent is a data mapper popup
+                return;
+            }
             console.log(">>> on parent popup submitted", parent);
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
@@ -887,12 +892,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Updating current artifact location", { artifacts });
         // Get the updated component and update the location
         const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
+        const currentType = (await rpcClient.getVisualizerLocation()).type;
+
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
-        artifacts.artifacts.forEach((artifact) => {
-            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+        for (const artifact of artifacts.artifacts) {
+            if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
+                currentArtifact = artifact;
+                if (artifact.resources && artifact.resources.length > 0) {
+                    const resource = artifact.resources.find(
+                        (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                    );
+                    if (resource) {
+                        currentArtifact = resource;
+                        break;
+                    }
+                }
+
+            } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
+
             // Check if artifact has resources and find within those
             if (artifact.resources && artifact.resources.length > 0) {
                 const resource = artifact.resources.find(
@@ -902,7 +922,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     currentArtifact = resource;
                 }
             }
-        });
+        }
         if (currentArtifact) {
             console.log(">>> currentArtifact", currentArtifact);
             if (isCreatingNewModelProvider.current) {
@@ -1224,7 +1244,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = (
+        updatedNode?: FlowNode,
+        dataMapperMode?: DataMapperDisplayMode,
+        options?: FormSubmitOptions
+    ) => {
         if (!updatedNode) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
@@ -1233,7 +1257,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         const noFormSubmitOptions = !options || !(options?.shouldCloseSidePanel || options?.updateLineRangeForRecursiveInserts);
 
-        if (openInDataMapper) {
+        if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
             rpcClient
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
@@ -1258,12 +1282,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     name: updatedNode.properties?.variable?.value as string,
                                     codeData: response.codedata,
                                 }
-                            }
+                            },
+                            isPopup: dataMapperMode === DataMapperDisplayMode.POPUP
                         });
                     }
                 })
                 .finally(() => {
-                    setShowSidePanel(false);
+                    if (dataMapperMode !== DataMapperDisplayMode.POPUP) setShowSidePanel(false);
                     setShowProgressIndicator(false);
                 });
             return;
@@ -1273,7 +1298,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getSourceCode({
                 filePath: model.fileName,
                 flowNode: updatedNode,
-                isFunctionNodeUpdate: openInDataMapper,
+                isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
             })
             .then(async (response) => {
                 console.log(">>> Updated source code", response);

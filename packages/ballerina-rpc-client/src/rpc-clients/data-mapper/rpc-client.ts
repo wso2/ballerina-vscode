@@ -29,7 +29,9 @@ import {
     DataMapperModelResponse,
     DataMapperSourceRequest,
     DataMapperSourceResponse,
+    DeleteClauseRequest,
     DeleteMappingRequest,
+    DeleteSubMappingRequest,
     ExpandedDMModelResponse,
     GetDataMapperCodedataRequest,
     GetDataMapperCodedataResponse,
@@ -47,7 +49,9 @@ import {
     addNewArrayElement,
     addSubMapping,
     convertToQuery,
+    deleteClause,
     deleteMapping,
+    deleteSubMapping,
     getAllDataMapperSource,
     getDataMapperCodedata,
     getDataMapperModel,
@@ -99,12 +103,20 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(addClauses, HOST_EXTENSION, params);
     }
 
+    deleteClause(params: DeleteClauseRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(deleteClause, HOST_EXTENSION, params);
+    }
+
     addSubMapping(params: AddSubMappingRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(addSubMapping, HOST_EXTENSION, params);
     }
 
     deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return this._messenger.sendRequest(deleteMapping, HOST_EXTENSION, params);
+    }
+
+    deleteSubMapping(params: DeleteSubMappingRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(deleteSubMapping, HOST_EXTENSION, params);
     }
 
     mapWithCustomFn(params: MapWithFnRequest): Promise<DataMapperSourceResponse> {
