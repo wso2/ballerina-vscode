@@ -26,9 +26,9 @@ import { InfoBox } from "../InfoBox";
 import { ConnectionCreatorProps } from "./types";
 import { getConnectionSpecialConfig } from "./config";
 import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable, updateNodeLineRange } from "./utils";
-import { LoaderContainer } from "./styles";
 import { cloneDeep } from "lodash";
 import { LineRange } from "@wso2/ballerina-core";
+import { LoaderContainer } from "../RelativeLoader/styles";
 
 export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const { connectionKind, selectedNode, nodeFormTemplate, onSave } = props;
