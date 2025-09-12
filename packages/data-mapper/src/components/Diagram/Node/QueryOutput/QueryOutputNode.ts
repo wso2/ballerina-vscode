@@ -90,7 +90,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
                 expandedFields
             });
 
-            this.processOutputFieldKind({
+            await this.processOutputFieldKind({
                 field: parentField,
                 type: "IN",
                 parentId: this.rootName,
