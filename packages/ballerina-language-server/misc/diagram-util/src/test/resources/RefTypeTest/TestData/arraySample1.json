@@ -9,7 +9,8 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string"
+          "typeName": "string",
+          "cachedType": false
         },
         "optional": false,
         "defaultValue": ""
@@ -20,7 +21,8 @@
           "dependentTypeHashes": [],
           "hashCode": "1848974004",
           "name": "SampleRecord",
-          "typeName": "record"
+          "typeName": "record",
+          "cachedType": false
         },
         "optional": false,
         "defaultValue": ""
@@ -32,7 +34,8 @@
             "dependentTypeHashes": [],
             "hashCode": "-210370019",
             "name": "ProgressNote",
-            "typeName": "record"
+            "typeName": "record",
+            "cachedType": false
           },
           "dependentTypeHashes": [
             "-210370019",
@@ -41,7 +44,8 @@
           ],
           "hashCode": "-210370019",
           "name": "",
-          "typeName": "array"
+          "typeName": "array",
+          "cachedType": false
         },
         "optional": false,
         "defaultValue": ""
@@ -63,7 +67,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -74,7 +79,8 @@
               "dependentTypeHashes": [],
               "hashCode": "1848974004",
               "name": "SampleRecord",
-              "typeName": "record"
+              "typeName": "record",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -86,7 +92,9 @@
         ],
         "hashCode": "-210370019",
         "name": "ProgressNote",
-        "typeName": "record"
+        "typeName": "record",
+        "cachedType": false,
+        "isComplete": false
       },
       "-1112251293": {
         "fields": [
@@ -95,7 +103,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -105,7 +114,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "int",
-              "typeName": "int"
+              "typeName": "int",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -114,7 +124,9 @@
         "dependentTypeHashes": [],
         "hashCode": "-1112251293",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "cachedType": false,
+        "isComplete": false
       },
       "1848974004": {
         "fields": [
@@ -123,7 +135,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -134,7 +147,8 @@
               "dependentTypeHashes": [],
               "hashCode": "-1112251293",
               "name": "SampleType",
-              "typeName": "record"
+              "typeName": "record",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -145,8 +159,12 @@
         ],
         "hashCode": "1848974004",
         "name": "SampleRecord",
-        "typeName": "record"
+        "typeName": "record",
+        "cachedType": false,
+        "isComplete": false
       }
-    }
+    },
+    "cachedType": false,
+    "isComplete": true
   }
 }

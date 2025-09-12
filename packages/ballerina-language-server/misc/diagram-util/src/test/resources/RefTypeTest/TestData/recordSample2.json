@@ -9,7 +9,8 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string"
+          "typeName": "string",
+          "cachedType": false
         },
         "optional": false,
         "defaultValue": ""
@@ -20,7 +21,8 @@
           "dependentTypeHashes": [],
           "hashCode": "695203170",
           "name": "SampleType",
-          "typeName": "record"
+          "typeName": "record",
+          "cachedType": false
         },
         "optional": false,
         "defaultValue": ""
@@ -40,7 +42,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -50,7 +53,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "int",
-              "typeName": "int"
+              "typeName": "int",
+              "cachedType": false
             },
             "optional": false,
             "defaultValue": ""
@@ -59,8 +63,12 @@
         "dependentTypeHashes": [],
         "hashCode": "695203170",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "cachedType": true,
+        "isComplete": true
       }
-    }
+    },
+    "cachedType": false,
+    "isComplete": true
   }
 }

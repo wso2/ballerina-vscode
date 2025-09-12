@@ -79,7 +79,7 @@ public class RefTypeTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
 
-        RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol);
+        RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol, semanticModel);
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
         if (!refTypeJson.equals(expectedRefTypeJson)) {
