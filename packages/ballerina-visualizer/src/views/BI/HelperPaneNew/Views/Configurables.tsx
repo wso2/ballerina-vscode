@@ -168,7 +168,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 showProgressIndicator={false}
                 resetUpdatedExpressionField={() => { }}
                 isInModal={true}
-            />, POPUP_IDS.CONFIGURABLES, "New Configurable", 600)
+            />, POPUP_IDS.CONFIGURABLES, "New Configurable", 650)
 
         onClose && onClose();
     }

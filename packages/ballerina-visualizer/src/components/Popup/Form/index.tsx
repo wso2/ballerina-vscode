@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { Codicon, Divider, Typography } from "@wso2/ui-toolkit";
+import { Codicon, Divider, ScrollableContainer, Typography } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
 
 const PopupFormContainer = styled.div`
@@ -74,7 +74,7 @@ export const PopupForm = (props: PopupFormProps) => {
                      <Codicon name="close" onClick={onClose} />
                 </PopupFormHeader>
                 <Divider />
-                <div>{children}</div>
+                <div><ScrollableContainer>{children}</ScrollableContainer></div>
             </PopupFormBox>
         </PopupFormContainer>
     )
