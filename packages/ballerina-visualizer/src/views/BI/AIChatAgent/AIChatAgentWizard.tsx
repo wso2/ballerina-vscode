@@ -79,6 +79,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
     const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
+    const progressTimeoutRef = useRef<number | null>(null);
 
     const validateName = (name: string): boolean => {
         if (!name) {
@@ -132,8 +133,9 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
             // hack: fetching from Central to build module dependency map in LS may take time
-            setTimeout(() => {
+            progressTimeoutRef.current = setTimeout(() => {
                 setCurrentStep(2);
+                progressTimeoutRef.current = null;
             }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
 
             // Search for model providers
@@ -239,7 +241,10 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setIsCreating(false);
             setCurrentStep(0);
         } finally {
-
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+                progressTimeoutRef.current = null;
+            }
         }
     }
 

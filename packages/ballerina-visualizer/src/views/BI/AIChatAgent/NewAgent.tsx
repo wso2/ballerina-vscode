@@ -56,9 +56,16 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const modelNodes = useRef<AvailableNode[]>([]);
+    const progressTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         initPanel();
+        return () => {
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+                progressTimeoutRef.current = null;
+            }
+        };
     }, []);
 
     const initPanel = async () => {
@@ -99,8 +106,9 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         setAgentNode(agentNodeTemplate);
 
         // hack: fetching from Central to build module dependency map in LS may take time
-        setTimeout(() => {
+        progressTimeoutRef.current = setTimeout(() => {
             setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
+            progressTimeoutRef.current = null;
         }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
 
         // Search for model providers using search API
