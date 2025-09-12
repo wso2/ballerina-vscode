@@ -53,33 +53,9 @@ export const LoaderContainer = styled.div`
     justify-content: center;
     align-items: center;
     height: 100%;
-`;
-
-const LoaderMessageContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
     padding: 16px;
-`;
-
-const LoaderMessage = styled.div`
-    font-size: 14px;
     text-align: center;
 `;
-
-interface LoaderWithMessageProps {
-    message?: string;
-}
-
-const LoaderWithMessage: React.FC<LoaderWithMessageProps> = ({ message }) => (
-    <LoaderContainer>
-        <LoaderMessageContainer>
-            <RelativeLoader />
-            {message && <LoaderMessage>{message}</LoaderMessage>}
-        </LoaderMessageContainer>
-    </LoaderContainer>
-);
 
 export enum SidePanelView {
     NODE_LIST = "NODE_LIST",
@@ -654,7 +630,15 @@ export function PanelManager(props: PanelManagerProps) {
             subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{showProgressSpinner ? <LoaderWithMessage message={progressMessage} /> : renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>
+                {showProgressSpinner ? (
+                    <LoaderContainer>
+                        <RelativeLoader message={progressMessage} />
+                    </LoaderContainer>
+                ) : (
+                    renderPanelContent()
+                )}
+            </Container>
         </PanelContainer>
     );
 }

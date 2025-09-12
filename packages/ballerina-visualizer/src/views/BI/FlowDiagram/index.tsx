@@ -73,7 +73,7 @@ import {
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
-import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
+import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 
 const Container = styled.div`
     width: 100%;
@@ -103,10 +103,6 @@ export type FormSubmitOptions = {
     shouldUpdateTargetLine?: boolean;
 
 };
-
-const LOADING_MESSAGE = "Loading...";
-const AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT = 3000; // Timeout (ms) before showing the 'fetching from Central' progress message
-const AI_COMPONENT_PROGRESS_MESSAGE = "Fetching resources from Ballerina Central. This may take a few moments...";
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
