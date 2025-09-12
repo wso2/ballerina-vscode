@@ -65,6 +65,10 @@ export const useIONodesStyles = () => ({
         ...typeLabel,
         color: "var(--vscode-errorForeground)",
     }),
+    categoryLabel: css({
+        ...typeLabel,
+        backgroundColor: "var(--vscode-list-hoverBackground)",
+    }),
     valueLabel: css({
         ...valueLabel
     }),
