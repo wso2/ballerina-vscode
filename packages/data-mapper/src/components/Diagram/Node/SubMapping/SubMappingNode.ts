@@ -92,9 +92,6 @@ export class SubMappingNode extends DataMapperNodeModel {
 
                 if (type.kind === TypeKind.Record) {
                     const fields = type.fields;
-                    fields.forEach(subField => {
-                        
-                    });
                     for (const subField of fields) {
                         this.numberOfFields += 1 + await this.addPortsForInputField({
                             field: subField,
