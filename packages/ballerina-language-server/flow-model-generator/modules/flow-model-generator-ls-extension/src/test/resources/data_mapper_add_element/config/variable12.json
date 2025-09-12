@@ -1,0 +1,38 @@
+{
+  "source": "variable7.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 62
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "var2.0",
+  "output": {
+    "variable7.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 60
+          },
+          "end": {
+            "line": 10,
+            "character": 60
+          }
+        },
+        "newText": "{index: \"\"}"
+      }
+    ]
+  }
+}

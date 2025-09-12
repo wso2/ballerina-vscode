@@ -1,0 +1,45 @@
+{
+  "source": "variable6.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable6.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 52
+      }
+    }
+  },
+  "mapping": {
+    "output": "name",
+    "inputs": [
+      "arr1"
+    ],
+    "expression": "arr1",
+    "diagnostics": [],
+    "elements": []
+  },
+  "targetField": "name",
+  "output": {
+    "variable6.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 47
+          },
+          "end": {
+            "line": 10,
+            "character": 51
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}

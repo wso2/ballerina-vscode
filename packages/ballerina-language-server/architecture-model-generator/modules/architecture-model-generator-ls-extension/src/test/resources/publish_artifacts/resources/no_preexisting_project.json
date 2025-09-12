@@ -1,0 +1,585 @@
+{
+  "source": "old/config.bal",
+  "description": "Test reload project without pre-existing artifacts",
+  "output": {
+    "Variables": {
+      "additions": {
+        "menuItems": {
+          "id": "menuItems",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 7,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 11,
+              "offset": 2
+            }
+          },
+          "type": "VARIABLE",
+          "name": "menuItems",
+          "scope": "Global",
+          "children": {}
+        },
+        "_telegramAgentAgent": {
+          "id": "_telegramAgentAgent",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 6,
+              "offset": 44
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentAgent",
+          "scope": "Global",
+          "children": {}
+        },
+        "orderCounter": {
+          "id": "orderCounter",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 21
+            }
+          },
+          "type": "VARIABLE",
+          "name": "orderCounter",
+          "scope": "Global",
+          "children": {}
+        },
+        "orders": {
+          "id": "orders",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 13,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 13,
+              "offset": 44
+            }
+          },
+          "type": "VARIABLE",
+          "name": "orders",
+          "scope": "Global",
+          "children": {}
+        },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 87
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
+    "Connections": {
+      "additions": {
+        "httpEp": {
+          "id": "httpEp",
+          "location": {
+            "fileName": "connections.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 42
+            }
+          },
+          "type": "CONNECTION",
+          "name": "httpEp",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.5.png",
+          "module": "http",
+          "children": {}
+        }
+      }
+    },
+    "Types": {
+      "additions": {
+        "Order": {
+          "id": "Order",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 11,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "Order",
+          "scope": "Global",
+          "children": {}
+        },
+        "MenuItem": {
+          "id": "MenuItem",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "MenuItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "OrderRequest": {
+          "id": "OrderRequest",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 20,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "OrderRequest",
+          "scope": "Global",
+          "children": {}
+        },
+        "OrderItem": {
+          "id": "OrderItem",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 6,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 9,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "OrderItem",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
+    "Listeners": {
+      "additions": {
+        "telegramAgentListener": {
+          "id": "telegramAgentListener",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 97
+            }
+          },
+          "type": "LISTENER",
+          "name": "telegramAgentListener",
+          "scope": "Global",
+          "children": {}
+        },
+        "httpListener": {
+          "id": "httpListener",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 49
+            }
+          },
+          "type": "LISTENER",
+          "name": "httpListener",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.5.png",
+          "module": "http",
+          "children": {}
+        }
+      }
+    },
+    "Functions": {
+      "additions": {
+        "isPalindrome": {
+          "id": "isPalindrome",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 1,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 15,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "isPalindrome",
+          "scope": "Global",
+          "children": {}
+        },
+        "reverseString": {
+          "id": "reverseString",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 42,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 52,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "reverseString",
+          "scope": "Global",
+          "children": {}
+        },
+        "calculateOrderTotal": {
+          "id": "calculateOrderTotal",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 33,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 37,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "calculateOrderTotal",
+          "scope": "Global",
+          "children": {}
+        },
+        "isPrime": {
+          "id": "isPrime",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 55,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 75,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "isPrime",
+          "scope": "Global",
+          "children": {}
+        },
+        "findMax": {
+          "id": "findMax",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 26,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 39,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "findMax",
+          "scope": "Global",
+          "children": {}
+        },
+        "factorial": {
+          "id": "factorial",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 23,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "factorial",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
+    "Data Mappers": {
+      "additions": {
+        "orderRequestToOrder": {
+          "id": "orderRequestToOrder",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 30,
+              "offset": 2
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "orderRequestToOrder",
+          "scope": "Global",
+          "children": {}
+        },
+        "mapMenuItemV1ToV2": {
+          "id": "mapMenuItemV1ToV2",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 40,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 48,
+              "offset": 2
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "mapMenuItemV1ToV2",
+          "scope": "Global",
+          "children": {}
+        },
+        "menuItemToJson": {
+          "id": "menuItemToJson",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 7,
+              "offset": 2
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "menuItemToJson",
+          "scope": "Global",
+          "children": {}
+        },
+        "jsonToOrderItem": {
+          "id": "jsonToOrderItem",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 19,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 19,
+              "offset": 100
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToOrderItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "jsonToOrder": {
+          "id": "jsonToOrder",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 22,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 22,
+              "offset": 92
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToOrder",
+          "scope": "Global",
+          "children": {}
+        },
+        "jsonToMenuItem": {
+          "id": "jsonToMenuItem",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 10,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 10,
+              "offset": 98
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "jsonToMenuItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "orderItemToJson": {
+          "id": "orderItemToJson",
+          "location": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 13,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 2
+            }
+          },
+          "type": "DATA_MAPPER",
+          "name": "orderItemToJson",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
+    "Entry Points": {
+      "additions": {
+        "-611392686": {
+          "id": "-611392686",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 24,
+              "offset": 1
+            }
+          },
+          "type": "SERVICE",
+          "name": "/telegramAgent",
+          "scope": "Global",
+          "children": {
+            "post#chat": {
+              "id": "post#chat",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 19,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 23,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "chat",
+              "accessor": "post",
+              "scope": "Global",
+              "children": {}
+            }
+          }
+        },
+        "-611384068": {
+          "id": "-611384068",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 26,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 54,
+              "offset": 1
+            }
+          },
+          "type": "SERVICE",
+          "name": "HTTP Service - /restaurant",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.5.png",
+          "module": "http",
+          "children": {
+            "get#menu": {
+              "id": "get#menu",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 27,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 29,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "menu",
+              "accessor": "get",
+              "scope": "Global",
+              "children": {}
+            },
+            "post#orders": {
+              "id": "post#orders",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 31,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 53,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "orders",
+              "accessor": "post",
+              "scope": "Global",
+              "children": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

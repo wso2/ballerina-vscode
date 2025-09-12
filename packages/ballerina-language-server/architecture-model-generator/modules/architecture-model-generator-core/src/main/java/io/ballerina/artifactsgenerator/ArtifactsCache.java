@@ -128,4 +128,18 @@ public class ArtifactsCache {
             lock.unlock();
         }
     }
+
+    /**
+     * Gets all artifact IDs for a project organized by document.
+     *
+     * @param projectId The project ID
+     * @return Map of document ID to artifact categories and IDs, or empty map if project not found
+     */
+    public Map<String, Map<String, List<String>>> getProjectDocuments(String projectId) {
+        ConcurrentMap<String, Map<String, List<String>>> documentMap = projectCache.get(projectId);
+        if (documentMap == null) {
+            return Collections.emptyMap();
+        }
+        return documentMap;
+    }
 }

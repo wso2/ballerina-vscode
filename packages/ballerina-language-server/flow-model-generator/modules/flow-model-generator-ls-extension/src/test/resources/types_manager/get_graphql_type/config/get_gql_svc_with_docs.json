@@ -1,0 +1,157 @@
+{
+  "filePath": "test_pack1/service.bal",
+  "position": {
+    "line": 2,
+    "offset": 0
+  },
+  "description": "Get service data",
+  "type": {
+    "name": "/graphql",
+    "editable": true,
+    "metadata": {
+      "label": "/graphql",
+      "description": "This is a simple GraphQL service that\nincludes a query field."
+    },
+    "codedata": {
+      "node": "SERVICE_DECLARATION",
+      "lineRange": {
+        "fileName": "service.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 12,
+          "offset": 1
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "/graphql",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "qualifiers": {
+        "metadata": {
+          "label": "Type Qualifiers",
+          "description": "Qualifiers of the type"
+        },
+        "valueType": "MULTIPLE_SELECT",
+        "value": [],
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "members": [],
+    "functions": [
+      {
+        "accessor": "get",
+        "qualifiers": [
+          "ISOLATED",
+          "RESOURCE"
+        ],
+        "parameters": [
+          {
+            "kind": "FIELD",
+            "refs": [],
+            "type": "string",
+            "name": "name",
+            "optional": false,
+            "readonly": false
+          }
+        ],
+        "kind": "RESOURCE",
+        "name": "hello",
+        "description": "Returns a greeting message that includes provided name.",
+        "returnType": "string",
+        "refs": [],
+        "properties": {
+          "isPrivate": {
+            "metadata": {
+              "label": "private",
+              "description": "Is this private"
+            },
+            "valueType": "FLAG",
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isPublic": {
+            "metadata": {
+              "label": "public",
+              "description": "Is this public"
+            },
+            "valueType": "FLAG",
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isIsolated": {
+            "metadata": {
+              "label": "isolated",
+              "description": "Is this isolated"
+            },
+            "valueType": "FLAG",
+            "value": "true",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      }
+    ],
+    "allowAdditionalFields": false
+  },
+  "refs": []
+}
