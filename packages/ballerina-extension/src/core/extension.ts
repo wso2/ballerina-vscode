@@ -29,7 +29,7 @@ import {
     UPDATE_BALLERINA_VERSION
 } from "./messages";
 import { join, sep } from 'path';
-import { exec, spawnSync } from 'child_process';
+import { exec, spawnSync, execSync } from 'child_process';
 import { LanguageClientOptions, State as LS_STATE, RevealOutputChannelOn, ServerOptions } from "vscode-languageclient/node";
 import { getServerOptions } from '../utils/server/server';
 import { ExtendedLangClient } from './extended-language-client';
@@ -68,6 +68,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import AdmZip from 'adm-zip';
 import fs from 'fs';
 import path from 'path';
+import * as glob from 'glob';
 import { RPCLayer } from "../RPCLayer";
 import { VisualizerWebview } from "../views/visualizer/webview";
 
@@ -1441,6 +1442,19 @@ export class BallerinaExtension {
         let exeExtension = "";
         if (isWindows()) {
             exeExtension = ".bat";
+        } else if (isWSL()) {
+            // In WSL, check if we have a Linux installation in the WSL filesystem
+            const wslBallerinaPath = process.env.HOME + '/.ballerina';
+            if (fs.existsSync(wslBallerinaPath)) {
+                const wslInstallationPath = join(wslBallerinaPath, "ballerina-home");
+                if (fs.existsSync(wslInstallationPath)) {
+                    exeExtension = "";
+                    debug("[SETUP] WSL environment detected with Linux Ballerina installation, using no extension");
+                }
+            } else {
+                exeExtension = ".bat";
+                debug("[SETUP] WSL environment detected, using .bat extension for Windows executables");
+            }
         }
 
         // Set the Ballerina Home and Command
@@ -1521,7 +1535,6 @@ export class BallerinaExtension {
 
         // Validate the home directory exists
         try {
-            const fs = require('fs');
             const homeStats = fs.statSync(homeDir);
             if (homeStats.isDirectory()) {
                 debug(`[HOME_DIR] Home directory is valid and accessible: ${homeDir}`);
@@ -1669,7 +1682,6 @@ export class BallerinaExtension {
 
             // Check if the directory exists
             try {
-                const fs = require('fs');
                 const homeStats = fs.statSync(ballerinaHome);
                 if (!homeStats.isDirectory()) {
                     throw new Error(`Ballerina home path is not a directory: ${ballerinaHome}`);
@@ -1690,7 +1702,6 @@ export class BallerinaExtension {
                 debug(`[VERSION] Using distribution path: ${distPath}`);
 
                 // Check if bin directory exists
-                const fs = require('fs');
                 const binPath = join(ballerinaHome, "bin");
                 if (!fs.existsSync(binPath)) {
                     throw new Error(`Ballerina bin directory not found: ${binPath}`);
@@ -1700,29 +1711,116 @@ export class BallerinaExtension {
                 debug(`[VERSION] Error setting up distribution path: ${error}`);
                 throw error;
             }
+        } else if (isWSL()) {
+            // In WSL, try to detect Ballerina installation dynamically
+            // First try to use 'bal' command to get the home directory
+            try {
+                const balHomeOutput = execSync('bal home', {
+                    encoding: 'utf8',
+                    timeout: 10000,
+                    env: { ...process.env }
+                }).trim();
+
+                if (balHomeOutput) {
+                    const wslBinPath = join(balHomeOutput, "bin");
+                    if (fs.existsSync(wslBinPath)) {
+                        distPath = wslBinPath + sep;
+                        debug(`[VERSION] Using WSL Ballerina installation from 'bal home': ${distPath}`);
+                    }
+                }
+            } catch (error) {
+                debug(`[VERSION] Failed to get Ballerina home via 'bal home' command: ${error}`);
+                // Fallback to checking common installation paths
+                const commonPaths = [
+                    process.env.HOME + '/.ballerina/ballerina-home',
+                    '/usr/lib/ballerina/distributions/ballerina-*',
+                ];
+                for (const pathPattern of commonPaths) {
+                    if (pathPattern.includes('*')) {
+                        // Handle glob patterns
+                        const matches = glob.sync(pathPattern);
+                        for (const match of matches) {
+                            const binPath = join(match, "bin");
+                            if (fs.existsSync(binPath)) {
+                                distPath = binPath + sep;
+                                debug(`[VERSION] Using WSL Ballerina installation from glob pattern: ${distPath}`);
+                                break;
+                            }
+                        }
+                    } else {
+                        const binPath = join(pathPattern, "bin");
+                        if (fs.existsSync(binPath)) {
+                            distPath = binPath + sep;
+                            debug(`[VERSION] Using WSL Ballerina installation from common path: ${distPath}`);
+                            break;
+                        }
+                    }
+                    if (distPath) { break; }
+                }
+            }
         }
 
         let exeExtension = "";
         if (isWindows()) {
             exeExtension = ".bat";
             debug("[VERSION] Windows platform detected, using .bat extension");
+        } else if (isWSL()) {
+            // In WSL, determine extension based on the detected installation
+            if (distPath) {
+                // If we found a Linux installation path, use no extension
+                exeExtension = "";
+                debug("[VERSION] WSL environment detected with Linux Ballerina installation, using no extension");
+            } else {
+                // Fallback to .bat extension for Windows executables
+                exeExtension = ".bat";
+                debug("[VERSION] WSL environment detected, using .bat extension for Windows executables");
+            }
         } else {
             debug("[VERSION] Non-Windows platform detected, no extension needed");
         }
 
-        const ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+
+        // Handle WSL environment - prefer native Linux installation over Windows .bat files
+        if (isWSL()) {
+            if (exeExtension === ".bat") {
+                // Try to find a native Linux installation first
+                try {
+                    // Check if 'bal' command is available in PATH
+                    execSync('which bal', { encoding: 'utf8', timeout: 5000 });
+                    // If we get here, 'bal' is available, use it instead of .bat
+                    ballerinaCommand = 'bal version';
+                    debug("[VERSION] WSL detected native 'bal' command, using it instead of .bat file");
+                } catch (error) {
+                    debug("[VERSION] No native 'bal' command found in WSL, will try .bat file");
+                    // If the path contains Windows-style paths, we need to handle them properly
+                    if (ballerinaCommand.includes('\\') || ballerinaCommand.match(/^[A-Za-z]:/)) {
+                        debug("[VERSION] WSL detected with Windows path, attempting to convert to WSL path");
+                        // Try to convert Windows path to WSL path
+                        const wslPath = ballerinaCommand.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
+                        debug(`[VERSION] Converted Windows path to WSL path: ${wslPath}`);
+                        ballerinaCommand = wslPath;
+                    }
+                }
+            } else {
+                // We have a native Linux installation, use it directly
+                ballerinaCommand = 'bal version';
+                debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
+            }
+        }
+
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
         let ballerinaExecutor = '';
         return new Promise((resolve, reject) => {
-            const { exec } = require('child_process');
             const execOptions = {
                 timeout: 30000, // 30 second timeout
                 maxBuffer: 1024 * 1024, // 1MB buffer
                 env: { ...process.env }, // Use current environment
-                cwd: process.cwd() // Use current working directory
+                cwd: process.env.HOME || process.cwd() // Use current working directory
             };
 
+            debug(`[VERSION] Exec environment PATH: ${execOptions.cwd}...`);
             debug(`[VERSION] Exec options: timeout=${execOptions.timeout}ms, maxBuffer=${execOptions.maxBuffer}, cwd=${execOptions.cwd}`);
 
             const startTime = Date.now();
@@ -1748,6 +1846,11 @@ export class BallerinaExtension {
                     if (process.env.WSL_DISTRO_NAME) {
                         errorMessage += `\n[WSL Environment Detected: ${process.env.WSL_DISTRO_NAME}]`;
                         errorMessage += `\nCommon WSL issues: Path case sensitivity, Windows/Linux path mixing, file permissions`;
+                        errorMessage += `\nWSL-specific solutions:`;
+                        errorMessage += `\n- Ensure Ballerina is installed on Windows and accessible from WSL`;
+                        errorMessage += `\n- Check if the Windows PATH is properly accessible in WSL`;
+                        errorMessage += `\n- Try running 'wsl.exe bal version' from Windows Command Prompt to test`;
+                        errorMessage += `\n- Consider installing Ballerina directly in WSL if Windows installation is not accessible`;
                     }
 
                     if (err.code === 'ENOENT') {
@@ -1998,6 +2101,28 @@ export class BallerinaExtension {
                 execOptions.shell = true;
                 response = spawnSync('cmd.exe', ['/c', this.ballerinaCmd, ...args], execOptions);
                 debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${this.ballerinaCmd} ${args.join(' ')}`);
+            } else if (isWSL()) {
+                debug("[AUTO_DETECT] WSL environment detected");
+                // In WSL, try to use native 'bal' command first
+                try {
+                    // Check if 'bal' command is available in PATH
+                    execSync('which bal', { encoding: 'utf8', timeout: 5000 });
+                    // If we get here, 'bal' is available, use it
+                    response = spawnSync('bal', args, execOptions);
+                    debug(`[AUTO_DETECT] WSL using native 'bal' command: bal ${args.join(' ')}`);
+                } catch (error) {
+                    debug("[AUTO_DETECT] No native 'bal' command found in WSL, trying .bat file");
+                    if (this.ballerinaCmd.endsWith('.bat')) {
+                        // Fallback to .bat file with shell execution
+                        execOptions.shell = true;
+                        response = spawnSync(this.ballerinaCmd, args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                    } else {
+                        // Use the configured command
+                        response = spawnSync(this.ballerinaCmd, args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                    }
+                }
             } else {
                 debug("[AUTO_DETECT] Non-Windows platform, using spawnSync directly");
                 // On other platforms, use spawnSync directly
@@ -2018,7 +2143,6 @@ export class BallerinaExtension {
                 // Validate the output path
                 if (balHomeOutput) {
                     try {
-                        const fs = require('fs');
                         const homeStats = fs.statSync(balHomeOutput);
                         if (homeStats.isDirectory()) {
                             debug(`[AUTO_DETECT] Detected home directory is valid: ${balHomeOutput}`);
