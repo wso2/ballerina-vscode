@@ -1792,16 +1792,14 @@ const AIChat: React.FC = () => {
     };
 
     const saveDocumentation = async () => {
-        console.log("1: Saving documentation to workspace...");
         if (!docGenIntermediaryState) return;
 
         setIsAddingToWorkspace(true);
         try {
-            console.log("Documentation saving to workspace...");
-            await rpcClient.getAiPanelRpcClient().addFilesToProject({
+            rpcClient.getAiPanelRpcClient().addFilesToProject({
                 fileChanges: [
                     {
-                        filePath: `docs/${docGenIntermediaryState.serviceName}.md`,
+                        filePath: `docs/api_doc.md`,
                         content: docGenIntermediaryState.documentation,
                     },
                 ],
