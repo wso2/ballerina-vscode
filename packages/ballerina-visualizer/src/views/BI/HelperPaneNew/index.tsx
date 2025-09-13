@@ -20,7 +20,7 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
-import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
@@ -58,7 +58,7 @@ export type HelperPaneNewProps = {
     isAssignIdentifier?: boolean;
     completions: CompletionItem[],
     projectPath?: string,
-    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void
+    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
