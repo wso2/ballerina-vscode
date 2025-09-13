@@ -21,11 +21,12 @@ import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
-import { InputSearchHighlight } from './Search';
-import { TreeContainer, TreeHeader } from './Tree/Tree';
+import { InputSearchHighlight } from '../commons/Search';
+import { TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { useIONodesStyles } from "../../../styles";
 import { getTypeName } from "../../utils/type-utils";
 import { TruncatedLabel } from "@wso2/ui-toolkit";
+import { InputCategoryIcon } from "./InputCategoryIcon";
 
 export interface PrimitiveTypeItemWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -68,6 +69,7 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
         <TreeContainer data-testid={`${id}-node`}>
             <TreeHeader id={"recordfield-" + id} isSelected={portState !== PortState.Unselected}>
                 <span className={classes.label}>
+                    <InputCategoryIcon category={dmType.category} />
                     {label}
                     <span className={classes.nodeType}>{nodeHeaderSuffix}</span>
                 </span>
