@@ -30,6 +30,7 @@ import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
+import { InputCategoryIcon } from "./InputCategoryIcon";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -98,6 +99,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         </span>
     );
 
+   
+
     const handleExpand = () => {
 
         const expandedFields = expandedFieldsStore.fields;
@@ -153,9 +156,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
                         </Button>
                     )}
+                    <InputCategoryIcon category={dmType.category} />
                     {label}
-                    <span className={classes.nodeType}>{nodeHeaderSuffix}</span>
-                    {categoryLabel}
                 </span>
                 <span className={classes.outPort}>
                     {portOut &&
