@@ -65,7 +65,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable } = props;
+    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -189,8 +189,8 @@ export function DataMapperView(props: DataMapperProps) {
     );
 
 
-    const onClose = () => {
-        rpcClient.getVisualizerRpcClient()?.goBack();
+    const onDMClose = () => {
+        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
     }
 
     const onEdit = () => {
@@ -524,8 +524,7 @@ export function DataMapperView(props: DataMapperProps) {
         const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
             ref: parentField.ref,
             fieldId: parentField.id,
-            model: model as DMModel,
-            visitedRefs: new Set()
+            model: model as DMModel
         });
 
         if (!response.success || !response.result) {
@@ -645,7 +644,7 @@ export function DataMapperView(props: DataMapperProps) {
                         <DataMapper
                             modelState={modelState}
                             name={name}
-                            onClose={onClose}
+                            onClose={onDMClose}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}

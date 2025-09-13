@@ -77,7 +77,7 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
                 isPreview: true
             });
     
-            this.addPortsForOutputField({
+            await this.addPortsForOutputField({
                 field: this.outputType,
                 type: "IN",
                 parentId: "",
