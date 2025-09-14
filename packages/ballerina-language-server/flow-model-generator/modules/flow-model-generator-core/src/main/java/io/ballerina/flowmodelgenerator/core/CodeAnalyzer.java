@@ -450,10 +450,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
             }
         }
-        if (toolsArg == null) {
-            throw new IllegalStateException("Tools argument not found for the new expression: " +
-                    newExpressionNode);
-        }
         if (modelArg == null) {
             throw new IllegalStateException("Model argument not found for the new expression: " +
                     newExpressionNode);
@@ -463,7 +459,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     newExpressionNode);
         }
 
-        if (toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+        if (toolsArg != null && toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             List<ToolData> toolsData = new ArrayList<>();
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
