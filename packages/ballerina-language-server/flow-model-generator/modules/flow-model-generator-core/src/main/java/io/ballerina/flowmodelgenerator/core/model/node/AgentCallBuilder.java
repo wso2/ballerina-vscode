@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -26,6 +29,10 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.projects.Document;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -68,7 +75,7 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String MODEL_DOC = "Model Provider for the agent";
     public static final String MODEL_PLACEHOLDER = "";
 
-    public static final String[] PARAMS_TO_HIDE = {SYSTEM_PROMPT, TOOLS, TYPE, MODEL};
+    public static final String[] PARAMS_TO_HIDE = {SYSTEM_PROMPT, TOOLS, TYPE, MEMORY, MODEL};
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -138,6 +145,7 @@ public class AgentCallBuilder extends CallBuilder {
                     .description(description)
                     .data("node", AGENT)
                     .stepOut()
+                .defaultValue("")
                 .type(Property.ValueType.STRING)
                 .placeholder(placeholder)
                 .optional(true)
@@ -150,30 +158,172 @@ public class AgentCallBuilder extends CallBuilder {
                 .addProperty(key);
     }
 
+    private NodeBuilder.TemplateContext createAgentContext(SourceBuilder sourceBuilder, FlowNode agentCallNode) {
+        if (!agentCallNode.codedata().isNew()) {
+            // For existing nodes, try to find the agent definition location
+            Optional<Property> connectionProp = agentCallNode.getProperty(Property.CONNECTION_KEY);
+            if (connectionProp.isPresent()) {
+                String variableName = (String) connectionProp.get().value();
+
+                try {
+                    // Get semantic model and document
+                    SemanticModel semanticModel = sourceBuilder.workspaceManager
+                            .semanticModel(sourceBuilder.filePath).orElseThrow();
+                    Document document = sourceBuilder.workspaceManager
+                            .document(sourceBuilder.filePath).orElseThrow();
+
+                    // Current position for visible symbols lookup
+                    LinePosition currentPosition = sourceBuilder.flowNode.codedata().lineRange().startLine();
+
+                    // Find the agent variable in visible symbols
+                    List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, currentPosition);
+                    for (Symbol symbol : visibleSymbols) {
+                        if (symbol.getName().isPresent() &&
+                                symbol.getName().get().equals(variableName) &&
+                                symbol instanceof VariableSymbol) {
+
+                            Optional<Location> location = symbol.getLocation();
+                            if (location.isPresent()) {
+                                LineRange agentLineRange = location.get().lineRange();
+                                Path agentFilePath = location.get().lineRange().fileName() != null ?
+                                        Path.of(location.get().lineRange().fileName()) : sourceBuilder.filePath;
+
+                                // Create context for the agent definition location
+                                return new NodeBuilder.TemplateContext(
+                                        sourceBuilder.workspaceManager,
+                                        agentFilePath,
+                                        agentLineRange.startLine(),
+                                        sourceBuilder.flowNode.codedata(), // Use current codedata for now
+                                        null
+                                );
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new IllegalStateException("Error finding agent definition for variable: " + variableName, e);
+                }
+            }
+        }
+
+        // For new nodes or fallback, use the current context
+        return new NodeBuilder.TemplateContext(
+                sourceBuilder.workspaceManager,
+                sourceBuilder.filePath,
+                sourceBuilder.flowNode.codedata().lineRange().startLine(),
+                sourceBuilder.flowNode.codedata(),
+                null
+        );
+    }
+
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         sourceBuilder.newVariable();
-        FlowNode flowNode = sourceBuilder.flowNode;
+        FlowNode agentCallNode = sourceBuilder.flowNode;
 
-        if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
+        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        NodeBuilder.TemplateContext agentContext = createAgentContext(sourceBuilder, agentCallNode);
+
+        FlowNode agentNode =
+                NodeBuilder.getNodeFromKind(NodeKind.AGENT).setConstData().setTemplateData(agentContext).build();
+
+        // TODO: Refactor property updating logic to avoid code duplication
+        if (agentNode.properties() != null) {
+            Property systemPrompt = agentNode.properties().get(SYSTEM_PROMPT);
+            if (systemPrompt != null) {
+
+                assert systemPrompt.codedata() != null;
+                String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
+                String instructions =
+                        agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
+                String systemPromptValue = "{role: \"" + role + "\", instructions: string `" + instructions + "`}";
+
+                Property updatedSystemPrompt = new Property.Builder<>(null)
+                        .type(Property.ValueType.valueOf(systemPrompt.valueType()))
+                        .typeConstraint(systemPrompt.valueTypeConstraint())
+                        .value(systemPromptValue)
+                        .codedata()
+                            .kind(systemPrompt.codedata().kind())
+                            .originalName(systemPrompt.codedata().originalName())
+                            .stepOut()
+                        .build();
+                agentNode.properties().put(SYSTEM_PROMPT, updatedSystemPrompt);
+            }
+
+            Property model = agentNode.properties().get(MODEL);
+            if (model != null && agentCallNode.getProperty(MODEL_PROVIDER).isPresent()) {
+                assert model.codedata() != null;
+                Property updatedModel = new Property.Builder<>(null)
+                        .type(Property.ValueType.valueOf(model.valueType()))
+                        .typeConstraint(model.valueTypeConstraint())
+                        .value(agentCallNode.getProperty(MODEL_PROVIDER).get().value())
+                        .codedata()
+                            .kind(model.codedata().kind())
+                            .originalName(model.codedata().originalName())
+                            .stepOut()
+                        .build();
+                agentNode.properties().put(MODEL, updatedModel);
+            }
+
+            Property verbose = agentNode.properties().get(VERBOSE);
+            if (verbose != null && agentCallNode.getProperty(VERBOSE).isPresent()) {
+                assert verbose.codedata() != null;
+                Property updatedVerbose = new Property.Builder<>(null)
+                        .type(Property.ValueType.valueOf(verbose.valueType()))
+                        .typeConstraint(verbose.valueTypeConstraint())
+                        .value(agentCallNode.getProperty(VERBOSE).get().value())
+                        .codedata()
+                            .kind(verbose.codedata().kind())
+                            .originalName(verbose.codedata().originalName())
+                            .stepOut()
+                        .build();
+                agentNode.properties().put(VERBOSE, updatedVerbose);
+            }
+
+            Property maxIter = agentNode.properties().get(MAX_ITER);
+            if (maxIter != null && agentCallNode.getProperty(MAX_ITER).isPresent()) {
+                assert maxIter.codedata() != null;
+                Property updatedMaxIter = new Property.Builder<>(null)
+                        .type(Property.ValueType.valueOf(maxIter.valueType()))
+                        .typeConstraint(maxIter.valueTypeConstraint())
+                        .value(agentCallNode.getProperty(MAX_ITER).get().value())
+                        .codedata()
+                            .kind(maxIter.codedata().kind())
+                            .originalName(maxIter.codedata().originalName())
+                            .stepOut()
+                        .build();
+                agentNode.properties().put(MAX_ITER, updatedMaxIter);
+            }
+        }
+
+        AgentBuilder agentBuilder = new AgentBuilder();
+        agentBuilder.setConstData().setConcreteTemplateData(agentContext);
+        SourceBuilder agentSourceBuilder =
+                new SourceBuilder(agentNode, sourceBuilder.workspaceManager, projectRoot);
+        Map<Path, List<TextEdit>> agentTextEdits = agentBuilder.toSource(agentSourceBuilder);
+
+        if (FlowNodeUtil.hasCheckKeyFlagSet(agentCallNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
-        Optional<Property> connection = flowNode.getProperty(Property.CONNECTION_KEY);
+        Optional<Property> connection = agentNode.getProperty(Property.VARIABLE_KEY);
         if (connection.isEmpty()) {
             throw new IllegalStateException("Client must be defined for an action call node");
         }
 
-        return sourceBuilder.token()
+        Map<Path, List<TextEdit>> agentCallTextEdits = sourceBuilder.token()
                 .name(connection.get().toSourceCode())
-                .keyword(BALLERINA.equals(flowNode.codedata().org()) ?
+                .keyword(BALLERINA.equals(agentCallNode.codedata().org()) ?
                         SyntaxKind.DOT_TOKEN : SyntaxKind.RIGHT_ARROW_TOKEN)
-                .name(flowNode.metadata().label())
+                .name(agentCallNode.metadata().label())
                 .stepOut()
-                .functionParameters(flowNode,
+                .functionParameters(agentCallNode,
                         Set.of(Property.CONNECTION_KEY, Property.VARIABLE_KEY, Property.TYPE_KEY,
-                                Property.CHECK_ERROR_KEY))
+                                Property.CHECK_ERROR_KEY, ROLE, INSTRUCTIONS, MODEL_PROVIDER, MEMORY, TOOLS, MAX_ITER,
+                                VERBOSE))
                 .textEdit()
                 .build();
+
+        agentTextEdits.putAll(agentCallTextEdits);
+        return agentTextEdits;
     }
 }
