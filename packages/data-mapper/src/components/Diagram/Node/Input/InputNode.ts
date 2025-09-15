@@ -70,8 +70,8 @@ export class InputNode extends DataMapperNodeModel {
 
             if (this.filteredInputType.kind === TypeKind.Record) {
                 const fields = this.filteredInputType.fields?.filter(f => !!f);
-                fields.forEach((subField) => {
-                    this.numberOfFields += this.addPortsForInputField({
+                for (const subField of fields) {
+                    this.numberOfFields += await this.addPortsForInputField({
                         field: subField,
                         portType: "OUT",
                         parentId: this.identifier,
@@ -83,10 +83,10 @@ export class InputNode extends DataMapperNodeModel {
                         isOptional: subField.optional,
                         focusedFieldFQNs
                     });
-                });
+                }
             } else if (this.filteredInputType.kind === TypeKind.Enum) {
-                this.filteredInputType.members?.forEach(member => {
-                    this.numberOfFields += this.addPortsForInputField({
+                for (const member of this.filteredInputType.members ?? []) {
+                    this.numberOfFields += await this.addPortsForInputField({
                         field: member,
                         portType: "OUT",
                         parentId: this.identifier,
@@ -98,7 +98,7 @@ export class InputNode extends DataMapperNodeModel {
                         isOptional: member?.optional,
                         focusedFieldFQNs
                     });
-                });
+                }
             } else if (this.filteredInputType.kind === TypeKind.Array) {
                 const focusedMemberId = this.filteredInputType?.focusedMemberId;
                 if (focusedMemberId) {
@@ -107,7 +107,7 @@ export class InputNode extends DataMapperNodeModel {
                         this.filteredInputType.member = focusedMemberField;
                     }
                 }
-                this.numberOfFields += this.addPortsForInputField({
+                this.numberOfFields += await this.addPortsForInputField({
                     field: this.filteredInputType?.member,
                     portType: "OUT",
                     parentId: this.identifier,
@@ -120,7 +120,7 @@ export class InputNode extends DataMapperNodeModel {
                     focusedFieldFQNs
                 });
             } else {
-                this.addPortsForInputField({
+                await this.addPortsForInputField({
                     field: this.filteredInputType,
                     portType: "OUT",
                     parentId: this.identifier,

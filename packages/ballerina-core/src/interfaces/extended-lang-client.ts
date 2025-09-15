@@ -380,7 +380,6 @@ export interface ProcessTypeReferenceRequest {
     ref: string;
     fieldId: string;
     model: DMModel;
-    visitedRefs?: Set<string>;
 }
 
 export interface ProcessTypeReferenceResponse {
