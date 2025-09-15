@@ -433,7 +433,7 @@ const MainPanel = () => {
                     //     setViewComponent(<ServiceWizard type={value.serviceType} />);
                     //     break;
                     case MACHINE_VIEW.BIServiceWizard:
-                        setViewComponent(<ServiceCreationView type={value.serviceType} />);
+                        setViewComponent(<ServiceCreationView orgName={value?.artifactInfo.org} packageName={value?.artifactInfo.packageName} moduleName={value?.artifactInfo.moduleName} version={value?.artifactInfo.version} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(

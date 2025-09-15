@@ -387,7 +387,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                         )}
                         {serviceModel &&
                             serviceModel.moduleName !== "http" &&
-                            serviceModel.functions.some((func) => !func.enabled) && (
+                            serviceModel.x.some((func) => !func.enabled) && (
                                 <Button appearance="primary" tooltip="Add Function" onClick={handleNewFunction}>
                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Function</ButtonText>
                                 </Button>

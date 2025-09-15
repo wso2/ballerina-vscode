@@ -146,7 +146,8 @@ async function getContext(): Promise<VisualizerLocation> {
             scope: context.scope,
             org: context.org,
             package: context.package,
-            dataMapperMetadata: context.dataMapperMetadata
+            dataMapperMetadata: context.dataMapperMetadata,
+            artifactInfo: context.artifactInfo
         });
     });
 }

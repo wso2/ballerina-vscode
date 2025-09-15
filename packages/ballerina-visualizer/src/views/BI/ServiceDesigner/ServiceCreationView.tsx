@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { View, ViewContent } from "@wso2/ui-toolkit";
+import { Icon, ThemeColors, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { useEffect, useState } from "react";
 import { TitleBar } from "../../../components/TitleBar";
@@ -28,6 +28,8 @@ import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
 import { getImportsForProperty } from "../../../utils/bi";
+import { DownloadIcon } from "../../../components/DownloadIcon";
+import { RelativeLoader } from "../../../components/RelativeLoader";
 
 const Container = styled.div`
     display: flex;
@@ -50,8 +52,38 @@ const FormContainer = styled.div`
     padding-bottom: 15px;
 `;
 
+const StatusContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+`;
+
+const StatusCard = styled.div`
+    margin: 16px 16px 0 16px;
+    padding: 16px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+
+    & > svg {
+        font-size: 24px;
+        color: ${ThemeColors.ON_SURFACE};
+    }
+`;
+
+const StatusText = styled(Typography)`
+    color: ${ThemeColors.ON_SURFACE};
+`;
+
+
 export interface ServiceCreationViewProps {
-    type: string;
+    orgName: string;
+    packageName: string;
+    moduleName: string;
+    version?: string;
 }
 
 interface HeaderInfo {
@@ -59,15 +91,23 @@ interface HeaderInfo {
     moduleName: string;
 }
 
+enum PullingStatus {
+    FETCHING = "fetching",
+    PULLING = "pulling",
+    SUCCESS = "success",
+    ERROR = "error",
+}
+
 export function ServiceCreationView(props: ServiceCreationViewProps) {
 
-    const { type } = props;
+    const { orgName, packageName, moduleName, version } = props;
     const { rpcClient } = useRpcContext();
 
     const [headerInfo, setHeaderInfo] = useState<HeaderInfo>(null);
     const [model, setServiceInitModel] = useState<ServiceInitModel>(null);
     const [formFields, setFormFields] = useState<FormField[]>([]);
 
+    const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
     const [filePath, setFilePath] = useState<string>("");
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -76,24 +116,69 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
     const MAIN_BALLERINA_FILE = "main.bal";
 
     useEffect(() => {
-        rpcClient
-            .getServiceDesignerRpcClient()
-            .getServiceInitModel({ filePath: "", moduleName: type, listenerName: "" })
-            .then((res) => {
-                setHeaderInfo({
-                    title: res?.serviceInitModel.displayName,
-                    moduleName: res?.serviceInitModel.moduleName
+        const fetchData = async () => {
+            setPullingStatus(PullingStatus.FETCHING);
+
+            const promise = rpcClient
+                .getServiceDesignerRpcClient()
+                .getServiceInitModel({
+                    filePath: "", orgName: orgName, pkgName: packageName, moduleName: moduleName, listenerName: ""
                 });
-                setServiceInitModel(res?.serviceInitModel);
-                setFormFields(mapPropertiesToFormFields(res?.serviceInitModel.properties));
+
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            let didTimeout = false;
+            let res;
+
+            // Wait for up to 3 seconds for a fast response
+            const timeoutPromise = new Promise<void>((resolve) => {
+                timer = setTimeout(() => {
+                    didTimeout = true;
+                    setPullingStatus(PullingStatus.PULLING);
+                    resolve();
+                }, 3000);
             });
 
-        rpcClient
-            .getVisualizerRpcClient()
-            .joinProjectPath(MAIN_BALLERINA_FILE)
-            .then((filePath) => {
-                setFilePath(filePath);
-            });
+            res = await Promise.race([
+                promise.then((result) => {
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                    return result;
+                }),
+                timeoutPromise.then(() => promise)
+            ]);
+
+            // If the response arrived before the timer, package is present, load form immediately
+            if (!didTimeout && res?.serviceInitModel) {
+                setHeaderInfo({
+                    title: res.serviceInitModel.displayName,
+                    moduleName: res.serviceInitModel.moduleName
+                });
+                setServiceInitModel(res.serviceInitModel);
+                setFormFields(mapPropertiesToFormFields(res.serviceInitModel.properties));
+                setPullingStatus(undefined);
+            } else if (didTimeout && res?.serviceInitModel) {
+                // If timer expired, show pulling status then load form
+                setPullingStatus(PullingStatus.SUCCESS);
+                setHeaderInfo({
+                    title: res.serviceInitModel.displayName,
+                    moduleName: res.serviceInitModel.moduleName
+                });
+                setServiceInitModel(res.serviceInitModel);
+                setFormFields(mapPropertiesToFormFields(res.serviceInitModel.properties));
+                setPullingStatus(undefined);
+            }
+
+            rpcClient
+                .getVisualizerRpcClient()
+                .joinProjectPath(MAIN_BALLERINA_FILE)
+                .then((filePath) => {
+                    setFilePath(filePath);
+                });
+        };
+
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -219,34 +304,70 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     return (
         <View>
-            <TopNavigationBar />
-            {
-                headerInfo &&
-                <TitleBar title={headerInfo.title} isBetaFeature={isBetaModule(headerInfo.moduleName)} 
-                subtitle={model.description} />
-            }
-            <ViewContent>
-                <Container>
-                    <>
-                        {formFields && formFields.length > 0 &&
-                            <FormContainer>
-                                <FormHeader title={`Create ${model.displayName}`} />
-                                {filePath && targetLineRange &&
-                                    <FormGeneratorNew
-                                        fileName={filePath}
-                                        targetLineRange={targetLineRange}
-                                        fields={formFields}
-                                        isSaving={isSaving}
-                                        onSubmit={handleOnSubmit}
-                                        preserveFieldOrder={true}
-                                        recordTypeFields={recordTypeFields}
-                                    />
-                                }
-                            </FormContainer>
-                        }
-                    </>
-                </Container>
-            </ViewContent>
+            {pullingStatus && (
+                <StatusContainer>
+                    {pullingStatus === PullingStatus.FETCHING && (
+                        <RelativeLoader message="Loading package..." />
+                    )}
+                    {pullingStatus === PullingStatus.PULLING && (
+                        <StatusCard>
+                            <DownloadIcon color={ThemeColors.ON_SURFACE} />
+                            <StatusText variant="body2">
+                                Please wait while the {packageName} package is being pulled...
+                            </StatusText>
+                        </StatusCard>
+                    )}
+                    {pullingStatus === PullingStatus.SUCCESS && (
+                        <StatusCard>
+                            <Icon name="bi-success" sx={{ color: ThemeColors.PRIMARY, fontSize: "18px" }} />
+                            <StatusText variant="body2">Package pulled successfully.</StatusText>
+                        </StatusCard>
+                    )}
+                    {pullingStatus === PullingStatus.ERROR && (
+                        <StatusCard>
+                            <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "18px" }} />
+                            <StatusText variant="body2">
+                                Failed to pull the package. Please try again.
+                            </StatusText>
+                        </StatusCard>
+                    )}
+                </StatusContainer>
+            )}
+
+            {!pullingStatus && (
+                <>
+                    <TopNavigationBar />
+                    {headerInfo && (
+                        <TitleBar
+                            title={headerInfo.title}
+                            isBetaFeature={isBetaModule(headerInfo.moduleName)}
+                            subtitle={model.description}
+                        />
+                    )}
+                    <ViewContent>
+                        <Container>
+                            <>
+                                {formFields && formFields.length > 0 && (
+                                    <FormContainer>
+                                        <FormHeader title={`Create ${model.displayName}`} />
+                                        {filePath && targetLineRange && (
+                                            <FormGeneratorNew
+                                                fileName={filePath}
+                                                targetLineRange={targetLineRange}
+                                                fields={formFields}
+                                                isSaving={isSaving}
+                                                onSubmit={handleOnSubmit}
+                                                preserveFieldOrder={true}
+                                                recordTypeFields={recordTypeFields}
+                                            />
+                                        )}
+                                    </FormContainer>
+                                )}
+                            </>
+                        </Container>
+                    </ViewContent>
+                </>
+            )}
         </View>
     );
 }
