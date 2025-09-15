@@ -54,7 +54,6 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
         <TruncatedLabel>
             <span className={classes.valueLabel}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
-                {typeName && ":"}
             </span>
             {typeName && (
                 <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
