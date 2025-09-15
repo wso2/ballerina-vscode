@@ -26,7 +26,7 @@ import { InputNodeWidget } from "./InputNodeWidget";
 import { InputSearchNoResultFound, SearchNoResultFoundKind } from "../commons/Search";
 
 import { InputNode, INPUT_NODE_TYPE } from './InputNode';
-import { PrimitiveTypeInputWidget } from '../commons/PrimitiveTypeInputWidget';
+import { PrimitiveTypeInputWidget } from './PrimitiveTypeInputWidget';
 
 export class InputNodeFactory extends AbstractReactFactory<InputNode, DiagramEngine> {
     constructor() {
