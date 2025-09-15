@@ -117,7 +117,6 @@ export const Variables = (props: VariablesPageProps) => {
     const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
         label: "Variables",
@@ -155,12 +154,13 @@ export const Variables = (props: VariablesPageProps) => {
         handleOnFormSubmit?.(
             updatedNode,
             dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
-            { shouldCloseSidePanel: false, shouldUpdateTargetLine: true }
+            {
+                closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
+                    onClose()
+                    closeModal(POPUP_IDS.VARIABLE);
+                }
+            },
         );
-        closeModal(POPUP_IDS.VARIABLE);
-        if (isModalOpen) {
-            setIsModalOpen(false)
-        }
     };
     const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
     const methods = filteredCompletions.filter((completion) => completion.kind === "function")
@@ -198,8 +198,8 @@ export const Variables = (props: VariablesPageProps) => {
                 showProgressIndicator={false}
                 resetUpdatedExpressionField={() => { }}
                 isInModal={true}
-            />, POPUP_IDS.VARIABLE,"New Variable", 600);
-            onClose && onClose();
+            />, POPUP_IDS.VARIABLE, "New Variable", 600);
+        onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {
         const newBreadCrumSteps = [...breadCrumbSteps, {
