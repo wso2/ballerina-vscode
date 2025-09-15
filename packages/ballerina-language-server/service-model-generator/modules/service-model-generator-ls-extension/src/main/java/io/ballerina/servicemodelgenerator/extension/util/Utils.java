@@ -100,6 +100,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 
 /**
  * Common utility functions used in the project.
@@ -494,7 +495,7 @@ public final class Utils {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                String ref = service.getModuleName() + ":" + value.getCodedata().getOriginalName();
+                String ref = getProtocol(service.getModuleName()) + ":" + value.getCodedata().getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
             }
@@ -516,7 +517,7 @@ public final class Utils {
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
                 Codedata codedata = value.getCodedata();
-                String ref = codedata.getModuleName() + ":" + codedata.getOriginalName();
+                String ref = getProtocol(codedata.getModuleName()) + ":" + codedata.getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
                 if (Objects.nonNull(value.getImports())) {
