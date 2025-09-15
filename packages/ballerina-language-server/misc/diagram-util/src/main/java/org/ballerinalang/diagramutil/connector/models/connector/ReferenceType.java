@@ -132,7 +132,8 @@ public class ReferenceType {
                                 typeDesc.signature()));
                         if (!depTypeHash.equals(updatedHashCode)) {
                             RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
-                            assert updatedDepType != null;
+                            Objects.requireNonNull(updatedDepType,
+                                    "fromSemanticSymbol returned null for depSymbol: " + depSymbol);
                             updatedDepType.hashCode = depTypeHash;
                             entry.setValue(updatedDepType);
                             visitedTypeMap.put(depTypeHash, updatedDepType);

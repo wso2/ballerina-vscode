@@ -840,7 +840,8 @@ public class DataMapManager {
 
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
                                                  Map<String, MappingPort> references, List<Symbol> typeDefSymbols) {
-        List<MappingPort> mappingPorts = new ArrayList<>();        for (Symbol symbol : visibleSymbols) {
+        List<MappingPort> mappingPorts = new ArrayList<>();
+        for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
             if (kind == SymbolKind.VARIABLE) {
                 Optional<String> optName = symbol.getName();
