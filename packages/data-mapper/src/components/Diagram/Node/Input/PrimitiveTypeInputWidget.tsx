@@ -51,7 +51,7 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
     };
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }}>
+        <TruncatedLabel>
             <span className={classes.valueLabel}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
                 {typeName && ":"}
@@ -68,8 +68,8 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
         <TreeContainer data-testid={`${id}-node`}>
             <TreeHeader id={"recordfield-" + id} isSelected={portState !== PortState.Unselected}>
                 <span className={classes.label}>
-                    <InputCategoryIcon category={dmType.category} />
                     {label}
+                    <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
                     {portOut &&
