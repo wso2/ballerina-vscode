@@ -249,7 +249,7 @@ public class DataMapManager {
             symbols = symbols.stream()
                     .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
-            inputPorts = getQueryInputPorts(symbols, enumPorts, references, semanticModel);
+            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols);
             inputPorts.sort(Comparator.comparing(mt -> mt.name));
 
             List<String> inputs = new ArrayList<>();
@@ -318,7 +318,8 @@ public class DataMapManager {
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
                 subMappingPorts.add(getRefMappingPort(letVarName, letVarName,
-                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols)), new HashMap<>(), references));
+                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols)),
+                        new HashMap<>(), references));
             }
         } else {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
@@ -838,12 +839,8 @@ public class DataMapManager {
     }
 
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
-                                                 Map<String, MappingPort> references, SemanticModel semanticModel) {
-        List<MappingPort> mappingPorts = new ArrayList<>();
-        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
-                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
-                .toList();
-        for (Symbol symbol : visibleSymbols) {
+                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols) {
+        List<MappingPort> mappingPorts = new ArrayList<>();        for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
             if (kind == SymbolKind.VARIABLE) {
                 Optional<String> optName = symbol.getName();

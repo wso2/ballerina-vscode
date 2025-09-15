@@ -17,8 +17,6 @@
  */
 package org.ballerinalang.diagramutil.connector.models.connector;
 
-import com.google.gson.Gson;
-import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.EnumSymbol;
@@ -50,7 +48,6 @@ import java.util.Optional;
 
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
-    public static final Gson gson = new Gson();
 
     public record Field(String fieldName, RefType type, boolean optional, String defaultValue) {
     }
@@ -116,7 +113,6 @@ public class ReferenceType {
         String hashCode = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
         RefType type = visitedTypeMap.get(hashCode);
         if (type != null) {
-            //Before returning the type, traverse the dependent types and ensure that their signature is the same using the semantic model.moduleSymbols
             if (type.dependentTypes != null) {
                 for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
                     String depTypeHash = entry.getKey();
@@ -130,7 +126,8 @@ public class ReferenceType {
                         TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
                         //Generate the hash code for the dependent type symbol
                         String updatedHashCode = String.valueOf(Objects.hash(
-                                typeDefSymbol.getModule().isPresent() ? typeDefSymbol.getModule().get().id().toString() : null,
+                                typeDefSymbol.getModule().isPresent() ?
+                                        typeDefSymbol.getModule().get().id().toString() : null,
                                 typeDefSymbol.getName().orElse(""),
                                 typeDesc.signature()));
                         if (!depTypeHash.equals(updatedHashCode)) {
