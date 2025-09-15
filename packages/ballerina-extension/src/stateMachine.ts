@@ -191,7 +191,8 @@ const stateMachine = createMachine<MachineContext>(
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
                             addType: (context, event) => event.viewLocation?.addType,
-                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                            artifactInfo: (context, event) => event.viewLocation?.artifactInfo
                         })
                     }
                 }
@@ -262,7 +263,8 @@ const stateMachine = createMachine<MachineContext>(
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
                                     addType: (context, event) => event.viewLocation?.addType,
-                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                    artifactInfo: (context, event) => event.viewLocation?.artifactInfo
                                 })
                             },
                             VIEW_UPDATE: {

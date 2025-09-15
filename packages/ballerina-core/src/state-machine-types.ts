@@ -23,6 +23,7 @@ import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
+import { ModuleInfo } from "./interfaces/data-mapper";
 
 export type MachineStateValue =
     | 'initialize'
@@ -134,7 +135,10 @@ export interface VisualizerLocation {
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    moduleName?: string;
+    version?: string;
     dataMapperMetadata?: DataMapperMetadata;
+    artifactInfo?: ModuleInfo;
 }
 
 export interface ArtifactData {
