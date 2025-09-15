@@ -34,11 +34,10 @@ export interface PrimitiveTypeItemWidgetProps {
     engine: DiagramEngine;
     getPort: (portId: string) => InputOutputPortModel;
     valueLabel?: string;
-    nodeHeaderSuffix?: string;
 }
 
 export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
-    const { engine, dmType, id, getPort, valueLabel, nodeHeaderSuffix } = props;
+    const { engine, dmType, id, getPort, valueLabel } = props;
 
     const [ portState, setPortState ] = useState<PortState>(PortState.Unselected);
     const classes = useIONodesStyles();
@@ -71,7 +70,6 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
                 <span className={classes.label}>
                     <InputCategoryIcon category={dmType.category} />
                     {label}
-                    <span className={classes.nodeType}>{nodeHeaderSuffix}</span>
                 </span>
                 <span className={classes.outPort}>
                     {portOut &&

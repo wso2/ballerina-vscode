@@ -38,12 +38,11 @@ export interface InputNodeWidgetProps {
     engine: DiagramEngine;
     getPort: (portId: string) => InputOutputPortModel;
     valueLabel?: string;
-    nodeHeaderSuffix?: string;
     focusedInputs?: string[];
 }
 
 export function InputNodeWidget(props: InputNodeWidgetProps) {
-    const { engine, dmType, id, getPort, valueLabel, nodeHeaderSuffix, focusedInputs } = props;
+    const { engine, dmType, id, getPort, valueLabel, focusedInputs } = props;
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
