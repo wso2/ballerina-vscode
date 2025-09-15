@@ -32,6 +32,7 @@ import {
 } from "@wso2/ballerina-core";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
+import fs from "fs";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
@@ -167,8 +168,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     addToUndoStack(params: AddToUndoStackRequest): void {
+        // Get the current file content from file
+        const currentFileContent = fs.readFileSync(params.filePath, 'utf8');
         undoRedoManager.startBatchOperation();
-        undoRedoManager.addFileToBatch(params.filePath, "", params.source);
+        undoRedoManager.addFileToBatch(params.filePath, currentFileContent, params.source);
         undoRedoManager.commitBatchOperation();
     }
 

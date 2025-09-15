@@ -119,7 +119,10 @@ export const applyModifications = async (rpcClient: BallerinaRpcClient, modifica
         },
     });
     if (parseSuccess) {
-        rpcClient.getVisualizerRpcClient().addToUndoStack(newSource);
+        rpcClient.getVisualizerRpcClient().addToUndoStack({
+            source: newSource,
+            filePath,
+        });
         await langServerRPCClient.updateFileContent({
             content: newSource,
             filePath
@@ -231,22 +234,22 @@ export const isPositionChanged = (prev: NodePosition, current: NodePosition) => 
 export function formatWithProperIndentation(content: string, baseIndent: number = 1): string {
     const lines = content.split('\n');
     let currentIndent = baseIndent;
-    
+
     return lines.map(line => {
         const trimmedLine = line.trim();
-        
+
         // Decrease indent for closing braces/brackets
         if (trimmedLine.startsWith('}') || trimmedLine.startsWith(']')) {
             currentIndent = Math.max(1, currentIndent - 1);
         }
-        
+
         const indentedLine = '    '.repeat(currentIndent) + trimmedLine;
-        
+
         // Increase indent for opening braces/brackets
         if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[')) {
             currentIndent++;
         }
-        
+
         return indentedLine;
     }).join('\n');
 }

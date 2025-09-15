@@ -49,6 +49,7 @@ export function RecordEditorC(props: RecordEditorCProps) {
         rpcClient.getVisualizerRpcClient().addToUndoStack({
             filePath: currentFile.path,
             source: currentFile.content,
+            description: 'New Record Creation',
         });
         applyModifications([createPropertyStatement(recordString, targetPosition, false)]);
         if (isDataMapper) {
