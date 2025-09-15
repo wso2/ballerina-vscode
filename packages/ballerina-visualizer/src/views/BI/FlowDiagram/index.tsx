@@ -73,18 +73,11 @@ import {
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
-import { GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
+import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 
 const Container = styled.div`
     width: 100%;
     height: calc(100vh - 50px);
-`;
-
-const SpinnerContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
 `;
 
 export interface BIFlowDiagramProps {
@@ -122,6 +115,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [fetchingAiSuggestions, setFetchingAiSuggestions] = useState(false);
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
+    const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
+    const [progressMessage, setProgressMessage] = useState<string>(LOADING_MESSAGE);
     const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
     const [updatedExpressionField, setUpdatedExpressionField] = useState<any>(undefined);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
@@ -1594,10 +1589,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
     };
 
+    // Common function to handle progress message with timeout
+    const setupProgressMessageTimeout = () => {
+        setProgressMessage(LOADING_MESSAGE);
+        // hack: fetching from Central to build module dependency map in LS may take time, so show a different message after 3 seconds
+        const messageTimeout = setTimeout(() => {
+            setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
+        }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
+        return messageTimeout;
+    };
+
+    const cleanupProgressMessage = (messageTimeout: number) => {
+        clearTimeout(messageTimeout);
+        setProgressMessage(LOADING_MESSAGE);
+    };
+
     const handleOnAddNewModelProvider = () => {
         console.log(">>> Adding new model provider");
         isCreatingNewModelProvider.current = true;
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1619,6 +1631,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
@@ -1626,6 +1640,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Adding new vector store");
         isCreatingNewVectorStore.current = true;
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1647,6 +1663,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
@@ -1654,6 +1672,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Adding new embedding provider");
         isCreatingNewEmbeddingProvider.current = true;
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1677,12 +1697,17 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
     const handleOnAddNewVectorKnowledgeBase = () => {
         console.log(">>> Adding new vector knowledge base");
         isCreatingNewVectorKnowledgeBase.current = true;
+        setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1692,7 +1717,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         updatedMetadata.node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
         selectedNodeMetadata.current.metadata = updatedMetadata;
 
-        setShowProgressIndicator(true);
         rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
@@ -1709,6 +1733,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
@@ -1716,6 +1742,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Adding new data loader");
         isCreatingNewDataLoader.current = true;
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1737,6 +1765,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
@@ -1744,6 +1774,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> Adding new chunker");
         isCreatingNewChunker.current = true;
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -1765,6 +1797,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+                cleanupProgressMessage(messageTimeout);
             });
     };
 
@@ -2198,6 +2232,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 canGoBack={navigationStack.length > 0}
                 selectedConnectionKind={selectedConnectionKind}
                 setSidePanelView={setSidePanelView}
+                showProgressSpinner={showProgressSpinner}
+                progressMessage={progressMessage}
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onBack={handleOnFormBack}
