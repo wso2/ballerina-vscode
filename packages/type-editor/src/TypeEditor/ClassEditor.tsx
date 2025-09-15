@@ -363,14 +363,12 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
             {type.functions?.map((func, index) => (
                 <S.FunctionContainer key={index}>
                     <S.FunctionRow>
-                        <Tooltip content={expandedFunctions.includes(index) ? 'Collapse' : 'Expand'}>
-                            <S.ExpandIconButton
-                                appearance="icon"
-                                onClick={() => toggleFunctionExpand(index)}
-                            >
-                                <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
-                            </S.ExpandIconButton>
-                        </Tooltip>
+                        <S.ExpandIconButton
+                            appearance="icon"
+                            onClick={() => toggleFunctionExpand(index)}
+                        >
+                            <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
+                        </S.ExpandIconButton>
                         <IdentifierField
                             value={func.name}
                             onChange={(newName) => updateFunction(index, { name: newName })}

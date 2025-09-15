@@ -141,15 +141,13 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
     return (
         <>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
-                <Tooltip content={panelOpened ? 'Collapse' : 'Expand'}>
-                    <ExpandIconButton
-                        data-testid={`field-expand-btn`}
-                        appearance="icon"
-                        onClick={() => setPanelOpened(!panelOpened)}
-                    >
-                        <Codicon name={panelOpened ? "chevron-down" : "chevron-right"} />
-                    </ExpandIconButton>
-                </Tooltip>
+                <ExpandIconButton
+                    data-testid={`field-expand-btn`}
+                    appearance="icon"
+                    onClick={() => setPanelOpened(!panelOpened)}
+                >
+                    <Codicon name={panelOpened ? "chevron-down" : "chevron-right"} />
+                </ExpandIconButton>
                 <IdentifierField
                     value={member.name}
                     onChange={handleNameChange}
@@ -173,12 +171,12 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                             </Button>
                         </Tooltip>
                     }
-                    <Tooltip content={isRecord(member.type) ? 'Other Type' : 'Inline Record Type'}>
+                    <Tooltip content='Define Inline Record Type'>
                         <Button appearance="icon" onClick={toggleRecord}>
                             <CurlyBracesIcon isActive={isRecord(member.type)} />
                         </Button>
                     </Tooltip>
-                    <Tooltip content='Optional Field'>
+                    <Tooltip content='Set as an Optional Field'>
                         <Button appearance="icon" onClick={toggleOptional}>
                             <OptionalFieldIcon isActive={member?.optional} />
                         </Button>

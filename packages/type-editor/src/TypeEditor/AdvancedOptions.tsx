@@ -24,17 +24,15 @@ export function AdvancedOptions({ type, onChange }: AdvancedOptionsProps) {
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', marginBottom: '5px', cursor: 'pointer' }}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <Tooltip content={isExpanded ? 'Collapse' : 'Expand'}>
-                    <Button
-                        appearance='icon'
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsExpanded(!isExpanded);
-                        }}
-                    >
-                        <Codicon name={isExpanded ? "chevron-up" : "chevron-down"} />
-                    </Button>
-                </Tooltip>
+                <Button
+                    appearance='icon'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                    }}
+                >
+                    <Codicon name={isExpanded ? "chevron-up" : "chevron-down"} />
+                </Button>
                 <span>Advanced Options</span>
             </div>
             {isExpanded && (
