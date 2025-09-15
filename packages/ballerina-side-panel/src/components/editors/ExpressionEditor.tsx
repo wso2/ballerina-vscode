@@ -362,6 +362,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     // Initial render
     useEffect(() => {
+        if (!targetLineRange) return;
         // Fetch initial diagnostics
         if (getExpressionEditorDiagnostics && fieldValue !== undefined
             && (previousDiagnosticsFetchContext.current.fetchedInitialDiagnostics === false
