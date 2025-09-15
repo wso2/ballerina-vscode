@@ -77,21 +77,21 @@
     "output": {
       "member": {
         "fields": [],
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "arr4",
+        "displayName": "<arr4Item>",
         "typeName": "RecType",
         "kind": "record",
         "ref": "-1897494121"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "arr4",
+      "displayName": "arr4",
       "typeName": "RecType[]",
       "kind": "array",
       "ref": "-1897494121"
     },
     "mappings": [
       {
-        "output": "0.i",
+        "output": "arr4.i",
         "inputs": [],
         "expression": "0",
         "diagnostics": [],
@@ -101,7 +101,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "arr4",
       "inputs": [
         "arr3Item"
       ],

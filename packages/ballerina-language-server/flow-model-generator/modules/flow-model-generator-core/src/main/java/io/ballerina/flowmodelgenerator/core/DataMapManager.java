@@ -479,7 +479,19 @@ public class DataMapManager {
         if (matchingNode == null) {
             return null;
         }
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], matchingNode);
+        return new TargetNode(typeSymbol, getMappingName(fieldSplits), matchingNode);
+    }
+
+    private String getMappingName(String[] names) {
+        int idx = names.length - 1;
+        while (idx > 0) {
+            if (names[idx].matches("\\d+")) {
+                idx--;
+            } else {
+                break;
+            }
+        }
+        return names[idx];
     }
 
     private MatchingNode getTargetMappingExpr(ExpressionNode expr, String targetField) {

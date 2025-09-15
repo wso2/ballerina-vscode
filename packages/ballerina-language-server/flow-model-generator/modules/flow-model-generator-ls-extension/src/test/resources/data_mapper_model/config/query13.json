@@ -109,27 +109,27 @@
       "member": {
         "member": {
           "fields": [],
-          "name": "0",
-          "displayName": "<0ItemItem>",
+          "name": "myTypes4",
+          "displayName": "<myTypes4ItemItem>",
           "typeName": "MyType",
           "kind": "record",
           "ref": "2079019383"
         },
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "myTypes4",
+        "displayName": "<myTypes4Item>",
         "typeName": "MyType[]",
         "kind": "array",
         "ref": "2079019383"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "myTypes4",
+      "displayName": "myTypes4",
       "typeName": "MyType[][]",
       "kind": "array",
       "ref": "2079019383"
     },
     "mappings": [
       {
-        "output": "0",
+        "output": "myTypes4",
         "inputs": [
           "myType3"
         ],
@@ -141,7 +141,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "myTypes4",
       "inputs": [
         "myTypes3"
       ],
