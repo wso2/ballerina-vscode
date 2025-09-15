@@ -25,13 +25,16 @@ interface InputCategoryIconProps {
 }
 
 const categoryIconMap: Record<InputCategory, string> = {
-    [InputCategory.Constant]: "symbol-constant",
-    [InputCategory.ModuleVariable]: "symbol-module",
-    [InputCategory.Configurable]: "settings-gear",
     [InputCategory.Enum]: "symbol-enum",
     [InputCategory.Parameter]: "symbol-parameter",
+
+    [InputCategory.Constant]: "symbol-constant",
+    [InputCategory.Configurable]: "symbol-constant",
+
     [InputCategory.Variable]: "symbol-variable",
-    [InputCategory.LocalVariable]: "symbol-variable"
+    [InputCategory.LocalVariable]: "symbol-variable",
+    [InputCategory.ModuleVariable]: "symbol-variable",
+
 };
 
 export function InputCategoryIcon({ category }: InputCategoryIconProps) {
