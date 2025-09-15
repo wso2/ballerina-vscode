@@ -32,7 +32,7 @@ export const VariableForm = (props: FormProps) => {
         setFormFields(props.formFields);
     }, [props.formFields]);
 
-    const handleOnTypeChange = (type: CompletionItem) => {
+    const handleOnTypeChange = (type: string | CompletionItem) => {
         handleSelectedTypeChange(type);
     };
     return (

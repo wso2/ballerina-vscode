@@ -36,7 +36,8 @@ export async function getView(documentUri: string, position: NodePosition, proje
             location: {
                 view: MACHINE_VIEW.BIDiagram,
                 documentUri: documentUri,
-                position: position
+                position: position,
+                identifier: StateMachine.context()?.identifier,
             },
             dataMapperDepth: 0
         };

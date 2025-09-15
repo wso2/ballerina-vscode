@@ -27,6 +27,7 @@ export interface IDataMapperContext {
     hasInputsOutputsChanged: boolean;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
+    deleteSubMapping: (index: number, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
@@ -44,6 +45,7 @@ export class DataMapperContext implements IDataMapperContext {
         public hasInputsOutputsChanged: boolean = false,
         public convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>,
         public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>,
+        public deleteSubMapping: (index: number, viewId: string) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,

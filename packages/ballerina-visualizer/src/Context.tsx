@@ -137,6 +137,7 @@ export const POPUP_IDS = {
   VARIABLE: "VARIABLE",
   FUNCTION: "FUNCTION",
   CONFIGURABLES: "CONFIGURABLES",
+  RECORD_CONFIG: "RECORD_CONFIG",
 } as const;
 
 type ModalStackItem = {

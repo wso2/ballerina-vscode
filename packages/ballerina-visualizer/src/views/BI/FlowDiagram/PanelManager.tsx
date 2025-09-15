@@ -25,6 +25,7 @@ import {
     FUNCTION_TYPE,
     ToolData,
     NodeMetadata,
+    DataMapperDisplayMode,
 } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
@@ -39,6 +40,8 @@ import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
 import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
+import { RelativeLoader } from "../../../components/RelativeLoader";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     display: flex;
@@ -97,6 +100,8 @@ interface PanelManagerProps {
     canGoBack?: boolean;
     selectedMcpToolkitName?: string;
     selectedConnectionKind?: ConnectionKind;
+    showProgressSpinner?: boolean;
+    progressMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -112,7 +117,7 @@ interface PanelManagerProps {
     onAddVectorKnowledgeBase?: () => void;
     onAddDataLoader?: () => void;
     onAddChunker?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    onSubmitForm: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -159,6 +164,8 @@ export function PanelManager(props: PanelManagerProps) {
         canGoBack,
         selectedMcpToolkitName,
         selectedConnectionKind,
+        showProgressSpinner = false,
+        progressMessage = "Loading...",
         setSidePanelView,
         onClose,
         onBack,
@@ -615,7 +622,15 @@ export function PanelManager(props: PanelManagerProps) {
             subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>
+                {showProgressSpinner ? (
+                    <LoaderContainer>
+                        <RelativeLoader message={progressMessage} />
+                    </LoaderContainer>
+                ) : (
+                    renderPanelContent()
+                )}
+            </Container>
         </PanelContainer>
     );
 }
