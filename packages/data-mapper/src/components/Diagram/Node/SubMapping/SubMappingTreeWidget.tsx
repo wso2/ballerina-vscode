@@ -18,7 +18,7 @@
 import React, { ReactNode } from 'react';
 
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon } from '@wso2/ui-toolkit';
+import { Button, Codicon } from '@wso2/ui-toolkit';
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 
 import { useDMSearchStore, useDMSubMappingConfigPanelStore } from "../../../../store/store";
@@ -46,7 +46,8 @@ const HeaderText = styled.span`
     min-width: 280px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--vscode-inputOption-activeForeground)
+    color: var(--vscode-inputOption-activeForeground);
+    opacity: 0.7;
 `;
 
 export interface SubMappingTreeWidgetProps {

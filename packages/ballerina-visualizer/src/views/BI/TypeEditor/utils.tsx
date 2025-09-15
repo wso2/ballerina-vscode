@@ -59,7 +59,8 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): Typ
         categoryRecord[type.labelDetails.detail].push({
             name: type.label,
             insertText: type.insertText,
-            type: convertCompletionItemKind(type.kind)
+            type: convertCompletionItemKind(type.kind),
+            labelDetails: type.labelDetails
         });
     }
 
