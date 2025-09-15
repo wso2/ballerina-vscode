@@ -91,6 +91,8 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.CompletionItem;
@@ -141,6 +143,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 @JsonSegment("serviceDesign")
 public class ServiceModelGeneratorService implements ExtendedLanguageServerService {
 
+    private LSClientLogger lsClientLogger;
     private WorkspaceManager workspaceManager;
     private final Map<String, TriggerProperty> triggerProperties;
     private static final Type propertyMapType = new TypeToken<Map<String, TriggerProperty>>() {
@@ -164,8 +167,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     }
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
+    public void init(LanguageServer langServer, WorkspaceManager workspaceManager,
+                     LanguageServerContext serverContext) {
         this.workspaceManager = workspaceManager;
+        this.lsClientLogger = LSClientLogger.getInstance(serverContext);
     }
 
     @Override
@@ -923,8 +928,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     throw new IllegalStateException("Failed to load the document or semantic model");
                 }
-                // TODO: need to add the module pulling logic here
-
+                Utils.resovleModule(request.orgName(), request.pkgName(), request.moduleName(), lsClientLogger);
                 return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request,
                         semanticModel.get(), document.get()));
             } catch (Throwable e) {

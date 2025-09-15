@@ -24,6 +24,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
@@ -57,6 +59,8 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -73,7 +77,9 @@ import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListReq
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.NameUtil;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -121,6 +127,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
  * @since 1.0.0
  */
 public final class Utils {
+
+    private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
+    private static final String MODULE_PULLING_FAILED_MESSAGE = "Failed to pull the module: %s";
+    private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
 
     private Utils() {
     }
@@ -1130,4 +1140,48 @@ public final class Utils {
     }
 
     public record SelectionRecord(String label, String value) {}
+
+    /**
+     * Resolves a Ballerina module by organization, package, and module name.
+     * If the module is not found locally, attempts to pull it from the central repository,
+     * notifies the client about the process.
+     *
+     * @param orgName        the organization name
+     * @param packageName    the package name
+     * @param moduleName     the module name
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    public static void resovleModule(String orgName, String packageName, String moduleName,
+                                     LSClientLogger lsClientLogger) {
+        CentralAPI centralApi = RemoteCentral.getInstance();
+        String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
+        ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);
+
+        if (PackageUtil.isModuleUnresolved(orgName, packageName, latestVersion)) {
+            notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE, moduleInfo, lsClientLogger);
+            Optional<SemanticModel> semanticModel =  PackageUtil.getSemanticModel(moduleInfo);
+            if (semanticModel.isEmpty()) {
+                notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE, moduleInfo, lsClientLogger);
+            } else {
+                notifyClient(MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE, moduleInfo, lsClientLogger);
+            }
+        }
+    }
+
+    /**
+     * Notifies the client with a formatted message about the module resolution status.
+     *
+     * @param messageType    the type of message (info, error, etc.)
+     * @param message        the message template
+     * @param moduleInfo     the module information
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    private static void notifyClient(MessageType messageType, String message, ModuleInfo moduleInfo,
+                                     LSClientLogger lsClientLogger) {
+        if (lsClientLogger != null) {
+            String signature =
+                    String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+            lsClientLogger.notifyClient(messageType, String.format(message, signature));
+        }
+    }
 }
