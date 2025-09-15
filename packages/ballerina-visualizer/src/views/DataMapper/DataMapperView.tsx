@@ -524,8 +524,7 @@ export function DataMapperView(props: DataMapperProps) {
         const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
             ref: parentField.ref,
             fieldId: parentField.id,
-            model: model as DMModel,
-            visitedRefs: new Set()
+            model: model as DMModel
         });
 
         if (!response.success || !response.result) {
