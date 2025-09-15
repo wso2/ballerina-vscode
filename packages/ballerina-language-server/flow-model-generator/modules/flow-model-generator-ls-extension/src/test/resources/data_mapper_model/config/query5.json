@@ -105,6 +105,26 @@
         "typeName": "ContactDetails",
         "kind": "record"
       },
+      "-1392347127": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "SecondaryPhones",
+        "kind": "record"
+      },
       "1040773059": {
         "fields": [
           {
@@ -144,16 +164,19 @@
         "fields": [
           {
             "member": {
+              "fields": [],
               "name": "secondaryPhones",
               "displayName": "<secondaryPhonesItem>",
-              "typeName": "string",
-              "kind": "string"
+              "typeName": "SecondaryPhones",
+              "kind": "record",
+              "ref": "-1392347127"
             },
             "name": "secondaryPhones",
             "displayName": "secondaryPhones",
-            "typeName": "string[]",
+            "typeName": "SecondaryPhones[]",
             "kind": "array",
-            "optional": false
+            "optional": false,
+            "ref": "-1392347127"
           },
           {
             "member": {

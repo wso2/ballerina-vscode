@@ -133,6 +133,25 @@
       }
     ],
     "refs": {
+      "-1647132631": {
+        "fields": [
+          {
+            "member": {
+              "name": "u",
+              "displayName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "u",
+            "displayName": "u",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      },
       "-539589308": {
         "fields": [
           {
@@ -162,7 +181,7 @@
             "typeName": "User5",
             "kind": "record",
             "optional": false,
-            "ref": "438943303"
+            "ref": "-1647132631"
           },
           {
             "member": {
@@ -195,25 +214,6 @@
           }
         ],
         "typeName": "User",
-        "kind": "record"
-      },
-      "438943303": {
-        "fields": [
-          {
-            "member": {
-              "name": "u",
-              "displayName": "<uItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "name": "u",
-            "displayName": "u",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
-        "typeName": "User5",
         "kind": "record"
       }
     }

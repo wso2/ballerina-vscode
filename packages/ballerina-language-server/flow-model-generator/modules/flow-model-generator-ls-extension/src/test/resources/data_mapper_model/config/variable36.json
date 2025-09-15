@@ -163,10 +163,16 @@
       "-1647132631": {
         "fields": [
           {
+            "member": {
+              "name": "u",
+              "displayName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
             "name": "u",
             "displayName": "u",
-            "typeName": "string",
-            "kind": "string",
+            "typeName": "string[]",
+            "kind": "array",
             "optional": false
           }
         ],

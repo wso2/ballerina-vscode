@@ -41,10 +41,8 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefReco
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,19 +92,22 @@ public class ReferenceType {
                 : null;
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel);
 
-        for (String dependentTypeHash : type.dependentTypeHashes) {
-            RefType dependentType = visitedTypeMap.get(dependentTypeHash);
-            if (dependentType != null) {
-                RefType clonedDependentType = dependentType.clone();
-                if (type.dependentTypes == null) {
-                    type.dependentTypes = new HashMap<>();
-                }
-                clonedDependentType.dependentTypes = null;
-                if (type.dependentTypes != null) {
-                    type.dependentTypes.put(dependentTypeHash, clonedDependentType);
+        if (type.dependentTypes == null) {
+            for (String dependentTypeHash : type.dependentTypeHashes) {
+                RefType dependentType = visitedTypeMap.get(dependentTypeHash);
+                if (dependentType != null) {
+                    RefType clonedDependentType = dependentType.clone();
+                    if (type.dependentTypes == null) {
+                        type.dependentTypes = new HashMap<>();
+                    }
+                    clonedDependentType.dependentTypes = null;
+                    if (type.dependentTypes != null) {
+                        type.dependentTypes.put(dependentTypeHash, clonedDependentType);
+                    }
                 }
             }
         }
+
         return type;
     }
 
@@ -137,6 +138,7 @@ public class ReferenceType {
                             assert updatedDepType != null;
                             updatedDepType.hashCode = depTypeHash;
                             entry.setValue(updatedDepType);
+                            visitedTypeMap.put(depTypeHash, updatedDepType);
                         }
                     }
                 }
