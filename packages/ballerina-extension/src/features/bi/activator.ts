@@ -68,7 +68,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram, focusRootDiagram: true });
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, () => {

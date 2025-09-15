@@ -64,6 +64,7 @@ const stateMachine = createMachine<MachineContext>(
                         position: (context, event) => event.viewLocation.position ? event.viewLocation.position : context.position,
                         identifier: (context, event) => event.viewLocation.identifier ? event.viewLocation.identifier : context.identifier,
                         addType: (context, event) => event.viewLocation?.addType !== undefined ? event.viewLocation.addType : context?.addType,
+                        focusRootDiagram: (context, event) => event.viewLocation.focusRootDiagram ? event.viewLocation.focusRootDiagram : context.focusRootDiagram,
                     })
                 ]
             },
@@ -192,6 +193,7 @@ const stateMachine = createMachine<MachineContext>(
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
                             addType: (context, event) => event.viewLocation?.addType,
+                            focusRootDiagram: (context, event) => event.viewLocation.focusRootDiagram,
                             dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                         })
                     }
@@ -263,6 +265,7 @@ const stateMachine = createMachine<MachineContext>(
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
                                     addType: (context, event) => event.viewLocation?.addType,
+                                    focusRootDiagram: (context, event) => event.viewLocation.focusRootDiagram,
                                     dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
@@ -277,6 +280,7 @@ const stateMachine = createMachine<MachineContext>(
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     addType: (context, event) => event.viewLocation?.addType,
+                                    focusRootDiagram: (context, event) => event.viewLocation.focusRootDiagram,
                                     dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
@@ -461,6 +465,7 @@ const stateMachine = createMachine<MachineContext>(
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
+                            focusRootDiagram: context?.focusRootDiagram,
                             dataMapperMetadata: context?.dataMapperMetadata
                         }
                     });
