@@ -80,7 +80,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     }
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }}>
+        <TruncatedLabel>
             <span className={classes.valueLabelHeader}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
             </span>
@@ -147,8 +147,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
                         </Button>
                     )}
-                    <InputCategoryIcon category={dmType.category} />
                     {label}
+                    <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
                     {portOut &&
