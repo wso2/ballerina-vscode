@@ -26,7 +26,7 @@ service /api on httpListener {
         return http:OK;
     }
 
-    resource function get httpOkWithType() returns HttpOk {
+    resource function get httpOkWithType(http:Request request, http:Headers headers, string name) returns HttpOk {
         return {body: 0};
     }
 

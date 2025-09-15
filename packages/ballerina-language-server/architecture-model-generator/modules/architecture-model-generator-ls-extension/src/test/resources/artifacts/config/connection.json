@@ -101,7 +101,44 @@
         "type": "TYPE",
         "name": "LocalClient",
         "scope": "Global",
-        "children": {}
+        "children": {
+          "init": {
+            "id": "init",
+            "location": {
+              "fileName": "connection.bal",
+              "startLine": {
+                "line": 33,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 37,
+                "offset": 5
+              }
+            },
+            "type": "FUNCTION",
+            "name": "init",
+            "scope": "Global",
+            "children": {}
+          },
+          "getData": {
+            "id": "getData",
+            "location": {
+              "fileName": "connection.bal",
+              "startLine": {
+                "line": 39,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 43,
+                "offset": 5
+              }
+            },
+            "type": "REMOTE",
+            "name": "getData",
+            "scope": "Global",
+            "children": {}
+          }
+        }
       }
     }
   }

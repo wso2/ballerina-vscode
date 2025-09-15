@@ -154,10 +154,12 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     return;
                 } else if (typeName.equals(HTTP_CALLER_TYPE)) {
                     Parameter parameter = parameterModels.get(1);
+                    parameter.getName().setValue(parameterModel.getName().getValue());
                     parameter.setEnabled(true);
                     return;
                 } else if (typeName.equals(HTTP_HEADERS_TYPE)) {
                     Parameter parameter = parameterModels.get(2);
+                    parameter.getName().setValue(parameterModel.getName().getValue());
                     parameter.setEnabled(true);
                     return;
                 }
