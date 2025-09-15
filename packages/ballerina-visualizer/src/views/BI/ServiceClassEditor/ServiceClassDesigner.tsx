@@ -189,7 +189,10 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         const lineRange: LineRange = func.codedata.lineRange;
         const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
         const nodePosition: NodePosition = { startLine: lineRange.startLine.line, startColumn: lineRange.startLine.offset, endLine: lineRange.endLine.line, endColumn: lineRange.endLine.offset }
-        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: currentFilePath } })
+        await rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: { position: nodePosition, documentUri: currentFilePath, type: type, identifier: func.name.value }
+        });
     }
 
     const handleFunctionSave = async (updatedFunction: FunctionModel) => {

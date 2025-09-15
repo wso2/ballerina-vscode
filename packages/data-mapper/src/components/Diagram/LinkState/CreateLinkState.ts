@@ -73,7 +73,9 @@ export class CreateLinkState extends State<DiagramEngine> {
 						if (isInputNode(element)) {
 							const isGoToSubMappingBtn = (actionEvent.event.target as Element)
 								.closest('div[id^="go-to-sub-mapping-btn"]');
-							if (isGoToSubMappingBtn) return;
+							const isDeleteSubMappingBtn = (actionEvent.event.target as Element)
+								.closest('div[id^="delete-sub-mapping-btn"]');
+							if (isGoToSubMappingBtn || isDeleteSubMappingBtn) return;
 							const recordFieldElement = (event.target as Element).closest('div[id^="recordfield"]');
 							if (recordFieldElement) {
 								const fieldId = (recordFieldElement.id.split("-"))[1] + ".OUT";

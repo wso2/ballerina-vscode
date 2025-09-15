@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ChatNotify, ChatContent, Command } from "@wso2/ballerina-core";
-import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendTestGenIntermidateStateNotification } from "./utils";
+import { ChatNotify, Command } from "@wso2/ballerina-core";
+import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification } from "./utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
@@ -39,7 +39,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendMessageStopNotification(command);
                 break;
             case 'intermediary_state':
-                sendTestGenIntermidateStateNotification(event.state);
+                sendIntermidateStateNotification(event.state);
                 break;
             case 'messages':
                 sendMessagesNotification(event.messages);

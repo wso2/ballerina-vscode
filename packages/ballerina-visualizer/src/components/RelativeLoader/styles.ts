@@ -16,27 +16,13 @@
  * under the License.
  */
 
-export const DEFAULT_VALUE_MAP: Record<string, string> = {
-    "struct": "{}",
-    "array": "[]",
-    "map": "{}",
-    "int": "0",
-    "float": "0.0",
-    "boolean": "false",
-    "any": "null",
-    "decimal": "0.0",
-    "byte": "0"
-}
+import styled from "@emotion/styled";
 
-export const isRowType = (type: string | string[]) => {
-    return type && type === "struct";
-}
-
-export const isUnionType = (type: string) => {
-    return type && type === "enum";
-}
-
-export const getDefaultValue = (type: string) => {
-    //TODO: handle this using API
-     return DEFAULT_VALUE_MAP[type] || "";
-}
+export const LoaderContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 16px;
+    text-align: center;
+`;
