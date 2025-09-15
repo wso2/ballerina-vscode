@@ -225,14 +225,12 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
             {type.members.map((member, index) => (
                 <>
                     <S.MemberRow>
-                        <Tooltip content={expandedFunctions.includes(index) ? 'Collapse' : 'Expand'}>
-                            <S.ExpandIconButton
-                                appearance="icon"
-                                onClick={() => toggleFunctionExpand(index)}
-                            >
-                                <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
-                            </S.ExpandIconButton>
-                        </Tooltip>
+                        <S.ExpandIconButton
+                            appearance="icon"
+                            onClick={() => toggleFunctionExpand(index)}
+                        >
+                            <Codicon name={expandedFunctions.includes(index) ? "chevron-down" : "chevron-right"} />
+                        </S.ExpandIconButton>
                         <div style={{ flexGrow: 1 }}>
                             <IdentifierField
                                 value={member.name}
