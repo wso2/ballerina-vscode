@@ -93,14 +93,6 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         </TruncatedLabel>
     );
 
-    const categoryLabel = dmType.category && (
-        <span className={classes.categoryLabel}>
-            {dmType.category}
-        </span>
-    );
-
-   
-
     const handleExpand = () => {
 
         const expandedFields = expandedFieldsStore.fields;
