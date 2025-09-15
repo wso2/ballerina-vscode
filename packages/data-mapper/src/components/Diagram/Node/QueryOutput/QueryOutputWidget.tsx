@@ -96,7 +96,6 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 			{valueLabel && (
 				<span className={classes.valueLabel}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-					{typeName && ":"}
 				</span>
 			)}
 			<span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
