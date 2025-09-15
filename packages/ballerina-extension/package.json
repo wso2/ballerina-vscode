@@ -1152,7 +1152,7 @@
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^4.3.16",
+        "ai": "5.0.44",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
