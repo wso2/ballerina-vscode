@@ -22,6 +22,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
@@ -35,6 +37,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -72,14 +75,15 @@ public class RefTypeTest {
         ModuleId moduleId = optionalModuleId.get();
         PackageCompilation packageCompilation = project.currentPackage().getCompilation();
         SemanticModel semanticModel = packageCompilation.getSemanticModel(moduleId);
-
-            Symbol typeSymbol = semanticModel.moduleSymbols().stream()
-                .filter(symbol -> symbol.getName().isPresent() &&
-                        symbol.getName().get().equals(typeSymbolName))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
-
-        RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol, semanticModel);
+        Symbol typeSymbol = semanticModel.moduleSymbols().stream()
+            .filter(symbol -> symbol.getName().isPresent() &&
+                    symbol.getName().get().equals(typeSymbolName))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Type symbol '" + typeSymbolName + "' not found"));
+        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
+                .toList();
+        RefType refType = ReferenceType.fromSemanticSymbol(typeSymbol, typeDefSymbols);
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
         if (!refTypeJson.equals(expectedRefTypeJson)) {

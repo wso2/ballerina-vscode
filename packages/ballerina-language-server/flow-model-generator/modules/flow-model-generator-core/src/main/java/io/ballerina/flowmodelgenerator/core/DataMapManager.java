@@ -212,11 +212,13 @@ public class DataMapManager {
         if (targetNode == null) {
             return null;
         }
-
+        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
+                .toList();
         Map<String, MappingPort> references = new HashMap<>();
         RefType refType;
         try {
-            refType = ReferenceType.fromSemanticSymbol(targetNode.typeSymbol(), semanticModel);
+            refType = ReferenceType.fromSemanticSymbol(targetNode.typeSymbol(), typeDefSymbols);
         } catch (UnsupportedOperationException e) {
             return null;
         }
@@ -261,7 +263,7 @@ public class DataMapManager {
                 if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
                     TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
                     MappingPort mappingPort = getRefMappingPort(fromClauseVar, fromClauseVar,
-                            Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, semanticModel)),
+                            Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, typeDefSymbols)),
                             new HashMap<>(), references);
                     if (mappingPort != null) {
                         mappingPort.setFocusExpression(expression.toString().trim());
@@ -316,7 +318,7 @@ public class DataMapManager {
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
                 subMappingPorts.add(getRefMappingPort(letVarName, letVarName,
-                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol, semanticModel)), new HashMap<>(), references));
+                        Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols)), new HashMap<>(), references));
             }
         } else {
             inputPorts = getInputPorts(semanticModel, this.document, position, enumPorts, references);
@@ -703,7 +705,9 @@ public class DataMapManager {
     private List<MappingPort> getInputPorts(SemanticModel semanticModel, Document document, LinePosition position,
                                             List<MappingPort> enumPorts, Map<String, MappingPort> references) {
         List<MappingPort> refMappingPorts =  new ArrayList<>();
-
+        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
+                .toList();
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
         for (Symbol symbol : symbols) {
             SymbolKind kind = symbol.kind();
@@ -747,7 +751,7 @@ public class DataMapManager {
             } else if (kind == SymbolKind.CONSTANT) {
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
@@ -766,7 +770,7 @@ public class DataMapManager {
             } else if (kind == SymbolKind.ENUM) {
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
@@ -813,9 +817,12 @@ public class DataMapManager {
             }
         }
 
+        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
+                .toList();
         RefType refType;
         try {
-            refType = ReferenceType.fromSemanticSymbol(ts, semanticModel);
+            refType = ReferenceType.fromSemanticSymbol(ts, typeDefSymbols);
             if (refType == null) {
                 return null;
             }
@@ -833,6 +840,9 @@ public class DataMapManager {
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
                                                  Map<String, MappingPort> references, SemanticModel semanticModel) {
         List<MappingPort> mappingPorts = new ArrayList<>();
+        List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION)
+                .toList();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
             if (kind == SymbolKind.VARIABLE) {
@@ -842,7 +852,7 @@ public class DataMapManager {
                 }
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
@@ -870,7 +880,7 @@ public class DataMapManager {
 
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
@@ -889,7 +899,7 @@ public class DataMapManager {
             } else if (kind == SymbolKind.CONSTANT) {
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
@@ -907,7 +917,7 @@ public class DataMapManager {
             } else if (kind == SymbolKind.ENUM) {
                 RefType refType;
                 try {
-                    refType = ReferenceType.fromSemanticSymbol(symbol, semanticModel);
+                    refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
                     if (refType == null) {
                         continue;
                     }
