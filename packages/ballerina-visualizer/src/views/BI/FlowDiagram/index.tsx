@@ -98,9 +98,9 @@ interface NavigationStackItem {
 }
 
 export type FormSubmitOptions = {
-    shouldCloseSidePanel?: boolean;
-    updateLineRangeForRecursiveInserts?: (nodes: FlowNode[]) => void;
-    shouldUpdateTargetLine?: boolean;
+    closeSidePanel?: boolean;
+    updateLineRange?: boolean;
+    postUpdateCallBack?: () => void;
 
 };
 
@@ -121,7 +121,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [updatedExpressionField, setUpdatedExpressionField] = useState<any>(undefined);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
-    const [forceUpdate, setForceUpdate] = useState(0);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
 
     // Navigation stack for back navigation
@@ -137,7 +136,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
-    const onRerenderRef = useRef<((nodes: FlowNode[]) => void) | null>(null);
     const shouldUpdateLineRangeRef = useRef<boolean>(false);
     const updatedNodeRef = useRef<FlowNode>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange>(targetRef?.current);
@@ -483,9 +481,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 (node) => node.codedata.node === "EVENT_START"
                             )?.metadata.data as ParentMetadata | undefined;
                             onReady(model.flowModel.fileName, parentMetadata);
-                            if (onRerenderRef.current) {
-                                onRerenderRef.current(model.flowModel.nodes);
-                            }
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
@@ -1260,7 +1255,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
-        const noFormSubmitOptions = !options || !(options?.shouldCloseSidePanel || options?.updateLineRangeForRecursiveInserts);
+        const noFormSubmitOptions = !options ||
+            (
+                options?.closeSidePanel === undefined
+                && options?.updateLineRange === undefined
+                && options?.postUpdateCallBack === undefined
+            );
 
         if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
             rpcClient
@@ -1294,6 +1294,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 })
                 .finally(() => {
                     if (dataMapperMode !== DataMapperDisplayMode.POPUP) setShowSidePanel(false);
+                    if (options?.postUpdateCallBack) {
+                        options.postUpdateCallBack();
+                    }
                     setShowProgressIndicator(false);
                 });
             return;
@@ -1315,14 +1318,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         selectedNodeRef.current = undefined;
                         await updateCurrentArtifactLocation(response);
                     }
-                    if (options?.shouldCloseSidePanel) {
+                    if (options?.closeSidePanel) {
                         selectedNodeRef.current = undefined;
                         closeSidePanelAndFetchUpdatedFlowModel();
                     }
-                    if (options?.updateLineRangeForRecursiveInserts) {
-                        onRerenderRef.current = options.updateLineRangeForRecursiveInserts;
+                    if (options?.postUpdateCallBack) {
+                        options.postUpdateCallBack();
                     }
-                    shouldUpdateLineRangeRef.current = options?.shouldUpdateTargetLine;
+                    shouldUpdateLineRangeRef.current = options?.updateLineRange;
                     updatedNodeRef.current = updatedNode;
                 } else {
                     console.error(">>> Error updating source code", response);
@@ -1330,7 +1333,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
-                if (options?.shouldCloseSidePanel === true) {
+                if (options?.closeSidePanel === true) {
                     setShowSidePanel(false);
                 }
             });
