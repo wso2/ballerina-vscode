@@ -9,8 +9,7 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string",
-          "cachedType": false
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -21,25 +20,21 @@
           "memberTypes": [
             {
               "dependentTypeHashes": [],
-              "name": "FINANCE",
-              "cachedType": false
+              "name": "FINANCE"
             },
             {
               "dependentTypeHashes": [],
-              "name": "IT",
-              "cachedType": false
+              "name": "IT"
             },
             {
               "dependentTypeHashes": [],
-              "name": "HR",
-              "cachedType": false
+              "name": "HR"
             }
           ],
           "dependentTypeHashes": [],
           "hashCode": "-959561237",
           "name": "DepartmentCode",
-          "typeName": "union",
-          "cachedType": false
+          "typeName": "union"
         },
         "optional": false,
         "defaultValue": ""
@@ -56,28 +51,22 @@
         "memberTypes": [
           {
             "dependentTypeHashes": [],
-            "name": "FINANCE",
-            "cachedType": false
+            "name": "FINANCE"
           },
           {
             "dependentTypeHashes": [],
-            "name": "IT",
-            "cachedType": false
+            "name": "IT"
           },
           {
             "dependentTypeHashes": [],
-            "name": "HR",
-            "cachedType": false
+            "name": "HR"
           }
         ],
         "dependentTypeHashes": [],
         "hashCode": "-959561237",
         "name": "DepartmentCode",
-        "typeName": "union",
-        "cachedType": false
+        "typeName": "union"
       }
-    },
-    "cachedType": false,
-    "isComplete": true
+    }
   }
 }

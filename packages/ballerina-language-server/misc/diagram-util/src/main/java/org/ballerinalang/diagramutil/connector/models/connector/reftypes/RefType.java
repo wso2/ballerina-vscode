@@ -38,9 +38,6 @@ public class RefType  implements Cloneable {
     @Expose
     public Map<String, RefType> dependentTypes;
 
-    public Boolean cachedType = false;
-    public Boolean isComplete;
-
 
     public RefType(String name) {
         this.name = name;

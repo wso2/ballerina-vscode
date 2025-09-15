@@ -92,11 +92,7 @@ public class ReferenceType {
         String moduleId = symbol.getModule().isPresent()
                 ? symbol.getModule().get().id().toString()
                 : null;
-        RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel, true);
-
-        if (type.cachedType) {
-            return type;
-        }
+        RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel);
 
         for (String dependentTypeHash : type.dependentTypeHashes) {
             RefType dependentType = visitedTypeMap.get(dependentTypeHash);
@@ -114,10 +110,10 @@ public class ReferenceType {
         return type;
     }
 
-    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID, SemanticModel semanticModel, Boolean isRoot) {
+    public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID, SemanticModel semanticModel) {
         String hashCode = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
         RefType type = visitedTypeMap.get(hashCode);
-        if (type != null && type.isComplete) {
+        if (type != null) {
             //Before returning the type, traverse the dependent types and ensure that their signature is the same using the semantic model.moduleSymbols
             if (type.dependentTypes != null) {
                 for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
@@ -145,7 +141,7 @@ public class ReferenceType {
                     }
                 }
             }
-            type.cachedType = true;
+
             return type;
         }
 
@@ -155,11 +151,6 @@ public class ReferenceType {
             RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = hashCode;
             visitedTypeMap.put(hashCode, recordType);
-            if (isRoot) {
-                recordType.isComplete = true;
-            } else {
-                recordType.isComplete = false;
-            }
 
             Map<String, RecordFieldSymbol> fieldDescriptors = recordTypeSymbol.fieldDescriptors();
             fieldDescriptors.forEach((fieldName, fieldSymbol) -> {
@@ -168,7 +159,7 @@ public class ReferenceType {
                 String fieldModuleId = fieldSymbol.getModule().isPresent()
                         ? fieldSymbol.getModule().get().id().toString()
                         : null;
-                RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, semanticModel, false);
+                RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, semanticModel);
                 if (fieldType.dependentTypeHashes == null || fieldType.dependentTypeHashes.isEmpty()) {
                     if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
                         RefType t = new RefType(fieldType.name);
@@ -204,7 +195,7 @@ public class ReferenceType {
             String moduleId = elementTypeSymbol.getModule().isPresent()
                     ? elementTypeSymbol.getModule().get().id().toString()
                     : null;
-            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId, semanticModel, false);
+            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId, semanticModel);
             if (elementType.dependentTypeHashes == null || elementType.dependentTypeHashes.isEmpty()) {
                 if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
@@ -241,7 +232,7 @@ public class ReferenceType {
                 String moduleId = memberTypeSymbol.getModule().isPresent()
                         ? memberTypeSymbol.getModule().get().id().toString()
                         : null;
-                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId, semanticModel, false);
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId, semanticModel);
                 if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
@@ -277,7 +268,7 @@ public class ReferenceType {
             String moduleId = typeRefSymbol.getModule().isPresent()
                     ? typeRefSymbol.getModule().get().id().toString()
                     : null;
-            return fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel, isRoot);
+            return fromSemanticSymbol(typeSymbol, name, moduleId, semanticModel);
         } else if (kind == TypeDescKind.INT) {
             RefType refType = new RefType("int");
             refType.typeName = "int";
@@ -327,7 +318,7 @@ public class ReferenceType {
             String moduleId = member.getModule().isPresent()
                     ? member.getModule().get().id().toString()
                     : null;
-            RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, semanticModel, false);
+            RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, semanticModel);
             fields.add(semanticSymbol);
 
         });
@@ -335,21 +326,4 @@ public class ReferenceType {
         return type;
     }
 
-    public static String toFlatString(Object obj) {
-        if (obj == null) return "null";
-
-        StringBuilder sb = new StringBuilder();
-        Class<?> clazz = obj.getClass();
-        for (java.lang.reflect.Field field : clazz.getDeclaredFields()) {
-            field.setAccessible(true);
-            try {
-                Object value = field.get(obj);
-                sb.append(field.getName()).append("=").append(value).append(", ");
-            } catch (IllegalAccessException e) {
-                sb.append(field.getName()).append("=N/A, ");
-            }
-        }
-        if (sb.length() > 2) sb.setLength(sb.length() - 2);
-        return sb.toString();
-    }
 }
