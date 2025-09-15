@@ -40,6 +40,8 @@ import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
 import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
+import { RelativeLoader } from "../../../components/RelativeLoader";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     display: flex;
@@ -98,6 +100,8 @@ interface PanelManagerProps {
     canGoBack?: boolean;
     selectedMcpToolkitName?: string;
     selectedConnectionKind?: ConnectionKind;
+    showProgressSpinner?: boolean;
+    progressMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -160,6 +164,8 @@ export function PanelManager(props: PanelManagerProps) {
         canGoBack,
         selectedMcpToolkitName,
         selectedConnectionKind,
+        showProgressSpinner = false,
+        progressMessage = "Loading...",
         setSidePanelView,
         onClose,
         onBack,
@@ -616,7 +622,15 @@ export function PanelManager(props: PanelManagerProps) {
             subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>
+                {showProgressSpinner ? (
+                    <LoaderContainer>
+                        <RelativeLoader message={progressMessage} />
+                    </LoaderContainer>
+                ) : (
+                    renderPanelContent()
+                )}
+            </Container>
         </PanelContainer>
     );
 }

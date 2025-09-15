@@ -25,7 +25,7 @@ import { RelativeLoader } from "../RelativeLoader";
 import { ConnectionConfigProps } from "./types";
 import { getConnectionKindConfig } from "./config";
 import { createConnectionSelectField, fetchConnectionForNode, updateNodeWithConnectionVariable } from "./utils";
-import { LoaderContainer } from "./styles";
+import { LoaderContainer } from "../RelativeLoader/styles";
 
 export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const { connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
