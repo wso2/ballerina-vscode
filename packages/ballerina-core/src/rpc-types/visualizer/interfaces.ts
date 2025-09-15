@@ -46,4 +46,5 @@ export interface UndoRedoStateResponse {
 export interface AddToUndoStackRequest {
     filePath: string;
     source: string;
+    description?: string;
 }
