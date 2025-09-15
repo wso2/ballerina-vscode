@@ -237,22 +237,13 @@ export const getAttributeType = (attr: Member | TypeFunctionModel): string => {
         return isOptional ? `${type}|()` : type;
     }
 
-    const formatUnionType = (types: string[]): string => {        
-        if (types.length > 1) {
-            const hasComplexTypes = types.some(t => t.includes('[]') || t.includes('|'));
-            if (hasComplexTypes) {
-                return `${types.join('|')}`;
-            }
-        }
-        return types.join('|');
-    };
+    const formatUnionType = (types: string[]): string => types.join('|');
 
     // Get base type representation based on node kind
     const getTypeString = (members: Member[]): string => {
         const memberTypes = members.map(member => {
             if (typeof member.type === 'string') {
-                const memberIsOptional = member.optional;
-                return memberIsOptional ? `${member.type}|()` : member.type;
+                return member.optional ? `${member.type}|()` : member.type;
             }
             return getAttributeType(member);
         });
