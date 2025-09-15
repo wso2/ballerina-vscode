@@ -27,6 +27,7 @@ import DynamicModal from "../../../../components/Modal";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";
+import { POPUP_IDS, useModalStack } from "../../../../Context";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -45,6 +46,7 @@ type ConfigurablesPageProps = {
     anchorRef: React.RefObject<HTMLDivElement>;
     fileName: string;
     targetLineRange: LineRange;
+    onClose?: () => void;
 }
 
 type AddNewConfigFormProps = {
@@ -53,17 +55,18 @@ type AddNewConfigFormProps = {
 }
 
 export const Configurables = (props: ConfigurablesPageProps) => {
-    const { onChange, anchorRef, fileName, targetLineRange } = props;
+    const { onChange, onClose, fileName, targetLineRange } = props;
 
     const { rpcClient } = useRpcContext();
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [configVarNode, setCofigVarNode] = useState<FlowNode>();
     const [isSaving, setIsSaving] = useState(false);
     const [packageInfo, setPackageInfo] = useState<TomlPackage>();
     const [isImportEnv, setIsImportEnv] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
+
+    const { addModal, closeModal } = useModalStack();
 
     useEffect(() => {
         const fetchNode = async () => {
@@ -89,7 +92,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 setPackageInfo({
                     org: "",
                     name: "",
-                    version: ""
+                    version: "",
+                    title: ""
                 });
             }
         };
@@ -121,12 +125,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         setErrorMessage(errorMsg);
     };
 
-    const handleFormClose = () => {
-        setIsModalOpen(false)
-    }
-
     const handleSave = async (node: FlowNode) => {
-        setIsModalOpen(false);
+        closeModal(POPUP_IDS.CONFIGURABLES);
         //TODO: Need to disable the form before saving and move form close to finally block
         setIsSaving(true);
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
@@ -155,38 +155,22 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         onChange(name, true)
     }
 
-    const AddNewForms = (props: AddNewConfigFormProps) => {
-        return (
-            <DynamicModal
-                width={400}
-                height={650}
-                anchorRef={anchorRef}
-                title={props.title}
-                openState={isModalOpen}
-                setOpenState={setIsModalOpen}>
-                <DynamicModal.Trigger>
-                    <FooterButtons
-                        startIcon='add'
-                        title={props.title}
-                        onClick={() => {
-                            setIsImportEnv(props.isImportEnv)
-                        }}
-                    />
-                </DynamicModal.Trigger>
-                <FormGenerator
-                    fileName={fileName}
-                    node={configVarNode}
-                    connections={[]}
-                    targetLineRange={targetLineRange}
-                    projectPath={projectPathUri}
-                    editForm={false}
-                    onSubmit={handleSave}
-                    showProgressIndicator={false}
-                    resetUpdatedExpressionField={() => { }}
-                    isInModal={true}
-                />
-            </DynamicModal>
-        )
+    const handleAddNewConfigurable = () => {
+        addModal(
+            <FormGenerator
+                fileName={fileName}
+                node={configVarNode}
+                connections={[]}
+                targetLineRange={targetLineRange}
+                projectPath={projectPathUri}
+                editForm={false}
+                onSubmit={handleSave}
+                showProgressIndicator={false}
+                resetUpdatedExpressionField={() => { }}
+                isInModal={true}
+            />, POPUP_IDS.CONFIGURABLES, "New Configurable", 650)
+
+        onClose && onClose();
     }
 
     return (
@@ -250,10 +234,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', padding: '8px' }}>
-                <AddNewForms isImportEnv={false} title="New Configurable" />
-                {/* <AddNewForms isImportEnv={true} title="Import from ENV variable" /> */}
-            </div>
+            <FooterButtons onClick={handleAddNewConfigurable} startIcon='add' title="New Configurable" />
         </div>
     )
 }
