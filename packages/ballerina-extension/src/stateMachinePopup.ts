@@ -65,7 +65,8 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
                         artifactType: (context, event) => event.viewLocation.artifactType,
                         identifier: (context, event) => event.viewLocation.identifier,
                         documentUri: (context, event) => event.viewLocation.documentUri,
-                        metadata: (context, event) => event.viewLocation.metadata
+                        metadata: (context, event) => event.viewLocation.metadata,
+                        dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                     })
                 },
             }
@@ -83,7 +84,19 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
                                 artifactType: (context, event) => event.viewLocation.artifactType,
                                 identifier: (context, event) => event.viewLocation.identifier,
                                 documentUri: (context, event) => event.viewLocation.documentUri,
-                                metadata: (context, event) => event.viewLocation.metadata
+                                metadata: (context, event) => event.viewLocation.metadata,
+                                dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                            })
+                        },
+                        VIEW_UPDATE: {
+                            actions: assign({
+                                view: (context, event) => event.viewLocation.view,
+                                recentIdentifier: (context, event) => "",
+                                artifactType: (context, event) => event.viewLocation.artifactType,
+                                identifier: (context, event) => event.viewLocation.identifier,
+                                documentUri: (context, event) => event.viewLocation.documentUri,
+                                metadata: (context, event) => event.viewLocation.metadata,
+                                dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                             })
                         },
                         CLOSE_VIEW: {
@@ -139,7 +152,18 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
         },
         notifyChange: (context, event) => {
             return new Promise((resolve, reject) => {
-                RPCLayer._messenger.sendNotification(onParentPopupSubmitted, { type: 'webview', webviewType: VisualizerWebview.viewType }, { recentIdentifier: context.recentIdentifier, artifactType: context.artifactType });
+                RPCLayer._messenger.sendNotification(
+                    onParentPopupSubmitted,
+                    {
+                        type: 'webview',
+                        webviewType: VisualizerWebview.viewType
+                    },
+                    {
+                        recentIdentifier: context.recentIdentifier,
+                        artifactType: context.artifactType,
+                        dataMapperMetadata: context.dataMapperMetadata
+                    }
+                );
                 resolve(true);
             });
         },
@@ -163,7 +187,7 @@ export const StateMachinePopup = {
     service: () => { return popupStateService; },
     context: () => { return popupStateService.getSnapshot().context; },
     state: () => { return popupStateService.getSnapshot().value as PopupMachineStateValue; },
-    sendEvent: (eventType: EVENT_TYPE) => { popupStateService.send({ type: eventType }); },
+    sendEvent: (eventType: EVENT_TYPE, location: PopupVisualizerLocation) => { popupStateService.send({ type: eventType, viewLocation: location }); },
     resetState: () => { popupStateService.send({ type: "RESET_STATE" }); },
     isActive: () => {
         const state = StateMachinePopup.state();

@@ -32,22 +32,9 @@ export const VariableForm = (props: FormProps) => {
         setFormFields(props.formFields);
     }, [props.formFields]);
 
-    const handleOnTypeChange = (type: CompletionItem) => {
-        updateExpressionValueTypeConstraint(type?.value || '');
+    const handleOnTypeChange = (type: string | CompletionItem) => {
         handleSelectedTypeChange(type);
     };
-
-    const updateExpressionValueTypeConstraint = (valueTypeConstraint: string) => {
-        const fieldsWithoutExpression = props.formFields.filter((field) => {
-            return field.type !== "ACTION_OR_EXPRESSION";
-        });
-        const expressionField = props.formFields.find((field) => field.type === "ACTION_OR_EXPRESSION");
-        if (expressionField) {
-            expressionField.valueTypeConstraint = valueTypeConstraint;
-        }
-        const updatedFields = [...fieldsWithoutExpression, expressionField];
-        setFormFields(updatedFields);
-    }
     return (
         <>
             <Form {...props}  handleSelectedTypeChange={handleOnTypeChange} formFields={formFields} />

@@ -202,7 +202,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) 
                 components={{
                     ...MarkdownCodeRenderer,
                     ...getMarkdownComponents(markdownContent),
-                }}
+                } as any}
             >
                 {safeContent}
             </ReactMarkdown>
