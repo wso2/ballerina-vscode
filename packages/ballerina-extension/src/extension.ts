@@ -255,7 +255,7 @@ async function updateCodeServerConfig() {
     if (!('CLOUD_STS_TOKEN' in process.env)) {
         return;
     }
-    log("Code server environment detected")
+    log("Code server environment detected");
     const config = workspace.getConfiguration('ballerina');
     await config.update('enableRunFast', true);
 }

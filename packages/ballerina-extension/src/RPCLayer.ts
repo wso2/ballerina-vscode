@@ -160,6 +160,7 @@ async function getPopupContext(): Promise<PopupVisualizerLocation> {
             recentIdentifier: context.recentIdentifier,
             identifier: context.identifier,
             metadata: context.metadata,
+            dataMapperMetadata: context.dataMapperMetadata
         });
     });
 }
