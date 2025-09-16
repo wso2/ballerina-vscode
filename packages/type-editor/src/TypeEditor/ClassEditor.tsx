@@ -18,7 +18,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Imports, Type, TypeFunctionModel } from '@wso2/ballerina-core';
-import { Codicon, Button, TextField, LinkButton, Tooltip } from '@wso2/ui-toolkit';
+import { Codicon, Button, TextField, LinkButton } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { TypeField } from './TypeField';
 import { IdentifierField } from './IdentifierField';
@@ -352,11 +352,9 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
             <S.Header>
                 <S.SectionTitle>{isGraphql ? 'Object Fields' : 'Resource Methods'}</S.SectionTitle>
                 <div style={{ display: 'flex', gap: '8px' }} data-testid="function-add-button">
-                    <Tooltip content={isGraphql ? 'Add Field' : 'Add Resource Method'}>
-                        <Button appearance="icon" onClick={addFunction}>
-                            <Codicon name="add" />
-                        </Button>
-                    </Tooltip>
+                    <Button appearance="icon" onClick={addFunction} tooltip={isGraphql ? 'Add Field' : 'Add Resource Method'}>
+                        <Codicon name="add" />
+                    </Button>
                 </div>
             </S.Header>
 
@@ -385,11 +383,9 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                             rootType={type}
                             onValidationError={(hasError) => handleValidationError(index, false, hasError)}
                         />
-                        <Tooltip content="Delete">
-                            <Button appearance="icon" onClick={() => deleteFunction(index)}>
-                                <Codicon name="trash" />
-                            </Button>
-                        </Tooltip>
+                        <Button appearance="icon" onClick={() => deleteFunction(index)} tooltip='Delete'>
+                            <Codicon name="trash" />
+                        </Button>
                     </S.FunctionRow>
 
                     {expandedFunctions.includes(index) && (
@@ -415,17 +411,16 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                                                     <S.ParameterType>= {String(param.defaultValue)}</S.ParameterType>
                                                 )}
                                             </S.ParameterInfo>
-                                            <Tooltip content="Delete">
-                                                <Button
-                                                    appearance="icon"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        deleteParameter(index, paramIndex);
-                                                    }}
-                                                >
-                                                    <Codicon name="trash" />
-                                                </Button>
-                                            </Tooltip>
+                                            <Button
+                                                appearance="icon"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteParameter(index, paramIndex);
+                                                }}
+                                                tooltip='Delete'
+                                            >
+                                                <Codicon name="trash" />
+                                            </Button>
                                         </S.ParameterItem>
                                     ))}
                                 </S.ParameterList>
