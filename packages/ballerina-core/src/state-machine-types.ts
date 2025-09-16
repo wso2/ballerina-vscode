@@ -130,6 +130,7 @@ export interface VisualizerLocation {
     type?: Type;
     addType?: boolean;
     isGraphql?: boolean;
+    rootDiagramId?: string;
     metadata?: VisualizerMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
