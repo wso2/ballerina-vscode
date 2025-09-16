@@ -90,17 +90,13 @@ public class ReferenceType {
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
         if (type.dependentTypes == null) {
+            type.dependentTypes = new HashMap<>();
             for (String dependentTypeHash : type.dependentTypeHashes) {
                 RefType dependentType = visitedTypeMap.get(dependentTypeHash);
                 if (dependentType != null) {
                     RefType clonedDependentType = dependentType.clone();
-                    if (type.dependentTypes == null) {
-                        type.dependentTypes = new HashMap<>();
-                    }
                     clonedDependentType.dependentTypes = null;
-                    if (type.dependentTypes != null) {
-                        type.dependentTypes.put(dependentTypeHash, clonedDependentType);
-                    }
+                    type.dependentTypes.put(dependentTypeHash, clonedDependentType);
                 }
             }
         }
