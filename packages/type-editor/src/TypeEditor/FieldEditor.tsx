@@ -171,7 +171,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                             </Button>
                         </Tooltip>
                     }
-                    <Tooltip content='Define Inline Record Type'>
+                    <Tooltip content='Create Inline Record'>
                         <Button appearance="icon" onClick={toggleRecord}>
                             <CurlyBracesIcon isActive={isRecord(member.type)} />
                         </Button>
