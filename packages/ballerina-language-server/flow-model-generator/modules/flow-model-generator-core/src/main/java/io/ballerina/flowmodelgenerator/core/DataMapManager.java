@@ -947,9 +947,9 @@ public class DataMapManager {
         if (type.typeName != null) {
             if (type.typeName.equals("record")) {
                 if (type instanceof RefRecordType recordType) {
-                    String hashCode = recordType.hashCode;
+                    String referenceKey = recordType.referenceKey;
                     MappingRecordPort recordPort = new MappingRecordPort(id, name, typeName != null ?
-                            typeName : "record", "record", hashCode);
+                            typeName : "record", "record", referenceKey);
                     for (ReferenceType.Field field : recordType.fields) {
                         MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
                                 field.type(), visitedTypes, references);
@@ -958,9 +958,9 @@ public class DataMapManager {
                         }
                         recordPort.fields.add(fieldPort);
                     }
-                    if (!references.containsKey(hashCode)) {
+                    if (!references.containsKey(referenceKey)) {
                         MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
-                        references.put(hashCode, referenceRecordPort);
+                        references.put(referenceKey, referenceRecordPort);
                     }
                     if (recordType.dependentTypes != null) {
                         Map<String, RefType> dependentTypes = recordType.dependentTypes;
@@ -972,7 +972,7 @@ public class DataMapManager {
                     }
                     return new MappingRecordPort(recordPort);
                 } else {
-                    return new MappingRecordPort(id, name, typeName, "record", type.hashCode);
+                    return new MappingRecordPort(id, name, typeName, "record", type.referenceKey);
                 }
             } else if (type.typeName.equals("array")) {
                 if (type instanceof RefArrayType arrayType) {
@@ -995,11 +995,11 @@ public class DataMapManager {
                     }
                     return arrayPort;
                 } else {
-                    return new MappingArrayPort(id, name, "array[]", "array", type.hashCode);
+                    return new MappingArrayPort(id, name, "array[]", "array", type.referenceKey);
                 }
             } else if (type.typeName.equals("enum")) {
                 if (type instanceof RefEnumType enumType) {
-                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.hashCode);
+                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.referenceKey);
                     for (RefType member : enumType.members) {
                         MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
                                 member, visitedTypes, references);
@@ -1018,12 +1018,12 @@ public class DataMapManager {
                     }
                     return enumPort;
                 } else {
-                    return new MappingEnumPort(id, name, typeName, "enum", type.hashCode);
+                    return new MappingEnumPort(id, name, typeName, "enum", type.referenceKey);
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
                     List<String> memberNames = new ArrayList<>();
-                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.hashCode);
+                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.referenceKey);
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
                                 references);
@@ -1044,7 +1044,7 @@ public class DataMapManager {
                     }
                     return unionPort;
                 } else {
-                    return new MappingUnionPort(id, name, typeName, "union", type.hashCode);
+                    return new MappingUnionPort(id, name, typeName, "union", type.referenceKey);
                 }
             } else if (type.hashCode == null || type.hashCode.isEmpty()) {
                 return new MappingPort(id, name, type.typeName, type.typeName);

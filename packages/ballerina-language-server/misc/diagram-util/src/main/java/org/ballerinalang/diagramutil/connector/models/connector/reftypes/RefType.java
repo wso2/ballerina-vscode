@@ -28,16 +28,17 @@ import java.util.Map;
 import java.util.Set;
 
 public class RefType  implements Cloneable {
-    public Set<String> dependentTypeHashes = new HashSet<>();
+    public Set<String> dependentTypeKeys = new HashSet<>();
     @Expose
     public String hashCode;
+    @Expose
+    public String referenceKey;
     @Expose
     public String name;
     @Expose
     public String typeName;
     @Expose
     public Map<String, RefType> dependentTypes;
-    public boolean hashMismatch = false;
 
 
     public RefType(String name) {
@@ -52,8 +53,8 @@ public class RefType  implements Cloneable {
     public RefType clone() {
         try {
             RefType copy = (RefType) super.clone();
-            if (this.dependentTypeHashes != null) {
-                copy.dependentTypeHashes = new HashSet<>(this.dependentTypeHashes);
+            if (this.dependentTypeKeys != null) {
+                copy.dependentTypeKeys = new HashSet<>(this.dependentTypeKeys);
             }
             if (this.dependentTypes != null) {
                 copy.dependentTypes = new HashMap<>();
