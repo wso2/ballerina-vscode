@@ -124,8 +124,8 @@
           "choices": [
             {
               "metadata": {
-                "label": "Use Default Listener on Port 8080",
-                "description": "Use the default HTTP listener on port 8080"
+                "label": "Shared Listener (Port 8080)",
+                "description": "Shared Listener (Port 8080)"
               },
               "placeholder": "true",
               "valueType": "FORM",
@@ -138,7 +138,7 @@
             },
             {
               "metadata": {
-                "label": "Configure Listener with Custom Port",
+                "label": "Custom Listener",
                 "description": "Configure a custom HTTP listener with a specific port"
               },
               "placeholder": "true",
@@ -157,7 +157,6 @@
                   "valueType": "EXPRESSION",
                   "valueTypeConstraint": "int",
                   "value": "8080",
-                  "items": [],
                   "typeMembers": [],
                   "enabled": true,
                   "editable": true,
@@ -195,7 +194,7 @@
           "enabled": true,
           "editable": true,
           "optional": false,
-          "advanced": false
+          "advanced": true
         }
       }
     }

@@ -98,11 +98,12 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
     private Value buildUseExistingListenerChoice(Set<String> listeners) {
         Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+        List<String> items = listeners.stream().toList();
         Value existingListenerOptions = new Value.ValueBuilder()
                 .metadata("Select Listener", "Select from the existing RabbitMQ listeners")
-                .value("")
+                .value(items.getFirst())
                 .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setItems(Collections.singletonList(listeners.stream().toList()))
+                .setItems(Collections.singletonList(items))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
