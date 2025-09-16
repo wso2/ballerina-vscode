@@ -23,6 +23,7 @@ import styled from "@emotion/styled";
 import { EditorFactory } from "./EditorFactory";
 import { useFormContext } from "../../context";
 import { ContextAwareExpressionEditor } from "./ExpressionEditor";
+import { PropertyModel } from "@wso2/ballerina-core";
 
 const Form = styled.div`
     display: grid;
@@ -69,27 +70,55 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
     const { form } = useFormContext();
     const { register, control, watch } = form;
     const [conditionalFields, setConditionalFields] = useState<FormField[]>([]);
+    const [checkedStateFields, setCheckedStateFields] = useState<FormField[]>([]);
+    const [uncheckedStateFields, setUncheckedStateFields] = useState<FormField[]>([]);
 
     const { setValue } = form;
 
     const checked = watch(field.key, true);
 
-    console.log("Conditional Fields: ", field.advanceProps);
-
     useEffect(() => {
-        setConditionalFields(field.advanceProps);
-    }, []);
+        if (field.choices && field.choices.length > 1) {
+            // first choice is for checked state, second is for unchecked state
+            const mappedCheckedStateFields = mapPropertiesToFormFields(field.choices[0].properties || {});
+            setCheckedStateFields(mappedCheckedStateFields);
+
+            const mappedUncheckedStateFields = mapPropertiesToFormFields(field.choices[1].properties || {});
+            setUncheckedStateFields(mappedUncheckedStateFields);
+        }
+    }, [field]);
+
+
+    // useEffect(() => {
+    //     if (checked) {
+    //         setConditionalFields(checkedStateFields);
+    //     } else {
+    //         setConditionalFields(uncheckedStateFields);
+    //     }
+    // }, [checked, checkedStateFields, uncheckedStateFields]);
 
     // Add useEffect to set initial values
     useEffect(() => {
-        if (conditionalFields.length > 0) {
-            Object.entries(conditionalFields).forEach(([_, propValue]) => {
+        if (checkedStateFields.length > 0) {
+            Object.entries(checkedStateFields).forEach(([_, propValue]) => {
                 if (propValue.value !== undefined) {
                     setValue(propValue.key, propValue.value);
                 }
             });
         }
-    }, [conditionalFields]);
+    }, [checkedStateFields]);
+
+    // Add useEffect to set initial values
+    useEffect(() => {
+        if (uncheckedStateFields.length > 0) {
+            Object.entries(uncheckedStateFields).forEach(([_, propValue]) => {
+                if (propValue.value !== undefined) {
+                    setValue(propValue.key, propValue.value);
+                }
+            }
+        );
+        }
+    }, [uncheckedStateFields]);
 
     return (
         <Form>
@@ -107,9 +136,19 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
                 </BoxGroup>
             </CheckBoxGroup>
             <FormSection>
-                {!checked && conditionalFields.length > 0 && (
+                {checked && checkedStateFields.length > 0 && (
                     <>
-                        {conditionalFields.map((dfield) => (
+                        {checkedStateFields.map((dfield) => (
+                            <EditorFactory
+                                key={dfield.key}
+                                field={dfield}
+                            />
+                        ))}
+                    </>
+                )}
+                {!checked && uncheckedStateFields.length > 0 && (
+                    <>
+                        {uncheckedStateFields.map((dfield) => (
                             <EditorFactory
                                 key={dfield.key}
                                 field={dfield}
@@ -131,3 +170,56 @@ function getBooleanValue(field: FormField, value: any) {
     return value;
 }
 
+
+/**
+ * Maps the properties to an array of FormField objects.
+ * 
+ * @param properties The properties to map.
+ * @returns An array of FormField objects.
+ */
+function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }): FormField[] {
+    if (!properties) return [];
+
+    return Object.entries(properties).map(([key, property]) => {
+
+        // Determine value for MULTIPLE_SELECT
+        let value: any = property.value;
+        if (property.valueType === "MULTIPLE_SELECT") {
+            if (property.values && property.values.length > 0) {
+                value = property.values;
+            } else if (property.value) {
+                value = [property.value];
+            } else if (property.items && property.items.length > 0) {
+                value = [property.items[0]];
+            } else {
+                value = [];
+            }
+        }
+
+        let items = undefined;
+        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+            items = property.items;
+        }
+
+        return {
+            key,
+            label: property?.metadata?.label,
+            type: property.valueType,
+            documentation: property?.metadata?.description || "",
+            valueType: property.valueTypeConstraint,
+            editable: true,
+            enabled: property.enabled ?? true,
+            optional: property.optional,
+            value,
+            valueTypeConstraint: property.valueTypeConstraint,
+            advanced: property.advanced,
+            diagnostics: [],
+            items,
+            choices: property.choices,
+            placeholder: property.placeholder,
+            addNewButton: property.addNewButton,
+            lineRange: property?.codedata?.lineRange,
+            advanceProps: mapPropertiesToFormFields(property.properties)
+        } as FormField;
+    });
+}
