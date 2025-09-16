@@ -921,7 +921,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                workspaceManager.loadProject(filePath);
+                Project project = workspaceManager.loadProject(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
                 Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
@@ -929,7 +929,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 Utils.resovleModule(request.orgName(), request.pkgName(), request.moduleName(), lsClientLogger);
                 return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request,
-                        semanticModel.get(), document.get()));
+                        project, semanticModel.get(), document.get()));
             } catch (Throwable e) {
                 return new ServiceInitModelResponse(e);
             }

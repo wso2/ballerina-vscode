@@ -20,11 +20,25 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 
 /**
  * Builder class for RabbitMQ service.
@@ -41,6 +55,69 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         Service service = super.getModelFromSource(context);
         filterRabbitMqFunctions(service.getFunctions());
         return service;
+    }
+
+    @Override
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
+        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                context.semanticModel(), context.project());
+        if (!listeners.isEmpty()) {
+            Value listenerVarNameProperty = serviceInitModel.getProperties().remove(KEY_LISTENER_VAR_NAME);
+
+            Value createNewListenerChoice = buildCreateNewListenerChoice(listenerVarNameProperty);
+            Value useExistingListenerChoice = buildUseExistingListenerChoice(listeners);
+
+            Value choicesProperty = new Value.ValueBuilder()
+                    .metadata("Configure Listener", "Configure the RabbitMQ listener")
+                    .value("")
+                    .valueType(VALUE_TYPE_CHOICE)
+                    .enabled(true)
+                    .editable(true)
+                    .setAdvanced(true)
+                    .build();
+            choicesProperty.setChoices(List.of(createNewListenerChoice, useExistingListenerChoice));
+            serviceInitModel.getProperties().put(KEY_CONFIGURE_LISTENER, choicesProperty);
+        }
+        return serviceInitModel;
+    }
+
+    private Value buildCreateNewListenerChoice(Value listenerVarNameProperty) {
+        Map<String, Value> newListenerProps = new LinkedHashMap<>();
+        newListenerProps.put(KEY_LISTENER_VAR_NAME, listenerVarNameProperty);
+        return new Value.ValueBuilder()
+                .metadata("Create New Listener", "Create a new RabbitMQ listener")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(newListenerProps)
+                .build();
+    }
+
+    private Value buildUseExistingListenerChoice(Set<String> listeners) {
+        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+        Value existingListenerOptions = new Value.ValueBuilder()
+                .metadata("Select Listener", "Select from the existing RabbitMQ listeners")
+                .value("")
+                .valueType(VALUE_TYPE_SINGLE_SELECT)
+                .setItems(Collections.singletonList(listeners.stream().toList()))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+        existingListenerProps.put(KEY_EXISTING_LISTENER, existingListenerOptions);
+
+        return new Value.ValueBuilder()
+                .metadata("Use Existing Listener", "Use Existing Listener")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(false)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingListenerProps)
+                .build();
     }
 
     /**

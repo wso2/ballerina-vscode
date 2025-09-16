@@ -67,6 +67,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
@@ -167,12 +168,14 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             serviceInitModel.addProperty(property.keyName(), builder.build());
         }
 
-        serviceInitModel.addProperty("listenerVarName", listenerNameProperty(context));
+        serviceInitModel.addProperty(KEY_LISTENER_VAR_NAME, listenerNameProperty(context));
         return serviceInitModel;
     }
 
     @Override
-    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException, EventSyncException {
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
@@ -220,7 +223,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-        String listenerVarName = properties.get("listenerVarName").getValue();
+        String listenerVarName = properties.get(KEY_LISTENER_VAR_NAME).getValue();
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
