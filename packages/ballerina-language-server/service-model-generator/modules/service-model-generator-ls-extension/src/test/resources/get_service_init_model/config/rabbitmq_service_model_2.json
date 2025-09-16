@@ -1,0 +1,155 @@
+{
+  "description": "Test getting rabbitmq service init model when there are existing listeners",
+  "filePath": "sample2/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "rabbitmq",
+  "moduleName": "rabbitmq",
+  "response": {
+    "serviceInitModel": {
+      "id": "9",
+      "displayName": "RabbitMQ Event Handler",
+      "description": "Create a service to handle messages from a RabbitMQ queue",
+      "orgName": "ballerinax",
+      "packageName": "rabbitmq",
+      "moduleName": "rabbitmq",
+      "version": "3.2.0",
+      "type": "rabbitmq",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+      "properties": {
+        "host": {
+          "metadata": {
+            "label": "Host",
+            "description": "The host used for establishing the connection"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "\"localhost\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "port": {
+          "metadata": {
+            "label": "Port",
+            "description": "The port used for establishing the connection"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "5672",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "basePath": {
+          "metadata": {
+            "label": "Queue Name",
+            "description": "The name of the queue to listen to"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "\"myQueue\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "configureListener": {
+          "metadata": {
+            "label": "Configure Listener",
+            "description": "Configure the RabbitMQ listener"
+          },
+          "valueType": "CHOICE",
+          "value": "",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Create New Listener",
+                "description": "Create a new RabbitMQ listener"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "type": "LISTENER_VAR_NAME"
+                  },
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "Global",
+                  "value": "rabbitmqListener",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": true
+                }
+              },
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Use Existing Listener",
+                "description": "Use Existing Listener"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "existingListener": {
+                  "metadata": {
+                    "label": "Select Listener",
+                    "description": "Select from the existing RabbitMQ listeners"
+                  },
+                  "valueType": "SINGLE_SELECT",
+                  "value": "orderListener",
+                  "items": [
+                    [
+                      "orderListener",
+                      "deliveryListener"
+                    ]
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "description": "Test getting rabbitmq service init model",
+  "description": "Test getting rabbitmq service init model when there are no existing listeners",
   "filePath": "sample1/main.bal",
   "orgName": "ballerinax",
   "pkgName": "rabbitmq",
