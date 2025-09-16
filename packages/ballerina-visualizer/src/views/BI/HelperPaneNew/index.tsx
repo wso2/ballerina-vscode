@@ -334,6 +334,7 @@ const HelperPaneNewEl = ({
                 />
             </div>
             , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
+            onClose();
     }
 
     return (
