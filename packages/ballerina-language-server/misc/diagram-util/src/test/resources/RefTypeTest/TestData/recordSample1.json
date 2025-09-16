@@ -7,10 +7,9 @@
       {
         "fieldName": "sampleTypeName",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
-          "typeName": "string",
-          "hashMismatch": false
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -18,20 +17,19 @@
       {
         "fieldName": "sampleTypeCode",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "int",
-          "typeName": "int",
-          "hashMismatch": false
+          "typeName": "int"
         },
         "optional": false,
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [],
+    "dependentTypeKeys": [],
     "hashCode": "695203170",
+    "referenceKey": "441557406",
     "name": "SampleType",
     "typeName": "record",
-    "dependentTypes": {},
-    "hashMismatch": false
+    "dependentTypes": {}
   }
 }

@@ -7,10 +7,9 @@
       {
         "fieldName": "name",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
-          "typeName": "string",
-          "hashMismatch": false
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -20,63 +19,57 @@
         "type": {
           "memberTypes": [
             {
-              "dependentTypeHashes": [],
-              "name": "FINANCE",
-              "hashMismatch": false
+              "dependentTypeKeys": [],
+              "name": "FINANCE"
             },
             {
-              "dependentTypeHashes": [],
-              "name": "IT",
-              "hashMismatch": false
+              "dependentTypeKeys": [],
+              "name": "IT"
             },
             {
-              "dependentTypeHashes": [],
-              "name": "HR",
-              "hashMismatch": false
+              "dependentTypeKeys": [],
+              "name": "HR"
             }
           ],
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "-959561237",
+          "referenceKey": "-1253237511",
           "name": "DepartmentCode",
-          "typeName": "union",
-          "hashMismatch": false
+          "typeName": "union"
         },
         "optional": false,
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "-959561237"
+    "dependentTypeKeys": [
+      "-1253237511"
     ],
     "hashCode": "1123774631",
+    "referenceKey": "1146573036",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
-      "-959561237": {
+      "-1253237511": {
         "memberTypes": [
           {
-            "dependentTypeHashes": [],
-            "name": "FINANCE",
-            "hashMismatch": false
+            "dependentTypeKeys": [],
+            "name": "FINANCE"
           },
           {
-            "dependentTypeHashes": [],
-            "name": "IT",
-            "hashMismatch": false
+            "dependentTypeKeys": [],
+            "name": "IT"
           },
           {
-            "dependentTypeHashes": [],
-            "name": "HR",
-            "hashMismatch": false
+            "dependentTypeKeys": [],
+            "name": "HR"
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "-959561237",
+        "referenceKey": "-1253237511",
         "name": "DepartmentCode",
-        "typeName": "union",
-        "hashMismatch": false
+        "typeName": "union"
       }
-    },
-    "hashMismatch": false
+    }
   }
 }
