@@ -4,7 +4,7 @@
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable24.bal",
+      "fileName": "main.bal",
       "startLine": {
         "line": 20,
         "offset": 12
@@ -14,13 +14,14 @@
         "offset": 78
       }
     },
-    "sourceCode": ""
+    "sourceCode": "Student student = {};"
   },
   "position": {
     "line": 20,
     "offset": 12
   },
   "propertyKey": "expression",
+  "targetField": "student2",
   "model": {
     "inputs": [
       {
