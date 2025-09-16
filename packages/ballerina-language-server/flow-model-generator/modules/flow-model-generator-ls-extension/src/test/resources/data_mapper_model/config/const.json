@@ -26,8 +26,8 @@
       {
         "name": "AGE",
         "displayName": "AGE",
-        "typeName": "const",
-        "kind": "const",
+        "typeName": "int",
+        "kind": "int",
         "category": "constant"
       }
     ],
