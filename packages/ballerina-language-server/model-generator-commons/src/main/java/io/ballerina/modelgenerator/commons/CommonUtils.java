@@ -794,7 +794,7 @@ public class CommonUtils {
 
         // Add "#" before each line and append to the result
         for (String line : lines) {
-            formattedComment.append("# ").append(line).append("\n");
+            formattedComment.append("# ").append(line).append(System.lineSeparator());
         }
 
         // Convert StringBuilder to String and return

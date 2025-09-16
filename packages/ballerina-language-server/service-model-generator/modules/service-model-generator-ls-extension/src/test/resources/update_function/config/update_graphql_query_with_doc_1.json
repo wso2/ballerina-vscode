@@ -209,7 +209,7 @@
             "description": "The description of the parameter"
           },
           "valueType": "STRING",
-          "value": "The age of the person.\nThis parameter is optional and has a default value of 28.",
+          "value": "The age of the person. This parameter is optional and has a default value of 28.",
           "enabled": true,
           "editable": true,
           "optional": true,

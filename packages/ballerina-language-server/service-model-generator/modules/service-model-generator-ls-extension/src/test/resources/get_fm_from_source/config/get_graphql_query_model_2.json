@@ -50,6 +50,7 @@
         "label": "Description",
         "description": "The description of the field"
       },
+      "valueType": "STRING",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -226,6 +227,7 @@
             "label": "Description",
             "description": "The description of the argument"
           },
+          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,

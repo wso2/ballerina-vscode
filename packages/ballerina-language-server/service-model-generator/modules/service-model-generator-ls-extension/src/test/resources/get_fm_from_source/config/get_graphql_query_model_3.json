@@ -49,6 +49,7 @@
         "label": "Description",
         "description": "The description of the field"
       },
+      "valueType": "STRING",
       "value": "A simple hello world query that returns a greeting message.\nThis query is cached for performance optimization.",
       "enabled": true,
       "editable": true,
@@ -227,6 +228,7 @@
             "label": "Description",
             "description": "The description of the argument"
           },
+          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,

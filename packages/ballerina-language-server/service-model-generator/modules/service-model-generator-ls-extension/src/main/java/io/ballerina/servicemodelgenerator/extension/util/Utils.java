@@ -99,6 +99,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
@@ -106,6 +107,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 
 /**
  * Common utility functions used in the project.
@@ -574,7 +576,7 @@ public final class Utils {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                String ref = service.getModuleName() + ":" + value.getCodedata().getOriginalName();
+                String ref = getProtocol(service.getModuleName()) + ":" + value.getCodedata().getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
             }
@@ -596,7 +598,7 @@ public final class Utils {
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
                 Codedata codedata = value.getCodedata();
-                String ref = codedata.getModuleName() + ":" + codedata.getOriginalName();
+                String ref = getProtocol(codedata.getModuleName()) + ":" + codedata.getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
                 if (Objects.nonNull(value.getImports())) {
@@ -641,8 +643,6 @@ public final class Utils {
         return docEdits;
     }
 
-    public static final String NEW_LINE = System.lineSeparator();
-
     public static String getFormattedDesc(String desc) {
         if (desc.isBlank()) {
             return "";
@@ -656,7 +656,7 @@ public final class Utils {
             return "";
         }
         StringBuilder docBuilder = new StringBuilder();
-        String[] docs = desc.trim().split("\\R");
+        String[] docs = desc.trim().split(NEW_LINE);
         String paramDoc = String.join(" ", docs);
         docBuilder.append("# + ").append(paramName).append(" - ").append(paramDoc);
         return docBuilder.toString();
@@ -708,7 +708,7 @@ public final class Utils {
         Optional<MetadataNode> metadata = serviceNode.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
             if (!docEdit.isEmpty()) {
-                docEdit += System.lineSeparator();
+                docEdit += NEW_LINE;
                 edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), docEdit));
             }
             return;
@@ -717,7 +717,7 @@ public final class Utils {
         Optional<Node> documentationString = metadata.get().documentationString();
         if (documentationString.isEmpty()) { // metadata is present but no documentation
             if (!docEdit.isEmpty()) {
-                docEdit += System.lineSeparator();
+                docEdit += NEW_LINE;
                 edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
             }
             return;

@@ -1,3 +1,4 @@
 org.ballerinalang.langserver.eventsync.subscribers.PublishDiagnosticSubscriber
+org.ballerinalang.langserver.eventsync.subscribers.ResolveCompilationErrorsSubscriber
 org.ballerinalang.langserver.eventsync.subscribers.ResolveModulesSubscriber
 org.ballerinalang.langserver.eventsync.subscribers.PullModuleSubscriber

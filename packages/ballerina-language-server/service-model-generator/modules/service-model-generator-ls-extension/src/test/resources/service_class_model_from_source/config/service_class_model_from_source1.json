@@ -6,7 +6,7 @@
     "offset": 0
   },
   "end": {
-    "line": 37,
+    "line": 40,
     "offset": 0
   },
   "context": "GRAPHQL_DIAGRAM",
@@ -24,6 +24,7 @@
       },
       "valueType": "STRING",
       "valueTypeConstraint": "string",
+      "value": "This is a sample Ballerina service class definition",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -39,11 +40,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 0,
+              "line": 1,
               "offset": 21
             },
             "endLine": {
-              "line": 0,
+              "line": 1,
               "offset": 25
             }
           }
@@ -66,7 +67,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 37,
+          "line": 40,
           "offset": 1
         }
       }
@@ -108,6 +109,7 @@
             "label": "Description",
             "description": "The description of the field"
           },
+          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -226,6 +228,7 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
+              "valueType": "STRING",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -259,11 +262,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 14,
+              "line": 15,
               "offset": 4
             },
             "endLine": {
-              "line": 28,
+              "line": 29,
               "offset": 5
             }
           },

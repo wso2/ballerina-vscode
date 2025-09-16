@@ -109,6 +109,7 @@
             "label": "Description",
             "description": "The description of the field"
           },
+          "valueType": "STRING",
           "value": "This resource function retrieves an author's name by their ID.\nIf the author is not found, it returns an error.",
           "enabled": true,
           "editable": true,
@@ -287,6 +288,7 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
+              "valueType": "STRING",
               "enabled": true,
               "editable": true,
               "optional": true,

@@ -66,11 +66,13 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTI
 import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateFunctionDocs;
 
 /**
  * Util class for service class related operations.
@@ -203,6 +205,7 @@ public class ServiceClassUtil {
         functionModel.setParameters(parameterModels);
         functionModel.setEditable(true);
         functionModel.setCodedata(new Codedata(functionDef.lineRange()));
+        updateFunctionDocs(functionDef, functionModel);
         return functionModel;
     }
 
@@ -354,7 +357,7 @@ public class ServiceClassUtil {
         Optional<MetadataNode> metadata =  classDef.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
             if (!docEdit.isEmpty()) {
-                docEdit += System.lineSeparator();
+                docEdit += NEW_LINE;
                 edits.add(new TextEdit(Utils.toRange(classDef.lineRange().startLine()), docEdit));
             }
             return;
@@ -363,7 +366,7 @@ public class ServiceClassUtil {
         Optional<Node> documentationString = metadata.get().documentationString();
         if (documentationString.isEmpty()) { // metadata is present but no documentation
             if (!docEdit.isEmpty()) {
-                docEdit += System.lineSeparator();
+                docEdit += NEW_LINE;
                 edits.add(new TextEdit(Utils.toRange(metadata.get().lineRange()), docEdit));
             }
             return;
