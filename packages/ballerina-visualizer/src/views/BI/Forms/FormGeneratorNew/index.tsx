@@ -107,6 +107,7 @@ interface FormProps {
         component: ReactNode;
         index: number;
     }[];
+    changeOptionalFieldTitle?: string;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -136,6 +137,7 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
+        changeOptionalFieldTitle
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -790,6 +792,7 @@ export function FormGeneratorNew(props: FormProps) {
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
                     handleSelectedTypeChange={handleSelectedTypeChange}
+                    changeOptionalFieldTitle={changeOptionalFieldTitle}
                 />
             )}
             {
