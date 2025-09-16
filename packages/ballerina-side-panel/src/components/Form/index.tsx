@@ -354,6 +354,7 @@ export interface FormProps {
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
+    changeOptionalFieldTitle?: string; // Option to change the title of optional fields
 }
 
 export const Form = forwardRef((props: FormProps, ref) => {
@@ -395,6 +396,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         injectedComponents,
         hideSaveButton = false,
         onValidityChange,
+        changeOptionalFieldTitle = undefined
     } = props;
 
     const {
@@ -417,6 +419,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
+    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Optional Configurations");
 
     const markdownRef = useRef<HTMLDivElement>(null);
 
@@ -485,6 +488,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
             });
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
+
+            if (changeOptionalFieldTitle) {
+                setOptionalFieldsTitle("Optional Listener Configurations");
+            }
         }
     }, [formFields, reset]);
 
@@ -787,7 +794,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     })()}
                     {hasAdvanceFields && (
                         <S.Row>
-                            Optional Configurations
+                            {optionalFieldsTitle}
                             <S.ButtonContainer>
                                 {!showAdvancedOptions && (
                                     <LinkButton
