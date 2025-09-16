@@ -158,6 +158,7 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -199,6 +200,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final DiagnosticHandler diagnosticHandler;
     private final boolean forceAssign;
     private final String connectionScope;
+    private final WorkspaceManager workspaceManager;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -219,7 +221,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
-                        TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign) {
+                        TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign,
+                        WorkspaceManager workspaceManager) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -231,6 +234,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeList = new ArrayList<>();
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
+        this.workspaceManager = workspaceManager;
     }
 
     @Override
