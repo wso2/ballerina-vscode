@@ -18,7 +18,7 @@
 
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Member, Type } from '@wso2/ballerina-core';
-import { Codicon } from '@wso2/ui-toolkit';
+import { Codicon, Tooltip } from '@wso2/ui-toolkit';
 import { Button } from '@wso2/ui-toolkit';
 import { FieldEditor } from './FieldEditor';
 import styled from '@emotion/styled';
@@ -122,7 +122,9 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
                 <Header>
                     <SectionTitle>{isGraphql ?  (newType? 'Input Object Fields' : 'Object Fields'): 'Fields'}</SectionTitle>
                     <div style={{ display: 'flex', gap: '8px' }} data-testid="add-field-button">
-                        <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                        <Tooltip content="Add Field">
+                            <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                        </Tooltip>
                     </div>
                 </Header>
             }

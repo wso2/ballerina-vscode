@@ -158,6 +158,7 @@ export const Variables = (props: VariablesPageProps) => {
                 closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
                     onClose()
                     closeModal(POPUP_IDS.VARIABLE);
+                    onChange(newNodeNameRef.current, false, true);
                 }
             },
         );
