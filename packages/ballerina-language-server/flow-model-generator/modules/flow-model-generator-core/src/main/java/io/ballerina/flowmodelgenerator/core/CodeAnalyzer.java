@@ -119,12 +119,14 @@ import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
@@ -174,6 +176,8 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.AGENT;
+import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.RUN;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
@@ -440,6 +444,8 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode modelArg = null;
         ExpressionNode systemPromptArg = null;
         ExpressionNode memory = null;
+        ExpressionNode maxIterArg = null;
+        ExpressionNode verbose = null;
         for (FunctionArgumentNode arg : argList.get().arguments()) {
             if (arg.kind() == SyntaxKind.NAMED_ARG) {
                 NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
@@ -497,11 +503,12 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("tools", toolsData);
         }
 
+        Map<String, String> agentData = null;
         if (systemPromptArg.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             MappingConstructorExpressionNode mappingCtrExprNode =
                     (MappingConstructorExpressionNode) systemPromptArg;
             SeparatedNodeList<MappingFieldNode> fields = mappingCtrExprNode.fields();
-            Map<String, String> agentData = new HashMap<>();
+            agentData = new HashMap<>();
             for (MappingFieldNode field : fields) {
                 SyntaxKind kind = field.kind();
                 if (kind != SyntaxKind.SPECIFIC_FIELD) {
@@ -533,6 +540,22 @@ public class CodeAnalyzer extends NodeVisitor {
         if (modelUrl != null) {
             nodeBuilder.metadata().addData("model", modelUrl);
         }
+
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.AGENT_CALL)
+                .org(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::orgName).orElse(""))
+                .module(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::moduleName).orElse(""))
+                .packageName(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::packageName).orElse(""))
+                .object(classSymbol.getName().orElse(AGENT))
+                .parentSymbol(null)
+                .symbol(RUN)
+                .version(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::version).orElse(""))
+                .build();
+        NodeBuilder.TemplateContext context =
+                new NodeBuilder.TemplateContext(workspaceManager, project.sourceRoot(),
+                        newExpressionNode.lineRange().startLine(), codedata, null);
+        AgentCallBuilder.setAgentProperties(nodeBuilder, context);
+        AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
     }
 
     private boolean isClassField(ExpressionNode expr) {

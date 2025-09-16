@@ -110,6 +110,28 @@ public class ParamUtils {
         return input;
     }
 
+    /**
+     * Removes string delimiters from the input value.
+     * Handles both double quotes ("...") and string templates (string `...`).
+     *
+     * @param value the input string value
+     * @return the cleaned string without delimiters
+     */
+    public static String removeStringDelimiters(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        String cleaned = value.trim();
+        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() >= 2) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1);
+            return cleaned;
+        }
+        if (cleaned.startsWith("string `") && cleaned.endsWith("`") && cleaned.length() > 8) {
+            cleaned = cleaned.substring(8, cleaned.length() - 1);
+        }
+        return cleaned;
+    }
+
     public record ParamForTypeInfer(String paramName, String defaultValue, String type) {
     }
 }

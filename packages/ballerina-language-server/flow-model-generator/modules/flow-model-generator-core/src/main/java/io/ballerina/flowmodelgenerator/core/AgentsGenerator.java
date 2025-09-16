@@ -113,6 +113,7 @@ public class AgentsGenerator {
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
+    public static final String RUN = "run";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
