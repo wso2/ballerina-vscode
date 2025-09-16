@@ -90,18 +90,25 @@ public class AgentCallBuilder extends CallBuilder {
         if (context == null || context.codedata() == null) {
             throw new IllegalArgumentException("Context or codedata cannot be null");
         }
-        setAgentProperties(this, context);
+        setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
     }
 
-    public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context) {
+    public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
+                                          Map<String, String> propertyValues) {
         FlowNode agentNodeTemplate = new AgentBuilder().setConstData().setTemplateData(context).build();
         if (agentNodeTemplate.properties() != null) {
             agentNodeTemplate.properties().entrySet().stream()
                     .filter(entry -> !java.util.Arrays.asList(PARAMS_TO_HIDE).contains(entry.getKey()))
-                    .forEach(entry -> FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, entry.getKey(),
-                            entry.getValue()));
+                    .forEach(entry -> {
+                        String key = entry.getKey();
+                        Property property = entry.getValue();
+                        String value = (propertyValues != null && propertyValues.containsKey(key))
+                                ? propertyValues.get(key)
+                                : null;
+                        FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value);
+                    });
         }
     }
 
@@ -122,8 +129,11 @@ public class AgentCallBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // TODO: Get this method to work for editing existing nodes
         sourceBuilder.newVariable();
         FlowNode agentCallNode = sourceBuilder.flowNode;
+
+        // TODO: Setup default model provider
 
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
         // TODO: This context has to be the agent's context, not the agent_call's context
@@ -178,8 +188,6 @@ public class AgentCallBuilder extends CallBuilder {
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
         FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL_PROVIDER);
-        FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, VERBOSE, VERBOSE);
-        FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MAX_ITER, MAX_ITER);
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {

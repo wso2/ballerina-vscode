@@ -444,8 +444,8 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode modelArg = null;
         ExpressionNode systemPromptArg = null;
         ExpressionNode memory = null;
-        ExpressionNode maxIterArg = null;
-        ExpressionNode verbose = null;
+
+        Map<String, String> agentData = new HashMap<>();
         for (FunctionArgumentNode arg : argList.get().arguments()) {
             if (arg.kind() == SyntaxKind.NAMED_ARG) {
                 NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
@@ -458,6 +458,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 } else if (namedArgumentNode.argumentName().name().text().equals("memory")) {
                     memory = namedArgumentNode.expression();
                 }
+                agentData.put(namedArgumentNode.argumentName().name().text(),
+                        namedArgumentNode.expression().toSourceCode());
             }
         }
         if (modelArg == null) {
@@ -503,12 +505,10 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("tools", toolsData);
         }
 
-        Map<String, String> agentData = null;
         if (systemPromptArg.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             MappingConstructorExpressionNode mappingCtrExprNode =
                     (MappingConstructorExpressionNode) systemPromptArg;
             SeparatedNodeList<MappingFieldNode> fields = mappingCtrExprNode.fields();
-            agentData = new HashMap<>();
             for (MappingFieldNode field : fields) {
                 SyntaxKind kind = field.kind();
                 if (kind != SyntaxKind.SPECIFIC_FIELD) {
@@ -554,7 +554,7 @@ public class CodeAnalyzer extends NodeVisitor {
         NodeBuilder.TemplateContext context =
                 new NodeBuilder.TemplateContext(workspaceManager, project.sourceRoot(),
                         newExpressionNode.lineRange().startLine(), codedata, null);
-        AgentCallBuilder.setAgentProperties(nodeBuilder, context);
+        AgentCallBuilder.setAgentProperties(nodeBuilder, context, agentData);
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
     }
 
