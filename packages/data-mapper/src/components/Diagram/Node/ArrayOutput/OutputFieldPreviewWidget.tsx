@@ -133,7 +133,6 @@ export function OutputFieldPreviewWidget(props: OutputFieldPreviewWidgetProps) {
             >
                 <OutputSearchHighlight>{displayName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
-                {typeName && ":"}
             </span>
             {typeName && (
                 <span

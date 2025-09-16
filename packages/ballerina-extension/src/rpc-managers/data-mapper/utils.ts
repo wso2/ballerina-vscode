@@ -112,12 +112,18 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
         return await updateSourceCode(updateSourceCodeRequest);
     }
 
-    // need to prioritize if file path ends with functions.bal or data_mappings.bal
+    // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
     filePaths.sort((a, b) => {
-        // Prioritize files ending with functions.bal or data_mappings.bal
-        const aEndsWithFunctions = (a.endsWith("functions.bal") || a.endsWith("data_mappings.bal")) ? 1 : 0;
-        const bEndsWithFunctions = (b.endsWith("functions.bal") || b.endsWith("data_mappings.bal")) ? 1 : 0;
-        return bEndsWithFunctions - aEndsWithFunctions; // Sort descending
+        // Priority: functions.bal > data_mappings.bal > any other file
+        const getPriority = (filePath: string): number => {
+            if (filePath.endsWith("functions.bal")) { return 2; }
+            if (filePath.endsWith("data_mappings.bal")) { return 1; }
+            return 0;
+        };
+        
+        const aPriority = getPriority(a);
+        const bPriority = getPriority(b);
+        return bPriority - aPriority; // Sort descending (highest priority first)
     });
 
     const requests: UpdateSourceCodeRequest[] = filePaths.map(filePath => ({
@@ -318,11 +324,11 @@ export async function updateAndRefreshDataMapper(
     codedata: CodeData,
     varName: string,
     targetField?: string,
-    withinSubMapping?: boolean
+    subMappingName?: string
 ): Promise<void> {
     try {
-        const newCodeData = withinSubMapping
-            ? await updateSubMappingSource(textEdits, filePath, codedata, targetField)
+        const newCodeData = subMappingName
+            ? await updateSubMappingSource(textEdits, filePath, codedata, subMappingName)
             : await updateSource(textEdits, filePath, codedata, varName);
         updateView(newCodeData, varName);
     } catch (error) {
@@ -539,26 +545,60 @@ function processInputRoots(model: DMModel): IOType[] {
 }
 
 /**
+ * Processes type-specific logic based on TypeKind and returns the appropriate structure
+ */
+function processTypeKind(
+    type: IORoot | IOTypeField,
+    parentId: string,
+    model: DMModel,
+    visitedRefs: Set<string>
+): Partial<IOType> {
+    switch (type.kind) {
+        case TypeKind.Array:
+            if (type.member) {
+                return {
+                    member: processArray(parentId, type.member, model, visitedRefs)
+                };
+            }
+            break;
+
+        case TypeKind.Union:
+            if (type.members) {
+                return {
+                    members: processUnion(type.members, parentId, model, visitedRefs)
+                };
+            }
+            break;
+
+        case TypeKind.Enum:
+            if (type.members) {
+                return {
+                    members: processEnum(type.members, parentId)
+                };
+            }
+            break;
+
+        case TypeKind.Record:
+            if (type.ref) {
+                return processTypeReference(type.ref, parentId, model, visitedRefs);
+            }
+            break;
+    }
+    return {};
+}
+
+/**
  * Processes an IORoot (input or output) into an IOType
  */
 function processIORoot(root: IORoot, model: DMModel): IOType {
     const ioType = createBaseIOType(root);
 
-    if (root.kind === TypeKind.Array && root.member) {
-        return {
-            ...ioType,
-            member: processArray(root, root.name, root.member, model, new Set<string>())
-        };
-    }
-
-    if (root.ref) {
-        return {
-            ...ioType,
-            ...processTypeReference(root.ref, root.name, model, new Set<string>())
-        };
-    }
-
-    return ioType;
+    const typeSpecificProps = processTypeKind(root, root.name, model, new Set<string>());
+    
+    return {
+        ...ioType,
+        ...typeSpecificProps
+    };
 }
 
 /**
@@ -568,8 +608,8 @@ function createBaseIOType(root: IORoot): IOType {
     const isEnum = root.kind === 'enum' || root.category === 'enum';
 
     const baseType: IOType = {
-        id: isEnum ? root.typeName : root.name,
-        name: isEnum ? root.typeName : root.name,
+        id: root.name,
+        name: root.name,
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
@@ -593,7 +633,6 @@ function createBaseIOType(root: IORoot): IOType {
  * Processes array type fields and their members
  */
 function processArray(
-    field: IOTypeField,
     parentId: string,
     member: IOTypeField,
     model: DMModel,
@@ -613,7 +652,7 @@ function processArray(
     }
 
     const ioType: IOType = {
-        id: fieldId,
+        id: parentId,
         name: member.name,
         displayName: member.displayName,
         typeName: member.typeName!,
@@ -622,28 +661,12 @@ function processArray(
         ...(member.optional !== undefined && { optional: member.optional })
     };
 
-    if (member.kind === TypeKind.Array && member.member) {
-        return {
-            ...ioType,
-            member: processArray(field, parentId, member.member, model, visitedRefs)
-        };
-    }
-
-    if (member.kind === TypeKind.Union && member.members) {
-        return {
-            ...ioType,
-            members: processUnion(member.members, fieldId, model, visitedRefs)
-        };
-    }
-
-    if (member.ref) {
-        return {
-            ...ioType,
-            ...processTypeReference(member.ref, parentId, model, visitedRefs)
-        };
-    }
-
-    return ioType;
+    const typeSpecificProps = processTypeKind(member, parentId, model, visitedRefs);
+    
+    return {
+        ...ioType,
+        ...typeSpecificProps
+    };
 }
 
 /**
@@ -664,7 +687,7 @@ function processUnion(
 ): IOType[] {
     return unionMembers.map(unionMember => {
         const unionMemberType: IOType = {
-            id: generateFieldId(parentFieldId, unionMember.name || 'member'),
+            id: parentFieldId,
             name: unionMember.name,
             displayName: unionMember.displayName,
             typeName: unionMember.typeName,
@@ -672,23 +695,12 @@ function processUnion(
             ...(unionMember.optional !== undefined && { optional: unionMember.optional })
         };
 
-        // Process union member recursively if it has a reference
-        if (unionMember.ref) {
-            return {
-                ...unionMemberType,
-                ...processTypeReference(unionMember.ref, parentFieldId, model, visitedRefs)
-            };
-        }
-
-        // Process union member if it's an array
-        if (unionMember.kind === TypeKind.Array && unionMember.member) {
-            return {
-                ...unionMemberType,
-                member: processArray(unionMember, parentFieldId, unionMember.member, model, visitedRefs)
-            };
-        }
-
-        return unionMemberType;
+        const typeSpecificProps = processTypeKind(unionMember, parentFieldId, model, visitedRefs);
+        
+        return {
+            ...unionMemberType,
+            ...typeSpecificProps
+        };
     });
 }
 
@@ -753,27 +765,28 @@ function processTypeFields(
             ...(field.optional !== undefined && { optional: field.optional })
         };
 
-        if (field.kind === TypeKind.Record && field.ref) {
-            return {
-                ...ioType,
-                ...processTypeReference(field.ref, fieldId, model, new Set(visitedRefs))
-            };
-        }
+        const typeSpecificProps = processTypeKind(field, fieldId, model, new Set(visitedRefs));
 
-        if (field.kind === TypeKind.Array && field.member) {
-            return {
-                ...ioType,
-                member: processArray(field, fieldId, field.member, model, new Set(visitedRefs))
-            };
-        }
-
-        if (field.kind === TypeKind.Union && field.members) {
-            return {
-                ...ioType,
-                members: processUnion(field.members, fieldId, model, new Set(visitedRefs))
-            };
-        }
-
-        return ioType;
+        return {
+            ...ioType,
+            ...typeSpecificProps
+        };
     });
+}
+
+/**
+ * Processes enum type members and returns an IOType with processed members
+ */
+function processEnum(
+    enumMembers: IOTypeField[],
+    parentId: string
+): IOType[] {
+    return enumMembers.map(member => ({
+        id: parentId,
+        name: member.typeName,
+        displayName: member.typeName,
+        typeName: member.typeName,
+        kind: member.kind,
+        ...(member.optional !== undefined && { optional: member.optional })
+    }));
 }

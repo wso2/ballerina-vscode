@@ -141,7 +141,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
             >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
-                {fieldName && typeName && ":"}
             </span>
             {typeName && (
                 <span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>

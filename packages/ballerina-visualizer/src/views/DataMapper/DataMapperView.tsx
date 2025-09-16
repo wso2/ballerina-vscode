@@ -41,7 +41,8 @@ import {
     ResultClauseType,
     IOType,
     MACHINE_VIEW,
-    VisualizerLocation
+    VisualizerLocation,
+    DeleteClauseRequest
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -64,7 +65,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable } = props;
+    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -103,7 +104,9 @@ export function DataMapperView(props: DataMapperProps) {
         setViewState(prevState => ({
             viewId: positionChanged ? name : prevState.viewId || name,
             codedata: codedata,
-            isSubMapping: positionChanged ? false : prevState.isSubMapping
+            // Preserve subMappingName only if the position hasn't changed and there is an existing sub-mapping name.
+            // This ensures that changing the position resets the sub-mapping context.
+            subMappingName: !positionChanged && prevState.subMappingName
         }));
         
         prevPositionRef.current = position;
@@ -186,8 +189,8 @@ export function DataMapperView(props: DataMapperProps) {
     );
 
 
-    const onClose = () => {
-        rpcClient.getVisualizerRpcClient()?.goBack();
+    const onDMClose = () => {
+        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
     }
 
     const onEdit = () => {
@@ -213,7 +216,7 @@ export function DataMapperView(props: DataMapperProps) {
                         output: outputId,
                         expression: expression
                     },
-                    withinSubMapping: viewState.isSubMapping
+                    subMappingName: viewState.subMappingName
                 });
             console.log(">>> [Data Mapper] getSource response:", resp);
         } catch (error) {
@@ -236,7 +239,7 @@ export function DataMapperView(props: DataMapperProps) {
                 varName: name,
                 targetField: outputId,
                 propertyKey: "expression", // TODO: Remove this once the API is updated
-                withinSubMapping: viewState.isSubMapping
+                subMappingName: viewState.subMappingName
             };
             const resp = await rpcClient
                 .getDataMapperRpcClient()
@@ -250,17 +253,22 @@ export function DataMapperView(props: DataMapperProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            const resp = await rpcClient
-                .getDataMapperRpcClient()
-                .getSubMappingCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    view: viewId
-                });
-            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({ viewId, codedata: resp.codedata, isSubMapping: true });
+            if (viewState.subMappingName) {
+                // If the view is a sub mapping, we can reuse the codedata of the parent view
+                setViewState({ viewId, codedata: viewState.codedata, subMappingName: viewState.subMappingName });
+            } else {
+                const resp = await rpcClient
+                    .getDataMapperRpcClient()
+                    .getSubMappingCodedata({
+                        filePath,
+                        codedata: viewState.codedata,
+                        view: viewId
+                    });
+                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+                setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
+            }
         } else {
-            if (viewState.isSubMapping) {
+            if (viewState.subMappingName) {
                 // If the view is a sub mapping, we need to get the codedata of the parent mapping
                 const res = await rpcClient
                     .getDataMapperRpcClient()
@@ -269,7 +277,7 @@ export function DataMapperView(props: DataMapperProps) {
                         codedata: viewState.codedata,
                         name: viewId
                     });
-                setViewState({ viewId, codedata: res.codedata, isSubMapping: false });
+                setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
             } else {
                 setViewState(prev => ({
                     ...prev,
@@ -300,7 +308,7 @@ export function DataMapperView(props: DataMapperProps) {
                 varName: name,
                 targetField: viewId,
                 propertyKey: "expression", // TODO: Remove this once the API is updated
-                withinSubMapping: viewState.isSubMapping
+                subMappingName: viewState.subMappingName
             };
             const resp = await rpcClient
                 .getDataMapperRpcClient()
@@ -312,7 +320,7 @@ export function DataMapperView(props: DataMapperProps) {
         }
     }
 
-    const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index?: number) => {
+    const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index: number) => {
         try {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
@@ -324,7 +332,7 @@ export function DataMapperView(props: DataMapperProps) {
                 clause,
                 targetField,
                 varName: name,
-                withinSubMapping: viewState.isSubMapping
+                subMappingName: viewState.subMappingName
             };
             console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
 
@@ -332,6 +340,28 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .addClauses(addClausesRequest);
             console.log(">>> [Data Mapper] addClauses response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    }
+
+    const deleteClause = async (targetField: string, index: number) => {
+        try {
+            const deleteClauseRequest: DeleteClauseRequest = {
+                filePath,
+                codedata: viewState.codedata,
+                index,
+                targetField,
+                varName: name,
+                subMappingName: viewState.subMappingName
+            };
+            console.log(">>> [Data Mapper] deleteClause request:", deleteClauseRequest);
+
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .deleteClause(deleteClauseRequest);
+            console.log(">>> [Data Mapper] deleteClause response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -388,9 +418,28 @@ export function DataMapperView(props: DataMapperProps) {
                     mapping,
                     varName: name,
                     targetField: viewId,
-                    withinSubMapping: viewState.isSubMapping
+                    subMappingName: viewState.subMappingName
                 });
             console.log(">>> [Data Mapper] deleteMapping response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
+    const deleteSubMapping = async (index: number, viewId: string) => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .deleteSubMapping({
+                    filePath,
+                    codedata: viewState.codedata,
+                    index,
+                    varName: name,
+                    targetField: viewId,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] deleteSubMapping response:", resp);
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
@@ -408,7 +457,7 @@ export function DataMapperView(props: DataMapperProps) {
                     functionMetadata: metadata,
                     varName: name,
                     targetField: viewId,
-                    withinSubMapping: viewState.isSubMapping
+                    subMappingName: viewState.subMappingName
                 });
             console.log(">>> [Data Mapper] mapWithCustomFn response:", resp);
         } catch (error) {
@@ -428,7 +477,7 @@ export function DataMapperView(props: DataMapperProps) {
                     functionMetadata: metadata,
                     varName: name,
                     targetField: viewId,
-                    withinSubMapping: viewState.isSubMapping
+                    subMappingName: viewState.subMappingName
                 });
             console.log(">>> [Data Mapper] mapWithTransformFn response:", resp);
         } catch (error) {
@@ -475,8 +524,7 @@ export function DataMapperView(props: DataMapperProps) {
         const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
             ref: parentField.ref,
             fieldId: parentField.id,
-            model: model as DMModel,
-            visitedRefs: new Set()
+            model: model as DMModel
         });
 
         if (!response.success || !response.result) {
@@ -596,7 +644,7 @@ export function DataMapperView(props: DataMapperProps) {
                         <DataMapper
                             modelState={modelState}
                             name={name}
-                            onClose={onClose}
+                            onClose={onDMClose}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}
@@ -604,8 +652,10 @@ export function DataMapperView(props: DataMapperProps) {
                             generateForm={generateForm}
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
+                            deleteClause={deleteClause}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
+                            deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
