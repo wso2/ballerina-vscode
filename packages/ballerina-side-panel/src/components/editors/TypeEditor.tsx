@@ -34,7 +34,7 @@ import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
 import { Controller } from "react-hook-form";
 import { S } from "./ExpressionEditor";
-import { sanitizeType } from "./utils";
+import { sanitizeType, getPropertyFromFormField } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
@@ -106,7 +106,8 @@ export function TypeEditor(props: TypeEditorProps) {
         onBlur,
         onCompletionItemSelect,
         onSave,
-        onCancel
+        onCancel,
+        getExpressionEditorDiagnostics
     } = expressionEditor;
 
     const exprRef = useRef<FormExpressionEditorRef>(null);
@@ -269,6 +270,16 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
+
+                                if (getExpressionEditorDiagnostics) {
+                                    const required = !field.optional;
+                                    getExpressionEditorDiagnostics(
+                                        (required ?? !field.optional) || updatedValue !== '',
+                                        updatedValue,
+                                        field.key,
+                                        getPropertyFromFormField(field)
+                                    );
+                                }
                                 handleNewTypeSelected && handleNewTypeSelected(typeExists? typeExists : updatedValue)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {

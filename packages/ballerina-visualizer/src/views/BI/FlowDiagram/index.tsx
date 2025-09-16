@@ -209,12 +209,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setTargetLineRange(range);
     }
 
-    useEffect(() => {
-        console.log(targetLineRange)
-    }, [targetLineRange]);
-
-
-
     const debouncedGetFlowModel = useCallback(
         debounce(() => {
             getFlowModel();
