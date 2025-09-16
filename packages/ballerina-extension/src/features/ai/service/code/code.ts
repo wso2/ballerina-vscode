@@ -86,11 +86,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: CoreMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(
-                sourceFiles,
-                params.operationType,
-                GenerationType.CODE_GENERATION
-            ),
+            content: getSystemPromptPrefix(sourceFiles, params.operationType, GenerationType.CODE_GENERATION),
         },
         {
             role: "system",
@@ -128,19 +124,36 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
-    let assistantThinking: string = "";
+    let finalResponse: string = "";
     let lastType: string | null = null;
 
     for await (const part of fullStream) {
-        if (part.type === "tool-result") {
-            console.log(
-                "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
-                part.result as Library[]
-            );
-        }
         switch (part.type) {
+            case "tool-call": {
+                const toolName = part.toolName;
+                console.log(`[Tool Call] Tool call started: ${toolName}`);
+                eventHandler({ type: "tool_call", toolName });
+                assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                break;
+            }
+            case "tool-result": {
+                const toolName = part.toolName;
+                console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                console.log(
+                    "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
+                    part.result as Library[]
+                );
+                const libraryNames = (part.result as Library[]).map((lib) => lib.name);
+                assistantResponse = assistantResponse.replace(
+                    `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                    `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                );
+                eventHandler({ type: "tool_result", toolName, libraryNames });
+                break;
+            }
             case "text-delta": {
                 const textPart = lastType !== "text-delta" ? "\n" + part.textDelta : part.textDelta;
+                assistantResponse += textPart;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
             }
@@ -165,25 +178,19 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     .slice()
                     .reverse()
                     .find((msg) => msg.role === "assistant");
-                assistantResponse = lastAssistantMessage
-                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || assistantResponse
-                    : assistantResponse;
-
-            const assistantMessages = finalMessages
-                .filter((msg) => msg.role === "assistant" && msg !== lastAssistantMessage)
-                .map((msg) => (msg.content as any[]).find((c) => c.type === "text")?.text || "")
-                .filter((text) => text !== "");
-            assistantThinking = assistantMessages.join("\n");
+                finalResponse = lastAssistantMessage
+                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || finalResponse
+                    : finalResponse;
 
                 const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: assistantResponse,
+                    assistant_response: finalResponse,
                 });
-                assistantResponse = postProcessedResp.assistant_response;
+                finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
                 const MAX_REPAIR_ATTEMPTS = 3;
                 let repair_attempt = 0;
-                let diagnosticFixResp = assistantResponse; //TODO: Check if we need this variable
+                let diagnosticFixResp = finalResponse; //TODO: Check if we need this variable
                 while (
                     hasCodeBlocks(diagnosticFixResp) &&
                     diagnostics.length > 0 &&
@@ -201,8 +208,20 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
                 }
-                console.log("Final Diagnostics ", diagnostics);
-                eventHandler({ type: "content_replace", content: assistantThinking + "\n" + diagnosticFixResp });
+
+                // Replace the final response segment in assistant response
+                const lastAssistantMessageContent = lastAssistantMessage
+                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || ""
+                    : "";
+
+                if (lastAssistantMessageContent && assistantResponse.includes(lastAssistantMessageContent)) {
+                    assistantResponse = assistantResponse.replace(lastAssistantMessageContent, diagnosticFixResp);
+                } else {
+                    // Fallback: append the final response if replacement fails
+                    assistantResponse += "\n\n" + diagnosticFixResp;
+                }
+
+                eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
                 eventHandler({ type: "stop", command: Command.Code });
@@ -228,14 +247,13 @@ function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, ge
     const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the API documentation provided by the LibraryProviderTool.
 
 # Instructions
-1. Analyze the user query to determine the required functionality.
-2. Use the LibraryProviderTool to fetch detailed information (clients, functions, types) for only the relevant Ballerina libraries based on the user query.
-3. Use the tool's output as API documentation in the context of the query to generate accurate Ballerina code.
-4. Do not include libraries unless they are explicitly needed for the query.
-${generationType === GenerationType.HEALTHCARE_GENERATION
-            ? "5. For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
+- Analyze the user query to determine the required functionality.
+- Do not include libraries unless they are explicitly needed for the query.
+${
+    generationType === GenerationType.HEALTHCARE_GENERATION
+        ? "- For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
         : ""
-        }`;
+}`;
 
     if (op === "CODE_FOR_USER_REQUIREMENT") {
         return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
@@ -322,11 +340,7 @@ The explanation should explain the control flow decided in step 2, along with th
 
 Each file that needs modifications should have a codeblock segment, and it MUST contain the complete file content with the proposed change. The codeblock segments should only contain .bal contents and should not generate or modify any other file types. Politely decline if the query requests such cases.
 
-- Begin your response with the **Explanation** section. 
-- Do not include any introductory phrases, speculation, hedging, or meta commentary about the task. 
-- Avoid phrases like "may", "might", "let me…", or any descriptions about task complexity or requirements. 
-- Do not mention whether libraries are required or not.
-- Present the information as if you already have complete knowledge of the required libraries to hide the tool usage from the user.
+- DO NOT mention if libraries are not required for the user query or task.
 - Format responses using professional markdown with proper headings, lists, and styling
 
 Example Codeblock segment:

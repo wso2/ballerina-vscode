@@ -54,6 +54,7 @@ import { Button, Icon, Codicon, Typography } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
+import ToolCallSegment from "../ToolCallSegment";
 import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
@@ -271,6 +272,7 @@ const AIChat: React.FC = () => {
     }, []);
 
     rpcClient?.onChatNotify((response: ChatNotify) => {
+        // TODO: Need to handle the content as step blocks
         const type = response.type;
         if (type === "content_block") {
             const content = response.content;
@@ -284,6 +286,26 @@ const AIChat: React.FC = () => {
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
                 newMessages[newMessages.length - 1].content = content;
+                return newMessages;
+            });
+        } else if (type === "tool_call") {
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                }
+                return newMessages;
+            });
+        } else if (type === "tool_result") {
+            const libraryNames = response.libraryNames;
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    newMessages[newMessages.length - 1].content = newMessages[newMessages.length - 1].content.replace(
+                        `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                        `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                    );
+                }
                 return newMessages;
             });
         } else if (type === "intermediary_state") {
@@ -1921,6 +1943,14 @@ const AIChat: React.FC = () => {
                                                     failed={segment.failed}
                                                 />
                                             );
+                                        } else if (segment.type === SegmentType.ToolCall) {
+                                            return (
+                                                <ToolCallSegment
+                                                    text={segment.text}
+                                                    loading={segment.loading}
+                                                    failed={segment.failed}
+                                                />
+                                            );
                                         } else if (segment.type === SegmentType.Attachment) {
                                             return (
                                                 <AttachmentsContainer>
@@ -2170,6 +2200,7 @@ export enum SegmentType {
     Code = "Code",
     Text = "Text",
     Progress = "Progress",
+    ToolCall = "ToolCall",
     Attachment = "Attachment",
     InlineCode = "InlineCode",
     References = "References",
@@ -2245,13 +2276,13 @@ export function splitContent(content: string): Segment[] {
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
     let match;
     let lastIndex = 0;
 
     function updateLastProgressSegmentLoading(failed: boolean = false) {
         const lastSegment = segments[segments.length - 1];
-        if (lastSegment && lastSegment.type === SegmentType.Progress) {
+        if (lastSegment && (lastSegment.type === SegmentType.Progress || lastSegment.type === SegmentType.ToolCall)) {
             lastSegment.loading = false;
             lastSegment.failed = failed;
         }
@@ -2292,8 +2323,18 @@ export function splitContent(content: string): Segment[] {
                 text: progressText,
             });
         } else if (match[6]) {
+            // <toolcall> block matched
+            const toolcallText = match[6];
+
+            updateLastProgressSegmentLoading();
+            segments.push({
+                type: SegmentType.ToolCall,
+                loading: true,
+                text: toolcallText,
+            });
+        } else if (match[7]) {
             // <attachment> block matched
-            const attachmentName = match[6].trim();
+            const attachmentName = match[7].trim();
 
             updateLastProgressSegmentLoading();
 
@@ -2308,9 +2349,9 @@ export function splitContent(content: string): Segment[] {
                     text: attachmentName,
                 });
             }
-        } else if (match[7]) {
+        } else if (match[8]) {
             // <scenario> block matched
-            const scenarioContent = match[7].trim();
+            const scenarioContent = match[8].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -2318,10 +2359,10 @@ export function splitContent(content: string): Segment[] {
                 loading: false,
                 text: scenarioContent,
             });
-        } else if (match[8]) {
+        } else if (match[9]) {
             // <button> block matched
-            const buttonType = match[8].trim();
-            const buttonContent = match[9].trim();
+            const buttonType = match[9].trim();
+            const buttonContent = match[10].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -2330,16 +2371,16 @@ export function splitContent(content: string): Segment[] {
                 text: buttonContent,
                 buttonType: buttonType,
             });
-        } else if (match[10]) {
-            segments.push({
-                type: SegmentType.InlineCode,
-                text: match[10].trim(),
-                loading: false,
-            });
         } else if (match[11]) {
             segments.push({
-                type: SegmentType.References,
+                type: SegmentType.InlineCode,
                 text: match[11].trim(),
+                loading: false,
+            });
+        } else if (match[12]) {
+            segments.push({
+                type: SegmentType.References,
+                text: match[12].trim(),
                 loading: false,
             });
         }

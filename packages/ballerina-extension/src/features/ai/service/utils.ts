@@ -28,6 +28,8 @@ import {
     ProjectSource,
     SourceFiles,
     TestGeneratorIntermediaryState,
+    ToolCall,
+    ToolResult,
     Command
 } from "@wso2/ballerina-core";
 import { CoreMessage } from "ai";
@@ -187,6 +189,23 @@ export function sendTestGenIntermidateStateNotification(testGenState: TestGenera
     const msg: IntermidaryState = {
         type: "intermediary_state",
         state: testGenState,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolCallNotification(toolName: string): void {
+    const msg: ToolCall = {
+        type: "tool_call",
+        toolName: toolName,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolResultNotification(toolName: string, libraryNames: string[]): void {
+    const msg: ToolResult = {
+        type: "tool_result",
+        toolName: toolName,
+        libraryNames: libraryNames
     };
     sendAIPanelNotification(msg);
 }
