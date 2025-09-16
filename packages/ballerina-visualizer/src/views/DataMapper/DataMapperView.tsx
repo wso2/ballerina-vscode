@@ -452,7 +452,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithCustomFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
@@ -472,7 +472,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithTransformFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
