@@ -118,7 +118,6 @@ public class AgentsGenerator {
             "delete", "patch", "options");
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
 
-
     public AgentsGenerator() {
         this.gson = new Gson();
         this.semanticModel = null;
@@ -454,7 +453,6 @@ public class AgentsGenerator {
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
-
             if (!returnType.isEmpty()) {
                 sourceBuilder.token()
                         .keyword(SyntaxKind.RETURNS_KEYWORD)
@@ -577,7 +575,8 @@ public class AgentsGenerator {
                 if (property.isEmpty()) {
                     continue;
                 }
-                PropertyCodedata propCodedata = property.get().codedata();
+                PropertyCodedata propCodedata = property.get()
+                        .codedata();
                 if (propCodedata == null) {
                     continue;
                 }
@@ -803,7 +802,7 @@ public class AgentsGenerator {
     }
 
     public JsonElement getMethodCallFlowNode(FunctionDefinitionNode functionDefinitionNode, Project project,
-                                             Document document) {
+                                             Document document, WorkspaceManager workspaceManager) {
         FunctionBodyNode fnBodyNode = functionDefinitionNode.functionBody();
         if (functionDefinitionNode.functionBody().kind() != SyntaxKind.FUNCTION_BODY_BLOCK) {
             return null;
@@ -813,7 +812,7 @@ public class AgentsGenerator {
             return null;
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
         StatementNode firstStmt = statements.get(0);
         firstStmt.accept(codeAnalyzer);
 
