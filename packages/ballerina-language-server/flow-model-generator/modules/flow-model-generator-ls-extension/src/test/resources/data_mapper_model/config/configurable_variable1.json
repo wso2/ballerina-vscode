@@ -1,0 +1,74 @@
+{
+  "source": "configurable_variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "configurable_variable1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 33
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 22,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student",
+  "model": {
+    "inputs": [
+      {
+        "name": "dbHost",
+        "displayName": "dbHost",
+        "typeName": "string",
+        "kind": "string",
+        "category": "configurable"
+      },
+      {
+        "name": "password",
+        "displayName": "password",
+        "typeName": "string",
+        "kind": "string",
+        "category": "configurable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "-1801106114"
+    },
+    "mappings": [],
+    "refs": {
+      "-1801106114": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+configurable UserInfo user2 = ?;
