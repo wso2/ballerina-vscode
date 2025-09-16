@@ -73,7 +73,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                 }}>
                     <Tooltip content={item.description} position="top">
                         <VariableTypeIndicator >
-                            {item.description.length > 5 ? item.description.slice(0, 5) + '…' : item.description}
+                            {item.description}
                         </VariableTypeIndicator>
                     </Tooltip>
                     <Codicon name="chevron-right" />
