@@ -9,7 +9,8 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string"
+          "typeName": "string",
+          "hashMismatch": false
         },
         "optional": false,
         "defaultValue": ""
@@ -20,7 +21,8 @@
           "dependentTypeHashes": [],
           "hashCode": "-1709258083",
           "name": "SampleRecord",
-          "typeName": "record"
+          "typeName": "record",
+          "hashMismatch": false
         },
         "optional": false,
         "defaultValue": ""
@@ -41,7 +43,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "hashMismatch": false
             },
             "optional": false,
             "defaultValue": ""
@@ -52,7 +55,8 @@
               "dependentTypeHashes": [],
               "hashCode": "695203170",
               "name": "SampleType",
-              "typeName": "record"
+              "typeName": "record",
+              "hashMismatch": false
             },
             "optional": false,
             "defaultValue": ""
@@ -63,7 +67,8 @@
         ],
         "hashCode": "-1709258083",
         "name": "SampleRecord",
-        "typeName": "record"
+        "typeName": "record",
+        "hashMismatch": false
       },
       "695203170": {
         "fields": [
@@ -72,7 +77,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "hashMismatch": false
             },
             "optional": false,
             "defaultValue": ""
@@ -82,7 +88,8 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "int",
-              "typeName": "int"
+              "typeName": "int",
+              "hashMismatch": false
             },
             "optional": false,
             "defaultValue": ""
@@ -91,8 +98,10 @@
         "dependentTypeHashes": [],
         "hashCode": "695203170",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "hashMismatch": false
       }
-    }
+    },
+    "hashMismatch": false
   }
 }
