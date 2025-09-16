@@ -158,8 +158,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			);
 
 			nodesToUpdate.forEach((node: LinkConnectorNode | QueryExprConnectorNode) => {
-				node.initLinks();
-				const targetPortPosition = node.targetPort?.getPosition();
+				const targetPortPosition = node.targetMappedPort?.getPosition();
 				if (targetPortPosition) {
 					node.setPosition(targetPortPosition.x - 155, targetPortPosition.y - 6.5);
 				}

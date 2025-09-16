@@ -93,7 +93,6 @@ export const AddIconContainer = styled.div`
 export const AddIcon = styled(Icon)`
     cursor: pointer;
     font-size: 20px;
-    color: var(--vscode-inputOption-activeForeground);
     transition: all 0.2s;
     &:hover {
         color: var(--vscode-textLink-foreground);

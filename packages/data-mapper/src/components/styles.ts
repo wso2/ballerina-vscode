@@ -20,7 +20,7 @@ import { IO_NODE_DEFAULT_WIDTH, IO_NODE_FIELD_HEIGHT } from "./Diagram/utils/con
 
 const typeLabel = {
     marginLeft: "3px",
-    marginRight: "24px",
+    marginRight: "3px",
     padding: "5px 8px",
     minWidth: "100px",
     color: "var(--vscode-foreground)",
@@ -34,7 +34,6 @@ const valueLabel = {
     padding: "5px",
     fontFamily: "GilmerRegular",
     fontSize: "13px",
-    color: "var(--vscode-foreground)",
     verticalAlign: "middle",
 };
 

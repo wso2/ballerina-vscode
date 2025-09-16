@@ -41,6 +41,10 @@ export type TypeHelperItem = {
     type: CompletionItemKind;
     codedata?: CodeData;
     kind?: FunctionKind;
+    labelDetails?: {
+        description: string;
+        detail: string;
+    };
 };
 
 export type TypeHelperCategory = {
@@ -194,8 +198,16 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
 
     const updatePosition = throttle(() => {
         if (typeFieldRef.current) {
+            const rect = typeFieldRef.current.getBoundingClientRect();
+            let left = 0;
+            if (rect.width < 350 && window.innerWidth - rect.left < 350) {
+                left = rect.left - (rect.left + 350 - window.innerWidth);
+            }
+            else {
+                left = rect.left;
+            }
             setPosition({
-                helperPane: getHelperPanePosition(typeFieldRef, positionOffset),
+                helperPane: {top: rect.bottom, left: left},
                 arrow: getArrowPosition(typeFieldRef, position.helperPane)
             });
         }

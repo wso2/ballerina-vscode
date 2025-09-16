@@ -343,7 +343,7 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: CompletionItem) => void;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -535,7 +535,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         getVisualiableFields();
     };
 
-    const handleNewTypeSelected = (type: CompletionItem) => {
+    const handleNewTypeSelected = (type: string | CompletionItem) => {
         handleSelectedTypeChange && handleSelectedTypeChange(type);
     }
 
@@ -682,6 +682,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
+            onSubmit && onSubmit(data, dirtyFields);
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }

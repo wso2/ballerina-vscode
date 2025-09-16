@@ -82,9 +82,11 @@ export class ArrayOutputNode extends DataMapperNodeModel {
 
             if (this.filteredOutputType.kind === TypeKind.Array) {
                 const mapping = findMappingByOutput(mappings, this.outputType.id);
-                if (mapping?.elements && mapping.elements.length > 0) {
-                    mapping.elements.forEach((element, index) => {
-                        this.addPortsForOutputField({
+                const mappingElements = mapping?.elements;
+                if (mappingElements && mappingElements.length > 0) {
+                    for (let index = 0; index < mappingElements.length; index++) {
+                        const element = mappingElements[index];
+                        await this.addPortsForOutputField({
                             field: this.outputType.member,
                             type: "IN",
                             parentId: this.rootName,
@@ -96,9 +98,9 @@ export class ArrayOutputNode extends DataMapperNodeModel {
                             hidden: parentPort.attributes.collapsed,
                             elementIndex: index
                         });
-                    });
+                    }
                 } else {
-                    this.addPortsForOutputField({
+                    await this.addPortsForOutputField({
                         field: this.outputType.member,
                         type: "IN",
                         parentId: this.rootName,
@@ -115,7 +117,7 @@ export class ArrayOutputNode extends DataMapperNodeModel {
 
             const mapping = mappings[0]; // There is only one mapping for the output root
             this.isBodyArrayliteralExpr = mapping?.elements.length > 0
-                || (mapping?.elements.length === 0 && mapping.expression === '[]');
+                || (mapping?.elements.length === 0 && /^\s*\[\s*\]\s*$/.test(mapping.expression));
         }
     }
 
