@@ -36,6 +36,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueSt
  * @since 1.3.0
  */
 public class ServiceInitModel {
+    public static final String KEY_LISTENER_VAR_NAME = "listenerVarName";
+    public static final String KEY_CONFIGURE_LISTENER = "configureListener";
+    public static final String KEY_EXISTING_LISTENER = "existingListener";
+
     private final String id;
     private final String displayName;
     private final String description;
