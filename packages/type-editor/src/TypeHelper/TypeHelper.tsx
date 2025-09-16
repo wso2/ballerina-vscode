@@ -262,6 +262,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                             }}>
 
                                 <SearchBox
+                                    id={'helper-pane-search'}
                                     sx={{ width: "100%" }}
                                     placeholder='Search'
                                     value={searchValue}
