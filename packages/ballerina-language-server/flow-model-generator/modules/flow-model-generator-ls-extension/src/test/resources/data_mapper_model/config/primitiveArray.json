@@ -30,7 +30,7 @@
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-676835306"
+        "ref": "470212038"
       },
       {
         "member": {
@@ -77,6 +77,32 @@
       }
     ],
     "refs": {
+      "470212038": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "otherCodes",
+              "displayName": "<otherCodesItem>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "name": "otherCodes",
+            "displayName": "otherCodes",
+            "typeName": "int[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      },
       "-676835306": {
         "fields": [
           {

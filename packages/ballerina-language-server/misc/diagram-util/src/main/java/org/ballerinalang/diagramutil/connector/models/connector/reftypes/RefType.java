@@ -37,6 +37,7 @@ public class RefType  implements Cloneable {
     public String typeName;
     @Expose
     public Map<String, RefType> dependentTypes;
+    public boolean hashMismatch = false;
 
 
     public RefType(String name) {
