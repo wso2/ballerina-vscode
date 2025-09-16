@@ -100,7 +100,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             {!loading && connectionFields?.length > 0 && (
                 <>
                     <FormGeneratorNew
-                        fileName={projectPath.current}
+                        fileName={selectedNode?.codedata?.lineRange?.fileName || projectPath.current}
                         fields={connectionFields}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}
