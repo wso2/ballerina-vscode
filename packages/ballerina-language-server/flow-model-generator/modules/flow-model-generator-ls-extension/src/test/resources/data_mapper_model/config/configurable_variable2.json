@@ -27,8 +27,8 @@
       {
         "name": "CONST",
         "displayName": "CONST",
-        "typeName": "const",
-        "kind": "const",
+        "typeName": "string",
+        "kind": "string",
         "category": "constant"
       },
       {
@@ -38,7 +38,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-82774737"
+        "ref": "-937990656"
       },
       {
         "fields": [],
@@ -47,7 +47,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "299558865"
+        "ref": "-1155761164"
       },
       {
         "fields": [],
@@ -56,7 +56,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "module-variable",
-        "ref": "299558865"
+        "ref": "-1155761164"
       },
       {
         "fields": [],
@@ -65,7 +65,7 @@
         "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
         "kind": "record",
         "category": "configurable",
-        "ref": "1886773290"
+        "ref": "-2113547997"
       }
     ],
     "output": {
@@ -74,7 +74,7 @@
       "displayName": "student2",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-82774737"
+      "ref": "-937990656"
     },
     "mappings": [
       {
@@ -102,7 +102,7 @@
       }
     ],
     "refs": {
-      "-82774737": {
+      "-937990656": {
         "fields": [
           {
             "name": "username",
@@ -122,7 +122,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "299558865": {
+      "-1155761164": {
         "fields": [
           {
             "name": "username",
@@ -142,7 +142,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "1886773290": {
+      "-2113547997": {
         "fields": [
           {
             "name": "username",

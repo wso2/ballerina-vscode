@@ -45,11 +45,11 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-1801106114"
+      "ref": "545732303"
     },
     "mappings": [],
     "refs": {
-      "-1801106114": {
+      "545732303": {
         "fields": [
           {
             "name": "username",

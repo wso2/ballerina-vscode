@@ -267,7 +267,7 @@ public class ReferenceType {
             return unionType;
         } else if (kind == TypeDescKind.INTERSECTION) {
             IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) symbol;
-            return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(), name, moduleID);
+            return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(), name, moduleID, typeDefSymbols);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
