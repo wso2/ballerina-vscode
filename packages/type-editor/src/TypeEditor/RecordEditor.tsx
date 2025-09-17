@@ -122,7 +122,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
                 <Header>
                     <SectionTitle>{isGraphql ?  (newType? 'Input Object Fields' : 'Object Fields'): 'Fields'}</SectionTitle>
                     <div style={{ display: 'flex', gap: '8px' }} data-testid="add-field-button">
-                        <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                        <Button appearance="icon" onClick={addMember} tooltip='Add Field'><Codicon name="add" /></Button>
                     </div>
                 </Header>
             }
