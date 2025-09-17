@@ -128,7 +128,7 @@ public class ReferenceType {
             recordType.hashCode = typeHash;
             recordType.referenceKey = visitedKey;
             //To handle anonymous record types, use type hash as the visited key as there is no name
-            if (name.isEmpty())c{
+            if (name.isEmpty()) {
                 visitedKey = typeHash;
                 recordType.referenceKey = visitedKey;
             }
