@@ -17,7 +17,7 @@
       "listenerProtocol": "kafka",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
       "properties": {
-        "name": {
+        "variableNameKey": {
           "metadata": {
             "label": "Name",
             "description": "The name of the listener"

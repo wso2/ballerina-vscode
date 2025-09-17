@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -82,7 +83,7 @@ public class Listener {
         listenerDeclaration.append("listener ");
         listenerDeclaration.append(listenerProtocol);
         listenerDeclaration.append(":Listener ");
-        listenerDeclaration.append(getValueString(properties.get("name")));
+        listenerDeclaration.append(getValueString(getVariableNameProperty()));
         listenerDeclaration.append(" = new ");
         listenerDeclaration.append("(");
         properties.forEach((key, value) -> { // TODO: Order could go wrong here
@@ -109,6 +110,10 @@ public class Listener {
 
     public Value getProperty(String key) {
         return properties.get(key);
+    }
+
+    public Value getVariableNameProperty() {
+        return properties.get(VARIABLE_NAME_KEY);
     }
 
     public Map<String, Value> getProperties() {
