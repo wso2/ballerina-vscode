@@ -333,6 +333,10 @@ public class ReferenceType {
     }
 
     private static void validateDependentTypes(RefType type, List<Symbol> typeDefSymbols) {
+        if (type.dependentTypes == null) {
+            return;
+        }
+
         for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
             String depTypeKey = entry.getKey();
             RefType depType = entry.getValue();
@@ -350,7 +354,8 @@ public class ReferenceType {
                         moduleId,
                         typeDefSymbol.getName().orElse(""),
                         typeDesc.signature()));
-                if (depType.hashCode.equals(updatedHashCode)) {
+
+                if (depType.hashCode != null && depType.hashCode.equals(updatedHashCode)) {
                     continue;
                 }
                 visitedTypeMap.remove(depTypeKey);
