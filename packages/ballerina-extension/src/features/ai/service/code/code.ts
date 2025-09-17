@@ -65,8 +65,6 @@ function appendFinalMessages(history: CoreMessage[], finalMessages: CoreMessage[
     }
 }
 
-let libraryDescriptions = "";
-
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
@@ -78,7 +76,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    libraryDescriptions =
+    const libraryDescriptions =
         allLibraries.length > 0
             ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
             : "- No libraries available";
@@ -125,7 +123,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
     let finalResponse: string = "";
-    let lastType: string | null = null;
 
     for await (const part of fullStream) {
         switch (part.type) {
@@ -152,15 +149,19 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 break;
             }
             case "text-delta": {
-                const textPart = lastType !== "text-delta" ? "\n" + part.textDelta : part.textDelta;
-                assistantResponse += textPart;
-                eventHandler({ type: "content_block", content: textPart });
+                assistantResponse += part.textDelta;
+                eventHandler({ type: "content_block", content: part.textDelta });
                 break;
             }
             case "error": {
                 const error = part.error;
                 console.error("Error during Code generation:", error);
                 eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "step-finish": {
+                eventHandler({ type: "content_block", content: "\n" });
+                assistantResponse += "\n";
                 break;
             }
             case "finish": {
@@ -203,7 +204,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         previousMessages: allMessages,
                         assistantResponse: diagnosticFixResp,
                         diagnostics: diagnostics,
-                    });
+                    }, libraryDescriptions);
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
@@ -220,7 +221,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     // Fallback: append the final response if replacement fails
                     assistantResponse += "\n\n" + diagnosticFixResp;
                 }
-
+                console.log("Final Diagnostics ", diagnostics);
                 eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
@@ -228,7 +229,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 break;
             }
         }
-        lastType = part.type;
     }
 }
 
@@ -392,7 +392,14 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
     // add null as the command since this is a repair operation is not a command
     const eventHandler = createWebviewEventHandler(undefined);
     try {
-        return await repairCodeCore(params, eventHandler);
+        // Fetch all libraries for tool description
+        const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
+        const libraryDescriptions =
+            allLibraries.length > 0
+                ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
+                : "- No libraries available";
+
+        return await repairCodeCore(params, libraryDescriptions, eventHandler);
     } catch (error) {
         console.error("Error during code repair:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
@@ -400,9 +407,9 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
 }
 
 // Core repair function that emits events
-export async function repairCodeCore(params: RepairParams, eventHandler: CopilotEventHandler): Promise<RepairResponse> {
+export async function repairCodeCore(params: RepairParams, libraryDescriptions: string, eventHandler: CopilotEventHandler): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params);
+    const resp = await repairCode(params, libraryDescriptions);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
@@ -410,7 +417,7 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     return resp;
 }
 
-export async function repairCode(params: RepairParams): Promise<RepairResponse> {
+export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
     const allMessages: CoreMessage[] = [
         ...params.previousMessages,
         {

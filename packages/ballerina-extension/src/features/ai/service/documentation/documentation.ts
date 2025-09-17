@@ -73,6 +73,19 @@ export async function generateDocumentationCore(
                 break;
             }
             case "finish": {
+                eventHandler({
+                    type: "content_block",
+                    content: `\n\n<button type="save_documentation">Save Documentation</button>`,
+                });
+                eventHandler({
+                    type: "intermediary_state",
+                    state: {
+                        serviceName: params.serviceName,
+                        documentation: assistantResponse,
+                        projectSource: params.projectSource,
+                        openApiSpec: params.openApiSpec,
+                    },
+                });
                 eventHandler({ type: "stop", command: Command.Doc });
                 break;
             }

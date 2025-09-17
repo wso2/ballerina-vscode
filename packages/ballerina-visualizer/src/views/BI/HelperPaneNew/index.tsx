@@ -20,20 +20,27 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
-import { CompletionInsertText, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
 import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
-import {  SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
+import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
-import DynamicModal from '../../../components/Modal';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
-import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Form';
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
+import { POPUP_IDS, useModalStack } from '../../../Context';
+import { getDefaultValue } from './Utils/types';
+import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 
 const MAX_MENU_ITEM_COUNT = 4;
+
+export type ValueCreationOption = {
+    typeCheck: string | null;
+    value: string;
+    label: string;
+}
 
 export type HelperPaneNewProps = {
     fieldKey: string;
@@ -51,13 +58,14 @@ export type HelperPaneNewProps = {
     isAssignIdentifier?: boolean;
     completions: CompletionItem[],
     projectPath?: string,
-    handleOnFormSubmit?: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean, options?: FormSubmitOptions) => void
+    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
-    valueTypeConstraint?: string | string[];
-    forcedValueTypeConstraint?: string | string[];
+    valueTypeConstraint?: string;
+    forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+    handleValueTypeConstChange: (valueTypeConstraint: string) => void;
 };
 
 const TitleContainer = styled.div`
@@ -83,7 +91,8 @@ const HelperPaneNewEl = ({
     isInModal,
     valueTypeConstraint,
     handleRetrieveCompletions,
-    forcedValueTypeConstraint
+    forcedValueTypeConstraint,
+    handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
     const paneRef = useRef<HTMLDivElement>(null);
@@ -91,6 +100,9 @@ const HelperPaneNewEl = ({
     const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ? 4 : 3
+
+    const { addModal, closeModal } = useModalStack()
+
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -126,6 +138,12 @@ const HelperPaneNewEl = ({
             }
         }
     }, [anchorRef]);
+
+    useEffect(() => {
+        if (valueTypeConstraint?.length > 0) {
+            handleValueTypeConstChange(valueTypeConstraint)
+        }
+    }, [valueTypeConstraint, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -247,6 +265,78 @@ const HelperPaneNewEl = ({
         }
     }, [selectedItem]);
 
+    const isSelectedTypeContainsType = (selectedType: string | string[], searchType: string) => {
+        if (Array.isArray(selectedType)) {
+            return selectedType.some(type => type.includes(searchType));
+        }
+        const unionTypes = selectedType.split("|").map(type => type.trim());
+        return unionTypes.includes(searchType);
+    };
+
+    const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
+
+    const allValueCreationOptions = [
+        {
+            typeCheck: "string",
+            value: "\"TEXT_HERE\"",
+            label: "Create a string value"
+        },
+        {
+            typeCheck: "log:PrintableRawTemplate",
+            value: "string `TEXT_HERE`",
+            label: "Create a printable template"
+        },
+        {
+            typeCheck: "error",
+            value: "error(\"ERROR_MESSAGE_HERE\")",
+            label: "Create an error"
+        },
+        {
+            typeCheck: "json",
+            value: "{}",
+            label: "Create an empty json"
+        },
+        {
+            typeCheck: "xml",
+            value: "xml ``",
+            label: "Create an xml template"
+        },
+        {
+            typeCheck: "anydata",
+            value: "{}",
+            label: "Create an empty object"
+        }
+    ];
+
+    // Filter options based on type matching, and add default value if it exists
+    const valueCreationOptions = [
+        ...(defaultValue ? [{
+            typeCheck: null, // Special case for default value (if type is primitive)
+            value: defaultValue,
+            label: `Initialize to ${defaultValue}`
+        }] : []),
+        ...allValueCreationOptions.filter(option => 
+            forcedValueTypeConstraint && 
+            isSelectedTypeContainsType(forcedValueTypeConstraint, option.typeCheck)
+        )
+    ];
+
+    const openRecordConfigView = () => {
+        addModal(
+            <div style={{ padding: '0px 10px' }}>
+                <ConfigureRecordPage
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
+                    onChange={handleChange}
+                    currentValue={currentValue}
+                    recordTypeField={recordTypeField}
+                    onClose={onClose}
+                />
+            </div>
+            , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
+            onClose();
+    }
+
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
@@ -255,9 +345,9 @@ const HelperPaneNewEl = ({
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
-                                {(valueTypeConstraint || forcedValueTypeConstraint) && (
+                                {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
                                     recordTypeField ?
-                                        <SlidingPaneNavContainer onClick={() => setIsModalOpen(true)}>
+                                        <SlidingPaneNavContainer onClick={openRecordConfigView}>
                                             <ExpandableList.Item>
                                                 {getIcon(COMPLETION_ITEM_KIND.Value)}
                                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
@@ -265,19 +355,22 @@ const HelperPaneNewEl = ({
                                                 </Typography>
                                             </ExpandableList.Item>
                                         </SlidingPaneNavContainer> :
-                                        <SlidingPaneNavContainer
-                                            ref={el => menuItemRefs.current[0] = el}
-                                            to="CREATE_VALUE"
-                                            data={recordTypeField}
-                                            sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
-                                        >
-                                            <ExpandableList.Item>
-                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
-                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                    Create Value
-                                                </Typography>
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer>
+                                        <>
+                                            {valueCreationOptions.length > 0 && (
+                                                <SlidingPaneNavContainer
+                                                    ref={el => menuItemRefs.current[0] = el}
+                                                    to="CREATE_VALUE"
+                                                    data={recordTypeField}
+                                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
+                                                >
+                                                    <ExpandableList.Item>
+                                                        {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                            Create Value
+                                                        </Typography>
+                                                    </ExpandableList.Item>
+                                                </SlidingPaneNavContainer>
+                                            )}</>
                                 )}
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[1] = el}
@@ -339,6 +432,7 @@ const HelperPaneNewEl = ({
                             recordTypeField={recordTypeField}
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            onClose={onClose}
                         />
                     </SlidingPane>
 
@@ -350,6 +444,7 @@ const HelperPaneNewEl = ({
                             currentValue={currentValue}
                             selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
+                            valueCreationOptions={valueCreationOptions}
                             anchorRef={anchorRef} />
                     </SlidingPane>
 
@@ -378,28 +473,10 @@ const HelperPaneNewEl = ({
                             onChange={handleChange}
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
+                            onClose={onClose}
                         />
                     </SlidingPane>
                 </SlidingWindow>
-
-                <DynamicModal
-                    width={500}
-                    height={600}
-                    anchorRef={anchorRef}
-                    title="Record Configuration"
-                    openState={isModalOpen}
-                    setOpenState={setIsModalOpen}>
-                 <div style={{padding: '0px 16px'}}>
-                       <ConfigureRecordPage
-                           fileName={fileName}
-                           targetLineRange={targetLineRange}
-                           onChange={handleChange}
-                           currentValue={currentValue}
-                           recordTypeField={recordTypeField}
-                           onClose={onClose}
-                       />
-                 </div>
-                </DynamicModal>
             </HelperPaneCustom.Body>
         </HelperPaneCustom >
     );
@@ -448,6 +525,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         isInModal,
         valueTypeConstraint,
         forcedValueTypeConstraint,
+        handleValueTypeConstChange,
     } = props;
 
     return (
@@ -474,6 +552,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             valueTypeConstraint={valueTypeConstraint}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
+            handleValueTypeConstChange={handleValueTypeConstChange}
         />
     );
 };

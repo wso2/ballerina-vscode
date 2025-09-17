@@ -157,6 +157,7 @@ export function FormGeneratorNew(props: FormProps) {
     const [formImports, setFormImports] = useState<FormImports>({});
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -167,6 +168,24 @@ export function FormGeneratorNew(props: FormProps) {
         setStack((prev) => [...prev, item]);
         setRefetchStates((prev) => [...prev, false]);
     };
+
+    const resetStack = () => {
+        setStack([{
+            type: defaultType(),
+            isDirty: false
+        }]);
+    }
+
+    useEffect(() => {
+        const tempStack = [...stack];
+        const firstItem = tempStack[0];
+        if (firstItem) {
+            firstItem.type = defaultType();
+            tempStack[0] = firstItem;
+            setStack(tempStack);
+            return;
+        }
+    }, [typeEditorState.field]);
 
     const popTypeStack = () => {
         setStack((prev) => {
@@ -217,8 +236,30 @@ export function FormGeneratorNew(props: FormProps) {
         });
     };
 
+    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
+        return ["()"].includes(typeLabel);
+    }
+
+    const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
+        if (matchedReferenceType) {
+            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+                || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
+            ) {
+                setValueTypeConstraints('');
+                return;
+            }
+        }
+        setValueTypeConstraints(valueTypeConstraint);
+    }
+
     const defaultType = (): Type => {
-        if (typeEditorState.field?.type === 'PARAM_MANAGER') {
+        if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
                 name: typeEditorState.newTypeValue || "MyType",
                 editable: true,
@@ -251,6 +292,19 @@ export function FormGeneratorNew(props: FormProps) {
         };
     }
 
+    const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
+        const updatedFields = newFields.map((field) => {
+            if (field.type === 'TYPE') {
+                const oldField = oldFields.find(f => f.key === field.key);
+                if (oldField) {
+                    return { ...field, value: oldField.value };
+                }
+            }
+            return field;
+        });
+        return updatedFields;
+    }
+
 
     useEffect(() => {
         if (rpcClient) {
@@ -271,8 +325,9 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            setFields(fields);
-            setFormImports(getImportsForFormFields(fields));
+            const patchedFields = getPatchedFields(fieldsValues, fields);
+            setFields(patchedFields);
+            setFormImports(getImportsForFormFields(patchedFields));
         }
     }, [fields]);
 
@@ -568,6 +623,8 @@ export function FormGeneratorNew(props: FormProps) {
             isInModal: false,
             valueTypeConstraint: valueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
+            handleValueTypeConstChange: handleValueTypeConstChange,
+            forcedValueTypeConstraint: valueTypeConstraints,
         });
     };
 
@@ -588,7 +645,10 @@ export function FormGeneratorNew(props: FormProps) {
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: formField });
+            resetStack();
         }
+
+        console.log("#STACK", stack);
 
         const handleCloseCompletions = () => {
             debouncedGetVisibleTypes.cancel();
@@ -614,8 +674,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
     }
 
-    const handleTypeChange = async (type: Type) => {
-        setTypeEditorState({ isOpen: true });
+    const handleTypeChange = async (type: Type,) => {
+        setTypeEditorState({ ...typeEditorState, isOpen: true });
 
         if (typeEditorState.field) {
             const updatedFields = fieldsValues.map(field => {
@@ -624,6 +684,7 @@ export function FormGeneratorNew(props: FormProps) {
                     if (typeEditorState.field.type === 'PARAM_MANAGER'
                         && field.type === 'PARAM_MANAGER'
                         && field.paramManagerProps.formFields
+                        && stack.length === 1
                     ) {
                         return {
                             ...field,
@@ -657,12 +718,12 @@ export function FormGeneratorNew(props: FormProps) {
             return updatedField;
         });
         setFields(updatedFields);
-        setTypeEditorState({ 
-            isOpen, 
-            field: editingField, 
-            newTypeValue: newType 
-                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType) 
-                : f[editingField?.key] 
+        setTypeEditorState({
+            isOpen,
+            field: editingField,
+            newTypeValue: newType
+                ? (typeof newType === 'string' ? newType : (newType as NodeProperties)?.type || newType)
+                : f[editingField?.key]
         });
     };
 
@@ -681,12 +742,8 @@ export function FormGeneratorNew(props: FormProps) {
         }
     }
 
-    const handleSelectedTypeChange = (type: CompletionItem) => {
-        setSelectedType(type);
-    }
-
     const onCloseTypeEditor = () => {
-        setTypeEditorState({ isOpen: false });
+        setTypeEditorState({ ...typeEditorState, isOpen: false });
     };
 
     const handleTypeEditorStateChange = (state: boolean) => {
@@ -695,14 +752,14 @@ export function FormGeneratorNew(props: FormProps) {
                 popTypeStack();
                 return;
             }
-            stack[0].type = undefined
+            resetStack();
         }
-        setTypeEditorState({ isOpen: state });
+        setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
-            type: defaultType(), 
+            type: defaultType(),
             isDirty: false
         })
     }
@@ -712,7 +769,7 @@ export function FormGeneratorNew(props: FormProps) {
             setRefetchForCurrentModal(true);
             popTypeStack();
         }
-        setTypeEditorState({ isOpen: stack.length !== 1 });
+        setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
@@ -771,10 +828,6 @@ export function FormGeneratorNew(props: FormProps) {
         importsCodedataRef.current = {};
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState({ isOpen: true, newTypeValue: typeName, field: typeEditorState.field });
-    };
-
     // default form
     return (
         <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
@@ -806,7 +859,6 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
-                    handleSelectedTypeChange={handleSelectedTypeChange}
                 />
             )}
             {
@@ -818,30 +870,30 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 15px' }}>
-                        {stack.slice(0, i + 1).slice(0, i + 1).length > 1 && (
+                    <div style={{ padding: '0px 20px' }}>
+                        {stack.slice(0, i + 1).length > 1 && (
                             <BreadcrumbContainer>
                                 {stack.slice(0, i + 1).map((stackItem, index) => (
                                     <React.Fragment key={index}>
                                         {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
                                         <BreadcrumbItem>
-                                            {stackItem?.type?.name || "New Type"}
+                                            {stackItem?.type?.name || "NewType"}
                                         </BreadcrumbItem>
                                     </React.Fragment>
                                 ))}
                             </BreadcrumbContainer>
                         )}
                         <FormTypeEditor
-                            type={ isGraphqlEditor? defaultType() : undefined}
+                            type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
+                            isPopupTypeForm={true}
+                            isGraphql={isGraphqlEditor}
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
-                            isPopupTypeForm={true}
-                            onTypeCreate={handleTypeCreate}
+                            onTypeCreate={() => { }}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
-                            isGraphql={isGraphqlEditor}
                         />
                     </div>
                 </DynamicModal>)
