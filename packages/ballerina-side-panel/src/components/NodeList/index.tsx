@@ -371,6 +371,13 @@ export function NodeList(props: NodeListProps) {
         setSearchText(text);
     };
 
+    const handleBackClick = () => {
+        if (onBack) {
+            setSearchText("");
+            onBack();
+        }
+    }
+
     useEffect(() => {
         setIsSearching(false);
     }, [categories]);
@@ -788,7 +795,7 @@ export function NodeList(props: NodeListProps) {
                     )}
                     {onBack && title && (
                         <S.LeftAlignRow>
-                            <S.BackButton appearance="icon" onClick={onBack}>
+                            <S.BackButton appearance="icon" onClick={handleBackClick}>
                                 <BackIcon />
                             </S.BackButton>
                             {title}
@@ -839,6 +846,6 @@ export function NodeList(props: NodeListProps) {
             )}
         </S.Container>
     );
-}
+});
 
 export default NodeList;
