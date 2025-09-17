@@ -17,7 +17,7 @@
  */
 
 import React, { useRef, useState, useEffect } from "react";
-import { Button, Codicon, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { Type, Member, Imports } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
@@ -213,11 +213,9 @@ export function UnionEditor({ type, onChange, rpcClient, onValidationError }: Un
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
                 <div style={{ display: 'flex', gap: '8px' }} data-testid="add-member-button">
-                    <Tooltip content="Add Member">
-                        <Button appearance="icon" onClick={addMember}>
-                            <Codicon name="add" />
-                        </Button>
-                    </Tooltip>
+                    <Button appearance="icon" onClick={addMember} tooltip="Add Member">
+                        <Codicon name="add" />
+                    </Button>
                 </div>
             </S.Header>
             {type.members.map((member, index) => (

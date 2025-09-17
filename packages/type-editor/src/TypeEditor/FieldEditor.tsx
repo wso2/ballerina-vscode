@@ -18,7 +18,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Imports, Member, Type } from '@wso2/ballerina-core';
-import { Button, CheckBox, Codicon, TextField, Tooltip } from '@wso2/ui-toolkit';
+import { Button, CheckBox, Codicon, TextField } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { typeToSource, defaultAnonymousRecordType } from './TypeUtil';
 import { RecordEditor } from './RecordEditor';
@@ -165,27 +165,19 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 />
                 <div style={{ display: 'flex', gap: '1px' }}>
                     {isRecord(member.type) &&
-                        <Tooltip content='Add Field'>
-                            <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()}>
-                                <Codicon name="add" />
-                            </Button>
-                        </Tooltip>
+                        <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()} tooltip='Add Field'>
+                            <Codicon name="add" />
+                        </Button>
                     }
-                    <Tooltip content='Create Inline Record'>
-                        <Button appearance="icon" onClick={toggleRecord}>
-                            <CurlyBracesIcon isActive={isRecord(member.type)} />
-                        </Button>
-                    </Tooltip>
-                    <Tooltip content='Set as an Optional Field'>
-                        <Button appearance="icon" onClick={toggleOptional}>
-                            <OptionalFieldIcon isActive={member?.optional} />
-                        </Button>
-                    </Tooltip>
-                    <Tooltip content='Delete Field'>
-                        <Button appearance="icon" onClick={onDelete}>
-                            <Codicon name="trash" />
-                        </Button>
-                    </Tooltip>
+                    <Button appearance="icon" onClick={toggleRecord} tooltip='Create Inline Record'>
+                        <CurlyBracesIcon isActive={isRecord(member.type)} />
+                    </Button>
+                    <Button appearance="icon" onClick={toggleOptional} tooltip='Set as an Optional Field'>
+                        <OptionalFieldIcon isActive={member?.optional} />
+                    </Button>
+                    <Button appearance="icon" onClick={onDelete} tooltip='Delete Field'>
+                        <Codicon name="trash" />
+                    </Button>
                 </div>
             </div>
             {panelOpened && (
