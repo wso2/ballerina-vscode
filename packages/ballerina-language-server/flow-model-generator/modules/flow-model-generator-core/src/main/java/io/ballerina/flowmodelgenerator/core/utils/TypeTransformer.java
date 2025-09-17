@@ -494,7 +494,9 @@ public class TypeTransformer {
             case OBJECT -> transform((ObjectTypeSymbol) typeSymbol, typeDataBuilder);
             case TABLE -> transform((TableTypeSymbol) typeSymbol, typeDataBuilder);
             case TUPLE -> transform((TupleTypeSymbol) typeSymbol, typeDataBuilder);
-            default -> CommonUtils.getTypeSignature(typeSymbol, this.moduleInfo);
+            default -> CommonUtils.isWithinPackage(typeSymbol, moduleInfo) && typeSymbol.getName().isPresent()
+                    ? typeSymbol.getName().get()
+                    : CommonUtils.getTypeSignature(typeSymbol, this.moduleInfo);
         };
     }
 
