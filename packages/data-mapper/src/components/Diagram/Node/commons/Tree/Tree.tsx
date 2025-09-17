@@ -49,6 +49,7 @@ export const SharedContainer = styled.div`
     font-size: 13px;
     line-height: 24px;
     width: ${IO_NODE_DEFAULT_WIDTH}px;
+    border-radius: 6px;
 `;
 
 export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolean }>(

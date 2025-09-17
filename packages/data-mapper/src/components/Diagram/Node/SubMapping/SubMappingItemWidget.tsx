@@ -248,14 +248,16 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
             />
             {isLastItem && isOnRootView && (
                 <Button
-                    className={classes.addSubMappingButton}
+                    className={classes.addMoreSubMappingsButton}
                     appearance='icon'
                     aria-label="add"
                     onClick={onClickAddSubMapping}
                     data-testid={"add-another-sub-mapping-btn"}
                 >
-                    <Codicon name="add" iconSx={{ color: "var(--button-primary-foreground)"}} />
-                    <div>Add Another Sub Mapping</div>
+                    <Codicon name="add" sx={{ color: "var(--vscode-textLink-foreground)"}} />
+                    <div style={{ color: "var(--vscode-textLink-foreground)", marginLeft: "8px" }}>
+                        Add Another Sub Mapping
+                    </div>
                 </Button>
             )}
         </>
