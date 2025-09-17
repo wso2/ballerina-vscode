@@ -128,7 +128,7 @@ public class ReferenceType {
             recordType.hashCode = typeHash;
             recordType.referenceKey = visitedKey;
             //To handle anonymous record types, use type hash as the visited key as there is no name
-            if (name.isEmpty()){
+            if (name.isEmpty())c{
                 visitedKey = typeHash;
                 recordType.referenceKey = visitedKey;
             }
@@ -185,7 +185,8 @@ public class ReferenceType {
             String elementModuleId = elementTypeSymbol.getModule().isPresent()
                     ? elementTypeSymbol.getModule().get().id().toString()
                     : null;
-            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, elementModuleId, typeDefSymbols);
+            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName,
+                    elementModuleId, typeDefSymbols);
             if (elementType.dependentTypeKeys == null || elementType.dependentTypeKeys.isEmpty()) {
                 if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
@@ -231,7 +232,8 @@ public class ReferenceType {
                 String memberModuleId = memberTypeSymbol.getModule().isPresent()
                         ? memberTypeSymbol.getModule().get().id().toString()
                         : null;
-                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol,
+                        memberTypeName, memberModuleId, typeDefSymbols);
                 if (memberType.dependentTypeKeys == null || memberType.dependentTypeKeys.isEmpty()) {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
