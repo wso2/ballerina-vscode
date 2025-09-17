@@ -31,7 +31,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "ref": "1409956942"
+        "ref": "1373151159"
       },
       {
         "name": "secondaryPhonesItem",
@@ -88,22 +88,27 @@
       }
     },
     "refs": {
-      "1409956942": {
+      "-782972947": {
         "fields": [
           {
-            "fields": [],
-            "name": "info",
-            "displayName": "info",
-            "typeName": "Info",
-            "kind": "record",
-            "optional": false,
-            "ref": "-36697220"
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
           }
         ],
-        "typeName": "User",
+        "typeName": "SecondaryPhones",
         "kind": "record"
       },
-      "-36697220": {
+      "1372788890": {
         "fields": [
           {
             "member": {
@@ -152,6 +157,21 @@
           }
         ],
         "typeName": "Info",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "info",
+            "displayName": "info",
+            "typeName": "Info",
+            "kind": "record",
+            "optional": false,
+            "ref": "1372788890"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }

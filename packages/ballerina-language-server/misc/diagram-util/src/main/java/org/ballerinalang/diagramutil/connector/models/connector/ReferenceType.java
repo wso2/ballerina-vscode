@@ -110,8 +110,10 @@ public class ReferenceType {
         String visitedKey = String.valueOf((moduleID + ":" + name).hashCode());
 
         RefType type = visitedTypeMap.get(visitedKey);
-        if (type != null) {
-            if (type.dependentTypes != null) {
+        if (type != null && !(symbol.typeKind().equals(TypeDescKind.TYPE_REFERENCE))) {
+            if ((type.hashCode != null && !type.hashCode.equals(typeHash))) {
+                visitedTypeMap.remove(visitedKey);
+            } else if (type.dependentTypes != null) {
                 for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
                     String depTypeKey = entry.getKey();
                     RefType depType = entry.getValue();
@@ -139,8 +141,10 @@ public class ReferenceType {
                         visitedTypeMap.put(depTypeKey, updatedDepType);
                     }
                 }
+                return type;
+            } else {
+                return type;
             }
-            return type;
         }
 
         TypeDescKind kind = symbol.typeKind();
@@ -149,6 +153,11 @@ public class ReferenceType {
             RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = typeHash;
             recordType.referenceKey = visitedKey;
+            //To handle anonymous record types, use type hash as the visited key as there is no name
+            if (name.isEmpty()){
+                visitedKey = typeHash;
+                recordType.referenceKey = visitedKey;
+            }
             visitedTypeMap.put(visitedKey, recordType);
 
             Map<String, RecordFieldSymbol> fieldDescriptors = recordTypeSymbol.fieldDescriptors();
@@ -182,8 +191,13 @@ public class ReferenceType {
                     recordType.dependentTypeKeys.addAll(fieldType.dependentTypeKeys);
                 }
                 if (fieldType.hashCode != null) {
-                    recordType.dependentTypeKeys.add(
-                            String.valueOf((fieldModuleId + ":" + fieldTypeName).hashCode()));
+                    if (fieldType.name.isEmpty()) {
+                        //For anonymous types, use type hash as the dependent type key as there is no name
+                        recordType.dependentTypeKeys.add(fieldType.hashCode);
+                    } else {
+                        recordType.dependentTypeKeys.add(
+                                String.valueOf((fieldModuleId + ":" + fieldTypeName).hashCode()));
+                    }
                 }
             });
 
@@ -222,7 +236,13 @@ public class ReferenceType {
                 arrayType.dependentTypeKeys.addAll(elementType.dependentTypeKeys);
             }
             if (elementType.hashCode != null) {
-                arrayType.dependentTypeKeys.add(String.valueOf((elementModuleId + ":" + elementTypeName).hashCode()));
+                if (elementType.name.isEmpty()) {
+                    //For anonymous types, use type hash as the dependent type key as there is no name
+                    arrayType.dependentTypeKeys.add(elementType.hashCode);
+                } else {
+                    arrayType.dependentTypeKeys.add(
+                            String.valueOf((elementModuleId + ":" + elementTypeName).hashCode()));
+                }
             }
             arrayType.hashCode = arrayType.elementType.hashCode;
             arrayType.referenceKey = arrayType.elementType.referenceKey;
@@ -264,8 +284,13 @@ public class ReferenceType {
 
                 }
                 if (memberType.hashCode != null) {
-                    unionType.dependentTypeKeys.add(
-                            String.valueOf((memberModuleId + ":" + memberTypeName).hashCode()));
+                    if (memberType.name.isEmpty()) {
+                        //For anonymous types, use type hash as the dependent type key as there is no name
+                        unionType.dependentTypeKeys.add(memberType.hashCode);
+                    } else {
+                        unionType.dependentTypeKeys.add(
+                                String.valueOf((memberModuleId + ":" + memberTypeName).hashCode()));
+                    }
                 }
             }
             return unionType;

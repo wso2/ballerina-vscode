@@ -30,11 +30,11 @@
       "displayName": "person",
       "typeName": "Person",
       "kind": "record",
-      "ref": "-999232890"
+      "ref": "887620673"
     },
     "mappings": [],
     "refs": {
-      "-999232890": {
+      "887620673": {
         "fields": [
           {
             "name": "name",
@@ -50,7 +50,7 @@
             "typeName": "Person",
             "kind": "record",
             "optional": false,
-            "ref": "-999232890"
+            "ref": "887620673"
           },
           {
             "fields": [],
@@ -59,7 +59,7 @@
             "typeName": "Person",
             "kind": "record",
             "optional": false,
-            "ref": "-999232890"
+            "ref": "887620673"
           }
         ],
         "typeName": "Person",

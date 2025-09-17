@@ -27,3 +27,17 @@ function fn1() {
         department: engineering
     };
 }
+
+type MyType2 record {|
+    record {|
+        int p;
+        record {|
+            int r;
+        |} q;
+    |}[] arr;
+    record {|
+        record {|
+            int Ccc;
+        |} Bb;
+    |} Aa;
+|};

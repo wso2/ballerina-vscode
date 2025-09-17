@@ -31,7 +31,7 @@
           "displayName": "<myTypes1Item>",
           "typeName": "MyType",
           "kind": "record",
-          "ref": "2079019383"
+          "ref": "819315698"
         },
         "name": "myTypes1",
         "displayName": "myTypes1",
@@ -47,7 +47,7 @@
           "displayName": "<myTypes2Item>",
           "typeName": "MyType",
           "kind": "record",
-          "ref": "2079019383"
+          "ref": "819315698"
         },
         "name": "myTypes2",
         "displayName": "myTypes2",
@@ -64,7 +64,7 @@
             "displayName": "<myTypes3ItemItem>",
             "typeName": "MyType",
             "kind": "record",
-            "ref": "2079019383"
+            "ref": "819315698"
           },
           "name": "myTypes3",
           "displayName": "<myTypes3Item>",
@@ -86,7 +86,7 @@
         "typeName": "Types",
         "kind": "record",
         "category": "variable",
-        "ref": "-1223228350"
+        "ref": "-382721523"
       },
       {
         "member": {
@@ -95,7 +95,7 @@
           "displayName": "<myType3Item>",
           "typeName": "MyType",
           "kind": "record",
-          "ref": "2079019383"
+          "ref": "819315698"
         },
         "name": "myType3",
         "displayName": "myType3",
@@ -113,7 +113,7 @@
           "displayName": "<0ItemItem>",
           "typeName": "MyType",
           "kind": "record",
-          "ref": "2079019383"
+          "ref": "819315698"
         },
         "name": "0",
         "displayName": "<0Item>",
@@ -162,7 +162,36 @@
       }
     },
     "refs": {
-      "2079019383": {
+      "-382721523": {
+        "fields": [
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "name": "t",
+                "displayName": "<tItemItem>",
+                "typeName": "MyType",
+                "kind": "record",
+                "ref": "819315698"
+              },
+              "name": "t",
+              "displayName": "<tItem>",
+              "typeName": "MyType[]",
+              "kind": "array",
+              "ref": "2079019383"
+            },
+            "name": "t",
+            "displayName": "t",
+            "typeName": "MyType[][]",
+            "kind": "array",
+            "optional": false,
+            "ref": "2079019383"
+          }
+        ],
+        "typeName": "Types",
+        "kind": "record"
+      },
+      "819315698": {
         "fields": [
           {
             "name": "name1",
@@ -180,35 +209,6 @@
           }
         ],
         "typeName": "MyType",
-        "kind": "record"
-      },
-      "-1223228350": {
-        "fields": [
-          {
-            "member": {
-              "member": {
-                "fields": [],
-                "name": "t",
-                "displayName": "<tItemItem>",
-                "typeName": "MyType",
-                "kind": "record",
-                "ref": "2079019383"
-              },
-              "name": "t",
-              "displayName": "<tItem>",
-              "typeName": "MyType[]",
-              "kind": "array",
-              "ref": "2079019383"
-            },
-            "name": "t",
-            "displayName": "t",
-            "typeName": "MyType[][]",
-            "kind": "array",
-            "optional": false,
-            "ref": "2079019383"
-          }
-        ],
-        "typeName": "Types",
         "kind": "record"
       }
     }

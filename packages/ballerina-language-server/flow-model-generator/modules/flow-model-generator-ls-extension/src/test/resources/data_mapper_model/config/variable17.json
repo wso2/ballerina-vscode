@@ -37,7 +37,7 @@
           "displayName": "<credentialsItem>",
           "typeName": "Credentials",
           "kind": "record",
-          "ref": "1085256861"
+          "ref": "242052496"
         },
         "name": "credentials",
         "displayName": "credentials",
@@ -53,7 +53,7 @@
           "displayName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "ref": "-1418772512"
+          "ref": "1889977605"
         },
         "name": "userInfo",
         "displayName": "userInfo",
@@ -69,7 +69,7 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-312915975"
+      "ref": "545732303"
     },
     "mappings": [
       {
@@ -126,27 +126,7 @@
       }
     ],
     "refs": {
-      "-1418772512": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "-312915975": {
+      "545732303": {
         "fields": [
           {
             "name": "id",
@@ -162,7 +142,7 @@
               "displayName": "<credentialsItem>",
               "typeName": "Credentials",
               "kind": "record",
-              "ref": "1085256861"
+              "ref": "242052496"
             },
             "name": "credentials",
             "displayName": "credentials",
@@ -182,7 +162,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "1085256861": {
+      "242052496": {
         "fields": [
           {
             "name": "username",
@@ -200,6 +180,26 @@
           }
         ],
         "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
         "kind": "record"
       }
     }

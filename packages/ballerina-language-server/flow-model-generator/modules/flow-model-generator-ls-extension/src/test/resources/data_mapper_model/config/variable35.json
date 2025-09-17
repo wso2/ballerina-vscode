@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "-699535980"
+        "ref": "1373151159"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "displayName": "user1",
       "typeName": "User1",
       "kind": "record",
-      "ref": "-2043998407"
+      "ref": "-381986982"
     },
     "mappings": [
       {
@@ -102,7 +102,7 @@
       }
     ],
     "refs": {
-      "-1647132631": {
+      "-381986978": {
         "fields": [
           {
             "member": {
@@ -121,51 +121,22 @@
         "typeName": "User5",
         "kind": "record"
       },
-      "-2043998407": {
+      "-381986979": {
         "fields": [
           {
             "fields": [],
-            "name": "user2",
-            "displayName": "user2",
-            "typeName": "User2",
+            "name": "user5",
+            "displayName": "user5",
+            "typeName": "User5",
             "kind": "record",
             "optional": false,
-            "ref": "-69405822"
-          },
-          {
-            "name": "s1",
-            "displayName": "s1",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
+            "ref": "-381986978"
           }
         ],
-        "typeName": "User1",
+        "typeName": "User4",
         "kind": "record"
       },
-      "-2112806689": {
-        "fields": [
-          {
-            "fields": [],
-            "name": "user4",
-            "displayName": "user4",
-            "typeName": "User4",
-            "kind": "record",
-            "optional": false,
-            "ref": "-462373188"
-          },
-          {
-            "name": "i3",
-            "displayName": "i3",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "typeName": "User3",
-        "kind": "record"
-      },
-      "-699535980": {
+      "1373151159": {
         "fields": [
           {
             "name": "name",
@@ -178,22 +149,29 @@
         "typeName": "User",
         "kind": "record"
       },
-      "-462373188": {
+      "-381986980": {
         "fields": [
           {
             "fields": [],
-            "name": "user5",
-            "displayName": "user5",
-            "typeName": "User5",
+            "name": "user4",
+            "displayName": "user4",
+            "typeName": "User4",
             "kind": "record",
             "optional": false,
-            "ref": "-1647132631"
+            "ref": "-381986979"
+          },
+          {
+            "name": "i3",
+            "displayName": "i3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
           }
         ],
-        "typeName": "User4",
+        "typeName": "User3",
         "kind": "record"
       },
-      "-69405822": {
+      "-381986981": {
         "fields": [
           {
             "fields": [],
@@ -202,10 +180,32 @@
             "typeName": "User3",
             "kind": "record",
             "optional": false,
-            "ref": "-2112806689"
+            "ref": "-381986980"
           }
         ],
         "typeName": "User2",
+        "kind": "record"
+      },
+      "-381986982": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user2",
+            "displayName": "user2",
+            "typeName": "User2",
+            "kind": "record",
+            "optional": false,
+            "ref": "-381986981"
+          },
+          {
+            "name": "s1",
+            "displayName": "s1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User1",
         "kind": "record"
       }
     }

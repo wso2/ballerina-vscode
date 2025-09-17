@@ -31,7 +31,7 @@
         "typeName": "MyType",
         "kind": "record",
         "category": "local-variable",
-        "ref": "1826392918"
+        "ref": "819315698"
       }
     ],
     "output": {
@@ -40,7 +40,7 @@
       "displayName": "v2",
       "typeName": "MyType",
       "kind": "record",
-      "ref": "1826392918"
+      "ref": "819315698"
     },
     "mappings": [
       {
@@ -67,7 +67,7 @@
       }
     ],
     "refs": {
-      "1826392918": {
+      "819315698": {
         "fields": [
           {
             "member": {

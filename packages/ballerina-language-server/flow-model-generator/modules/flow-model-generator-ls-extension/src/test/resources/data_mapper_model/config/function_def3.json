@@ -31,7 +31,7 @@
           "displayName": "<inputsItem>",
           "typeName": "Input",
           "kind": "record",
-          "ref": "-1703435696"
+          "ref": "-393207458"
         },
         "name": "inputs",
         "displayName": "inputs",
@@ -47,7 +47,7 @@
         "typeName": "Input",
         "kind": "record",
         "focusExpression": "inputs",
-        "ref": "-1703435696"
+        "ref": "-393207458"
       }
     ],
     "output": {
@@ -57,7 +57,7 @@
         "displayName": "<0Item>",
         "typeName": "Output",
         "kind": "record",
-        "ref": "-1514999486"
+        "ref": "873824749"
       },
       "name": "0",
       "displayName": "0",
@@ -100,20 +100,22 @@
       }
     },
     "refs": {
-      "-1514999486": {
+      "-393207458": {
         "fields": [
           {
-            "name": "fullName",
-            "displayName": "fullName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": true
+            "fields": [],
+            "name": "user",
+            "displayName": "user",
+            "typeName": "User",
+            "kind": "record",
+            "optional": true,
+            "ref": "1373151159"
           }
         ],
-        "typeName": "Output",
+        "typeName": "Input",
         "kind": "record"
       },
-      "-1064739742": {
+      "1373151159": {
         "fields": [
           {
             "name": "firstName",
@@ -126,19 +128,17 @@
         "typeName": "User",
         "kind": "record"
       },
-      "-1703435696": {
+      "873824749": {
         "fields": [
           {
-            "fields": [],
-            "name": "user",
-            "displayName": "user",
-            "typeName": "User",
-            "kind": "record",
-            "optional": true,
-            "ref": "-1064739742"
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
           }
         ],
-        "typeName": "Input",
+        "typeName": "Output",
         "kind": "record"
       }
     }
