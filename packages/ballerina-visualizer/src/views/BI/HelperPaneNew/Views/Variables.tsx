@@ -21,7 +21,7 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
@@ -71,9 +71,11 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                     event.stopPropagation();
                     onMoreIconClick(item.label);
                 }}>
-                    <VariableTypeIndicator >
-                        {item.description}
-                    </VariableTypeIndicator>
+                    <Tooltip content={item.description} position="top">
+                        <VariableTypeIndicator >
+                            {item.description}
+                        </VariableTypeIndicator>
+                    </Tooltip>
                     <Codicon name="chevron-right" />
                 </VariablesMoreIconContainer>}
         >
@@ -158,6 +160,7 @@ export const Variables = (props: VariablesPageProps) => {
                 closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
                     onClose()
                     closeModal(POPUP_IDS.VARIABLE);
+                    onChange(newNodeNameRef.current, false, true);
                 }
             },
         );

@@ -352,7 +352,9 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
             <S.Header>
                 <S.SectionTitle>{isGraphql ? 'Object Fields' : 'Resource Methods'}</S.SectionTitle>
                 <div style={{ display: 'flex', gap: '8px' }} data-testid="function-add-button">
-                    <Button appearance="icon" onClick={addFunction}><Codicon name="add" /></Button>
+                    <Button appearance="icon" onClick={addFunction} tooltip={isGraphql ? 'Add Field' : 'Add Resource Method'}>
+                        <Codicon name="add" />
+                    </Button>
                 </div>
             </S.Header>
 
@@ -381,7 +383,9 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                             rootType={type}
                             onValidationError={(hasError) => handleValidationError(index, false, hasError)}
                         />
-                        <Button appearance="icon" onClick={() => deleteFunction(index)}><Codicon name="trash" /></Button>
+                        <Button appearance="icon" onClick={() => deleteFunction(index)} tooltip='Delete'>
+                            <Codicon name="trash" />
+                        </Button>
                     </S.FunctionRow>
 
                     {expandedFunctions.includes(index) && (
@@ -413,6 +417,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                                                     e.stopPropagation();
                                                     deleteParameter(index, paramIndex);
                                                 }}
+                                                tooltip='Delete'
                                             >
                                                 <Codicon name="trash" />
                                             </Button>

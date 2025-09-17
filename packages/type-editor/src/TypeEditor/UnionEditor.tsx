@@ -212,8 +212,10 @@ export function UnionEditor({ type, onChange, rpcClient, onValidationError }: Un
         <S.Container>
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
-                <div style={{ display: 'flex', gap: '8px' }}  data-testid="add-member-button">
-                    <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                <div style={{ display: 'flex', gap: '8px' }} data-testid="add-member-button">
+                    <Button appearance="icon" onClick={addMember} tooltip="Add Member">
+                        <Codicon name="add" />
+                    </Button>
                 </div>
             </S.Header>
             {type.members.map((member, index) => (
