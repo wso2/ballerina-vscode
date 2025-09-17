@@ -157,6 +157,7 @@ export function FormGeneratorNew(props: FormProps) {
     const [formImports, setFormImports] = useState<FormImports>({});
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -235,6 +236,28 @@ export function FormGeneratorNew(props: FormProps) {
         });
     };
 
+    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
+        return ["()"].includes(typeLabel);
+    }
+
+    const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
+        const newTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+            filePath: fileName,
+            position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine
+        });
+        const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
+        if (matchedReferenceType) {
+            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+                || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
+            ) {
+                setValueTypeConstraints('');
+                return;
+            }
+        }
+        setValueTypeConstraints(valueTypeConstraint);
+    }
+
     const defaultType = (): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
@@ -269,6 +292,19 @@ export function FormGeneratorNew(props: FormProps) {
         };
     }
 
+    const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
+        const updatedFields = newFields.map((field) => {
+            if (field.type === 'TYPE') {
+                const oldField = oldFields.find(f => f.key === field.key);
+                if (oldField) {
+                    return { ...field, value: oldField.value };
+                }
+            }
+            return field;
+        });
+        return updatedFields;
+    }
+
 
     useEffect(() => {
         if (rpcClient) {
@@ -289,8 +325,9 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            setFields(fields);
-            setFormImports(getImportsForFormFields(fields));
+            const patchedFields = getPatchedFields(fieldsValues, fields);
+            setFields(patchedFields);
+            setFormImports(getImportsForFormFields(patchedFields));
         }
     }, [fields]);
 
@@ -586,6 +623,8 @@ export function FormGeneratorNew(props: FormProps) {
             isInModal: false,
             valueTypeConstraint: valueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
+            handleValueTypeConstChange: handleValueTypeConstChange,
+            forcedValueTypeConstraint: valueTypeConstraints,
         });
     };
 
@@ -701,10 +740,6 @@ export function FormGeneratorNew(props: FormProps) {
             const updatedImports = { ...formImports, [key]: imports };
             setFormImports(updatedImports);
         }
-    }
-
-    const handleSelectedTypeChange = (type: CompletionItem) => {
-        setSelectedType(type);
     }
 
     const onCloseTypeEditor = () => {
@@ -824,7 +859,6 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
-                    handleSelectedTypeChange={handleSelectedTypeChange}
                 />
             )}
             {

@@ -192,6 +192,13 @@ export interface TestGeneratorIntermediaryState {
     testPlan: string;
 }
 
+export interface DocumentationGeneratorIntermediaryState {
+    serviceName: string;
+    documentation: string;
+    projectSource: ProjectSource;
+    openApiSpec?: string;
+}
+
 export interface PostProcessRequest {
     assistant_response: string;
 }

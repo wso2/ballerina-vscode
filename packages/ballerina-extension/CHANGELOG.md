@@ -2,6 +2,41 @@
 
 All notable changes to the "Ballerina" extension will be documented in this file.
 
+## **5.4.0** (2025-09-17)
+
+### Major updates
+
+- **Improved Data Mapper** — Revamped with a new model-based design, better type handling, and integration with the latest Language Server APIs.  
+- **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.  
+- **GraphQL Upgrades** — Support advanced configurations at service and field level, including context and metadata handling.  
+- **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.  
+- **Editor & Language Server Enhancements** — Better editor usability, improved rendering, and expanded migration tool support.  
+- **Migration Tooling Support** — Support importing Mule projects and Mule XML files to create Ballerina integrations.  
+
+### Added
+
+- **Data Mapper** — Support for enums/unions, constants, nested arrays, optional fields and transformation function mappings.  
+- **AI & Knowledge Base** — Document generation, chunking tools (Chunker, Dataloader), smarter agent creation with reusable model providers.  
+- **Connector Experience** — Local Connectors renamed to Custom Connectors, new tab-based UI, better multi-project switching, migration tool UI.  
+- **BI Extension** — Redesigned welcome page, new commands, type editor improvements, and migration tools support.  
+- **Type Diagram** — Optimized view for diagrams with high node count, added node deletion, and support for making types read-only via TypeEditor.  
+
+### Changed
+
+- **Mappings API** — Standardized field names (name, displayName), improved optionality handling.  
+- **AI & Authentication** — Switched to Devant login and Search API for templates.  
+- **Editor & Designer** — Cleaner UI, project naming via ballerina.toml, AI RAG nodes moved under advanced settings.  
+- **UX Improvements** — Better connector flows, improved rendering for records, and more reliable diagram/test coverage.  
+- **Collapsible Node-Palette** — Node palette groupings are now collapsible and expandable for easier navigation.  
+
+### Fixed
+
+- **Data Mapper** — Array handling, default values, reserved keyword responses, label consistency and mapping deletion inconsistencies corrected.  
+- **Flow Diagram & Editor** — Fixed readonly record rendering and service config sync issues.  
+- **AI & Copilot** — Stability fixes, missing dependencies, race conditions, and notifications resolved.  
+- **Platform Support** — Windows/WSL compatibility improved.  
+- **UI/UX Polish** — Connector alignment, loaders, spacing, and debug logging enhanced. 
+
 
 ## **5.3.1** (2025-08-13)
 

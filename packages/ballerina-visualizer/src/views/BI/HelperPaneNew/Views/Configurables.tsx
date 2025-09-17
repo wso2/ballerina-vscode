@@ -153,6 +153,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
 
     const handleItemClicked = (name: string) => {
         onChange(name, true)
+        onClose && onClose();
     }
 
     const handleAddNewConfigurable = () => {
@@ -168,7 +169,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 showProgressIndicator={false}
                 resetUpdatedExpressionField={() => { }}
                 isInModal={true}
-            />, POPUP_IDS.CONFIGURABLES, "New Configurable", 600)
+            />, POPUP_IDS.CONFIGURABLES, "New Configurable", 650)
 
         onClose && onClose();
     }

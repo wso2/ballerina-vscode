@@ -18,7 +18,9 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import { css, keyframes } from "@emotion/css";
-import { ExpandedDMModel } from "@wso2/ballerina-core";
+import { CodeData, ExpandedDMModel } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { useShallow } from "zustand/react/shallow";
 
 import { DataMapperContext } from "../../utils/DataMapperContext/DataMapperContext";
 import DataMapperDiagram from "../Diagram/Diagram";
@@ -49,8 +51,6 @@ import {
 import { SubMappingNodeInitVisitor } from "../../visitors/SubMappingNodeInitVisitor";
 import { SubMappingConfigForm } from "./SidePanel/SubMappingConfig/SubMappingConfigForm";
 import { ClausesPanel } from "./SidePanel/QueryClauses/ClausesPanel";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-
 
 const fadeIn = keyframes`
     from { opacity: 0.5; }
@@ -132,8 +132,10 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         convertToQuery,
         addSubMapping,
         deleteMapping,
+        deleteSubMapping,
         generateForm,
         addClauses,
+        deleteClause,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
@@ -154,7 +156,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
     const [hasInternalError, setHasInternalError] = useState(false);
 
-    const { isSMConfigPanelOpen } = useDMSubMappingConfigPanelStore((state) => state.subMappingConfig);
+    const { isSMConfigPanelOpen, resetSubMappingConfig } = useDMSubMappingConfigPanelStore(
+        useShallow(state => ({
+            isSMConfigPanelOpen: state.subMappingConfig.isSMConfigPanelOpen,
+            resetSubMappingConfig: state.resetSubMappingConfig
+        }))
+    );
     const { isQueryClausesPanelOpen} = useDMQueryClausesPanelStore();
 
     const { resetSearchStore } = useDMSearchStore();
@@ -221,6 +228,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 hasInputsOutputsChanged,
                 convertToQuery,
                 deleteMapping,
+                deleteSubMapping,
                 mapWithCustomFn,
                 mapWithTransformFn,
                 goToFunction,
@@ -290,6 +298,17 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             .openAIMappingChatWindow(datamapperModel);
     };
 
+    const addNewSubMapping = async (
+        subMappingName: string,
+        type: string,
+        index: number,
+        targetField: string,
+        importsCodedata?: CodeData
+    ) => {
+        await addSubMapping(subMappingName, type, index, targetField, importsCodedata);
+        resetSubMappingConfig();
+    }
+
     return (
         <DataMapperErrorBoundary hasError={hasInternalError} onClose={onClose}>
             <div className={classes.root}>
@@ -314,8 +333,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                             <SubMappingConfigForm
                                 views={views}
                                 updateView={editView}
-                                applyModifications={applyModifications}
-                                addSubMapping={addSubMapping}
+                                addSubMapping={addNewSubMapping}
                                 generateForm={generateForm}
                             />
                         )}
@@ -324,6 +342,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 query={model.query}
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
+                                deleteClause={deleteClause}
                                 generateForm={generateForm}
                             />
                         )}
