@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Button,
     Codicon,
@@ -65,19 +65,22 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         };
     }, []);
 
-    useEffect(() => {
+    const derivedFormValues = useMemo(() => {
         if (subMappingConfigFormData) {
-            setFormValues({
+            return {
                 name: subMappingConfigFormData.name,
                 type: subMappingConfigFormData.type
-            });
-        } else {
-            setFormValues({
-                name: suggestedNextSubMappingName || "",
-                type: ""
-            });
+            };
         }
+        return {
+            name: suggestedNextSubMappingName || "",
+            type: ""
+        };
     }, [subMappingConfigFormData, suggestedNextSubMappingName]);
+    
+    useEffect(() => {
+        setFormValues(derivedFormValues);
+    }, [derivedFormValues]);
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
