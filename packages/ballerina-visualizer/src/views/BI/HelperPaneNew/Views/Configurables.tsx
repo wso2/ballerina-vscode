@@ -153,6 +153,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
 
     const handleItemClicked = (name: string) => {
         onChange(name, true)
+        onClose && onClose();
     }
 
     const handleAddNewConfigurable = () => {
