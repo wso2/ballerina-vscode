@@ -36,7 +36,7 @@ import {
 import { MappingSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { ADDITION, DIRECT, DIVISION, LENGTH, MODULAR, MULTIPLICATION, NAME, PARAMETER_1, SPLIT, SUBTRACTION } from "./constant";
-import { ExpandedDMModel, DataMapperModelResponse, IOType } from "@wso2/ballerina-core";
+import { ExpandedDMModel, DataMapperModelResponse, IOType, TypeKind } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./prompt";
 
 // Operations table - In a real implementation, this would be loaded from JSON files
@@ -167,34 +167,50 @@ class IOTypeVisitorImpl implements IOTypeVisitor {
     visitIOType(ioType: IOType, context: VisitorContext): IOType | null {
         if (ioType.id === context.targetPath) {
             context.found = ioType;
-            return ioType;
+            return this.isContainerWithRecordFields(ioType) ? null : ioType;
         }
 
-        // Visit fields
-        if (ioType.fields && Array.isArray(ioType.fields)) {
-            for (const field of ioType.fields) {
-                const result = this.visitIOType(field, context);
-                if (result) { return result; }
-            }
-        }
+        // Visit all child types
+        const childTypes = [
+            ...(ioType.fields || []),
+            ...(ioType.members || []),
+            ...(ioType.member ? [ioType.member] : [])
+        ];
 
-        // Visit members (for enums, unions)
-        if (ioType.members && Array.isArray(ioType.members)) {
-            for (const member of ioType.members) {
-                const result = this.visitIOType(member, context);
-                if (result) { return result; }
-            }
-        }
-
-        // Visit member
-        if (ioType.member) {
-            const result = this.visitIOType(ioType.member, context);
+        for (const child of childTypes) {
+            const result = this.visitIOType(child, context);
             if (result) { return result; }
         }
 
         return null;
     }
+
+    private isContainerWithRecordFields(ioType: IOType): boolean {
+        return this.hasRecordFields(ioType);
+    }
+
+    private hasRecordFields(type: IOType): boolean {
+        if (!type) { return false; }
+        
+        // Direct record with fields
+        if (type.kind === TypeKind.Record && type.fields?.length) {
+            return true;
+        }
+        
+        // Array containing records
+        if (type.kind === TypeKind.Array) {
+            return this.hasRecordFields(type.member);
+        }
+        
+        // Union containing records
+        if (type.kind === TypeKind.Union && type.members?.length) {
+            return type.members.some(member => this.hasRecordFields(member));
+        }
+        
+        return false;
+    }
 }
+
 
 function findSchemaTypeByPath(inputs: IOType[], path: string): IOType | null {
     const context: VisitorContext = {

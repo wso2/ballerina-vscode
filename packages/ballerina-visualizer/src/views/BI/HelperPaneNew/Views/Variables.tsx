@@ -20,8 +20,8 @@ import { ExpandableList } from "../Components/ExpandableList"
 import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Typography } from "@wso2/ui-toolkit"
+import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
+import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
@@ -38,7 +38,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, openInDataMapper?: boolean, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -71,9 +71,11 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                     event.stopPropagation();
                     onMoreIconClick(item.label);
                 }}>
-                    <VariableTypeIndicator >
-                        {item.description}
-                    </VariableTypeIndicator>
+                    <Tooltip content={item.description} position="top">
+                        <VariableTypeIndicator >
+                            {item.description}
+                        </VariableTypeIndicator>
+                    </Tooltip>
                     <Codicon name="chevron-right" />
                 </VariablesMoreIconContainer>}
         >
@@ -117,7 +119,6 @@ export const Variables = (props: VariablesPageProps) => {
     const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
         label: "Variables",
@@ -145,18 +146,24 @@ export const Variables = (props: VariablesPageProps) => {
         setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, openInDataMapper?: boolean) => {
+    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
             ? updatedNode.properties.variable.value
             : "";
         newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(updatedNode, false, { shouldCloseSidePanel: false, shouldUpdateTargetLine: true });
-        closeModal(POPUP_IDS.VARIABLE);
-        if (isModalOpen) {
-            setIsModalOpen(false)
-        }
+        handleOnFormSubmit?.(
+            updatedNode,
+            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
+            {
+                closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
+                    onClose()
+                    closeModal(POPUP_IDS.VARIABLE);
+                    onChange(newNodeNameRef.current, false, true);
+                }
+            },
+        );
     };
     const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
     const methods = filteredCompletions.filter((completion) => completion.kind === "function")
@@ -194,8 +201,8 @@ export const Variables = (props: VariablesPageProps) => {
                 showProgressIndicator={false}
                 resetUpdatedExpressionField={() => { }}
                 isInModal={true}
-            />, POPUP_IDS.VARIABLE,"New Variable", 600);
-            onClose && onClose();
+            />, POPUP_IDS.VARIABLE, "New Variable", 600);
+        onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {
         const newBreadCrumSteps = [...breadCrumbSteps, {
@@ -284,7 +291,7 @@ export const Variables = (props: VariablesPageProps) => {
                 },
                 valueType: "ACTION_OR_EXPRESSION",
                 value: "",
-                optional: false,
+                optional: true,
                 editable: true,
                 advanced: false,
                 hidden: false,

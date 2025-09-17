@@ -73,7 +73,7 @@ function persistDebugLogs(value: string): void {
         fs.mkdirSync(logFolder, { recursive: true });
     }
     // Create log file if it doesn't exist
-    const logFileDate = new Date(date).toISOString().split('T')[0];
+    const logFileDate = new Date().toISOString().split('T')[0];
     const fileName = `${logFileDate}.log`;
     if (!fs.existsSync(path.join(logFolder, fileName))) {
         fs.writeFileSync(path.join(logFolder, fileName), '');

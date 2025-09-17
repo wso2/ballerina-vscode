@@ -18,7 +18,7 @@
 import React, { ReactNode } from 'react';
 
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon } from '@wso2/ui-toolkit';
+import { Button, Codicon } from '@wso2/ui-toolkit';
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 
 import { useDMSearchStore, useDMSubMappingConfigPanelStore } from "../../../../store/store";

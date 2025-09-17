@@ -26,8 +26,9 @@ import { InfoBox } from "../InfoBox";
 import { ConnectionCreatorProps } from "./types";
 import { getConnectionSpecialConfig } from "./config";
 import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable, updateNodeLineRange } from "./utils";
-import { LoaderContainer } from "./styles";
 import { cloneDeep } from "lodash";
+import { LineRange } from "@wso2/ballerina-core";
+import { LoaderContainer } from "../RelativeLoader/styles";
 
 export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const { connectionKind, selectedNode, nodeFormTemplate, onSave } = props;
@@ -42,6 +43,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const projectPath = useRef<string>("");
+    const targetLineRangeRef = useRef<LineRange | undefined>(undefined);
 
     useEffect(() => {
         initPanel();
@@ -50,6 +52,18 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const initPanel = async () => {
         setLoading(true);
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        const currentPosition = await rpcClient.getVisualizerLocation().then((location) => location.position);
+        targetLineRangeRef.current = {
+            startLine: {
+                line: currentPosition.startLine,
+                offset: currentPosition.startColumn
+            },
+            endLine: {
+                line: currentPosition.endLine,
+                offset: currentPosition.endColumn
+            }
+        }
+
         if (nodeFormTemplate && nodeFormTemplate.properties) {
             const fields = convertConfig(nodeFormTemplate.properties);
             setConnectionFields(fields);
@@ -86,11 +100,12 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             {!loading && connectionFields?.length > 0 && (
                 <>
                     <FormGeneratorNew
-                        fileName={projectPath.current}
+                        fileName={selectedNode?.codedata?.lineRange?.fileName || projectPath.current}
                         fields={connectionFields}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}
                         disableSaveButton={savingForm}
+                        targetLineRange={targetLineRangeRef.current}
                         helperPaneSide="left"
                         isSaving={savingForm}
                         injectedComponents={shouldShowInfo && specialConfig.infoMessage ? [
