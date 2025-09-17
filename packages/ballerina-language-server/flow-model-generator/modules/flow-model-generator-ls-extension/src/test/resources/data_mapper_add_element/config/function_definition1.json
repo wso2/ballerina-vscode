@@ -17,7 +17,8 @@
     "sourceCode": ""
   },
   "propertyKey": "expression",
-  "targetField": "transform.students",
+  "targetField": "transform",
+  "outputId": "transform.students",
   "output": {
     "function_definition1.bal": [
       {
