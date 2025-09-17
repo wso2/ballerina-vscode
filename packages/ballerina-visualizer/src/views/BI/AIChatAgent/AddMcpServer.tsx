@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { AvailableNode, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
+import { AvailableNode, DataMapperDisplayMode, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -397,7 +397,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     // Update handleOnSave to accept all submitted form values
     const handleOnSave = async (
         node?: FlowNode,
-        isDataMapper?: boolean,
+        dataMapperMode?: DataMapperDisplayMode,
         formImports?: any,
         rawFormValues?: FormValues
     ) => {

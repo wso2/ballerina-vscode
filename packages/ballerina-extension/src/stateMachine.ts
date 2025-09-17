@@ -192,6 +192,7 @@ const stateMachine = createMachine<MachineContext>(
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
                             addType: (context, event) => event.viewLocation?.addType,
+                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                             dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                         })
                     }
@@ -263,6 +264,7 @@ const stateMachine = createMachine<MachineContext>(
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
                                     addType: (context, event) => event.viewLocation?.addType,
+                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                                     dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
@@ -639,9 +641,15 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
         newLocation = { ...lastView.location };
         const currentIdentifier = lastView.location?.identifier;
         let currentArtifact: ProjectStructureArtifactResponse;
+        let targetedArtifactType = lastView.location?.artifactType;
+
+        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE) {
+            // If the artifact type is resource, we need to target the service
+            targetedArtifactType = DIRECTORY_MAP.SERVICE;
+        }
 
         // These changes will be revisited in the revamp
-        StateMachine.context().projectStructure.directoryMap[lastView.location.artifactType].forEach((artifact) => {
+        StateMachine.context().projectStructure.directoryMap[targetedArtifactType].forEach((artifact) => {
             if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
@@ -671,15 +679,30 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     notifyCurrentWebview();
 }
 
-export function updateDataMapperView(codedata?: CodeData, variableName?: string) {
-    let lastView: HistoryEntry = getLastHistory();
-    lastView.location.dataMapperMetadata = {
+export function updateDataMapperView(codedata?: CodeData, variableName?: string): void {
+    const dataMapperMetadata = {
         codeData: codedata,
         name: variableName
     };
-    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView.location });
+
+    if (StateMachinePopup.isActive()) {
+        // Update popup context when data mapper is in popup view
+        const popupLocation = StateMachinePopup.context();
+        popupLocation.dataMapperMetadata = dataMapperMetadata;
+        
+        StateMachinePopup.sendEvent(EVENT_TYPE.VIEW_UPDATE, popupLocation);
+    } else {
+        // Update main view history when data mapper is in main view
+        const lastView = getLastHistory();
+        if (lastView && lastView.location) {
+            lastView.location.dataMapperMetadata = dataMapperMetadata;
+            stateService.send({ type: EVENT_TYPE.VIEW_UPDATE, viewLocation: lastView.location });
+        }
+    }
+
     notifyCurrentWebview();
 }
+
 
 function getLastHistory() {
     const historyStack = history?.get();

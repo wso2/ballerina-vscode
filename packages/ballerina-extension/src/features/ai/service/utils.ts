@@ -30,7 +30,8 @@ import {
     TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
-    Command
+    Command,
+    DocumentationGeneratorIntermediaryState
 } from "@wso2/ballerina-core";
 import { CoreMessage } from "ai";
 import { MessageRole } from "./types";
@@ -126,7 +127,7 @@ ${resourceContent}`;
     const readmeContent = readmeFiles[0];
 
     return `${prompt}
-Readme Contents: 
+Readme Contents:
 ${readmeContent}`;
 }
 
@@ -185,10 +186,10 @@ export function sendMessageStartNotification(): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendTestGenIntermidateStateNotification(testGenState: TestGeneratorIntermediaryState): void {
+export function sendIntermidateStateNotification(intermediaryState: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState): void {
     const msg: IntermidaryState = {
         type: "intermediary_state",
-        state: testGenState,
+        state: intermediaryState,
     };
     sendAIPanelNotification(msg);
 }
