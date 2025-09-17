@@ -29,7 +29,7 @@ export class SequenceDiagramRpcManager implements SequenceDiagramAPI {
                 resolve(undefined);
             }
             const params: SequenceModelRequest = {
-                filePath: Uri.parse(context.documentUri!).fsPath,
+                filePath: Uri.file(context.documentUri!).fsPath,
                 startLine: {
                     line: context.position.startLine ?? 0,
                     offset: context.position.startColumn ?? 0,
