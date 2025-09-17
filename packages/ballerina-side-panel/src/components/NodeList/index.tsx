@@ -372,10 +372,8 @@ export function NodeList(props: NodeListProps) {
     };
 
     const handleBackClick = () => {
-        if (onBack) {
-            setSearchText("");
-            onBack();
-        }
+        setSearchText("");
+        onBack();
     }
 
     useEffect(() => {
@@ -846,6 +844,6 @@ export function NodeList(props: NodeListProps) {
             )}
         </S.Container>
     );
-});
+}
 
 export default NodeList;
