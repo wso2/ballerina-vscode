@@ -111,36 +111,10 @@ public class ReferenceType {
 
         RefType type = visitedTypeMap.get(visitedKey);
         if (type != null && !(symbol.typeKind().equals(TypeDescKind.TYPE_REFERENCE))) {
-            if ((type.hashCode != null && !type.hashCode.equals(typeHash))) {
+            if (type.hashCode != null && !type.hashCode.equals(typeHash)) {
                 visitedTypeMap.remove(visitedKey);
             } else if (type.dependentTypes != null) {
-                for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
-                    String depTypeKey = entry.getKey();
-                    RefType depType = entry.getValue();
-                    Symbol depSymbol = typeDefSymbols.stream()
-                            .filter(sym -> depType.name.equals(sym.getName().orElse("")))
-                            .findFirst()
-                            .orElse(null);
-                    if (depSymbol != null) {
-                        TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
-                        TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
-                        //Generate the hash code for the dependent type symbol
-                        String updatedHashCode = String.valueOf(Objects.hash(
-                                typeDefSymbol.getModule().isPresent() ?
-                                        typeDefSymbol.getModule().get().id().toString() : null,
-                                typeDefSymbol.getName().orElse(""),
-                                typeDesc.signature()));
-                        if (depType.hashCode.equals(updatedHashCode)) {
-                            continue;
-                        }
-                        visitedTypeMap.remove(depTypeKey);
-                        RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
-                        Objects.requireNonNull(updatedDepType,
-                                "fromSemanticSymbol returned null for depSymbol: " + depSymbol);
-                        entry.setValue(updatedDepType);
-                        visitedTypeMap.put(depTypeKey, updatedDepType);
-                    }
-                }
+                validateDependentTypes(type, typeDefSymbols);
                 return type;
             } else {
                 return type;
@@ -192,7 +166,6 @@ public class ReferenceType {
                 }
                 if (fieldType.hashCode != null) {
                     if (fieldType.name.isEmpty()) {
-                        //For anonymous types, use type hash as the dependent type key as there is no name
                         recordType.dependentTypeKeys.add(fieldType.hashCode);
                     } else {
                         recordType.dependentTypeKeys.add(
@@ -237,7 +210,6 @@ public class ReferenceType {
             }
             if (elementType.hashCode != null) {
                 if (elementType.name.isEmpty()) {
-                    //For anonymous types, use type hash as the dependent type key as there is no name
                     arrayType.dependentTypeKeys.add(elementType.hashCode);
                 } else {
                     arrayType.dependentTypeKeys.add(
@@ -285,7 +257,6 @@ public class ReferenceType {
                 }
                 if (memberType.hashCode != null) {
                     if (memberType.name.isEmpty()) {
-                        //For anonymous types, use type hash as the dependent type key as there is no name
                         unionType.dependentTypeKeys.add(memberType.hashCode);
                     } else {
                         unionType.dependentTypeKeys.add(
@@ -357,6 +328,37 @@ public class ReferenceType {
         });
         type = new RefEnumType(enumSymbol.getName().orElse(""), fields);
         return type;
+    }
+
+    private static void validateDependentTypes(RefType type, List<Symbol> typeDefSymbols) {
+        for (Map.Entry<String, RefType> entry : type.dependentTypes.entrySet()) {
+            String depTypeKey = entry.getKey();
+            RefType depType = entry.getValue();
+            Symbol depSymbol = typeDefSymbols.stream()
+                    .filter(sym -> depType.name.equals(sym.getName().orElse("")))
+                    .findFirst()
+                    .orElse(null);
+
+            if (depSymbol != null) {
+                TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
+                TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
+                String moduleId = typeDefSymbol.getModule().isPresent() ?
+                        typeDefSymbol.getModule().get().id().toString() : null;
+                String updatedHashCode = String.valueOf(Objects.hash(
+                        moduleId,
+                        typeDefSymbol.getName().orElse(""),
+                        typeDesc.signature()));
+                if (depType.hashCode.equals(updatedHashCode)) {
+                    continue;
+                }
+                visitedTypeMap.remove(depTypeKey);
+                RefType updatedDepType = fromSemanticSymbol(depSymbol, typeDefSymbols);
+                Objects.requireNonNull(updatedDepType,
+                        "fromSemanticSymbol returned null for depSymbol: " + depSymbol);
+                entry.setValue(updatedDepType);
+                visitedTypeMap.put(depTypeKey, updatedDepType);
+            }
+        }
     }
 
 }
