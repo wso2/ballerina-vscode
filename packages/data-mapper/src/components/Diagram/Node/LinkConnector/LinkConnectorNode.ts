@@ -29,6 +29,7 @@ import { ArrayOutputNode } from "../ArrayOutput";
 import { removeMapping } from "../../utils/modification-utils";
 import { QueryOutputNode } from "../QueryOutput";
 import { useDMSearchStore } from "../../../../store/store";
+import { PrimitiveOutputNode } from "../PrimitiveOutput";
 
 export const LINK_CONNECTOR_NODE_TYPE = "link-connector-node";
 const NODE_ID = "link-connector-node";
@@ -99,7 +100,11 @@ export class LinkConnectorNode extends DataMapperNodeModel {
         if (matchedSearch && this.outPort) {
             this.getModel().getNodes().map((node) => {
     
-                if (node instanceof ObjectOutputNode || node instanceof ArrayOutputNode || node instanceof QueryOutputNode) {
+                if (node instanceof ObjectOutputNode ||
+                    node instanceof ArrayOutputNode ||
+                    node instanceof QueryOutputNode ||
+                    node instanceof PrimitiveOutputNode
+                ) {
                     const targetPortPrefix = getTargetPortPrefix(node);
 
                     this.targetPort = node.getPort(`${targetPortPrefix}.${this.mapping.output}.IN`) as InputOutputPortModel;
