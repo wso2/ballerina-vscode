@@ -35,6 +35,7 @@ import FooterButtons from "../Components/FooterButtons";
 import DynamicModal from "../../../../components/Modal";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
+import { POPUP_IDS, useModalStack } from "../../../../Context";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -66,7 +67,8 @@ export const FunctionsPage = ({
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+    const { addModal , closeModal} = useModalStack();
 
 
 
@@ -163,11 +165,30 @@ export const FunctionsPage = ({
         }
     };
 
+    const handleFunctionSave = (value: string) => {
+        onChange(value);
+        closeModal(POPUP_IDS.FUNCTION);
+        onClose();
+    }
+
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
         const { value, cursorOffset } = await onFunctionItemSelect(item);
         onChange({ value, cursorOffset });
         onClose();
     };
+
+    const handleNewFunctionClick = () => {
+        addModal(
+            <FunctionFormStatic
+                projectPath={projectUri}
+                filePath={defaultFunctionsFile}
+                handleSubmit={handleFunctionSave}
+                functionName={undefined}
+                isDataMapper={false}
+                defaultType={selectedType?.label}
+            />, POPUP_IDS.FUNCTION, "New Function", 500, 400);
+        onClose();
+    }
 
     return (
         <div style={{
@@ -249,20 +270,8 @@ export const FunctionsPage = ({
                 }
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
-            <div style={{ marginTop: "auto", display: 'flex', flexDirection: 'column', justifyContent: 'space-around', padding: '8px' }}>
-                <DynamicModal width={400} height={600} anchorRef={anchorRef} title="Create new Function" openState={isModalOpen} setOpenState={setIsModalOpen}>
-                    <DynamicModal.Trigger>
-                        <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between', overflow: "hidden" }} startIcon='add' title="New Function" />
-                    </DynamicModal.Trigger>
-                    <FunctionFormStatic
-                        projectPath={projectUri}
-                        filePath={defaultFunctionsFile}
-                        handleSubmit={onChange}
-                        functionName={undefined}
-                        isDataMapper={false}
-                        defaultType={selectedType?.label}
-                    />
-                </DynamicModal>
+            <div style={{padding: '0px'}}>
+                <FooterButtons onClick={handleNewFunctionClick} startIcon='add' title="New Function" />
                 <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
 
             </div>

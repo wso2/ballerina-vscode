@@ -163,10 +163,17 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 };
 
 /**
+ * Type definition for provider-specific cache options
+ */
+export type ProviderCacheOptions = 
+    | { anthropic: { cacheControl: { type: string } } } 
+    | { bedrock: { cachePoint: { type: string } } };
+
+/**
  * Returns provider-aware cache control options for prompt caching
  * @returns Cache control options based on the current login method
  */
-export const getProviderCacheControl = async () => {
+export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> => {
     const loginMethod = await getLoginMethod();
     
     switch (loginMethod) {

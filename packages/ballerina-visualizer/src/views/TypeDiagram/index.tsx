@@ -48,7 +48,7 @@ interface TypeEditorState {
     editingType: Type;
 }
 
-const MAX_TYPES_FOR_FULL_VIEW= 80;
+const MAX_TYPES_FOR_FULL_VIEW = 80;
 
 export function TypeDiagram(props: TypeDiagramProps) {
     const { selectedTypeId, projectUri, addType } = props;
@@ -109,19 +109,10 @@ export function TypeDiagram(props: TypeDiagramProps) {
     };
 
     const replaceTop = (item: StackItem) => {
-        if (stack.length === 0) return;
+        if (stack.length <= 1) return;
         setStack((prev) => {
             const newStack = [...prev];
             newStack[newStack.length - 1] = item;
-            return newStack;
-        });
-    }
-
-    const replaceFirst = (item: StackItem) => {
-        if (stack.length === 0) return;
-        setStack((prev) => {
-            const newStack = [...prev];
-            newStack[0] = item;
             return newStack;
         });
     }
@@ -194,10 +185,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 popTypeStack();
                 return;
             }
-            setStack([{
-                isDirty: false,
-                type: undefined
-            }])
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
@@ -211,10 +198,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             popTypeStack();
         }
         setTypeEditorState({
-            editingTypeId: undefined,
-            editingType: undefined,
-            isTypeCreatorOpen: stack.length !== 1,
-            newTypeName: undefined,
+            ...typeEditorState,
+             isTypeCreatorOpen: stack.length !== 1,
         });
     }
 
@@ -240,10 +225,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             isDirty: false
         });
         setTypeEditorState({
+            ...typeEditorState,
             isTypeCreatorOpen: true,
-            editingTypeId: undefined,
-            newTypeName: "",
-            editingType: undefined,
         })
     }
 
@@ -311,6 +294,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
+            isTypeCreatorOpen: true,
             editingType: type,
             editingTypeId: typeId,
         }));
@@ -386,6 +370,27 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }])
     };
 
+    const findSelectedType = (typeId: string): Type => {
+        if (!typeId) {
+            return {
+                name: typeEditorState.newTypeName ?? "MyType",
+                editable: true,
+                metadata: {
+                    label: "",
+                    description: "",
+                },
+                codedata: {
+                    node: "RECORD",
+                },
+                properties: {},
+                members: [],
+                includes: [] as string[],
+                allowAdditionalFields: false
+            };
+        }
+        return typesModel.find((type: Type) => type.name === typeId);
+    };
+
     const onFocusedNodeIdChange = (typeId: string) => {
         setFocusedNodeId(typeId);
         onTypeEditorClosed();
@@ -404,10 +409,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         setTypeEditorState({
-            editingTypeId: undefined,
-            editingType: undefined,
-            isTypeCreatorOpen: false,
-            newTypeName: undefined,
+          ...typeEditorState,
+          isTypeCreatorOpen: true,
         });
     };
 
@@ -427,15 +430,6 @@ export function TypeDiagram(props: TypeDiagramProps) {
             default:
                 return "";
         }
-    };
-
-    const handleTypeCreate = (typeName?: string) => {
-        setTypeEditorState((prevState) => ({
-            ...prevState,
-            isTypeCreatorOpen: true,
-            editingTypeId: undefined,
-            newTypeName: typeName,
-        }));
     };
 
     const handleNodeSelect = (nodeId: string) => {
@@ -502,32 +496,28 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 </ViewContent>
             </View>
             {/* Panel for editing and creating types */}
-            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceFirst }}>
-                {(typeEditorState.editingTypeId || typeEditorState.isTypeCreatorOpen) && typeEditorState.editingType?.codedata?.node !== "CLASS" && (
-                    <PanelContainer
-                        title={typeEditorState.editingTypeId ?
-                            `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
-                                ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
-                                ''}` :
-                            "New Type"
-                        }
-                        show={true}
-                        onClose={onTypeEditorClosed}
-                    >
-                        <FormTypeEditor
-                            key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
-                            type={stack[0]?.type}
-                            newType={stack[0]?.isDirty}
-                            isPopupTypeForm={false}
-                            onTypeChange={onTypeChange}
-                            onTypeCreate={handleTypeCreate}
-                            onSaveType={onSaveType}
-                            getNewTypeCreateForm={getNewTypeCreateForm}
-                            refetchTypes={true}
-                        />
-                    </PanelContainer>
-                )}
-            </EditorContext.Provider>
+            <PanelContainer
+                title={typeEditorState.editingTypeId ?
+                    `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
+                        ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
+                        ''}` :
+                    "New Type"
+                }
+                show={typeEditorState.isTypeCreatorOpen}
+                onClose={onTypeEditorClosed}
+            >
+                <FormTypeEditor
+                    key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
+                    type={findSelectedType(typeEditorState.editingTypeId)}
+                    newType={typeEditorState.editingTypeId ? false : true}
+                    onTypeChange={onTypeChange}
+                    onTypeCreate={() => { }}
+                    isPopupTypeForm={false}
+                    onSaveType={onSaveType}
+                    getNewTypeCreateForm={getNewTypeCreateForm}
+                    refetchTypes={true}
+                />
+            </PanelContainer>
             <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
 
                 {stack.slice(1).map((item, i) => {
@@ -557,7 +547,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                                     newType={peekTypeStack()?.isDirty}
                                     isPopupTypeForm={true}
                                     onTypeChange={onTypeChange}
-                                    onTypeCreate={handleTypeCreate}
+                                    onTypeCreate={() => { }}
                                     onSaveType={onSaveType}
                                     getNewTypeCreateForm={getNewTypeCreateForm}
                                     refetchTypes={refetchStates[i + 1]}

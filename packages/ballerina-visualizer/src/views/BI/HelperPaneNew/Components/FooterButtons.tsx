@@ -46,7 +46,7 @@ type FooterButtonProps = {
 const FooterButtons = (props: FooterButtonProps) => {
     const { onClick, startIcon, title, sx } = props;
     return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
+        <div style={{ display: "flex", justifyContent: "left", alignItems: "center", padding: "8px", ...sx}}>
             <InvisibleButton 
             disabled={props.disabled}
             onClick={onClick}>
