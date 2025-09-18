@@ -184,7 +184,9 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
-    | ChatError;
+    | ChatError
+    | ToolCall
+    | ToolResult;
 
 export interface ChatStart {
     type: "start";
@@ -220,6 +222,15 @@ export interface ChatStop {
 export interface ChatError {
     type: "error";
     content: string;
+}
+export interface ToolCall {
+    type: "tool_call";
+    toolName: string;
+}
+export interface ToolResult {
+    type: "tool_result";
+    toolName: string;
+    libraryNames: string[];
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

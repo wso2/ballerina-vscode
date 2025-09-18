@@ -28,6 +28,8 @@ import {
     ProjectSource,
     SourceFiles,
     TestGeneratorIntermediaryState,
+    ToolCall,
+    ToolResult,
     Command,
     DocumentationGeneratorIntermediaryState
 } from "@wso2/ballerina-core";
@@ -125,7 +127,7 @@ ${resourceContent}`;
     const readmeContent = readmeFiles[0];
 
     return `${prompt}
-Readme Contents: 
+Readme Contents:
 ${readmeContent}`;
 }
 
@@ -188,6 +190,23 @@ export function sendIntermidateStateNotification(intermediaryState: TestGenerato
     const msg: IntermidaryState = {
         type: "intermediary_state",
         state: intermediaryState,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolCallNotification(toolName: string): void {
+    const msg: ToolCall = {
+        type: "tool_call",
+        toolName: toolName,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolResultNotification(toolName: string, libraryNames: string[]): void {
+    const msg: ToolResult = {
+        type: "tool_result",
+        toolName: toolName,
+        libraryNames: libraryNames
     };
     sendAIPanelNotification(msg);
 }

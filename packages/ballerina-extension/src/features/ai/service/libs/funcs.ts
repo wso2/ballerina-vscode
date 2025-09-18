@@ -35,7 +35,7 @@ export async function selectRequiredFunctions(prompt: string, selectedLibNames: 
         const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
         typeLibraries = toTypesToLibraries(resp, selectedLibs);
     }
-    const maximizedLibraries: Library[] = toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
+    const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
     
     // Merge typeLibraries and maximizedLibraries without duplicates
     const mergedLibraries = mergeLibrariesWithoutDuplicates(maximizedLibraries, typeLibraries);
@@ -168,11 +168,13 @@ async function getSuggestedFunctions(prompt: string, libraryList: GetFunctionsRe
     
     console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
     
-    const getLibSystemPrompt = "You are an AI assistant tasked with filtering and removing unwanted functions and clients from a given set of libraries and clients based on a user query. Your goal is to return only the relevant libraries, clients, and functions that match the user's needs.";
+    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
 
-    // TODO: Improve prompt to strictly avoid hallucinations, e.g., "Return ONLY libraries from the provided context; do not add new ones."
-    const getLibUserPrompt = `
-You will be provided with a list of libraries, clients, and their functions and user query.
+Rules:
+1. Use ONLY the libraries listed in Library_Context_JSON.
+2. Do NOT create or infer new libraries or functions.`;
+
+const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
 <QUERY>
 ${prompt}
@@ -185,12 +187,11 @@ ${JSON.stringify(libraryList)}
 To process the user query and filter the libraries, clients, and functions, follow these steps:
 
 1. Analyze the user query to understand the specific requirements or needs.
-2. Review the list of libraries, clients, and their functions.
-3. Identify which libraries, clients, and functions are relevant to the user query.
-4. Remove any libraries, clients, and functions that are not directly related to the user's needs.
-5. Organize the remaining relevant information.
-
-Ensure that you only include libraries, clients, and functions that are directly relevant to the user query. If no relevant results are found, return an empty array for the libraries.
+2. Review the provided libraries, clients, and functions in Library_Context_JSON.
+3. Select only the libraries, clients, and functions that directly match the query's needs.
+4. Exclude any irrelevant libraries, clients, or functions.
+5. If no relevant functions are found, return an empty array for the libraries.
+6. Organize the remaining relevant information.
 
 Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
 `;
@@ -293,7 +294,7 @@ export async function getMaximizedSelectedLibs(libNames:string[], generationType
     return result.libraries as Library[];
 }
 
-export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionResponse[], originalLibraries: Library[]): Library[] {
+export async function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionResponse[], originalLibraries: Library[]): Promise<Library[]> {
     const minifiedLibrariesWithoutRecords: Library[] = [];
     
     for (const funcResponse of functionResponses) {
@@ -321,7 +322,7 @@ export function toMaximizedLibrariesFromLibJson(functionResponses: GetFunctionRe
     
     // Handle external type references
     const externalRecordsRefs = getExternalTypeDefsRefs(minifiedLibrariesWithoutRecords);
-    getExternalRecords(minifiedLibrariesWithoutRecords, externalRecordsRefs, originalLibraries);
+    await getExternalRecords(minifiedLibrariesWithoutRecords, externalRecordsRefs, originalLibraries);
     
     return minifiedLibrariesWithoutRecords;
 }
@@ -629,27 +630,37 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
     }
 }
 
-function getExternalRecords(
+async function getExternalRecords(
     newLibraries: Library[], 
     libRefs: Map<string, string[]>, 
     originalLibraries: Library[]
-): void {
+): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
             // TODO: find a proper solution
             continue;
         }
-        
-        const library = originalLibraries.find(lib => lib.name === libName);
+
+        let library = originalLibraries.find(lib => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Skipping the library.`);
-            continue;
+            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
+            const result = (await langClient.getCopilotFilteredLibraries({
+                libNames: [libName],
+                mode: getGenerationMode(GenerationType.CODE_GENERATION),
+            })) as { libraries: Library[] };
+            if (result.libraries && result.libraries.length > 0) {
+                library = result.libraries[0];
+            } else {
+                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                continue;
+            }
+            console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
         }
-        
+
         for (const recordName of recordNames) {
             const typeDef = getTypeDefByName(recordName, library.typeDefs);
             if (!typeDef) {
-                console.warn(`Record ${recordName} is not found in the context. Skipping the record.`);
+                console.warn(`Record ${recordName} is not found in library ${libName}. Skipping the record.`);
                 continue;
             }
             
