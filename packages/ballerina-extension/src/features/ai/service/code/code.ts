@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateText, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
+import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import {
@@ -44,20 +44,22 @@ import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 
-
-function appendFinalMessages(history: CoreMessage[], finalMessages: CoreMessage[]): void {
+function appendFinalMessages(
+    history: CoreMessage[],
+    finalMessages: CoreMessage[],
+    cacheOptions: ProviderCacheOptions
+): void {
     const knownIds = new Set<string>();
     for (let i = 0; i < finalMessages.length - 1; i++) {
         const message = finalMessages[i];
-        const messageId = (message as any).id;
+        const messageWithId = message as CoreMessage & { id?: string };
+        const messageId = messageWithId.id;
 
         if ((message.role === "assistant" || message.role === "tool") && messageId && !knownIds.has(messageId)) {
             knownIds.add(messageId);
 
             if (i === finalMessages.length - 2) {
-                message.providerOptions = {
-                    anthropic: { cacheControl: { type: "ephemeral" } },
-                };
+                message.providerOptions = cacheOptions;
             }
 
             history.push(message);
@@ -173,7 +175,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 }
 
                 const { messages: finalMessages } = await response;
-                appendFinalMessages(allMessages, finalMessages);
+                appendFinalMessages(allMessages, finalMessages, cacheOptions);
 
                 const lastAssistantMessage = finalMessages
                     .slice()
@@ -200,11 +202,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     console.log("Repair iteration: ", repair_attempt);
                     console.log("Diagnostics trying to fix: ", diagnostics);
 
-                    const repairedResponse: RepairResponse = await repairCode({
-                        previousMessages: allMessages,
-                        assistantResponse: diagnosticFixResp,
-                        diagnostics: diagnostics,
-                    }, libraryDescriptions);
+                    const repairedResponse: RepairResponse = await repairCode(
+                        {
+                            previousMessages: allMessages,
+                            assistantResponse: diagnosticFixResp,
+                            diagnostics: diagnostics,
+                        },
+                        libraryDescriptions
+                    );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
@@ -407,7 +412,11 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
 }
 
 // Core repair function that emits events
-export async function repairCodeCore(params: RepairParams, libraryDescriptions: string, eventHandler: CopilotEventHandler): Promise<RepairResponse> {
+export async function repairCodeCore(
+    params: RepairParams,
+    libraryDescriptions: string,
+    eventHandler: CopilotEventHandler
+): Promise<RepairResponse> {
     eventHandler({ type: "start" });
     const resp = await repairCode(params, libraryDescriptions);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
