@@ -63,11 +63,6 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
     public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
 
-    public static final String MODEL_PROVIDER = "modelProvider";
-    public static final String MODEL_LABEL = "Model Provider";
-    public static final String MODEL_DOC = "Model Provider for the agent";
-    public static final String MODEL_PLACEHOLDER = "";
-
     static final String[] PARAMS_TO_HIDE = {SYSTEM_PROMPT, TOOLS, TYPE, MEMORY, MODEL};
 
     @Override
@@ -117,14 +112,10 @@ public class AgentCallBuilder extends CallBuilder {
                 propertyValues.get(ROLE) : "";
         String instructionsValue = (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
                 propertyValues.get(INSTRUCTIONS) : "";
-        String modelProviderValue = (propertyValues != null && propertyValues.containsKey(MODEL_PROVIDER)) ?
-                propertyValues.get(MODEL_PROVIDER) : "";
 
-        FlowNodeUtil.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue, false);
+        FlowNodeUtil.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
         FlowNodeUtil.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
-                INSTRUCTIONS_PLACEHOLDER, instructionsValue, false);
-        FlowNodeUtil.addStringProperty(nodeBuilder, MODEL_PROVIDER, MODEL_LABEL, MODEL_DOC, MODEL_PLACEHOLDER,
-                modelProviderValue, true);
+                INSTRUCTIONS_PLACEHOLDER, instructionsValue);
     }
 
     @Override
@@ -173,7 +164,7 @@ public class AgentCallBuilder extends CallBuilder {
                 .stepOut()
                 .functionParameters(agentCallNode,
                         Set.of(Property.CONNECTION_KEY, Property.VARIABLE_KEY, Property.TYPE_KEY,
-                                Property.CHECK_ERROR_KEY, ROLE, INSTRUCTIONS, MODEL_PROVIDER, MEMORY, TOOLS, MAX_ITER,
+                                Property.CHECK_ERROR_KEY, ROLE, INSTRUCTIONS, MEMORY, TOOLS, MAX_ITER,
                                 VERBOSE))
                 .textEdit()
                 .build();
@@ -187,7 +178,8 @@ public class AgentCallBuilder extends CallBuilder {
             return;
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
-        FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL_PROVIDER);
+        // TODO: copy model provider value into agent node from model provider node
+//        FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL_PROVIDER);
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {

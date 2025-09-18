@@ -155,11 +155,10 @@ public class FlowNodeUtil {
      * @param label       the property label
      * @param description the property description
      * @param placeholder the placeholder text
-     * @param hidden      whether the property should be hidden
      * @param value       the property value
      */
     public static void addStringProperty(NodeBuilder nodeBuilder, String key, String label, String description,
-                                         String placeholder, String value, boolean hidden) {
+                                         String placeholder, String value) {
         nodeBuilder.properties().custom()
                 .metadata()
                     .label(label)
@@ -170,7 +169,6 @@ public class FlowNodeUtil {
                 .type(Property.ValueType.STRING)
                 .placeholder(placeholder)
                 .optional(true)
-                .hidden(hidden)
                 .editable()
                 .codedata()
                     .kind("REQUIRED")
