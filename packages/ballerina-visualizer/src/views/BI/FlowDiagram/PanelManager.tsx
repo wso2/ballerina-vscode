@@ -25,6 +25,7 @@ import {
     FUNCTION_TYPE,
     ToolData,
     NodeMetadata,
+    DataMapperDisplayMode,
 } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
@@ -37,7 +38,10 @@ import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
 import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
+import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
+import { RelativeLoader } from "../../../components/RelativeLoader";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     display: flex;
@@ -96,6 +100,8 @@ interface PanelManagerProps {
     canGoBack?: boolean;
     selectedMcpToolkitName?: string;
     selectedConnectionKind?: ConnectionKind;
+    showProgressSpinner?: boolean;
+    progressMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -111,7 +117,7 @@ interface PanelManagerProps {
     onAddVectorKnowledgeBase?: () => void;
     onAddDataLoader?: () => void;
     onAddChunker?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, openInDataMapper?: boolean) => void;
+    onSubmitForm: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -125,6 +131,7 @@ interface PanelManagerProps {
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
+    onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     setSidePanelView: (view: SidePanelView) => void;
 
     // AI Agent handlers
@@ -157,6 +164,8 @@ export function PanelManager(props: PanelManagerProps) {
         canGoBack,
         selectedMcpToolkitName,
         selectedConnectionKind,
+        showProgressSpinner = false,
+        progressMessage = "Loading...",
         setSidePanelView,
         onClose,
         onBack,
@@ -184,7 +193,8 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchDataLoader,
         onSearchChunker,
         onSelectNewConnection,
-        onUpdateNodeWithConnection
+        onUpdateNodeWithConnection,
+        onNavigateToPanel,
     } = props;
 
     const handleOnAddTool = () => {
@@ -540,7 +550,7 @@ export function PanelManager(props: PanelManagerProps) {
                         connectionKind={selectedConnectionKind}
                         selectedNode={selectedNode}
                         onSave={onUpdateNodeWithConnection}
-                        onCreateNew={() => setSidePanelView(SidePanelView.CONNECTION_SELECT)}
+                        onNavigateToSelectionList={() => onNavigateToPanel?.(SidePanelView.CONNECTION_SELECT)}
                     />
                 );
 
@@ -574,6 +584,9 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        //TODO: this should be merged with onSubmit prop
+                        handleOnFormSubmit={onSubmitForm}
+                        navigateToPanel={onNavigateToPanel}
                     />
                 );
 
@@ -590,7 +603,6 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.ADD_MCP_SERVER:
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
-                return () => setSidePanelView(SidePanelView.CONNECTION_CONFIG);
             case SidePanelView.CONNECTION_CREATE:
             case SidePanelView.NEW_AGENT:
                 return onBack;
@@ -610,7 +622,15 @@ export function PanelManager(props: PanelManagerProps) {
             subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>
+                {showProgressSpinner ? (
+                    <LoaderContainer>
+                        <RelativeLoader message={progressMessage} />
+                    </LoaderContainer>
+                ) : (
+                    renderPanelContent()
+                )}
+            </Container>
         </PanelContainer>
     );
 }

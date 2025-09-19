@@ -26,6 +26,7 @@ export type Flow = {
     fileName: string;
     nodes: FlowNode[];
     connections?: FlowNode[];
+    variables?: FlowNode[];
 };
 
 export type Client = {
@@ -137,6 +138,8 @@ export type Property = {
     advancedValue?: string;
     modified?: boolean;
     oldValue?: string;
+    defaultValue?: string;
+    itemOptions?: OptionProps[];
 };
 
 export type PropertyTypeMemberInfo = {
@@ -308,6 +311,7 @@ export type NodePropertyKey =
     | "collection"
     | "comment"
     | "condition"
+    | "matchTarget"
     | "configValue"
     | "connection"
     | "defaultable"
@@ -387,6 +391,7 @@ export type NodeKind =
     | "METHOD_CALL"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
+    | "VARIABLE"
     | "VECTOR_STORE"
     | "VECTOR_STORES"
     | "VECTOR_KNOWLEDGE_BASE"
@@ -416,10 +421,10 @@ export type NodeKind =
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
-    | "VARIABLE"
     | "WAIT"
     | "WHILE"
-    | "WORKER";
+    | "WORKER"
+    | "VARIABLE";
 
 export type OverviewFlow = {
     entryPoints: EntryPoint[];
@@ -474,4 +479,11 @@ export type FormDiagnostics = {
 export type CompletionInsertText = {
     value: string;
     cursorOffset?: number;
+};
+
+export type OptionProps = {
+    id?: string;
+    content?: string;
+    value: any;
+    disabled?: boolean;
 };

@@ -19,10 +19,9 @@
 import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, PropertyTypeMemberInfo, UpdateRecordConfigRequest, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse } from "@wso2/ballerina-core";
 import { Dropdown, HelperPane, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState} from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RecordConfigView } from "./RecordConfigView";
-import { debounce } from "lodash";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -102,13 +101,20 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         let org = "";
         let module = "";
         let version = "";
-
-        // Parse packageInfo if it exists and contains colon separators
-        if (defaultSelection?.packageInfo) {
+        let packageName = "";
+        if (defaultSelection?.packageInfo.length > 0) {
             const parts = defaultSelection.packageInfo.split(':');
             if (parts.length === 3) {
                 [org, module, version] = parts;
+                packageName = defaultSelection.packageName;
             }
+        } else {
+            // Fetch from TOML
+            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+            org = tomValues?.package?.org || "";
+            module = tomValues?.package?.name || "";
+            version = tomValues?.package?.version || "";
+            packageName = `${org}/${module}`;
         }
 
         const request: GetRecordConfigRequest = {
@@ -143,13 +149,21 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             let org = "";
             let module = "";
             let version = "";
+            let packageName = "";
 
-            // Parse packageInfo if it exists
-            if (member.packageInfo) {
+            if (member?.packageInfo.length > 0) {
                 const parts = member.packageInfo.split(':');
                 if (parts.length === 3) {
                     [org, module, version] = parts;
+                    packageName = member.packageName;
                 }
+            } else {
+                // Fetch from TOML
+                const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+                org = tomValues?.package?.org || "";
+                module = tomValues?.package?.name || "";
+                version = tomValues?.package?.version || "";
+                packageName = `${org}/${module}`;
             }
 
             const request: GetRecordConfigRequest = {

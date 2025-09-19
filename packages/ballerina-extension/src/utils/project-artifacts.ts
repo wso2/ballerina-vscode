@@ -17,16 +17,16 @@
  */
 import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse, VisualizerLocation } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
 import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
-import { injectAgentCode, injectImportIfMissing } from "./source-utils";
-import { tmpdir } from "os";
+import { injectAgentCode } from "./source-utils";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
+import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 
 export async function buildProjectArtifactsStructure(projectDir: string, langClient: ExtendedLangClient, isUpdate: boolean = false): Promise<ProjectStructureResponse> {
     const result: ProjectStructureResponse = {
@@ -51,9 +51,15 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
         traverseComponents(designArtifacts.artifacts, result);
         await populateLocalConnectors(projectDir, result);
     }
-    // Find the workspace folder and get the project name. Correct way to get the project name is from the ballerina.toml file.
+    // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
     const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
-    const projectName = workspace?.name;
+    let projectName = workspace?.name;
+    // Get the project name from the ballerina.toml file
+    const commonRpcManager = new CommonRpcManager();
+    const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
+    if (tomlValues && tomlValues.package.title) {
+        projectName = tomlValues.package.title;
+    }
     result.projectName = projectName;
 
     if (isUpdate) {
@@ -153,6 +159,14 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
                 };
             } else {
                 // Get the children of the service
+                const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
+                const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
+                const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
+                entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
+            }
+            break;
+        case DIRECTORY_MAP.TYPE:
+            if (artifact.children && Object.keys(artifact.children).length > 0) {
                 const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
                 const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
                 const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);

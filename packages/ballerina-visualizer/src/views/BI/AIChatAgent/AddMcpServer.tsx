@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode } from "@wso2/ballerina-core";
+import { AvailableNode, DataMapperDisplayMode, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -139,6 +139,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
+    const projectPath = useRef<string>("");
     const agentFilePath = useRef<string>("");
     const hasUpdatedToolsField = useRef(false);
     const formRef = useRef<any>(null);
@@ -238,7 +239,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             setToolsStringList(toolsString);
 
             if (name.trim() !== "") {
-                const tools = props.agentCallNode?.metadata?.data?.tools || [];
+                const tools = (props.agentCallNode?.metadata?.data as NodeMetadata)?.tools || [];
                 console.log(">>> tools", tools);
                 if (tools.length > 0) {
                     const matchingTool = tools.find(tool => tool.name.includes(name));
@@ -284,6 +285,9 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     const initPanel = async () => {
         hasUpdatedToolsField.current = false; // Reset on panel init
         setLoading(true);
+        // get project path
+        const filePath = await rpcClient.getVisualizerLocation();
+        projectPath.current = filePath.projectUri;
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
         // fetch tools and agent node
@@ -293,8 +297,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     useEffect(() => {
-        
-    }, [name, props.agentCallNode?.metadata?.data?.tools, toolsStringList]);
+
+    }, [name, (props.agentCallNode?.metadata?.data as NodeMetadata)?.tools, toolsStringList]);
 
     const extractMcpToolkits = (toolsString: string): string[] => {
         // Remove brackets and whitespace, then split by comma
@@ -305,9 +309,16 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
     
     const fetchExistingTools = async () => {
-        const existingTools = await rpcClient.getAIAgentRpcClient().getTools({ filePath: agentFilePath.current });
-        console.log(">>> existing tools", existingTools);
-        setExistingTools(existingTools.tools);
+        const agentToolsSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            position: { startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+            searchKind: "AGENT_TOOL"
+        });
+        const existingToolsList = agentToolsSearchResponse.categories?.[0]?.items
+            ? (agentToolsSearchResponse.categories[0].items as AvailableNode[]).map((item) => item.codedata.symbol)
+            : [];
+        console.log(">>> existing tools", existingToolsList);
+        setExistingTools(existingToolsList);
     };
 
     const fetchMcpTools = async (url: string) => {
@@ -386,7 +397,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     // Update handleOnSave to accept all submitted form values
     const handleOnSave = async (
         node?: FlowNode,
-        isDataMapper?: boolean,
+        dataMapperMode?: DataMapperDisplayMode,
         formImports?: any,
         rawFormValues?: FormValues
     ) => {

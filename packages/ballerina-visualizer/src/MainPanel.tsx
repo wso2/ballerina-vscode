@@ -25,13 +25,16 @@ import {
     PopupMachineStateValue,
     EVENT_TYPE,
     ParentPopupData,
+    ProjectStructureArtifactResponse,
+    DIRECTORY_MAP,
+    CodeData,
+    LinePosition,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
-import { DataMapper } from "./views/DataMapper";
 import { ERDiagram } from "./views/ERDiagram";
 import { GraphQLDiagram } from "./views/GraphQLDiagram";
 import { ServiceDesigner } from "./views/BI/ServiceDesigner";
@@ -45,10 +48,10 @@ import {
     TestFunctionForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
-import { FunctionDefinition } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
-import { Typography } from "@wso2/ui-toolkit";
-import { PanelType, useVisualizerContext } from "./Context";
+import { ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { PanelType, useModalStack, useVisualizerContext } from "./Context";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
 import { RecordEditor } from "./views/RecordEditor/RecordEditor";
@@ -71,8 +74,9 @@ import { AIAgentDesigner } from "./views/BI/AIChatAgent";
 import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
 import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { InlineDataMapper } from "./views/InlineDataMapper";
+import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
+import Popup from "./components/Popup";
 
 const globalStyles = css`
     *,
@@ -149,6 +153,18 @@ const LoadingContent = styled.div`
     animation: fadeIn 1s ease-in-out;
 `;
 
+const Overlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    opacity: 0.4;
+    z-index: 2001;
+    pointer-events: auto;
+`;
+
 const LoadingTitle = styled.h1`
     color: var(--vscode-foreground);
     font-size: 1.5em;
@@ -173,7 +189,8 @@ const LoadingText = styled.div`
 
 const MainPanel = () => {
     const { rpcClient } = useRpcContext();
-    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel } = useVisualizerContext();
+    const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
+    const {modalStack, closeModal} = useModalStack()
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
@@ -324,25 +341,55 @@ const MainPanel = () => {
                         setViewComponent(<ERDiagram />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
-                        setViewComponent(<TypeDiagram selectedTypeId={value?.identifier} projectUri={value?.projectUri} addType={value?.addType} />);
+                        if (value?.identifier) {
+                            setViewComponent(
+                                <TypeDiagram
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        } else {
+                            // To support rerendering when user click on view all btn from left side panel
+                            setViewComponent(
+                                <TypeDiagram key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
+                                    selectedTypeId={value?.identifier}
+                                    projectUri={value?.projectUri}
+                                    addType={value?.addType}
+                                />
+                            );
+                        }
                         break;
                     case MACHINE_VIEW.DataMapper:
+                        let position: LinePosition = {
+                            line: value?.position?.startLine,
+                            offset: value?.position?.startColumn
+                        };
+                        if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
+                            STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
+                        ) {
+                            position = {
+                                line: value?.syntaxTree.functionBody.expression.position.startLine,
+                                offset: value?.syntaxTree.functionBody.expression.position.startColumn
+                            };
+                        }
                         setViewComponent(
                             <DataMapper
-                                projectPath={value.projectUri}
                                 filePath={value.documentUri}
-                                model={value?.syntaxTree as FunctionDefinition}
-                                functionName={value?.identifier}
-                                applyModifications={applyModifications}
+                                codedata={value?.dataMapperMetadata?.codeData}
+                                name={value?.dataMapperMetadata?.name}
+                                projectUri={value.projectUri}
+                                position={position}
+                                reusable
                             />
                         );
                         break;
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
-                            <InlineDataMapper
+                            <DataMapper
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
-                                varName={value?.dataMapperMetadata?.name}
+                                name={value?.dataMapperMetadata?.name}
                             />
                         );
                         break;
@@ -368,7 +415,9 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
-                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={value?.position} projectUri={value?.projectUri} />);
+                        const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position ?? value?.position} projectUri={value?.projectUri} />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -438,6 +487,14 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.AddCustomConnector:
+                        setViewComponent(
+                            <AddConnectionWizard
+                                fileName={value.documentUri || value.projectUri}
+                                openCustomConnectorView={true}
+                            />
+                        );
+                        break;
                     case MACHINE_VIEW.BIMainFunctionForm:
                         setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} isAutomation={true} />);
                         break;
@@ -503,11 +560,16 @@ const MainPanel = () => {
             .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
     };
 
+    const handlePopupClose = (id: string) => {
+        closeModal(id);
+    }
+
     return (
         <>
             <Global styles={globalStyles} />
             <VisualizerContainer>
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
+                {(showOverlay || modalStack.length > 0) && <Overlay/>}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
                 {!viewComponent && (
                     <ComponentViewWrapper>
@@ -553,9 +615,14 @@ const MainPanel = () => {
                 {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
                     <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
                 )}
+                {
+                    modalStack.map((modal) => (
+                       <Popup title={modal.title} onClose={() => handlePopupClose(modal.id)} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                    ))
+                }
             </VisualizerContainer>
         </>
     );
-};
+};  
 
 export default MainPanel;

@@ -38,7 +38,7 @@ import { StateMachinePopup } from './stateMachinePopup';
 import { registerAiAgentRpcHandlers } from './rpc-managers/ai-agent/rpc-handler';
 import { registerConnectorWizardRpcHandlers } from './rpc-managers/connector-wizard/rpc-handler';
 import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diagram/rpc-handler';
-import { registerInlineDataMapperRpcHandlers } from './rpc-managers/inline-data-mapper/rpc-handler';
+import { registerDataMapperRpcHandlers } from './rpc-managers/data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
 import { extension } from './BalExtensionContext';
@@ -97,8 +97,8 @@ export class RPCLayer {
         registerAiPanelRpcHandlers(RPCLayer._messenger);
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
 
-        // ----- Inline Data Mapper Webview RPC Methods
-        registerInlineDataMapperRpcHandlers(RPCLayer._messenger);
+        // ----- Data Mapper Webview RPC Methods
+        registerDataMapperRpcHandlers(RPCLayer._messenger);
 
         // ----- Popup Views RPC Methods
         RPCLayer._messenger.onRequest(getPopupVisualizerState, () => getPopupContext());
@@ -136,6 +136,7 @@ async function getContext(): Promise<VisualizerLocation> {
             isGraphql: context.isGraphql,
             addType: context.addType,
             focusFlowDiagramView: context.focusFlowDiagramView,
+            rootDiagramId: context.rootDiagramId,
             metadata: {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
@@ -160,6 +161,7 @@ async function getPopupContext(): Promise<PopupVisualizerLocation> {
             recentIdentifier: context.recentIdentifier,
             identifier: context.identifier,
             metadata: context.metadata,
+            dataMapperMetadata: context.dataMapperMetadata
         });
     });
 }
