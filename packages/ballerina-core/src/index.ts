@@ -35,7 +35,7 @@ export * from "./interfaces/store";
 export * from "./interfaces/performance";
 export * from "./interfaces/extended-lang-client";
 export * from "./interfaces/service";
-export * from "./interfaces/inline-data-mapper";
+export * from "./interfaces/data-mapper";
 
 // ------ LS Utils -------->
 export * from "./ls-utils/WSConnection";
@@ -82,9 +82,8 @@ export * from "./rpc-types/persist-diagram/rpc-type";
 export * from "./rpc-types/ai-panel";
 export * from "./rpc-types/ai-panel/rpc-type";
 export * from "./rpc-types/ai-panel/interfaces";
-export * from "./rpc-types/inline-data-mapper";
-export * from "./rpc-types/inline-data-mapper/rpc-type";
-export * from "./rpc-types/inline-data-mapper/interfaces";
+export * from "./rpc-types/data-mapper";
+export * from "./rpc-types/data-mapper/rpc-type";
 export * from "./rpc-types/test-manager";
 export * from "./rpc-types/test-manager/rpc-type";
 export * from "./rpc-types/icp-service";
