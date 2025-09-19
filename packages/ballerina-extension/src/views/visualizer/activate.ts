@@ -57,7 +57,18 @@ export function activateSubscriptions() {
                     endColumn: position.end.character
                 };
             }
-            const documentPath = path ? (typeof path === "string" ? vscode.Uri.parse(path).fsPath : path.fsPath) : "";
+            let documentPath = "";
+            if (path) {
+                if (typeof path === "string") {
+                    if (path.startsWith("file:")) {
+                        documentPath = vscode.Uri.parse(path).fsPath;
+                    } else {
+                        documentPath = vscode.Uri.file(path).fsPath;
+                    }
+                } else if (path.fsPath) {
+                    documentPath = path.fsPath;
+                }
+            }
             if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
                 openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
             } else {

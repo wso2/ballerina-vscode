@@ -284,6 +284,14 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         onClose();
     };
 
+    const handleOnBack = () => {
+        if (views.length > 1) {
+            switchView(views.length - 2);
+        } else {
+            handleOnClose();
+        }
+    };
+
     const handleVersionChange = async (action: 'dmUndo' | 'dmRedo') => {
         // TODO: Implement undo/redo
     };
@@ -318,6 +326,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         switchView={switchView}
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
+                        onBack={handleOnBack}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                     />
