@@ -198,11 +198,18 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-        onChange(
-            item.insertText,
-            item.insertText.length
-        );
-
+        if (currentType.trimEnd().endsWith('|')) {
+            const newType = currentType + item.insertText;
+            onChange(
+                newType,
+                newType.length
+            );
+        } else {
+            onChange(
+                item.insertText,
+                item.insertText.length
+            );
+        }
         onCloseCompletions?.();
         onClose();
     };
