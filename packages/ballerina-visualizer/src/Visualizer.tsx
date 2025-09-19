@@ -185,7 +185,8 @@ const PullingDependenciesView = () => {
                     Pulling Dependencies
                 </LoadingTitle>
                 <LoadingSubtitle>
-                    Fetching required modules for your project
+                    Fetching required modules for your project.<br />
+                    Please wait, this might take some time.
                 </LoadingSubtitle>
                 <LoadingText>
                     <span className="loading-dots">Pulling</span>

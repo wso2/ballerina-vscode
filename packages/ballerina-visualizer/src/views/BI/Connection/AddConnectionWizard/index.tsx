@@ -369,6 +369,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                             onSelectConnector={handleOnSelectConnector}
                             onAddGeneratedConnector={handleOnAddGeneratedConnector}
                             onClose={onClose}
+                            isPopupView={true}
                         />
                     </PopupContainer>
                 </>
@@ -382,7 +383,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     title={`Configure the ${selectedConnectorRef.current?.metadata.label || ""} Connector`}
                     onClose={onClose ? onClose : handleOnBack}
                     width={400}
-                    subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+                    subPanelWidth={400}
                     subPanel={findSubPanelComponent(subPanel)}
                     onBack={handleOnBack}
                 >
