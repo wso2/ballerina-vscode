@@ -226,7 +226,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
         console.error(`[AI Request Failed] Libraries: [${libraryNames}], Duration: ${duration}s, Error: ${error}`);
-        throw new Error(`Failed to parse bulk functions response: ${error}`);
+        throw error;
     }
 }
 
@@ -596,7 +596,7 @@ function getExternalTypeDefRefs(
     
     // Check type definition fields
     for (const typeDef of allTypeDefs) {
-        if (typeDef.type === 'record') {
+        if (typeDef.type === 'Record') {
             const recordDef = typeDef as RecordTypeDefinition;
             for (const field of recordDef.fields) {
                 addExternalRecord(field.type, externalRecords);

@@ -25,10 +25,10 @@ import { RelativeLoader } from "../RelativeLoader";
 import { ConnectionConfigProps } from "./types";
 import { getConnectionKindConfig } from "./config";
 import { createConnectionSelectField, fetchConnectionForNode, updateNodeWithConnectionVariable } from "./utils";
-import { LoaderContainer } from "./styles";
+import { LoaderContainer } from "../RelativeLoader/styles";
 
 export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
-    const { connectionKind, selectedNode, onSave, onCreateNew } = props;
+    const { connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
     const config = useMemo(() => getConnectionKindConfig(connectionKind), [connectionKind]);
     const { rpcClient } = useRpcContext();
 
@@ -73,8 +73,8 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     }, [onSave, rpcClient]);
 
     const onCreateNewConnection = useCallback(() => {
-        onCreateNew?.();
-    }, [onCreateNew]);
+        onNavigateToSelectionList?.();
+    }, [onNavigateToSelectionList]);
 
     return (
         <>

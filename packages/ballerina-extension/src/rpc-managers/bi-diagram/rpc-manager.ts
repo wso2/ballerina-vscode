@@ -58,18 +58,21 @@ import {
     CreateComponentResponse,
     CurrentBreakpointsResponse,
     DIRECTORY_MAP,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
+    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ExpressionDiagnosticsRequest,
     ExpressionDiagnosticsResponse,
-    FlowNode,
     FormDidCloseParams,
     FormDidOpenParams,
-    FunctionNode,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -87,6 +90,7 @@ import {
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
+    LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
     OpenAPIClientDeleteRequest,
@@ -130,12 +134,14 @@ import {
     UpdatedArtifactsResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    LoginMethod,
-    Diagnostics,
+    ConfigVariableRequest,
+    AvailableNode,
+    Item,
+    Category,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -159,11 +165,11 @@ import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
+import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -303,6 +309,96 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    private filterAdvancedAiNodes(response: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        const showAdvancedAiNodes = extension.ballerinaExtInstance.getShowAdvancedAiNodes();
+        if (showAdvancedAiNodes || !response) {
+            return response;
+        }
+
+        // List of node types/labels to hide when advanced AI nodes are disabled
+        const hiddenNodeTypes = [
+            'CHUNKERS',
+            'VECTOR_STORES', 
+            'EMBEDDING_PROVIDERS'
+        ];
+
+        const hiddenNodeLabels = [
+            'Recursive Document Chunker',
+            'Chunker',
+            'Vector Store',
+            'Embedding Provider'
+        ];
+
+        const filterItems = (items: Item[]): Item[] => {
+            if (!items) { return items; }
+            
+            return items.filter(item => {
+                if ((item as AvailableNode).codedata?.node && hiddenNodeTypes.includes((item as AvailableNode).codedata.node)) {
+                    return false;
+                }
+                
+                if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
+                    return false;
+                }
+
+                if ((item as Category).items) {
+                    (item as Category).items = filterItems((item as Category).items);
+                }
+                
+                return true;
+            });
+        };
+
+        if (response.categories) {
+            response.categories = response.categories.map(category => {
+                if (category.items) {
+                    category.items = filterItems(category.items);
+                }
+                return category;
+            });
+        }
+
+        return response;
+    }
+
+    private updateNodeDescriptions(availableNodes: BIAvailableNodesResponse): BIAvailableNodesResponse {
+        if (!availableNodes) {
+            return availableNodes;
+        }
+        // Adding descriptions for AI nodes
+        const updateItems = (items: Item[], isInAICategory: boolean): Item[] => {
+            if (!items) { return items; }
+            
+            return items.map(item => {
+                if ((item as AvailableNode).enabled === false && isInAICategory) {
+                    item.metadata = {
+                        ...item.metadata,
+                        description: "Please update AI package version to latest version to use this feature"
+                    };
+                }
+                
+                // Recursively handle nested items
+                if ((item as Category).items) {
+                    (item as Category).items = updateItems((item as Category).items, isInAICategory);
+                }
+                
+                return item;
+            });
+        };
+
+        if (availableNodes.categories) {
+            availableNodes.categories = availableNodes.categories.map(category => {
+                const isAICategory = category.metadata?.label === "AI";
+                if (category.items) {
+                    category.items = updateItems(category.items, isAICategory);
+                }
+                return category;
+            });
+        }
+
+        return availableNodes;
+    }
+
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
@@ -310,7 +406,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .getAvailableNodes(params)
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
-                    resolve(model);
+                    const filteredModel = this.filterAdvancedAiNodes(model);
+                    const updatedModel = this.updateNodeDescriptions(filteredModel);
+                    resolve(updatedModel);
                 })
                 .catch((error) => {
                     console.log(">>> error fetching available nodes from ls", error);
@@ -727,17 +825,23 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getConfigVariablesV2(): Promise<ConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const projectPath = path.join(StateMachine.context().projectUri);
-            const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
-            const variables = await StateMachine.langClient().getConfigVariablesV2({
-                projectPath: projectPath,
-                includeLibraries: showLibraryConfigVariables !== false
-            }) as ConfigVariableResponse;
-            resolve(variables);
-        });
-    }
+async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
+    return new Promise(async (resolve) => {
+        const projectPath = path.join(StateMachine.context().projectUri);
+        const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
+        
+        // if params includeLibraries is not set, then use settings 
+        const includeLibraries = params?.includeLibraries !== undefined 
+            ? params.includeLibraries 
+            : showLibraryConfigVariables !== false;
+
+        const variables = await StateMachine.langClient().getConfigVariablesV2({
+            projectPath: projectPath,
+            includeLibraries
+        }) as ConfigVariableResponse;
+        resolve(variables);
+    });
+}
 
     async updateConfigVariablesV2(params: UpdateConfigVariableRequestV2): Promise<UpdateConfigVariableResponseV2> {
         return new Promise(async (resolve) => {
@@ -1850,6 +1954,43 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     console.log(">>> error getting type from json", error);
+                    reject(error);
+                });
+        });
+    }
+
+    async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return new Promise((resolve, reject) => {
+            const projectUri = StateMachine.context().projectUri;
+            const filePath = path.join(projectUri, params.filePath);
+            StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
+                .then(async (deleteTypeResponse: DeleteTypeResponse) => {
+                    if (deleteTypeResponse.textEdits) {
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
+                        resolve(deleteTypeResponse);
+                    } else {
+                        reject(deleteTypeResponse.errorMsg);
+                    }
+                }).catch((error) => {
+                    reject(error);
+                });
+        });
+    }
+
+    async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        const projectUri = StateMachine.context().projectUri;
+        const filePath = path.join(projectUri, params.filePath);
+
+        const request: VerifyTypeDeleteRequest = {
+            filePath: filePath,
+            startPosition: params.startPosition,
+        };
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().verifyTypeDelete(request)
+                .then((response) => {                    
+                    resolve(response);
+                })
+                .catch((error) => {
                     reject(error);
                 });
         });

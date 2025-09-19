@@ -36,7 +36,8 @@ export async function getView(documentUri: string, position: NodePosition, proje
             location: {
                 view: MACHINE_VIEW.BIDiagram,
                 documentUri: documentUri,
-                position: position
+                position: position,
+                identifier: StateMachine.context()?.identifier,
             },
             dataMapperDepth: 0
         };
@@ -403,7 +404,23 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         identifier: dir.name,
                         documentUri: normalizedDocumentUri,
                         position: position,
-                        artifactType: DIRECTORY_MAP.DATA_MAPPER
+                        artifactType: DIRECTORY_MAP.DATA_MAPPER,
+                        dataMapperMetadata: {
+                            name: dir.name,
+                            codeData: {
+                                lineRange: {
+                                    fileName: normalizedDocumentUri,
+                                    startLine: {
+                                        line: dir.position.startLine,
+                                        offset: dir.position.startColumn
+                                    },
+                                    endLine: {
+                                        line: dir.position.endLine,
+                                        offset: dir.position.endColumn
+                                    }
+                                }
+                            }
+                        },
                     },
                     dataMapperDepth: 0
                 };
