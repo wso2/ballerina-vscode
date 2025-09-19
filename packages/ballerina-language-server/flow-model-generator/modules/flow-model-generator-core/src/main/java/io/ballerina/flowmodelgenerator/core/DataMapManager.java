@@ -1365,10 +1365,11 @@ public class DataMapManager {
                     }
                 } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
                     if (targetSymbol != null) {
-                        ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) targetSymbol;
-                        String defaultVal = getDefaultValue(
-                                CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()).typeKind().getName());
-                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        if (targetSymbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
+                            String defaultVal = getDefaultValue(
+                                    CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()).typeKind().getName());
+                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
                     }
                 }
             }
