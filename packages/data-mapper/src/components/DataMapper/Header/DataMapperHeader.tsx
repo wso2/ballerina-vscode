@@ -33,12 +33,13 @@ export interface DataMapperHeaderProps {
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
+    onBack: () => void;
     onEdit?: () => void;
     autoMapWithAI: () => Promise<void>;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onEdit, autoMapWithAI } = props;
+    const { views, switchView, hasEditDisabled, onClose, onBack, onEdit, autoMapWithAI } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -47,7 +48,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
     return (
         <HeaderContainer>
             <HeaderContent>
-                <IconButton onClick={onClose}>
+                <IconButton onClick={onBack}>
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 <BreadCrumb>
