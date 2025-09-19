@@ -21,7 +21,7 @@ import styled from "@emotion/styled";
 import { AvailableNode, Category, FlowNode, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, ProgressRing, SearchBox, SplitView, ThemeColors, TreeViewItem, Typography, View } from "@wso2/ui-toolkit";
-import { cloneDeep, debounce, set } from "lodash";
+import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyText, BodyTinyInfo, TopBar } from "../../../styles";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -44,14 +44,13 @@ const Container = styled.div`
     flex-direction: column;
 `;
 
-const ListContainer = styled.div<{ isHalfView?: boolean }>`
+const ListContainer = styled.div<{ isPopupView?: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
     margin-left: 20px;
-    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "30vh" : "calc(100vh - 200px)")};
-    overflow-y: scroll;
+    height: ${(props: { isPopupView: boolean }) => (props.isPopupView ? "30vh" : "calc(100vh - 200px)")};
 `;
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
@@ -99,6 +98,7 @@ interface ConnectorViewProps {
     onClose?: () => void;
     hideTitle?: boolean;
     openCustomConnectorView?: boolean;
+    isPopupView?: boolean;
 }
 
 export function ConnectorView(props: ConnectorViewProps) {
@@ -110,6 +110,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         onClose,
         hideTitle,
         openCustomConnectorView,
+        isPopupView
     } = props;
     const { rpcClient } = useRpcContext();
 
@@ -312,7 +313,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                 </Row>
 
                 <SplitView sx={{ height: "100%", overflow: "hidden" }} defaultWidths={[20, 80]}>
-                    <div style={{ marginTop: "24px" }}>
+                    <div style={{ marginTop: "24px", minWidth: "220px" }}>
                         <TreeViewItem
                             key={`StandardLibrary`}
                             id={`StandardLibrary`}
@@ -401,7 +402,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                             </TreeViewItemContent>
                         </TreeViewItem>
                     </div>
-                    <ListContainer isHalfView={hideTitle}>
+                    <ListContainer isPopupView={isPopupView}>
                         {selectedConnectorCategory === "CurrentOrg" && (
                             <LabelRow>
                                 <Typography variant="h3">{'Organization\'s Connectors'}</Typography>
@@ -553,7 +554,6 @@ export function ConnectorView(props: ConnectorViewProps) {
                         )}
                     </ListContainer>
                 </SplitView>
-                {!isSearching && connectors.length === 0 && <p>No connectors found</p>}
             </Container>
         </ViewWrapper>
     );

@@ -277,3 +277,135 @@ export async function isBallerinaProjectAsync(rootPath: string): Promise<boolean
 async function showNoBallerinaSourceWarningMessage() {
     return await vscode.window.showWarningMessage(ERROR_NO_BALLERINA_SOURCES);
 }
+
+// =========== PROJECT ANALYSIS UTILITIES ===========
+
+import { ProjectSource, ProjectModule, OpenAPISpec } from '@wso2/ballerina-core';
+import { langClient } from './activator';
+
+/**
+ * Finds the root directory of a Ballerina project by searching for Ballerina.toml
+ */
+export async function findBallerinaProjectRoot(dirPath: string): Promise<string | null> {
+    if (dirPath === null) {
+        return null;
+    }
+
+    const workspaceFolders = workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return null;
+    }
+
+    // Check if the directory is within any of the workspace folders
+    const workspaceFolder = workspaceFolders.find(folder => dirPath.startsWith(folder.uri.fsPath));
+    if (!workspaceFolder) {
+        return null;
+    }
+
+    let currentDir = dirPath;
+
+    while (currentDir.startsWith(workspaceFolder.uri.fsPath)) {
+        const ballerinaTomlPath = path.join(currentDir, 'Ballerina.toml');
+        if (fs.existsSync(ballerinaTomlPath)) {
+            return currentDir;
+        }
+        currentDir = path.dirname(currentDir);
+    }
+
+    return null;
+}
+
+/**
+ * Gets the project source including all .bal files and modules
+ */
+export async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
+    const projectRoot = await findBallerinaProjectRoot(dirPath);
+
+    if (!projectRoot) {
+        return null;
+    }
+
+    const projectSource: ProjectSource = {
+        sourceFiles: [],
+        projectTests: [],
+        projectModules: [],
+        projectName: ""
+    };
+
+    // Read root-level .bal files
+    const rootFiles = fs.readdirSync(projectRoot);
+    for (const file of rootFiles) {
+        if (file.endsWith('.bal')) {
+            const filePath = path.join(projectRoot, file);
+            const content = await fs.promises.readFile(filePath, 'utf-8');
+            projectSource.sourceFiles.push({ filePath, content });
+        }
+    }
+
+    // Read modules
+    const modulesDir = path.join(projectRoot, 'modules');
+    if (fs.existsSync(modulesDir)) {
+        const modules = fs.readdirSync(modulesDir, { withFileTypes: true });
+        for (const moduleDir of modules) {
+            if (moduleDir.isDirectory()) {
+                const projectModule: ProjectModule = {
+                    moduleName: moduleDir.name,
+                    sourceFiles: [],
+                    isGenerated: false,
+                };
+
+                const moduleFiles = fs.readdirSync(path.join(modulesDir, moduleDir.name));
+                for (const file of moduleFiles) {
+                    if (file.endsWith('.bal')) {
+                        const filePath = path.join(modulesDir, moduleDir.name, file);
+                        const content = await fs.promises.readFile(filePath, 'utf-8');
+                        projectModule.sourceFiles.push({ filePath, content });
+                    }
+                }
+
+                projectSource.projectModules.push(projectModule);
+            }
+        }
+    }
+
+    return projectSource;
+}
+
+/**
+ * Gets the project source including test files
+ */
+export async function getProjectSourceWithTests(dirPath: string): Promise<ProjectSource | null> {
+    const projectRoot = await findBallerinaProjectRoot(dirPath);
+
+    if (!projectRoot) {
+        return null;
+    }
+
+    const projectSourceWithTests: ProjectSource = await getProjectSource(dirPath);
+
+    // Read tests
+    const testsDir = path.join(projectRoot, 'tests');
+    if (fs.existsSync(testsDir)) {
+        const testFiles = fs.readdirSync(testsDir);
+        for (const file of testFiles) {
+            if (file.endsWith('.bal') || file.endsWith('Config.toml')) {
+                const filePath = path.join(testsDir, file);
+                const content = await fs.promises.readFile(filePath, 'utf-8');
+                projectSourceWithTests.projectTests.push({ filePath, content });
+            }
+        }
+    }
+
+    return projectSourceWithTests;
+}
+
+/**
+ * Gets the OpenAPI specification for a given Ballerina service file
+ */
+export async function getOpenAPISpecification(documentFilePath: string): Promise<string> {
+    const response = await langClient.convertToOpenAPI({ documentFilePath, enableBalExtension: true }) as OpenAPISpec;
+    if (response.error) {
+        throw new Error(response.error);
+    }
+    return JSON.stringify(response.content[0].spec);
+}

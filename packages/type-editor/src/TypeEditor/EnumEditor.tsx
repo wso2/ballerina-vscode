@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Icon, Codicon } from "@wso2/ui-toolkit";
+import { TextField, Button, Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { Type, Member } from "@wso2/ballerina-core";
 import { IdentifierField } from "./IdentifierField";
@@ -215,7 +215,9 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
             <S.Header>
                 <S.SectionTitle>Members</S.SectionTitle>
                 <div style={{ display: 'flex', gap: '8px' }} data-testid="add-member-button">
-                    <Button appearance="icon" onClick={addMember}><Codicon name="add" /></Button>
+                    <Button appearance="icon" onClick={addMember} tooltip='Add Member'>
+                        <Codicon name="add" />
+                    </Button>
                 </div>
             </S.Header>
             {type.members.map((member, index) => (
