@@ -25,18 +25,17 @@ export const keywords = [
     "in", "return", "returns", "break", "transaction",
     "transactional", "retry", "commit", "rollback", "continue",
     "typeof", "enum", "wait", "check", "checkpanic", "panic",
-    "trap", "match", "import", "version", "public", "private",
+    "trap", "match", "import", "public", "private",
     "as", "lock", "new", "record", "limit", "start", "flush",
-    "untainted", "tainted", "abstract", "external", "final",
-    "listener", "remote", "is", "from", "on", "select", "where",
-    "annotation", "type", "function", "resource", "service", "worker",
-    "object", "client", "const", "let", "source", "parameter", "field",
-    "xmlns", "true", "false", "null", "table", "key", "default", "do",
-    "base16", "base64", "conflict", "outer", "equals", "boolean", "int",
-    "float", "string", "decimal", "handle", "var", "any", "anydata", "byte",
-    "future", "typedesc", "map", "json", "xml", "error", "never", "readonly",
-    "distinct", "stream", "isolated", "configurable", "class", "order", "by", 
-    "ascending", "descending", "!is", "fail", "re", "group", "collect"
+    "abstract", "external", "final", "listener", "remote", "is", 
+    "from", "on", "select", "where", "annotation", "type", 
+    "function", "resource", "service", "worker", "object", "client", 
+    "const", "let", "source", "parameter", "field", "xmlns", "true", "false", 
+    "null", "table", "do", "base16", "base64", "conflict", "outer", "equals", 
+    "boolean", "int", "float", "string", "decimal", "handle", "var", "any", 
+    "anydata", "byte", "future", "typedesc", "map", "json", "xml", "error", 
+    "never", "readonly", "distinct", "stream", "isolated", "configurable", 
+    "class", "order", "by", "ascending", "descending", "!is", "fail"
 ];
 
 export async function InsertorDelete(
