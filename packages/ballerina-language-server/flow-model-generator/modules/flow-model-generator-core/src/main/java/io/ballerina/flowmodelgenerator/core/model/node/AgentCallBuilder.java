@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -123,10 +124,25 @@ public class AgentCallBuilder extends CallBuilder {
         // TODO: Get this method to work for editing existing nodes
         sourceBuilder.newVariable();
         FlowNode agentCallNode = sourceBuilder.flowNode;
-
-        // TODO: Setup default model provider
-
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Map<Path, List<TextEdit>> textEdits = new java.util.HashMap<>();
+        
+        // TODO: This context has to be the model providers's context, not the agent_call's context
+        NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
+                sourceBuilder.workspaceManager,
+                sourceBuilder.filePath,
+                sourceBuilder.flowNode.codedata().lineRange().startLine(),
+                AiUtils.getDefaultModelProviderCodedata(),
+                null
+        );
+        FlowNode modelProviderNode =
+                NodeBuilder.getNodeFromKind(NodeKind.MODEL_PROVIDER).setConstData()
+                        .setTemplateData(modelProviderContext).build();
+        ModelProviderBuilder modelProviderBuilder = new ModelProviderBuilder();
+        SourceBuilder modelProviderSourceBuilder =
+                new SourceBuilder(modelProviderNode, sourceBuilder.workspaceManager, projectRoot);
+        textEdits.putAll(modelProviderBuilder.toSource(modelProviderSourceBuilder));
+
         // TODO: This context has to be the agent's context, not the agent_call's context
         NodeBuilder.TemplateContext agentContext = new NodeBuilder.TemplateContext(
                 sourceBuilder.workspaceManager,
@@ -139,13 +155,13 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNode agentNode =
                 NodeBuilder.getNodeFromKind(NodeKind.AGENT).setConstData().setTemplateData(agentContext).build();
 
-        updateAgentNodeProperties(agentNode, agentCallNode);
+        updateAgentNodeProperties(agentNode, agentCallNode, modelProviderNode);
 
         AgentBuilder agentBuilder = new AgentBuilder();
         agentBuilder.setConstData().setConcreteTemplateData(agentContext);
         SourceBuilder agentSourceBuilder =
                 new SourceBuilder(agentNode, sourceBuilder.workspaceManager, projectRoot);
-        Map<Path, List<TextEdit>> agentTextEdits = agentBuilder.toSource(agentSourceBuilder);
+        textEdits.putAll(agentBuilder.toSource(agentSourceBuilder));
 
         if (FlowNodeUtil.hasCheckKeyFlagSet(agentCallNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
@@ -169,17 +185,18 @@ public class AgentCallBuilder extends CallBuilder {
                 .textEdit()
                 .build();
 
-        agentTextEdits.putAll(agentCallTextEdits);
-        return agentTextEdits;
+        textEdits.putAll(agentCallTextEdits);
+        return textEdits;
     }
 
-    private static void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode) {
+    private static void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode,
+                                                  FlowNode modelProviderNode) {
         if (agentNode.properties() == null) {
             return;
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
         // TODO: copy model provider value into agent node from model provider node
-//        FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL_PROVIDER);
+        FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, "variable");
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {

@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
+import static io.ballerina.flowmodelgenerator.core.Constants.Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKERS;
@@ -60,14 +61,14 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 
 /**
- * Utility class for resolving Ballerina AI module versions, their dependent modules,
- * and supported features.
+ * Utility class for resolving Ballerina AI module versions, their dependent modules, and supported features.
  * <b>Note:</b> This mapping must be updated when new {@code ballerina/ai} versions
  * introduce additional features or dependencies.
  *
  * @since 1.2.0
  */
 public class AiUtils {
+
     private static final Map<String, Set<NodeKind>> versionToFeatures = new HashMap<>();
     private static final Map<String, List<Module>> dependentModules = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedModelProviderMap = new HashMap<>();
@@ -339,7 +340,7 @@ public class AiUtils {
                 .node(kind);
 
         switch (className) {
-            case Ai.WSO2_MODEL_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD);
+            case Ai.WSO2_MODEL_PROVIDER_NAME -> codedataBuilder.symbol(GET_DEFAULT_MODEL_PROVIDER_METHOD);
             case Ai.WSO2_EMBEDDING_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_EMBEDDING_PROVIDER_METHOD);
             default -> codedataBuilder.object(className).symbol(INIT_METHOD);
         }
@@ -389,5 +390,15 @@ public class AiUtils {
             case DATA_LOADER -> "Loads documents from specified data source.";
             default -> null;
         };
+    }
+
+    public static Codedata getDefaultModelProviderCodedata() {
+        return new Codedata.Builder<>(null)
+                .node(MODEL_PROVIDER)
+                .org(BALLERINA)
+                .module(AI)
+                .packageName(AI)
+                .symbol(GET_DEFAULT_MODEL_PROVIDER_METHOD)
+                .build();
     }
 }
