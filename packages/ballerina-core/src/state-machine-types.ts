@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -47,6 +47,7 @@ export enum EVENT_TYPE {
     FILE_EDIT = "FILE_EDIT",
     EDIT_DONE = "EDIT_DONE",
     CLOSE_VIEW = "CLOSE_VIEW",
+    VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
 }
 
@@ -129,6 +130,7 @@ export interface VisualizerLocation {
     type?: Type;
     addType?: boolean;
     isGraphql?: boolean;
+    rootDiagramId?: string;
     metadata?: VisualizerMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
@@ -163,6 +165,7 @@ export interface PopupVisualizerLocation extends VisualizerLocation {
 export interface ParentPopupData {
     recentIdentifier: string;
     artifactType: DIRECTORY_MAP;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface DownloadProgress {
@@ -189,7 +192,7 @@ export interface ChatStart {
 
 export interface IntermidaryState {
     type: "intermediary_state";
-    state: TestGeneratorIntermediaryState;  // Smells off. Must revist later.
+    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
 }
 
 //TODO: Maybe rename content_block to content_append?
@@ -243,7 +246,7 @@ export const breakpointChanged: NotificationType<boolean> = { method: 'breakpoin
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -252,6 +255,8 @@ export enum AIMachineEventType {
     LOGIN = 'LOGIN',
     AUTH_WITH_API_KEY = 'AUTH_WITH_API_KEY',
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
+    AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
+    SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -265,6 +270,13 @@ export type AIMachineEventMap = {
     [AIMachineEventType.LOGIN]: undefined;
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
+    [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+        sessionToken?: string;
+    };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
     [AIMachineEventType.COMPLETE_AUTH]: undefined;
@@ -283,6 +295,7 @@ export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
     DEVANT_ENV = 'devant_env'
+    AWS_BEDROCK = 'aws_bedrock'
 }
 
 export interface BIIntelSecrets {
@@ -299,6 +312,13 @@ export interface DevantEnvSecrets {
     stsToken: string;
 }
 
+interface AwsBedrockSecrets {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}
+
 export type AuthCredentials =
     | {
         loginMethod: LoginMethod.BI_INTEL;
@@ -311,6 +331,10 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.DEVANT_ENV;
         secrets: DevantEnvSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.AWS_BEDROCK;
+        secrets: AwsBedrockSecrets;
     };
 
 export interface AIUserToken {

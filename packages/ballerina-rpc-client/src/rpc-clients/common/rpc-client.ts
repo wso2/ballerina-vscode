@@ -45,6 +45,8 @@ import {
     openExternalUrl,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
+    getCurrentProjectTomlValues,
+    TomlValues,
     selectFileOrFolderPath,
     showErrorMessage
 } from "@wso2/ballerina-core";
@@ -108,5 +110,9 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     showErrorMessage(params: ShowErrorMessageRequest): void {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
+    }
+    
+    getCurrentProjectTomlValues(): Promise<TomlValues> {
+        return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 }

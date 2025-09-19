@@ -217,6 +217,10 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                         resolve(credentials);
                         return;
 
+                    case LoginMethod.AWS_BEDROCK:
+                        resolve(credentials.secrets.accessKeyId);
+                        return;
+
                     default:
                         const { loginMethod }: AuthCredentials = credentials;
                         reject(new Error(`Unsupported login method: ${loginMethod}`));
@@ -229,6 +233,19 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
             reject(error);
         }
     });
+};
+
+export const getAwsBedrockCredentials = async (): Promise<{
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+} | undefined> => {
+    const credentials = await getAuthCredentials();
+    if (!credentials || credentials.loginMethod !== LoginMethod.AWS_BEDROCK) {
+        return undefined;
+    }
+    return credentials.secrets;
 };
 
 export const getRefreshedAccessToken = async (): Promise<string> => {
