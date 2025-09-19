@@ -198,7 +198,11 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-        if (currentType.trimEnd().endsWith('|')) {
+        const trimmedType = currentType.trimEnd();
+        if (
+            /\|$/.test(trimmedType) ||
+            /readonly\s*&$/.test(trimmedType)
+        ) {
             const newType = currentType + item.insertText;
             onChange(
                 newType,
