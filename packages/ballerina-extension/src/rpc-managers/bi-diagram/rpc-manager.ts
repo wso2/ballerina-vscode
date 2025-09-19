@@ -1573,12 +1573,12 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         });
     }
 
-    async updateServiceClass(params: ServiceClassSourceRequest): Promise<SourceEditResponse> {
+    async updateServiceClass(params: ServiceClassSourceRequest): Promise<UpdatedArtifactsResponse> {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateServiceClass(params);
-                await updateSourceCode({ textEdits: res.textEdits });
-                resolve(res);
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits });
+                resolve({ artifacts });
             } catch (error) {
                 console.log(error);
             }
