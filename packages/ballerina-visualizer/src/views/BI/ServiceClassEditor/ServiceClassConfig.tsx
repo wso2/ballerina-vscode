@@ -63,6 +63,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
     const [filePath, setFilePath] = useState<string>("");
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const editTitle = `Update the configuration details for the Service Class as needed.`
 
@@ -141,6 +142,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
     }
 
     const handleOnSubmit = async (data: FormValues) => {
+        setIsSaving(true);
         const updatedModel = { ...serviceClassModel };
         let hasChanges = false;
 
@@ -193,6 +195,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
             // No changes detected, just go back
             rpcClient.getVisualizerRpcClient()?.goBack();
         }
+        setIsSaving(false);
     }
 
     return (
@@ -222,6 +225,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                                                 }}
                                                 fields={serviceClassFields}
                                                 onSubmit={handleOnSubmit}
+                                                isSaving={isSaving}
                                             />
                                         }
                                     </FormContainer>
