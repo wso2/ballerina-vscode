@@ -213,7 +213,7 @@ export const validateAwsCredentials = async (credentials: {
         };
         await storeAuthCredentials(authCredentials);
 
-        return { token: accessKeyId };
+        return { credentials: authCredentials };
 
     } catch (error) {
         console.error('AWS Bedrock validation failed:', error);

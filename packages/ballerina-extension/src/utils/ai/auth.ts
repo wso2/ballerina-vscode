@@ -218,7 +218,7 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                         return;
 
                     case LoginMethod.AWS_BEDROCK:
-                        resolve(credentials.secrets.accessKeyId);
+                        resolve(credentials);
                         return;
 
                     default:
