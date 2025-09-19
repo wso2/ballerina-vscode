@@ -129,6 +129,23 @@ export function OperationForm(props: OperationFormProps) {
     useEffect(() => {
         const initialFields: FormField[] = [];
 
+        // Add name field first
+        initialFields.push({
+            key: 'name',
+            label: model.name.metadata?.label || 'Operation Name',
+            type: 'IDENTIFIER',
+            optional: model.name.optional,
+            editable: model.name.editable,
+            advanced: model.name.advanced,
+            enabled: model.name.enabled,
+            documentation: model.name.metadata?.description || '',
+            value: model.name.value,
+            valueType: model.name.valueType,
+            valueTypeConstraint: model.name.valueTypeConstraint || '',
+            lineRange: model?.name?.codedata?.lineRange
+        });
+
+        // Add documentation field after name (if it exists)
         if (model.documentation) {
             initialFields.push({
                 key: 'documentation',
@@ -145,21 +162,8 @@ export function OperationForm(props: OperationFormProps) {
             });
         }
 
+        // Add parameters and other fields
         initialFields.push(
-            {
-                key: 'name',
-                label: model.name.metadata?.label || 'Operation Name',
-                type: 'IDENTIFIER',
-                optional: model.name.optional,
-                editable: model.name.editable,
-                advanced: model.name.advanced,
-                enabled: model.name.enabled,
-                documentation: model.name.metadata?.description || '',
-                value: model.name.value,
-                valueType: model.name.valueType,
-                valueTypeConstraint: model.name.valueTypeConstraint || '',
-                lineRange: model?.name?.codedata?.lineRange
-            },
             {
                 key: 'parameters',
                 label: isServiceClass ? 'Parameters' : (isGraphqlView ? 'Arguments' : 'Parameters'),
