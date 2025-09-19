@@ -294,7 +294,7 @@ export type AIMachineSendableEvent =
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
-    DEVANT_ENV = 'devant_env'
+    DEVANT_ENV = 'devant_env',
     AWS_BEDROCK = 'aws_bedrock'
 }
 

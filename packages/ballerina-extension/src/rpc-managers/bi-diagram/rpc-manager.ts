@@ -138,7 +138,7 @@ import {
     VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    BIIntelSecrets
+    BIIntelSecrets,
     ConfigVariableRequest,
     AvailableNode,
     Item,
