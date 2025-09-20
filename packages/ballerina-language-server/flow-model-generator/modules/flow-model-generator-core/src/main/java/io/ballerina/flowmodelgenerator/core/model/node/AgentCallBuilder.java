@@ -48,11 +48,13 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String AGENT = "AGENT";
     public static final String SYSTEM_PROMPT = "systemPrompt";
     public static final String TOOLS = "tools";
-    public static final String TYPE = "type";
     public static final String MODEL = "model";
     public static final String MEMORY = "memory";
-    public static final String MAX_ITER = "maxIter";
-    public static final String VERBOSE = "verbose";
+
+    // Agent Call Properties
+    public static final String QUERY = "query";
+    public static final String SESSION_ID = "sessionId";
+    public static final String CONTEXT = "context";
 
     public static final String ROLE = "role";
     public static final String ROLE_LABEL = "Role";
@@ -64,7 +66,8 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
     public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
 
-    static final String[] PARAMS_TO_HIDE = {SYSTEM_PROMPT, TOOLS, TYPE, MEMORY, MODEL};
+    static final Set<String> AGENT_PARAMS_TO_HIDE = Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL);
+    static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -86,6 +89,7 @@ public class AgentCallBuilder extends CallBuilder {
         if (context == null || context.codedata() == null) {
             throw new IllegalArgumentException("Context or codedata cannot be null");
         }
+        // TODO: Way too slow to load form, need to optimize
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
@@ -95,16 +99,13 @@ public class AgentCallBuilder extends CallBuilder {
                                           Map<String, String> propertyValues) {
         FlowNode agentNodeTemplate = new AgentBuilder().setConstData().setTemplateData(context).build();
         if (agentNodeTemplate.properties() != null) {
-            agentNodeTemplate.properties().entrySet().stream()
-                    .filter(entry -> !java.util.Arrays.asList(PARAMS_TO_HIDE).contains(entry.getKey()))
-                    .forEach(entry -> {
-                        String key = entry.getKey();
-                        Property property = entry.getValue();
-                        String value = (propertyValues != null && propertyValues.containsKey(key))
-                                ? propertyValues.get(key)
-                                : null;
-                        FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value);
-                    });
+            agentNodeTemplate.properties().forEach((key, property) -> {
+                String value = (propertyValues != null && propertyValues.containsKey(key))
+                        ? propertyValues.get(key)
+                        : null;
+                boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
+                FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
+            });
         }
     }
 
@@ -126,51 +127,65 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNode agentCallNode = sourceBuilder.flowNode;
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
         Map<Path, List<TextEdit>> textEdits = new java.util.HashMap<>();
-        
-        // TODO: This context has to be the model providers's context, not the agent_call's context
-        NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
-                sourceBuilder.workspaceManager,
-                sourceBuilder.filePath,
-                sourceBuilder.flowNode.codedata().lineRange().startLine(),
-                AiUtils.getDefaultModelProviderCodedata(),
-                null
-        );
-        FlowNode modelProviderNode =
-                NodeBuilder.getNodeFromKind(NodeKind.MODEL_PROVIDER).setConstData()
-                        .setTemplateData(modelProviderContext).build();
-        ModelProviderBuilder modelProviderBuilder = new ModelProviderBuilder();
-        SourceBuilder modelProviderSourceBuilder =
-                new SourceBuilder(modelProviderNode, sourceBuilder.workspaceManager, projectRoot);
-        textEdits.putAll(modelProviderBuilder.toSource(modelProviderSourceBuilder));
+        Optional<Property> connection = agentCallNode.getProperty(Property.CONNECTION_KEY);
+        FlowNode modelProviderNode = null;
 
-        // TODO: This context has to be the agent's context, not the agent_call's context
-        NodeBuilder.TemplateContext agentContext = new NodeBuilder.TemplateContext(
-                sourceBuilder.workspaceManager,
-                sourceBuilder.filePath,
-                sourceBuilder.flowNode.codedata().lineRange().startLine(),
-                sourceBuilder.flowNode.codedata(),
-                null
-        );
+        Optional<Property> modelProperty = agentCallNode.getProperty(MODEL);
+        if (modelProperty.isPresent() && modelProperty.get().value() == null) {
+            // TODO: This context has to be the model providers's context, not the agent_call's context
+            NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
+                    sourceBuilder.workspaceManager,
+                    sourceBuilder.filePath,
+                    sourceBuilder.flowNode.codedata().lineRange().startLine(),
+                    AiUtils.getDefaultModelProviderCodedata(),
+                    null
+            );
+            modelProviderNode =
+                    NodeBuilder.getNodeFromKind(NodeKind.MODEL_PROVIDER).setConstData()
+                            .setTemplateData(modelProviderContext).build();
+            ModelProviderBuilder modelProviderBuilder = new ModelProviderBuilder();
+            SourceBuilder modelProviderSourceBuilder =
+                    new SourceBuilder(modelProviderNode, sourceBuilder.workspaceManager, projectRoot);
+            textEdits.putAll(modelProviderBuilder.toSource(modelProviderSourceBuilder));
+        }
 
-        FlowNode agentNode =
-                NodeBuilder.getNodeFromKind(NodeKind.AGENT).setConstData().setTemplateData(agentContext).build();
+        if (connection.isPresent() && connection.get().value() == null) {
+            // TODO: This context has to be the agent's context, not the agent_call's context
+            NodeBuilder.TemplateContext agentContext = new NodeBuilder.TemplateContext(
+                    sourceBuilder.workspaceManager,
+                    sourceBuilder.filePath,
+                    sourceBuilder.flowNode.codedata().lineRange().startLine(),
+                    sourceBuilder.flowNode.codedata(),
+                    null
+            );
 
-        updateAgentNodeProperties(agentNode, agentCallNode, modelProviderNode);
+            FlowNode agentNode =
+                    NodeBuilder.getNodeFromKind(NodeKind.AGENT).setConstData().setTemplateData(agentContext)
+                            .build();
 
-        AgentBuilder agentBuilder = new AgentBuilder();
-        agentBuilder.setConstData().setConcreteTemplateData(agentContext);
-        SourceBuilder agentSourceBuilder =
-                new SourceBuilder(agentNode, sourceBuilder.workspaceManager, projectRoot);
-        textEdits.putAll(agentBuilder.toSource(agentSourceBuilder));
+            updateAgentNodeProperties(agentNode, agentCallNode, modelProviderNode);
+
+            AgentBuilder agentBuilder = new AgentBuilder();
+            agentBuilder.setConstData().setConcreteTemplateData(agentContext);
+            SourceBuilder agentSourceBuilder =
+                    new SourceBuilder(agentNode, sourceBuilder.workspaceManager, projectRoot);
+            textEdits.putAll(agentBuilder.toSource(agentSourceBuilder));
+            connection = agentNode.getProperty(Property.VARIABLE_KEY);
+        }
 
         if (FlowNodeUtil.hasCheckKeyFlagSet(agentCallNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
-        Optional<Property> connection = agentNode.getProperty(Property.VARIABLE_KEY);
         if (connection.isEmpty()) {
             throw new IllegalStateException("Client must be defined for an action call node");
         }
+
+        Set<String> excludeKeys = agentCallNode.properties() != null
+                ? agentCallNode.properties().keySet().stream()
+                .filter(key -> !AGENT_CALL_PARAMS_TO_SHOW.contains(key))
+                .collect(java.util.stream.Collectors.toSet())
+                : new java.util.HashSet<>();
 
         Map<Path, List<TextEdit>> agentCallTextEdits = sourceBuilder.token()
                 .name(connection.get().toSourceCode())
@@ -178,10 +193,7 @@ public class AgentCallBuilder extends CallBuilder {
                         SyntaxKind.DOT_TOKEN : SyntaxKind.RIGHT_ARROW_TOKEN)
                 .name(agentCallNode.metadata().label())
                 .stepOut()
-                .functionParameters(agentCallNode,
-                        Set.of(Property.CONNECTION_KEY, Property.VARIABLE_KEY, Property.TYPE_KEY,
-                                Property.CHECK_ERROR_KEY, ROLE, INSTRUCTIONS, MEMORY, TOOLS, MAX_ITER,
-                                VERBOSE))
+                .functionParameters(agentCallNode, excludeKeys)
                 .textEdit()
                 .build();
 

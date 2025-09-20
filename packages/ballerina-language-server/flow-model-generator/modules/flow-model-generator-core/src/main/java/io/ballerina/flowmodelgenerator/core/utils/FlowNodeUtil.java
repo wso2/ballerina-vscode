@@ -121,8 +121,9 @@ public class FlowNodeUtil {
      * @param customValue the custom value to use instead of the property's original value, or null to use original
      */
     public static void addPropertyFromTemplate(NodeBuilder nodeBuilder, String key, Property property,
-                                               String customValue) {
+                                               String customValue, boolean isHidden) {
         Object valueToUse = customValue != null ? customValue : property.value();
+        boolean hidden = isHidden || property.hidden();
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -138,7 +139,7 @@ public class FlowNodeUtil {
                 .optional(property.optional())
                 .editable(property.editable())
                 .advanced(property.advanced())
-                .hidden(property.hidden())
+                .hidden(hidden)
                 .modified(property.modified())
                 .codedata()
                     .kind(property.codedata() != null ? property.codedata().kind() : "")
