@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { commands, Uri } from "vscode";
+import { commands, Uri, workspace, window, ConfigurationTarget } from "vscode";
 import {
     BI_COMMANDS,
     BIDeleteByComponentInfoRequest,
@@ -28,6 +28,7 @@ import {
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { openView } from "../../stateMachine";
+import { ENABLE_DEBUG_LOG, ENABLE_TRACE_LOG, TRACE_SERVER } from "../../core/preferences";
 import { prepareAndGenerateConfig } from "../config-generator/configGenerator";
 import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
@@ -37,6 +38,8 @@ import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/h
 import { startDebugging } from "../editor-support/activator";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
+const TRACE_SERVER_OFF = "off";
+const TRACE_SERVER_VERBOSE = "verbose";
 
 export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
@@ -52,6 +55,10 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConnectionWizard });
     });
 
+    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, () => {
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddCustomConnector });
+    });
+
     commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIComponentView });
     });
@@ -61,7 +68,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram, rootDiagramId: `type-diagram-${Date.now()}` });
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, () => {
@@ -74,7 +81,7 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
-    }); 
+    });
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
@@ -95,8 +102,10 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.SWITCH_PROJECT, async () => {
         // Hack to switch the project. This will reload the window and prompt the user to select the project.
         // This is a temporary solution until we provide the support for multi root workspaces.
-        commands.executeCommand('workbench.action.reloadWindow');
+        StateMachine.sendEvent("SWITCH_PROJECT" as any);
     });
+
+    commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item: any) => {
         console.log(">>> delete component", item);
@@ -110,8 +119,32 @@ export function activate(context: BallerinaExtension) {
         }
     });
 
-    //HACK: Open all Ballerina files in the project
-    openAllBallerinaFiles(context);
+    // Open the ballerina toml file as the first file for LS to trigger the project loading
+    openBallerinaTomlFile(context);
+}
+
+
+function openBallerinaTomlFile(context: BallerinaExtension) {
+    const projectRoot = StateMachine.context().projectUri;
+    const ballerinaTomlFile = path.join(projectRoot, "Ballerina.toml");
+    try {
+        const content = readFileSync(ballerinaTomlFile, "utf8");
+        if (content) {
+            context.langClient.didOpen({
+                textDocument: {
+                    uri: Uri.file(ballerinaTomlFile).toString(),
+                    languageId: "toml",
+                    version: 1,
+                    text: content,
+                },
+            });
+            console.log(`>>> Opened file: ${ballerinaTomlFile}`);
+        } else {
+            console.error(`>>> No content found for file ${ballerinaTomlFile}`);
+        }
+    } catch (error) {
+        console.error(`Error opening file ${ballerinaTomlFile}:`, error);
+    }
 }
 
 function openAllBallerinaFiles(context: BallerinaExtension) {
@@ -294,4 +327,26 @@ function hasNoComponentsOpenInDiagram() {
 
 function isFilePathsEqual(filePath1: string, filePath2: string) {
     return path.normalize(filePath1) === path.normalize(filePath2);
+}
+
+function toggleTraceLogs() {
+    const config = workspace.getConfiguration();
+
+    const currentTraceServer = config.get<string>(TRACE_SERVER);
+    const currentDebugLog = config.get<boolean>(ENABLE_DEBUG_LOG);
+    const currentTraceLog = config.get<boolean>(ENABLE_TRACE_LOG);
+
+    const isTraceEnabled = currentTraceServer === TRACE_SERVER_VERBOSE && currentDebugLog && currentTraceLog;
+
+    if (isTraceEnabled) {
+        config.update(TRACE_SERVER, TRACE_SERVER_OFF, ConfigurationTarget.Global);
+        config.update(ENABLE_DEBUG_LOG, false, ConfigurationTarget.Global);
+        config.update(ENABLE_TRACE_LOG, false, ConfigurationTarget.Global);
+        window.showInformationMessage('BI extension trace logs disabled');
+    } else {
+        config.update(TRACE_SERVER, TRACE_SERVER_VERBOSE, ConfigurationTarget.Global);
+        config.update(ENABLE_DEBUG_LOG, true, ConfigurationTarget.Global);
+        config.update(ENABLE_TRACE_LOG, true, ConfigurationTarget.Global);
+        window.showInformationMessage('BI extension trace logs enabled');
+    }
 }

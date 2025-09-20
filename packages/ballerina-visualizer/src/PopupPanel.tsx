@@ -18,13 +18,13 @@
 
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
-import { URI, Utils } from "vscode-uri";
-import { MACHINE_VIEW, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import { FunctionForm } from "./views/BI";
+import { DataMapper } from "./views/DataMapper";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;
@@ -45,7 +45,7 @@ const TopBar = styled.div`
 
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
-    onClose: () => void;
+    onClose: (parent?: ParentPopupData) => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
@@ -74,6 +74,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 fileName={location.documentUri || location.projectUri}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
+                                isPopupScreen={true}
                             />
                         );
                     });
@@ -134,6 +135,17 @@ const PopupPanel = (props: PopupPanelProps) => {
                             />
                         );
                     });
+                    break;
+                case MACHINE_VIEW.InlineDataMapper:
+                    setIsFullScreen(true);
+                    setViewComponent(
+                        <DataMapper
+                            filePath={machineState.documentUri}
+                            codedata={machineState?.dataMapperMetadata?.codeData}
+                            name={machineState?.dataMapperMetadata?.name}
+                            onClose={onClose}
+                        />
+                    );
                     break;
                 default:
                     setViewComponent(null);

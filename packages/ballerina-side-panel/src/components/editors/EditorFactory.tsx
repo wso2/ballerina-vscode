@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { NodeKind, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -41,12 +41,14 @@ import { ContextAwareRawExpressionEditor } from "./RawExpressionEditor";
 import { IdentifierField } from "./IdentifierField";
 import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
+import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
+import { ActionExpressionEditor } from "./ActionExpressionEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
     selectedNode?: NodeKind;
-    openRecordEditor?: (open: boolean) => void;
+    openRecordEditor?: (open: boolean, newType?: string | NodeProperties) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
@@ -55,6 +57,8 @@ interface FormFieldEditorProps {
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    handleNewTypeSelected?: (type: string | CompletionItem) => void;
+
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     mcpTools?: { name: string; description?: string }[];
@@ -74,6 +78,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         recordTypeFields,
         onIdentifierEditingStateChange,
         setSubComponentEnabled,
+        handleNewTypeSelected,
         scopeFieldAddon,
         newServerUrl
     } = props;
@@ -130,6 +135,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}
+                handleNewTypeSelected={handleNewTypeSelected}
+
             />
         );
     } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
@@ -171,6 +178,17 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
     } else if (field.type === "SERVICE_PATH" || field.type === "ACTION_PATH") {
         return <PathEditor field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
+    } else if (!field.items && field.type === "ACTION_EXPRESSION") {
+        return (
+            <ActionExpressionEditor
+                field={field}
+                openSubPanel={openSubPanel}
+                subPanelView={subPanelView}
+                handleOnFieldFocus={handleOnFieldFocus}
+                autoFocus={autoFocus}
+                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
     } else {
         // Default to text editor
         // Readonly fields are also treated as text editor

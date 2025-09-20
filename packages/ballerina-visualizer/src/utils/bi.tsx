@@ -40,7 +40,6 @@ import {
     Trigger,
     FunctionField,
     SignatureHelpResponse,
-    TriggerNode,
     VisibleType,
     VisibleTypeItem,
     Item,
@@ -55,7 +54,8 @@ import {
     ColorThemeKind,
     CompletionInsertText,
     SubPanel,
-    SubPanelView
+    SubPanelView,
+    NodeMetadata
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -75,16 +75,17 @@ import { DocSection } from "../components/ExpressionEditor";
 // @ts-ignore
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
+import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
 function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
     // Check if node should be filtered based on function type
-    if (functionType === FUNCTION_TYPE.REGULAR && node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
         return undefined;
     }
 
@@ -160,10 +161,12 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
         category.items?.forEach((item) => {
             if ((item as PanelNode).metadata?.codedata) {
                 const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
                 const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <AIModelIcon type={codedata?.module} codedata={codedata} />;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
             }
         });
     });
@@ -171,19 +174,9 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
-    panelCategories.forEach((category) => {
-        category.items?.forEach((item) => {
-            if ((item as PanelNode).metadata?.codedata) {
-                const codedata = (item as PanelNode).metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
-                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                item.icon = <NodeIcon type={codedata?.node} size={24} />;
-            }
-        });
-    });
-    return panelCategories;
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
@@ -192,6 +185,37 @@ export function convertEmbeddingProviderCategoriesToSidePanelCategories(categori
 
 export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertCategoriesToSidePanelCategoriesWithIcon(
+    categories: Category[],
+    iconFactory: (codedata: any) => React.ReactElement
+): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = iconFactory(codedata);
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = iconFactory(codedata);
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertDataLoaderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertNodePropertiesToFormFields(
@@ -333,14 +357,28 @@ export function updateNodeProperties(
     return updatedNodeProperties;
 }
 
-export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string): string {
+function getConnectionDisplayName(connectionKind?: ConnectionKind): string {
+    if (!connectionKind) return 'Connection';
+    try {
+        const config = getConnectionKindConfig(connectionKind);
+        return config.displayName;
+    } catch {
+        return 'Connection';
+    }
+}
+
+export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string, connectionKind?: ConnectionKind): string {
     switch (view) {
         case SidePanelView.NODE_LIST:
             return ""; // Show switch instead of title
         case SidePanelView.NEW_AGENT:
             return "AI Agent";
-        case SidePanelView.AGENT_MODEL:
-            return "Configure LLM Model";
+        case SidePanelView.CONNECTION_CONFIG:
+            return `Configure ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_SELECT:
+            return `Select ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_CREATE:
+            return `Create ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
@@ -369,13 +407,11 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             ) {
                 return `${clientName || activeNode.properties.connection.value} → ${activeNode.metadata.label}`;
             } else if (activeNode.codedata?.node === "DATA_MAPPER_CALL") {
-                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                    activeNode.codedata.symbol
-                }`;
+                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.codedata.symbol
+                    }`;
             }
-            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                activeNode.metadata.label
-            }`;
+            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.metadata.label
+                }`;
         default:
             return "";
     }
@@ -464,6 +500,10 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
+    const labelDetails = {
+        description,
+        detail: completion.detail,
+    };
 
     return {
         tag,
@@ -473,7 +513,8 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
         kind,
         sortText,
         additionalTextEdits,
-        cursorOffset
+        cursorOffset,
+        labelDetails
     };
 }
 
@@ -529,128 +570,6 @@ export function convertTriggerServiceTypes(trigger: Trigger): Record<string, Fun
     for (const key in trigger.serviceTypes) {
         const serviceType = trigger.serviceTypes[key];
         response[serviceType.name] = { checked: trigger.serviceTypes.length === 1, required: false, serviceType };
-    }
-    return response;
-}
-
-export function convertTriggerListenerConfig(trigger: TriggerNode): FormField[] {
-    const formFields: FormField[] = [];
-    for (const key in trigger.listener.properties) {
-        const expression = trigger.listener.properties[key];
-        const formField: FormField = {
-            key: key,
-            label: key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase()),
-            type: expression.valueType,
-            documentation: "",
-            ...expression,
-        };
-        formFields.push(formField);
-    }
-    return formFields;
-}
-
-export function updateTriggerListenerConfig(formFields: FormField[], trigger: TriggerNode): TriggerNode {
-    formFields.forEach((field) => {
-        const value = field.value as string;
-        trigger.listener.properties[field.key].value = value;
-        if (value && value.length > 0) {
-            trigger.listener.properties[field.key].enabled = true;
-        }
-    });
-    return trigger;
-}
-
-export function convertTriggerServiceConfig(trigger: TriggerNode): FormField[] {
-    const formFields: FormField[] = [];
-    for (const key in trigger.properties) {
-        const expression = trigger.properties[key];
-        const formField: FormField = {
-            ...expression,
-            key: key,
-            label: key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase()),
-            type: expression.valueType,
-            groupNo: expression.metadata.groupNo,
-            groupName: expression.metadata.groupName,
-            value: checkArrayValue(expression.value),
-            documentation: "",
-        };
-        formFields.push(formField);
-    }
-    return formFields;
-}
-
-function checkArrayValue(fieldValue: string): string[] | string {
-    try {
-        const parsedValue = JSON.parse(fieldValue);
-        // Check if parsedValue is an array
-        if (Array.isArray(parsedValue)) {
-            return parsedValue; // Return the array if it's valid
-        }
-    } catch (error) {
-        // Do nothing.
-    }
-    return fieldValue;
-}
-
-export function updateTriggerServiceConfig(formFields: FormField[], trigger: TriggerNode): TriggerNode {
-    formFields.forEach((field) => {
-        const value = field.value as string;
-        trigger.properties[field.key].value = value;
-        if (value) {
-            trigger.properties[field.key].enabled = true;
-        }
-    });
-    return trigger;
-}
-
-export function convertTriggerFunctionsConfig(trigger: Trigger): Record<string, FunctionField> {
-    const response: Record<string, FunctionField> = {};
-
-    for (const service in trigger.serviceTypes) {
-        const functions = trigger.serviceTypes[service].functions;
-        for (const key in functions) {
-            const triggerFunction = functions[key];
-            const formFields: FormField[] = [];
-            if (functions.hasOwnProperty(key)) {
-                for (const param in triggerFunction.parameters) {
-                    const expression = triggerFunction.parameters[param];
-                    const formField: FormField = {
-                        key: expression.name,
-                        label: expression.name
-                            .replace(/([a-z])([A-Z])/g, "$1 $2")
-                            .replace(/^./, (str) => str.toUpperCase()),
-                        documentation: expression?.documentation,
-                        optional: expression?.optional,
-                        type: expression?.typeName,
-                        editable: true,
-                        enabled: true,
-                        value: expression.defaultTypeName,
-                        valueTypeConstraint: "",
-                    };
-                    formFields.push(formField);
-                }
-            }
-            const isRadio = !!triggerFunction.group;
-            if (isRadio) {
-                if (!response[triggerFunction.group.name]) {
-                    response[triggerFunction.group.name] = {
-                        radioValues: [],
-                        required: !triggerFunction.optional,
-                        functionType: { name: "" },
-                    };
-                }
-                // Always set the first function as default
-                response[triggerFunction.group.name].functionType.name = functions[0].name;
-                response[triggerFunction.group.name].radioValues.push(triggerFunction.name);
-            } else {
-                response[triggerFunction.name] = {
-                    checked: !triggerFunction.optional,
-                    required: !triggerFunction.optional,
-                    fields: formFields,
-                    functionType: triggerFunction,
-                };
-            }
-        }
     }
     return response;
 }
@@ -807,6 +726,7 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
         value: type.insertText,
         kind: convertCompletionItemKind(type.kind),
         insertText: type.insertText,
+        labelDetails: type.labelDetails,
     }));
 }
 
@@ -970,7 +890,7 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
 
     // Create existing parameter values
     const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
-        createParameterValue(index, paramValueKey, paramValue as ParameterValue)
+        createParameterValue(index, paramValueKey, paramValue as any) // TODO: Fix this any type with actual type
     );
 
     formField.paramManagerProps = {

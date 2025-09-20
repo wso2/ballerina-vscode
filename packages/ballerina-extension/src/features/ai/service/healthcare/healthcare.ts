@@ -15,7 +15,7 @@
 // under the License.
 
 import { CoreMessage, generateObject, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4 } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
 import { libraryContains } from "../libs/funcs";
@@ -57,6 +57,7 @@ export async function generateHealthcareCodeCore(
     ).libraries;
 
     const historyMessages = populateHistory(params.chatHistory);
+    const cacheOptions = await getProviderCacheControl();
 
     const allMessages: CoreMessage[] = [
         {
@@ -66,17 +67,13 @@ export async function generateHealthcareCodeCore(
         {
             role: "system",
             content: getSystemPromptSuffix(LANGLIBS),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
         },
         ...historyMessages,
         {
             role: "user",
             content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
-            providerOptions: {
-                anthropic: { cacheControl: { type: "ephemeral" } },
-            },
+            providerOptions: cacheOptions,
         },
     ];
 
