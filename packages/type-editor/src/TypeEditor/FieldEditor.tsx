@@ -142,6 +142,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
         <>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
                 <ExpandIconButton
+                    data-testid={`field-expand-btn`}
                     appearance="icon"
                     onClick={() => setPanelOpened(!panelOpened)}
                 >
@@ -164,17 +165,17 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 />
                 <div style={{ display: 'flex', gap: '1px' }}>
                     {isRecord(member.type) &&
-                        <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()}>
+                        <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()} tooltip='Add Field'>
                             <Codicon name="add" />
                         </Button>
                     }
-                    <Button appearance="icon" onClick={toggleRecord}>
+                    <Button appearance="icon" onClick={toggleRecord} tooltip='Create Inline Record'>
                         <CurlyBracesIcon isActive={isRecord(member.type)} />
                     </Button>
-                    <Button appearance="icon" onClick={toggleOptional} tooltip='Optional Field'>
+                    <Button appearance="icon" onClick={toggleOptional} tooltip='Set as an Optional Field'>
                         <OptionalFieldIcon isActive={member?.optional} />
                     </Button>
-                    <Button appearance="icon" onClick={onDelete}>
+                    <Button appearance="icon" onClick={onDelete} tooltip='Delete Field'>
                         <Codicon name="trash" />
                     </Button>
                 </div>
@@ -183,6 +184,19 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 <CollapsibleSection>
                     <TextField label='Default Value' value={member.defaultValue} onChange={handleMemberDefaultValueChange} style={{ width: '180px' }} />
                     <TextField label='Description' value={member.docs} onChange={handleDescriptionChange} style={{ width: '180px' }} />
+                    <CheckBox
+                        sx={{ border: 'none', padding: '5px' }}
+                        label="Readonly"
+                        checked={member.readonly}
+                        onChange={(checked: boolean) => {
+                            // Match the same pattern used in the working checkbox
+                            onChange({
+                                ...member,
+                                readonly: checked 
+                                }
+                            );
+                        }}
+                    />
                 </CollapsibleSection>
             )}
             {isRecord(member.type) && typeof member.type !== 'string' && (

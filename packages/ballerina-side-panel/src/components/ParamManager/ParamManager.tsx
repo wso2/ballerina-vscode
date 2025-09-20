@@ -25,7 +25,7 @@ import { Codicon, ErrorBanner, LinkButton, RequiredFormInput, ThemeColors } from
 import { FormField, FormValues } from '../Form/types';
 import { Controller } from 'react-hook-form';
 import { useFormContext } from '../../context';
-import { NodeKind } from '@wso2/ballerina-core';
+import { Imports, NodeKind } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EditorFactory } from '../editors/EditorFactory';
 import { getFieldKeyForAdvanceProp } from '../editors/utils';
@@ -38,6 +38,8 @@ export interface Parameter {
     icon: string;
     identifierEditable: boolean;
     identifierRange: any;
+    hidden?: boolean;
+    imports?: Imports;
 }
 
 
@@ -324,7 +326,7 @@ export function ParamManager(props: ParamManagerProps) {
                             openRecordEditor={openRecordEditor}
                         />
                     )
-                } else if ((editingSegmentId !== index)) {
+                } else if ((editingSegmentId !== index && !(param.hidden ?? false))) {
                     render.push(
                         <ParamItem
                             key={param.id}

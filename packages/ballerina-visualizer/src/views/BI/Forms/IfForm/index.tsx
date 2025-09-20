@@ -368,7 +368,7 @@ export function IfForm(props: IfFormProps) {
                         <FormStyles.Row key={field.key}>
                             <ExpressionEditor
                                 {...expressionEditor}
-                                ref={exprRef}
+                                // ref={exprRef}
                                 control={control}
                                 field={field}
                                 watch={watch}

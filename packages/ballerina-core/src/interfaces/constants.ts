@@ -35,6 +35,7 @@ export const BI_COMMANDS = {
     FOCUS_PROJECT_EXPLORER: 'BI.project-explorer.focus',
     PROJECT_EXPLORER: 'BI.project-explorer',
     ADD_CONNECTIONS: 'BI.project-explorer.add-connection',
+    ADD_CUSTOM_CONNECTOR: 'BI.project-explorer.add-custom-connector',
     DELETE_COMPONENT: 'BI.project-explorer.delete',
     ADD_ENTRY_POINT: 'BI.project-explorer.add-entry-point',
     ADD_TYPE: 'BI.project-explorer.add-type',
@@ -51,4 +52,5 @@ export const BI_COMMANDS = {
     BI_ADD_TEST_FUNCTION: 'BI.test.add.function',
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
+    TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
 };
