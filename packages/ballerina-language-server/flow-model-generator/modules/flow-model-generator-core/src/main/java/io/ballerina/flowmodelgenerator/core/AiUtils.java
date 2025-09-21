@@ -405,6 +405,7 @@ public class AiUtils {
     public static Codedata getDefaultAgentCodedata() {
         return new Codedata.Builder<>(null)
                 .node(NodeKind.AGENT)
+                .object("Agent")
                 .org(BALLERINA)
                 .module(AI)
                 .packageName(AI)
