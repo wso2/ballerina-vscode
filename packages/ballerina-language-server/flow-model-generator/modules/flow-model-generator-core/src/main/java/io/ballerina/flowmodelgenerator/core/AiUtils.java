@@ -401,4 +401,14 @@ public class AiUtils {
                 .symbol(GET_DEFAULT_MODEL_PROVIDER_METHOD)
                 .build();
     }
+
+    public static Codedata getDefaultAgentCodedata() {
+        return new Codedata.Builder<>(null)
+                .node(NodeKind.AGENT)
+                .org(BALLERINA)
+                .module(AI)
+                .packageName(AI)
+                .symbol("init")
+                .build();
+    }
 }

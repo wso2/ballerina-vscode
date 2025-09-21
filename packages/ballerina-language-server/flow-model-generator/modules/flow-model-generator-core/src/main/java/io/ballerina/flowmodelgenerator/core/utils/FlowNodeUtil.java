@@ -86,8 +86,7 @@ public class FlowNodeUtil {
         if (targetProperty == null || sourceProperty.isEmpty()) {
             return;
         }
-
-        assert targetProperty.codedata() != null;
+        
         Property updatedProperty = createUpdatedProperty(targetProperty, sourceProperty.get().value());
         targetNode.properties().put(targetPropertyKey, updatedProperty);
     }
@@ -100,15 +99,18 @@ public class FlowNodeUtil {
      * @return the updated property
      */
     public static Property createUpdatedProperty(Property originalProperty, Object newValue) {
-        return new Property.Builder<>(null)
+        Property.Builder<Object> builder = new Property.Builder<>(null)
                 .type(Property.ValueType.valueOf(originalProperty.valueType()))
                 .typeConstraint(originalProperty.valueTypeConstraint())
-                .value(newValue)
-                .codedata()
+                .value(newValue);
+
+        if (originalProperty.codedata() != null) {
+            builder.codedata()
                     .kind(originalProperty.codedata().kind())
-                    .originalName(originalProperty.codedata().originalName())
-                    .stepOut()
-                .build();
+                    .originalName(originalProperty.codedata().originalName());
+        }
+
+        return builder.build();
     }
 
     /**

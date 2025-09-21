@@ -18,22 +18,36 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.projects.Document;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 
 /**
  * Represents a function call node.
@@ -101,15 +115,13 @@ public class AgentCallBuilder extends CallBuilder {
     public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
                                           Map<String, String> propertyValues) {
         FlowNode agentNodeTemplate = getOrCreateAgentTemplate(context);
-        if (agentNodeTemplate.properties() != null) {
-            agentNodeTemplate.properties().forEach((key, property) -> {
-                String value = (propertyValues != null && propertyValues.containsKey(key))
-                        ? propertyValues.get(key)
-                        : null;
-                boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
-                FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
-            });
-        }
+        agentNodeTemplate.properties().forEach((key, property) -> {
+            String value = (propertyValues != null && propertyValues.containsKey(key))
+                    ? propertyValues.get(key)
+                    : null;
+            boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
+            FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
+        });
     }
 
     public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder, Map<String, String> propertyValues) {
@@ -137,15 +149,28 @@ public class AgentCallBuilder extends CallBuilder {
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         // TODO: Refactor and clean up
         sourceBuilder.newVariable();
+
         FlowNode agentCallNode = sourceBuilder.flowNode;
-        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
-        Map<Path, List<TextEdit>> textEdits = new java.util.HashMap<>();
-        Optional<Property> connection = agentCallNode.getProperty(Property.CONNECTION_KEY);
         FlowNode modelProviderNode = null;
 
+        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Map<Path, List<TextEdit>> textEdits = new java.util.HashMap<>();
+
+        Optional<Property> connection = agentCallNode.getProperty(Property.CONNECTION_KEY);
         Optional<Property> model = agentCallNode.getProperty(MODEL);
-        if (model.isPresent() && (model.get().value() == null || model.get().value().equals(""))) {
-            // TODO: This context has to be the model providers's context, not the agent_call's context
+
+        NodeBuilder.TemplateContext agentContext;
+
+        if (model.isEmpty()) {
+            throw new IllegalStateException("Agent call node must have a model property");
+        }
+
+        if (connection.isEmpty()) {
+            throw new IllegalStateException("Agent call node must have a connection property");
+        }
+
+        // If model is not set, create a default model provider node
+        if (model.get().value() == null || model.get().value().equals("")) {
             NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
                     sourceBuilder.workspaceManager,
                     sourceBuilder.filePath,
@@ -162,29 +187,46 @@ public class AgentCallBuilder extends CallBuilder {
             textEdits.putAll(modelProviderBuilder.toSource(modelProviderSourceBuilder));
         }
 
-        if (connection.isPresent() && (connection.get().value() == null || connection.get().value().equals(""))) {
-            // TODO: This context has to be the agent's context, not the agent_call's context
-            NodeBuilder.TemplateContext agentContext = new NodeBuilder.TemplateContext(
+        // If connection is not set, create a default agent node
+        if (connection.get().value() == null || connection.get().value().equals("")) {
+            agentContext = new TemplateContext(
                     sourceBuilder.workspaceManager,
                     sourceBuilder.filePath,
                     sourceBuilder.flowNode.codedata().lineRange().startLine(),
-                    sourceBuilder.flowNode.codedata(),
+                    AiUtils.getDefaultAgentCodedata(),
                     null
             );
-
-            FlowNode agentNode =
-                    NodeBuilder.getNodeFromKind(NodeKind.AGENT).setConstData().setTemplateData(agentContext)
-                            .build();
-
-            updateAgentNodeProperties(agentNode, agentCallNode, modelProviderNode);
-
-            AgentBuilder agentBuilder = new AgentBuilder();
-            agentBuilder.setConstData().setConcreteTemplateData(agentContext);
-            SourceBuilder agentSourceBuilder =
-                    new SourceBuilder(agentNode, sourceBuilder.workspaceManager, projectRoot);
-            textEdits.putAll(agentBuilder.toSource(agentSourceBuilder));
-            connection = agentNode.getProperty(Property.VARIABLE_KEY);
+        } else {
+            String agentVariableName = Objects.requireNonNull(connection.get().value()).toString();
+            agentContext = findAgentContext(sourceBuilder, agentVariableName);
         }
+
+        FlowNode agentNode = new AgentBuilder().setConstData().setTemplateData(agentContext).build();
+        updateAgentNodeProperties(agentNode, agentCallNode);
+
+        if (modelProviderNode != null) {
+            FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
+        } else {
+            FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL);
+            FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, Property.VARIABLE_KEY, Property.CONNECTION_KEY);
+        }
+
+        Path agentFilePath;
+        if (agentContext.codedata().lineRange() != null) {
+            String fileName = agentContext.codedata().lineRange().fileName();
+            if (sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath) != null) {
+                agentFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
+                        .resolve(fileName);
+            } else {
+                agentFilePath = sourceBuilder.filePath.getParent().resolve(fileName);
+            }
+        } else {
+            agentFilePath = projectRoot;
+        }
+
+        SourceBuilder agentSourceBuilder = new SourceBuilder(agentNode, sourceBuilder.workspaceManager, agentFilePath);
+        textEdits.putAll(NodeBuilder.getNodeFromKind(agentNode.codedata().node()).toSource(agentSourceBuilder));
+        connection = agentNode.getProperty(Property.VARIABLE_KEY);
 
         if (FlowNodeUtil.hasCheckKeyFlagSet(agentCallNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
@@ -214,13 +256,12 @@ public class AgentCallBuilder extends CallBuilder {
         return textEdits;
     }
 
-    private static void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode,
-                                                  FlowNode modelProviderNode) {
+    private static void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode) {
         if (agentNode.properties() == null) {
             return;
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
-        FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
+        // TODO: Copy values of other properties of agentCallNode to agentNode (maxIter, verbose, etc.)
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {
@@ -236,5 +277,105 @@ public class AgentCallBuilder extends CallBuilder {
 
         Property updatedProperty = FlowNodeUtil.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
+    }
+
+    /**
+     * Finds the agent context for a given connection variable name. If the connection exists, searches for the agent
+     * symbol using visibleSymbols and returns its context. Otherwise, returns a default agent context.
+     */
+    private static NodeBuilder.TemplateContext findAgentContext(SourceBuilder sourceBuilder, String agentVariableName) {
+        Optional<NodeBuilder.TemplateContext> agentContext =
+                findAgentContextByVariableName(sourceBuilder, agentVariableName);
+
+        if (agentContext.isEmpty()) {
+            throw new IllegalStateException("Agent call node must have a connection property");
+        }
+
+        return agentContext.get();
+    }
+
+    /**
+     * Searches for an agent symbol by variable name using visibleSymbols and returns its context.
+     */
+    private static Optional<NodeBuilder.TemplateContext> findAgentContextByVariableName(
+            SourceBuilder sourceBuilder, String variableName) {
+        try {
+            // Load the semantic model for the current file
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+            Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceBuilder.filePath);
+            SemanticModel semanticModel =
+                    FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager, sourceBuilder.filePath);
+
+            // Use visibleSymbols to find the agent variable in current scope
+            LinePosition position = sourceBuilder.flowNode.codedata().lineRange().startLine();
+            List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, position);
+
+            for (Symbol symbol : visibleSymbols) {
+                if (symbol.kind() == SymbolKind.VARIABLE) {
+                    VariableSymbol varSymbol = (VariableSymbol) symbol;
+
+                    if (varSymbol.getName().isPresent() && varSymbol.getName().get().equals(variableName)) {
+                        return buildAgentContext(sourceBuilder, varSymbol);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding agent context: " + e.getMessage(), e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Builds the agent context from the variable symbol.
+     */
+    private static Optional<NodeBuilder.TemplateContext> buildAgentContext(SourceBuilder sourceBuilder,
+                                                                           VariableSymbol varSymbol) {
+        try {
+            Location location = varSymbol.getLocation().orElse(null);
+            if (location == null) {
+                return Optional.empty();
+            }
+
+            // Get the file path for the agent variable
+            String fileName = location.lineRange().fileName();
+            java.nio.file.Path agentFilePath;
+
+            if (sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath) != null) {
+                agentFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
+                        .resolve(fileName);
+            } else {
+                agentFilePath = sourceBuilder.filePath.getParent().resolve(fileName);
+            }
+
+            // Get the document and find the complete statement node
+            Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, agentFilePath);
+            NonTerminalNode childNode = CommonUtils.getNode(document.syntaxTree(), location.textRange());
+            // Navigate to the parent statement node to get the full agent definition
+            NonTerminalNode statementNode = childNode.parent().parent();
+
+            // Create codedata for the agent using the full statement's line range
+            Codedata agentCodedata =
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.AGENT)
+                            .lineRange(statementNode.lineRange())
+                            .object("Agent")
+                            .org(BALLERINA)
+                            .module(AI)
+                            .packageName(AI)
+                            .symbol("init")
+                            .sourceCode(statementNode.toSourceCode().strip())
+                            .isNew(false)
+                            .build();
+
+            return Optional.of(new NodeBuilder.TemplateContext(
+                    sourceBuilder.workspaceManager,
+                    agentFilePath,
+                    location.lineRange().startLine(),
+                    agentCodedata,
+                    null
+            ));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 }
