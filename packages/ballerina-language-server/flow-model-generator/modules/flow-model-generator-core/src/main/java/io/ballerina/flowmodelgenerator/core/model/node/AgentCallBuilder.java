@@ -66,8 +66,12 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
     public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
 
-    static final Set<String> AGENT_PARAMS_TO_HIDE = Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL);
+    static final Set<String> AGENT_PARAMS_TO_HIDE =
+            Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL, Property.TYPE_KEY, Property.VARIABLE_KEY);
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
+
+    // Cache for agent templates to avoid expensive repeated creation
+    private static final Map<String, FlowNode> agentTemplateCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -89,7 +93,6 @@ public class AgentCallBuilder extends CallBuilder {
         if (context == null || context.codedata() == null) {
             throw new IllegalArgumentException("Context or codedata cannot be null");
         }
-        // TODO: Way too slow to load form, need to optimize
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
@@ -97,7 +100,7 @@ public class AgentCallBuilder extends CallBuilder {
 
     public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
                                           Map<String, String> propertyValues) {
-        FlowNode agentNodeTemplate = new AgentBuilder().setConstData().setTemplateData(context).build();
+        FlowNode agentNodeTemplate = getOrCreateAgentTemplate(context);
         if (agentNodeTemplate.properties() != null) {
             agentNodeTemplate.properties().forEach((key, property) -> {
                 String value = (propertyValues != null && propertyValues.containsKey(key))
@@ -120,9 +123,19 @@ public class AgentCallBuilder extends CallBuilder {
                 INSTRUCTIONS_PLACEHOLDER, instructionsValue);
     }
 
+    private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
+        String cacheKey = String.format("%s:%s:%s",
+                context.codedata().org(),
+                context.codedata().packageName(),
+                context.codedata().version());
+        return agentTemplateCache.computeIfAbsent(cacheKey, k ->
+                new AgentBuilder().setConstData().setTemplateData(context).build()
+        );
+    }
+
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        // TODO: Get this method to work for editing existing nodes
+        // TODO: Refactor and clean up
         sourceBuilder.newVariable();
         FlowNode agentCallNode = sourceBuilder.flowNode;
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
@@ -207,7 +220,6 @@ public class AgentCallBuilder extends CallBuilder {
             return;
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
-        // TODO: copy model provider value into agent node from model provider node
         FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
     }
 

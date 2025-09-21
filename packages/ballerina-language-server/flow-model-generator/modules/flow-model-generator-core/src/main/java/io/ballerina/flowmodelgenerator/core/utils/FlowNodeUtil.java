@@ -165,7 +165,7 @@ public class FlowNodeUtil {
                     .label(label)
                     .description(description)
                     .stepOut()
-                .value(value != null ? ParamUtils.removeStringDelimiters(value) : "")
+                .value(value != null && !value.isEmpty() ? ParamUtils.removeStringDelimiters(value) : "")
                 .defaultValue("")
                 .type(Property.ValueType.STRING)
                 .placeholder(placeholder)
