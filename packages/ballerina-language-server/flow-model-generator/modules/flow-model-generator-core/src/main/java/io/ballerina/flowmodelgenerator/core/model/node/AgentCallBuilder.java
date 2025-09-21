@@ -130,8 +130,8 @@ public class AgentCallBuilder extends CallBuilder {
         Optional<Property> connection = agentCallNode.getProperty(Property.CONNECTION_KEY);
         FlowNode modelProviderNode = null;
 
-        Optional<Property> modelProperty = agentCallNode.getProperty(MODEL);
-        if (modelProperty.isPresent() && modelProperty.get().value() == null) {
+        Optional<Property> model = agentCallNode.getProperty(MODEL);
+        if (model.isPresent() && (model.get().value() == null || model.get().value().equals(""))) {
             // TODO: This context has to be the model providers's context, not the agent_call's context
             NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
                     sourceBuilder.workspaceManager,
@@ -149,7 +149,7 @@ public class AgentCallBuilder extends CallBuilder {
             textEdits.putAll(modelProviderBuilder.toSource(modelProviderSourceBuilder));
         }
 
-        if (connection.isPresent() && connection.get().value() == null) {
+        if (connection.isPresent() && (connection.get().value() == null || connection.get().value().equals(""))) {
             // TODO: This context has to be the agent's context, not the agent_call's context
             NodeBuilder.TemplateContext agentContext = new NodeBuilder.TemplateContext(
                     sourceBuilder.workspaceManager,
@@ -208,7 +208,7 @@ public class AgentCallBuilder extends CallBuilder {
         }
         updateSystemPromptProperty(agentNode, agentCallNode);
         // TODO: copy model provider value into agent node from model provider node
-        FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, "variable");
+        FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {
