@@ -99,7 +99,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
@@ -1130,13 +1129,13 @@ public final class Utils {
 
         if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
             // It's a List<String>
-            Type listType = new TypeToken<List<String>>() {}.getType();
+            Type listType = new TypeToken<List<String>>() { }.getType();
             return gson.fromJson(jsonString, listType);
         } else if (firstElement.isJsonObject()) {
             // Check if it has label and value properties (SelectionRecord)
             if (firstElement.getAsJsonObject().has("label") &&
                     firstElement.getAsJsonObject().has("value")) {
-                Type listType = new TypeToken<List<SelectionRecord>>() {}.getType();
+                Type listType = new TypeToken<List<SelectionRecord>>() { }.getType();
                 return gson.fromJson(jsonString, listType);
             }
         }
@@ -1144,7 +1143,7 @@ public final class Utils {
         return new ArrayList<>();
     }
 
-    public record SelectionRecord(String label, String value) {}
+    public record SelectionRecord(String label, String value) { }
 
     /**
      * Resolves a Ballerina module by organization, package, and module name.

@@ -190,7 +190,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                 .append(result.listenerDeclaration())
                 .append(NEW_LINE)
                 .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(result.listenerProtocol()))
-                .append(SPACE).append(ON).append(SPACE).append(result.listenerVarName()).append(SPACE).append(OPEN_BRACE)
+                .append(SPACE).append(ON).append(SPACE).append(result.listenerVarName()).append(SPACE)
+                .append(OPEN_BRACE)
                 .append(NEW_LINE)
                 .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
                 .append(CLOSE_BRACE).append(NEW_LINE);
