@@ -404,11 +404,11 @@ public class AiUtils {
     public static Codedata getDefaultAgentCodedata() {
         return new Codedata.Builder<>(null)
                 .node(NodeKind.AGENT)
-                .object("Agent")
+                .object(Ai.AGENT_TYPE_NAME)
                 .org(BALLERINA)
                 .module(AI)
                 .packageName(AI)
-                .symbol("init")
+                .symbol(Ai.AGENT_SYMBOL_NAME)
                 .build();
     }
 }
