@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
-import static io.ballerina.flowmodelgenerator.core.Constants.Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKERS;
@@ -340,7 +339,7 @@ public class AiUtils {
                 .node(kind);
 
         switch (className) {
-            case Ai.WSO2_MODEL_PROVIDER_NAME -> codedataBuilder.symbol(GET_DEFAULT_MODEL_PROVIDER_METHOD);
+            case Ai.WSO2_MODEL_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD);
             case Ai.WSO2_EMBEDDING_PROVIDER_NAME -> codedataBuilder.symbol(Ai.GET_DEFAULT_EMBEDDING_PROVIDER_METHOD);
             default -> codedataBuilder.object(className).symbol(INIT_METHOD);
         }
@@ -398,7 +397,7 @@ public class AiUtils {
                 .org(BALLERINA)
                 .module(AI)
                 .packageName(AI)
-                .symbol(GET_DEFAULT_MODEL_PROVIDER_METHOD)
+                .symbol(Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD)
                 .build();
     }
 
