@@ -27,7 +27,8 @@ export class ResultManager {
     private readonly resultsDir: string;
 
     constructor(baseDir: string = PATHS.DEFAULT_RESULTS_DIR) {
-        this.resultsDir = path.resolve(baseDir);
+        // console.log(`Results directory set to: ${path.resolve(__dirname, "")}`);
+        this.resultsDir = path.resolve(__dirname, baseDir);
     }
 
     /**

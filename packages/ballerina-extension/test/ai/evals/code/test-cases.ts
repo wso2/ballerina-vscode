@@ -1,4 +1,7 @@
-export const testCases = [
+// For development/testing: Set this to a small number (e.g., 1) for faster execution
+const MAX_TEST_CASES = process.env.AI_TEST_ENV === 'true' ? 1 : undefined;
+
+const allTestCases = [
   {
     prompt: "write an integration to get emails of the Users from a mysql table and send an email using gmail connector saying that you for buying the product",
     projectPath: "fresh_bi_package"
@@ -80,3 +83,5 @@ export const testCases = [
     projectPath: "fresh_bi_package"
   }
 ];
+
+export const testCases = MAX_TEST_CASES ? allTestCases.slice(0, MAX_TEST_CASES) : allTestCases;

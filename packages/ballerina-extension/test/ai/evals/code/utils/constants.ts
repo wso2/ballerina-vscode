@@ -15,6 +15,7 @@
 // under the License.
 
 import { TestConfiguration } from '../types';
+import * as path from 'path';
 
 /**
  * Default test configuration
@@ -42,7 +43,7 @@ export const TIMING = {
 export const PATHS = {
     PROJECT_ROOT_RELATIVE: "../../../../../test/data/bi_empty",
     ENV_FILE_RELATIVE: "../../../../.env",
-    DEFAULT_RESULTS_DIR: "./test/ai/evals/code/results"
+    DEFAULT_RESULTS_DIR: "../../../../../../test/ai/evals/code/results"
 } as const;
 
 /**
