@@ -42,10 +42,14 @@ import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 
@@ -85,7 +89,7 @@ public class AgentCallBuilder extends CallBuilder {
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
 
     // Cache for agent templates to avoid expensive repeated creation
-    private static final Map<String, FlowNode> agentTemplateCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<String, FlowNode> agentTemplateCache = new ConcurrentHashMap<>();
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -151,7 +155,7 @@ public class AgentCallBuilder extends CallBuilder {
 
         FlowNode agentCallNode = sourceBuilder.flowNode;
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
-        Map<Path, List<TextEdit>> allTextEdits = new java.util.HashMap<>();
+        Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
 
         validateRequiredProperties(agentCallNode);
 
@@ -239,7 +243,14 @@ public class AgentCallBuilder extends CallBuilder {
 
         String fileName = agentTemplateContext.codedata().lineRange().fileName();
         Path rootPath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
-        return (rootPath != null) ? rootPath.resolve(fileName) : sourceBuilder.filePath.getParent().resolve(fileName);
+        if (rootPath != null) {
+            return rootPath.resolve(fileName);
+        }
+        Path parentPath = sourceBuilder.filePath.getParent();
+        if (parentPath == null) {
+            throw new IllegalStateException("Unable to resolve parent path for file: " + sourceBuilder.filePath);
+        }
+        return parentPath.resolve(fileName);
     }
 
     private void generateAgentCallSource(SourceBuilder sourceBuilder, FlowNode agentCallNode, FlowNode agentNode,
@@ -271,8 +282,8 @@ public class AgentCallBuilder extends CallBuilder {
         return agentCallNode.properties() != null
                 ? agentCallNode.properties().keySet().stream()
                 .filter(key -> !AGENT_CALL_PARAMS_TO_SHOW.contains(key))
-                .collect(java.util.stream.Collectors.toSet())
-                : new java.util.HashSet<>();
+                .collect(Collectors.toSet())
+                : new HashSet<>();
     }
 
     private void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode) {
@@ -320,8 +331,6 @@ public class AgentCallBuilder extends CallBuilder {
     private Optional<NodeBuilder.TemplateContext> findAgentContextByVariableName(
             SourceBuilder sourceBuilder, String variableName) {
         try {
-            // Load the semantic model for the current file
-            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
             Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceBuilder.filePath);
             SemanticModel semanticModel =
                     FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager, sourceBuilder.filePath);
@@ -340,7 +349,8 @@ public class AgentCallBuilder extends CallBuilder {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error finding agent context: " + e.getMessage(), e);
+            throw new RuntimeException(
+                    "Error finding agent context for variable '" + variableName + "': " + e.getMessage(), e);
         }
         return Optional.empty();
     }
@@ -361,7 +371,12 @@ public class AgentCallBuilder extends CallBuilder {
                 agentFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
                         .resolve(fileName);
             } else {
-                agentFilePath = sourceBuilder.filePath.getParent().resolve(fileName);
+                Path parentPath = sourceBuilder.filePath.getParent();
+                if (parentPath == null) {
+                    throw new IllegalStateException(
+                            "Unable to resolve parent path for file: " + sourceBuilder.filePath);
+                }
+                agentFilePath = parentPath.resolve(fileName);
             }
 
             // Get the document and find the complete statement node
