@@ -18,9 +18,11 @@
 
 package io.ballerina.flowmodelgenerator.core.utils;
 
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 
 import java.util.Map;
@@ -178,5 +180,22 @@ public class FlowNodeUtil {
                     .stepOut()
                 .stepOut()
                 .addProperty(key);
+    }
+
+    /**
+     * Creates a default template context for node builders with the specified codedata.
+     *
+     * @param sourceBuilder the source builder containing workspace and file information
+     * @param codedata      the codedata to use for the template context
+     * @return the created template context
+     */
+    public static NodeBuilder.TemplateContext createDefaultTemplateContext(SourceBuilder sourceBuilder, Codedata codedata) {
+        return new NodeBuilder.TemplateContext(
+                sourceBuilder.workspaceManager,
+                sourceBuilder.filePath,
+                sourceBuilder.flowNode.codedata().lineRange().startLine(),
+                codedata,
+                null
+        );
     }
 }
