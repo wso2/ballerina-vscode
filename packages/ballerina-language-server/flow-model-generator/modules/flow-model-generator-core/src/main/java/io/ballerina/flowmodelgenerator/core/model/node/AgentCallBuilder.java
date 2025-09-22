@@ -170,7 +170,7 @@ public class AgentCallBuilder extends CallBuilder {
         }
 
         // If model is not set, create a default model provider node
-        if (model.get().value() == null || model.get().value().equals("")) {
+        if (model.get().value() == null || model.get().value().toString().isEmpty()) {
             NodeBuilder.TemplateContext modelProviderContext = new NodeBuilder.TemplateContext(
                     sourceBuilder.workspaceManager,
                     sourceBuilder.filePath,
@@ -188,7 +188,7 @@ public class AgentCallBuilder extends CallBuilder {
         }
 
         // If connection is not set, create a default agent node
-        if (connection.get().value() == null || connection.get().value().equals("")) {
+        if (connection.get().value() == null || connection.get().value().toString().isEmpty()) {
             agentContext = new TemplateContext(
                     sourceBuilder.workspaceManager,
                     sourceBuilder.filePath,
@@ -204,6 +204,7 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNode agentNode = new AgentBuilder().setConstData().setTemplateData(agentContext).build();
         updateAgentNodeProperties(agentNode, agentCallNode);
 
+        // If new model provider is created, copy variable name to agent model
         if (modelProviderNode != null) {
             FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
         } else {
@@ -260,8 +261,8 @@ public class AgentCallBuilder extends CallBuilder {
         if (agentNode.properties() == null) {
             return;
         }
+        copyCommonProperties(agentNode, agentCallNode);
         updateSystemPromptProperty(agentNode, agentCallNode);
-        // TODO: Copy values of other properties of agentCallNode to agentNode (maxIter, verbose, etc.)
     }
 
     private static void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {
@@ -279,10 +280,32 @@ public class AgentCallBuilder extends CallBuilder {
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
     }
 
-    /**
-     * Finds the agent context for a given connection variable name. If the connection exists, searches for the agent
-     * symbol using visibleSymbols and returns its context. Otherwise, returns a default agent context.
-     */
+    private static void copyCommonProperties(FlowNode agentNode, FlowNode agentCallNode) {
+        if (agentNode.properties() == null || agentCallNode.properties() == null) {
+            return;
+        }
+
+        for (Map.Entry<String, Property> agentPropertyEntry : agentNode.properties().entrySet()) {
+            String propertyName = agentPropertyEntry.getKey();
+            Property agentProperty = agentPropertyEntry.getValue();
+
+            // Skip copying variable and type properties
+            if (Property.VARIABLE_KEY.equals(propertyName) || Property.TYPE_KEY.equals(propertyName)) {
+                continue;
+            }
+
+            Optional<Property> agentCallProperty = agentCallNode.getProperty(propertyName);
+
+            if (agentCallProperty.isPresent() &&
+                    (agentCallProperty.get().value() != null &&
+                            !agentCallProperty.get().value().toString().isEmpty())) {
+                Property updatedProperty = FlowNodeUtil.createUpdatedProperty(agentProperty,
+                        agentCallProperty.get().value().toString());
+                agentNode.properties().put(propertyName, updatedProperty);
+            }
+        }
+    }
+
     private static NodeBuilder.TemplateContext findAgentContext(SourceBuilder sourceBuilder, String agentVariableName) {
         Optional<NodeBuilder.TemplateContext> agentContext =
                 findAgentContextByVariableName(sourceBuilder, agentVariableName);
@@ -294,9 +317,6 @@ public class AgentCallBuilder extends CallBuilder {
         return agentContext.get();
     }
 
-    /**
-     * Searches for an agent symbol by variable name using visibleSymbols and returns its context.
-     */
     private static Optional<NodeBuilder.TemplateContext> findAgentContextByVariableName(
             SourceBuilder sourceBuilder, String variableName) {
         try {
@@ -325,9 +345,6 @@ public class AgentCallBuilder extends CallBuilder {
         return Optional.empty();
     }
 
-    /**
-     * Builds the agent context from the variable symbol.
-     */
     private static Optional<NodeBuilder.TemplateContext> buildAgentContext(SourceBuilder sourceBuilder,
                                                                            VariableSymbol varSymbol) {
         try {
