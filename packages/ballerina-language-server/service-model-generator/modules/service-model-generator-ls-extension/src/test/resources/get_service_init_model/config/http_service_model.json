@@ -112,7 +112,7 @@
           "optional": false,
           "advanced": false
         },
-        "listener": {
+        "configureListener": {
           "metadata": {
             "label": "Listener Configuration",
             "description": "Configure the HTTP listener for the service"

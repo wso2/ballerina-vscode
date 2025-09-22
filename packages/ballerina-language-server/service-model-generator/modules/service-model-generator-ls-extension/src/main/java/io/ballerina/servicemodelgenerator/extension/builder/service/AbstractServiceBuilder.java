@@ -176,12 +176,13 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
             EventSyncException {
+        return getServiceDeclarationEdits(context, buildListenerDTO(context));
+    }
+
+    static Map<String, List<TextEdit>> getServiceDeclarationEdits(AddServiceInitModelContext context,
+                                                                          ListenerDTO result) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
-        Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-
-        ListenerDTO result = buildListenerDTO(context, properties, serviceInitModel, modulePartNode);
-
         List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
         List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
 
@@ -204,8 +205,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         return Map.of(context.filePath(), edits);
     }
 
-    protected static ListenerDTO buildListenerDTO(AddServiceInitModelContext context, Map<String, Value> properties,
-                                                  ServiceInitModel serviceInitModel, ModulePartNode modulePartNode) {
+    protected static ListenerDTO buildListenerDTO(AddServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
         for (Map.Entry<String, Value> entry : properties.entrySet()) {

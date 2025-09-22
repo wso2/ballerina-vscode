@@ -59,12 +59,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
@@ -74,11 +77,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.get
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateDesignApproach;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerConfigApproach;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
@@ -121,8 +123,9 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Value listenerNameProp = listenerNameProperty(context);
-            Value listener = serviceInitModel.getProperties().get("listener");
-            listener.getChoices().get(1).getProperties().get("listenerVarName").setValue(listenerNameProp.getValue());
+            Value listener = serviceInitModel.getProperties().get(KEY_CONFIGURE_LISTENER);
+            listener.getChoices().get(1).getProperties().get(KEY_LISTENER_VAR_NAME)
+                    .setValue(listenerNameProp.getValue());
             return serviceInitModel;
         } catch (IOException e) {
             return null;
@@ -134,8 +137,8 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
             EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
-        populateDesignApproach(serviceInitModel);
-        populateListenerConfigApproach(serviceInitModel);
+        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 

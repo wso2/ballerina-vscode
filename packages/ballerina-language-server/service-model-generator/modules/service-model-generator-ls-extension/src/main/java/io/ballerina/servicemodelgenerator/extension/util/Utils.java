@@ -99,6 +99,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
@@ -112,6 +113,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
@@ -199,30 +201,33 @@ public final class Utils {
             designApproach.getChoices().stream()
                     .filter(Value::isEnabled).findFirst()
                     .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
+            service.getProperties().remove(PROPERTY_DESIGN_APPROACH);
         }
     }
 
-    public static void populateDesignApproach(ServiceInitModel service) {
-        Value designApproach = service.getDesignApproach();
-        if (Objects.nonNull(designApproach) && designApproach.isEnabled()
-                && Objects.nonNull(designApproach.getChoices()) && !designApproach.getChoices().isEmpty()) {
-            designApproach.getChoices().stream()
-                    .filter(Value::isEnabled).findFirst()
-                    .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
+    /**
+     * Applies the properties of the enabled choice from the specified choice property key in the service init model.
+     * If an enabled choice exists, its properties are added to the service and the choice property is removed.
+     *
+     * @param service the service initialization model to update
+     * @param key the key of the choice property to process
+     */
+    public static void applyEnabledChoiceProperty(ServiceInitModel service, String key) {
+        Map<String, Value> properties = service.getProperties();
+        Value choiceProperty = properties.get(key);
+        if (Objects.isNull(choiceProperty) || !choiceProperty.isEnabled()
+                || Objects.isNull(choiceProperty.getChoices()) || choiceProperty.getChoices().isEmpty()) {
+            return;
         }
-    }
-
-    public static void populateListenerConfigApproach(ServiceInitModel service) {
-        Value listenerApproach = service.getListener();
-        if (Objects.nonNull(listenerApproach) && listenerApproach.isEnabled()
-                && Objects.nonNull(listenerApproach.getChoices()) && !listenerApproach.getChoices().isEmpty()) {
-            listenerApproach.getChoices().stream()
-                    .filter(Value::isEnabled).findFirst()
-                    .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove("listener");
+        boolean choiceEnabled = choiceProperty.getChoices().stream().anyMatch(Value::isEnabled);
+        if (!choiceEnabled) {
+            choiceProperty.getChoices().getFirst().setEnabled(true);
         }
+        choiceProperty.getChoices().stream()
+                .filter(Value::isEnabled)
+                .findFirst()
+                .ifPresent(selectedChoice -> service.addProperties(selectedChoice.getProperties()));
+        properties.remove(key);
     }
 
     private static Optional<Service> getServiceByServiceType(String serviceType) {

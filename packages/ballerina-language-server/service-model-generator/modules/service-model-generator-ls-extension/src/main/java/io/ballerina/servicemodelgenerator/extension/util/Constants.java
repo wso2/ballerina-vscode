@@ -89,6 +89,7 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
     public static final String VALUE_TYPE_FORM = "FORM";
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
