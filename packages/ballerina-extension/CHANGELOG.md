@@ -2,16 +2,17 @@
 
 All notable changes to the "Ballerina" extension will be documented in this file.
 
-## **5.4.0** (2025-09-18)
+## **5.4.0** (2025-09-19)
 
 ### Major updates
 
-- **Improved Data Mapper** — Revamped with a new model-based design, better type handling, and integration with the latest Language Server APIs.  
-- **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.  
-- **GraphQL Upgrades** — Support advanced configurations at service and field level, including context and metadata handling.  
-- **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.  
-- **Editor & Language Server Enhancements** — Better editor usability, improved rendering, and expanded migration tool support.  
-- **Migration Tooling Support** — Support importing Mule projects and Mule XML files to create Ballerina integrations.  
+- **Improved Data Mapper** —  Improved performance for large, deeply nested records, more intuitive design, and a new expression editor for easier transformations
+- **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.
+- **GraphQL Upgrades** — Support advanced configurations at service and field level, including context and metadata handling.
+- **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.
+- **Editor & Language Server Enhancements** — Better editor usability, improved rendering, and expanded migration tool support.
+- **Migration Tooling Support** — Support importing Mule projects and TIBCO projects to create Ballerina integrations.
+- **New Expression & Type Helper Experience** — Enhanced UI for expression building with support for value suggestions, along with easier creation and usage of variables, configurable, and functions, making expression building more intuitive and efficient.
 
 ### Added
 
@@ -20,22 +21,23 @@ All notable changes to the "Ballerina" extension will be documented in this file
 - **Connector Experience** — Local Connectors renamed to Custom Connectors, new tab-based UI, better multi-project switching, migration tool UI.  
 - **BI Extension** — Redesigned welcome page, new commands, type editor improvements, and migration tools support.  
 - **Type Diagram** — Optimized view for diagrams with high node count, added node deletion, and support for making types read-only via TypeEditor.  
+- **AWS Bedrock authentication support for BI Copilot**
 
 ### Changed
 
 - **Mappings API** — Standardized field names (name, displayName), improved optionality handling.  
-- **AI & Authentication** — Switched to Devant login and Search API for templates.  
-- **Editor & Designer** — Cleaner UI, project naming via ballerina.toml, AI RAG nodes moved under advanced settings.  
-- **UX Improvements** — Better connector flows, improved rendering for records, and more reliable diagram/test coverage.  
-- **Collapsible Node-Palette** — Node palette groupings are now collapsible and expandable for easier navigation.  
+- **AI & Authentication** — Now uses Devant login and integrates the Search API for template discovery.  
+- **Editor & Designer** — UI refinements, project names now sourced from ballerina.toml, and AI RAG nodes relocated to advanced settings.  
+- **UX Improvements** — Enhanced connector workflows, better record rendering, and more robust diagram/test coverage.  
+- **Collapsible Node-Palette** — Node palette groups are now collapsible and expandable for improved navigation.  
 
 ### Fixed
 
-- **Data Mapper** — Array handling, default values, reserved keyword responses, label consistency and mapping deletion inconsistencies corrected.  
-- **Flow Diagram & Editor** — Fixed readonly record rendering and service config sync issues.  
-- **AI & Copilot** — Stability fixes, missing dependencies, race conditions, and notifications resolved.  
-- **Platform Support** — Windows/WSL compatibility improved.  
-- **UI/UX Polish** — Connector alignment, loaders, spacing, and debug logging enhanced. 
+- **Data Mapper** — Fixed issues with array handling, default values, reserved keyword responses, label consistency, and mapping deletion.
+- **Flow Diagram & Editor** — Resolved readonly record rendering and improved service configuration synchronization.
+- **AI & Copilot** — Addressed stability issues, resolved missing dependencies, fixed race conditions, and improved notification handling.
+- **Platform Support** — Enhanced compatibility for Windows and WSL environments.
+- **UI/UX Polish** — Improved connector alignment, loader visuals, spacing, and debug logging.
 
 
 ## **5.3.1** (2025-08-13)
