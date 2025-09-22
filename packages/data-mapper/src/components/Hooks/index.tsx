@@ -153,9 +153,6 @@ export const useDiagramModel = (
                 }
                 node.setModel(newModel);
                 await node.initPorts();
-                if (node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode) {
-                    continue;
-                }
                 node.initLinks();
             } catch (e) {
                 const errorNodeKind = getErrorKind(node);

@@ -132,3 +132,54 @@ export function VisualizerContextProvider({ children }: { children: ReactNode })
 }
 
 export const useVisualizerContext = () => useContext(VisualizerContext);
+
+export const POPUP_IDS = {
+  VARIABLE: "VARIABLE",
+  FUNCTION: "FUNCTION",
+  CONFIGURABLES: "CONFIGURABLES",
+  RECORD_CONFIG: "RECORD_CONFIG",
+} as const;
+
+type ModalStackItem = {
+    modal: ReactNode;
+    id: string;
+    title: string;
+    height?: number;
+    width?: number;
+}
+
+interface ModalStackContext {
+    modalStack: ModalStackItem[];
+    addModal: (modal: ReactNode, id: string, title: string, height?: number, width?: number) => void;
+    popModal: () => void;
+    closeModal: (id: string) => void;
+}
+
+export const ModalStackContext = createContext({
+    modalStack: [],
+    addModal: (modal: ReactNode, id: string, title: string, height?: number, width?: number) => { },
+    popModal: () => { },
+    closeModal: (id: string) => { },
+} as ModalStackContext);
+
+export const ModalStackProvider = ({children}: {children: ReactNode}) => {
+    const [modalStack, setModalStack] = useState<ModalStackItem[]>([]);
+
+    const addModal = (modal: ReactNode, id: string, title: string, height?: number, width?: number) => {
+        setModalStack((prevStack) => [...prevStack, { modal, id, title, height, width }]);
+    };
+
+    const popModal = () => {
+        setModalStack((prevStack) => prevStack.slice(0, -1));
+    };
+
+    const closeModal = (id: string) => {
+        setModalStack((prevStack) => prevStack.filter((item) => item.id !== id));
+    };
+
+    return <ModalStackContext.Provider value={{ modalStack, addModal, popModal, closeModal }}>
+        {children}
+    </ModalStackContext.Provider>;
+}
+
+export const useModalStack = () => useContext(ModalStackContext);

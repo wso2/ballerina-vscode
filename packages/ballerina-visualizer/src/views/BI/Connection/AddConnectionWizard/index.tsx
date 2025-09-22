@@ -369,6 +369,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                             onSelectConnector={handleOnSelectConnector}
                             onAddGeneratedConnector={handleOnAddGeneratedConnector}
                             onClose={onClose}
+                            isPopupView={true}
                         />
                     </PopupContainer>
                 </>

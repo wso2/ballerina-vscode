@@ -140,15 +140,18 @@ export async function generateBallerinaCode(
                 key,
                 nestedKeyArray
             );
-            const recordFieldDetails = await handleRecordArrays(
-                key,
-                nestedKey,
-                responseRecord,
-                parameterDefinitions,
-                nestedKeyArray
-            );
+            const hasValidFields = Object.values(responseRecord).some(value => !isEmptyValue(value));
+            if (hasValidFields) {
+                const recordFieldDetails = await handleRecordArrays(
+                    key,
+                    nestedKey,
+                    responseRecord,
+                    parameterDefinitions,
+                    nestedKeyArray
+                );
+                Object.assign(recordFields, recordFieldDetails);
+            }
             nestedKeyArray.pop();
-            Object.assign(recordFields, recordFieldDetails);
         }
     }
     return recordFields;
@@ -1339,6 +1342,25 @@ async function getDefaultValue(dataType: string): Promise<string> {
     }
 }
 
+function isEmptyValue(value: string): boolean {
+    if (!value || value.trim() === '') {
+        return true;
+    }
+    
+    // Check if it's an empty string
+    if (value === '') {
+        return true;
+    }
+    
+    // Check if it's an empty object string like "{\n  \n}" or "{}"
+    const trimmedValue = value.trim();
+    if (trimmedValue === '{}' || /^\{\s*\}$/.test(trimmedValue)) {
+        return true;
+    }
+    
+    return false;
+}
+
 async function getNestedType(paths: string[], metadata: ParameterField | FieldMetadata): Promise<FieldMetadata> {
     let currentMetadata = metadata;
     for (const path of paths) {
@@ -1392,6 +1414,10 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     let isOutputDeeplyNested: boolean = false;
 
     for (let subObjectKey of subObjectKeys) {
+        const currentValue = responseRecord[subObjectKey];
+        if (isEmptyValue(currentValue)) {
+            continue;
+        }
         if (!nestedKey) {
             modifiedOutput = parameterDefinitions.outputMetadata[key];
         } else {
@@ -1824,7 +1850,8 @@ export async function getParamDefinitions(
             outputMetadata,
             constants: transformedInputs.constants,
             configurables: transformedInputs.configurables,
-            variables: transformedInputs.variables
+            variables: transformedInputs.variables,
+            enums: transformedInputs.enums
         },
         errorStatus: false
     };
@@ -1834,107 +1861,107 @@ function transformInputs(inputs: IOType[]): {
     constants: Record<string, FieldMetadata>;
     configurables: Record<string, FieldMetadata>;
     variables: Record<string, FieldMetadata>;
+    enums: Record<string, FieldMetadata>;
     parameters: ParameterField[];
     parameterFields: { [parameterName: string]: FormField[] };
 } {
     const constants: Record<string, FieldMetadata> = {};
     const configurables: Record<string, FieldMetadata> = {};
     const variables: Record<string, FieldMetadata> = {};
+    const enums: Record<string, FieldMetadata> = {};
     const parameters: ParameterField[] = [];
     const parameterFields: { [parameterName: string]: FormField[] } = {};
 
+    const createParameterField = (input: IOType): ParameterField => {
+        let typeName = input.kind !== input.typeName ? input.typeName : (input.typeName || input.kind || "unknown");
+        const isArrayType = input.kind === TypeKind.Array;
+        let type = isArrayType ? `${input.member?.kind || typeName}[]` : input.kind;
+
+        return {
+            isArrayType,
+            parameterName: input.id,
+            parameterType: typeName,
+            type
+        };
+    };
+
+    const createFieldConfig = (input: IOType): FieldMetadata => {
+        if (!input.typeName) {
+            throw new Error("TypeName is missing");
+        }
+        return {
+            typeName: input.kind || "unknown",
+            type: input.kind || "unknown",
+            typeInstance: input.id,
+            nullable: false,
+            optional: input.optional || false
+        };
+    };
+
+    const addAsParameter = (input: IOType) => {
+        const parameterField = createParameterField(input);
+        parameters.push(parameterField);
+
+        if (input.kind === "array" && input.member) {
+            parameterFields[input.id] = input.member.fields 
+                ? input.member.fields.map(transformIOType)
+                : [transformIOType(input.member)];
+        } else if (input.fields) {
+            parameterFields[input.id] = input.fields.map(transformIOType);
+        } else {
+            parameterFields[input.id] = [transformIOType(input)];
+        }
+    };
+
     inputs.forEach((input) => {
-        // Helper function to create ParameterField
-        const createParameterField = (input: IOType): ParameterField => {
-            let typeName: string;
+        switch (input.category) {
+            case InputCategory.Constant:
+                constants[input.id] = createFieldConfig(input);
+                break;
 
-            if (input.kind !== input.typeName) {
-                typeName = input.typeName;
-            } else if (!input.typeName) {
-                typeName = input.kind || "unknown";
-            } else {
-                typeName = input.typeName;
-            }
+            case InputCategory.Configurable:
+                configurables[input.id] = createFieldConfig(input);
+                break;
 
-            // Determine if it's an array type
-            const isArrayType = input.kind === TypeKind.Array;
-            const name = input.id;
+            case InputCategory.Variable:
+            case InputCategory.ModuleVariable:
+                variables[input.id] = createFieldConfig(input);
+                break;
 
-            // Determine the type string
-            let type: string;
-            if (isArrayType) {
-                // If it's an array, get the member type and append []
-                if (input.member) {
-                    const memberTypeName = input.member.kind || "unknown";
-                    type = `${memberTypeName}[]`;
+            case InputCategory.Enum:
+                const enumMembers: Record<string, FieldMetadata> = {};
+                const memberNames: string[] = [];
+
+                input.members?.forEach(member => {
+                    memberNames.push(member.name);
+                    enumMembers[member.name] = createFieldConfig(member);
+                });
+
+                enums[input.id] = {
+                    typeName: memberNames.join('|'),
+                    type: input.kind,
+                    typeInstance: input.id,
+                    nullable: false,
+                    optional: input.optional || false,
+                    members: enumMembers
+                };
+                break;
+
+            case InputCategory.Parameter:
+                addAsParameter(input);
+                break;
+
+            case InputCategory.LocalVariable:
+                if (!input.fields && !input.members) {
+                    variables[input.id] = createFieldConfig(input);
                 } else {
-                    type = `${typeName}[]`;
+                    addAsParameter(input);
                 }
-            } else {
-                type = input.kind;
-            }
-
-            return {
-                isArrayType,
-                parameterName: name,
-                parameterType: typeName,
-                type
-            };
-        };
-
-        const createFieldConfig = (input: IOType): FieldMetadata => {
-            if (!input.typeName) {
-                throw new Error("TypeName is missing");
-            }
-            return {
-                typeName: input.kind || "unknown",
-                type: input.kind || "unknown",
-                typeInstance: input.id,
-                nullable: false,
-                optional: input.optional
-            };
-        };
-
-        // Handle different categories
-        if (input.category === InputCategory.Constant) {
-            constants[input.id] = createFieldConfig(input);
-            return;
-        }
-
-        if (input.category === InputCategory.Configurable) {
-            configurables[input.id] = createFieldConfig(input);
-            return;
-        }
-
-        if (input.category === InputCategory.Variable) {
-            variables[input.id] = createFieldConfig(input);
-            return;
-        }
-
-        if (input.category === InputCategory.Parameter) {
-            const parameterField = createParameterField(input);
-            parameters.push(parameterField);
-
-            const parameterName = input.id;
-
-            if (input.kind === "array" && input.member) {
-                if (input.member.fields) {
-                    parameterFields[parameterName] = input.member.fields.map(transformIOType);
-                } else {
-                    parameterFields[parameterName] = [transformIOType(input.member)];
-                }
-            } else {
-                // Handle non-array parameters
-                if (input.fields) {
-                    parameterFields[parameterName] = input.fields.map(transformIOType);
-                } else {
-                    parameterFields[parameterName] = [transformIOType(input)];
-                }
-            }
+                break;
         }
     });
 
-    return { constants, configurables, variables, parameters, parameterFields };
+    return { constants, configurables, variables, enums, parameters, parameterFields };
 }
 
 function transformIOType(input: IOType): FormField {
@@ -1998,6 +2025,11 @@ function transformIOType(input: IOType): FormField {
         }
 
         return recordField;
+    }
+
+    // Handle enums
+    if (input.kind === "enum" && input.members) {
+        return { ...baseField, typeName: "enum", members: input.members.map(transformIOType) };
     }
 
     // Handle primitive types
@@ -2133,7 +2165,7 @@ export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticE
 export async function addToIntegration(workspaceFolderPath: string, fileChanges: FileChanges[]) {
     const formattedWorkspaceEdit = new WorkspaceEdit();
     const nonBalFiles: FileChanges[] = [];
-
+    let isBalFileAdded = false;
     for (const fileChange of fileChanges) {
         let balFilePath = path.join(workspaceFolderPath, fileChange.filePath);
         const fileUri = Uri.file(balFilePath);
@@ -2141,6 +2173,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
             nonBalFiles.push(fileChange);
             continue;
         }
+        isBalFileAdded = true;
 
         formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
 
@@ -2156,6 +2189,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
 
     // Apply all formatted changes at once
     await workspace.applyEdit(formattedWorkspaceEdit);
+    await workspace.saveAll();
 
     // Write non ballerina files separately as ls doesn't need to be notified of those changes
     for (const fileChange of nonBalFiles) {
@@ -2167,6 +2201,9 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
     }
     return new Promise((resolve, reject) => {
+        if (!isBalFileAdded) {
+            resolve([]);
+        }
         // Get the artifact notification handler instance
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Subscribe to artifact updated notifications

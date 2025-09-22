@@ -19,6 +19,7 @@ import {
     AddArrayElementRequest,
     ConvertToQueryRequest,
     AddClausesRequest,
+    DeleteClauseRequest,
     DataMapperModelRequest,
     DataMapperModelResponse,
     DataMapperSourceRequest,
@@ -35,6 +36,7 @@ import {
     AllDataMapperSourceRequest,
     AddSubMappingRequest,
     DeleteMappingRequest,
+    DeleteSubMappingRequest,
     MapWithFnRequest,
     DMModelRequest,
     ProcessTypeReferenceResponse,
@@ -50,8 +52,10 @@ export interface DataMapperAPI {
     addNewArrayElement: (params: AddArrayElementRequest) => Promise<DataMapperSourceResponse>;
     convertToQuery: (params: ConvertToQueryRequest) => Promise<DataMapperSourceResponse>;
     addClauses: (params: AddClausesRequest) => Promise<DataMapperSourceResponse>;
+    deleteClause: (params: DeleteClauseRequest) => Promise<DataMapperSourceResponse>;
     addSubMapping: (params: AddSubMappingRequest) => Promise<DataMapperSourceResponse>;
     deleteMapping: (params: DeleteMappingRequest) => Promise<DataMapperSourceResponse>;
+    deleteSubMapping: (params: DeleteSubMappingRequest) => Promise<DataMapperSourceResponse>;
     mapWithCustomFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     mapWithTransformFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;

@@ -47,6 +47,7 @@ import {
     RecordTypeField,
     Type,
     VisualizableField,
+    NodeProperties,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -242,14 +243,12 @@ namespace S {
             font-family: var(--vscode-font-family);
         }
 
-        code {
-            // hide code blocks
+        pre {
             display: none;
         }
 
-        pre {
-            // hide code blocks
-            display: none;
+        code {
+            display: inline;
         }
 
         ul,
@@ -321,7 +320,7 @@ export interface FormProps {
     selectedNode?: NodeKind;
     onSubmit?: (data: FormValues, dirtyFields?: any) => void;
     isSaving?: boolean;
-    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField) => void;
+    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
     openView?: (filePath: string, position: NodePosition) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
@@ -342,11 +341,11 @@ export interface FormProps {
     concertMessage?: string;
     formImports?: FormImports;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: CompletionItem) => void;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[]; 
+    mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
     injectedComponents?: {
         component: React.ReactNode;
@@ -506,8 +505,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
         resetForm: (values) => reset(values),
     }));
 
-    const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
-        openRecordEditor?.(open, getValues(), typeField);
+    const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
+        openRecordEditor?.(open, getValues(), typeField, newType);
     };
 
     const handleOnShowAdvancedOptions = () => {
@@ -532,11 +531,16 @@ export const Form = forwardRef((props: FormProps, ref) => {
         setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
     };
 
+    const handleOpenSubPanel = (subPanel: SubPanel) => {
+        let updatedSubPanel = subPanel;
+        openSubPanel(updatedSubPanel);
+    };
+
     const handleOnTypeChange = (value?: string) => {
         getVisualiableFields();
     };
 
-    const handleNewTypeSelected = (type: CompletionItem) => {
+    const handleNewTypeSelected = (type: string | CompletionItem) => {
         handleSelectedTypeChange && handleSelectedTypeChange(type);
     }
 
@@ -639,7 +643,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
-            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
@@ -679,7 +683,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
             prevValuesRef.current = { ...watchedValues };
         }
     }, [watchedValues]);
-    
+
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
@@ -762,8 +766,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                         selectedNode={selectedNode}
                                         openRecordEditor={
                                             openRecordEditor &&
-                                            ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
+                                        openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
@@ -835,7 +840,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             field={updatedField}
                                             openRecordEditor={
                                                 openRecordEditor &&
-                                                ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                             }
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
@@ -864,7 +869,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
                             <EditorFactory
                                 field={typeField}
                                 openRecordEditor={
-                                    openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
+                                    openRecordEditor &&
+                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                                 }
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}

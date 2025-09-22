@@ -50,7 +50,7 @@ export const PanelBody = styled.div`
 `;
 
 
-export function RecordConfig(props: ConfigureViewProps) {
+export function RecordConfigView(props: ConfigureViewProps) {
     const { recordModel, onModelChange } = props;
 
     const handleOnChange = async () => {
@@ -63,7 +63,12 @@ export function RecordConfig(props: ConfigureViewProps) {
                 <LabelContainer>
                     <Description >{`Select fields to construct the record`}</Description>
                 </LabelContainer>
-                <MemoizedParameterBranch key={JSON.stringify(recordModel)} parameters={recordModel} depth={1} onChange={handleOnChange} />
+                <div style={{
+                    maxHeight: '450px',
+                    overflowY: 'auto'
+                }}>
+                    <MemoizedParameterBranch key={JSON.stringify(recordModel)} parameters={recordModel} depth={1} onChange={handleOnChange} />
+                </div>
             </>
         </PanelBody>
     );

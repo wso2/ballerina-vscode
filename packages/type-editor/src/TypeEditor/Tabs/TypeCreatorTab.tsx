@@ -198,12 +198,12 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
-    const handleSetType = (type: Type | ((currentType: any) => any)) => {
+    const handleSetType = (type: Type) => {
         replaceTop({
-            type: typeof type === "function" ? type(type) : type,
+            type: type,
             isDirty: true
         })
-        setType(type)
+        setType(type);
     }
 
 
@@ -231,16 +231,17 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
 
         const typeValue = selectedKind === TypeKind.CLASS ? "CLASS" : selectedKind.toUpperCase();
 
-        // Always create a new type with the selected kind
-        handleSetType((currentType) => ({
-            ...currentType!,
+        // Always create a new type with the selected kind, preserving the name
+        handleSetType({
+            ...type!,
+            name: type!.name, // Explicitly preserve the name
             kind: typeValue,
             members: [] as Member[],
             codedata: {
-                ...currentType!.codedata, // Check the location of the type
+                ...type!.codedata, // Check the location of the type
                 node: typeValue.toUpperCase() as TypeNodeKind
             }
-        }));
+        } as any);
     };
 
     // Add a helper function to get the display label
@@ -447,7 +448,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         rpcClient={rpcClient}
                         onValidationError={handleValidationError}
                     />
-                    <AdvancedOptions type={type} onChange={setType} />
+                    <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             case TypeKind.CLASS:
@@ -467,7 +468,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
-                    <AdvancedOptions type={type} onChange={setType} />
+                    <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             default:
@@ -572,7 +573,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 )}
             </CategoryRow>
 
-           <div style={{overflow: 'auto', maxHeight: '300px'}}>
+           <div style={{overflow: 'auto', maxHeight: '70vh'}}>
              {renderEditor()}
            </div>
             <Footer>

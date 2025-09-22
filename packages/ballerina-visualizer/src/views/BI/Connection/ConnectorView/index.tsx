@@ -44,14 +44,13 @@ const Container = styled.div`
     flex-direction: column;
 `;
 
-const ListContainer = styled.div<{ isHalfView?: boolean }>`
+const ListContainer = styled.div<{ isPopupView?: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
     margin-left: 20px;
-    height: ${(props: { isHalfView: boolean }) => (props.isHalfView ? "30vh" : "calc(100vh - 200px)")};
-    overflow-y: scroll;
+    height: ${(props: { isPopupView: boolean }) => (props.isPopupView ? "30vh" : "calc(100vh - 200px)")};
 `;
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
@@ -99,6 +98,7 @@ interface ConnectorViewProps {
     onClose?: () => void;
     hideTitle?: boolean;
     openCustomConnectorView?: boolean;
+    isPopupView?: boolean;
 }
 
 export function ConnectorView(props: ConnectorViewProps) {
@@ -110,6 +110,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         onClose,
         hideTitle,
         openCustomConnectorView,
+        isPopupView
     } = props;
     const { rpcClient } = useRpcContext();
 
@@ -401,7 +402,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                             </TreeViewItemContent>
                         </TreeViewItem>
                     </div>
-                    <ListContainer isHalfView={hideTitle}>
+                    <ListContainer isPopupView={isPopupView}>
                         {selectedConnectorCategory === "CurrentOrg" && (
                             <LabelRow>
                                 <Typography variant="h3">{'Organization\'s Connectors'}</Typography>

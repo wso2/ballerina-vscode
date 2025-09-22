@@ -221,15 +221,33 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string){
+export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string): void {
 
-    const { addView } = context;
+    const { addView, views } = context;
+    
+    if (!views || views.length === 0) {
+        throw new Error('Views array is required and cannot be empty');
+    }
 
-    const newView: View = {
+    const lastView = views[views.length - 1];
+    
+    // Create base view properties
+    const baseView: View = {
         label: targetField,
         sourceField,
         targetField
     };
+
+    // Create the new view with or without sub-mapping info
+    const newView: View = lastView.subMappingInfo 
+        ? {
+            ...baseView,
+            subMappingInfo: {
+                ...lastView.subMappingInfo,
+                focusedOnSubMappingRoot: false
+            }
+        }
+        : baseView;
 
     addView(newView);
 }
@@ -290,4 +308,9 @@ export function getTargetField(viewId: string, outputId: string){
         outputIdParts.push("0");
     }
     return [...viewId.split("."), ...outputIdParts].join(".");
+}
+
+
+export function isWithinSubMappingRootView(views: View[]): boolean {
+    return views.length > 1 && views[views.length - 1].subMappingInfo?.focusedOnSubMappingRoot;
 }
