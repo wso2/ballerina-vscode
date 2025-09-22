@@ -18,8 +18,6 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-import io.ballerina.servicemodelgenerator.extension.util.Constants;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +25,6 @@ import java.util.Objects;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_SERVICE_TYPE_DESCRIPTOR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**

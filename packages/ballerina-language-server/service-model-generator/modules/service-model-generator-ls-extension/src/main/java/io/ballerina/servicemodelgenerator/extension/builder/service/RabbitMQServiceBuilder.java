@@ -33,11 +33,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
