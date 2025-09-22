@@ -177,6 +177,7 @@ public class Function {
                 .setMetadata(metadata)
                 .valueType(Constants.VALUE_TYPE_STRING)
                 .enabled(true)
+                .optional(true)
                 .editable(true)
                 .build();
     }
