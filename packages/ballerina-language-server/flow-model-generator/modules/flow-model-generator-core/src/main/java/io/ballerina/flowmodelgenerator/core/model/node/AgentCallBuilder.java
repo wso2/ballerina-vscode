@@ -42,6 +42,7 @@ import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -275,7 +276,12 @@ public class AgentCallBuilder extends CallBuilder {
                 .textEdit()
                 .build();
 
-        allTextEdits.putAll(callTextEdits);
+        callTextEdits.forEach((path, textEdits) ->
+            allTextEdits.merge(path, textEdits, (existing, incoming) -> {
+                List<TextEdit> merged = new ArrayList<>(existing);
+                merged.addAll(incoming);
+                return merged;
+            }));
     }
 
     private Set<String> getExcludeKeys(FlowNode agentCallNode) {

@@ -154,6 +154,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -199,6 +200,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Map<String, LineRange> dataMappings;
     private final Map<String, LineRange> naturalFunctions;
     private final TextDocument textDocument;
+    private final Document document;
     private final ModuleInfo moduleInfo;
     private final DiagnosticHandler diagnosticHandler;
     private final boolean forceAssign;
@@ -224,7 +226,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
-                        TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign,
+                        TextDocument textDocument, io.ballerina.projects.Document document, ModuleInfo moduleInfo,
+                        boolean forceAssign,
                         WorkspaceManager workspaceManager) {
         this.project = project;
         this.semanticModel = semanticModel;
@@ -232,6 +235,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.naturalFunctions = naturalFunctions;
         this.connectionScope = connectionScope;
         this.textDocument = textDocument;
+        this.document = document;
         this.moduleInfo = moduleInfo;
         this.forceAssign = forceAssign;
         this.flowNodeList = new ArrayList<>();
@@ -401,7 +405,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
             }
         } else {
-            for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            for (Symbol moduleSymbol : semanticModel.visibleSymbols(document, expressionNode.lineRange().startLine())) {
                 if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
                     continue;
                 }
@@ -414,23 +418,44 @@ public class CodeAnalyzer extends NodeVisitor {
                     throw new IllegalStateException("Location not found for the variable symbol: " +
                             variableSymbol);
                 }
-                NonTerminalNode parent = CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                        optLocation.get()).syntaxTree()).get().parent().parent();
-                if (parent.kind() != SyntaxKind.MODULE_VAR_DECL) {
-                    throw new IllegalStateException("Parent is not a module variable declaration: " + parent);
+                Optional<NonTerminalNode> varNodeOpt =
+                        CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
+                                optLocation.get()).syntaxTree());
+                if (varNodeOpt.isEmpty()) {
+                    throw new IllegalStateException("Variable node not found for the variable symbol: " +
+                            variableSymbol);
                 }
-                ModuleVariableDeclarationNode moduleVariableDeclarationNode =
-                        (ModuleVariableDeclarationNode) parent;
-                Optional<ExpressionNode> optInitializer = moduleVariableDeclarationNode.initializer();
-                if (optInitializer.isEmpty()) {
-                    throw new IllegalStateException("Initializer not found for the module variable declaration: " +
-                            moduleVariableDeclarationNode);
+                NonTerminalNode varNode = varNodeOpt.get();
+                ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
+                if (initializerExpr != null) {
+                    ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
+                    genAgentData(newExpressionNode, classSymbol);
                 }
-                ImplicitNewExpressionNode newExpressionNode = getNewExpr(optInitializer.get());
-                genAgentData(newExpressionNode, classSymbol);
                 break;
             }
         }
+    }
+
+    private ExpressionNode getInitializerFromVariableNode(NonTerminalNode varNode) {
+        // Find the actual variable declaration node by traversing up the tree
+        NonTerminalNode currentNode = varNode;
+        while (currentNode != null) {
+            switch (currentNode.kind()) {
+                case MODULE_VAR_DECL -> {
+                    ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) currentNode;
+                    return moduleVarDecl.initializer().orElse(null);
+                }
+                case LOCAL_VAR_DECL -> {
+                    VariableDeclarationNode localVarDecl = (VariableDeclarationNode) currentNode;
+                    return localVarDecl.initializer().orElse(null);
+                }
+                default -> {
+                    // Continue traversing up to find a variable declaration
+                    currentNode = currentNode.parent();
+                }
+            }
+        }
+        return null;
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
