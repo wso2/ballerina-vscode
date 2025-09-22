@@ -81,6 +81,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateDesignApproach;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 
 /**
