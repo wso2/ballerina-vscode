@@ -82,10 +82,19 @@ public class FlowNodeUtil {
      */
     public static void copyPropertyValue(FlowNode targetNode, FlowNode sourceNode,
                                          String targetPropertyKey, String sourcePropertyKey) {
+        if (targetNode == null || sourceNode == null || targetPropertyKey == null || sourcePropertyKey == null) {
+            return;
+        }
+
+        if (targetNode.properties() == null || sourceNode.properties() == null) {
+            return;
+        }
+
         Property targetProperty = targetNode.properties().get(targetPropertyKey);
         Optional<Property> sourceProperty = sourceNode.getProperty(sourcePropertyKey);
 
-        if (targetProperty == null || sourceProperty.isEmpty()) {
+        if (targetProperty == null || sourceProperty.isEmpty() ||
+                sourceProperty.get().value() == null) {
             return;
         }
 
@@ -101,6 +110,10 @@ public class FlowNodeUtil {
      * @return the updated property
      */
     public static Property createUpdatedProperty(Property originalProperty, Object newValue) {
+        if (originalProperty == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
+        }
+
         Property.Builder<Object> builder = new Property.Builder<>(null)
                 .type(Property.ValueType.valueOf(originalProperty.valueType()))
                 .typeConstraint(originalProperty.valueTypeConstraint())
@@ -126,6 +139,14 @@ public class FlowNodeUtil {
      */
     public static void addPropertyFromTemplate(NodeBuilder nodeBuilder, String key, Property property,
                                                String customValue, boolean isHidden) {
+        if (nodeBuilder == null || key == null || property == null) {
+            throw new IllegalArgumentException("NodeBuilder, key, and property cannot be null");
+        }
+
+        if (property.metadata() == null) {
+            throw new IllegalArgumentException("Property metadata cannot be null");
+        }
+
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
@@ -164,15 +185,19 @@ public class FlowNodeUtil {
      */
     public static void addStringProperty(NodeBuilder nodeBuilder, String key, String label, String description,
                                          String placeholder, String value) {
+        if (nodeBuilder == null || key == null) {
+            throw new IllegalArgumentException("NodeBuilder and key cannot be null");
+        }
+
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label(label)
-                    .description(description)
+                    .label(label != null ? label : "")
+                    .description(description != null ? description : "")
                     .stepOut()
                 .value(value != null && !value.isEmpty() ? ParamUtils.removeStringDelimiters(value) : "")
                 .defaultValue("")
                 .type(Property.ValueType.STRING)
-                .placeholder(placeholder)
+                .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
                 .editable()
                 .codedata()
@@ -191,6 +216,15 @@ public class FlowNodeUtil {
      */
     public static NodeBuilder.TemplateContext createDefaultTemplateContext(SourceBuilder sourceBuilder,
                                                                            Codedata codedata) {
+        if (sourceBuilder == null || codedata == null) {
+            throw new IllegalArgumentException("SourceBuilder and codedata cannot be null");
+        }
+
+        if (sourceBuilder.flowNode == null || sourceBuilder.flowNode.codedata() == null ||
+                sourceBuilder.flowNode.codedata().lineRange() == null) {
+            throw new IllegalArgumentException("SourceBuilder must have valid flowNode with codedata and lineRange");
+        }
+
         return new NodeBuilder.TemplateContext(
                 sourceBuilder.workspaceManager,
                 sourceBuilder.filePath,
@@ -222,9 +256,10 @@ public class FlowNodeUtil {
 
             Optional<Property> sourceProperty = sourceNode.getProperty(propertyName);
 
+            // Only copy if source property exists and has a non-empty string value
             if (sourceProperty.isPresent() &&
-                    (sourceProperty.get().value() != null &&
-                            !sourceProperty.get().value().toString().isEmpty())) {
+                    sourceProperty.get().value() != null &&
+                    !sourceProperty.get().value().toString().isEmpty()) {
                 copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
             }
         }
