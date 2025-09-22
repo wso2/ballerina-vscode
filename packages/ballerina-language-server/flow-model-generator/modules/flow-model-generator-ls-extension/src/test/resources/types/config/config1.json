@@ -78,33 +78,6 @@
       "insertText": "http:Client"
     },
     {
-      "label": "boolean",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Boolean"
-      },
-      "kind": "TypeParameter",
-      "insertText": "boolean"
-    },
-    {
-      "label": "string",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "String"
-      },
-      "kind": "TypeParameter",
-      "insertText": "string"
-    },
-    {
-      "label": "int",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Int"
-      },
-      "kind": "TypeParameter",
-      "insertText": "int"
-    },
-    {
       "label": "Input & readonly",
       "labelDetails": {
         "detail": "Used Variable Types",
@@ -148,6 +121,141 @@
       },
       "kind": "TypeParameter",
       "insertText": "readonly"
+    },
+    {
+      "label": "json",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Json"
+      },
+      "kind": "TypeParameter",
+      "insertText": "json"
+    },
+    {
+      "label": "xml",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Xml"
+      },
+      "kind": "TypeParameter",
+      "insertText": "xml"
+    },
+    {
+      "label": "anydata",
+      "labelDetails": {
+        "detail": "Data Types",
+        "description": "Anydata"
+      },
+      "kind": "TypeParameter",
+      "insertText": "anydata"
+    },
+    {
+      "label": "error",
+      "labelDetails": {
+        "detail": "Error Types",
+        "description": "Error"
+      },
+      "kind": "Event",
+      "insertText": "error"
+    },
+    {
+      "label": "function",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Function"
+      },
+      "kind": "TypeParameter",
+      "insertText": "function"
+    },
+    {
+      "label": "future",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Future"
+      },
+      "kind": "TypeParameter",
+      "insertText": "future"
+    },
+    {
+      "label": "typedesc",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Typedesc"
+      },
+      "kind": "TypeParameter",
+      "insertText": "typedesc"
+    },
+    {
+      "label": "handle",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Handle"
+      },
+      "kind": "TypeParameter",
+      "insertText": "handle"
+    },
+    {
+      "label": "stream",
+      "labelDetails": {
+        "detail": "Behaviour Types",
+        "description": "Stream"
+      },
+      "kind": "TypeParameter",
+      "insertText": "stream"
+    },
+    {
+      "label": "byte[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "byte[]"
+    },
+    {
+      "label": "map<json>",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Map"
+      },
+      "kind": "TypeParameter",
+      "insertText": "map<json>"
+    },
+    {
+      "label": "map<string>",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Map"
+      },
+      "kind": "TypeParameter",
+      "insertText": "map<string>"
+    },
+    {
+      "label": "json[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "json[]"
+    },
+    {
+      "label": "string[]",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Array"
+      },
+      "kind": "TypeParameter",
+      "insertText": "string[]"
+    },
+    {
+      "label": "record",
+      "labelDetails": {
+        "detail": "Structural Types",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "record"
     },
     {
       "label": "string",
@@ -211,141 +319,6 @@
       },
       "kind": "TypeParameter",
       "insertText": "byte"
-    },
-    {
-      "label": "byte[]",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Array"
-      },
-      "kind": "TypeParameter",
-      "insertText": "byte[]"
-    },
-    {
-      "label": "map<json>",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Map"
-      },
-      "kind": "TypeParameter",
-      "insertText": "map<json>"
-    },
-    {
-      "label": "map<string>",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Map"
-      },
-      "kind": "TypeParameter",
-      "insertText": "map<string>"
-    },
-    {
-      "label": "json[]",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Array"
-      },
-      "kind": "TypeParameter",
-      "insertText": "json[]"
-    },
-    {
-      "label": "string[]",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Array"
-      },
-      "kind": "TypeParameter",
-      "insertText": "string[]"
-    },
-    {
-      "label": "record",
-      "labelDetails": {
-        "detail": "Structural Types",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "record"
-    },
-    {
-      "label": "function",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Function"
-      },
-      "kind": "TypeParameter",
-      "insertText": "function"
-    },
-    {
-      "label": "future",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Future"
-      },
-      "kind": "TypeParameter",
-      "insertText": "future"
-    },
-    {
-      "label": "typedesc",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Typedesc"
-      },
-      "kind": "TypeParameter",
-      "insertText": "typedesc"
-    },
-    {
-      "label": "handle",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Handle"
-      },
-      "kind": "TypeParameter",
-      "insertText": "handle"
-    },
-    {
-      "label": "stream",
-      "labelDetails": {
-        "detail": "Behaviour Types",
-        "description": "Stream"
-      },
-      "kind": "TypeParameter",
-      "insertText": "stream"
-    },
-    {
-      "label": "error",
-      "labelDetails": {
-        "detail": "Error Types",
-        "description": "Error"
-      },
-      "kind": "Event",
-      "insertText": "error"
-    },
-    {
-      "label": "json",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Json"
-      },
-      "kind": "TypeParameter",
-      "insertText": "json"
-    },
-    {
-      "label": "xml",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Xml"
-      },
-      "kind": "TypeParameter",
-      "insertText": "xml"
-    },
-    {
-      "label": "anydata",
-      "labelDetails": {
-        "detail": "Data Types",
-        "description": "Anydata"
-      },
-      "kind": "TypeParameter",
-      "insertText": "anydata"
     }
   ]
 }
