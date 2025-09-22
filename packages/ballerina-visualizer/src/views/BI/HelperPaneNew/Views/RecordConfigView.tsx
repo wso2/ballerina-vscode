@@ -64,7 +64,7 @@ export function RecordConfigView(props: ConfigureViewProps) {
                     <Description >{`Select fields to construct the record`}</Description>
                 </LabelContainer>
                 <div style={{
-                    maxHeight: '590px',
+                    maxHeight: '450px',
                     overflowY: 'auto'
                 }}>
                     <MemoizedParameterBranch key={JSON.stringify(recordModel)} parameters={recordModel} depth={1} onChange={handleOnChange} />
