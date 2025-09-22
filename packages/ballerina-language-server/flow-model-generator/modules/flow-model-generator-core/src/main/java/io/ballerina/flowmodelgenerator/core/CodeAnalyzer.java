@@ -176,7 +176,6 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.AGENT;
 import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.RUN;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
@@ -541,16 +540,18 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("model", modelUrl);
         }
 
+        Optional<ModuleID> moduleId = classSymbol.getModule().map(ModuleSymbol::id);
         Codedata codedata = new Codedata.Builder<>(null)
                 .node(NodeKind.AGENT_CALL)
-                .org(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::orgName).orElse(""))
-                .module(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::moduleName).orElse(""))
-                .packageName(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::packageName).orElse(""))
-                .object(classSymbol.getName().orElse(AGENT))
+                .org(moduleId.map(ModuleID::orgName).orElse(""))
+                .module(moduleId.map(ModuleID::moduleName).orElse(""))
+                .packageName(moduleId.map(ModuleID::packageName).orElse(""))
+                .object(classSymbol.getName().orElse(Constants.Ai.AGENT_TYPE_NAME))
                 .parentSymbol(null)
                 .symbol(RUN)
-                .version(classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::version).orElse(""))
+                .version(moduleId.map(ModuleID::version).orElse(""))
                 .build();
+
         NodeBuilder.TemplateContext context =
                 new NodeBuilder.TemplateContext(workspaceManager, project.sourceRoot(),
                         newExpressionNode.lineRange().startLine(), codedata, null);
