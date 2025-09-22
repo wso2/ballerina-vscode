@@ -323,7 +323,7 @@ const HelperPaneNewEl = ({
 
     const openRecordConfigView = () => {
         addModal(
-            <div style={{ padding: '0px 10px' }}>
+            <div style={{ padding: '10px 10px' }}>
                 <ConfigureRecordPage
                     fileName={fileName}
                     targetLineRange={targetLineRange}
