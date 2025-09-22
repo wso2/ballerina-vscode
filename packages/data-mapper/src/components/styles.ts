@@ -230,10 +230,46 @@ export const useIONodesStyles = () => ({
         "& > vscode-button": {
             height: "40px",
             width: `${IO_NODE_DEFAULT_WIDTH}px`,
-            border: "none",
+            border: "1.8px solid var(--vscode-dropdown-border)",
+            borderRadius: "6px",
+            background: "var(--vscode-sideBar-background)",
+            color: "var(--vscode-textLink-foreground)"
         },
         "& > vscode-button > *": {
             margin: "0px 6px"
+        },
+        "& > vscode-button::part(control)": {
+            justifyContent: "flex-start"
+        },
+        "& > vscode-button:active": {
+            background: "var(--vscode-button-background)",
+            color: "var(--vscode-button-foreground)",
+            "& p": {
+                color: "var(--vscode-button-foreground) !important"
+            },
+            "& .add-icon": {
+                color: "var(--vscode-button-foreground) !important"
+            }
+        },
+        "& .add-icon": {
+            color: "var(--vscode-textLink-foreground)"
+        },
+        "& p": {
+            color: "var(--vscode-textLink-foreground)"
+        }
+    }),
+    addMoreSubMappingsButton: css({
+        "& > vscode-button": {
+            height: "50px",
+            width: `${IO_NODE_DEFAULT_WIDTH}px`,
+            border: "none",
+            borderRadius: "6px"
+        },
+        "& > vscode-button > *": {
+            margin: "0px 6px"
+        },
+        "& > vscode-button::part(control)": {
+            justifyContent: "flex-start"
         }
     }),
     addArrayElementButton: css({

@@ -258,6 +258,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const addNewType = async () => {
         setTypeEditorState((prevState) => ({
             ...prevState,
+            editingTypeId: undefined,
+            editingType: undefined,
             isTypeCreatorOpen: true,
         }));
     };
