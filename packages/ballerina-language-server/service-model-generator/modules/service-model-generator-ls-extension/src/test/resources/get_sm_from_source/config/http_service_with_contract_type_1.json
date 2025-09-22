@@ -19,6 +19,21 @@
     "packageName": "http",
     "listenerProtocol": "http",
     "icon": "http://localhost:8080/icons/http.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the service"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {

@@ -14,13 +14,28 @@
     "name": "GraphQL Service",
     "type": "graphql",
     "displayName": "GraphQL Service",
-    "description": "Add the service documentation",
     "moduleName": "graphql",
     "orgName": "ballerina",
     "version": "1.16.0",
     "packageName": "graphql",
     "listenerProtocol": "graphql",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "value": "This GraphQL service demonstrates the use of queries, mutations, and subscriptions.\nIt consists of:\nA query to return a greeting message.\nA mutation to update a profile's name.\nA subscription to stream names from a predefined list.",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -119,7 +134,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 64,
           "offset": 1
         }
       },
@@ -192,6 +207,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -220,11 +246,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 24,
+              "line": 29,
               "offset": 4
             },
             "endLine": {
-              "line": 29,
+              "line": 34,
               "offset": 5
             }
           },
@@ -290,6 +316,17 @@
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
@@ -404,6 +441,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -447,6 +495,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": false,
             "optional": false,
@@ -475,11 +534,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 32,
+              "line": 37,
               "offset": 4
             },
             "endLine": {
-              "line": 34,
+              "line": 39,
               "offset": 5
             }
           },
@@ -602,6 +661,17 @@
           "optional": false,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "parameters": [
           {
             "metadata": {
@@ -714,6 +784,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -756,6 +837,17 @@
                 "description": "The default value of the argument"
               },
               "valueType": "EXPRESSION",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -804,6 +896,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": false,
             "optional": false,
@@ -832,11 +935,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 37,
+              "line": 42,
               "offset": 4
             },
             "endLine": {
-              "line": 49,
+              "line": 54,
               "offset": 5
             }
           },
@@ -960,6 +1063,17 @@
           "optional": false,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "parameters": [
           {
             "metadata": {
@@ -1068,6 +1182,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": false,
             "optional": false,
@@ -1096,11 +1221,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 52,
+              "line": 57,
               "offset": 4
             },
             "endLine": {
-              "line": 58,
+              "line": 63,
               "offset": 5
             }
           },

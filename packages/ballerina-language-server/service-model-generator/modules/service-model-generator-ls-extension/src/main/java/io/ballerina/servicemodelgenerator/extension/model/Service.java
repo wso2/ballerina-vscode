@@ -36,32 +36,31 @@ public class Service {
     private final String name;
     private final String type;
     private final String displayName;
-    private final String description;
     private final String moduleName;
     private final String orgName;
     private final String version;
     private final String packageName;
     private final String listenerProtocol;
     private final String icon;
+    private Value documentation;
     private Map<String, Value> properties;
     private Codedata codedata;
     private List<Function> functions;
 
-    public Service(String id, String name, String type, String displayName, String description,
-                   String moduleName, String orgName, String version,
-                   String packageName, String listenerProtocol, String icon, Map<String, Value> properties,
-                   Codedata codedata, List<Function> functions) {
+    public Service(String id, String name, String type, String displayName, String moduleName, String orgName,
+                   String version, String packageName, String listenerProtocol, String icon, Value documentation,
+                   Map<String, Value> properties, Codedata codedata, List<Function> functions) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.displayName = displayName;
-        this.description = description;
         this.moduleName = moduleName;
         this.orgName = orgName;
         this.version = version;
         this.packageName = packageName;
         this.listenerProtocol = listenerProtocol;
         this.icon = icon;
+        this.documentation = documentation;
         this.properties = properties;
         this.functions = functions;
         this.codedata = codedata;
@@ -85,6 +84,10 @@ public class Service {
 
     public void setCodedata(Codedata codedata) {
         this.codedata = codedata;
+    }
+
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
     }
 
     public Value getListener() {
@@ -187,8 +190,8 @@ public class Service {
         return displayName;
     }
 
-    public String getDescription() {
-        return description;
+    public Value getDocumentation() {
+        return documentation;
     }
 
     public String getVersion() {
@@ -222,13 +225,13 @@ public class Service {
         private String name;
         private String type;
         private String displayName;
-        private String description;
         private String moduleName;
         private String orgName;
         private String version;
         private String packageName;
         private String listenerProtocol;
         private String icon;
+        private Value documentation;
         private Map<String, Value> properties;
         private Codedata codedata;
         private List<Function> functions;
@@ -258,8 +261,8 @@ public class Service {
             return this;
         }
 
-        public ServiceModelBuilder setDescription(String description) {
-            this.description = description;
+        public ServiceModelBuilder setDocumentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -309,8 +312,8 @@ public class Service {
         }
 
         public Service build() {
-            return new Service(id, name, type, displayName, description, moduleName, orgName,
-                    version, packageName, listenerProtocol, icon, properties, codedata, functions);
+            return new Service(id, name, type, displayName, moduleName, orgName, version, packageName,
+                    listenerProtocol, icon, documentation, properties, codedata, functions);
         }
     }
 }

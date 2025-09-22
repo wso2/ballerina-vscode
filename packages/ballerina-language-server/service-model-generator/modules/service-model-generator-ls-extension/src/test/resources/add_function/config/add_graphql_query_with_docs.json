@@ -1,33 +1,41 @@
 {
-  "description": "Test query function model",
-  "type": "graphql",
-  "functionName": "query",
-  "response": {
-    "metadata": {
-      "label": "Graphql Query",
-      "description": "Graphql Query"
-    },
+  "filePath": "add_functions_for_graphql.bal",
+  "description": "Add graphql Query",
+  "codedata": {
+    "lineRange": {
+      "fileName": "add_functions_for_graphql.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 28,
+        "offset": 0
+      }
+    }
+  },
+  "function": {
     "qualifiers": [],
     "kind": "QUERY",
     "accessor": {
       "metadata": {
-        "label": "Accessor",
-        "description": "The accessor of the function"
+        "label": "",
+        "description": ""
       },
       "valueType": "IDENTIFIER",
       "value": "get",
-      "enabled": false,
-      "editable": false,
+      "enabled": true,
+      "editable": true,
       "optional": false,
       "advanced": false
     },
     "name": {
       "metadata": {
-        "label": "Field Name",
-        "description": "The name of the field"
+        "label": "",
+        "description": ""
       },
       "valueType": "IDENTIFIER",
-      "value": "",
+      "value": "greeting",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -39,6 +47,7 @@
         "description": "The description of the field"
       },
       "valueType": "STRING",
+      "value": "A simple greeting query.\nThe greeting query returns a greeting message for the provided name.",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -48,7 +57,7 @@
       {
         "metadata": {
           "label": "Context",
-          "description": "The Context object is used to pass meta-information of a request among the resolvers"
+          "description": "The GraphQL context object"
         },
         "kind": "REQUIRED",
         "type": {
@@ -56,9 +65,6 @@
           "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Context",
           "value": "graphql:Context",
-          "imports": {
-            "graphql": "ballerina/graphql:1.16.0"
-          },
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -70,20 +76,20 @@
           "valueTypeConstraint": "string",
           "value": "context",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": false,
-        "editable": false,
-        "optional": false,
+        "enabled": true,
+        "editable": true,
+        "optional": true,
         "advanced": true,
         "hidden": true
       },
       {
         "metadata": {
           "label": "Field",
-          "description": "The Field object is used to access the meta-information of a field in a GraphQL document"
+          "description": "The GraphQL field object"
         },
         "kind": "REQUIRED",
         "type": {
@@ -91,9 +97,6 @@
           "valueType": "TYPE",
           "valueTypeConstraint": "graphql:Field",
           "value": "graphql:Field",
-          "imports": {
-            "graphql": "ballerina/graphql:1.16.0"
-          },
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -105,26 +108,29 @@
           "valueTypeConstraint": "string",
           "value": "'field",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": false,
-        "editable": false,
-        "optional": false,
+        "enabled": true,
+        "editable": true,
+        "optional": true,
         "advanced": true,
         "hidden": true
-      }
-    ],
-    "schema": {
-      "parameter": {
+      },
+      {
+        "metadata": {
+          "label": "name",
+          "description": "name"
+        },
+        "kind": "REQUIRED",
         "type": {
           "metadata": {
-            "label": "Argument Type",
-            "description": "The type of the argument"
+            "label": "",
+            "description": ""
           },
           "valueType": "TYPE",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -132,11 +138,11 @@
         },
         "name": {
           "metadata": {
-            "label": "Argument Name",
-            "description": "The name of the argument"
+            "label": "",
+            "description": ""
           },
           "valueType": "IDENTIFIER",
-          "value": "",
+          "value": "name",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -144,20 +150,79 @@
         },
         "defaultValue": {
           "metadata": {
-            "label": "Default Value",
-            "description": "The default value of the argument"
+            "label": "",
+            "description": ""
           },
-          "enabled": true,
+          "enabled": false,
           "editable": true,
-          "optional": true,
+          "optional": false,
           "advanced": false
         },
         "documentation": {
           "metadata": {
             "label": "Description",
-            "description": "The description of the argument"
+            "description": "The description of the parameter"
           },
           "valueType": "STRING",
+          "value": "name to be greeted",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "age",
+          "description": "age"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "",
+            "description": ""
+          },
+          "valueType": "TYPE",
+          "value": "int",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "",
+            "description": ""
+          },
+          "valueType": "IDENTIFIER",
+          "value": "age",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "",
+            "description": ""
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "value": "The age of the person. This parameter is optional and has a default value of 28.",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -169,32 +234,42 @@
         "advanced": false,
         "hidden": false
       }
-    },
+    ],
     "returnType": {
       "hasError": false,
       "metadata": {
-        "label": "Field Type",
-        "description": "The type of the field"
+        "label": "Return Type",
+        "description": "The return type of the function"
       },
       "valueType": "TYPE",
-      "value": "",
+      "value": "string",
       "enabled": true,
-      "editable": true,
+      "editable": false,
       "optional": false,
       "advanced": false
     },
     "enabled": true,
     "optional": false,
-    "editable": true,
+    "editable": false,
     "canAddParameters": false,
     "codedata": {
-      "orgName": "ballerina",
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 29,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 31,
+          "offset": 5
+        }
+      },
       "moduleName": "graphql"
     },
     "properties": {
       "annotResourceConfig": {
         "metadata": {
-          "label": "Field Configuration",
+          "label": "Configuration",
           "description": "Define configurations such as field level cache."
         },
         "codedata": {
@@ -215,9 +290,6 @@
             "selected": true
           }
         ],
-        "imports": {
-          "graphql": "ballerina/graphql:1.16.0"
-        },
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -225,8 +297,8 @@
       },
       "paramContext": {
         "metadata": {
-          "label": "Request Context",
-          "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+          "label": "Context",
+          "description": "The GraphQL context object"
         },
         "codedata": {
           "type": "PARAMETER",
@@ -237,7 +309,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Context",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Context",
@@ -253,8 +325,8 @@
       },
       "paramField": {
         "metadata": {
-          "label": "Field Metadata",
-          "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+          "label": "Field",
+          "description": "The GraphQL field object"
         },
         "codedata": {
           "type": "PARAMETER",
@@ -265,7 +337,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Field",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Field",
@@ -280,5 +352,22 @@
         "advanced": true
       }
     }
+  },
+  "output": {
+    "add_functions_for_graphql.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 26,
+            "character": 5
+          },
+          "end": {
+            "line": 26,
+            "character": 5
+          }
+        },
+        "newText": "\n\t# A simple greeting query.\n\t# The greeting query returns a greeting message for the provided name.\n\t# + name - name to be greeted\n\t# + age - The age of the person. This parameter is optional and has a default value of 28.\n\tresource function get greeting(graphql:Context context, graphql:Field 'field, string name, int age) returns string {\n\t}"
+      }
+    ]
   }
 }

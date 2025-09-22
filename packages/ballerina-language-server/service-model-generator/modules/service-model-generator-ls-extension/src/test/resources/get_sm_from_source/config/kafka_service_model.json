@@ -14,13 +14,27 @@
     "name": "Kafka Event Handler",
     "type": "kafka",
     "displayName": "Kafka Event Handler",
-    "description": "Add the service documentation",
     "moduleName": "kafka",
     "orgName": "ballerinax",
     "version": "4.5.0",
     "packageName": "kafka",
     "listenerProtocol": "kafka",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {

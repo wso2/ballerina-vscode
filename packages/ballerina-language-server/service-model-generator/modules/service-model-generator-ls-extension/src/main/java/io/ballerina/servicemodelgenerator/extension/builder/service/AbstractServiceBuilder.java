@@ -73,6 +73,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
@@ -82,8 +83,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceDocTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
@@ -93,6 +96,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServiceDocs;
 
 /**
  * Abstract class for building service models.
@@ -114,7 +118,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         String protocol = getProtocol(context.moduleName());
 
         String label = serviceTemplate.displayName();
-        String documentation = "Add the service documentation";
+        Value documentation = getServiceDocumentation();
         String icon = CommonUtils.generateIcon(pkg.org(), pkg.name(), pkg.version());
 
         Map<String, Value> properties = new LinkedHashMap<>();
@@ -125,13 +129,13 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
                 .setName(label)
                 .setType(context.moduleName())
                 .setDisplayName(label)
-                .setDescription(documentation)
                 .setModuleName(context.moduleName())
                 .setOrgName(pkg.org())
                 .setVersion(pkg.version())
                 .setPackageName(pkg.name())
                 .setListenerProtocol(protocol)
                 .setIcon(icon)
+                .setDocumentation(documentation)
                 .setProperties(properties)
                 .setFunctions(new ArrayList<>());
 
@@ -213,6 +217,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         ServiceDeclarationNode serviceNode = context.serviceNode();
         Service service = context.service();
         LineRange lineRange = service.getCodedata().getLineRange();
+        addServiceDocTextEdits(service, serviceNode, edits);
         addServiceAnnotationTextEdits(service, serviceNode, edits);
 
         Value basePathValue = service.getBasePath();
@@ -292,6 +297,7 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
         updateServiceInfoNew(serviceModel, functionsInSource);
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
+        updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
         return serviceModel;
@@ -305,6 +311,11 @@ public abstract class AbstractServiceBuilder implements NodeBuilder<Service> {
      * @param builder the StringBuilder to append the service node string
      */
     static void buildServiceNodeStr(Service service, StringBuilder builder) {
+        String docEdits = getDocumentationEdits(service);
+        if (!docEdits.isEmpty()) {
+            builder.append(docEdits).append(NEW_LINE);
+        }
+
         List<String> annotationEdits = getAnnotationEdits(service);
         if (!annotationEdits.isEmpty()) {
             builder.append(String.join(NEW_LINE, annotationEdits)).append(NEW_LINE);

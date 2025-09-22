@@ -1,6 +1,6 @@
 {
-  "filePath": "sample1/main.bal",
-  "description": "Test adding a GraphQL service",
+  "filePath": "sample2/main.bal",
+  "description": "Test updating a GraphQL service path, annotations, listener and docs",
   "service": {
     "id": "2",
     "name": "GraphQL Service",
@@ -40,10 +40,10 @@
         "placeholder": "",
         "valueType": "MULTIPLE_SELECT",
         "valueTypeConstraint": "graphql:Listener",
-        "value": "graphQLListener",
+        "value": "graphqlListener",
         "values": [],
         "items": [
-          "graphQLListener"
+          "graphqlListener"
         ],
         "enabled": true,
         "editable": true,
@@ -82,7 +82,7 @@
         "placeholder": "/graphql",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "string",
-        "value": "/graphql",
+        "value": "/gql",
         "values": [],
         "enabled": true,
         "editable": true,
@@ -101,7 +101,7 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "graphql:GraphqlServiceConfig",
-        "value": "{\n    introspection: false\n}",
+        "value": "{\n    validation: true\n}",
         "values": [],
         "typeMembers": [
           {
@@ -121,11 +121,11 @@
       "lineRange": {
         "fileName": "main.bal",
         "startLine": {
-          "line": 17,
+          "line": 4,
           "offset": 0
         },
         "endLine": {
-          "line": 59,
+          "line": 10,
           "offset": 1
         }
       }
@@ -133,32 +133,58 @@
     "functions": []
   },
   "output": {
-    "sample1/main.bal": [
+    "sample2/main.bal": [
       {
         "range": {
           "start": {
-            "line": 0,
+            "line": 4,
             "character": 0
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 4,
+            "character": 28
           }
         },
-        "newText": "\nimport ballerina/graphql;\n"
+        "newText": "# This is a sample GraphQL service.\n# The service definition goes here."
       },
       {
         "range": {
           "start": {
-            "line": 0,
+            "line": 5,
             "character": 0
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 7,
+            "character": 1
           }
         },
-        "newText": "\n# This is a sample GraphQL service.\n# The service definition goes here.\n@graphql:ServiceConfig{\n    introspection: false\n}\nservice /graphql on graphQLListener {\n\n}"
+        "newText": "@graphql:ServiceConfig{\n    validation: true\n}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 8,
+            "character": 8
+          },
+          "end": {
+            "line": 8,
+            "character": 16
+          }
+        },
+        "newText": "/gql"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 8,
+            "character": 20
+          },
+          "end": {
+            "line": 8,
+            "character": 35
+          }
+        },
+        "newText": "graphqlListener"
       }
     ]
   }

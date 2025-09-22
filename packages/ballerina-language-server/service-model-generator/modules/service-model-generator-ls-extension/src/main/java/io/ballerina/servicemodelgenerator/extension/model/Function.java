@@ -29,11 +29,13 @@ import java.util.Map;
 import java.util.Objects;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_DOCUMENTAION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_OBJECT_METHOD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
@@ -49,6 +51,7 @@ public class Function {
     private String kind;
     private Value accessor;
     private Value name;
+    private Value documentation;
     private List<Parameter> parameters;
     private Map<String, Parameter> schema;
     private FunctionReturnType returnType;
@@ -60,14 +63,15 @@ public class Function {
     private Map<String, Value> properties;
 
     public Function(MetaData metadata, List<String> qualifiers, String kind, Value accessor, Value name,
-                    List<Parameter> parameters, Map<String, Parameter> schema, FunctionReturnType returnType,
-                    boolean enabled, boolean optional, boolean editable, boolean canAddParameters, Codedata codedata,
-                    Map<String, Value> properties) {
+                    Value documentation, List<Parameter> parameters, Map<String, Parameter> schema,
+                    FunctionReturnType returnType, boolean enabled, boolean optional, boolean editable,
+                    boolean canAddParameters, Codedata codedata, Map<String, Value> properties) {
         this.metadata = metadata;
         this.qualifiers = qualifiers;
         this.kind = kind;
         this.accessor = accessor;
         this.name = name;
+        this.documentation = documentation;
         this.parameters = parameters;
         this.schema = schema;
         this.returnType = returnType;
@@ -99,6 +103,7 @@ public class Function {
     private static Function buildGraphqlFunction() {
         return createBaseFunctionBuilder()
                 .name(name(FIELD_NAME_METADATA))
+                .documentation(documentation(FIELD_DOCUMENTAION_METADATA))
                 .returnType(returnType(FIELD_TYPE_METADATA))
                 .schema(createParameterSchema(Parameter.graphqlParamSchema()))
                 .build();
@@ -123,6 +128,7 @@ public class Function {
     private static Function buildTypeDiagramFunction() {
         return createBaseFunctionBuilder()
                 .name(name(RESOURCE_NAME_METADATA))
+                .documentation(documentation(RESOURCE_FUNCTION_DOCUMENTATION_METADATA))
                 .returnType(returnType(RESOURCE_FUNCTION_RETURN_TYPE_METADATA))
                 .schema(createParameterSchema(Parameter.functionParamSchema()))
                 .setProperties(createResourceConfigAnnotation())
@@ -161,6 +167,15 @@ public class Function {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
                 .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    private static Value documentation(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_STRING)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -237,6 +252,14 @@ public class Function {
 
     public void setKind(String kind) {
         this.kind = kind;
+    }
+
+    public Value getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(Value description) {
+        this.documentation = description;
     }
 
     public Value getAccessor() {
@@ -355,6 +378,7 @@ public class Function {
         private String kind;
         private Value accessor;
         private Value name;
+        private Value documentation;
         private List<Parameter> parameters;
         private Map<String, Parameter> schema;
         private FunctionReturnType returnType;
@@ -381,6 +405,11 @@ public class Function {
 
         public FunctionBuilder kind(String kind) {
             this.kind = kind;
+            return this;
+        }
+
+        public FunctionBuilder documentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -440,8 +469,8 @@ public class Function {
         }
 
         public Function build() {
-            return new Function(metadata, qualifiers, kind, accessor, name, parameters, schema, returnType, enabled,
-                    optional, editable, canAddParameters, codedata, properties);
+            return new Function(metadata, qualifiers, kind, accessor, name, documentation, parameters, schema,
+                    returnType, enabled, optional, editable, canAddParameters, codedata, properties);
         }
     }
 }
