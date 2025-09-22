@@ -1,5 +1,5 @@
 {
-  "source": "variable2.bal",
+  "source": "variable3.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
@@ -11,35 +11,37 @@
       },
       "endLine": {
         "line": 19,
-        "offset": 122
+        "offset": 101
       }
     },
-    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
-    "isNew": false
+    "sourceCode": "",
+    "isNew": true
   },
   "propertyKey": "expression",
-  "index": 0,
+  "index": -1,
   "clause": {
-    "type": "where",
+    "type": "let",
     "properties": {
-      "expression": "userInfo.username == \"Alex\""
+      "name": "i",
+      "type": "int",
+      "expression": "2"
     }
   },
   "targetField": "credentials.0",
   "output": {
-    "variable2.bal": [
+    "variable3.bal": [
       {
         "range": {
           "start": {
             "line": 19,
-            "character": 66
+            "character": 65
           },
           "end": {
             "line": 19,
-            "character": 86
+            "character": 65
           }
         },
-        "newText": "where userInfo.username == \"Alex\""
+        "newText": "\nlet int i = 2"
       }
     ]
   }
