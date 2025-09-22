@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Button,
     Codicon,
@@ -36,13 +36,20 @@ const EDIT_SUB_MAPPING_HEADER = "Edit Sub Mapping";
 export type SubMappingConfigFormProps = {
     views: View[];
     updateView: (updatedView: View) => void;
-    applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 };
 
+interface FormValues {
+    name: string;
+    type: string;
+}
+
 export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
     const { views, addSubMapping, generateForm } = props;
+
+    const [isAddingNewSubMapping, setIsAddingNewSubMapping] = useState(false);
+    const [formValues, setFormValues] = useState<FormValues>({ name: "", type: "" });
    
     const {
         subMappingConfig: { isSMConfigPanelOpen, nextSubMappingIndex, suggestedNextSubMappingName },
@@ -51,24 +58,45 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         setSubMappingConfigFormData
     } = useDMSubMappingConfigPanelStore();
 
-    let defaultValues: { name: string; type: string ; };
-    if (subMappingConfigFormData) {
-        defaultValues = {
-            name: subMappingConfigFormData.name,
-            type: subMappingConfigFormData.type
+    // resetSubMappingConfig on unmount
+    useEffect(() => {
+        return () => {
+            resetSubMappingConfig();
+        };
+    }, []);
+
+    const derivedFormValues = useMemo(() => {
+        if (subMappingConfigFormData) {
+            return {
+                name: subMappingConfigFormData.name,
+                type: subMappingConfigFormData.type
+            };
         }
-    } else {
-        defaultValues = {
-            name: suggestedNextSubMappingName,
+        return {
+            name: suggestedNextSubMappingName || "",
             type: ""
-        }
-    }
+        };
+    }, [subMappingConfigFormData, suggestedNextSubMappingName]);
+    
+    useEffect(() => {
+        setFormValues(derivedFormValues);
+    }, [derivedFormValues]);
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
     const onAdd = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
-        const targetField = views[views.length - 1].targetField;
-        await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, importsCodedata);
+        setFormValues({
+            name: data.name,
+            type: data.type
+        });
+        setIsAddingNewSubMapping(true);
+        
+        try {
+            const targetField = views[views.length - 1].targetField;
+            await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, importsCodedata);
+        } finally {
+            setIsAddingNewSubMapping(false);
+        }
     };
 
     const onEdit = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
@@ -85,7 +113,6 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         } else {
             onAdd(data, importsCodedata);
         }
-        resetSubMappingConfig();
     };
 
     const mappingNameField: DMFormField = {
@@ -95,7 +122,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         optional: false,
         editable: true,
         documentation: "Enter the name of the sub mapping.",
-        value: defaultValues.name,
+        value: formValues.name,
         valueTypeConstraint: "Global",
         enabled: true,
     };
@@ -107,7 +134,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         optional: false,
         editable: true,
         documentation: "Enter the type of the sub mapping.",
-        value: defaultValues.type,
+        value: formValues.type,
         valueTypeConstraint: "Global",
         enabled: true,
     };
@@ -115,7 +142,8 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
     const formProps: DMFormProps = {
         targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
         fields: [mappingNameField, mappingTypeField],
-        submitText: isEdit ? "Save" : "Add",
+        submitText: isEdit ? "Save" : isAddingNewSubMapping ? "Adding" : "Add",
+        isSaving: isAddingNewSubMapping,
         onSubmit
     }
 

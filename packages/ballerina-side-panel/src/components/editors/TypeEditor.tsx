@@ -38,13 +38,14 @@ import { sanitizeType } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
+import { NodeProperties } from "@wso2/ballerina-core";
 
 interface TypeEditorProps {
     field: FormField;
-    openRecordEditor: (open: boolean) => void;
+    openRecordEditor: (open: boolean, newType?: string | NodeProperties) => void;
     handleOnFieldFocus?: (key: string) => void;
     handleOnTypeChange?: (value?: string) => void;
-    handleNewTypeSelected?: (type: CompletionItem) => void;
+    handleNewTypeSelected?: (type: string | CompletionItem) => void;
     autoFocus?: boolean;
 }
 
@@ -150,8 +151,8 @@ export function TypeEditor(props: TypeEditorProps) {
         setShowDefaultCompletion(false);
     }
 
-    const handleDefaultCompletionSelect = () => {
-        openRecordEditor(true);
+    const handleDefaultCompletionSelect = (value: string | NodeProperties) => {
+        openRecordEditor(true, value);
         handleCancel();
     }
 
@@ -268,7 +269,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
-                                handleNewTypeSelected && handleNewTypeSelected(typeExists)
+                                handleNewTypeSelected && handleNewTypeSelected(typeExists? typeExists : updatedValue)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
                                     setShowDefaultCompletion(true);
@@ -285,7 +286,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 );
                             }}
                             onCompletionSelect={handleCompletionSelect}
-                            onDefaultCompletionSelect={handleDefaultCompletionSelect}
+                            onDefaultCompletionSelect={() => handleDefaultCompletionSelect(value)}
                             onFocus={() => handleFocus(value)}
                             enableExIcon={false}
                             isHelperPaneOpen={isTypeHelperOpen}

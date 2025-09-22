@@ -26,17 +26,11 @@ import ConfigForm from "./ConfigForm";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { getAiModuleOrg, getNodeTemplate } from "./utils";
-import { AI, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from "../../../constants";
+import { AI, AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     padding: 16px;
-    height: 100%;
-`;
-
-const LoaderContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100%;
 `;
 
@@ -57,12 +51,21 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
 
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
+    const [progressMessage, setProgressMessage] = useState<string>(LOADING_MESSAGE);
 
     const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
+    const modelNodes = useRef<AvailableNode[]>([]);
+    const progressTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         initPanel();
+        return () => {
+            if (progressTimeoutRef.current) {
+                clearTimeout(progressTimeoutRef.current);
+                progressTimeoutRef.current = null;
+            }
+        };
     }, []);
 
     const initPanel = async () => {
@@ -74,12 +77,12 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node
         await fetchAgentNode();
+        setLoading(false);
     };
 
     useEffect(() => {
         if (agentNode) {
             configureFormFields();
-            setLoading(false);
         }
     }, [agentNode]);
 
@@ -101,6 +104,22 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         // get agent node template
         const agentNodeTemplate = await getNodeTemplate(rpcClient, agentCodeData, projectPath.current);
         setAgentNode(agentNodeTemplate);
+
+        // hack: fetching from Central to build module dependency map in LS may take time
+        progressTimeoutRef.current = setTimeout(() => {
+            setProgressMessage(AI_COMPONENT_PROGRESS_MESSAGE);
+            progressTimeoutRef.current = null;
+        }, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT);
+
+        // Search for model providers using search API
+        const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            filePath: projectPath.current,
+            queryMap: { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
+            searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
+        });
+        console.log(">>> modelProviderSearchResponse", modelProviderSearchResponse);
+
+        modelNodes.current = modelProviderSearchResponse.categories[0].items as AvailableNode[];
     };
 
     const configureFormFields = () => {
@@ -202,17 +221,8 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         console.log(">>> save value", { data, rawData });
         setSavingForm(true);
 
-        // Search for model providers using search API
-        const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
-            filePath: projectPath.current,
-            queryMap: { q: aiModuleOrg.current === BALLERINA ? "ai" : "OpenAiProvider" },
-            searchKind: aiModuleOrg.current === BALLERINA ? "MODEL_PROVIDER" : "CLASS_INIT"
-        });
-        console.log(">>> modelProviderSearchResponse", modelProviderSearchResponse);
-
-        const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
         // get openai model
-        const defaultModelNode = modelNodes.find((model) =>
+        const defaultModelNode = modelNodes.current.find((model) =>
             model.codedata.object === "OpenAiProvider" || (model.codedata.org === BALLERINA && model.codedata.module === AI)
         );
         const defaultModel = defaultModelNode?.codedata;
@@ -282,12 +292,12 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
         <Container>
             {loading && (
                 <LoaderContainer>
-                    <RelativeLoader />
+                    <RelativeLoader message={progressMessage} />
                 </LoaderContainer>
             )}
             {!loading && (
                 <ConfigForm
-                    fileName={projectPath.current}
+                    fileName={fileName}
                     isSaving={savingForm}
                     formFields={formFields}
                     targetLineRange={{

@@ -33,6 +33,8 @@ import { OutputSearchHighlight } from "../commons/Search";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useShallow } from "zustand/react/shallow";
+import { fieldFQNFromPortName, getDefaultValue, isWithinSubMappingRootView } from "../../utils/common-utils";
+import { addValue, removeMapping } from "../../utils/modification-utils";
 
 export interface ArrayOutputWidgetProps {
 	id: string;
@@ -79,7 +81,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const hasValue = mappings.length > 0;
 	const elements = isBodyArrayLitExpr ? mapping.elements : [];
 
-	const isRootArray = context.views.length == 1;
+	const isRootArray = context.views.length == 1 || isWithinSubMappingRootView(context.views);
 
 	const portIn = getPort(`${id}.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
@@ -89,7 +91,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 		expanded = false;
 	}
 
-	const indentation = (portIn && (!hasValue || !expanded)) ? 0 : 24;
+	const indentation = (portIn && !hasValue) ? 0 : 24;
 	const shouldPortVisible = !hasValue || !expanded || !isBodyArrayLitExpr || elements.length === 0;
 	const hasElementConnectedViaLink = elements.some(expr => expr.mappings.some(m => m.inputs.length > 0));
 
@@ -117,7 +119,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const handleArrayInitialization = async () => {
 		setLoading(true);
 		try {
-			// TODO: Implement array initialization
+			await addValue(fieldFQNFromPortName(id), '[]', context);
 		} finally {
 			setLoading(false);
 		}
@@ -126,15 +128,33 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const handleArrayDeletion = async () => {
 		setLoading(true);
 		try {
-			// TODO: Implement array deletion
+			await removeMapping(mapping || {output: portIn?.attributes.fieldFQN, expression: undefined}, context);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const handleEditValue = () => {
-		setExprBarFocusedPort(portIn);
+	const handleArrayInitWithElement = async () => {
+		setLoading(true);
+		try {
+			await addValue(fieldFQNFromPortName(id), `[${getDefaultValue(outputType.member.kind)}]`, context);
+		} finally {
+			setLoading(false);
+		}
 	};
+
+	const handleAddArrayElement = async () => {
+		setLoading(true);
+        const varName = context.views[0].targetField;
+        const viewId = context.views[context.views.length - 1].targetField;
+
+        try {
+            await context.addArrayElement(`${mapping.output}`, `${viewId}`, `${varName}`);
+        } finally {
+            if (!expanded) handleExpand();
+			setLoading(false);
+        }
+    };
 
 	const onRightClick = (event: React.MouseEvent) => {
 		event.preventDefault();
@@ -162,17 +182,15 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	);
 
 	const valConfigMenuItems: ValueConfigMenuItem[] = [
-		...(isRootArray && Object.keys(portIn.links).length === 0
-			? [{
-				title: ValueConfigOption.InitializeArray,
-				onClick: handleArrayInitialization
-			}]
+		...(isRootArray && Object.keys(portIn.links).length === 0 && !hasValue
+			? [
+				{ title: ValueConfigOption.InitializeArray, onClick: handleArrayInitialization },
+				{ title: ValueConfigOption.InitializeArrayWithElement, onClick: handleArrayInitWithElement }
+			]
 			: [
-				{
-					title: ValueConfigOption.EditValue,
-					onClick: handleEditValue
-				}
-			])
+				{ title: ValueConfigOption.AddElement, onClick: handleAddArrayElement }
+			]),
+		...(elements.length > 0 ? [{ title: ValueConfigOption.DeleteArray, onClick: handleArrayDeletion }] : [])
 	];
 
 	return (
@@ -209,7 +227,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 					</span>
 					{(isLoading) ? (
 						<ProgressRing />
-					) : (((hasValue && !hasElementConnectedViaLink) || !isDisabled) && (
+					) : (
 						<FieldActionWrapper>
 							<ValueConfigMenu
 								menuItems={valConfigMenuItems}
@@ -217,7 +235,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 								portName={portIn?.getName()}
 							/>
 						</FieldActionWrapper>
-					))}
+					)}
 				</TreeHeader>
 				{expanded && outputType && isBodyArrayLitExpr && (
 					<TreeBody>

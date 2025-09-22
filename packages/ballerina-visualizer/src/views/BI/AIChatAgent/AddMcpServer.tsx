@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { AvailableNode, FlowNode } from "@wso2/ballerina-core";
+import { AvailableNode, DataMapperDisplayMode, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, ThemeColors } from "@wso2/ui-toolkit";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -239,7 +239,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             setToolsStringList(toolsString);
 
             if (name.trim() !== "") {
-                const tools = props.agentCallNode?.metadata?.data?.tools || [];
+                const tools = (props.agentCallNode?.metadata?.data as NodeMetadata)?.tools || [];
                 console.log(">>> tools", tools);
                 if (tools.length > 0) {
                     const matchingTool = tools.find(tool => tool.name.includes(name));
@@ -297,8 +297,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     };
 
     useEffect(() => {
-        
-    }, [name, props.agentCallNode?.metadata?.data?.tools, toolsStringList]);
+
+    }, [name, (props.agentCallNode?.metadata?.data as NodeMetadata)?.tools, toolsStringList]);
 
     const extractMcpToolkits = (toolsString: string): string[] => {
         // Remove brackets and whitespace, then split by comma
@@ -397,7 +397,7 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
     // Update handleOnSave to accept all submitted form values
     const handleOnSave = async (
         node?: FlowNode,
-        isDataMapper?: boolean,
+        dataMapperMode?: DataMapperDisplayMode,
         formImports?: any,
         rawFormValues?: FormValues
     ) => {

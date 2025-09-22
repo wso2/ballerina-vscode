@@ -24,7 +24,8 @@ import {
     GetGraphqlTypeRequest,
     EVENT_TYPE,
     MACHINE_VIEW,
-    TypeNodeKind
+    TypeNodeKind,
+    Member
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TypeDiagram as TypeDesignDiagram } from "@wso2/type-diagram";
@@ -45,6 +46,10 @@ import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { TitleBar } from "../../components/TitleBar";
 import { GraphqlObjectViewer } from "./ObjectViewer";
 import { FormTypeEditor } from "../BI/TypeEditor";
+import { EditorContext, StackItem } from "@wso2/type-editor";
+import DynamicModal from "../../components/Modal";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
+import React from "react";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -87,6 +92,57 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState(false);
     const [editingType, setEditingType] = useState<Type>();
     const [focusedNodeId, setFocusedNodeId] = useState<string | undefined>(undefined);
+
+    const [stack, setStack] = useState<StackItem[]>([{
+        isDirty: false,
+        type: undefined
+    }]);
+
+    const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+
+    const pushTypeStack = (item: StackItem) => {
+        setStack((prev) => [...prev, item]);
+        setRefetchStates((prev) => [...prev, false]);
+    };
+
+    const popTypeStack = () => {
+        setStack((prev) => {
+            const newStack = prev.slice(0, -1);
+            // If stack becomes empty, reset to initial state
+            if (newStack.length === 0) {
+                return [{
+                    isDirty: false,
+                    type: undefined
+                }];
+            }
+            return newStack;
+        });
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            const currentState = newStates.pop();
+            if (currentState && newStates.length > 0) {
+                newStates[newStates.length - 1] = true;
+            }
+            // If no states left, add initial state
+            if (newStates.length === 0) {
+                newStates.push(false);
+            }
+            return newStates;
+        });
+    };
+
+    const replaceTop = (item: StackItem) => {
+        if (stack.length <= 1) return;
+        setStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = item;
+            return newStack;
+        });
+    }
+
+    const peekTypeStack = (): StackItem | null => {
+        return stack.length > 0 ? stack[stack.length - 1] : null;
+    };
 
     // Helper function to convert TypeNodeKind to display name
     const getTypeKindDisplayName = (typeNodeKind?: TypeNodeKind): string => {
@@ -270,6 +326,58 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
         });
     };
 
+    const createNewType = (): Type => ({
+        name: "",
+        members: [] as Member[],
+        editable: true,
+        metadata: {
+            description: "",
+            label: ""
+        },
+        properties: {},
+        codedata: {
+            node: "RECORD" as TypeNodeKind
+        },
+        includes: [] as string[],
+        allowAdditionalFields: false
+    });
+
+    const setRefetchForCurrentModal = (shouldRefetch: boolean) => {
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = shouldRefetch;
+            }
+            return newStates;
+        });
+    };
+
+    const onSaveType = () => {
+        if (stack.length > 0) {
+            setRefetchForCurrentModal(true);
+            popTypeStack();
+        }
+        setIsTypeEditorOpen(stack.length !== 1);
+    }
+
+    const getNewTypeCreateForm = () => {
+        pushTypeStack({
+            type: createNewType(),
+            isDirty: false
+        });
+        setIsTypeEditorOpen(true);
+    }
+
+    const handleTypeEditorStateChange = (state: boolean) => {
+        if (!state) {
+            if (stack.length > 1) {
+                popTypeStack();
+                return;
+            }
+        }
+        setIsTypeEditorOpen(state);
+    }
+
 
     return (
         <>
@@ -353,11 +461,54 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         type={editingType}
                         onTypeChange={onTypeChange}
                         newType={false}
+                        isPopupTypeForm={false}
                         isGraphql={true}
                         onTypeCreate={() => { }}
-                    />
+                        onSaveType={onSaveType}
+                        getNewTypeCreateForm={getNewTypeCreateForm}
+                        refetchTypes={true} />
                 </PanelContainer>
             )}
+            <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
+                {stack.slice(1).map((item, i) => {
+                    return (
+                        <DynamicModal
+                            key={i}
+                            width={420}
+                            height={600}
+                            anchorRef={undefined}
+                            title="Create New Type"
+                            openState={isTypeEditorOpen}
+                            setOpenState={handleTypeEditorStateChange}>
+                            <div style={{ padding: '0px 20px' }}>
+                                <BreadcrumbContainer>
+                                    {stack.slice(1, i + 2).map((stackItem, index) => (
+                                        <React.Fragment key={index}>
+                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                            <BreadcrumbItem>
+                                                {stackItem?.type?.name || "NewType"}
+                                            </BreadcrumbItem>
+                                        </React.Fragment>
+                                    ))}
+                                </BreadcrumbContainer>
+                                <FormTypeEditor
+                                    key={editingType?.name ?? 'new-type'}
+                                    type={peekTypeStack()?.type}
+                                    newType={peekTypeStack() ? peekTypeStack().isDirty : false}
+                                    newTypeValue={peekTypeStack()?.type?.name ?? ''}
+                                    isGraphql={true}
+                                    isPopupTypeForm={true}
+                                    onTypeChange={onTypeChange}
+                                    onTypeCreate={() => { }}
+                                    onSaveType={onSaveType}
+                                    getNewTypeCreateForm={getNewTypeCreateForm}
+                                    refetchTypes={refetchStates[i + 1]}
+                                />
+                            </div>
+                        </DynamicModal>
+                    )
+                })}
+            </EditorContext.Provider>
             {isTypeEditorOpen && editingType && editingType.codedata.node === "CLASS" && (
                 <GraphqlObjectViewer
                     serviceIdentifier={serviceIdentifier}

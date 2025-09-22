@@ -22,8 +22,8 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 import { ModuleInfo } from "./interfaces/data-mapper";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -48,6 +48,7 @@ export enum EVENT_TYPE {
     FILE_EDIT = "FILE_EDIT",
     EDIT_DONE = "EDIT_DONE",
     CLOSE_VIEW = "CLOSE_VIEW",
+    VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
 }
 
@@ -130,6 +131,7 @@ export interface VisualizerLocation {
     type?: Type;
     addType?: boolean;
     isGraphql?: boolean;
+    rootDiagramId?: string;
     metadata?: VisualizerMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
@@ -167,6 +169,7 @@ export interface PopupVisualizerLocation extends VisualizerLocation {
 export interface ParentPopupData {
     recentIdentifier: string;
     artifactType: DIRECTORY_MAP;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface DownloadProgress {
@@ -193,7 +196,7 @@ export interface ChatStart {
 
 export interface IntermidaryState {
     type: "intermediary_state";
-    state: TestGeneratorIntermediaryState;  // Smells off. Must revist later.
+    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
 }
 
 //TODO: Maybe rename content_block to content_append?

@@ -18,7 +18,7 @@
 import React, { ReactNode } from 'react';
 
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon } from '@wso2/ui-toolkit';
+import { Button, Codicon } from '@wso2/ui-toolkit';
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 
 import { useDMSearchStore, useDMSubMappingConfigPanelStore } from "../../../../store/store";
@@ -39,6 +39,7 @@ const SubMappingsHeader = styled.div`
     align-items: center;
     justify-content: space-between;
     cursor: default;
+    border-radius: 6px;
 `;
 
 const HeaderText = styled.span`
@@ -46,7 +47,8 @@ const HeaderText = styled.span`
     min-width: 280px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--vscode-inputOption-activeForeground)
+    color: var(--vscode-inputOption-activeForeground);
+    opacity: 0.7;
 `;
 
 export interface SubMappingTreeWidgetProps {
@@ -101,10 +103,9 @@ export function SubMappingTreeWidget(props: SubMappingTreeWidgetProps) {
                 <Button
                     className={classes.addSubMappingButton}
                     onClick={onClickAddSubMapping}
-                    appearance="secondary"
                 >
-                    <Codicon name="add" />
-                    Add Sub Mapping
+                    <Codicon name="add" className="add-icon" />
+                    <p style={{ margin: 0 }}>Add Sub Mapping</p>
                 </Button>
             )}
         </>
