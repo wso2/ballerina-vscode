@@ -88,7 +88,7 @@ public class FlowNodeUtil {
         if (targetProperty == null || sourceProperty.isEmpty()) {
             return;
         }
-        
+
         Property updatedProperty = createUpdatedProperty(targetProperty, sourceProperty.get().value());
         targetNode.properties().put(targetPropertyKey, updatedProperty);
     }
@@ -189,7 +189,8 @@ public class FlowNodeUtil {
      * @param codedata      the codedata to use for the template context
      * @return the created template context
      */
-    public static NodeBuilder.TemplateContext createDefaultTemplateContext(SourceBuilder sourceBuilder, Codedata codedata) {
+    public static NodeBuilder.TemplateContext createDefaultTemplateContext(SourceBuilder sourceBuilder,
+                                                                           Codedata codedata) {
         return new NodeBuilder.TemplateContext(
                 sourceBuilder.workspaceManager,
                 sourceBuilder.filePath,
@@ -197,5 +198,35 @@ public class FlowNodeUtil {
                 codedata,
                 null
         );
+    }
+
+    /**
+     * Copies common properties from source FlowNode to target FlowNode, excluding variable and type properties. Only
+     * copies properties that have non-null and non-empty values in the source node.
+     *
+     * @param targetNode the node to copy properties to
+     * @param sourceNode the node to copy properties from
+     */
+    public static void copyCommonProperties(FlowNode targetNode, FlowNode sourceNode) {
+        if (targetNode.properties() == null || sourceNode.properties() == null) {
+            return;
+        }
+
+        for (Map.Entry<String, Property> targetPropertyEntry : targetNode.properties().entrySet()) {
+            String propertyName = targetPropertyEntry.getKey();
+
+            // Skip copying variable and type properties
+            if (Property.VARIABLE_KEY.equals(propertyName) || Property.TYPE_KEY.equals(propertyName)) {
+                continue;
+            }
+
+            Optional<Property> sourceProperty = sourceNode.getProperty(propertyName);
+
+            if (sourceProperty.isPresent() &&
+                    (sourceProperty.get().value() != null &&
+                            !sourceProperty.get().value().toString().isEmpty())) {
+                copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
+            }
+        }
     }
 }

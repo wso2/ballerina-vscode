@@ -278,7 +278,7 @@ public class AgentCallBuilder extends CallBuilder {
         if (agentNode.properties() == null) {
             return;
         }
-        copyCommonProperties(agentNode, agentCallNode);
+        FlowNodeUtil.copyCommonProperties(agentNode, agentCallNode);
         updateSystemPromptProperty(agentNode, agentCallNode);
     }
 
@@ -295,32 +295,6 @@ public class AgentCallBuilder extends CallBuilder {
 
         Property updatedProperty = FlowNodeUtil.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
-    }
-
-    private void copyCommonProperties(FlowNode agentNode, FlowNode agentCallNode) {
-        if (agentNode.properties() == null || agentCallNode.properties() == null) {
-            return;
-        }
-
-        for (Map.Entry<String, Property> agentPropertyEntry : agentNode.properties().entrySet()) {
-            String propertyName = agentPropertyEntry.getKey();
-            Property agentProperty = agentPropertyEntry.getValue();
-
-            // Skip copying variable and type properties
-            if (Property.VARIABLE_KEY.equals(propertyName) || Property.TYPE_KEY.equals(propertyName)) {
-                continue;
-            }
-
-            Optional<Property> agentCallProperty = agentCallNode.getProperty(propertyName);
-
-            if (agentCallProperty.isPresent() &&
-                    (agentCallProperty.get().value() != null &&
-                            !agentCallProperty.get().value().toString().isEmpty())) {
-                Property updatedProperty = FlowNodeUtil.createUpdatedProperty(agentProperty,
-                        agentCallProperty.get().value().toString());
-                agentNode.properties().put(propertyName, updatedProperty);
-            }
-        }
     }
 
     private NodeBuilder.TemplateContext findAgentContext(SourceBuilder sourceBuilder, String agentVariableName) {
