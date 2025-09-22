@@ -1225,5 +1225,7 @@
         "type": "git",
         "url": "git+https://github.com/wso2/ballerina-plugin-vscode.git"
     },
-    "_originalExtensionDependencies": []
+    "_originalExtensionDependencies": [
+        "redhat.vscode-yaml"
+    ]
 }
