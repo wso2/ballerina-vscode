@@ -54,11 +54,8 @@ public final class TCPServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
-        Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-
-        ListenerDTO result = buildListenerDTO(context, properties, serviceInitModel, modulePartNode);
-
+        ListenerDTO result = buildListenerDTO(context);
         String serviceName = Utils.generateTypeIdentifier(context.semanticModel(), context.document(),
                 modulePartNode.lineRange().endLine(), TCP_SERVICE_CLASS_NAME);
         List<String> functionsStr = List.of(tcpServiceClassTemplate(serviceName));
