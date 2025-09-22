@@ -299,7 +299,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
+                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
@@ -348,7 +349,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
+                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();

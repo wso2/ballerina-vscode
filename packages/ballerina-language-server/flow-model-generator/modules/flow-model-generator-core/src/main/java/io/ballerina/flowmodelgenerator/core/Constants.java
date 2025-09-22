@@ -121,5 +121,8 @@ public class Constants {
         public static final String WSO2_EMBEDDING_PROVIDER_NAME = "Wso2EmbeddingProvider";
         public static final String GET_DEFAULT_MODEL_PROVIDER_METHOD = "getDefaultModelProvider";
         public static final String GET_DEFAULT_EMBEDDING_PROVIDER_METHOD = "getDefaultEmbeddingProvider";
+
+        public static final String AGENT_CODEDATA = "agentCodedata";
+        public static final String AGENT_FILEPATH = "agentFilePath";
     }
 }

@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
@@ -132,6 +133,38 @@ public class FileSystemUtils {
                         fileCreationException);
             }
         }
+    }
+
+    /**
+     * Resolves the file path based on the provided codedata and project root.
+     * <p>
+     * If the codedata does not have a line range, returns the project root. Otherwise, attempts to resolve the file
+     * path using the workspace manager's project root. If that fails, falls back to using the current file's parent
+     * directory.
+     *
+     * @param workspaceManager The workspace manager to use for resolving project roots
+     * @param codedata         The codedata containing file information
+     * @param currentFilePath  The current file path for fallback resolution
+     * @param projectRoot      The project root path as fallback
+     * @return The resolved file path
+     * @throws IllegalStateException If unable to resolve parent path for the current file
+     */
+    public static Path resolveFilePath(WorkspaceManager workspaceManager, Codedata codedata,
+                                      Path currentFilePath, Path projectRoot) {
+        if (codedata.lineRange() == null) {
+            return projectRoot;
+        }
+
+        String fileName = codedata.lineRange().fileName();
+        Path rootPath = workspaceManager.projectRoot(currentFilePath);
+        if (rootPath != null) {
+            return rootPath.resolve(fileName);
+        }
+        Path parentPath = currentFilePath.getParent();
+        if (parentPath == null) {
+            throw new IllegalStateException("Unable to resolve parent path for file: " + currentFilePath);
+        }
+        return parentPath.resolve(fileName);
     }
 
     /**

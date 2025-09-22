@@ -147,6 +147,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -163,6 +164,7 @@ import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,7 +179,6 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.RUN;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
@@ -565,23 +566,43 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("model", modelUrl);
         }
 
+        // Find the agent variable declaration to get the correct line range and source code
+        NonTerminalNode statementNode = newExpressionNode.parent();
+        while (statementNode != null && statementNode.kind() != SyntaxKind.LOCAL_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.MODULE_VAR_DECL) {
+            statementNode = statementNode.parent();
+        }
+
+        // Create agent codedata using the agent variable declaration
         Optional<ModuleID> moduleId = classSymbol.getModule().map(ModuleSymbol::id);
         Codedata codedata = new Codedata.Builder<>(null)
-                .node(NodeKind.AGENT_CALL)
+                .node(NodeKind.AGENT)
+                .lineRange(statementNode != null ? statementNode.lineRange() : newExpressionNode.lineRange())
+                .object(Constants.Ai.AGENT_TYPE_NAME)
                 .org(moduleId.map(ModuleID::orgName).orElse(""))
                 .module(moduleId.map(ModuleID::moduleName).orElse(""))
                 .packageName(moduleId.map(ModuleID::packageName).orElse(""))
-                .object(classSymbol.getName().orElse(Constants.Ai.AGENT_TYPE_NAME))
-                .parentSymbol(null)
-                .symbol(RUN)
+                .symbol(Constants.Ai.AGENT_SYMBOL_NAME)
+                .sourceCode(statementNode != null ? statementNode.toSourceCode().strip() :
+                        newExpressionNode.toSourceCode().strip())
                 .version(moduleId.map(ModuleID::version).orElse(""))
+                .isNew(false)
                 .build();
 
+        Path currentFilePath = project.sourceRoot().resolve(document.name());
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePath(workspaceManager, codedata, currentFilePath, project.sourceRoot());
+
         NodeBuilder.TemplateContext context =
-                new NodeBuilder.TemplateContext(workspaceManager, project.sourceRoot(),
-                        newExpressionNode.lineRange().startLine(), codedata, null);
+                new NodeBuilder.TemplateContext(workspaceManager, agentFilePath,
+                        statementNode != null ? statementNode.lineRange().startLine() :
+                                newExpressionNode.lineRange().startLine(), codedata, null);
+
         AgentCallBuilder.setAgentProperties(nodeBuilder, context, agentData);
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
+
+        nodeBuilder.metadata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
+        nodeBuilder.metadata().addData(Constants.Ai.AGENT_FILEPATH, agentFilePath.toString());
     }
 
     private boolean isClassField(ExpressionNode expr) {
