@@ -179,6 +179,7 @@ public class AgentCallBuilder extends CallBuilder {
                                                  Path projectRoot, Map<Path, List<TextEdit>> allTextEdits) {
         Optional<Property> model = agentCallNode.getProperty(MODEL);
         if (model.isPresent() && model.get().value() != null && !model.get().value().toString().isEmpty()) {
+            // Skip creating a new model provider since a model provider already exists
             return null;
         }
 
@@ -288,10 +289,18 @@ public class AgentCallBuilder extends CallBuilder {
             return;
         }
 
-        assert systemPrompt.codedata() != null;
+        if (systemPrompt.codedata() == null) {
+            throw new IllegalStateException("System prompt codedata cannot be null");
+        }
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
-        String systemPromptValue = "{role: string `" + role + "`, instructions: string `" + instructions + "`}";
+
+        // Escape backticks and backslashes to prevent injection
+        String escapedRole = role.replace("\\", "\\\\").replace("`", "\\`");
+        String escapedInstructions = instructions.replace("\\", "\\\\").replace("`", "\\`");
+
+        String systemPromptValue =
+                "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";
 
         Property updatedProperty = FlowNodeUtil.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
@@ -302,7 +311,7 @@ public class AgentCallBuilder extends CallBuilder {
                 findAgentContextByVariableName(sourceBuilder, agentVariableName);
 
         if (agentContext.isEmpty()) {
-            throw new IllegalStateException("Agent call node must have a connection property");
+            throw new IllegalStateException("Unable to find agent context for variable: " + agentVariableName);
         }
 
         return agentContext.get();
@@ -358,8 +367,16 @@ public class AgentCallBuilder extends CallBuilder {
             // Get the document and find the complete statement node
             Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, agentFilePath);
             NonTerminalNode childNode = CommonUtils.getNode(document.syntaxTree(), location.textRange());
+
             // Navigate to the parent statement node to get the full agent definition
-            NonTerminalNode statementNode = childNode.parent().parent();
+            NonTerminalNode parent = childNode.parent();
+            if (parent == null) {
+                throw new IllegalStateException("Parent node is null for agent variable");
+            }
+            NonTerminalNode statementNode = parent.parent();
+            if (statementNode == null) {
+                throw new IllegalStateException("Statement node is null for agent variable");
+            }
 
             // Create codedata for the agent using the full statement's line range
             Codedata agentCodedata =
