@@ -682,7 +682,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
-            onSubmit && onSubmit(data, dirtyFields);
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
