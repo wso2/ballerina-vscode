@@ -44,7 +44,7 @@ import { throttle } from 'lodash';
 import { defaultModelOptions } from './utils/constants';
 import { IONodesScrollCanvasAction } from './Actions/IONodesScrollCanvasAction';
 import { useDMExpressionBarStore, useDMSearchStore } from '../../store/store';
-import { isOutputNode, isInputNode } from './Actions/utils';
+import { isOutputNode, isInputNode, isIntermediateNode } from './Actions/utils';
 import { InputOutputPortModel } from './Port';
 import { calculateZoomLevel } from './utils/diagram-utils';
 import { FOCUS_LINKED_NODES_EVENT, FocusLinkedNodesEventPayload } from './utils/link-focus-utils';
@@ -151,34 +151,88 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 				return;
 			}
 			
+			// Get canvas height for visibility calculations
+			const canvas = engine.getCanvas();
+			const canvasHeight = canvas?.offsetHeight || 0;
+			
 			// Get all input and output nodes
 			const allNodes = model.getNodes();
 			const inputNodes = allNodes.filter(node => isInputNode(node));
 			const outputNodes = allNodes.filter(node => isOutputNode(node));
+			const intermediateNodes = allNodes.filter(node => isIntermediateNode(node));
+
+
+			// Get node positions
+			const sourceNodePosition = sourceNode.getPosition();
+			const targetNodePosition = targetNode.getPosition();
 			
 			// Get port positions
 			const sourcePortPosition = sourcePort.getPosition();
 			const targetPortPosition = targetPort.getPosition();
 			
 			// Calculate absolute Y positions of the ports in the canvas
-			const sourcePortY = sourceNode.getY() + sourcePortPosition.y;
-			const targetPortY = targetNode.getY() + targetPortPosition.y;
+			const sourcePortY = sourcePortPosition.y;
+			const targetPortY = targetPortPosition.y;
 			
-			// Calculate the scroll offsets to center the ports in the visible area
-			const visibleAreaCenter = 68 / 2; // MIN_VISIBLE_HEIGHT / 2
-			const sourceScrollOffset = sourcePortY - visibleAreaCenter;
-			const targetScrollOffset = targetPortY - visibleAreaCenter;
+			// Check port visibility (considering a port visible if it's within canvas bounds)
+			const isSourcePortVisible = sourcePortY >= 0 && sourcePortY <= canvasHeight;
+			const isTargetPortVisible = targetPortY >= 0 && targetPortY <= canvasHeight;
+			
+			// Determine scrolling strategy based on visibility
+			let sourceNodeScrollOffset = 0;
+			let targetNodeScrollOffset = 0;
+			
+			if (!isSourcePortVisible && !isTargetPortVisible) {
+				// Case 4: Both ports not visible - scroll both to center
+				const visibleAreaCenter = canvasHeight / 2;
+				
+				// Calculate where nodes should be positioned so their ports are centered
+				const sourceNodeDesiredY = visibleAreaCenter - (sourcePortPosition.y - sourceNodePosition.y);
+				const targetNodeDesiredY = visibleAreaCenter - (targetPortPosition.y - targetNodePosition.y);
+				
+				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
+				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
+			} else if (isSourcePortVisible && !isTargetPortVisible) {
+				// Case 1: Source visible, target not - align target port Y to source port Y
+				// Calculate how much to move the target node so its port aligns with source port
+				const targetPortDesiredY = sourcePortY;
+				let targetNodeDesiredY = targetPortDesiredY - (targetPortPosition.y - targetNodePosition.y);
 
+				if (targetNodeDesiredY > 0) {
+					targetNodeDesiredY = 0;
+				}
+
+				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
+			} else if (!isSourcePortVisible && isTargetPortVisible) {
+				// Case 2: Target visible, source not - align source port Y to target port Y
+				// Calculate how much to move the source node so its port aligns with target port
+				const sourcePortDesiredY = targetPortY;
+				let sourceNodeDesiredY = sourcePortDesiredY - (sourcePortPosition.y - sourceNodePosition.y);
+
+				if (sourceNodeDesiredY > 0) {
+					sourceNodeDesiredY = 0;
+				}
+
+				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
+			}
+			// Case 3: Both visible - no scrolling needed (offsets remain 0)
+
+			// Apply scrolling based on node types
 			if (isInputNode(sourceNode) && isOutputNode(targetNode)) {
 				// Source is input, target is output
-				inputNodes.forEach(node => {
-					node.setPosition(node.getX(), node.getY() - sourceScrollOffset);
-				});
+				if (sourceNodeScrollOffset !== 0) {
+					inputNodes.forEach(node => {
+						node.setPosition(node.getX(), node.getY() - sourceNodeScrollOffset);
+					});
+				}
 				
-				outputNodes.forEach(node => {
-					node.setPosition(node.getX(), node.getY() - targetScrollOffset);
-				});
+				if (targetNodeScrollOffset !== 0) {
+					[...outputNodes, ...intermediateNodes].forEach(node => {
+						node.setPosition(node.getX(), node.getY() - targetNodeScrollOffset);
+					});
+				}
 			}
+			
 			engine.repaintCanvas();
 		};
 		
