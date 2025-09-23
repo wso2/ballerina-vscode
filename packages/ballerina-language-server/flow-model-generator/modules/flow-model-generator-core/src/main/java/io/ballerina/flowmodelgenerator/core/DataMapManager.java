@@ -2193,7 +2193,7 @@ public class DataMapManager {
             } else {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " => " +
-                        expressionBody));
+                        expressionBody + ";"));
             }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;
