@@ -1,13 +1,13 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "sample2/main.bal",
   "description": "Test the model generated for a service class",
   "start": {
     "line": 0,
     "offset": 0
   },
   "end": {
-    "line": 40,
-    "offset": 0
+    "line": 35,
+    "offset": 1
   },
   "context": "GRAPHQL_DIAGRAM",
   "response": {
@@ -24,7 +24,7 @@
       },
       "valueType": "STRING",
       "valueTypeConstraint": "string",
-      "value": "This is a sample Ballerina service class definition",
+      "value": "This is a sample Ballerina service class definition with methods and error handling.\nIt includes a resource method to get an author by ID and a remote method to add an author.",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -40,11 +40,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 1,
+              "line": 2,
               "offset": 21
             },
             "endLine": {
-              "line": 1,
+              "line": 2,
               "offset": 25
             }
           }
@@ -67,7 +67,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 40,
+          "line": 35,
           "offset": 1
         }
       }
@@ -98,7 +98,7 @@
             "description": "The name of the field"
           },
           "valueType": "IDENTIFIER",
-          "value": "author/[int id]",
+          "value": "author",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -110,6 +110,7 @@
             "description": "The description of the field"
           },
           "valueType": "STRING",
+          "value": "This resource function retrieves an author's name by their ID.\nIf the author is not found, it returns an error.",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -185,6 +186,65 @@
             "optional": false,
             "advanced": true,
             "hidden": true
+          },
+          {
+            "metadata": {
+              "label": "id",
+              "description": "id"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Argument Type",
+                "description": "The type of the argument"
+              },
+              "valueType": "TYPE",
+              "value": "int",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Argument Name",
+                "description": "The name of the argument"
+              },
+              "valueType": "IDENTIFIER",
+              "value": "id",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the argument"
+              },
+              "valueType": "EXPRESSION",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "value": "The ID of the author to retrieve.",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -262,11 +322,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 15,
+              "line": 16,
               "offset": 4
             },
             "endLine": {
-              "line": 29,
+              "line": 34,
               "offset": 5
             }
           },

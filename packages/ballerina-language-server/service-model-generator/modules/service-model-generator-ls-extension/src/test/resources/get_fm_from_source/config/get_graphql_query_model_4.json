@@ -1,7 +1,18 @@
 {
-  "description": "Test query function model",
-  "type": "graphql",
-  "functionName": "query",
+  "filePath": "sample4/main.bal",
+  "description": "",
+  "codedata": {
+    "lineRange": {
+      "startLine": {
+        "line": 19,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 25,
+        "offset": 5
+      }
+    }
+  },
   "response": {
     "metadata": {
       "label": "Graphql Query",
@@ -27,7 +38,7 @@
         "description": "The name of the field"
       },
       "valueType": "IDENTIFIER",
-      "value": "",
+      "value": "helloWithName",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -39,6 +50,7 @@
         "description": "The description of the field"
       },
       "valueType": "STRING",
+      "value": "A query that returns a personalized greeting message.\nThis query uses 'field parameter.",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -114,6 +126,65 @@
         "optional": false,
         "advanced": true,
         "hidden": true
+      },
+      {
+        "metadata": {
+          "label": "name",
+          "description": "name"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Argument Type",
+            "description": "The type of the argument"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Argument Name",
+            "description": "The name of the argument"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "name",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the argument"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the argument"
+          },
+          "valueType": "STRING",
+          "value": "The name to greet.",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
       }
     ],
     "schema": {
@@ -177,7 +248,7 @@
         "description": "The type of the field"
       },
       "valueType": "TYPE",
-      "value": "",
+      "value": "string",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -188,6 +259,17 @@
     "editable": true,
     "canAddParameters": false,
     "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 19,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 25,
+          "offset": 5
+        }
+      },
       "orgName": "ballerina",
       "moduleName": "graphql"
     },
@@ -206,18 +288,14 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "graphql:GraphqlResourceConfig",
-        "value": "",
         "typeMembers": [
           {
             "type": "GraphqlResourceConfig",
             "packageInfo": "ballerina:graphql:1.16.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
-        "imports": {
-          "graphql": "ballerina/graphql:1.16.0"
-        },
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -265,7 +343,7 @@
         "placeholder": "{}",
         "valueType": "FLAG",
         "valueTypeConstraint": "graphql:Field",
-        "value": "",
+        "value": true,
         "typeMembers": [
           {
             "type": "Field",

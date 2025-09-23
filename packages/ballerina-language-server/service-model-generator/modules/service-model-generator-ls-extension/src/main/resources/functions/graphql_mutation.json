@@ -5,6 +5,19 @@
   },
   "qualifiers": [],
   "kind": "MUTATION",
+  "documentation": {
+    "metadata": {
+      "label": "Description",
+      "description": "The description of the field"
+    },
+    "valueType": "STRING",
+    "enabled": true,
+    "editable": true,
+    "isType": false,
+    "optional": true,
+    "advanced": false,
+    "addNewButton": false
+  },
   "accessor": {
     "metadata": {
       "label": "Accessor",
@@ -143,6 +156,19 @@
           "label": "Default Value",
           "description": "The default value of the argument"
         },
+        "enabled": true,
+        "editable": true,
+        "isType": false,
+        "optional": true,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the argument"
+        },
+        "valueType": "STRING",
         "enabled": true,
         "editable": true,
         "isType": false,
