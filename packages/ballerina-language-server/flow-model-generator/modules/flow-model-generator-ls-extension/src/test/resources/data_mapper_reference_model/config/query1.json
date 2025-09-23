@@ -88,7 +88,7 @@
       }
     },
     "refs": {
-      "1372788890": {
+      "-393217320": {
         "fields": [
           {
             "member": {
@@ -136,7 +136,7 @@
             "optional": false
           }
         ],
-        "typeName": "Info",
+        "typeName": "Info2",
         "kind": "record"
       },
       "1373151159": {
@@ -145,10 +145,10 @@
             "fields": [],
             "name": "info",
             "displayName": "info",
-            "typeName": "Info",
+            "typeName": "Info2",
             "kind": "record",
             "optional": false,
-            "ref": "1372788890"
+            "ref": "-393217320"
           }
         ],
         "typeName": "User",
