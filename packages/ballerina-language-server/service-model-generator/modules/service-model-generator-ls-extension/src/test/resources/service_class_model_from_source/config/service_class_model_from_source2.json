@@ -123,7 +123,7 @@
           "valueType": "STRING",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
@@ -347,7 +347,7 @@
           "valueType": "STRING",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "parameters": [],
@@ -512,7 +512,7 @@
           "value": "Remote method to add an author",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
