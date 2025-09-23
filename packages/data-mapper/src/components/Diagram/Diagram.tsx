@@ -44,9 +44,10 @@ import { throttle } from 'lodash';
 import { defaultModelOptions } from './utils/constants';
 import { IONodesScrollCanvasAction } from './Actions/IONodesScrollCanvasAction';
 import { useDMExpressionBarStore, useDMSearchStore } from '../../store/store';
-import { isOutputNode } from './Actions/utils';
+import { isOutputNode, isInputNode } from './Actions/utils';
 import { InputOutputPortModel } from './Port';
 import { calculateZoomLevel } from './utils/diagram-utils';
+import { FOCUS_LINKED_NODES_EVENT, FocusLinkedNodesEventPayload } from './utils/link-focus-utils';
 import * as Nodes from "./Node";
 import * as Ports from "./Port";
 import * as Labels from "./Label";
@@ -132,6 +133,63 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 	useEffect(() => {
 		engine.getStateMachine().pushState(new LinkState(true));
 	}, [inputSearch, outputSearch]);
+	
+	// Add event listener for focusing on linked nodes
+	useEffect(() => {
+		const handleFocusLinkedNodes = (event: CustomEvent) => {
+			if (!event.detail) return;
+			const { sourceNodeId, targetNodeId, sourcePortId, targetPortId } = event.detail as FocusLinkedNodesEventPayload;
+			
+			// Get the nodes and ports from the model
+			const model = engine.getModel();
+			const sourceNode = model.getNode(sourceNodeId);
+			const targetNode = model.getNode(targetNodeId);
+			const sourcePort = sourceNode?.getPort(sourcePortId);
+			const targetPort = targetNode?.getPort(targetPortId);
+			
+			if (!sourceNode || !targetNode || !sourcePort || !targetPort) {
+				return;
+			}
+			
+			// Get all input and output nodes
+			const allNodes = model.getNodes();
+			const inputNodes = allNodes.filter(node => isInputNode(node));
+			const outputNodes = allNodes.filter(node => isOutputNode(node));
+			
+			// Get port positions
+			const sourcePortPosition = sourcePort.getPosition();
+			const targetPortPosition = targetPort.getPosition();
+			
+			// Calculate absolute Y positions of the ports in the canvas
+			const sourcePortY = sourceNode.getY() + sourcePortPosition.y;
+			const targetPortY = targetNode.getY() + targetPortPosition.y;
+			
+			// Calculate the scroll offsets to center the ports in the visible area
+			const visibleAreaCenter = 68 / 2; // MIN_VISIBLE_HEIGHT / 2
+			const sourceScrollOffset = sourcePortY - visibleAreaCenter;
+			const targetScrollOffset = targetPortY - visibleAreaCenter;
+
+			if (isInputNode(sourceNode) && isOutputNode(targetNode)) {
+				// Source is input, target is output
+				inputNodes.forEach(node => {
+					node.setPosition(node.getX(), node.getY() - sourceScrollOffset);
+				});
+				
+				outputNodes.forEach(node => {
+					node.setPosition(node.getX(), node.getY() - targetScrollOffset);
+				});
+			}
+			engine.repaintCanvas();
+		};
+		
+		// Register the event listener on the document
+		document.addEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
+		
+		// Clean up the event listener when the component unmounts
+		return () => {
+			document.removeEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
+		};
+	}, [engine]);
 
 	useEffect(() => {
 		getScreenWidthRef.current = () => screenWidth;
