@@ -59,6 +59,7 @@ public class DataMappingTransformationFunctionTest extends AbstractLSTest {
                 {Path.of("decimalMapping.json")},
                 {Path.of("floatMapping.json")},
                 {Path.of("booleanMapping.json")},
+                {Path.of("reusableMapping.json")},
         };
     }
 
