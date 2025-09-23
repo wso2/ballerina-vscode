@@ -177,7 +177,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
 
     const defaultMenuItems: Item[] = [
         {
-            id: "a2a-direct",
+            id: "direct",
             label: getItemElement("direct", "Map directly"),
             onClick: wrapWithProgress(onClickMapDirectly)
         }
@@ -193,14 +193,14 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
 
     if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
         menuItems.push({
-            id: "a2a-a2s-custom-func",
-            label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
+            id: "custom-func",
+            label: getItemElement("custom-func", "Map Using Custom Function"),
             onClick: wrapWithProgress(onClickMapWithCustomFn)
         });
         if (pendingMappingType !== MappingType.ContainsUnions) {
             menuItems.push({
-                id: "a2a-a2s-transform-func",
-                label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                id: "transform-func",
+                label: getItemElement("transform-func", "Map Using Transform Function"),
                 onClick: wrapWithProgress(onClickMapWithTransformFn)
             });
         }
