@@ -257,6 +257,10 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         onSearchTypeHelper(searchText, isTypePanelOpen(activePanelIndex));
     };
 
+    const hasNoSearchResults = () => {
+        return (!importedTypes || importedTypes.length === 0 || !importedTypes.some(type => type.subCategory?.length > 0));
+    }
+
     useEffect(() => {
         if (open) {
             onSearchTypeHelper(searchValue, isTypePanelOpen(activePanelIndex));
@@ -358,7 +362,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                 ))}
                                             </ExpandableList>
                                         )}
-                                        {basicTypes.length === 0 && (!importedTypes || importedTypes.length === 0 || !importedTypes[0]?.subCategory?.length) && (
+                                        {hasNoSearchResults() && (
                                             <S.EmptySearchMessage>
                                                 <Codicon name='search' sx={{ marginRight: '10px' }} />
                                                 {EMPTY_SEARCH_RESULT_MSG}
