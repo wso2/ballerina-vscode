@@ -406,33 +406,28 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
             }
         } else {
-            for (Symbol moduleSymbol : semanticModel.visibleSymbols(document, expressionNode.lineRange().startLine())) {
-                if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
-                    continue;
-                }
-                VariableSymbol variableSymbol = (VariableSymbol) moduleSymbol;
-                if (!variableSymbol.getName().orElseThrow().equals(expressionNode.toSourceCode())) {
-                    continue;
-                }
-                Optional<Location> optLocation = variableSymbol.getLocation();
-                if (optLocation.isEmpty()) {
-                    throw new IllegalStateException("Location not found for the variable symbol: " +
-                            variableSymbol);
-                }
-                Optional<NonTerminalNode> varNodeOpt =
-                        CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                                optLocation.get()).syntaxTree());
-                if (varNodeOpt.isEmpty()) {
-                    throw new IllegalStateException("Variable node not found for the variable symbol: " +
-                            variableSymbol);
-                }
-                NonTerminalNode varNode = varNodeOpt.get();
-                ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
-                if (initializerExpr != null) {
-                    ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
-                    genAgentData(newExpressionNode, classSymbol);
-                }
-                break;
+            Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
+            if (symbol.isEmpty()) {
+                throw new IllegalStateException("Symbol not found for the expression: " + expressionNode);
+            }
+            VariableSymbol variableSymbol = (VariableSymbol) symbol.get();
+            Optional<Location> optLocation = variableSymbol.getLocation();
+            if (optLocation.isEmpty()) {
+                throw new IllegalStateException("Location not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            Optional<NonTerminalNode> varNodeOpt =
+                    CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
+                            optLocation.get()).syntaxTree());
+            if (varNodeOpt.isEmpty()) {
+                throw new IllegalStateException("Variable node not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            NonTerminalNode varNode = varNodeOpt.get();
+            ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
+            if (initializerExpr != null) {
+                ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
+                genAgentData(newExpressionNode, classSymbol);
             }
         }
     }
@@ -450,10 +445,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     VariableDeclarationNode localVarDecl = (VariableDeclarationNode) currentNode;
                     return localVarDecl.initializer().orElse(null);
                 }
-                default -> {
-                    // Continue traversing up to find a variable declaration
-                    currentNode = currentNode.parent();
-                }
+                default -> // Continue traversing up to find a variable declaration
+                        currentNode = currentNode.parent();
             }
         }
         return null;
