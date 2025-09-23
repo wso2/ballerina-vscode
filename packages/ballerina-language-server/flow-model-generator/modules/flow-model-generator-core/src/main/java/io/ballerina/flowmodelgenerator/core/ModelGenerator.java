@@ -155,7 +155,7 @@ public class ModelGenerator {
 
         // Analyze the code block to find the flow nodes
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, dataMappings,
-                naturalFunctions, textDocument, document, ModuleInfo.from(document.module().descriptor()), true,
+                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true,
                 workspaceManager);
         canvasNode.accept(codeAnalyzer);
 
@@ -238,7 +238,7 @@ public class ModelGenerator {
                         continue;
                     }
                     CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.SERVICE_SCOPE,
-                            Map.of(), Map.of(), document.textDocument(), document,
+                            Map.of(), Map.of(), document.textDocument(),
                             ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
                     statement.accept(codeAnalyzer);
                     List<FlowNode> nodes = codeAnalyzer.getFlowNodes();
@@ -299,7 +299,7 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false,
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
                 workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
@@ -349,8 +349,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), document, ModuleInfo.from(document.module().descriptor()), false,
-                workspaceManager);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()),
+                false, workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();

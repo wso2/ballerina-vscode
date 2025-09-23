@@ -813,8 +813,8 @@ public class AgentsGenerator {
             return null;
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
-                document.textDocument(), document,
-                ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()),
+                false, workspaceManager);
         StatementNode firstStmt = statements.get(0);
         firstStmt.accept(codeAnalyzer);
 

@@ -80,16 +80,8 @@ public class FlowNodeUtil {
      * @param targetPropertyKey the property key in the target node
      * @param sourcePropertyKey the property key in the source node
      */
-    public static void copyPropertyValue(FlowNode targetNode, FlowNode sourceNode,
-                                         String targetPropertyKey, String sourcePropertyKey) {
-        if (targetNode == null || sourceNode == null || targetPropertyKey == null || sourcePropertyKey == null) {
-            return;
-        }
-
-        if (targetNode.properties() == null || sourceNode.properties() == null) {
-            return;
-        }
-
+    public static void copyPropertyValue(FlowNode targetNode, FlowNode sourceNode, String targetPropertyKey,
+                                         String sourcePropertyKey) {
         Property targetProperty = targetNode.properties().get(targetPropertyKey);
         Optional<Property> sourceProperty = sourceNode.getProperty(sourcePropertyKey);
 

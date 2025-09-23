@@ -148,26 +148,15 @@ public class AgentCallBuilder extends CallBuilder {
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
         Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
 
-        validateRequiredProperties(agentCallNode);
-
         FlowNode modelProviderNode =
                 createModelProviderIfNeeded(sourceBuilder, agentCallNode, projectRoot, allTextEdits);
-        TemplateContext agentTemplateContext = resolveAgentContext(sourceBuilder, agentCallNode);
+        TemplateContext agentTemplateContext = resolveAgentContext(sourceBuilder, agentCallNode, projectRoot);
         FlowNode agentNode = createAndConfigureAgentNode(agentTemplateContext, agentCallNode, modelProviderNode);
 
         generateAgentSource(sourceBuilder, agentNode, agentTemplateContext, projectRoot, allTextEdits);
         generateAgentCallSource(sourceBuilder, agentCallNode, agentNode, allTextEdits);
 
         return allTextEdits;
-    }
-
-    private void validateRequiredProperties(FlowNode agentCallNode) {
-        if (agentCallNode.getProperty(MODEL).isEmpty()) {
-            throw new IllegalStateException("Agent call node must have a model property");
-        }
-        if (agentCallNode.getProperty(Property.CONNECTION_KEY).isEmpty()) {
-            throw new IllegalStateException("Agent call node must have a connection property");
-        }
     }
 
     private FlowNode createModelProviderIfNeeded(SourceBuilder sourceBuilder, FlowNode agentCallNode,
@@ -199,25 +188,28 @@ public class AgentCallBuilder extends CallBuilder {
         return modelProviderNode;
     }
 
-    private TemplateContext resolveAgentContext(SourceBuilder sourceBuilder, FlowNode agentCallNode) {
+    private TemplateContext resolveAgentContext(SourceBuilder sourceBuilder, FlowNode agentCallNode, Path projectRoot) {
         return agentCallNode.getProperty(Property.CONNECTION_KEY)
                 .filter(connection -> connection.value() != null && !connection.value().toString().isEmpty())
-                .map(connection -> extractAgentCodedata(sourceBuilder, agentCallNode))
+                .map(connection -> extractAgentCodedata(sourceBuilder, agentCallNode, projectRoot))
                 .orElse(FlowNodeUtil.createDefaultTemplateContext(sourceBuilder, AiUtils.getDefaultAgentCodedata()));
     }
 
-    private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode) {
+    private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode,
+                                                 Path projectRoot) {
         Object agentCodedataObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_CODEDATA);
-        Object agentFilePathObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_FILEPATH);
 
-        if (agentCodedataObj == null || !(agentFilePathObj instanceof String agentFilePath)) {
+        if (agentCodedataObj == null) {
             return FlowNodeUtil.createDefaultTemplateContext(sourceBuilder, AiUtils.getDefaultAgentCodedata());
         }
 
         Gson gson = new Gson();
         Codedata agentCodedata = gson.fromJson(gson.toJson(agentCodedataObj), Codedata.class);
 
-        return new NodeBuilder.TemplateContext(sourceBuilder.workspaceManager, Path.of(agentFilePath),
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePathFromCodedata(agentCodedata, projectRoot);
+
+        return new NodeBuilder.TemplateContext(sourceBuilder.workspaceManager, agentFilePath,
                 agentCodedata.lineRange().startLine(), agentCodedata, null);
     }
 
@@ -240,8 +232,7 @@ public class AgentCallBuilder extends CallBuilder {
                                      TemplateContext agentTemplateContext, Path projectRoot,
                                      Map<Path, List<TextEdit>> allTextEdits) {
         Path agentFilePath =
-                FileSystemUtils.resolveFilePath(sourceBuilder.workspaceManager, agentTemplateContext.codedata(),
-                        sourceBuilder.filePath, projectRoot);
+                FileSystemUtils.resolveFilePathFromCodedata(agentTemplateContext.codedata(), projectRoot);
         SourceBuilder agentSourceBuilder = new SourceBuilder(agentNode, sourceBuilder.workspaceManager, agentFilePath);
         Map<Path, List<TextEdit>> agentTextEdits =
                 NodeBuilder.getNodeFromKind(agentNode.codedata().node()).toSource(agentSourceBuilder);
@@ -303,10 +294,6 @@ public class AgentCallBuilder extends CallBuilder {
         Property systemPrompt = agentNode.properties().get(SYSTEM_PROMPT);
         if (systemPrompt == null) {
             return;
-        }
-
-        if (systemPrompt.codedata() == null) {
-            throw new IllegalStateException("System prompt codedata cannot be null");
         }
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();

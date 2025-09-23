@@ -155,7 +155,6 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
-import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -201,7 +200,6 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Map<String, LineRange> dataMappings;
     private final Map<String, LineRange> naturalFunctions;
     private final TextDocument textDocument;
-    private final Document document;
     private final ModuleInfo moduleInfo;
     private final DiagnosticHandler diagnosticHandler;
     private final boolean forceAssign;
@@ -227,7 +225,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
-                        TextDocument textDocument, io.ballerina.projects.Document document, ModuleInfo moduleInfo,
+                        TextDocument textDocument, ModuleInfo moduleInfo,
                         boolean forceAssign,
                         WorkspaceManager workspaceManager) {
         this.project = project;
@@ -236,7 +234,6 @@ public class CodeAnalyzer extends NodeVisitor {
         this.naturalFunctions = naturalFunctions;
         this.connectionScope = connectionScope;
         this.textDocument = textDocument;
-        this.document = document;
         this.moduleInfo = moduleInfo;
         this.forceAssign = forceAssign;
         this.flowNodeList = new ArrayList<>();
@@ -582,9 +579,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .isNew(false)
                 .build();
 
-        Path currentFilePath = project.sourceRoot().resolve(document.name());
         Path agentFilePath =
-                FileSystemUtils.resolveFilePath(workspaceManager, codedata, currentFilePath, project.sourceRoot());
+                FileSystemUtils.resolveFilePathFromCodedata(codedata, project.sourceRoot());
 
         NodeBuilder.TemplateContext context =
                 new NodeBuilder.TemplateContext(workspaceManager, agentFilePath,
@@ -595,7 +591,6 @@ public class CodeAnalyzer extends NodeVisitor {
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
 
         nodeBuilder.metadata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
-        nodeBuilder.metadata().addData(Constants.Ai.AGENT_FILEPATH, agentFilePath.toString());
     }
 
     private boolean isClassField(ExpressionNode expr) {
