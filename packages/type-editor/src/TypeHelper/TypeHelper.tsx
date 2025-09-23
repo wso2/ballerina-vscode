@@ -198,11 +198,22 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-        onChange(
-            item.insertText,
-            item.insertText.length
-        );
-
+        const trimmedType = currentType.trimEnd();
+        if (
+            /\|$/.test(trimmedType) ||
+            /readonly\s*&$/.test(trimmedType)
+        ) {
+            const newType = currentType + item.insertText;
+            onChange(
+                newType,
+                newType.length
+            );
+        } else {
+            onChange(
+                item.insertText,
+                item.insertText.length
+            );
+        }
         onCloseCompletions?.();
         onClose();
     };
@@ -262,6 +273,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                             }}>
 
                                 <SearchBox
+                                    id={'helper-pane-search'}
                                     sx={{ width: "100%" }}
                                     placeholder='Search'
                                     value={searchValue}

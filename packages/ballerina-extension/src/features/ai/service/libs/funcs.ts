@@ -226,7 +226,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
         console.error(`[AI Request Failed] Libraries: [${libraryNames}], Duration: ${duration}s, Error: ${error}`);
-        throw new Error(`Failed to parse bulk functions response: ${error}`);
+        throw error;
     }
 }
 
