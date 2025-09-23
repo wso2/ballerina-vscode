@@ -258,7 +258,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     };
 
     const hasNoSearchResults = () => {
-        return (!importedTypes || importedTypes.length === 0 || !importedTypes.some(type => type.subCategory?.length > 0));
+        return basicTypes.length === 0 && (!importedTypes || importedTypes.length === 0 || !importedTypes.some(type => type.subCategory?.length > 0));
     }
 
     useEffect(() => {
