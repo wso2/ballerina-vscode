@@ -372,7 +372,6 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                         onClick={() => onTypeCreate(newTypeName.current)}
                                     />
                                 )}
-                                {/* TODO: Decided to either rewrite or remove it */}
                                 <FooterButtons
                                     sx={{ display: 'flex', justifyContent: 'space-between' }}
                                     startIcon='library'
