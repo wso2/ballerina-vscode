@@ -43,6 +43,7 @@ import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 import { LoadingRing } from "../../../components/Loader";
 import { ResourceAccordionV2 } from "./components/ResourceAccordionV2";
+import { set } from "lodash";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -88,10 +89,86 @@ const HeaderContainer = styled.div`
     justify-content: space-between;
 `;
 
+const ListenerContainer = styled.div`
+    padding: 15px;
+    border-bottom: 1px solid var(--vscode-editorIndentGuide-background);
+    display: flex;
+    gap: 20px;
+`;
+
+const ListenerSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 3;
+`;
+
+const ListenerHeader = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+const ListenerContent = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+`;
+
+const ListenerItem = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background-color: var(--vscode-editor-background);
+`;
+
+const ListenerIcon = styled.div`
+    width: 32px;
+    height: 32px;
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const PropertiesSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    padding-left: 20px;
+    border-left: 1px solid var(--vscode-editorIndentGuide-background);
+`;
+
+const PropertyItem = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const PropertyLabel = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const PropertyValue = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+
 interface ServiceDesignerProps {
     filePath: string;
     position: NodePosition;
     serviceIdentifier: string;
+}
+
+interface ReadonlyProperty {
+    label: string;
+    value: string | string[];
 }
 
 export function ServiceDesigner(props: ServiceDesignerProps) {
@@ -109,6 +186,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const [resources, setResources] = useState<ProjectStructureArtifactResponse[]>([]);
     const [searchValue, setSearchValue] = useState<string>("");
+
+    const [listeners, setListeners] = useState<string[]>([]);
+    const [readonlyProperties, setReadonlyProperties] = useState<Set<ReadonlyProperty>>(new Set());
 
     useEffect(() => {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
@@ -129,6 +209,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                     console.log("Service Model: ", res.service);
                     setShowForm(false);
                     setServiceModel(res.service);
+                    setServiceMetaInfo(res.service);
                     setIsSaving(false);
                     prevPosition.current = targetPosition;
                 });
@@ -137,6 +218,31 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         }
         getProjectListeners();
     };
+
+    const setServiceMetaInfo = (service: ServiceModel) => {
+        if (service?.properties?.listener) {
+            const listenerProperty = service.properties.listener;
+            if (listenerProperty.values && listenerProperty.values.length > 0) {
+                setListeners(listenerProperty.values);
+            } else if (listenerProperty.value) {
+                setListeners([listenerProperty.value]);
+            }
+        }
+        if (service?.properties) {
+            // iterate over each property and check if it's readonly
+            const readonlyProps: Set<ReadonlyProperty> = new Set();
+            Object.keys(service.properties).forEach((key) => {
+                if (key === "listener" || service.properties[key].codedata.type === "ANNOTATION_ATTACHMENT") {
+                    return;
+                }
+                const property = service.properties[key];
+                if (property.enabled === true) {
+                    readonlyProps.add({ label: property.metadata.label, value: property.value || property.values });
+                }
+            });
+            setReadonlyProperties(readonlyProps);
+        }
+    }
 
     const getProjectListeners = () => {
         rpcClient
@@ -317,6 +423,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         rpcClient.getServiceDesignerRpcClient().exportOASFile({});
     };
 
+    const handleAddListener = () => {
+        // TODO: Implement add listener functionality
+        console.log("Add listener clicked");
+    };
+
     const findIcon = (label: string) => {
         label = label.toLowerCase();
         switch (true) {
@@ -367,187 +478,209 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     return (
         <View>
             <TopNavigationBar />
-            <TitleBar
-                title="Service Designer"
-                subtitle="Implement and configure your service"
-                actions={
+            {!serviceModel && (
+                <LoadingContainer>
+                    <LoadingRing message="Loading Service..." />
+                </LoadingContainer>
+            )}
+            {
+                serviceModel && (
                     <>
-                        <Button appearance="secondary" tooltip="Edit Service" onClick={handleServiceEdit}>
-                            <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Edit</ButtonText>
-                        </Button>
-                        {serviceModel && serviceModel.moduleName === "http" && (
-                            <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
-                                <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
-                            </Button>
-                        )}
-                        {serviceModel && serviceModel.moduleName === "http" && (
-                            <Button appearance="secondary" tooltip="Export OpenAPI Spec" onClick={handleExportOAS}>
-                                <Icon name="bi-export" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Export</ButtonText>
-                            </Button>
-                        )}
-                        {serviceModel &&
-                            serviceModel.moduleName !== "http" &&
-                            serviceModel.functions.some((func) => !func.enabled) && (
-                                <Button appearance="primary" tooltip="Add Function" onClick={handleNewFunction}>
-                                    <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Function</ButtonText>
-                                </Button>
-                            )}
-                        {serviceModel && serviceModel.moduleName === "http" && !haveServiceTypeName && (
-                            <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
-                                <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
-                            </Button>
-                        )}
-                    </>
-                }
-            />
-            <ServiceContainer>
-                {!serviceModel && (
-                    <LoadingContainer>
-                        <LoadingRing message="Loading Service..." />
-                    </LoadingContainer>
-                )}
-                {serviceModel && (
-                    <>
-                        <InfoContainer>
-                            {Object.keys(serviceModel.properties).map(
-                                (key, index) =>
-                                    serviceModel.properties[key].value &&
-                                    serviceModel.properties[key].codedata.type !== "ANNOTATION_ATTACHMENT" && (
-                                        <InfoSection>
-                                            <Icon
-                                                name={findIcon(serviceModel.properties[key].metadata.label)}
-                                                isCodicon
-                                                sx={{ marginRight: "8px" }}
-                                            />
-                                            <Typography key={`${index}-label`} variant="body3">
-                                                {serviceModel.properties[key].metadata.label}:
-                                            </Typography>
-                                            <Typography key={`${index}-value`} variant="body3">
-                                                {getAttributeComponent(serviceModel.properties[key])}
-                                            </Typography>
-                                        </InfoSection>
-                                    )
-                            )}
+                        <TitleBar
+                            title={serviceModel.displayName || "Service Designer"}
+                            subtitle={"Implement and configure your service"}
+                            actions={
+                                <>
+                                    <Button appearance="secondary" tooltip="Edit Service" onClick={handleServiceEdit}>
+                                        <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
+                                    </Button>
+                                    {serviceModel && serviceModel.moduleName === "http" && (
+                                        <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
+                                            <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
+                                        </Button>
+                                    )}
+                                    {serviceModel && serviceModel.moduleName === "http" && (
+                                        <Button appearance="secondary" tooltip="Export OpenAPI Spec" onClick={handleExportOAS}>
+                                            <Icon name="bi-export" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Export</ButtonText>
+                                        </Button>
+                                    )}
+                                    {serviceModel &&
+                                        serviceModel.moduleName !== "http" &&
+                                        serviceModel.functions.some((func) => !func.enabled) && (
+                                            <Button appearance="primary" tooltip="Add Function" onClick={handleNewFunction}>
+                                                <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Function</ButtonText>
+                                            </Button>
+                                        )}
+                                    {serviceModel && serviceModel.moduleName === "http" && !haveServiceTypeName && (
+                                        <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
+                                        </Button>
+                                    )}
+                                </>
+                            }
+                        />
 
-                            {serviceModel.moduleName === "http" &&
-                                serviceModel.functions
-                                    .filter((func) => func.kind === "DEFAULT" && func.enabled)
-                                    .map((functionModel, index) => (
-                                        <InfoSection>
-                                            <Icon name={findIcon("init")} isCodicon sx={{ marginRight: "8px" }} />
-                                            <Typography key={`${index}-label`} variant="body3">
-                                                Constructor:
-                                            </Typography>
-                                            <Typography key={`${index}-value`} variant="body3">
-                                                <LinkButton
-                                                    sx={{ fontSize: 12, padding: 8, gap: 4 }}
-                                                    onClick={() => handleOpenDiagram(functionModel)}
+                        <ServiceContainer>
+                            <ListenerContainer>
+                                <ListenerSection>
+                                    <ListenerHeader>
+                                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                                            {listeners.length > 1 ? 'Listeners' : 'Listener'}
+                                        </Typography>
+                                        <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
+                                            Connected {listeners.length > 1 ? 'listeners' : 'listener'} to the service
+                                        </Typography>
+                                    </ListenerHeader>
+                                    <ListenerContent>
+                                        {
+                                            listeners.map((listener, index) => (
+                                                <ListenerItem
+                                                    key={`${index}-listener`}
+                                                    onClick={() => handleOpenListener(listener)}
+                                                    style={{ cursor: 'pointer' }}
                                                 >
-                                                    {functionModel.name.value}
-                                                </LinkButton>
-                                            </Typography>
-                                        </InfoSection>
-                                    ))}
-                        </InfoContainer>
-                        <HeaderContainer>
-                            <Typography
-                                key={"title"}
-                                variant="body2"
-                                sx={{ marginLeft: 10, marginBottom: 20, marginTop: 10 }}
-                            >
-                                Available {serviceModel.moduleName === "http" ? "Resources" : "Functions"}
-                            </Typography>
+                                                    <ListenerIcon>
+                                                        {
+                                                            serviceModel.icon && (
+                                                                <img src={serviceModel.icon} alt={listener} style={{ width: "38px" }} />
+                                                            )
+                                                        }
+                                                        {
+                                                            !serviceModel.icon && (
+                                                                <Icon name="bell" isCodicon sx={{ fontSize: 16 }} />
+                                                            )
+                                                        }
+                                                    </ListenerIcon>
+                                                    <Typography variant="body2">
+                                                        {listener}
+                                                    </Typography>
+                                                    <Icon name="kebab-vertical" isCodicon sx={{ fontSize: 14, marginLeft: 'auto' }} />
+                                                </ListenerItem>
+                                            ))
+                                        }
+                                    </ListenerContent>
+                                </ListenerSection>
+                                {readonlyProperties.size > 0 && (
+                                    <PropertiesSection>
+                                        {
+                                            Array.from(readonlyProperties).map(prop => (
+                                                <PropertyItem key={prop.label}>
+                                                    <PropertyLabel>
+                                                        <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
+                                                            {prop.label}:
+                                                        </Typography>
+                                                    </PropertyLabel>
+                                                    <PropertyValue>
+                                                        <Typography variant="body3">
+                                                            {Array.isArray(prop.value) ? prop.value.join(", ") : prop.value}
+                                                        </Typography>
+                                                    </PropertyValue>
+                                                </PropertyItem>
+                                            ))
+                                        }
+                                    </PropertiesSection>
+                                )}
+                            </ListenerContainer>
+                            <HeaderContainer>
+                                <Typography
+                                    key={"title"}
+                                    variant="body2"
+                                    sx={{ marginLeft: 10, marginBottom: 20, marginTop: 10 }}
+                                >
+                                    Available {serviceModel.moduleName === "http" ? "Resources" : "Functions"}
+                                </Typography>
 
-                            {serviceModel.moduleName === "http" && resources.length > 10 && (
-                                <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
+                                {serviceModel.moduleName === "http" && resources.length > 10 && (
+                                    <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
+                                )}
+                            </HeaderContainer>
+                            {serviceModel.moduleName === "http" && (
+                                <FunctionsContainer>
+                                    {resources
+                                        .filter((resource) => {
+                                            const search = searchValue.toLowerCase();
+                                            const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                            const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                            return nameMatch || iconMatch;
+                                        })
+                                        .map((resource, index) => (
+                                            <ResourceAccordionV2
+                                                key={`${index}-${resource.name}`}
+                                                resource={resource}
+                                                readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                onEditResource={handleFunctionEdit}
+                                                onDeleteResource={handleFunctionDelete}
+                                                onResourceImplement={handleOpenDiagram}
+                                            />
+                                        ))}
+                                </FunctionsContainer>
                             )}
-                        </HeaderContainer>
-                        {serviceModel.moduleName === "http" && (
-                            <FunctionsContainer>
-                                {resources
-                                    .filter((resource) => {
-                                        const search = searchValue.toLowerCase();
-                                        const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
-                                        const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
-                                        return nameMatch || iconMatch;
-                                    })
-                                    .map((resource, index) => (
-                                        <ResourceAccordionV2
-                                            key={`${index}-${resource.name}`}
-                                            resource={resource}
-                                            readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                            onEditResource={handleFunctionEdit}
-                                            onDeleteResource={handleFunctionDelete}
-                                            onResourceImplement={handleOpenDiagram}
-                                        />
-                                    ))}
-                            </FunctionsContainer>
-                        )}
-                        {serviceModel.moduleName !== "http" && (
-                            <FunctionsContainer>
-                                {serviceModel.functions
-                                    .filter(
-                                        (functionModel) => functionModel.kind === "REMOTE" && functionModel.enabled
-                                    )
-                                    .map((functionModel, index) => (
-                                        <ResourceAccordion
-                                            key={`${index}-${functionModel.name.value}`}
-                                            functionModel={functionModel}
-                                            goToSource={() => { }}
-                                            onEditResource={handleFunctionEdit}
-                                            onDeleteResource={handleFunctionDelete}
-                                            onResourceImplement={handleOpenDiagram}
-                                        />
-                                    ))}
-                            </FunctionsContainer>
-                        )}
-                    </>
-                )}
-                {functionModel && functionModel.kind === "RESOURCE" && (
-                    <PanelContainer
-                        title={"Resource Configuration"}
-                        show={showForm}
-                        onClose={handleNewFunctionClose}
-                        width={600}
-                    >
-                        <ResourceForm
-                            model={functionModel}
-                            isSaving={isSaving}
-                            onSave={handleResourceSubmit}
-                            onClose={handleNewFunctionClose}
-                        />
-                    </PanelContainer>
-                )}
-                {functionModel && functionModel.kind === "REMOTE" && (
-                    <PanelContainer
-                        title={"Function Configuration"}
-                        show={showForm}
-                        onClose={handleNewFunctionClose}
-                        width={600}
-                    >
-                        <FunctionForm
-                            model={functionModel}
-                            onSave={handleFunctionSubmit}
-                            onClose={handleNewFunctionClose}
-                        />
-                    </PanelContainer>
-                )}
+                            {serviceModel.moduleName !== "http" && (
+                                <FunctionsContainer>
+                                    {serviceModel.functions
+                                        .filter(
+                                            (functionModel) => functionModel.kind === "REMOTE" && functionModel.enabled
+                                        )
+                                        .map((functionModel, index) => (
+                                            <ResourceAccordion
+                                                key={`${index}-${functionModel.name.value}`}
+                                                functionModel={functionModel}
+                                                goToSource={() => { }}
+                                                onEditResource={handleFunctionEdit}
+                                                onDeleteResource={handleFunctionDelete}
+                                                onResourceImplement={handleOpenDiagram}
+                                            />
+                                        ))}
+                                </FunctionsContainer>
+                            )}
+                            {functionModel && functionModel.kind === "RESOURCE" && (
+                                <PanelContainer
+                                    title={"Resource Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={600}
+                                >
+                                    <ResourceForm
+                                        model={functionModel}
+                                        isSaving={isSaving}
+                                        onSave={handleResourceSubmit}
+                                        onClose={handleNewFunctionClose}
+                                    />
+                                </PanelContainer>
+                            )}
+                            {functionModel && functionModel.kind === "REMOTE" && (
+                                <PanelContainer
+                                    title={"Function Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={600}
+                                >
+                                    <FunctionForm
+                                        model={functionModel}
+                                        onSave={handleFunctionSubmit}
+                                        onClose={handleNewFunctionClose}
+                                    />
+                                </PanelContainer>
+                            )}
 
-                {serviceModel?.moduleName !== "http" && (
-                    <PanelContainer
-                        title={"Function Configuration"}
-                        show={showFunctionConfigForm}
-                        onClose={handleFunctionConfigClose}
-                    >
-                        <FunctionConfigForm
-                            isSaving={isSaving}
-                            serviceModel={serviceModel}
-                            onSubmit={handleFunctionSubmit}
-                            onBack={handleFunctionConfigClose}
-                        />
-                    </PanelContainer>
-                )}
-            </ServiceContainer>
+                            {serviceModel?.moduleName !== "http" && (
+                                <PanelContainer
+                                    title={"Function Configuration"}
+                                    show={showFunctionConfigForm}
+                                    onClose={handleFunctionConfigClose}
+                                >
+                                    <FunctionConfigForm
+                                        isSaving={isSaving}
+                                        serviceModel={serviceModel}
+                                        onSubmit={handleFunctionSubmit}
+                                        onBack={handleFunctionConfigClose}
+                                    />
+                                </PanelContainer>
+                            )}
+                        </ServiceContainer>
+                    </>
+                )
+            }
         </View>
     );
 }
