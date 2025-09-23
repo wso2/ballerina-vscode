@@ -582,18 +582,28 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 )}
                             </ListenerContainer>
                             <HeaderContainer>
-                                <Typography
-                                    key={"title"}
-                                    variant="body2"
-                                    sx={{ marginLeft: 10, marginBottom: 20, marginTop: 10 }}
-                                >
-                                    Available {serviceModel.moduleName === "http" ? "Resources" : "Functions"}
-                                </Typography>
+                                <div>
+                                    <Typography
+                                        key={"title"}
+                                        variant="h3"
+                                        sx={{ marginLeft: 10, fontWeight: 'bold' }}
+                                    >
+                                      {serviceModel.moduleName === "http" ? "Resource Functions" : "Trigger Functions"}
+                                    </Typography>
+                                    <Typography
+                                        key={"body"}
+                                        variant="body3"
+                                        sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
+                                    >
+                                      {serviceModel.moduleName === "http" ? "Resource functions to handle HTTP requests" : "Enable trigger functions to handle events"}
+                                    </Typography>
+                                </div>
 
                                 {serviceModel.moduleName === "http" && resources.length > 10 && (
                                     <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                 )}
                             </HeaderContainer>
+                            {/* Listing Resources in HTTP */}
                             {serviceModel.moduleName === "http" && (
                                 <FunctionsContainer>
                                     {resources
@@ -615,12 +625,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         ))}
                                 </FunctionsContainer>
                             )}
+                            {/* Listing service type bound functions */}
                             {serviceModel.moduleName !== "http" && (
                                 <FunctionsContainer>
                                     {serviceModel.functions
-                                        .filter(
-                                            (functionModel) => functionModel.kind === "REMOTE" && functionModel.enabled
-                                        )
+                                        .filter((functionModel) => functionModel.kind === "REMOTE")
                                         .map((functionModel, index) => (
                                             <ResourceAccordion
                                                 key={`${index}-${functionModel.name.value}`}
@@ -629,6 +638,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 onEditResource={handleFunctionEdit}
                                                 onDeleteResource={handleFunctionDelete}
                                                 onResourceImplement={handleOpenDiagram}
+                                                showDottedBorder={!functionModel.enabled}
+                                                showEnableButton={!functionModel.enabled}
+                                                showDeleteIcon={functionModel.enabled}
+                                                showEditIcon={functionModel.enabled}
+                                                onEnable={(func: FunctionModel) => {
+                                                    const updatedFunc = { ...func, enabled: true };
+                                                    handleFunctionSubmit(updatedFunc);
+                                                }}
                                             />
                                         ))}
                                 </FunctionsContainer>
