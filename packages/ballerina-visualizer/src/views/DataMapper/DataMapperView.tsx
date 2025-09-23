@@ -452,7 +452,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithCustomFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
@@ -472,7 +472,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithTransformFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
@@ -524,8 +524,7 @@ export function DataMapperView(props: DataMapperProps) {
         const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
             ref: parentField.ref,
             fieldId: parentField.id,
-            model: model as DMModel,
-            visitedRefs: new Set()
+            model: model as DMModel
         });
 
         if (!response.success || !response.result) {
