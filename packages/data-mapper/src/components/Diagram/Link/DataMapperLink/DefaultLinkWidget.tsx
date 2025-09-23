@@ -18,34 +18,68 @@
 // tslint:disable: jsx-no-lambda jsx-no-multiline-js
 import * as React from "react";
 
-import { DefaultLinkWidget as ReactDiagramDefaultLinkWidget } from "@projectstorm/react-diagrams";
+import { DiagramEngine } from "@projectstorm/react-diagrams";
 
 import { DefaultLinkSegmentWidget } from "./DefaultLinkSegmentWidget";
+import { DataMapperLinkModel } from "./DataMapperLink";
 
-export class DefaultLinkWidget extends ReactDiagramDefaultLinkWidget {
-    generateLink(
+interface DefaultLinkWidgetProps {
+    diagramEngine: DiagramEngine;
+    link: DataMapperLinkModel;
+}
+
+export function DefaultLinkWidget(props: DefaultLinkWidgetProps) {
+    const [selected, setSelected] = React.useState<boolean>(false);
+    const refPaths = React.useRef<React.RefObject<SVGPathElement>[]>([]);
+
+    // Use a layout effect to update rendered paths after DOM mutations
+    React.useLayoutEffect(() => {
+        const paths = refPaths.current
+            .map(ref => ref.current)
+            .filter((path): path is SVGPathElement => path !== null);
+        
+        if (paths.length > 0) {
+            props.link.setRenderedPaths(paths);
+        }
+    });
+
+    const generateLink = React.useCallback((
         path: string,
         extraProps: React.Attributes,
         id: string | number
-    ): JSX.Element {
+    ): JSX.Element => {
         const ref = React.createRef<SVGPathElement>();
-        this.refPaths.push(ref);
+        refPaths.current.push(ref);
+        
         return (
             <DefaultLinkSegmentWidget
                 key={`link-${id}`}
                 path={path}
-                selected={this.state.selected}
-                diagramEngine={this.props.diagramEngine}
-                factory={this.props.diagramEngine.getFactoryForLink(
-                    this.props.link
+                selected={selected}
+                diagramEngine={props.diagramEngine}
+                factory={props.diagramEngine.getFactoryForLink(
+                    props.link
                 )}
-                link={this.props.link}
+                link={props.link}
                 forwardRef={ref}
-                onSelection={(selected) => {
-                    this.setState({ selected });
+                onSelection={(selectedState) => {
+                    setSelected(selectedState);
                 }}
                 extras={extraProps}
             />
         );
+    }, [selected, props.diagramEngine, props.link]);
+
+    // Reset refs for this render
+    refPaths.current = [];
+    
+    const svgPath = props.link.getSVGPath();
+    
+    if (!svgPath) {
+        return <g data-default-link-test={props.link.getID()} />;
     }
+
+    const linkSegment = generateLink(svgPath, {}, 0);
+
+    return <g data-default-link-test={props.link.getID()}>{linkSegment}</g>;
 }
