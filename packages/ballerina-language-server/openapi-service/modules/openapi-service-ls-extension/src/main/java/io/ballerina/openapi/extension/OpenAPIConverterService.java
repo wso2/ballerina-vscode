@@ -71,6 +71,10 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
     private static final String FILE = "file";
     private WorkspaceManager workspaceManager;
 
+    private static final Gson gson = new GsonBuilder()
+            .serializeNulls()
+            .create();
+
     @Override
     public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
         this.workspaceManager = workspaceManager;
@@ -92,9 +96,10 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             OpenAPIConverterResponse response = new OpenAPIConverterResponse();
             String fileUri = request.getDocumentFilePath();
-            Optional<SyntaxTree> syntaxTree = getPathFromURI(fileUri).flatMap(workspaceManager::syntaxTree);
-            Optional<SemanticModel> semanticModel = getPathFromURI(fileUri).flatMap(workspaceManager::semanticModel);
-            Optional<Project> ballerinaPackage = getPathFromURI(fileUri).flatMap(workspaceManager::project);
+            Optional<Path> pathFromURI = getPathFromURI(fileUri);
+            Optional<SyntaxTree> syntaxTree = pathFromURI.flatMap(workspaceManager::syntaxTree);
+            Optional<SemanticModel> semanticModel = pathFromURI.flatMap(workspaceManager::semanticModel);
+            Optional<Project> ballerinaPackage = pathFromURI.flatMap(workspaceManager::project);
 
             if (semanticModel.isEmpty() || syntaxTree.isEmpty() || ballerinaPackage.isEmpty()) {
                 StringBuilder errorString = getErrorMessage(syntaxTree, semanticModel, ballerinaPackage);
@@ -152,7 +157,8 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
             }
             Module defaultModule = project.get().currentPackage().getDefaultModule();
             SemanticModel updatedSemanticModel =
-                    project.get().currentPackage().getCompilation().getSemanticModel(defaultModule.moduleId());
+                    workspaceManager.waitAndGetPackageCompilation(filePath).get()
+                            .getSemanticModel(defaultModule.moduleId());
             JsonArray specs = new JsonArray();
             for (DocumentId currentDocumentID : defaultModule.documentIds()) {
                 Document document = defaultModule.document(currentDocumentID);
@@ -213,9 +219,6 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
             diagnosticJson.addProperty(SEVERITY, diagnostic.getDiagnosticSeverity().name());
             Optional<Location> diagnosticLocation = diagnostic.getLocation();
             if (diagnosticLocation.isPresent()) {
-                GsonBuilder builder = new GsonBuilder();
-                builder.serializeNulls();
-                Gson gson = builder.create();
                 diagnosticJson.add(LOCATION, gson.toJsonTree(diagnosticLocation.get().lineRange()));
             }
             diagnosticsJson.add(diagnosticJson);
