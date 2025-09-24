@@ -1113,18 +1113,18 @@ public class DataMapManager {
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
         TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
-        TypeSymbol typeSymbol = targetNode != null ? targetNode.typeSymbol : null;
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
-        ExpressionNode expr = null;
-        if (targetNode != null && targetNode.matchingNode != null) {
-            expr = targetNode.matchingNode.expr();
-        }
         String output = mapping.output();
         String[] splits = output.split(DOT);
-        genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, typeSymbol);
-
+        ExpressionNode expr = null;
+        if (targetNode != null) {
+            if (targetNode.matchingNode != null) {
+                expr = targetNode.matchingNode.expr();
+            }
+            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, targetNode.typeSymbol);
+        }
         return gson.toJsonTree(textEditsMap);
     }
 
