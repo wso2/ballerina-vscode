@@ -24,24 +24,24 @@ import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
+import { DEVANT_API_KEY, DEVANT_STS_TOKEN } from '../../features/ai/utils';
 import { getBedrockRegionalPrefix } from '../../features/ai/service/connection';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
 
-export const checkToken = async (): Promise<{ token: string; loginMethod: LoginMethod } | undefined> => {
+export const checkToken = async (): Promise<AuthCredentials | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
             // Clean up any legacy tokens on initialization
             await cleanupLegacyTokens();
 
-            const token = await getAccessToken();
-            const loginMethod = await getLoginMethod();
-            if (!token || !loginMethod) {
+            const credentials = await getAccessToken();
+            if (!credentials) {
                 resolve(undefined);
                 return;
             }
-            resolve({ token, loginMethod });
+            resolve(credentials);
         } catch (error) {
             reject(error);
         }
@@ -65,8 +65,8 @@ const cleanupLegacyTokens = async (): Promise<void> => {
 export const logout = async (isUserLogout: boolean = true) => {
     // For user-initiated logout, check if we need to redirect to SSO logout
     if (isUserLogout) {
-        const { token, loginMethod } = await checkToken();
-        if (token && loginMethod === LoginMethod.BI_INTEL) {
+        const credentials = await checkToken();
+        if (credentials.loginMethod === LoginMethod.BI_INTEL) {
             const logoutURL = getLogoutUrl();
             vscode.env.openExternal(vscode.Uri.parse(logoutURL));
         }
@@ -114,7 +114,7 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
         };
         await storeAuthCredentials(credentials);
 
-        return { token: apiKey };
+        return { credentials: credentials };
 
     } catch (error) {
         console.error('API key validation failed:', error);
@@ -130,6 +130,23 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
         }
         throw new Error('Validation failed. Please try again.');
     }
+};
+
+export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefined> => {
+    // Check if both required devant environment variables are present and non-empty
+    if (!DEVANT_API_KEY || !DEVANT_STS_TOKEN ||
+        DEVANT_API_KEY.trim() === '' || DEVANT_STS_TOKEN.trim() === '') {
+        return undefined;
+    }
+
+    // Return devant credentials without storing (always read from env)
+    return {
+        loginMethod: LoginMethod.DEVANT_ENV,
+        secrets: {
+            apiKey: DEVANT_API_KEY,
+            stsToken: DEVANT_STS_TOKEN
+        }
+    };
 };
 
 export const validateAwsCredentials = async (credentials: {
@@ -154,7 +171,7 @@ export const validateAwsCredentials = async (credentials: {
 
     // List of valid AWS regions
     const validRegions = [
-        'us-east-1', 'us-west-2', 'us-west-1', 'eu-west-1', 'eu-central-1', 
+        'us-east-1', 'us-west-2', 'us-west-1', 'eu-west-1', 'eu-central-1',
         'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2',
         'ap-south-1', 'ca-central-1', 'sa-east-1', 'eu-west-2', 'eu-west-3',
         'eu-north-1', 'ap-east-1', 'me-south-1', 'af-south-1', 'ap-southeast-3'
@@ -171,13 +188,13 @@ export const validateAwsCredentials = async (credentials: {
             secretAccessKey: secretAccessKey,
             sessionToken: sessionToken,
         });
-        
+
         // Get regional prefix based on AWS region and construct model ID
         const regionalPrefix = getBedrockRegionalPrefix(region);
         const modelId = `${regionalPrefix}.anthropic.claude-3-5-haiku-20241022-v1:0`;
         const bedrockClient = bedrock(modelId);
 
-        // Make a minimal test call to validate credentials  
+        // Make a minimal test call to validate credentials
         await generateText({
             model: bedrockClient,
             maxTokens: 1,
@@ -196,7 +213,7 @@ export const validateAwsCredentials = async (credentials: {
         };
         await storeAuthCredentials(authCredentials);
 
-        return { token: accessKeyId };
+        return { credentials: authCredentials };
 
     } catch (error) {
         console.error('AWS Bedrock validation failed:', error);

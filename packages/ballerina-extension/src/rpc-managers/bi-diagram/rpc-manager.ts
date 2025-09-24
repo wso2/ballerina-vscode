@@ -138,6 +138,7 @@ import {
     VerifyTypeDeleteResponse,
     WorkspaceFolder,
     WorkspacesResponse,
+    BIIntelSecrets,
     ConfigVariableRequest,
     AvailableNode,
     Item,
@@ -368,7 +369,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         // Adding descriptions for AI nodes
         const updateItems = (items: Item[], isInAICategory: boolean): Item[] => {
             if (!items) { return items; }
-            
+
             return items.map(item => {
                 if ((item as AvailableNode).enabled === false && isInAICategory) {
                     item.metadata = {
@@ -376,12 +377,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         description: "Please update AI package version to latest version to use this feature"
                     };
                 }
-                
+
                 // Recursively handle nested items
                 if ((item as Category).items) {
                     (item as Category).items = updateItems((item as Category).items, isInAICategory);
                 }
-                
+
                 return item;
             });
         };
@@ -630,7 +631,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     let token: string;
                     const loginMethod = await getLoginMethod();
                     if (loginMethod === LoginMethod.BI_INTEL) {
-                        token = await getAccessToken();
+                        const credentials = await getAccessToken();
+                        const secrets = credentials.secrets as BIIntelSecrets;
+                        token = secrets.accessToken;
                     }
 
                     if (!token) {
@@ -668,7 +671,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         let token: string;
                         const loginMethod = await getLoginMethod();
                         if (loginMethod === LoginMethod.BI_INTEL) {
-                            token = await getAccessToken();
+                            const credentials = await getAccessToken();
+                            const secrets = credentials.secrets as BIIntelSecrets;
+                            token = secrets.accessToken;
                         }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
@@ -829,10 +834,10 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
     return new Promise(async (resolve) => {
         const projectPath = path.join(StateMachine.context().projectUri);
         const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
-        
-        // if params includeLibraries is not set, then use settings 
-        const includeLibraries = params?.includeLibraries !== undefined 
-            ? params.includeLibraries 
+
+        // if params includeLibraries is not set, then use settings
+        const includeLibraries = params?.includeLibraries !== undefined
+            ? params.includeLibraries
             : showLibraryConfigVariables !== false;
 
         const variables = await StateMachine.langClient().getConfigVariablesV2({
@@ -1174,7 +1179,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
         const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectUri);
-        
+
         // Helper function to perform the actual delete operation
         const performDelete = async (): Promise<any> => {
             return new Promise((resolve, reject) => {
