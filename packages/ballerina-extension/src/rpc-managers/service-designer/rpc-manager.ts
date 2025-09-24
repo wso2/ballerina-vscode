@@ -129,7 +129,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.addListenerSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true }, { artifactType: DIRECTORY_MAP.LISTENER }, 'Listener Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true }, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -166,7 +166,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.LISTENER }, 'Listener Update');
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
