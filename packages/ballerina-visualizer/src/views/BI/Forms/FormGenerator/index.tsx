@@ -317,7 +317,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!node) {
             return;
         }
-        if (node.codedata.node === "VARIABLE" && 
+        if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
             handleValueTypeConstChange(node.properties.type.value as string);
@@ -913,6 +913,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const onSaveType = (type: Type) => {
+        handleValueTypeConstChange(type.name);
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -975,7 +976,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // Create the record type field for expression
         const expressionEntry = Object.entries(getFormProperties(node))
-            .find(([_, property]) => property.metadata?.label === "Expression");
+            .find(([_, property]) => {
+                if (node.codedata.node === "VARIABLE") {
+                    return property.metadata?.label === "Expression";
+                } else if (node.codedata.node === "CONFIG_VARIABLE") {
+                    return property.metadata?.label === "Default Value";
+                }
+                return false;
+            });
 
         if (!expressionEntry) return;
 

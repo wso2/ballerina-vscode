@@ -319,7 +319,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-     async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
+    async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
         try {
             const { model, rootViewId, options = {} } = params;
 

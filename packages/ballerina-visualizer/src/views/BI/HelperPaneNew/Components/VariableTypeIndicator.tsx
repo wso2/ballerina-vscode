@@ -25,14 +25,11 @@ export const VariableTypeIndicator = styled(VSCodeTag)`
         text-transform: none;
         font-size: 10px;
         height: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         max-width: 60px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding: 0px 2px;
+        padding: 0px 2px 5px 2px;
     }
 
     &:hover::part(control) {

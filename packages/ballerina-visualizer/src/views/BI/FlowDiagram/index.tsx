@@ -209,12 +209,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setTargetLineRange(range);
     }
 
-    useEffect(() => {
-        console.log(targetLineRange)
-    }, [targetLineRange]);
-
-
-
     const debouncedGetFlowModel = useCallback(
         debounce(() => {
             getFlowModel();
@@ -1272,6 +1266,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 .then((response) => {
                     console.log(">>> Updated source code", response);
                     if (response.codedata) {
+                        if (options?.postUpdateCallBack) {
+                            options.postUpdateCallBack();
+                        }
+                        shouldUpdateLineRangeRef.current = options?.updateLineRange;
+                        updatedNodeRef.current = updatedNode;
                         rpcClient.getVisualizerRpcClient().openView({
                             type: EVENT_TYPE.OPEN_VIEW,
                             location: {
@@ -1457,7 +1456,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .finally(() => {
                 setShowProgressIndicator(false);
-                debouncedGetFlowModel();
             });
     };
 
