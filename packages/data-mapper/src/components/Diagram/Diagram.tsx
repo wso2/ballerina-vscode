@@ -39,15 +39,14 @@ import { DataMapperNodeModel } from './Node/commons/DataMapperNode';
 import { LinkConnectorNode, QueryExprConnectorNode } from './Node';
 import { OverlayLayerFactory } from './OverlayLayer/OverlayLayerFactory';
 import { OverriddenLinkLayerFactory } from './OverriddenLinkLayer/LinkLayerFactory';
-import { useDiagramModel, useRepositionedNodes } from '../Hooks';
+import { useDiagramModel, useFocusLinkedNodes, useRepositionedNodes } from './hooks';
 import { throttle } from 'lodash';
 import { defaultModelOptions } from './utils/constants';
 import { IONodesScrollCanvasAction } from './Actions/IONodesScrollCanvasAction';
 import { useDMExpressionBarStore, useDMSearchStore } from '../../store/store';
-import { isOutputNode, isInputNode, isIntermediateNode } from './Actions/utils';
 import { InputOutputPortModel } from './Port';
 import { calculateZoomLevel } from './utils/diagram-utils';
-import { FOCUS_LINKED_NODES_EVENT, FocusLinkedNodesEventPayload } from './utils/link-focus-utils';
+import { isOutputNode } from './Actions/utils';
 import * as Nodes from "./Node";
 import * as Ports from "./Port";
 import * as Labels from "./Label";
@@ -134,131 +133,8 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 		engine.getStateMachine().pushState(new LinkState(true));
 	}, [inputSearch, outputSearch]);
 	
-	// Add event listener for focusing on linked nodes
-	useEffect(() => {
-		const handleFocusLinkedNodes = (event: CustomEvent) => {
-			if (!event.detail) return;
-			const { sourceNodeId, targetNodeId, sourcePortId, targetPortId } = event.detail as FocusLinkedNodesEventPayload;
-			
-			// Get the nodes and ports from the model
-			const model = engine.getModel();
-			const sourceNode = model.getNode(sourceNodeId);
-			let targetNode = model.getNode(targetNodeId);
-
-			const sourcePort = sourceNode?.getPort(sourcePortId);
-			let targetPort = targetNode?.getPort(targetPortId);
-
-			if (isIntermediateNode(targetNode)) {
-				const intermediateNode = targetNode as LinkConnectorNode | QueryExprConnectorNode;
-				const intermediatePort = intermediateNode.targetMappedPort;
-
-				targetNode = intermediatePort?.getNode();
-				targetPort = intermediatePort;
-			}
-			
-			if (!sourceNode || !targetNode || !sourcePort || !targetPort) {
-				return;
-			}
-			
-			// Get canvas height for visibility calculations
-			const canvas = engine.getCanvas();
-			const canvasHeight = canvas?.offsetHeight || 0;
-			
-			// Get all input and output nodes
-			const allNodes = model.getNodes();
-			const inputNodes = allNodes.filter(node => isInputNode(node));
-			const outputNodes = allNodes.filter(node => isOutputNode(node));
-			const intermediateNodes = allNodes.filter(node => isIntermediateNode(node));
-
-			// Get node positions
-			const sourceNodePosition = sourceNode.getPosition();
-			const targetNodePosition = targetNode.getPosition();
-			
-			// Get port positions
-			const sourcePortPosition = sourcePort.getPosition();
-			const targetPortPosition = targetPort.getPosition();
-			
-			// Get port Y positions
-			const sourcePortY = sourcePortPosition.y;
-			const targetPortY = targetPortPosition.y;
-			
-			// Check port visibility (considering a port visible if it's within canvas bounds)
-			const isSourcePortVisible = sourcePortY >= 0 && sourcePortY <= canvasHeight;
-			const isTargetPortVisible = targetPortY >= 0 && targetPortY <= canvasHeight;
-			
-			// Determine scrolling strategy based on visibility
-			let sourceNodeScrollOffset = 0;
-			let targetNodeScrollOffset = 0;
-			
-			if (!isSourcePortVisible && !isTargetPortVisible) {
-				// Case 1: Both ports not visible - scroll both to center
-				const visibleAreaCenter = canvasHeight / 2;
-				
-				// Calculate where nodes should be positioned so their ports are centered
-				let sourceNodeDesiredY = visibleAreaCenter - (sourcePortPosition.y - sourceNodePosition.y);
-				let targetNodeDesiredY = visibleAreaCenter - (targetPortPosition.y - targetNodePosition.y);
-
-				if (sourceNodeDesiredY > 0) {
-					sourceNodeDesiredY = 0;
-				}
-
-				if (targetNodeDesiredY > 0) {
-					targetNodeDesiredY = 0;
-				}
-				
-				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
-				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
-			} else if (isSourcePortVisible && !isTargetPortVisible) {
-				// Case 2: Source visible, target not - align target port Y to source port Y
-				// Calculate how much to move the target node so its port aligns with source port
-				const targetPortDesiredY = sourcePortY;
-				let targetNodeDesiredY = targetPortDesiredY - (targetPortPosition.y - targetNodePosition.y);
-
-				if (targetNodeDesiredY > 0) {
-					targetNodeDesiredY = 0;
-				}
-
-				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
-			} else if (!isSourcePortVisible && isTargetPortVisible) {
-				// Case 3: Target visible, source not - align source port Y to target port Y
-				// Calculate how much to move the source node so its port aligns with target port
-				const sourcePortDesiredY = targetPortY;
-				let sourceNodeDesiredY = sourcePortDesiredY - (sourcePortPosition.y - sourceNodePosition.y);
-
-				if (sourceNodeDesiredY > 0) {
-					sourceNodeDesiredY = 0;
-				}
-
-				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
-			}
-			// Case 4: Both visible - no scrolling needed (offsets remain 0)
-
-			// Apply scrolling based on node types
-			if (isInputNode(sourceNode) && (isOutputNode(targetNode) || isIntermediateNode(targetNode))) {
-				if (sourceNodeScrollOffset !== 0) {
-					inputNodes.forEach(node => {
-						node.setPosition(node.getX(), node.getY() - sourceNodeScrollOffset);
-					});
-				}
-				
-				if (targetNodeScrollOffset !== 0) {
-					[...outputNodes, ...intermediateNodes].forEach(node => {
-						node.setPosition(node.getX(), node.getY() - targetNodeScrollOffset);
-					});
-				}
-			}
-			
-			engine.repaintCanvas();
-		};
-		
-		// Register the event listener on the document
-		document.addEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
-		
-		// Clean up the event listener when the component unmounts
-		return () => {
-			document.removeEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
-		};
-	}, [engine]);
+	// Handle focus linked nodes functionality
+	useFocusLinkedNodes(engine);
 
 	useEffect(() => {
 		getScreenWidthRef.current = () => screenWidth;
