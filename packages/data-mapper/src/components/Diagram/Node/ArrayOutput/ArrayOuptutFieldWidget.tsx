@@ -197,7 +197,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                                     parentId={portName}
                                     context={context}
                                     fieldIndex={index}
-                                    treeDepth={treeDepth + 1}
+                                    treeDepth={0}
                                     hasHoveredParent={isHovered || hasHoveredParent}
                                 />
                             </TreeBody>
@@ -214,7 +214,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                             parentId={portName}
                             context={context}
                             fieldIndex={index}
-                            treeDepth={treeDepth + 1}
+                            treeDepth={0}
                             hasHoveredParent={isHovered || hasHoveredParent}
                         />
                     )
