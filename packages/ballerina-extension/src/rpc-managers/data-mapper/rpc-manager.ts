@@ -130,12 +130,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
-                .addArrayElement({
-                    filePath: params.filePath,
-                    codedata: params.codedata,
-                    targetField: params.targetField,
-                    propertyKey: params.propertyKey
-                })
+                .addArrayElement(params)
                 .then((resp) => {
                     console.log(">>> Data mapper add array element response", resp);
                     updateAndRefreshDataMapper(
