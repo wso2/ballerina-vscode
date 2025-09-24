@@ -1342,6 +1342,12 @@ const AIChat: React.FC = () => {
                     `A function named "${functionName}" was not found in the project. Please provide a valid function name.`
                 );
             }
+
+            if (result.match[2] === "") {
+                throw new Error(
+                    `A function named "${functionName}" is not a valid datamapper function.`
+                );
+            }
             const params = result.match[2].split(/,\s*/).map((param) => param.trim().split(/\s+/));
             inputParams = params.map((parts) => parts[0]);
             inputNames = params.map((parts) => parts[1]);

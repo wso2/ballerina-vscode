@@ -243,14 +243,12 @@ namespace S {
             font-family: var(--vscode-font-family);
         }
 
-        code {
-            // hide code blocks
+        pre {
             display: none;
         }
 
-        pre {
-            // hide code blocks
-            display: none;
+        code {
+            display: inline;
         }
 
         ul,
@@ -682,7 +680,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
-            onSubmit && onSubmit(data, dirtyFields);
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }

@@ -60,6 +60,12 @@ export type ContextAwareExpressionEditorProps = {
 
 };
 
+type diagnosticsFetchContext = {
+    fetchedInitialDiagnostics: boolean;
+    //TargetLineRange which initial diagnostics fetched
+    diagnosticsFetchedTargetLineRange: LineRange;
+}
+
 type ExpressionEditorProps = ContextAwareExpressionEditorProps &
     FormExpressionEditorProps & {
         control: Control<FieldValues, any>;
@@ -348,14 +354,24 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const anchorRef = useRef<HTMLDivElement>(null);
 
     // Use to fetch initial diagnostics
-    const fetchInitialDiagnostics = useRef<boolean>(true);
+    const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
+        fetchedInitialDiagnostics: false,
+        diagnosticsFetchedTargetLineRange: undefined
+    });
     const fieldValue = rawExpression ? rawExpression(watch(key)) : watch(key);
 
     // Initial render
     useEffect(() => {
+        if (!targetLineRange) return;
         // Fetch initial diagnostics
-        if (getExpressionEditorDiagnostics && fieldValue !== undefined && fetchInitialDiagnostics.current) {
-            fetchInitialDiagnostics.current = false;
+        if (getExpressionEditorDiagnostics && fieldValue !== undefined
+            && (previousDiagnosticsFetchContext.current.fetchedInitialDiagnostics === false
+                || previousDiagnosticsFetchContext.current.diagnosticsFetchedTargetLineRange !== targetLineRange
+            )) {
+            previousDiagnosticsFetchContext.current = {
+                fetchedInitialDiagnostics: true,
+                diagnosticsFetchedTargetLineRange: targetLineRange
+            };
             getExpressionEditorDiagnostics(
                 (required ?? !field.optional) || fieldValue !== '',
                 fieldValue,
@@ -363,7 +379,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 getPropertyFromFormField(field)
             );
         }
-    }, [fieldValue]);
+    }, [fieldValue, targetLineRange]);
 
     const handleFocus = async () => {
         setFocused(true);
