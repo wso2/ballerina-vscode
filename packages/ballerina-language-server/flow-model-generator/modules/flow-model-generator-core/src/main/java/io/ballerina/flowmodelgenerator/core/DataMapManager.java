@@ -1251,7 +1251,8 @@ public class DataMapManager {
                 textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
             } else {
                 NonTerminalNode parent = expr.parent();
-                if (parent.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                SyntaxKind parentKind = parent.kind();
+                if (parentKind == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parent;
                     MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
                             specificField.parent();
@@ -1307,7 +1308,7 @@ public class DataMapManager {
                     } else {
                         textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
                     }
-                } else if (parent.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                } else if (parentKind == SyntaxKind.LIST_CONSTRUCTOR) {
                     ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) parent;
                     SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
                     int memberIdx = 0;
@@ -1335,7 +1336,8 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
                         }
                     }
-                } else if (parent.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL ||
+                        parentKind == SyntaxKind.LET_VAR_DECL) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(parent);
                     if (optSymbol.isPresent()) {
                         Symbol symbol = optSymbol.get();
@@ -1346,7 +1348,7 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
-                } else if (parent.kind() == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
                     if (optSymbol.isEmpty()) {
                         return;
@@ -1362,7 +1364,7 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
-                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
+                } else if (parentKind == SyntaxKind.SELECT_CLAUSE) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(expr);
                     if (optSymbol.isPresent()) {
                         Symbol symbol = optSymbol.get();

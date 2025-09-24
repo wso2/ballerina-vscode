@@ -1,0 +1,47 @@
+{
+  "source": "variable7.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 32
+      },
+      "endLine": {
+        "line": 8,
+        "offset": 75
+      }
+    }
+  },
+  "mapping": {
+    "output": "subMapping",
+    "inputs": [
+      "input.user.address"
+    ],
+    "expression": "from var addressItem in input.user.address\n                    select {street: \"\", city: \"\", state: \"\", postalCode: 0}\n",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": true,
+    "isFunctionCall": false
+  },
+  "targetField": "subMapping",
+  "output": {
+    "variable7.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 7,
+            "character": 55
+          },
+          "end": {
+            "line": 8,
+            "character": 75
+          }
+        },
+        "newText": "[]"
+      }
+    ]
+  }
+}
