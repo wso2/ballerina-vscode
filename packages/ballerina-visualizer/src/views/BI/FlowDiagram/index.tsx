@@ -949,15 +949,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             await handleChunkerAdded();
             return;
         }
-
-        await rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-            location: {
-                documentUri: currentArtifact.path,
-                position: currentArtifact.position,
-                identifier: currentIdentifier,
-            },
-        });
         closeSidePanelAndFetchUpdatedFlowModel();
         debouncedGetFlowModel();
     };
