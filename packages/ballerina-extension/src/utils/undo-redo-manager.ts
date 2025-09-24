@@ -179,7 +179,7 @@ export class UndoRedoManager implements IUndoRedoManager {
             id: `redo_${lastOperation.id}`,
             timestamp: Date.now(),
             changes: redoChanges,
-            description: `Redo: ${lastOperation.description || 'Batch operation'}`
+            description: `${lastOperation.description || 'Batch operation'}`
         };
 
         this.redoStack.push(redoOperation);
