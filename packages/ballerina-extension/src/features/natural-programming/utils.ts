@@ -40,7 +40,7 @@ import {
 import { isError, isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
 import { OLD_BACKEND_URL } from '../ai/utils';
-import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
+import { AIMachineEventType, BallerinaProject, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
 import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
@@ -512,7 +512,9 @@ export async function getAccessToken(): Promise<string> {
         let token: string;
         const loginMethod = await getLoginMethod();
         if (loginMethod === LoginMethod.BI_INTEL) {
-            token = await getAccesstokenFromUtils();
+            const credentials = await getAccesstokenFromUtils();
+            const secrets = credentials.secrets as BIIntelSecrets;
+            token = secrets.accessToken;
         }
         resolve(token as string);
     });
