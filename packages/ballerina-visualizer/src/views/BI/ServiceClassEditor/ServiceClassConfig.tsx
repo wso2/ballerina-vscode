@@ -20,9 +20,16 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { ProgressRing, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
-import { EVENT_TYPE, MACHINE_VIEW, ModelFromCodeRequest, NodePosition, PropertyModel, ServiceClassModel, ServiceClassSourceRequest, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
+import {
+    EVENT_TYPE, MACHINE_VIEW,
+    ModelFromCodeRequest,
+    NodePosition,
+    PropertyModel,
+    ServiceClassModel,
+    ServiceClassSourceRequest,
+    UpdatedArtifactsResponse
+} from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../components/FormHeader";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";

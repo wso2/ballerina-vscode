@@ -163,7 +163,9 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
 
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
         if (serviceClassModelResponse.model) {
-            const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModelResponse.model.codedata.lineRange.fileName);
+            const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(
+                serviceClassModelResponse.model.codedata.lineRange.fileName
+            );
             console.log("Service Class Model: ", serviceClassModelResponse.model);
             setServiceClassModel(serviceClassModelResponse.model);
             setServiceClassFilePath(serviceClassFilePath);
