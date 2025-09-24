@@ -31,7 +31,6 @@ import { InputOutputPortModel } from '../Port';
 import { mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
-import { FOCUS_LINKED_NODES_EVENT, createFocusLinkedNodesEventPayload } from '../utils/link-focus-utils';
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 
 export interface ExpressionLabelWidgetProps {
@@ -146,40 +145,6 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             setIsLinkSelected(link.isSelected());
         }
     }, [link?.isSelected()]);
-
-    useEffect(() => {
-        // When a link is selected, focus on the connected nodes
-        if (isLinkSelected && link && link.getSourcePort() && link.getTargetPort()) {
-            const sourcePort = link.getSourcePort();
-            const targetPort = link.getTargetPort();
-            
-            if (sourcePort && targetPort && sourcePort.getNode() && targetPort.getNode()) {
-                // Create a custom event to focus on the linked nodes
-                const payload = createFocusLinkedNodesEventPayload(
-                    sourcePort.getNode().getID(),
-                    targetPort.getNode().getID(),
-                    sourcePort.getName(),
-                    targetPort.getName()
-                );
-                
-                // Use a custom approach to handle the focus event
-                // Get the nodes and ports from the model
-                if (props.engine) {
-                    const model = props.engine.getModel();
-                    const sourceNode = model.getNode(payload.sourceNodeId);
-                    const targetNode = model.getNode(payload.targetNodeId);
-                    
-                    if (sourceNode && targetNode) {
-                        // Dispatch a custom event that will be handled by our listener
-                        const customEvent = new CustomEvent(FOCUS_LINKED_NODES_EVENT, { 
-                            detail: payload 
-                        });
-                        document.dispatchEvent(customEvent);
-                    }
-                }
-            }
-        }
-    }, [isLinkSelected]);
 
     const onClickDelete = (evt?: MouseEvent<HTMLDivElement>) => {
         if (evt) {

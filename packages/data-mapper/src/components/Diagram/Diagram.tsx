@@ -143,9 +143,18 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			// Get the nodes and ports from the model
 			const model = engine.getModel();
 			const sourceNode = model.getNode(sourceNodeId);
-			const targetNode = model.getNode(targetNodeId);
+			let targetNode = model.getNode(targetNodeId);
+
 			const sourcePort = sourceNode?.getPort(sourcePortId);
-			const targetPort = targetNode?.getPort(targetPortId);
+			let targetPort = targetNode?.getPort(targetPortId);
+
+			if (isIntermediateNode(targetNode)) {
+				const intermediateNode = targetNode as LinkConnectorNode | QueryExprConnectorNode;
+				const intermediatePort = intermediateNode.targetMappedPort;
+
+				targetNode = intermediatePort?.getNode();
+				targetPort = intermediatePort;
+			}
 			
 			if (!sourceNode || !targetNode || !sourcePort || !targetPort) {
 				return;
@@ -187,8 +196,17 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 				const visibleAreaCenter = canvasHeight / 2;
 				
 				// Calculate where nodes should be positioned so their ports are centered
-				const sourceNodeDesiredY = visibleAreaCenter - (sourcePortPosition.y - sourceNodePosition.y);
-				const targetNodeDesiredY = visibleAreaCenter - (targetPortPosition.y - targetNodePosition.y);
+				let sourceNodeDesiredY = visibleAreaCenter - (sourcePortPosition.y - sourceNodePosition.y);
+				let targetNodeDesiredY = visibleAreaCenter - (targetPortPosition.y - targetNodePosition.y);
+				// let targetNodeDesiredY = sourceNodeDesiredY;
+
+				if (sourceNodeDesiredY > 0) {
+					sourceNodeDesiredY = 0;
+				}
+
+				if (targetNodeDesiredY > 0) {
+					targetNodeDesiredY = 0;
+				}
 				
 				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
 				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
@@ -218,7 +236,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			// Case 3: Both visible - no scrolling needed (offsets remain 0)
 
 			// Apply scrolling based on node types
-			if (isInputNode(sourceNode) && isOutputNode(targetNode)) {
+			if (isInputNode(sourceNode) && (isOutputNode(targetNode) || isIntermediateNode(targetNode))) {
 				// Source is input, target is output
 				if (sourceNodeScrollOffset !== 0) {
 					inputNodes.forEach(node => {
