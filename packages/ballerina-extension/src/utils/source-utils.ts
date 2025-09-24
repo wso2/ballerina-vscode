@@ -42,7 +42,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
         undoRedoManager.startBatchOperation();
         const modificationRequests: Record<string, { filePath: string; modifications: STModification[] }> = {};
         for (const [key, value] of Object.entries(updateSourceCodeRequest.textEdits)) {
-            const fileUri = key.includes("file:") ? Uri.parse(key) : Uri.file(key);
+            const fileUri = key.startsWith("file:") ? Uri.parse(key) : Uri.file(key);
             const fileUriString = fileUri.toString();
             if (!existsSync(fileUri.fsPath)) {
                 writeFileSync(fileUri.fsPath, '');
