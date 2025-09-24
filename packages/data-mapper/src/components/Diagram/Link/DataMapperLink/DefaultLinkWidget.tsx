@@ -16,12 +16,13 @@
  * under the License.
  */
 // tslint:disable: jsx-no-lambda jsx-no-multiline-js
-import * as React from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 
 import { DiagramEngine } from "@projectstorm/react-diagrams";
 
 import { DefaultLinkSegmentWidget } from "./DefaultLinkSegmentWidget";
 import { DataMapperLinkModel } from "./DataMapperLink";
+import { createFocusLinkedNodesEventPayload, FOCUS_LINKED_NODES_EVENT } from "../../utils/link-focus-utils";
 
 interface DefaultLinkWidgetProps {
     diagramEngine: DiagramEngine;
@@ -29,11 +30,12 @@ interface DefaultLinkWidgetProps {
 }
 
 export function DefaultLinkWidget(props: DefaultLinkWidgetProps) {
-    const [selected, setSelected] = React.useState<boolean>(false);
-    const refPaths = React.useRef<React.RefObject<SVGPathElement>[]>([]);
+    const [selected, setSelected] = useState<boolean>(false);
+    const refPaths = useRef<React.RefObject<SVGPathElement>[]>([]);
+    const isLinkSelected = props.link.isSelected();
 
     // Use a layout effect to update rendered paths after DOM mutations
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         const paths = refPaths.current
             .map(ref => ref.current)
             .filter((path): path is SVGPathElement => path !== null);
@@ -42,6 +44,40 @@ export function DefaultLinkWidget(props: DefaultLinkWidgetProps) {
             props.link.setRenderedPaths(paths);
         }
     });
+
+    useEffect(() => {
+        // When a link is selected, focus on the connected nodes
+        if (isLinkSelected && props.link && props.link.getSourcePort() && props.link.getTargetPort()) {
+            const sourcePort = props.link.getSourcePort();
+            const targetPort = props.link.getTargetPort();
+            
+            if (sourcePort && targetPort && sourcePort.getNode() && targetPort.getNode()) {
+                // Create a custom event to focus on the linked nodes
+                const payload = createFocusLinkedNodesEventPayload(
+                    sourcePort.getNode().getID(),
+                    targetPort.getNode().getID(),
+                    sourcePort.getName(),
+                    targetPort.getName()
+                );
+                
+                // Use a custom approach to handle the focus event
+                // Get the nodes and ports from the model
+                if (props.diagramEngine) {
+                    const model = props.diagramEngine.getModel();
+                    const sourceNode = model.getNode(payload.sourceNodeId);
+                    const targetNode = model.getNode(payload.targetNodeId);
+                    
+                    if (sourceNode && targetNode) {
+                        // Dispatch a custom event that will be handled by our listener
+                        const customEvent = new CustomEvent(FOCUS_LINKED_NODES_EVENT, { 
+                            detail: payload 
+                        });
+                        document.dispatchEvent(customEvent);
+                    }
+                }
+            }
+        }
+    }, [isLinkSelected]);
 
     const generateLink = React.useCallback((
         path: string,
