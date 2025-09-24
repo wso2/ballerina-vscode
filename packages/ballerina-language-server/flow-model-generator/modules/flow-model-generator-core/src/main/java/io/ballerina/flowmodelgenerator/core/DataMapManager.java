@@ -1118,11 +1118,8 @@ public class DataMapManager {
         textEditsMap.put(filePath, textEdits);
         String output = mapping.output();
         String[] splits = output.split(DOT);
-        ExpressionNode expr = null;
-        if (targetNode != null) {
-            if (targetNode.matchingNode != null) {
-                expr = targetNode.matchingNode.expr();
-            }
+        if (targetNode != null && targetNode.matchingNode != null && targetNode.matchingNode.expr() != null) {
+            ExpressionNode expr = targetNode.matchingNode.expr();
             genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, targetNode.typeSymbol);
         }
         return gson.toJsonTree(textEditsMap);
