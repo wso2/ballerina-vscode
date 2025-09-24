@@ -1125,10 +1125,7 @@ public class DataMapManager {
             }
             String output = mapping.output();
             String[] splits = output.split(DOT);
-            MatchingNode targetMappingExpr = getTargetMappingExpr(expr, targetField);
-            if (targetMappingExpr != null) {
-                expr = targetMappingExpr.expr();
-            }
+            expr = targetNode != null ? targetNode.matchingNode.expr() : expr;
             genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, typeSymbol);
         }
 
