@@ -1,10 +1,10 @@
 {
-  "source": "variable1.bal",
+  "source": "configurable_variable1.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable1.bal",
+      "fileName": "configurable_variable1.bal",
       "startLine": {
         "line": 19,
         "offset": 12
@@ -17,7 +17,7 @@
     "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 17,
+    "line": 22,
     "offset": 12
   },
   "propertyKey": "expression",
@@ -25,20 +25,18 @@
   "model": {
     "inputs": [
       {
-        "name": "CONST",
-        "displayName": "CONST",
+        "name": "dbHost",
+        "displayName": "dbHost",
         "typeName": "string",
         "kind": "string",
-        "category": "constant"
+        "category": "configurable"
       },
       {
-        "fields": [],
-        "name": "myStudent",
-        "displayName": "myStudent",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "module-variable",
-        "ref": "-1801106114"
+        "name": "password",
+        "displayName": "password",
+        "typeName": "string",
+        "kind": "string",
+        "category": "configurable"
       }
     ],
     "output": {

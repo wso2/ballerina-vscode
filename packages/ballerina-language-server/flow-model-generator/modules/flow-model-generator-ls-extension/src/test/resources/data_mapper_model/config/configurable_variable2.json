@@ -1,27 +1,27 @@
 {
-  "source": "variable5_1.bal",
+  "source": "proj/main.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable5_1.bal",
+      "fileName": "main.bal",
       "startLine": {
-        "line": 25,
+        "line": 20,
         "offset": 12
       },
       "endLine": {
-        "line": 25,
-        "offset": 117
+        "line": 20,
+        "offset": 78
       }
     },
-    "sourceCode": ""
+    "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 24,
-    "offset": 65
+    "line": 20,
+    "offset": 12
   },
   "propertyKey": "expression",
-  "targetField": "student",
+  "targetField": "student2",
   "model": {
     "inputs": [
       {
@@ -33,98 +33,96 @@
       },
       {
         "fields": [],
-        "name": "userInfo",
-        "displayName": "userInfo",
+        "name": "student",
+        "displayName": "student",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-82774737"
+      },
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-1418772512"
+        "ref": "299558865"
+      },
+      {
+        "fields": [],
+        "name": "user1",
+        "displayName": "user1",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "299558865"
+      },
+      {
+        "fields": [],
+        "name": "user2",
+        "displayName": "user2",
+        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
+        "kind": "record",
+        "category": "configurable",
+        "ref": "1886773290"
       }
     ],
     "output": {
       "fields": [],
-      "name": "student",
-      "displayName": "student",
+      "name": "student2",
+      "displayName": "student2",
       "typeName": "Student",
       "kind": "record",
-      "ref": "1568106809"
+      "ref": "-82774737"
     },
     "mappings": [
       {
-        "output": "student.id",
-        "inputs": [],
-        "expression": "1234",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
-      },
-      {
-        "output": "student.credentials.username",
+        "output": "student2.username",
         "inputs": [
-          "userInfo.username"
+          "user.username",
+          "user.password"
         ],
-        "expression": "userInfo.username",
+        "expression": "bar2(user.username, user.password)",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
-        "isFunctionCall": false
-      },
-      {
-        "output": "student.credentials.password",
-        "inputs": [
-          "userInfo."
-        ],
-        "expression": "userInfo.",
-        "diagnostics": [
-          "undeclared field '$missingNode$_0' in record 'UserInfo'",
-          "missing identifier"
-        ],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
-      },
-      {
-        "output": "student.length",
-        "inputs": [],
-        "expression": "0",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
+        "isFunctionCall": true,
+        "functionRange": {
+          "fileName": "data_mappings.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 2,
+            "offset": 1
+          }
+        }
       }
     ],
     "refs": {
-      "1568106809": {
+      "-82774737": {
         "fields": [
           {
-            "name": "id",
-            "displayName": "id",
-            "typeName": "decimal",
-            "kind": "decimal",
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
             "optional": false
           },
           {
-            "fields": [],
-            "name": "credentials",
-            "displayName": "credentials",
-            "typeName": "Credentials",
-            "kind": "record",
-            "optional": false,
-            "ref": "1085256861"
-          },
-          {
-            "name": "length",
-            "displayName": "length",
-            "typeName": "int",
-            "kind": "int",
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
             "optional": false
           }
         ],
         "typeName": "Student",
         "kind": "record"
       },
-      "-1418772512": {
+      "299558865": {
         "fields": [
           {
             "name": "username",
@@ -144,7 +142,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       },
-      "1085256861": {
+      "1886773290": {
         "fields": [
           {
             "name": "username",
@@ -161,7 +159,7 @@
             "optional": false
           }
         ],
-        "typeName": "Credentials",
+        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
         "kind": "record"
       }
     }

@@ -1446,10 +1446,13 @@ public class DataMapManager {
             NodeList<IntermediateClauseNode> intermediateClauseNodes = queryExpr.queryPipeline().intermediateClauses();
             if (codedata.isNew() != null && codedata.isNew()) {
                 clauseStr = System.lineSeparator() + clauseStr;
-                if (intermediateClauseNodes == null || intermediateClauseNodes.isEmpty()) {
+                if (index == -1) {
                     textEdits.add(new TextEdit(CommonUtils.toRange(
                             queryExpr.queryPipeline().fromClause().lineRange().endLine()), clauseStr));
                 } else {
+                    if (index >= intermediateClauseNodes.size()) {
+                        throw new IllegalArgumentException("Index out of bounds: " + index);
+                    }
                     textEdits.add(new TextEdit(CommonUtils.toRange(
                             intermediateClauseNodes.get(index).lineRange().endLine()), clauseStr));
                 }
@@ -2190,7 +2193,7 @@ public class DataMapManager {
             } else {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " => " +
-                        expressionBody));
+                        expressionBody + ";"));
             }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;

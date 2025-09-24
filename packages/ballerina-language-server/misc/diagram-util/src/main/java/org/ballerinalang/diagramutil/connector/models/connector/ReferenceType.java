@@ -18,7 +18,9 @@
 package org.ballerinalang.diagramutil.connector.models.connector;
 
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.EnumSymbol;
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -72,7 +74,8 @@ public class ReferenceType {
             Optional<String> optName = typeSymbol.getName();
             name = optName.orElseGet(typeSymbol::signature);
         } else if (kind == SymbolKind.CONSTANT) {
-            return new RefConstType(symbol.getName().orElse(""), "const");
+            return new RefConstType(symbol.getName().orElse(""),
+                    ((ConstantSymbol) symbol).broaderTypeDescriptor().signature());
         } else if (kind == SymbolKind.ENUM) {
             return getEnumType((EnumSymbol) symbol);
         }
@@ -224,6 +227,9 @@ public class ReferenceType {
                 }
             }
             return unionType;
+        } else if (kind == TypeDescKind.INTERSECTION) {
+            IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) symbol;
+            return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(), name, moduleID);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();

@@ -26,8 +26,8 @@
       {
         "name": "CONST",
         "displayName": "CONST",
-        "typeName": "const",
-        "kind": "const",
+        "typeName": "string",
+        "kind": "string",
         "category": "constant"
       },
       {
@@ -37,7 +37,25 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "660407909"
+        "ref": "299558865"
+      },
+      {
+        "fields": [],
+        "name": "user1",
+        "displayName": "user1",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "299558865"
+      },
+      {
+        "fields": [],
+        "name": "user2",
+        "displayName": "user2",
+        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
+        "kind": "record",
+        "category": "configurable",
+        "ref": "1886773290"
       }
     ],
     "output": {
@@ -46,7 +64,7 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "278074307"
+      "ref": "-82774737"
     },
     "mappings": [
       {
@@ -74,7 +92,7 @@
       }
     ],
     "refs": {
-      "278074307": {
+      "-82774737": {
         "fields": [
           {
             "name": "username",
@@ -94,7 +112,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "660407909": {
+      "299558865": {
         "fields": [
           {
             "name": "username",
@@ -112,6 +130,26 @@
           }
         ],
         "typeName": "UserInfo",
+        "kind": "record"
+      },
+      "1886773290": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
         "kind": "record"
       }
     }

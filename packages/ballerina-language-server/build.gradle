@@ -236,6 +236,7 @@ dependencies {
     externalJarDeps "com.google.guava:guava:${guavaVersion}"
     externalJarDeps "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
     externalJarDeps "com.github.zafarkhaja:java-semver:${javaSemverVersion}"
+    externalJarDeps "org.xerial:sqlite-jdbc:${sqliteJdbcVersion}"
 }
 
 // Task to generate POM file for inclusion in JAR

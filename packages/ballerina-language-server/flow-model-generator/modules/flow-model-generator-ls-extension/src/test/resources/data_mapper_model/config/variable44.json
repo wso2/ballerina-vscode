@@ -27,8 +27,8 @@
       {
         "name": "CONST",
         "displayName": "CONST",
-        "typeName": "const",
-        "kind": "const",
+        "typeName": "string",
+        "kind": "string",
         "category": "constant"
       },
       {
