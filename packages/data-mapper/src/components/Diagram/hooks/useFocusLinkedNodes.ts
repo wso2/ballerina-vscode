@@ -23,8 +23,9 @@ import { FOCUS_LINKED_NODES_EVENT, FocusLinkedNodesEventPayload } from "../utils
 import {
 	resolveTargetNodeAndPort,
 	createNodePortInfo,
-	focusLinkedNodes
+	focusLinkedNodesSmooth
 } from "../utils/focus-positioning-utils";
+import { cancelCurrentAnimation } from "../utils/smooth-animation-utils";
 import { isInputNode, isIntermediateNode, isOutputNode } from "../Actions/utils";
 
 /**
@@ -32,7 +33,8 @@ import { isInputNode, isIntermediateNode, isOutputNode } from "../Actions/utils"
  * 
  * This hook manages the event listener for focusing on linked nodes,
  * handling the positioning and scrolling logic to ensure both source
- * and target ports are visible when a link is focused.
+ * and target ports are visible when a link is focused. The positioning
+ * is animated with smooth transitions for better UX.
  * 
  * @param engine The diagram engine instance
  */
@@ -70,20 +72,33 @@ export const useFocusLinkedNodes = (engine: DiagramEngine): void => {
 			const sourceInfo = createNodePortInfo(sourceNode, sourcePort);
 			const targetInfo = createNodePortInfo(targetNode, targetPort);
 			
-			// Focus the linked nodes
-			focusLinkedNodes(sourceInfo, targetInfo, canvasHeight, {
-				inputNodes,
-				outputNodes,
-				intermediateNodes
-			});
-			
-			engine.repaintCanvas();
+			// Focus the linked nodes with smooth animation
+			focusLinkedNodesSmooth(
+				sourceInfo, 
+				targetInfo, 
+				canvasHeight, 
+				{
+					inputNodes,
+					outputNodes,
+					intermediateNodes
+				},
+				() => {
+					// Animation complete callback
+					engine.repaintCanvas();
+				},
+				() => {
+					// Animation frame callback - repaint canvas during animation
+					engine.repaintCanvas();
+				}
+			);
 		};
 		
 		// Register and cleanup event listener
 		document.addEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
 		
 		return () => {
+			// Cancel any ongoing animations when component unmounts or engine changes
+			cancelCurrentAnimation();
 			document.removeEventListener(FOCUS_LINKED_NODES_EVENT, handleFocusLinkedNodes as EventListener);
 		};
 	}, [engine]);
