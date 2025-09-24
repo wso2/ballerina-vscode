@@ -37,6 +37,7 @@ import { history, openView, StateMachine, undoRedoManager, updateView } from "..
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
 import { notifyCurrentWebview } from "../../RPCLayer";
+import { updateCurrentArtifactLocation } from "../../utils/state-machine-utils";
 
 export class VisualizerRpcManager implements VisualizerAPI {
 
@@ -99,6 +100,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
+                updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
@@ -142,6 +144,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
+                updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
@@ -172,7 +175,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         const currentFileContent = fs.readFileSync(params.filePath, 'utf8');
         undoRedoManager.startBatchOperation();
         undoRedoManager.addFileToBatch(params.filePath, currentFileContent, params.source);
-        undoRedoManager.commitBatchOperation();
+        undoRedoManager.commitBatchOperation(params.description);
     }
 
     async getThemeKind(): Promise<ColorThemeKind> {

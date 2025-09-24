@@ -729,7 +729,7 @@ export function Overview(props: ComponentDiagramProps) {
                     <ProjectSubtitle>Integration</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>
-                    <UndoRedoGroup />
+                    <UndoRedoGroup key={Date.now()} />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
                     </Button>

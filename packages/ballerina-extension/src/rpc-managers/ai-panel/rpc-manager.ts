@@ -494,7 +494,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits });
+            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Addition');
         }
     }
 
@@ -918,7 +918,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     [filePath]: [textEdit]
                 };
             }
-            await updateSourceCode({ textEdits: allTextEdits });
+            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Addition');
             return true;
         } catch (error) {
             console.error(">>> Failed to add code segment to the workspace", error);
@@ -980,7 +980,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
         try {
-            let filePath =  StateMachine.context().documentUri;
+            let filePath = StateMachine.context().documentUri;
             const datamapperMetadata = StateMachine.context().dataMapperMetadata;
             const textEdit: TextEdit = {
                 newText: params.segmentText,

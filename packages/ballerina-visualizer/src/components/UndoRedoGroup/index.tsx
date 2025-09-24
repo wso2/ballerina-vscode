@@ -37,12 +37,17 @@ export function UndoRedoGroup() {
     const [undoing, setUndoing] = useState(false);
     const [redoing, setRedoing] = useState(false);
 
+    const [undoDescription, setUndoDescription] = useState<string>();
+    const [redoDescription, setRedoDescription] = useState<string>();
+
     useEffect(() => {
         rpcClient
             .getVisualizerRpcClient()
             .undoRedoState()
             .then((res) => {
                 setUndoRedoState(res);
+                setUndoDescription(res.nextUndoDescription);
+                setRedoDescription(res.nextRedoDescription);
             });
     }, [undoing, redoing]);
 
@@ -60,7 +65,7 @@ export function UndoRedoGroup() {
 
     return (
         <ButtonGroup>
-            <Button appearance="icon" onClick={handleUndo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canUndo || undoing}>
+            <Button appearance="icon" onClick={handleUndo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canUndo || undoing} tooltip={`Undo ${undoDescription}`}>
                 <span style={{ pointerEvents: "none" }}>
                     {undoing ? (
                         <ProgressRing color={ThemeColors.PRIMARY} sx={{ width: 16, height: 16 }} />
@@ -69,7 +74,7 @@ export function UndoRedoGroup() {
                     )}
                 </span>
             </Button>
-            <Button appearance="icon" onClick={handleRedo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canRedo || redoing}>
+            <Button appearance="icon" onClick={handleRedo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canRedo || redoing} tooltip={`Redo ${redoDescription}`}>
                 <span style={{ pointerEvents: "none" }}>
                     {redoing ? (
                         <ProgressRing color={ThemeColors.PRIMARY} sx={{ width: 16, height: 16 }} />

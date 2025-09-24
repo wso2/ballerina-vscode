@@ -574,10 +574,6 @@ const stateMachine = createMachine<MachineContext>(
                             });
                         }
                     }
-                    // Add the file to the undo redo manager
-                    undoRedoManager.startBatchOperation();
-                    undoRedoManager.addFileToBatch(documentUri, node?.syntaxTree?.source, node?.syntaxTree?.source);
-                    undoRedoManager.commitBatchOperation();
                 }
                 const lastView = getLastHistory().location;
                 return resolve(lastView);
@@ -690,7 +686,7 @@ export function updateDataMapperView(codedata?: CodeData, variableName?: string)
         // Update popup context when data mapper is in popup view
         const popupLocation = StateMachinePopup.context();
         popupLocation.dataMapperMetadata = dataMapperMetadata;
-        
+
         StateMachinePopup.sendEvent(EVENT_TYPE.VIEW_UPDATE, popupLocation);
     } else {
         // Update main view history when data mapper is in main view
