@@ -1200,7 +1200,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             endColumn: params.component?.endColumn,
             endLine: params.component?.endLine
         };
-        const componentView = await getView(params.component?.filePath, position, StateMachine.context().projectUri);
+        // Check if the filepath is only the filename or the full path if not concatenate the project uri
+        let filePath = params.component?.filePath;
+        if (!filePath.includes(StateMachine.context().projectUri)) {
+            filePath = path.join(StateMachine.context().projectUri, filePath);
+        }
+        const componentView = await getView(filePath, position, StateMachine.context().projectUri);
         // Helper function to perform the actual delete operation
         const performDelete = async (): Promise<any> => {
             return new Promise((resolve, reject) => {
