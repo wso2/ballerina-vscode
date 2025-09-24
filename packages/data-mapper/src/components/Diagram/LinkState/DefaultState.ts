@@ -127,6 +127,5 @@ export class DefaultState extends State<DiagramEngine> {
 			link.getTargetPort()?.fireEvent({}, "link-unselected");
 			removePendingMappingTempLinkIfExists(link);
 		});
-		useDMExpressionBarStore.getState().resetFocus();
 	}
 }
