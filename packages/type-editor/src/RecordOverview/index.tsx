@@ -142,8 +142,6 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
             }
         });
         setRecordNames(recordNameClone);
-        // undoRedoManager.updateContent(currentFile.path, currentFile.content);
-        // undoRedoManager.addModification(currentFile.content);
         applyModifications(getRemoveCreatedRecordRange(selectedRecords, fullST));
         if (recordNameClone.length === 0) {
             onCancel();
