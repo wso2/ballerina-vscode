@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useContext, useEffect, useReducer } from "react";
 
-import { DIAGNOSTIC_SEVERITY, XMLToRecord, IUndoRedoManager } from "@wso2/ballerina-core";
+import { DIAGNOSTIC_SEVERITY, XMLToRecord } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
 
 import { TextPreloaderVertical } from "../PreLoader/TextPerloaderVertical";
@@ -51,7 +51,6 @@ interface RecordState {
 }
 
 interface RecordFromXmlProps {
-    undoRedoManager?: IUndoRedoManager;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     onCancel: () => void;
     isHeaderHidden?: boolean;
@@ -84,7 +83,7 @@ const reducer = (state: RecordState, action: { type: string; payload: any }) => 
 
 export function RecordFromXml(recordFromXmlProps: RecordFromXmlProps) {
     const classes = useStyles();
-    const { isHeaderHidden, undoRedoManager, onSave, onCancel, onUpdate } = recordFromXmlProps;
+    const { isHeaderHidden, onSave, onCancel, onUpdate } = recordFromXmlProps;
 
     const {
         props: { langServerRpcClient, recordCreatorRpcClient, targetPosition, fullST },
@@ -207,7 +206,6 @@ export function RecordFromXml(recordFromXmlProps: RecordFromXmlProps) {
             {formState.importedRecord ? (
                 <RecordOverview
                     type="XML"
-                    undoRedoManager={undoRedoManager}
                     prevST={fullST}
                     definitions={formState.importedRecord}
                     onComplete={onCancel}
@@ -215,12 +213,12 @@ export function RecordFromXml(recordFromXmlProps: RecordFromXmlProps) {
                 />
             ) : (
                 <FormContainer data-testid="xml-record-config-form">
-                        {!isHeaderHidden && (
-                            <SidePanelTitleContainer sx={{ paddingLeft: 20 }}>
-                                <Typography variant="h3" sx={{margin: 0, fontSize: "13px"}}>Import Sample XML</Typography>
-                                <Button onClick={onCancel} appearance="icon"><Codicon name="close" /></Button>
-                            </SidePanelTitleContainer>
-                        )}
+                    {!isHeaderHidden && (
+                        <SidePanelTitleContainer sx={{ paddingLeft: 20 }}>
+                            <Typography variant="h3" sx={{ margin: 0, fontSize: "13px" }}>Import Sample XML</Typography>
+                            <Button onClick={onCancel} appearance="icon"><Codicon name="close" /></Button>
+                        </SidePanelTitleContainer>
+                    )}
                     <FormWrapper>
                         <InputContainer id="xml-input-container" test-id="xml-input-container">
                             <InputWrapper>

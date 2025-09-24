@@ -19,9 +19,6 @@
 import React, { ReactNode, useContext, useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { ModulePart, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
-
-import { updatePropertyStatement } from "../utils";
-import { IUndoRedoManager } from "@wso2/ballerina-core";
 import { RecordItemModel } from "../types";
 import {
     extractImportedRecordNames,
@@ -36,20 +33,20 @@ import { Button, Codicon, Icon, SidePanelTitleContainer, Tooltip, Typography } f
 import { Context } from "../Context";
 import { InputLabel, InputLabelDetail, InputWrapper, RecordFormWrapper, RecordList, useStyles } from "../style";
 import { RecordEditorC } from "../RecordEditor/RecordEditorC";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 export interface RecordOverviewProps {
     definitions: TypeDefinition | ModulePart;
     prevST?: STNode;
     type: "XML" | "JSON";
-    undoRedoManager?: IUndoRedoManager;
     onComplete: () => void;
     onCancel: () => void;
 }
 
 export function RecordOverview(overviewProps: RecordOverviewProps) {
     const classes = useStyles();
-    const { definitions, prevST, undoRedoManager, type, onComplete, onCancel } = overviewProps;
-
+    const { definitions, prevST, type, onComplete, onCancel } = overviewProps;
+    const { rpcClient } = useRpcContext();
     const {
         props: {
             currentFile,
@@ -165,14 +162,8 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
         renderRecords();
     };
 
-    const handleUndo = () => {
-        // const lastUpdateSource = undoRedoManager.undo();
-        // applyModifications([updatePropertyStatement(lastUpdateSource, fullST.position)]);
-        // if (lastUpdateSource === originalSource.source) {
-        //     // If original source matches to last updated source we assume there are no newly created record.
-        //     // Hence, we are closing the form.
-        //     onCancel();
-        // }
+    const handleUndo = async () => {
+        await rpcClient.getVisualizerRpcClient().undo();
     };
 
     return (
