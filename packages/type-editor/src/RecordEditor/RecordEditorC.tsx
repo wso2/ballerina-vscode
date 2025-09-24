@@ -97,7 +97,6 @@ export function RecordEditorC(props: RecordEditorCProps) {
                     onCancel={onCancel}
                     onSave={createModelSave}
                     isDataMapper={isDataMapper}
-                    undoRedoManager={null}
                     showHeader={showHeader}
                     onUpdate={onUpdate}
                 />
