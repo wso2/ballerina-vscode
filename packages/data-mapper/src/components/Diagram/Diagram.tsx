@@ -170,7 +170,6 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			const outputNodes = allNodes.filter(node => isOutputNode(node));
 			const intermediateNodes = allNodes.filter(node => isIntermediateNode(node));
 
-
 			// Get node positions
 			const sourceNodePosition = sourceNode.getPosition();
 			const targetNodePosition = targetNode.getPosition();
@@ -179,7 +178,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			const sourcePortPosition = sourcePort.getPosition();
 			const targetPortPosition = targetPort.getPosition();
 			
-			// Calculate absolute Y positions of the ports in the canvas
+			// Get port Y positions
 			const sourcePortY = sourcePortPosition.y;
 			const targetPortY = targetPortPosition.y;
 			
@@ -192,13 +191,12 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 			let targetNodeScrollOffset = 0;
 			
 			if (!isSourcePortVisible && !isTargetPortVisible) {
-				// Case 4: Both ports not visible - scroll both to center
+				// Case 1: Both ports not visible - scroll both to center
 				const visibleAreaCenter = canvasHeight / 2;
 				
 				// Calculate where nodes should be positioned so their ports are centered
 				let sourceNodeDesiredY = visibleAreaCenter - (sourcePortPosition.y - sourceNodePosition.y);
 				let targetNodeDesiredY = visibleAreaCenter - (targetPortPosition.y - targetNodePosition.y);
-				// let targetNodeDesiredY = sourceNodeDesiredY;
 
 				if (sourceNodeDesiredY > 0) {
 					sourceNodeDesiredY = 0;
@@ -211,7 +209,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
 				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
 			} else if (isSourcePortVisible && !isTargetPortVisible) {
-				// Case 1: Source visible, target not - align target port Y to source port Y
+				// Case 2: Source visible, target not - align target port Y to source port Y
 				// Calculate how much to move the target node so its port aligns with source port
 				const targetPortDesiredY = sourcePortY;
 				let targetNodeDesiredY = targetPortDesiredY - (targetPortPosition.y - targetNodePosition.y);
@@ -222,7 +220,7 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 
 				targetNodeScrollOffset = targetNode.getY() - targetNodeDesiredY;
 			} else if (!isSourcePortVisible && isTargetPortVisible) {
-				// Case 2: Target visible, source not - align source port Y to target port Y
+				// Case 3: Target visible, source not - align source port Y to target port Y
 				// Calculate how much to move the source node so its port aligns with target port
 				const sourcePortDesiredY = targetPortY;
 				let sourceNodeDesiredY = sourcePortDesiredY - (sourcePortPosition.y - sourceNodePosition.y);
@@ -233,11 +231,10 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 
 				sourceNodeScrollOffset = sourceNode.getY() - sourceNodeDesiredY;
 			}
-			// Case 3: Both visible - no scrolling needed (offsets remain 0)
+			// Case 4: Both visible - no scrolling needed (offsets remain 0)
 
 			// Apply scrolling based on node types
 			if (isInputNode(sourceNode) && (isOutputNode(targetNode) || isIntermediateNode(targetNode))) {
-				// Source is input, target is output
 				if (sourceNodeScrollOffset !== 0) {
 					inputNodes.forEach(node => {
 						node.setPosition(node.getX(), node.getY() - sourceNodeScrollOffset);
