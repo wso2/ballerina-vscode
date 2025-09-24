@@ -474,7 +474,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     memory = namedArgumentNode.expression();
                 }
                 agentData.put(namedArgumentNode.argumentName().name().text(),
-                        namedArgumentNode.expression().toSourceCode());
+                        namedArgumentNode.expression().toString().trim());
             }
         }
         if (modelArg == null) {
@@ -531,7 +531,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) field;
                 agentData.put(specificFieldNode.fieldName().toString().trim(),
-                        specificFieldNode.valueExpr().orElseThrow().toSourceCode());
+                        specificFieldNode.valueExpr().orElseThrow().toString().trim());
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
