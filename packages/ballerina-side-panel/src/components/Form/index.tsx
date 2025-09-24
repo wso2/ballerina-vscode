@@ -243,14 +243,12 @@ namespace S {
             font-family: var(--vscode-font-family);
         }
 
-        code {
-            // hide code blocks
+        pre {
             display: none;
         }
 
-        pre {
-            // hide code blocks
-            display: none;
+        code {
+            display: inline;
         }
 
         ul,
