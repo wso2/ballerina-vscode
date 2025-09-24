@@ -296,10 +296,10 @@ public class DataMapManager {
             ClauseNode clauseNode = queryExpressionNode.resultClause();
             Clause resultClause;
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                resultClause = new Clause("select", new DataMapManager.Properties(null, null,
+                resultClause = new Clause("select", new Properties(null, null,
                         ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             } else {
-                resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
+                resultClause = new Clause("collect", new Properties(null, null,
                         ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             }
             query = new Query(name, inputs, fromClause,
@@ -1117,17 +1117,13 @@ public class DataMapManager {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
-
-        ExpressionNode expr = getMappingExpr(node);
-        if (expr != null) {
-            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
-                expr = ((LetExpressionNode) expr).expression();
-            }
-            String output = mapping.output();
-            String[] splits = output.split(DOT);
-            expr = targetNode != null ? targetNode.matchingNode.expr() : expr;
-            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, typeSymbol);
+        ExpressionNode expr = null;
+        if (targetNode != null && targetNode.matchingNode != null) {
+            expr = targetNode.matchingNode.expr();
         }
+        String output = mapping.output();
+        String[] splits = output.split(DOT);
+        genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, typeSymbol);
 
         return gson.toJsonTree(textEditsMap);
     }
@@ -1962,7 +1958,7 @@ public class DataMapManager {
                     FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
                     TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
                     intermediateClauses.add(new Clause(FROM,
-                            new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                            new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
                                     fromClauseNode.expression().toSourceCode().trim(), null)));
                 }
@@ -2536,9 +2532,9 @@ public class DataMapManager {
 
     private static class GenInputsVisitor extends NodeVisitor {
         private final List<String> inputs;
-        private final List<DataMapManager.MappingPort> enumPorts;
+        private final List<MappingPort> enumPorts;
 
-        GenInputsVisitor(List<String> inputs, List<DataMapManager.MappingPort> enumPorts) {
+        GenInputsVisitor(List<String> inputs, List<MappingPort> enumPorts) {
             this.inputs = inputs;
             this.enumPorts = enumPorts;
         }
@@ -2557,9 +2553,9 @@ public class DataMapManager {
         @Override
         public void visit(SimpleNameReferenceNode node) {
             String source = node.toSourceCode().trim();
-            for (DataMapManager.MappingPort enumPort : enumPorts) {
-                if (enumPort instanceof DataMapManager.MappingEnumPort mappingEnumPort) {
-                    for (DataMapManager.MappingPort member : mappingEnumPort.members) {
+            for (MappingPort enumPort : enumPorts) {
+                if (enumPort instanceof MappingEnumPort mappingEnumPort) {
+                    for (MappingPort member : mappingEnumPort.members) {
                         if (member.typeName.equals(source) && member.kind.equals(source)) {
                             source = member.name;
                             break;
