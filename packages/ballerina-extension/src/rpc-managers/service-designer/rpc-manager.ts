@@ -221,7 +221,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.addServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Service Addition');
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Creation');
                 let result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -248,7 +248,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.updateServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Service Update');
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -300,7 +300,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     params.filePath = targetFile;
                 }
                 const res: ResourceSourceCodeResponse = await context.langClient.addResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Resource Addition');
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Resource Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -344,7 +344,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.addFunctionSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Function Addition');
+                const artifacts = await updateSourceCode(res, null, 'Function Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };

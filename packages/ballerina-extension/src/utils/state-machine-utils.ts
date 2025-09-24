@@ -529,5 +529,5 @@ export async function updateCurrentArtifactLocation(artifacts: UpdatedArtifactsR
             identifier: currentIdentifier,
         });
     }
-};
+}
 

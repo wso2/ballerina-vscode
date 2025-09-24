@@ -1615,7 +1615,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().addClassField(params);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Addition');
+                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Creation');
                 resolve(res);
             } catch (error) {
                 console.log(error);
