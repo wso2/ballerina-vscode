@@ -19,6 +19,12 @@ import { DiagramModel, NodeModel, PortModel } from "@projectstorm/react-diagrams
 
 import { LinkConnectorNode, QueryExprConnectorNode } from "../Node";
 import { isInputNode, isIntermediateNode, isOutputNode } from "../Actions/utils";
+import { 
+	animateNodesWithIndividualOffsets, 
+	cancelCurrentAnimation, 
+	AnimationConfig, 
+	DEFAULT_ANIMATION_CONFIG 
+} from "./smooth-animation-utils";
 
 /**
  * Interface for position coordinates
@@ -256,11 +262,19 @@ export const calculateScrollOffsets = (config: ScrollCalculationConfig): ScrollO
 };
 
 /**
- * Applies scroll offsets to the appropriate node groups
+ * Smoothly applies scroll offsets to the appropriate node groups with animation
  * 
  * @param config Configuration object containing nodes, offsets, and node collections
+ * @param onComplete Optional callback when animation completes
+ * @param onUpdate Optional callback for each animation frame
+ * @param animationConfig Animation configuration
  */
-export const applyScrollOffsets = (config: ScrollApplicationConfig): void => {
+export const applySmoothScrollOffsets = (
+	config: ScrollApplicationConfig,
+	onComplete?: () => void,
+	onUpdate?: () => void,
+	animationConfig: AnimationConfig = DEFAULT_ANIMATION_CONFIG
+): void => {
 	const { source, target, offsets, nodeCollections } = config;
 	const { sourceOffset, targetOffset } = offsets;
 	const { inputNodes, outputNodes, intermediateNodes } = nodeCollections;
@@ -269,33 +283,65 @@ export const applyScrollOffsets = (config: ScrollApplicationConfig): void => {
 		isInputNode(source.node) && 
 		(isOutputNode(target.node) || isIntermediateNode(target.node));
 
-	if (!isValidSourceTarget) return;
+	if (!isValidSourceTarget) {
+		onComplete?.();
+		return;
+	}
+
+	// Cancel any existing animation before starting a new one
+	cancelCurrentAnimation();
+
+	// Collect all nodes that need to be animated with their respective offsets
+	const nodeOffsets: Array<{ node: NodeModel; offsetX: number; offsetY: number }> = [];
 
 	if (sourceOffset !== 0) {
 		inputNodes.forEach(node => {
-			const currentPosition = node.getPosition();
-			node.setPosition(currentPosition.x, currentPosition.y - sourceOffset);
+			nodeOffsets.push({
+				node,
+				offsetX: 0,
+				offsetY: -sourceOffset
+			});
 		});
 	}
 	
 	if (targetOffset !== 0) {
 		[...outputNodes, ...intermediateNodes].forEach(node => {
-			const currentPosition = node.getPosition();
-			node.setPosition(currentPosition.x, currentPosition.y - targetOffset);
+			nodeOffsets.push({
+				node,
+				offsetX: 0,
+				offsetY: -targetOffset
+			});
 		});
 	}
+
+	// If no nodes need animation, call complete immediately
+	if (nodeOffsets.length === 0) {
+		onComplete?.();
+		return;
+	}
+
+	// Animate all nodes smoothly
+	animateNodesWithIndividualOffsets(
+		nodeOffsets,
+		onComplete,
+		onUpdate,
+		animationConfig
+	);
 };
 
 /**
- * High-level function that handles the complete focus linked nodes process
+ * High-level function that handles the complete focus linked nodes process with smooth animation
  * 
  * @param source Source node and port information
  * @param target Target node and port information
  * @param canvasHeight Height of the canvas
  * @param nodeCollections Collections of input, output, and intermediate nodes
- * @returns The calculated scroll offsets that were applied
+ * @param onComplete Optional callback when animation completes
+ * @param onUpdate Optional callback for each animation frame
+ * @param animationConfig Animation configuration
+ * @returns The calculated scroll offsets that will be applied
  */
-export const focusLinkedNodes = (
+export const focusLinkedNodesSmooth = (
 	source: NodePortInfo,
 	target: NodePortInfo,
 	canvasHeight: number,
@@ -303,7 +349,10 @@ export const focusLinkedNodes = (
 		inputNodes: NodeModel[];
 		outputNodes: NodeModel[];
 		intermediateNodes: NodeModel[];
-	}
+	},
+	onComplete?: () => void,
+	onUpdate?: () => void,
+	animationConfig: AnimationConfig = DEFAULT_ANIMATION_CONFIG
 ): ScrollOffsets => {
 	// Create scroll calculation configuration
 	const scrollConfig = createScrollCalculationConfig(source, target, canvasHeight);
@@ -311,13 +360,13 @@ export const focusLinkedNodes = (
 	// Calculate scroll offsets
 	const offsets = calculateScrollOffsets(scrollConfig);
 	
-	// Apply scroll offsets
-	applyScrollOffsets({
+	// Apply scroll offsets smoothly
+	applySmoothScrollOffsets({
 		source,
 		target,
 		offsets,
 		nodeCollections
-	});
+	}, onComplete, onUpdate, animationConfig);
 	
 	return offsets;
 };
