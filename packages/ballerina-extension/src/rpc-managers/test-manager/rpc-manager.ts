@@ -63,7 +63,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 const targetFile = params.filePath;
                 params.filePath = targetFile;
                 const res: TestSourceEditResponse = await context.langClient.addTestFunction(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Test Function Addition');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Test Function Creation');
                 const result: SourceUpdateResponse = {
                     artifacts: artifacts
                 };

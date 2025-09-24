@@ -495,7 +495,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Addition');
+            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
         }
     }
 
@@ -920,7 +920,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     [filePath]: [textEdit]
                 };
             }
-            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Addition');
+            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Creation');
             return true;
         } catch (error) {
             console.error(">>> Failed to add code segment to the workspace", error);
