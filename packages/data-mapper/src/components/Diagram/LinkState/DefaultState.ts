@@ -22,7 +22,6 @@ import {
 	ActionEvent,
 	DragCanvasState,
 	InputType,
-	SelectingState,
 	State
 } from '@projectstorm/react-canvas-core';
 import { DiagramEngine, DragDiagramItemsState, PortModel } from '@projectstorm/react-diagrams-core';
@@ -32,7 +31,6 @@ import { ArrayOutputNode, InputNode, ObjectOutputNode, QueryOutputNode, SubMappi
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { LinkOverayContainerID } from '../OverriddenLinkLayer/LinkOverlayPortal';
 import { CreateLinkState } from './CreateLinkState';
-import { useDMExpressionBarStore } from '../../../store/store';
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 
 export class DefaultState extends State<DiagramEngine> {
@@ -127,6 +125,5 @@ export class DefaultState extends State<DiagramEngine> {
 			link.getTargetPort()?.fireEvent({}, "link-unselected");
 			removePendingMappingTempLinkIfExists(link);
 		});
-		useDMExpressionBarStore.getState().resetFocus();
 	}
 }

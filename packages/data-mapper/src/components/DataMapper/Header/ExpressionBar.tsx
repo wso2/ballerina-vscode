@@ -89,7 +89,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const [textFieldValue, setTextFieldValue] = useState<string>('');
     const [placeholder, setPlaceholder] = useState<string>();
 
-    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort } =
+    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort, resetExprBarFocus } =
         useDMExpressionBarStore(
             useShallow((state) => ({
                 focusedPort: state.focusedPort,
@@ -216,6 +216,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
             return;
         }
         await textFieldRef.current.saveExpression(textFieldValue);
+        resetExprBarFocus();
     };
 
     const inputProps: InputProps = {
