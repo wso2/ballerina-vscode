@@ -29,6 +29,55 @@ interface DefaultLinkWidgetProps {
     link: DataMapperLinkModel;
 }
 
+/**
+ * Handles focusing on linked nodes when a link is selected.
+ * Validates the link's ports and nodes, creates the focus event payload,
+ * and dispatches the custom focus event.
+ */
+const handleLinkSelectionFocus = (
+    link: DataMapperLinkModel,
+    diagramEngine: DiagramEngine
+): void => {
+    // Validate that the link has both source and target ports
+    const sourcePort = link.getSourcePort();
+    const targetPort = link.getTargetPort();
+    
+    if (!sourcePort || !targetPort) {
+        return;
+    }
+    
+    // Validate that both ports have associated nodes
+    const sourceNode = sourcePort.getNode();
+    const targetNode = targetPort.getNode();
+    
+    if (!sourceNode || !targetNode) {
+        return;
+    }
+    
+    // Create the focus event payload
+    const payload = createFocusLinkedNodesEventPayload(
+        sourceNode.getID(),
+        targetNode.getID(),
+        sourcePort.getName(),
+        targetPort.getName()
+    );
+    
+    // Validate that the nodes exist in the diagram model
+    const model = diagramEngine.getModel();
+    const modelSourceNode = model.getNode(payload.sourceNodeId);
+    const modelTargetNode = model.getNode(payload.targetNodeId);
+    
+    if (!modelSourceNode || !modelTargetNode) {
+        return;
+    }
+    
+    // Dispatch the focus event
+    const customEvent = new CustomEvent(FOCUS_LINKED_NODES_EVENT, { 
+        detail: payload 
+    });
+    document.dispatchEvent(customEvent);
+};
+
 export function DefaultLinkWidget(props: DefaultLinkWidgetProps) {
     const [selected, setSelected] = useState<boolean>(false);
     const refPaths = useRef<React.RefObject<SVGPathElement>[]>([]);
@@ -47,37 +96,10 @@ export function DefaultLinkWidget(props: DefaultLinkWidgetProps) {
 
     useEffect(() => {
         // When a link is selected, focus on the connected nodes
-        if (isLinkSelected && props.link && props.link.getSourcePort() && props.link.getTargetPort()) {
-            const sourcePort = props.link.getSourcePort();
-            const targetPort = props.link.getTargetPort();
-            
-            if (sourcePort && targetPort && sourcePort.getNode() && targetPort.getNode()) {
-                // Create a custom event to focus on the linked nodes
-                const payload = createFocusLinkedNodesEventPayload(
-                    sourcePort.getNode().getID(),
-                    targetPort.getNode().getID(),
-                    sourcePort.getName(),
-                    targetPort.getName()
-                );
-                
-                // Use a custom approach to handle the focus event
-                // Get the nodes and ports from the model
-                if (props.diagramEngine) {
-                    const model = props.diagramEngine.getModel();
-                    const sourceNode = model.getNode(payload.sourceNodeId);
-                    const targetNode = model.getNode(payload.targetNodeId);
-                    
-                    if (sourceNode && targetNode) {
-                        // Dispatch a custom event that will be handled by our listener
-                        const customEvent = new CustomEvent(FOCUS_LINKED_NODES_EVENT, { 
-                            detail: payload 
-                        });
-                        document.dispatchEvent(customEvent);
-                    }
-                }
-            }
+        if (isLinkSelected && props.link && props.diagramEngine) {
+            handleLinkSelectionFocus(props.link, props.diagramEngine);
         }
-    }, [isLinkSelected]);
+    }, [isLinkSelected, props.link, props.diagramEngine]);
 
     const generateLink = React.useCallback((
         path: string,
