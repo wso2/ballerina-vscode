@@ -207,6 +207,10 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
         }
     }, [model.node.suggested]);
 
+    useEffect(() => {
+        model.setSelected(isSelected);
+    }, [isSelected]);
+
     const isEditable = model.node.codedata.node !== "LOCK";
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
