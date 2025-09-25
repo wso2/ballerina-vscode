@@ -141,7 +141,7 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.HIGHLIGHT
+                ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>

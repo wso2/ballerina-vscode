@@ -161,7 +161,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                                 hasError
                                     ? ThemeColors.ERROR
                                     : isHovered && !disabled && !readOnly
-                                    ? ThemeColors.HIGHLIGHT
+                                    ? ThemeColors.SECONDARY
                                     : ThemeColors.OUTLINE_VARIANT
                             }
                             strokeWidth={NODE_BORDER_WIDTH}
