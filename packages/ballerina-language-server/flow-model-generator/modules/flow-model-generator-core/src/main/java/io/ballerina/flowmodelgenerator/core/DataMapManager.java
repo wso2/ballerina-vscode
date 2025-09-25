@@ -296,10 +296,10 @@ public class DataMapManager {
             ClauseNode clauseNode = queryExpressionNode.resultClause();
             Clause resultClause;
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                resultClause = new Clause("select", new Properties(null, null,
+                resultClause = new Clause("select", new DataMapManager.Properties(null, null,
                         ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             } else {
-                resultClause = new Clause("collect", new Properties(null, null,
+                resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
                         ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
             }
             query = new Query(name, inputs, fromClause,
@@ -1955,7 +1955,7 @@ public class DataMapManager {
                     FromClauseNode fromClauseNode = (FromClauseNode) intermediateClause;
                     TypedBindingPatternNode typedBindingPattern = fromClauseNode.typedBindingPattern();
                     intermediateClauses.add(new Clause(FROM,
-                            new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                            new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
                                     fromClauseNode.expression().toSourceCode().trim(), null)));
                 }
@@ -2529,9 +2529,9 @@ public class DataMapManager {
 
     private static class GenInputsVisitor extends NodeVisitor {
         private final List<String> inputs;
-        private final List<MappingPort> enumPorts;
+        private final List<DataMapManager.MappingPort> enumPorts;
 
-        GenInputsVisitor(List<String> inputs, List<MappingPort> enumPorts) {
+        GenInputsVisitor(List<String> inputs, List<DataMapManager.MappingPort> enumPorts) {
             this.inputs = inputs;
             this.enumPorts = enumPorts;
         }
@@ -2550,9 +2550,9 @@ public class DataMapManager {
         @Override
         public void visit(SimpleNameReferenceNode node) {
             String source = node.toSourceCode().trim();
-            for (MappingPort enumPort : enumPorts) {
-                if (enumPort instanceof MappingEnumPort mappingEnumPort) {
-                    for (MappingPort member : mappingEnumPort.members) {
+            for (DataMapManager.MappingPort enumPort : enumPorts) {
+                if (enumPort instanceof DataMapManager.MappingEnumPort mappingEnumPort) {
+                    for (DataMapManager.MappingPort member : mappingEnumPort.members) {
                         if (member.typeName.equals(source) && member.kind.equals(source)) {
                             source = member.name;
                             break;
