@@ -130,12 +130,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
         return new Promise(async (resolve) => {
             await StateMachine
                 .langClient()
-                .addArrayElement({
-                    filePath: params.filePath,
-                    codedata: params.codedata,
-                    targetField: params.targetField,
-                    propertyKey: params.propertyKey
-                })
+                .addArrayElement(params)
                 .then((resp) => {
                     console.log(">>> Data mapper add array element response", resp);
                     updateAndRefreshDataMapper(
@@ -319,7 +314,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-     async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
+    async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
         try {
             const { model, rootViewId, options = {} } = params;
 
@@ -350,13 +345,13 @@ export class DataMapperRpcManager implements DataMapperAPI {
 
     async getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
         try {
-            const { ref, fieldId, model, visitedRefs = new Set<string>() } = params;
+            const { ref, fieldId, model } = params;
 
             if (!ref || !fieldId || !model) {
                 throw new Error("ref, fieldId, and model are required parameters");
             }
 
-            const result = processTypeReference(ref, fieldId, model, visitedRefs);
+            const result = processTypeReference(ref, fieldId, model, new Set<string>());
 
             return {
                 result,

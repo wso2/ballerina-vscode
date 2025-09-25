@@ -39,6 +39,7 @@ const SubMappingsHeader = styled.div`
     align-items: center;
     justify-content: space-between;
     cursor: default;
+    border-radius: 6px;
 `;
 
 const HeaderText = styled.span`
@@ -102,10 +103,9 @@ export function SubMappingTreeWidget(props: SubMappingTreeWidgetProps) {
                 <Button
                     className={classes.addSubMappingButton}
                     onClick={onClickAddSubMapping}
-                    appearance="secondary"
                 >
-                    <Codicon name="add" />
-                    Add Sub Mapping
+                    <Codicon name="add" className="add-icon" />
+                    <p style={{ margin: 0 }}>Add Sub Mapping</p>
                 </Button>
             )}
         </>
