@@ -59,8 +59,6 @@ export function useDraftNodeManager(currentModel?: Flow): UseDraftNodeManagerRet
                 return model;
             }
 
-            console.log(">>> useDraftNodeManager: Adding draft node", { parent, target });
-
             // Save original state
             setDraftState({
                 originalModel: model,
@@ -73,8 +71,6 @@ export function useDraftNodeManager(currentModel?: Flow): UseDraftNodeManagerRet
 
             // Add draft node to model and return the updated model
             const modelWithDraft = addDraftNodeToDiagram(model, parent, target);
-            console.log(">>> useDraftNodeManager: Draft node added", modelWithDraft);
-
             return modelWithDraft;
         },
         [currentModel]
@@ -82,11 +78,6 @@ export function useDraftNodeManager(currentModel?: Flow): UseDraftNodeManagerRet
 
     const cancelDraft = useCallback((): Flow | undefined => {
         const { originalModel } = draftState;
-
-        console.log(">>> useDraftNodeManager: Canceling draft", {
-            hasDraft: draftState.hasDraft,
-            originalModel: !!originalModel,
-        });
 
         // Clear draft state
         setDraftState({ hasDraft: false, isProcessing: false, description: "" });
@@ -96,15 +87,11 @@ export function useDraftNodeManager(currentModel?: Flow): UseDraftNodeManagerRet
     }, [draftState]);
 
     const savingDraft = useCallback(() => {
-        console.log(">>> useDraftNodeManager: Saving draft");
-
         // Clear draft state when draft is successfully saved
         setDraftState({ hasDraft: true, isProcessing: true, description: "Saving node..." });
     }, []);
 
     const completeDraft = useCallback(() => {
-        console.log(">>> useDraftNodeManager: Completing draft");
-
         // Clear draft state when draft is successfully saved
         setDraftState({ hasDraft: false, isProcessing: false, description: "" });
     }, []);
