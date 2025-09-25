@@ -185,6 +185,15 @@ public class Constants {
     public static final String GRAPHQL_FIELD_KEY = "paramField";
     public static final String VALUE_FIELD = "value";
 
+    // Type API contexts
+    public static final String GRAPHQL_FIELD_TYPE = "GRAPHQL_FIELD_TYPE";
+    public static final String GRAPHQL_INPUT_TYPE = "GRAPHQL_INPUT_TYPE";
+
+    // GraphQL types
+    public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
+    public static final String GRAPHQL_USER_DEFINED_TYPE = "User Defined";
+    public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
+
     private Constants() {
     }
 }

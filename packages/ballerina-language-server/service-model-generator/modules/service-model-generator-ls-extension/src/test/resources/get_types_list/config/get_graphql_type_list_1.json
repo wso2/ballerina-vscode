@@ -1,0 +1,74 @@
+{
+  "filePath": "sample2",
+  "description": "Get the list of GraphQL return types",
+  "context": "GRAPHQL_FIELD_TYPE",
+  "result": {
+    "completions": [
+      {
+        "category": "Scalar Types",
+        "label": "int",
+        "type": "int"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "string",
+        "type": "string"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "boolean",
+        "type": "boolean"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "decimal",
+        "type": "decimal"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "float",
+        "type": "float"
+      },
+      {
+        "category": "Error Types",
+        "label": "error",
+        "type": "error"
+      },
+      {
+        "category": "User Defined",
+        "label": "Teacher",
+        "type": "Teacher"
+      },
+      {
+        "category": "User Defined",
+        "label": "Student",
+        "type": "Student"
+      },
+      {
+        "category": "User Defined",
+        "label": "Profile",
+        "type": "Profile"
+      },
+      {
+        "category": "User Defined",
+        "label": "TeacherRecord",
+        "type": "TeacherRecord"
+      },
+      {
+        "category": "User Defined",
+        "label": "StudentRecord",
+        "type": "StudentRecord"
+      },
+      {
+        "category": "User Defined",
+        "label": "ProfileType",
+        "type": "ProfileType"
+      },
+      {
+        "category": "Enum Types",
+        "label": "Color",
+        "type": "Color"
+      }
+    ]
+  }
+}
