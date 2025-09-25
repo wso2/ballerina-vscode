@@ -726,6 +726,14 @@
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
                 "category": "BI"
+            },
+            {
+                "command": "BI.devant.push.cloud",
+                "title": "Save Changes in the cloud",
+                "icon": "$(save)",
+                "group": "navigation",
+                "category": "BI",
+                "enablement": "isBIProject && devant.editor"
             }
         ],
         "views": {
@@ -846,6 +854,12 @@
                     "group": "navigation@3",
                     "title": "Debug Integration",
                     "when": "isBalVisualizerActive && isBIProject"
+                },
+                {
+                    "command": "BI.devant.push.cloud",
+                    "group": "navigation",
+                    "title": "Save Changes in the cloud",
+                    "when": "isBIProject && devant.editor"
                 }
             ],
             "notebook/toolbar": [

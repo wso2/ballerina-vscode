@@ -16,6 +16,7 @@ import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
 import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { activateDevantFeatures } from './features/devant/activator';
 
 interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
@@ -311,6 +312,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!ls.biSupported) {
                         commands.executeCommand('setContext', 'BI.status', 'updateNeed');
                     }
+                    activateDevantFeatures(ls);
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);
