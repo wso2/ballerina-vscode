@@ -49,6 +49,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CLASS_INIT;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDER;
@@ -391,21 +392,22 @@ public class AiUtils {
         };
     }
 
-    public static Codedata getDefaultModelProviderCodedata() {
+    public static Codedata getDefaultModelProviderCodedata(String orgName) {
         return new Codedata.Builder<>(null)
-                .node(MODEL_PROVIDER)
-                .org(BALLERINA)
+                .node(Objects.equals(orgName, BALLERINA) ? MODEL_PROVIDER : CLASS_INIT)
+                .org(orgName)
                 .module(AI)
                 .packageName(AI)
-                .symbol(Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD)
+                .object(Objects.equals(orgName, BALLERINA) ? null : Ai.OPEN_AI_PROVIDER)
+                .symbol(Objects.equals(orgName, BALLERINA) ? Ai.GET_DEFAULT_MODEL_PROVIDER_METHOD : INIT_METHOD)
                 .build();
     }
 
-    public static Codedata getDefaultAgentCodedata() {
+    public static Codedata getDefaultAgentCodedata(String orgName) {
         return new Codedata.Builder<>(null)
                 .node(NodeKind.AGENT)
                 .object(Ai.AGENT_TYPE_NAME)
-                .org(BALLERINA)
+                .org(orgName)
                 .module(AI)
                 .packageName(AI)
                 .symbol(Ai.AGENT_SYMBOL_NAME)

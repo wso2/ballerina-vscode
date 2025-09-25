@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -168,8 +169,11 @@ public class AgentCallBuilder extends CallBuilder {
         }
 
         NodeBuilder.TemplateContext modelProviderContext =
-                FlowNodeUtil.createDefaultTemplateContext(sourceBuilder, AiUtils.getDefaultModelProviderCodedata());
-        FlowNode modelProviderNode = NodeBuilder.getNodeFromKind(NodeKind.MODEL_PROVIDER)
+                FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+                        AiUtils.getDefaultModelProviderCodedata(agentCallNode.codedata().org()));
+        FlowNode modelProviderNode = NodeBuilder.getNodeFromKind(
+                        Objects.equals(agentCallNode.codedata().org(), BALLERINA) ? NodeKind.MODEL_PROVIDER :
+                                NodeKind.CLASS_INIT)
                 .setConstData()
                 .setTemplateData(modelProviderContext)
                 .build();
@@ -192,7 +196,8 @@ public class AgentCallBuilder extends CallBuilder {
         return agentCallNode.getProperty(Property.CONNECTION_KEY)
                 .filter(connection -> connection.value() != null && !connection.value().toString().isEmpty())
                 .map(connection -> extractAgentCodedata(sourceBuilder, agentCallNode, projectRoot))
-                .orElse(FlowNodeUtil.createDefaultTemplateContext(sourceBuilder, AiUtils.getDefaultAgentCodedata()));
+                .orElse(FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+                        AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org())));
     }
 
     private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode,
@@ -200,7 +205,8 @@ public class AgentCallBuilder extends CallBuilder {
         Object agentCodedataObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_CODEDATA);
 
         if (agentCodedataObj == null) {
-            return FlowNodeUtil.createDefaultTemplateContext(sourceBuilder, AiUtils.getDefaultAgentCodedata());
+            return FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+                    AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org()));
         }
 
         Gson gson = new Gson();
