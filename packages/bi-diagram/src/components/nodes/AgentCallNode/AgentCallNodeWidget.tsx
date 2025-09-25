@@ -75,7 +75,7 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.HIGHLIGHT
+                ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
@@ -258,7 +258,7 @@ export namespace NodeStyles {
         &:hover {
             background-color: ${ThemeColors.SURFACE_BRIGHT};
             border-color: ${(props: { readOnly: boolean }) =>
-                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.HIGHLIGHT};
+                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
         }
     `;
 
@@ -272,7 +272,7 @@ export namespace NodeStyles {
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
             border-color: ${(props: { readOnly: boolean }) =>
-                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.HIGHLIGHT};
+                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
         }
     `;
 
@@ -675,7 +675,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         css={css`
                             cursor: ${readOnly ? "default" : "pointer"};
                             &:hover {
-                                stroke: ${ThemeColors.HIGHLIGHT};
+                                stroke: ${ThemeColors.SECONDARY};
                             }
                         `}
                     />
@@ -714,13 +714,13 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         css={css`
                             cursor: ${readOnly ? "default" : "pointer"};
                             &:hover circle {
-                                stroke: ${ThemeColors.HIGHLIGHT};
+                                stroke: ${ThemeColors.SECONDARY};
                             }
                             &:hover foreignObject .connector-icon path {
-                                fill: ${ThemeColors.HIGHLIGHT};
+                                fill: ${ThemeColors.SECONDARY};
                             }
                             &:hover text {
-                                fill: ${ThemeColors.HIGHLIGHT};
+                                fill: ${ThemeColors.SECONDARY};
                             }
                             &:hover .tool-tooltip {
                                 opacity: 1;
@@ -905,7 +905,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         css={css`
                             cursor: ${readOnly ? "not-allowed" : "pointer"};
                             &:hover path:last-of-type {
-                                fill: ${ThemeColors.HIGHLIGHT};
+                                fill: ${ThemeColors.SECONDARY};
                             }
                             &:hover + .custom-tooltip {
                                 opacity: 1;

@@ -69,7 +69,7 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.HIGHLIGHT
+                ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
@@ -296,7 +296,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
-        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE;
+        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
 
     return (
         <NodeStyles.Node readOnly={readOnly}>
@@ -386,7 +386,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     cy="24"
                     r="22"
                     fill={ThemeColors.SURFACE_DIM}
-                    stroke={isCircleHovered && !disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT}
+                    stroke={isCircleHovered && !disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT}
                     strokeWidth={1.5}
                     strokeDasharray={disabled ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}

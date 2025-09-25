@@ -38,9 +38,9 @@ export namespace NodeStyles {
         width: ${DRAFT_NODE_WIDTH}px;
         min-height: ${DRAFT_NODE_HEIGHT}px;
         padding: 0 ${NODE_PADDING}px;
-        border: ${DRAFT_NODE_BORDER_WIDTH}px dashed ${ThemeColors.PRIMARY};
+        border: ${DRAFT_NODE_BORDER_WIDTH}px dashed ${ThemeColors.SECONDARY};
         border-radius: 10px;
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        background-color: ${ThemeColors.SECONDARY_CONTAINER};
         color: ${ThemeColors.ON_SURFACE};
     `;
 
