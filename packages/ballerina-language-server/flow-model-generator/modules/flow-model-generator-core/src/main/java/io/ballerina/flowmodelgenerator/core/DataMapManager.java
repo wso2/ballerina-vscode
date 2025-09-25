@@ -479,7 +479,17 @@ public class DataMapManager {
         if (matchingNode == null) {
             return null;
         }
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], matchingNode);
+        return new TargetNode(typeSymbol, getLastNonNumericName(fieldSplits), matchingNode);
+    }
+
+    private String getLastNonNumericName(String[] names) {
+        for (int i = names.length - 1; i >= 0; i--) {
+            String name = names[i];
+            if (name != null && !name.matches("\\d+")) {
+                return name;
+            }
+        }
+        return names[0];
     }
 
     private MatchingNode getTargetMappingExpr(ExpressionNode expr, String targetField) {

@@ -63,21 +63,21 @@
     "output": {
       "member": {
         "fields": [],
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "m2",
+        "displayName": "<m2Item>",
         "typeName": "MyType2",
         "kind": "record",
         "ref": "802102543"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "m2",
+      "displayName": "m2",
       "typeName": "MyType2[]",
       "kind": "array",
       "ref": "802102543"
     },
     "mappings": [
       {
-        "output": "0",
+        "output": "m2",
         "inputs": [
           "m2ItemItem"
         ],
@@ -89,7 +89,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "m2",
       "inputs": [
         "m2Item"
       ],
