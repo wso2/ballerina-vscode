@@ -70,6 +70,7 @@ export interface DiagramContextState {
         showSpinner?: boolean;
         description?: string;
     };
+    selectedNodeId?: string;
     agentNode: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
@@ -121,6 +122,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
         showSpinner: false,
         description: "",
     },
+    selectedNodeId: undefined,
     agentNode: {
         onModelSelect: () => {},
         onAddTool: () => {},

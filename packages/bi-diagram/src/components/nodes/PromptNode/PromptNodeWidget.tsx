@@ -46,6 +46,7 @@ export namespace NodeStyles {
         hovered: boolean;
         hasError: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -62,7 +63,13 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
     `;
 
@@ -215,7 +222,10 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         onNodeSave,
         expressionContext,
         aiNodes,
+        selectedNodeId,
     } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
     const {
         completions,
         triggerCharacters,
@@ -435,6 +445,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                 disabled={model.node.suggested}
                 hasError={hasError}
                 isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >

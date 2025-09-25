@@ -114,6 +114,7 @@ export namespace NodeStyles {
         hasError: boolean;
         isActiveBreakpoint?: boolean;
         disabled: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -125,6 +126,8 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
+                : (props.isSelected || props.selected) && !props.disabled
+                ? ThemeColors.SECONDARY
                 : props.hovered && !props.disabled
                 ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
@@ -181,7 +184,10 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
         readOnly,
         expandedErrorHandler,
         toggleErrorHandlerExpansion,
+        selectedNodeId,
     } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -241,6 +247,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const menuItems: Item[] = [
@@ -275,6 +282,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                         hasError={hasError}
                         isActiveBreakpoint={isActiveBreakpoint}
                         disabled={disabled}
+                        isSelected={isSelected}
                     >
                         {hasBreakpoint && (
                             <div

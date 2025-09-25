@@ -59,6 +59,7 @@ export namespace NodeStyles {
         hasError: boolean;
         readOnly: boolean;
         isActiveBreakpoint: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -74,6 +75,8 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
                 : props.hovered && !props.disabled && !props.readOnly
                 ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
@@ -307,8 +310,10 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly } =
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId } =
         useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -409,6 +414,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsBoxHovered(false);
     };
 
     const handleToolMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>, tool: ToolData) => {
@@ -520,6 +526,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 hasError={hasError}
                 readOnly={readOnly}
                 isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
             >
@@ -675,7 +682,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         css={css`
                             cursor: ${readOnly ? "default" : "pointer"};
                             &:hover {
-                                stroke: ${ThemeColors.SECONDARY};
+                                stroke: ${readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
                             }
                         `}
                     />

@@ -53,6 +53,7 @@ export namespace NodeStyles {
         hasError: boolean;
         readOnly: boolean;
         isActiveBreakpoint: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -68,6 +69,8 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
                 : props.hovered && !props.disabled && !props.readOnly
                 ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
@@ -207,8 +210,10 @@ export interface NodeWidgetProps extends Omit<ApiCallNodeWidgetProps, "children"
 
 export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
+    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [isCircleHovered, setIsCircleHovered] = useState(false);
@@ -269,6 +274,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsBoxHovered(false);
     };
 
     const onAddBreakpoint = () => {
@@ -306,6 +312,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 hasError={hasError}
                 readOnly={readOnly}
                 isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
             >
