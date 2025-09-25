@@ -38,7 +38,7 @@ const valueLabel = {
 };
 
 const addElementButton = {
-    color: "var(--vscode-inputOption-activeForeground)",
+    color: "var(--vscode-textLink-foreground)",
     display: "flex",
     justifyContent: "space-between",
     opacity: 0.7
