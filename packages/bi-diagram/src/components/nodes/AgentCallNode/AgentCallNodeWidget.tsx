@@ -46,16 +46,18 @@ import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { NodeMetadata } from "@wso2/ballerina-core";
 
 export namespace NodeStyles {
-    export const Node = styled.div`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         flex-direction: row;
         align-items: flex-start;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export type NodeStyleProp = {
         disabled: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
@@ -72,9 +74,9 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
-                : props.hovered && !props.disabled
-                    ? ThemeColors.HIGHLIGHT
-                    : ThemeColors.OUTLINE_VARIANT};
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.HIGHLIGHT
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -182,21 +184,21 @@ export namespace NodeStyles {
         font-style: italic;
     `;
 
-    export const InstructionsRow = styled.div`
+    export const InstructionsRow = styled.div<{ readOnly: boolean }>`
         flex: 1;
         overflow: hidden;
         align-items: flex-start;
         margin-bottom: 6px;
-        cursor: pointer;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
-    export const Row = styled.div`
+    export const Row = styled.div<{ readOnly: boolean }>`
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        cursor: pointer;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Column = styled.div`
@@ -239,7 +241,7 @@ export namespace NodeStyles {
         gap: 8px;
     `;
 
-    export const MemoryButton = styled.div`
+    export const MemoryButton = styled.div<{ readOnly: boolean }>`
         display: flex;
         align-items: center;
         justify-content: center;
@@ -252,22 +254,25 @@ export namespace NodeStyles {
         color: ${ThemeColors.ON_SURFACE};
         font-size: 14px;
         font-family: "GilmerRegular";
-        cursor: pointer;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
             background-color: ${ThemeColors.SURFACE_BRIGHT};
-            border-color: ${ThemeColors.HIGHLIGHT};
+            border-color: ${(props: { readOnly: boolean }) =>
+                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.HIGHLIGHT};
         }
     `;
 
-    export const MemoryCard = styled.div`
+    export const MemoryCard = styled.div<{ readOnly: boolean }>`
         width: 100%;
         padding: 8px 6px 8px 12px;
         border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
         border-radius: 4px;
         background-color: transparent;
         color: ${ThemeColors.ON_SURFACE};
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
-            border-color: ${ThemeColors.HIGHLIGHT};
+            border-color: ${(props: { readOnly: boolean }) =>
+                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.HIGHLIGHT};
         }
     `;
 
@@ -298,7 +303,7 @@ interface AgentCallNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "children"> { }
+export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "children"> {}
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -323,6 +328,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     }, [model.node.suggested]);
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             onGoToSource();
         } else {
@@ -337,25 +345,33 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onModelEditClick = () => {
-        console.log(">>> onModelEditClick", model.node);
+        if (readOnly) {
+            return;
+        }
         agentNode?.onModelSelect && agentNode.onModelSelect(model.node);
         setAnchorEl(null);
     };
 
     const onMemoryManagerClick = () => {
-        console.log(">>> onMemoryManagerClick", model.node);
+        if (readOnly) {
+            return;
+        }
         agentNode?.onSelectMemoryManager && agentNode.onSelectMemoryManager(model.node);
         setMemoryMenuAnchorEl(null);
     };
 
     const onMemoryManagerDeleteClick = () => {
-        console.log(">>> onMemoryManagerDeleteClick", model.node);
+        if (readOnly) {
+            return;
+        }
         agentNode?.onDeleteMemoryManager && agentNode.onDeleteMemoryManager(model.node);
         setMemoryMenuAnchorEl(null);
     };
 
     const onToolClick = (tool: ToolData) => {
-        console.log(">>> on Tool Click", tool);
+        if (readOnly) {
+            return;
+        }
         const toolType = tool.type ?? "";
         if (toolType === "MCP Server") {
             agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
@@ -367,14 +383,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onAddToolClick = () => {
-        console.log(">>> onAddToolClick", model.node);
+        if (readOnly) {
+            return;
+        }
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
-        setAnchorEl(null);
-    };
-
-    const onAddMcpServerClick = () => {
-        console.log(">>> onAddMcpServerClick", model.node);
-        agentNode?.onAddMcpServer && agentNode.onAddMcpServer(model.node);
         setAnchorEl(null);
     };
 
@@ -389,6 +401,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
@@ -397,6 +412,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const handleToolMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>, tool: ToolData) => {
+        if (readOnly) {
+            return;
+        }
         event.stopPropagation();
         setToolAnchorEl(event.currentTarget);
         setSelectedTool(tool);
@@ -407,13 +425,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         setSelectedTool(null);
     };
 
-    const onEditTool = (tool: ToolData) => {
-        console.log(">>> onEditTool", tool);
-        onToolClick(tool);
-    };
-
     const onImplementTool = (tool: ToolData) => {
-        console.log(">>> onImplementTool", tool);
+        if (readOnly) {
+            return;
+        }
         agentNode?.goToTool && agentNode.goToTool(tool, model.node);
         handleToolMenuClose();
     };
@@ -435,6 +450,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const handleOnMemoryMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         event.stopPropagation();
         setMemoryMenuAnchorEl(event.currentTarget);
     };
@@ -495,11 +513,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     }
 
     return (
-        <NodeStyles.Node data-testid="agent-call-node">
+        <NodeStyles.Node data-testid="agent-call-node" readOnly={readOnly}>
             <NodeStyles.Box
                 disabled={disabled}
                 hovered={isBoxHovered}
                 hasError={hasError}
+                readOnly={readOnly}
                 isActiveBreakpoint={isActiveBreakpoint}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
@@ -518,22 +537,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 )}
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.Column style={{ height: `${model.node.viewState?.ch}px` }}>
-                    <NodeStyles.Row>
+                    <NodeStyles.Row readOnly={readOnly}>
                         <NodeStyles.Icon onClick={handleOnClick}>
                             <NodeIcon type={model.node.codedata.node} size={24} />
                         </NodeStyles.Icon>
-                        <NodeStyles.Row>
+                        <NodeStyles.Row readOnly={readOnly}>
                             <NodeStyles.Header onClick={handleOnClick}>
                                 <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
-                                <NodeStyles.Description>{model.node.properties.variable?.value as ReactNode}</NodeStyles.Description>
+                                <NodeStyles.Description>
+                                    {model.node.properties.variable?.value as ReactNode}
+                                </NodeStyles.Description>
                             </NodeStyles.Header>
                             <NodeStyles.ActionButtonGroup>
                                 {hasError && <DiagnosticsPopUp node={model.node} />}
-                                {!readOnly && (
-                                    <NodeStyles.MenuButton appearance="icon" onClick={handleOnMenuClick}>
-                                        <MoreVertIcon />
-                                    </NodeStyles.MenuButton>
-                                )}
+                                <NodeStyles.MenuButton
+                                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                    appearance="icon"
+                                    onClick={handleOnMenuClick}
+                                >
+                                    <MoreVertIcon />
+                                </NodeStyles.MenuButton>
                             </NodeStyles.ActionButtonGroup>
                         </NodeStyles.Row>
                         <Popover
@@ -561,26 +584,27 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     </NodeStyles.Row>
 
                     <NodeStyles.MemoryContainer>
-                        <NodeStyles.Row>
+                        <NodeStyles.Row readOnly={readOnly}>
                             {nodeMetadata?.memory ? (
-                                <NodeStyles.MemoryCard onClick={onMemoryManagerClick}>
-                                    <NodeStyles.Row>
+                                <NodeStyles.MemoryCard readOnly={readOnly} onClick={onMemoryManagerClick}>
+                                    <NodeStyles.Row readOnly={readOnly}>
                                         <div style={{ flex: 1 }}>
                                             <NodeStyles.MemoryTitle>Memory</NodeStyles.MemoryTitle>
                                             <NodeStyles.MemoryMeta>
-                                                {nodeMetadata?.memory?.type ||
-                                                    "MessageWindowChatMemory"}
+                                                {nodeMetadata?.memory?.type || "MessageWindowChatMemory"}
                                             </NodeStyles.MemoryMeta>
                                         </div>
-                                        {!readOnly && (
-                                            <NodeStyles.MenuButton appearance="icon" onClick={handleOnMemoryMenuClick}>
-                                                <MoreVertIcon />
-                                            </NodeStyles.MenuButton>
-                                        )}
+                                        <NodeStyles.MenuButton
+                                            buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                            appearance="icon"
+                                            onClick={handleOnMemoryMenuClick}
+                                        >
+                                            <MoreVertIcon />
+                                        </NodeStyles.MenuButton>
                                     </NodeStyles.Row>
                                 </NodeStyles.MemoryCard>
                             ) : (
-                                <NodeStyles.MemoryButton onClick={onMemoryManagerClick}>
+                                <NodeStyles.MemoryButton readOnly={readOnly} onClick={onMemoryManagerClick}>
                                     <Icon name="bi-plus" sx={{ fontSize: "16px", marginRight: "4px" }} />
                                     Add Memory
                                 </NodeStyles.MemoryButton>
@@ -606,23 +630,21 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     </NodeStyles.MemoryContainer>
 
                     {nodeMetadata?.agent?.role ? (
-                        <NodeStyles.Row onClick={handleOnClick}>
+                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
                             <NodeStyles.Role>{nodeMetadata?.agent?.role}</NodeStyles.Role>
                         </NodeStyles.Row>
                     ) : (
-                        <NodeStyles.Row onClick={handleOnClick}>
+                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
                             <NodeStyles.RolePlaceholder>Define agent's role</NodeStyles.RolePlaceholder>
                         </NodeStyles.Row>
                     )}
 
                     {nodeMetadata?.agent?.instructions ? (
-                        <NodeStyles.InstructionsRow onClick={handleOnClick}>
-                            <NodeStyles.Instructions>
-                                {nodeMetadata.agent.instructions}
-                            </NodeStyles.Instructions>
+                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
+                            <NodeStyles.Instructions>{nodeMetadata.agent.instructions}</NodeStyles.Instructions>
                         </NodeStyles.InstructionsRow>
                     ) : (
-                        <NodeStyles.InstructionsRow onClick={handleOnClick}>
+                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
                             <NodeStyles.InstructionsPlaceholder>
                                 Provide specific instructions on how the agent should behave.
                             </NodeStyles.InstructionsPlaceholder>
@@ -651,7 +673,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         opacity={disabled ? 0.7 : 1}
                         onClick={onModelEditClick}
                         css={css`
-                            cursor: pointer;
+                            cursor: ${readOnly ? "default" : "pointer"};
                             &:hover {
                                 stroke: ${ThemeColors.HIGHLIGHT};
                             }
@@ -685,11 +707,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 {tools.map((tool: ToolData, index: number) => (
                     <g
                         key={index}
-                        transform={`translate(0, ${(index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
-                            })`}
+                        transform={`translate(0, ${
+                            (index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
+                        })`}
                         onClick={() => onToolClick(tool)}
                         css={css`
-                            cursor: pointer;
+                            cursor: ${readOnly ? "default" : "pointer"};
                             &:hover circle {
                                 stroke: ${ThemeColors.HIGHLIGHT};
                             }
@@ -866,12 +889,13 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                 {/* Add "Add new tool" button below all tools */}
                 <g
-                    transform={`translate(-11, ${tools.length > 0
-                        ? (tools.length + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
-                        : NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP
-                        })`}
+                    transform={`translate(-11, ${
+                        tools.length > 0
+                            ? (tools.length + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
+                            : NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP
+                    })`}
                     onClick={onAddToolClick}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: readOnly ? "default" : "pointer" }}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -879,7 +903,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         height="20"
                         viewBox="0 0 24 24"
                         css={css`
-                            cursor: pointer;
+                            cursor: ${readOnly ? "not-allowed" : "pointer"};
                             &:hover path:last-of-type {
                                 fill: ${ThemeColors.HIGHLIGHT};
                             }

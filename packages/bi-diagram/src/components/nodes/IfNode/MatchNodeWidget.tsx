@@ -28,6 +28,7 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { NodeStyles } from "./IfNodeWidget";
+import NodeIcon from "../../NodeIcon";
 
 interface MatchNodeWidgetProps {
     model: IfNodeModel;
@@ -54,6 +55,9 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     }, [model.node.suggested]);
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             onGoToSource();
         } else {
@@ -78,6 +82,9 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
@@ -117,6 +124,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
         <NodeStyles.Node
             disabled={disabled}
             hovered={isHovered}
+            readOnly={readOnly}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -152,7 +160,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                             stroke={
                                 hasError
                                     ? ThemeColors.ERROR
-                                    : isHovered && !disabled
+                                    : isHovered && !disabled && !readOnly
                                     ? ThemeColors.HIGHLIGHT
                                     : ThemeColors.OUTLINE_VARIANT
                             }
@@ -161,14 +169,9 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                             opacity={disabled ? 0.7 : 1}
                             transform="rotate(45 28 28)"
                         />
-                        <svg x="22" y="18" width="26" height="26" viewBox="0 0 16 16">
-                            <path
-                                fill={ThemeColors.ON_SURFACE}
-                                fillRule="evenodd"
-                                d="M13.25 12a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5m-.75-1.372a2.251 2.251 0 1 0 1.5 0v-.378a3 3 0 0 0-3-3H8.75V5.372a2.25 2.25 0 1 0-1.5 0V7.25H5a3 3 0 0 0-3 3v.378a2.251 2.251 0 1 0 1.5 0v-.378A1.5 1.5 0 0 1 5 8.75h2.25v1.878a2.251 2.251 0 1 0 1.5 0V8.75H11a1.5 1.5 0 0 1 1.5 1.5zM2.75 12a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5m4.5.75a.75.75 0 1 1 1.5 0a.75.75 0 0 1-1.5 0M8 2.5A.75.75 0 1 0 8 4a.75.75 0 0 0 0-1.5"
-                                clipRule="evenodd"
-                            />
-                        </svg>
+                        <foreignObject x="22" y="18" width="26" height="26" viewBox="0 0 16 16">
+                            <NodeIcon type={model.node.codedata.node} size={24} />
+                        </foreignObject>
                     </svg>
                     <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
                 </NodeStyles.Column>
@@ -181,11 +184,13 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                         <DiagnosticsPopUp node={model.node} />
                     </NodeStyles.ErrorIcon>
                 )}
-                {!readOnly && (
-                    <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                        <MoreVertIcon />
-                    </NodeStyles.StyledButton>
-                )}
+                <NodeStyles.StyledButton
+                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                    appearance="icon"
+                    onClick={handleOnMenuClick}
+                >
+                    <MoreVertIcon />
+                </NodeStyles.StyledButton>
                 <Popover
                     open={isMenuOpen}
                     anchorEl={anchorEl}
