@@ -30,7 +30,7 @@ import {
     resetDiagramZoomAndPosition,
 } from "../utils/diagram";
 import { DiagramCanvas } from "./DiagramCanvas";
-import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
+import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData, DraftNodeConfig } from "../utils/types";
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
@@ -58,6 +58,7 @@ export interface DiagramProps {
     onConnectionSelect?: (connectionName: string) => void;
     goToSource?: (node: FlowNode) => void;
     openView?: (filePath: string, position: NodePosition) => void;
+    draftNode?: DraftNodeConfig;
     // agent node callbacks
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
@@ -98,6 +99,7 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect,
         goToSource,
         openView,
+        draftNode,
         agentNode,
         aiNodes,
         suggestions,
@@ -305,6 +307,7 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect: onConnectionSelect,
         goToSource: goToSource,
         openView: openView,
+        draftNode: draftNode,
         agentNode: agentNode,
         aiNodes: aiNodes,
         suggestions: suggestions,
