@@ -64,7 +64,7 @@
             "character": 0
           }
         },
-        "newText": "\nfunction mapRecordToString1(Student student) returns string => \"\""
+        "newText": "\nfunction mapRecordToString1(Student student) returns string => \"\";"
       }
     ]
   }

@@ -49,7 +49,7 @@
             "character": 64
           }
         },
-        "newText": "\nfunction mapRecordToRecord2(UserInfo user) returns Student => {}"
+        "newText": "\nfunction mapRecordToRecord2(UserInfo user) returns Student => {};"
       }
     ],
     "proj2/main.bal": [

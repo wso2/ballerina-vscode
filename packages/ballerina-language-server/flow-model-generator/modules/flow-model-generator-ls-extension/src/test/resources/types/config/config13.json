@@ -1,108 +1,74 @@
 {
   "description": "",
-  "source": "data_mapper/main.bal",
+  "source": "string.bal",
+  "typeConstraint": "",
+  "position": {
+    "line": 2,
+    "offset": 0
+  },
   "completions": [
     {
-      "label": "Input",
+      "label": "string",
       "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Input"
-    },
-    {
-      "label": "Output",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Output"
-    },
-    {
-      "label": "Location",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "documentation": {
-        "left": "Represents a geographical location.\n"
-      },
-      "insertText": "Location"
-    },
-    {
-      "label": "Address",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Address"
-    },
-    {
-      "label": "Employee",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Employee"
-    },
-    {
-      "label": "Person",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Person"
-    },
-    {
-      "label": "Admission",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Admission"
-    },
-    {
-      "label": "http:Client",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Class"
-      },
-      "kind": "Interface",
-      "insertText": "http:Client"
-    },
-    {
-      "label": "Input & readonly",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Intersection"
+        "detail": "Primitive Types",
+        "description": "String"
       },
       "kind": "TypeParameter",
-      "insertText": "Input & readonly"
+      "insertText": "string"
     },
     {
-      "label": "table<Input> key(name) & readonly",
+      "label": "int",
       "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Intersection"
+        "detail": "Primitive Types",
+        "description": "Int"
       },
       "kind": "TypeParameter",
-      "insertText": "table<Input> key(name) & readonly"
+      "insertText": "int"
     },
     {
-      "label": "Input",
+      "label": "float",
       "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Record"
+        "detail": "Primitive Types",
+        "description": "Float"
       },
-      "kind": "Struct",
-      "insertText": "Input"
+      "kind": "TypeParameter",
+      "insertText": "float"
+    },
+    {
+      "label": "decimal",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Decimal"
+      },
+      "kind": "TypeParameter",
+      "insertText": "decimal"
+    },
+    {
+      "label": "boolean",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Boolean"
+      },
+      "kind": "TypeParameter",
+      "insertText": "boolean"
+    },
+    {
+      "label": "()",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Nil"
+      },
+      "kind": "TypeParameter",
+      "insertText": "()"
+    },
+    {
+      "label": "byte",
+      "labelDetails": {
+        "detail": "Primitive Types",
+        "description": "Byte"
+      },
+      "kind": "TypeParameter",
+      "insertText": "byte"
     },
     {
       "label": "any",
@@ -256,69 +222,6 @@
       },
       "kind": "Struct",
       "insertText": "record"
-    },
-    {
-      "label": "string",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "String"
-      },
-      "kind": "TypeParameter",
-      "insertText": "string"
-    },
-    {
-      "label": "int",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Int"
-      },
-      "kind": "TypeParameter",
-      "insertText": "int"
-    },
-    {
-      "label": "float",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Float"
-      },
-      "kind": "TypeParameter",
-      "insertText": "float"
-    },
-    {
-      "label": "decimal",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Decimal"
-      },
-      "kind": "TypeParameter",
-      "insertText": "decimal"
-    },
-    {
-      "label": "boolean",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Boolean"
-      },
-      "kind": "TypeParameter",
-      "insertText": "boolean"
-    },
-    {
-      "label": "()",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Nil"
-      },
-      "kind": "TypeParameter",
-      "insertText": "()"
-    },
-    {
-      "label": "byte",
-      "labelDetails": {
-        "detail": "Primitive Types",
-        "description": "Byte"
-      },
-      "kind": "TypeParameter",
-      "insertText": "byte"
     }
   ]
 }

@@ -188,9 +188,7 @@ public class TypesGenerator {
     }
 
     private boolean isInvalidTypeSymbol(Symbol symbol, TypeSymbol typeConstraintSymbol) {
-        if (typeConstraintSymbol == null) {
-            return false;
-        }
+        // Obtain the type symbol from the symbol
         TypeSymbol childTypeSymbol = switch (symbol.kind()) {
             case TYPE_DEFINITION -> ((TypeDefinitionSymbol) symbol).typeDescriptor();
             case CLASS -> ((ClassSymbol) symbol);
@@ -201,9 +199,18 @@ public class TypesGenerator {
         if (childTypeSymbol == null) {
             return true;
         }
+
+        // Check for duplicates in builtin types regardless of type constraint
+        if (completionItemMap.containsKey(childTypeSymbol.signature())) {
+            return true;
+        }
+
+        // Validate the type constraint
+        if (typeConstraintSymbol == null) {
+            return false;
+        }
         try {
-            return !childTypeSymbol.subtypeOf(typeConstraintSymbol) ||
-                    completionItemMap.containsKey(childTypeSymbol.signature());
+            return !childTypeSymbol.subtypeOf(typeConstraintSymbol);
         } catch (Throwable ignored) {
             return true;
         }

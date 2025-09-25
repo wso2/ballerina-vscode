@@ -2124,9 +2124,10 @@ public class DataMapManager {
         String functionName = genFunctionDef(workspaceManager,
                 filePath, functionMetadata, textEditsMap, semanticModel, isCustomFunction);
         List<TextEdit> textEdits = new ArrayList<>();
-        textEditsMap.put(filePath, textEdits);
         genSource(targetNode.matchingNode().expr(), mapping.output().split(DOT), 1, new StringBuilder(),
                 functionName + "(" + mapping.expression() + ")", null, textEdits);
+        textEditsMap.computeIfAbsent(filePath, k -> new ArrayList<>())
+                .addAll(textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -2203,7 +2204,7 @@ public class DataMapManager {
             } else {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " => " +
-                        expressionBody));
+                        expressionBody + ";"));
             }
             textEditsMap.put(functionsFilePath, textEdits);
             return functionName;

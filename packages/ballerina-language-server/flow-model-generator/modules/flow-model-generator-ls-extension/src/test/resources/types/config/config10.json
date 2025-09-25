@@ -7,6 +7,24 @@
   },
   "completions": [
     {
+      "label": "map<Person>",
+      "labelDetails": {
+        "detail": "Used Variable Types",
+        "description": "Map"
+      },
+      "kind": "TypeParameter",
+      "insertText": "map<Person>"
+    },
+    {
+      "label": "Person",
+      "labelDetails": {
+        "detail": "User-Defined",
+        "description": "Record"
+      },
+      "kind": "Struct",
+      "insertText": "Person"
+    },
+    {
       "label": "string|int",
       "labelDetails": {
         "detail": "Used Variable Types",
@@ -14,15 +32,6 @@
       },
       "kind": "Enum",
       "insertText": "string|int"
-    },
-    {
-      "label": "string[]",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Array"
-      },
-      "kind": "TypeParameter",
-      "insertText": "string[]"
     },
     {
       "label": "Person[]",
@@ -41,24 +50,6 @@
       },
       "kind": "Struct",
       "insertText": "Employee"
-    },
-    {
-      "label": "Person",
-      "labelDetails": {
-        "detail": "User-Defined",
-        "description": "Record"
-      },
-      "kind": "Struct",
-      "insertText": "Person"
-    },
-    {
-      "label": "map<Person>",
-      "labelDetails": {
-        "detail": "Used Variable Types",
-        "description": "Map"
-      },
-      "kind": "TypeParameter",
-      "insertText": "map<Person>"
     },
     {
       "label": "any",
