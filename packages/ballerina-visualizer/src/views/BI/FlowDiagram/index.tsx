@@ -48,7 +48,6 @@ import {
 } from "@wso2/ballerina-core";
 
 import {
-    addDraftNodeToDiagram,
     convertBICategoriesToSidePanelCategories,
     convertFunctionCategoriesToSidePanelCategories,
     convertModelProviderCategoriesToSidePanelCategories,
@@ -57,6 +56,7 @@ import {
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
+import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
@@ -126,11 +126,21 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
 
+    const {
+        addDraftNode,
+        cancelDraft,
+        savingDraft,
+        completeDraft,
+        hasDraft,
+        isProcessing: isDraftProcessing,
+        description: draftDescription,
+        originalModel,
+    } = useDraftNodeManager(model);
+
     const selectedNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
-    const originalFlowModel = useRef<Flow>();
     const suggestedText = useRef<string>();
     const selectedClientName = useRef<string>();
     const initialCategoriesRef = useRef<any[]>([]);
@@ -213,7 +223,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         debounce(() => {
             getFlowModel();
         }, 1000),
-        []
+        [hasDraft]
     );
 
     // Navigation stack helpers
@@ -489,7 +499,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
+                        setShowProgressSpinner(false);
                         onReady(undefined);
+                        if (hasDraft) {
+                            completeDraft();
+                        }
                     });
             });
     };
@@ -638,10 +652,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const closeSidePanelAndFetchUpdatedFlowModel = () => {
         resetNodeSelectionStates();
-        // fetch new flow model
-        if (originalFlowModel.current) {
+        // Complete draft and fetch new flow model
+        if (hasDraft) {
+            // completeDraft();
             debouncedGetFlowModel();
-            originalFlowModel.current = undefined;
             setSuggestedModel(undefined);
             suggestedText.current = undefined;
         }
@@ -649,10 +663,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnCloseSidePanel = () => {
         resetNodeSelectionStates();
-        // return to previous flow model
-        if (originalFlowModel.current) {
-            setModel(originalFlowModel.current);
-            originalFlowModel.current = undefined;
+        // Cancel draft and return to previous flow model
+        if (hasDraft) {
+            const restoredModel = cancelDraft();
+            if (restoredModel) {
+                console.log(">>> handleOnCloseSidePanel: restoring original model", restoredModel);
+                setModel(restoredModel);
+            }
             setSuggestedModel(undefined);
             suggestedText.current = undefined;
         }
@@ -673,10 +690,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             filePath: model?.fileName || parent?.codedata?.lineRange.fileName,
         };
         console.log(">>> get available node request", getNodeRequest);
-        // save original model
-        originalFlowModel.current = model;
         // show side panel with available nodes
         setShowProgressIndicator(true);
+        // Add draft node to model using hook
+        if (updateFlowModel) {
+            const modelWithDraft = addDraftNode(parent, target);
+            setModel(modelWithDraft);
+        }
         rpcClient
             .getBIDiagramRpcClient()
             .getAvailableNodes(getNodeRequest)
@@ -693,11 +713,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                 setCategories(convertedCategories);
                 initialCategoriesRef.current = convertedCategories; // Store initial categories
-                // add draft node to model
-                if (updateFlowModel) {
-                    const updatedFlowModel = addDraftNodeToDiagram(model, parent, target);
-                    setModel(updatedFlowModel);
-                }
+                
                 setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
             })
@@ -754,7 +770,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
         topNodeRef.current = parent;
         changeTargetRange(target)
-        originalFlowModel.current = model;
+        // Use hook to save original model for AI suggestions
+        addDraftNode(parent, target);
         setFetchingAiSuggestions(true);
         rpcClient
             .getBIDiagramRpcClient()
@@ -949,7 +966,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
         });
         closeSidePanelAndFetchUpdatedFlowModel();
-        debouncedGetFlowModel();
+        // debouncedGetFlowModel(); // DUPLICATE
     };
 
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
@@ -1239,6 +1256,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
         }
         setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+        savingDraft();
         const noFormSubmitOptions = !options ||
             (
                 options?.closeSidePanel === undefined
@@ -2163,8 +2182,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSidePanelView(targetPanel);
     };
 
-    const flowModel = originalFlowModel.current && suggestedModel ? suggestedModel : model;
-
+    const flowModel = originalModel && suggestedModel ? suggestedModel : model;
+    console.log(">>> readonly", {
+        showProgressSpinner,
+        showProgressIndicator,
+        hasDraft,
+        isDraftProcessing,
+        readonly: showProgressSpinner || showProgressIndicator || hasDraft,
+    })
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -2178,6 +2203,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             addBreakpoint: handleAddBreakpoint,
             removeBreakpoint: handleRemoveBreakpoint,
             openView: handleOpenView,
+            draftNode: {
+                override: hasDraft && isDraftProcessing,
+                showSpinner: isDraftProcessing,
+                description: draftDescription,
+            },
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
@@ -2196,8 +2226,17 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             projectPath,
             breakpointInfo,
+            readOnly: showProgressSpinner || showProgressIndicator || hasDraft,
         }),
-        [flowModel, fetchingAiSuggestions, projectPath, breakpointInfo]
+        [
+            flowModel,
+            fetchingAiSuggestions,
+            projectPath,
+            breakpointInfo,
+            showProgressSpinner,
+            showProgressIndicator,
+            hasDraft,
+        ]
     );
 
     return (
