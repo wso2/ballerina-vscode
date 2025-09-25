@@ -19,7 +19,7 @@
 import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
@@ -134,52 +134,54 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     };
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }}>
-            <span
+        <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+            <TruncatedLabel
                 className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}
                 style={{ marginLeft: !connectedViaLink ? 0 : indentation + 24 }}
             >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
-            </span>
-            {typeName && (
-                <span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>
-                    {typeName}
-                </span>
-            )}
-            {!hasElements && !connectedViaLink && (expression || hasDefaultValue) && (
-                <span className={classes.outputNodeValueBase}>
-                    {diagnostics?.length > 0 ? (
-                        <DiagnosticTooltip
-                            placement="right"
-                            diagnostic={diagnostics[0].message}
-                            value={expression}
-                            onClick={handleEditValue}
-                        >
-                            <Button
-                                appearance="icon"
+            </TruncatedLabel>
+            <TruncatedLabel>
+                {typeName && (
+                    <span className={classnames(classes.typeLabel, isDisabled ? classes.labelDisabled : "")}>
+                        {typeName}
+                    </span>
+                )}
+                {!hasElements && !connectedViaLink && (expression || hasDefaultValue) && (
+                    <span className={classes.outputNodeValueBase}>
+                        {diagnostics?.length > 0 ? (
+                            <DiagnosticTooltip
+                                placement="right"
+                                diagnostic={diagnostics[0].message}
+                                value={expression}
+                                onClick={handleEditValue}
+                            >
+                                <Button
+                                    appearance="icon"
+                                    data-testid={`array-widget-field-${portIn?.getName()}`}
+                                >
+                                    {expression}
+                                    <Icon
+                                        name="error-icon"
+                                        sx={{ height: "14px", width: "14px", marginLeft: "4px" }}
+                                        iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+                                    />
+                                </Button>
+                            </DiagnosticTooltip>
+                        ) : (
+                            <span
+                                className={classes.outputNodeValue}
+                                onClick={handleEditValue}
                                 data-testid={`array-widget-field-${portIn?.getName()}`}
                             >
                                 {expression}
-                                <Icon
-                                    name="error-icon"
-                                    sx={{ height: "14px", width: "14px", marginLeft: "4px" }}
-                                    iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
-                                />
-                            </Button>
-                        </DiagnosticTooltip>
-                    ) : (
-                        <span
-                            className={classes.outputNodeValue}
-                            onClick={handleEditValue}
-                            data-testid={`array-widget-field-${portIn?.getName()}`}
-                        >
-                            {expression}
-                        </span>
-                    )}
-                </span>
-            )}
-        </TruncatedLabel>
+                            </span>
+                        )}
+                    </span>
+                )}
+            </TruncatedLabel>
+        </TruncatedLabelGroup>
     );
 
     const arrayElements = useMemo(() => {
