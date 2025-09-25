@@ -77,6 +77,7 @@ import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
 import Popup from "./components/Popup";
+import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 
 const globalStyles = css`
     *,
@@ -526,6 +527,9 @@ const MainPanel = () => {
                                 addNew={true}
                             />
                         );
+                        break;
+                    case MACHINE_VIEW.ServiceFunctionForm:
+                        setViewComponent(<ServiceFunctionForm />);
                         break;
                     default:
                         setNavActive(false);
