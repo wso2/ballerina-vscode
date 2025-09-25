@@ -149,7 +149,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
         const viewId = context.views[context.views.length - 1].targetField;
 
         try {
-            await context.addArrayElement(`${mapping.output}`, `${viewId}`, `${varName}`);
+            await context.addArrayElement(mapping.output, viewId, varName);
         } finally {
             if (!expanded) handleExpand();
 			setLoading(false);

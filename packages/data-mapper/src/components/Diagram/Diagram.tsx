@@ -39,14 +39,14 @@ import { DataMapperNodeModel } from './Node/commons/DataMapperNode';
 import { LinkConnectorNode, QueryExprConnectorNode } from './Node';
 import { OverlayLayerFactory } from './OverlayLayer/OverlayLayerFactory';
 import { OverriddenLinkLayerFactory } from './OverriddenLinkLayer/LinkLayerFactory';
-import { useDiagramModel, useRepositionedNodes } from '../Hooks';
+import { useDiagramModel, useFocusLinkedNodes, useRepositionedNodes } from './hooks';
 import { throttle } from 'lodash';
 import { defaultModelOptions } from './utils/constants';
 import { IONodesScrollCanvasAction } from './Actions/IONodesScrollCanvasAction';
 import { useDMExpressionBarStore, useDMSearchStore } from '../../store/store';
-import { isOutputNode } from './Actions/utils';
 import { InputOutputPortModel } from './Port';
 import { calculateZoomLevel } from './utils/diagram-utils';
+import { isOutputNode } from './Actions/utils';
 import * as Nodes from "./Node";
 import * as Ports from "./Port";
 import * as Labels from "./Label";
@@ -132,6 +132,9 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 	useEffect(() => {
 		engine.getStateMachine().pushState(new LinkState(true));
 	}, [inputSearch, outputSearch]);
+	
+	// Handle focus linked nodes functionality
+	useFocusLinkedNodes(engine);
 
 	useEffect(() => {
 		getScreenWidthRef.current = () => screenWidth;
