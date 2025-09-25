@@ -107,7 +107,7 @@ function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext
 	const params: FnParams[] = [{
 		name: inputField.name,
 		type: getTypeName(inputField).replace("record", "any"),
-		isOptional: false,
+		isOptional: inputField.optional,
 		isNullable: false,
 		kind: inputField.kind
 	}];
