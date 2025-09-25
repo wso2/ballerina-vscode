@@ -68,7 +68,7 @@ public class DataMappingCustomFunctionTest extends AbstractLSTest {
                         sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.codedata(), testConfig.mapping(), testConfig.functionMetadata(),
                         testConfig.targetField());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 
