@@ -440,7 +440,6 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     };
 
     const onDeleteTool = (tool: ToolData) => {
-        console.log(">>> onDeleteTool", tool);
         agentNode?.onDeleteTool && agentNode.onDeleteTool(tool, model.node);
         handleToolMenuClose();
     };

@@ -83,7 +83,6 @@ export interface NodeWidgetProps extends Omit<DraftNodeWidgetProps, "children"> 
 export function DraftNodeWidget(props: DraftNodeWidgetProps) {
     const { model, engine } = props;
     const { draftNode, suggestions } = useDiagramContext();
-    console.log(">>> DraftNodeWidget context", { draftNode, suggestions } );
 
     // special case draft node if suggestions are fetching
     if (suggestions?.fetching && !draftNode.override) {
