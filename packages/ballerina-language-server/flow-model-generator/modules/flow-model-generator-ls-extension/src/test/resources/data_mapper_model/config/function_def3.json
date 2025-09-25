@@ -53,21 +53,21 @@
     "output": {
       "member": {
         "fields": [],
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "transform2",
+        "displayName": "<transform2Item>",
         "typeName": "Output",
         "kind": "record",
         "ref": "-1514999486"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "transform2",
+      "displayName": "transform2",
       "typeName": "Output[]",
       "kind": "array",
       "ref": "-1514999486"
     },
     "mappings": [
       {
-        "output": "0.fullName",
+        "output": "transform2.fullName",
         "inputs": [
           "input.user.firstName"
         ],
@@ -79,7 +79,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "transform2",
       "inputs": [
         "inputs"
       ],

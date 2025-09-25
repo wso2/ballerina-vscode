@@ -4,40 +4,41 @@
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable7.bal",
+      "fileName": "automation.bal",
       "startLine": {
-        "line": 7,
-        "offset": 32
+        "line": 23,
+        "offset": 8
       },
       "endLine": {
-        "line": 8,
-        "offset": 75
+        "line": 29,
+        "offset": 10
       }
-    }
+    },
+    "sourceCode": "ArrType1 arr1 = {\n\n            rec: from var recItem in arr.rec\n                select from var recItemItem in recItem\n                    select from var recItemItemItem in recItemItem\n                        select {}\n        };"
   },
   "mapping": {
-    "output": "subMapping",
+    "output": "rec",
     "inputs": [
-      "input.user.address"
+      "recItem"
     ],
-    "expression": "from var addressItem in input.user.address\n                    select {street: \"\", city: \"\", state: \"\", postalCode: 0}\n",
+    "expression": "recItem\n",
     "diagnostics": [],
     "elements": [],
-    "isQueryExpression": true,
+    "isQueryExpression": false,
     "isFunctionCall": false
   },
-  "targetField": "subMapping",
+  "targetField": "v2.rec",
   "output": {
     "variable7.bal": [
       {
         "range": {
           "start": {
-            "line": 7,
-            "character": 55
+            "line": 26,
+            "character": 23
           },
           "end": {
-            "line": 8,
-            "character": 75
+            "line": 28,
+            "character": 33
           }
         },
         "newText": "[]"

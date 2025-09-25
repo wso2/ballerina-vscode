@@ -479,7 +479,17 @@ public class DataMapManager {
         if (matchingNode == null) {
             return null;
         }
-        return new TargetNode(typeSymbol, fieldSplits[fieldSplits.length - 1], matchingNode);
+        return new TargetNode(typeSymbol, getLastNonNumericName(fieldSplits), matchingNode);
+    }
+
+    private String getLastNonNumericName(String[] names) {
+        for (int i = names.length - 1; i >= 0; i--) {
+            String name = names[i];
+            if (name != null && !name.matches("\\d+")) {
+                return name;
+            }
+        }
+        return names[0];
     }
 
     private MatchingNode getTargetMappingExpr(ExpressionNode expr, String targetField) {
@@ -1112,25 +1122,16 @@ public class DataMapManager {
         Codedata codedata = gson.fromJson(codeData, Codedata.class);
         Mapping mapping = gson.fromJson(mappingId, Mapping.class);
         NonTerminalNode node = getNode(codedata.lineRange());
-
+        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
-
-        ExpressionNode expr = getMappingExpr(node);
-        if (expr != null) {
-            if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
-                expr = ((LetExpressionNode) expr).expression();
-            }
-            String output = mapping.output();
-            String[] splits = output.split(DOT);
-            MatchingNode targetMappingExpr = getTargetMappingExpr(expr, targetField);
-            if (targetMappingExpr != null) {
-                expr = targetMappingExpr.expr();
-            }
-            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits);
+        String output = mapping.output();
+        String[] splits = output.split(DOT);
+        if (targetNode != null && targetNode.matchingNode != null && targetNode.matchingNode.expr() != null) {
+            ExpressionNode expr = targetNode.matchingNode.expr();
+            genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, targetNode.typeSymbol);
         }
-
         return gson.toJsonTree(textEditsMap);
     }
 
@@ -1219,7 +1220,7 @@ public class DataMapManager {
     }
 
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
-                                        List<TextEdit> textEdits) {
+                                        List<TextEdit> textEdits, TypeSymbol targetSymbol) {
         if (idx == names.length) {
             NonTerminalNode currentNode = expr;
             NonTerminalNode highestEmptyField = null;
@@ -1364,14 +1365,11 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
-                } else if (parentKind == SyntaxKind.SELECT_CLAUSE) {
-                    Optional<Symbol> optSymbol = semanticModel.symbol(expr);
-                    if (optSymbol.isPresent()) {
-                        Symbol symbol = optSymbol.get();
-                        if (symbol.kind() == SymbolKind.VARIABLE) {
-                            VariableSymbol varSymbol = (VariableSymbol) symbol;
+                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    if (targetSymbol != null) {
+                        if (targetSymbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
                             String defaultVal = getDefaultValue(
-                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                                    CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()).typeKind().getName());
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
@@ -1384,7 +1382,7 @@ public class DataMapManager {
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode != null) {
                 genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits);
+                        textEdits, targetSymbol);
             }
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
@@ -1393,7 +1391,7 @@ public class DataMapManager {
                 int index = Integer.parseInt(name);
                 if (index < listCtrExpr.expressions().size()) {
                     genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
-                            names, idx + 1, textEdits);
+                            names, idx + 1, textEdits, targetSymbol);
                 }
             }
         }
@@ -2116,9 +2114,10 @@ public class DataMapManager {
         String functionName = genFunctionDef(workspaceManager,
                 filePath, functionMetadata, textEditsMap, semanticModel, isCustomFunction);
         List<TextEdit> textEdits = new ArrayList<>();
-        textEditsMap.put(filePath, textEdits);
         genSource(targetNode.matchingNode().expr(), mapping.output().split(DOT), 1, new StringBuilder(),
                 functionName + "(" + mapping.expression() + ")", null, textEdits);
+        textEditsMap.computeIfAbsent(filePath, k -> new ArrayList<>())
+                .addAll(textEdits);
         return gson.toJsonTree(textEditsMap);
     }
 

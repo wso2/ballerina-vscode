@@ -141,21 +141,21 @@
     "output": {
       "member": {
         "fields": [],
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "myTypes5",
+        "displayName": "<myTypes5Item>",
         "typeName": "MyType",
         "kind": "record",
         "ref": "2079019383"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "myTypes5",
+      "displayName": "myTypes5",
       "typeName": "MyType[]",
       "kind": "array",
       "ref": "2079019383"
     },
     "mappings": [
       {
-        "output": "0",
+        "output": "myTypes5",
         "inputs": [
           "y"
         ],
@@ -167,7 +167,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "myTypes5",
       "inputs": [
         "myType3"
       ],
