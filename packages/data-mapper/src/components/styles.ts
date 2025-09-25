@@ -92,10 +92,7 @@ export const useIONodesStyles = () => ({
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        color: "inherit",
-        "&:hover": {
-            overflow: "visible"
-        },
+        color: "inherit"
     }),
     nodeType: css({
         float: 'right',
