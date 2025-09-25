@@ -30,6 +30,7 @@ type MethodProp = {
 type ContainerProps = {
     borderColor?: string;
     haveErrors?: boolean;
+    isPlaceholder?: boolean;
 };
 
 type ButtonSectionProps = {
@@ -44,11 +45,17 @@ const AccordionContainer = styled.div<ContainerProps>`
     margin-top: 10px;
     overflow: hidden;
     background-color: var(--vscode-editorHoverWidget-background);
+    border: ${(p: ContainerProps) => 
+        p.haveErrors 
+            ? "1px solid red" 
+            : p.isPlaceholder 
+                ? "2px dashed var(--vscode-inputOption-activeBorder)" 
+                : "none"
+    };
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
         cursor: pointer;
     }
-    border: ${(p: ContainerProps) => p.haveErrors ? "1px solid red" : "none"};
 `;
 
 const AccordionHeader = styled.div<HeaderProps>`
@@ -94,9 +101,11 @@ const MethodBox = styled.div<MethodProp>`
     font-weight: bold;
 `;
 
-const MethodSection = styled.div`
+const MethodSection = styled.div<{ isPlaceholder?: boolean }>`
     display: flex;
     gap: 4px;
+    align-items: center;
+    justify-content: ${(p: { isPlaceholder?: boolean }) => p.isPlaceholder ? 'center' : 'flex-start'};
 `;
 
 const verticalIconStyles = {
@@ -139,10 +148,11 @@ export interface ResourceAccordionPropsV2 {
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
     readOnly?: boolean;
+    isPlaceholder?: boolean;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, isPlaceholder } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -168,6 +178,13 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
 
     const handleEditResource = async (e: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         e.stopPropagation(); // Stop the event propagation
+        
+        // If it's a placeholder, just call the handler directly
+        if (isPlaceholder) {
+            onEditResource(null);
+            return;
+        }
+        
         const functionModel = await getFunctionModel();
         onEditResource(functionModel.function);
     };
@@ -192,6 +209,12 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
     };
 
     const handleResourceImplement = async () => {
+        // If it's a placeholder, just call the handler directly
+        if (isPlaceholder) {
+            onResourceImplement(null);
+            return;
+        }
+        
         const functionModel = await getFunctionModel();
         onResourceImplement(functionModel.function);
     }
@@ -218,48 +241,60 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
     }
 
     return (
-        <AccordionContainer data-testid="service-design-view-resource">
+        <AccordionContainer data-testid="service-design-view-resource" isPlaceholder={isPlaceholder}>
             <AccordionHeader onClick={handleResourceImplement}>
-                <MethodSection>
-                    <MethodBox color={getColorByMethod(resource.icon)}>
-                        {resource.icon.split("-")[0].toUpperCase()}
-                    </MethodBox>
-                    <MethodPath>{resource.name}</MethodPath>
+                <MethodSection isPlaceholder={isPlaceholder}>
+                    {isPlaceholder ? (
+                        <>
+                            <Codicon name="add" sx={{ color: 'black', fontSize: 16, marginRight: 8 }} />
+                            <MethodPath>Add new resource</MethodPath>
+                        </>
+                    ) : (
+                        <>
+                            <MethodBox color={getColorByMethod(resource.icon)}>
+                                {resource.icon.split("-")[0].toUpperCase()}
+                            </MethodBox>
+                            <MethodPath>{resource.name}</MethodPath>
+                        </>
+                    )}
                 </MethodSection>
                 <ButtonSection>
-                    <>
-                        <Button appearance="icon" tooltip="Edit Resource" onClick={handleEditResource} disabled={readOnly}>
-                            <Icon
-                                name="editIcon"
-                                sx={{
-                                    marginTop: 3.5,
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
-                                }}
-                            />
-                        </Button>
-                        <Button appearance="icon" tooltip="Delete Resource" onClick={handleDeleteResource} disabled={readOnly}>
-                            <Codicon
-                                name="trash"
-                                sx={{
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
-                                }}
-                            />
-                        </Button>
-                    </>
+                    {!isPlaceholder && (
+                        <>
+                            <Button appearance="icon" tooltip="Edit Resource" onClick={handleEditResource} disabled={readOnly}>
+                                <Icon
+                                    name="editIcon"
+                                    sx={{
+                                        marginTop: 3.5,
+                                        cursor: readOnly ? "not-allowed" : "pointer",
+                                        opacity: readOnly ? 0.5 : 1,
+                                    }}
+                                />
+                            </Button>
+                            <Button appearance="icon" tooltip="Delete Resource" onClick={handleDeleteResource} disabled={readOnly}>
+                                <Codicon
+                                    name="trash"
+                                    sx={{
+                                        cursor: readOnly ? "not-allowed" : "pointer",
+                                        opacity: readOnly ? 0.5 : 1,
+                                    }}
+                                />
+                            </Button>
+                        </>
+                    )}
                 </ButtonSection>
-
             </AccordionHeader>
-            <Confirm
-                isOpen={isConfirmOpen}
-                onConfirm={handleConfirm}
-                confirmText="Okay"
-                message="Are you sure you want to delete this resource?"
-                anchorEl={confirmEl}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
-            />
+            {!isPlaceholder && (
+                <Confirm
+                    isOpen={isConfirmOpen}
+                    onConfirm={handleConfirm}
+                    confirmText="Okay"
+                    message="Are you sure you want to delete this resource?"
+                    anchorEl={confirmEl}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                />
+            )}
         </AccordionContainer>
     );
 };
