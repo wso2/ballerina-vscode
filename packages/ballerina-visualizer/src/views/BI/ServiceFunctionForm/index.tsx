@@ -20,38 +20,10 @@
 import { useEffect, useState } from 'react';
 import { ActionButtons, View, ViewContent } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { FunctionModel, VisualizerLocation } from '@wso2/ballerina-core';
-import { LoadingContainer } from '../ComponentListView/styles';
-import { LoadingRing } from '../../../components/Loader';
-import { FormHeader } from '../../../components/FormHeader';
-import { TopNavigationBar } from '../../../components/TopNavigationBar';
-import { TitleBar } from '../../../components/TitleBar';
-import { BodyText } from '../../styles';
+import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { Parameters } from './Paramters';
-import { FunctionName } from '../ServiceDesigner/Forms/FunctionForm/FunctionName/FunctionName';
-import { FunctionReturn } from '../ServiceDesigner/Forms/FunctionForm/Return/FunctionReturn';
-
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-width: 600px;
-    gap: 20px;
-    padding: 20px;
-`;
-
-const Container = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-`;
-
-const SaveButtonContainer = styled.div`
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid var(--vscode-panel-border);
-`;
-
+import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
+import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
 export interface ResourceFormProps {
     // model: FunctionModel;
     // isSaving: boolean;
@@ -65,10 +37,32 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     const { rpcClient } = useRpcContext();
     console.log('>>> ServiceFunctionForm - rpcClient from context:', rpcClient);
 
-    const [functionNode, setFunctionNode] = useState<FunctionModel>(undefined);
+    const [model, setFunctionModel] = useState<FunctionModel | null>(null);
     const [saving, setSaving] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [fields, setFields] = useState<FormField[]>([]);
+    const [location, setLocation] = useState<VisualizerLocation | null>(null);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+
+        const handleParamChange = (param: Parameter) => {
+            const name = `${param.formValues['variable']}`;
+            const type = `${param.formValues['type']}`;
+            const hasDefaultValue = Object.keys(param.formValues).includes('defaultable') &&
+                param.formValues['defaultable'] !== undefined &&
+                param.formValues['defaultable'] !== '';
     
+            const defaultValue = hasDefaultValue ? `${param.formValues['defaultable']}`.trim() : '';
+            let value = `${type} ${name}`;
+            if (defaultValue) {
+                value += ` = ${defaultValue}`;
+            }
+            return {
+                ...param,
+                key: name,
+                value: value
+            }
+        };
+
     const handleClosePopup = () => {
         // Close the popup - implement your close logic here
         console.log('Closing ServiceFunctionForm');
@@ -78,7 +72,7 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         setSaving(true);
         try {
             // TODO: Implement save functionality
-            console.log('Saving function:', functionNode);
+            console.log('Saving function:', model);
             // Add your save logic here
         } catch (error) {
             console.error('Error saving function:', error);
@@ -96,7 +90,7 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
             setIsLoading(true);
             try {
                 const location: VisualizerLocation = await rpcClient.getVisualizerLocation();
-                
+                setLocation(location);
                 console.log('>>> ServiceFunctionForm - Retrieved location:', location);
 
                 // Check if we have CodeData from the flow diagram
@@ -108,7 +102,7 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
                         filePath: location.documentUri ,
                         codedata: codeData
                     });
-                    setFunctionNode(functionModel.function);
+                    setFunctionModel(functionModel.function);
                     console.log('>>> ServiceFunctionForm - Retrieved function model from source:', functionModel);
                 }
             } catch (error) {
@@ -125,51 +119,243 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         }
     }, [rpcClient]);
 
-    const functionName = functionNode?.name ? functionNode.name.value : "";
+            if (model?.properties) {
+                const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
+                    .filter(([_, property]) =>
+                        property.typeMembers &&
+                        property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    )
+                    .map(([key, property]) => ({
+                        key,
+                        property: {
+                            ...property,
+                            metadata: {
+                                label: property.metadata?.label || key,
+                                description: property.metadata?.description || ''
+                            },
+                            valueType: property?.valueType || 'string',
+                            diagnostics: {
+                                hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                                diagnostics: property.diagnostics
+                            }
+                        } as Property,
+                        recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    }));
+                console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
+    
+                setRecordTypeFields(recordTypeFields);
+            }
+    
+
+    const getFunctionParametersList = (params: Parameter[]) => {
+            const paramList: ParameterModel[] = [];
+            if (!model) {
+                return paramList;
+            }
+            const paramFields = convertSchemaToFormFields(model.schema);
+    
+            params.forEach(param => {
+                // Find matching field configurations from schema
+                const typeField = paramFields.find(field => field.key === 'type');
+                const nameField = paramFields.find(field => field.key === 'variable');
+                const defaultField = paramFields.find(field => field.key === 'defaultable');
+    
+                paramList.push({
+                    kind: 'REQUIRED',
+                    enabled: typeField?.enabled ?? true,
+                    editable: typeField?.editable ?? true,
+                    advanced: typeField?.advanced ?? false,
+                    optional: typeField?.optional ?? false,
+                    type: {
+                        value: param.formValues['type'] as string,
+                        valueType: typeField?.valueType,
+                        isType: true,
+                        optional: typeField?.optional,
+                        advanced: typeField?.advanced,
+                        addNewButton: false,
+                        enabled: typeField?.enabled,
+                        editable: typeField?.editable,
+                        imports: param?.imports || {}
+                    },
+                    name: {
+                        value: param.formValues['variable'] as string,
+                        valueType: nameField?.valueType,
+                        isType: false,
+                        optional: nameField?.optional,
+                        advanced: nameField?.advanced,
+                        addNewButton: false,
+                        enabled: nameField?.enabled,
+                        editable: nameField?.editable
+                    },
+                    defaultValue: {
+                        value: param.formValues['defaultable'],
+                        valueType: defaultField?.valueType || 'string',
+                        isType: false,
+                        optional: defaultField?.optional,
+                        advanced: defaultField?.advanced,
+                        addNewButton: false,
+                        enabled: defaultField?.enabled,
+                        editable: defaultField?.editable
+                    }
+                });
+            });
+            return paramList;
+        }
+    
+        // Initialize form fields
+    useEffect(() => {
+        if (!model) {
+            return;
+        }
+
+        const initialFields: FormField[] = [
+            {
+                key: 'name',
+                label: model.name.metadata?.label || 'Operation Name',
+                type: 'IDENTIFIER',
+                optional: model.name.optional,
+                editable: model.name.editable,
+                advanced: model.name.advanced,
+                enabled: model.name.enabled,
+                documentation: model.name.metadata?.description || '',
+                value: model.name.value,
+                valueType: model.name.valueType,
+                valueTypeConstraint: model.name.valueTypeConstraint || '',
+                lineRange: model?.name?.codedata?.lineRange,
+            },
+            {
+                key: 'parameters',
+                label: 'Parameters',
+                type: 'PARAM_MANAGER',
+                optional: true,
+                editable: true,
+                enabled: true,
+                documentation: '',
+                value: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
+                paramManagerProps: {
+                    paramValues: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
+                    formFields: convertSchemaToFormFields(model.schema),
+                    handleParameter: handleParamChange
+                },
+                valueTypeConstraint: ''
+            },
+            {
+                key: 'returnType',
+                label: model.returnType.metadata?.label || 'Return Type',
+                type: 'TYPE',
+                optional: model.returnType.optional,
+                enabled: model.returnType.enabled,
+                editable: model.returnType.editable,
+                advanced: model.returnType.advanced,
+                documentation: model.returnType.metadata?.description || '',
+                value: model.returnType.value,
+                valueType: model.returnType.valueType,
+                valueTypeConstraint: model.returnType.valueTypeConstraint || ''
+            }
+        ];
+        setFields(initialFields);
+    }, [model]);
+
+    const onClose = () => {
+        handleClosePopup();
+    }
+    const handleFunctionCreate = (data: FormValues, formImports: FormImports) => {
+        if (!model) {
+            return;
+        }
+        const updatedFunctionModel: FunctionModel = {
+            ...model,
+            name: {
+                ...model.name,
+                value: data.name
+            },
+            parameters: getFunctionParametersList(data.parameters as Parameter[]),
+            returnType: {
+                ...model.returnType,
+                value: data.returnType,
+            }
+        };
+        setFunctionModel(updatedFunctionModel);
+        console.log('Function Create: ', updatedFunctionModel);
+    }
+
 
     return (
-        <View>
-            <TopNavigationBar />
-            <TitleBar
-                title="Service Function"
-                subtitle="Build reusable custom flows"
-            />
-            <ViewContent padding>
-                <Container>
-                    <FormHeader
-                        title={`${functionName ? 'Edit' : 'Create New'} Service Function`}
-                        subtitle="Define a service function that can be used within your integration"
-                    />
-                    {isLoading && (
-                        <LoadingContainer>
-                            <LoadingRing />
-                        </LoadingContainer>
+                <>
+                    {fields.length > 0 && (
+                        <FormGeneratorNew
+                            fileName={location?.documentUri || ''}
+                            targetLineRange={model.codedata?.lineRange as LineRange}
+                            fields={fields}
+                            onSubmit={handleFunctionCreate}
+                            onBack={onClose}
+                            submitText={ "Save"}
+                            helperPaneSide="left"
+                            isSaving={false}
+                            preserveFieldOrder={true}
+                            recordTypeFields={recordTypeFields}
+                        />
                     )}
-                    {functionNode && (
-                        <FormContainer>
-                            <FunctionName name={functionNode.name} onChange={() => { }} readonly={true} />
-                            <Parameters functionNode={functionNode} />
-                            <FunctionReturn returnType={functionNode.returnType} onChange={() => { }} readonly={false} />
-                            <SaveButtonContainer>
-                                <ActionButtons
-                                    primaryButton={{
-                                        text: saving ? "Saving..." : "Save",
-                                        onClick: handleSave,
-                                        disabled: saving
-                                    }}
-                                    secondaryButton={{
-                                        text: "Cancel",
-                                        onClick: handleClosePopup
-                                    }}
-                                />
-                            </SaveButtonContainer>
-                        </FormContainer>
-                    )}
-                    {!functionNode && !isLoading && (
-                        <BodyText>No function data available to display.</BodyText>
-                    )}
-                </Container>
-            </ViewContent>
-        </View>
+                </>
     );
+}
+
+
+export function convertSchemaToFormFields(schema: ConfigProperties): FormField[] {
+    const formFields: FormField[] = [];
+
+    // Get the parameter configuration if it exists
+    const parameterConfig = schema["parameter"] as ConfigProperties;
+    if (parameterConfig) {
+        // Iterate over each parameter field in the parameter config
+        for (const key in parameterConfig) {
+            if (parameterConfig.hasOwnProperty(key)) {
+                const parameter = parameterConfig[key];
+                if (parameter.metadata && parameter.metadata.label) {
+                    const formField = convertParameterToFormField(key, parameter as ParameterModel);
+                    console.log("Form Field: ", formField);
+                    formFields.push(formField);
+                }
+            }
+        }
+    }
+
+    return formFields;
+}
+
+
+export function convertParameterToFormField(key: string, param: ParameterModel): FormField {
+    return {
+        key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
+        label: param.metadata?.label,
+        type: param.valueType || 'string',
+        optional: param.optional || false,
+        editable: param.editable || false,
+        advanced: key === "defaultValue" ? true : param.advanced,
+        documentation: param.metadata?.description || '',
+        value: param.value || '',
+        valueType: param.valueType,
+        valueTypeConstraint: param?.valueTypeConstraint || '',
+        enabled: param.enabled ?? true,
+        lineRange: param?.codedata?.lineRange
+    };
+}
+
+
+function convertParameterToParamValue(param: ParameterModel, index: number) {
+    return {
+        id: index,
+        key: param.name.value,
+        value: `${param.type.value} ${param.name.value}${(param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel)?.value}` : ''}`,
+        formValues: {
+            variable: param.name.value,
+            type: param.type.value,
+            defaultable: (param.defaultValue as PropertyModel)?.value || ''
+        },
+        icon: 'symbol-variable',
+        identifierEditable: param.name?.editable,
+        identifierRange: param.name.codedata?.lineRange,
+        hidden: param.hidden ?? false,
+        imports: param.type?.imports || {}
+    };
 }
