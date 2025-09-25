@@ -43,7 +43,7 @@
               "role": "\"Math tutor\"",
               "model": "myModel",
               "tools": "[set, sum, mutiply]",
-              "memoryManager": "def\n"
+              "memoryManager": "def"
             },
             "memory": {
               "type": "ai:MessageWindowChatMemory",

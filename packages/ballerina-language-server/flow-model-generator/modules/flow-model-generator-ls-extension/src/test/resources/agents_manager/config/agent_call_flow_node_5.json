@@ -58,7 +58,7 @@
               "instructions": "string ``",
               "role": "\"\"",
               "model": "self._AgentServiceModel",
-              "tools": "[]\n"
+              "tools": "[]"
             },
             "memory": {
               "type": "ai:MessageWindowChatMemory",
@@ -159,7 +159,7 @@
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-            "value": "[]\n",
+            "value": "[]",
             "placeholder": "[]",
             "optional": true,
             "editable": true,

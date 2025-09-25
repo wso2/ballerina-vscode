@@ -39,7 +39,7 @@
             "agent": {
               "systemPrompt": "{role: \"Math tutor\", instructions: \"Help the students with their questions.\"}",
               "instructions": "\"Help the students with their questions.\"",
-              "agentType": "ai:REACT_AGENT\n",
+              "agentType": "ai:REACT_AGENT",
               "role": "\"Math tutor\"",
               "model": "myModel",
               "tools": "[set, sum, mutiply]"
@@ -161,7 +161,7 @@
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "ai:AgentType",
-            "value": "ai:REACT_AGENT\n",
+            "value": "ai:REACT_AGENT",
             "placeholder": "\"FUNCTION_CALL_AGENT\"",
             "optional": true,
             "editable": true,
