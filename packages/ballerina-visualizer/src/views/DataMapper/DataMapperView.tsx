@@ -237,7 +237,8 @@ export function DataMapperView(props: DataMapperProps) {
                 filePath,
                 codedata: viewState.codedata,
                 varName: name,
-                targetField: outputId,
+                outputId: outputId,
+                targetField: viewId,
                 propertyKey: "expression", // TODO: Remove this once the API is updated
                 subMappingName: viewState.subMappingName
             };
@@ -452,7 +453,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithCustomFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
@@ -472,7 +473,7 @@ export function DataMapperView(props: DataMapperProps) {
                 .getDataMapperRpcClient()
                 .mapWithTransformFn({
                     filePath,
-                    codedata,
+                    codedata: viewState.codedata,
                     mapping,
                     functionMetadata: metadata,
                     varName: name,
@@ -524,8 +525,7 @@ export function DataMapperView(props: DataMapperProps) {
         const response = await rpcClient.getDataMapperRpcClient().getProcessTypeReference({
             ref: parentField.ref,
             fieldId: parentField.id,
-            model: model as DMModel,
-            visitedRefs: new Set()
+            model: model as DMModel
         });
 
         if (!response.success || !response.result) {
@@ -571,11 +571,12 @@ export function DataMapperView(props: DataMapperProps) {
                     fieldId: outputId,
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
                 let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                     filePath,
                     context: {
                         expression: value,
-                        startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
+                        startLine: startLine,
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,

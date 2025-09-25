@@ -380,7 +380,6 @@ export interface ProcessTypeReferenceRequest {
     ref: string;
     fieldId: string;
     model: DMModel;
-    visitedRefs?: Set<string>;
 }
 
 export interface ProcessTypeReferenceResponse {
@@ -397,7 +396,8 @@ export interface AddArrayElementRequest {
     filePath: string;
     codedata: CodeData;
     varName?: string;
-    targetField?: string;
+    outputId: string;
+    targetField: string;
     propertyKey?: string;
     subMappingName?: string;
 }

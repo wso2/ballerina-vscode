@@ -352,7 +352,7 @@ const MainPanel = () => {
                         } else {
                             // To support rerendering when user click on view all btn from left side panel
                             setViewComponent(
-                                <TypeDiagram key={`type-${Date.now()}`}
+                                <TypeDiagram key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
                                     selectedTypeId={value?.identifier}
                                     projectUri={value?.projectUri}
                                     addType={value?.addType}

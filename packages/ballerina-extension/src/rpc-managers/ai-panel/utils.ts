@@ -140,15 +140,18 @@ export async function generateBallerinaCode(
                 key,
                 nestedKeyArray
             );
-            const recordFieldDetails = await handleRecordArrays(
-                key,
-                nestedKey,
-                responseRecord,
-                parameterDefinitions,
-                nestedKeyArray
-            );
+            const hasValidFields = Object.values(responseRecord).some(value => !isEmptyValue(value));
+            if (hasValidFields) {
+                const recordFieldDetails = await handleRecordArrays(
+                    key,
+                    nestedKey,
+                    responseRecord,
+                    parameterDefinitions,
+                    nestedKeyArray
+                );
+                Object.assign(recordFields, recordFieldDetails);
+            }
             nestedKeyArray.pop();
-            Object.assign(recordFields, recordFieldDetails);
         }
     }
     return recordFields;
@@ -1339,6 +1342,25 @@ async function getDefaultValue(dataType: string): Promise<string> {
     }
 }
 
+function isEmptyValue(value: string): boolean {
+    if (!value || value.trim() === '') {
+        return true;
+    }
+    
+    // Check if it's an empty string
+    if (value === '') {
+        return true;
+    }
+    
+    // Check if it's an empty object string like "{\n  \n}" or "{}"
+    const trimmedValue = value.trim();
+    if (trimmedValue === '{}' || /^\{\s*\}$/.test(trimmedValue)) {
+        return true;
+    }
+    
+    return false;
+}
+
 async function getNestedType(paths: string[], metadata: ParameterField | FieldMetadata): Promise<FieldMetadata> {
     let currentMetadata = metadata;
     for (const path of paths) {
@@ -1392,6 +1414,10 @@ async function handleRecordArrays(key: string, nestedKey: string, responseRecord
     let isOutputDeeplyNested: boolean = false;
 
     for (let subObjectKey of subObjectKeys) {
+        const currentValue = responseRecord[subObjectKey];
+        if (isEmptyValue(currentValue)) {
+            continue;
+        }
         if (!nestedKey) {
             modifiedOutput = parameterDefinitions.outputMetadata[key];
         } else {
@@ -2139,7 +2165,7 @@ export function cleanDiagnosticMessages(entries: DiagnosticEntry[]): DiagnosticE
 export async function addToIntegration(workspaceFolderPath: string, fileChanges: FileChanges[]) {
     const formattedWorkspaceEdit = new WorkspaceEdit();
     const nonBalFiles: FileChanges[] = [];
-
+    let isBalFileAdded = false;
     for (const fileChange of fileChanges) {
         let balFilePath = path.join(workspaceFolderPath, fileChange.filePath);
         const fileUri = Uri.file(balFilePath);
@@ -2147,6 +2173,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
             nonBalFiles.push(fileChange);
             continue;
         }
+        isBalFileAdded = true;
 
         formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
 
@@ -2162,6 +2189,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
 
     // Apply all formatted changes at once
     await workspace.applyEdit(formattedWorkspaceEdit);
+    await workspace.saveAll();
 
     // Write non ballerina files separately as ls doesn't need to be notified of those changes
     for (const fileChange of nonBalFiles) {
@@ -2173,6 +2201,9 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
     }
     return new Promise((resolve, reject) => {
+        if (!isBalFileAdded) {
+            resolve([]);
+        }
         // Get the artifact notification handler instance
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Subscribe to artifact updated notifications
