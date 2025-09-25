@@ -59,6 +59,7 @@ export interface DiagramProps {
     goToSource?: (node: FlowNode) => void;
     openView?: (filePath: string, position: NodePosition) => void;
     draftNode?: DraftNodeConfig;
+    selectedNodeId?: string;
     // agent node callbacks
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
@@ -100,6 +101,7 @@ export function Diagram(props: DiagramProps) {
         goToSource,
         openView,
         draftNode,
+        selectedNodeId,
         agentNode,
         aiNodes,
         suggestions,
@@ -308,6 +310,7 @@ export function Diagram(props: DiagramProps) {
         goToSource: goToSource,
         openView: openView,
         draftNode: draftNode,
+        selectedNodeId: selectedNodeId,
         agentNode: agentNode,
         aiNodes: aiNodes,
         suggestions: suggestions,

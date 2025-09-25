@@ -122,6 +122,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
+    const [selectedNodeId, setSelectedNodeId] = useState<string>();
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -634,6 +635,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowSidePanel(false);
         setSidePanelView(SidePanelView.NODE_LIST);
         setSubPanel({ view: SubPanelView.UNDEFINED });
+        setSelectedNodeId(undefined);
         selectedNodeRef.current = undefined;
         nodeTemplateRef.current = undefined;
         topNodeRef.current = undefined;
@@ -1430,6 +1432,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnEditNode = (node: FlowNode) => {
         console.log(">>> on edit node", node);
+        setSelectedNodeId(node.id);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
             // use targetRef from suggested model
@@ -2208,6 +2211,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showSpinner: isDraftProcessing,
                 description: draftDescription,
             },
+            selectedNodeId, // ✅ Pass selected node ID for highlighting
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
@@ -2226,7 +2230,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             projectPath,
             breakpointInfo,
-            readOnly: showProgressSpinner || showProgressIndicator || hasDraft,
+            readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
         }),
         [
             flowModel,
@@ -2236,6 +2240,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             showProgressSpinner,
             showProgressIndicator,
             hasDraft,
+            selectedNodeId,
         ]
     );
 

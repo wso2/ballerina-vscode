@@ -40,7 +40,9 @@ export interface NodeWidgetProps extends Omit<MatchNodeWidgetProps, "children"> 
 
 export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly } = useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -90,6 +92,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const onAddBreakpoint = () => {
@@ -160,6 +163,8 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                             stroke={
                                 hasError
                                     ? ThemeColors.ERROR
+                                    : isSelected && !disabled
+                                    ? ThemeColors.SECONDARY
                                     : isHovered && !disabled && !readOnly
                                     ? ThemeColors.SECONDARY
                                     : ThemeColors.OUTLINE_VARIANT

@@ -129,6 +129,7 @@ export namespace NodeStyles {
         readOnly: boolean;
         isActiveBreakpoint?: boolean;
         disabled: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -140,6 +141,8 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
+                : (props.isSelected || props.selected) && !props.disabled
+                ? ThemeColors.SECONDARY
                 : props.hovered && !props.disabled && !props.readOnly
                 ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
@@ -188,7 +191,9 @@ export interface NodeWidgetProps extends Omit<WhileNodeWidgetProps, "children"> 
 
 export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly } = useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -250,6 +255,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const menuItems: Item[] = [
@@ -281,6 +287,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                         readOnly={readOnly}
                         isActiveBreakpoint={isActiveBreakpoint}
                         disabled={disabled}
+                        isSelected={isSelected}
                     >
                         {hasBreakpoint && (
                             <div

@@ -44,6 +44,7 @@ export namespace NodeStyles {
         hasError: boolean;
         readOnly: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -62,6 +63,8 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
                 : props.hovered && !props.disabled && !props.readOnly
                 ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
@@ -173,8 +176,10 @@ export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
+    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -250,6 +255,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+        setIsHovered(false);
     };
 
     const openDataMapper = async () => {
@@ -338,6 +344,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             hasError={hasError}
             readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
+            isSelected={isSelected}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
