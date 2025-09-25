@@ -32,7 +32,7 @@ public class RefType  implements Cloneable {
     @Expose
     public String hashCode;
     @Expose
-    public String referenceKey;
+    public String key;
     @Expose
     public String name;
     @Expose

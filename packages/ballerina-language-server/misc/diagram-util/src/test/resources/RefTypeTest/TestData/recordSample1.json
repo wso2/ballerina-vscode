@@ -27,7 +27,7 @@
     ],
     "dependentTypeKeys": [],
     "hashCode": "695203170",
-    "referenceKey": "441557406",
+    "key": "441557406",
     "name": "SampleType",
     "typeName": "record",
     "dependentTypes": {}

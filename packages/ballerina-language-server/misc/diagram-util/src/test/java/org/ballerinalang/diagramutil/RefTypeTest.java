@@ -86,7 +86,7 @@ public class RefTypeTest {
         String refTypeJson = gson.toJson(refType).concat(System.lineSeparator());
         String expectedRefTypeJson = gson.toJson(jsonObject.get("refType")).concat(System.lineSeparator());
         if (!refTypeJson.equals(expectedRefTypeJson)) {
-            updateConfig(jsonPath, refTypeJson);
+//            updateConfig(jsonPath, refTypeJson);
             Assert.fail(
                     String.format("Reference type JSON does not match.\n Expected : %s\n Received %s",
                             expectedRefTypeJson, refTypeJson));

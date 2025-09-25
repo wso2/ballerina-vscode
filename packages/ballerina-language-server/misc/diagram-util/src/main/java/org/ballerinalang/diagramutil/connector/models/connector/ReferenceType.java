@@ -107,12 +107,12 @@ public class ReferenceType {
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, String moduleID,
                                              List<Symbol> typeDefSymbols) {
         String typeHash = String.valueOf(Objects.hash(moduleID, name, symbol.signature()));
-        String visitedKey = String.valueOf((moduleID + ":" + name).hashCode());
+        String typeKey = String.valueOf((moduleID + ":" + name).hashCode());
 
-        RefType type = visitedTypeMap.get(visitedKey);
+        RefType type = visitedTypeMap.get(typeKey);
         if (type != null && !(symbol.typeKind().equals(TypeDescKind.TYPE_REFERENCE))) {
             if (type.hashCode != null && !type.hashCode.equals(typeHash)) {
-                visitedTypeMap.remove(visitedKey);
+                visitedTypeMap.remove(typeKey);
             } else if (type.dependentTypes != null) {
                 validateDependentTypes(type, typeDefSymbols);
                 return type;
@@ -126,13 +126,12 @@ public class ReferenceType {
             RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) symbol;
             RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = typeHash;
-            recordType.referenceKey = visitedKey;
-            //To handle anonymous record types, use type hash as the visited key as there is no name
+            recordType.key = typeKey;
             if (name.isEmpty()) {
-                visitedKey = typeHash;
-                recordType.referenceKey = visitedKey;
+                typeKey = typeHash;
+                recordType.key = typeKey;
             }
-            visitedTypeMap.put(visitedKey, recordType);
+            visitedTypeMap.put(typeKey, recordType);
 
             Map<String, RecordFieldSymbol> fieldDescriptors = recordTypeSymbol.fieldDescriptors();
             fieldDescriptors.forEach((fieldName, fieldSymbol) -> {
@@ -146,7 +145,7 @@ public class ReferenceType {
                     if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
                         RefType t = new RefType(fieldType.name);
                         t.hashCode = fieldType.hashCode;
-                        t.referenceKey = fieldType.referenceKey;
+                        t.key = fieldType.key;
                         t.typeName = fieldType.typeName;
                         recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                     } else {
@@ -156,7 +155,7 @@ public class ReferenceType {
                     if (fieldType instanceof RefRecordType) {
                         RefType t = new RefType(fieldType.name);
                         t.hashCode = fieldType.hashCode;
-                        t.referenceKey = fieldType.referenceKey;
+                        t.key = fieldType.key;
                         t.typeName = fieldType.typeName;
                         recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                     } else {
@@ -179,7 +178,7 @@ public class ReferenceType {
             ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) symbol;
             RefArrayType arrayType = new RefArrayType(name);
             arrayType.hashCode = typeHash;
-            arrayType.referenceKey = visitedKey;
+            arrayType.key = typeKey;
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
             String elementModuleId = elementTypeSymbol.getModule().isPresent()
@@ -191,7 +190,7 @@ public class ReferenceType {
                 if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);
                     t.hashCode = elementType.hashCode;
-                    t.referenceKey = elementType.referenceKey;
+                    t.key = elementType.key;
                     t.typeName = elementType.typeName;
                     arrayType.elementType = t;
                 } else {
@@ -201,7 +200,7 @@ public class ReferenceType {
                 if (elementType instanceof RefRecordType) {
                     RefType t = new RefType(elementType.name);
                     t.hashCode = elementType.hashCode;
-                    t.referenceKey = elementType.referenceKey;
+                    t.key = elementType.key;
                     t.typeName = elementType.typeName;
                     arrayType.elementType = t;
                 } else {
@@ -218,14 +217,14 @@ public class ReferenceType {
                 }
             }
             arrayType.hashCode = arrayType.elementType.hashCode;
-            arrayType.referenceKey = arrayType.elementType.referenceKey;
+            arrayType.key = arrayType.elementType.key;
             return arrayType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
-            unionType.referenceKey = visitedKey;
-            visitedTypeMap.put(visitedKey, unionType);
+            unionType.key = typeKey;
+            visitedTypeMap.put(typeKey, unionType);
 
             for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
@@ -238,7 +237,7 @@ public class ReferenceType {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
                         t.hashCode = memberType.hashCode;
-                        t.referenceKey = memberType.referenceKey;
+                        t.key = memberType.key;
                         t.typeName = memberType.typeName;
                         unionType.memberTypes.add(t);
                     } else {
@@ -248,7 +247,7 @@ public class ReferenceType {
                     if (memberType instanceof RefRecordType) {
                         RefType t = new RefType(memberType.name);
                         t.hashCode = memberType.hashCode;
-                        t.referenceKey = memberType.referenceKey;
+                        t.key = memberType.key;
                         t.typeName = memberType.typeName;
                         unionType.memberTypes.add(t);
                     } else {

@@ -33,7 +33,7 @@
           ],
           "dependentTypeKeys": [],
           "hashCode": "-959561237",
-          "referenceKey": "-1253237511",
+          "key": "-1253237511",
           "name": "DepartmentCode",
           "typeName": "union"
         },
@@ -45,7 +45,7 @@
       "-1253237511"
     ],
     "hashCode": "1123774631",
-    "referenceKey": "1146573036",
+    "key": "1146573036",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
@@ -66,7 +66,7 @@
         ],
         "dependentTypeKeys": [],
         "hashCode": "-959561237",
-        "referenceKey": "-1253237511",
+        "key": "-1253237511",
         "name": "DepartmentCode",
         "typeName": "union"
       }

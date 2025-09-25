@@ -947,7 +947,7 @@ public class DataMapManager {
         if (type.typeName != null) {
             if (type.typeName.equals("record")) {
                 if (type instanceof RefRecordType recordType) {
-                    String referenceKey = recordType.referenceKey;
+                    String referenceKey = recordType.key;
                     MappingRecordPort recordPort = new MappingRecordPort(id, name, typeName != null ?
                             typeName : "record", "record", referenceKey);
                     for (ReferenceType.Field field : recordType.fields) {
@@ -972,7 +972,7 @@ public class DataMapManager {
                     }
                     return new MappingRecordPort(recordPort);
                 } else {
-                    return new MappingRecordPort(id, name, typeName, "record", type.referenceKey);
+                    return new MappingRecordPort(id, name, typeName, "record", type.key);
                 }
             } else if (type.typeName.equals("array")) {
                 if (type instanceof RefArrayType arrayType) {
@@ -995,11 +995,11 @@ public class DataMapManager {
                     }
                     return arrayPort;
                 } else {
-                    return new MappingArrayPort(id, name, "array[]", "array", type.referenceKey);
+                    return new MappingArrayPort(id, name, "array[]", "array", type.key);
                 }
             } else if (type.typeName.equals("enum")) {
                 if (type instanceof RefEnumType enumType) {
-                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.referenceKey);
+                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.key);
                     for (RefType member : enumType.members) {
                         MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
                                 member, visitedTypes, references);
@@ -1018,12 +1018,12 @@ public class DataMapManager {
                     }
                     return enumPort;
                 } else {
-                    return new MappingEnumPort(id, name, typeName, "enum", type.referenceKey);
+                    return new MappingEnumPort(id, name, typeName, "enum", type.key);
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
                     List<String> memberNames = new ArrayList<>();
-                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.referenceKey);
+                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.key);
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
                                 references);
@@ -1044,7 +1044,7 @@ public class DataMapManager {
                     }
                     return unionPort;
                 } else {
-                    return new MappingUnionPort(id, name, typeName, "union", type.referenceKey);
+                    return new MappingUnionPort(id, name, typeName, "union", type.key);
                 }
             } else if (type.hashCode == null || type.hashCode.isEmpty()) {
                 return new MappingPort(id, name, type.typeName, type.typeName);

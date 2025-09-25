@@ -10,7 +10,7 @@
           "elementType": {
             "dependentTypeKeys": [],
             "hashCode": "1012320595",
-            "referenceKey": "1012320595",
+            "key": "1012320595",
             "name": "",
             "typeName": "record"
           },
@@ -19,7 +19,7 @@
             "1012320595"
           ],
           "hashCode": "1012320595",
-          "referenceKey": "1012320595",
+          "key": "1012320595",
           "name": "",
           "typeName": "array"
         },
@@ -31,7 +31,7 @@
         "type": {
           "dependentTypeKeys": [],
           "hashCode": "227271973",
-          "referenceKey": "227271973",
+          "key": "227271973",
           "name": "",
           "typeName": "record"
         },
@@ -46,7 +46,7 @@
       "227271973"
     ],
     "hashCode": "600098465",
-    "referenceKey": "2055433874",
+    "key": "2055433874",
     "name": "MyType2",
     "typeName": "record",
     "dependentTypes": {
@@ -65,7 +65,7 @@
         ],
         "dependentTypeKeys": [],
         "hashCode": "-1339925238",
-        "referenceKey": "-1339925238",
+        "key": "-1339925238",
         "name": "",
         "typeName": "record"
       },
@@ -86,7 +86,7 @@
             "type": {
               "dependentTypeKeys": [],
               "hashCode": "-1339925238",
-              "referenceKey": "-1339925238",
+              "key": "-1339925238",
               "name": "",
               "typeName": "record"
             },
@@ -98,7 +98,7 @@
           "-1339925238"
         ],
         "hashCode": "1012320595",
-        "referenceKey": "1012320595",
+        "key": "1012320595",
         "name": "",
         "typeName": "record"
       },
@@ -117,7 +117,7 @@
         ],
         "dependentTypeKeys": [],
         "hashCode": "91951033",
-        "referenceKey": "91951033",
+        "key": "91951033",
         "name": "",
         "typeName": "record"
       },
@@ -128,7 +128,7 @@
             "type": {
               "dependentTypeKeys": [],
               "hashCode": "91951033",
-              "referenceKey": "91951033",
+              "key": "91951033",
               "name": "",
               "typeName": "record"
             },
@@ -140,7 +140,7 @@
           "91951033"
         ],
         "hashCode": "227271973",
-        "referenceKey": "227271973",
+        "key": "227271973",
         "name": "",
         "typeName": "record"
       }

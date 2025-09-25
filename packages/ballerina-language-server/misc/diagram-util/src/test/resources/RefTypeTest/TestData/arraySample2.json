@@ -6,7 +6,7 @@
     "elementType": {
       "dependentTypeKeys": [],
       "hashCode": "-210370019",
-      "referenceKey": "-702485192",
+      "key": "-702485192",
       "name": "ProgressNote",
       "typeName": "record"
     },
@@ -16,7 +16,7 @@
       "-555514947"
     ],
     "hashCode": "-210370019",
-    "referenceKey": "-702485192",
+    "key": "-702485192",
     "name": "progressNotes",
     "typeName": "array",
     "dependentTypes": {
@@ -37,7 +37,7 @@
             "type": {
               "dependentTypeKeys": [],
               "hashCode": "-1112251293",
-              "referenceKey": "-555514947",
+              "key": "-555514947",
               "name": "SampleType",
               "typeName": "record"
             },
@@ -49,7 +49,7 @@
           "-555514947"
         ],
         "hashCode": "1848974004",
-        "referenceKey": "-1350022124",
+        "key": "-1350022124",
         "name": "SampleRecord",
         "typeName": "record"
       },
@@ -70,7 +70,7 @@
             "type": {
               "dependentTypeKeys": [],
               "hashCode": "1848974004",
-              "referenceKey": "-1350022124",
+              "key": "-1350022124",
               "name": "SampleRecord",
               "typeName": "record"
             },
@@ -83,7 +83,7 @@
           "-555514947"
         ],
         "hashCode": "-210370019",
-        "referenceKey": "-702485192",
+        "key": "-702485192",
         "name": "ProgressNote",
         "typeName": "record"
       },
@@ -112,7 +112,7 @@
         ],
         "dependentTypeKeys": [],
         "hashCode": "-1112251293",
-        "referenceKey": "-555514947",
+        "key": "-555514947",
         "name": "SampleType",
         "typeName": "record"
       }
