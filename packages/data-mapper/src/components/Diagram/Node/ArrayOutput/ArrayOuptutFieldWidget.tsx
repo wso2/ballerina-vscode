@@ -308,7 +308,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
 
         setIsAddingElement(true)
         try {
-            await context.addArrayElement(`${mapping.output}`, `${viewId}`, `${varName}`);
+            await context.addArrayElement(mapping.output, viewId, varName);
         } finally {
             if (!expanded) handleExpand();
             setIsAddingElement(false);
