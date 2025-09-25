@@ -38,13 +38,13 @@ import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { NodeIcon } from "../../NodeIcon";
 
 export namespace NodeStyles {
-    export const Node = styled.div<{ isEditable: boolean }>`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         color: ${ThemeColors.ON_SURFACE};
         color: ${ThemeColors.ON_SURFACE};
-        cursor: ${(props) => (props.isEditable ? "pointer" : "default")};
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Header = styled.div<{}>`
@@ -126,6 +126,7 @@ export namespace NodeStyles {
         selected: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint?: boolean;
         disabled: boolean;
     };
@@ -139,7 +140,7 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
-                : props.hovered && !props.disabled
+                : props.hovered && !props.disabled && !props.readOnly
                 ? ThemeColors.HIGHLIGHT
                 : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
@@ -147,6 +148,7 @@ export namespace NodeStyles {
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
         width: ${WHILE_NODE_WIDTH}px;
         height: ${WHILE_NODE_WIDTH}px;
+        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Hr = styled.hr`
@@ -203,6 +205,9 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const isEditable = model.node.codedata.node !== "LOCK";
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             onGoToSource();
         } else {
@@ -237,6 +242,9 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
@@ -260,7 +268,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const nodeViewState = model.node.viewState;
 
     return (
-        <NodeStyles.Node isEditable={isEditable}>
+        <NodeStyles.Node readOnly={isEditable || readOnly}>
             <NodeStyles.Row>
                 <NodeStyles.Column>
                     <NodeStyles.Box
@@ -270,6 +278,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                         selected={model.isSelected()}
                         hovered={isEditable && isHovered}
                         hasError={hasError}
+                        readOnly={readOnly}
                         isActiveBreakpoint={isActiveBreakpoint}
                         disabled={disabled}
                     >
@@ -293,14 +302,18 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                 <NodeStyles.Header>
                     <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
                     {model.node.properties?.condition && (
-                        <NodeStyles.Description>{model.node.properties.condition?.value as ReactNode}</NodeStyles.Description>
+                        <NodeStyles.Description>
+                            {model.node.properties.condition?.value as ReactNode}
+                        </NodeStyles.Description>
                     )}
                 </NodeStyles.Header>
-                {!readOnly && (
-                    <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                        <MoreVertIcon />
-                    </NodeStyles.StyledButton>
-                )}
+                <NodeStyles.StyledButton
+                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                    appearance="icon"
+                    onClick={handleOnMenuClick}
+                >
+                    <MoreVertIcon />
+                </NodeStyles.StyledButton>
                 {hasError && (
                     <NodeStyles.ErrorIcon>
                         <DiagnosticsPopUp node={model.node} />

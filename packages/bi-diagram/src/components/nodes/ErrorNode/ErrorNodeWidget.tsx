@@ -123,7 +123,11 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.hovered && !props.disabled
+                ? ThemeColors.HIGHLIGHT
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -229,6 +233,9 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
@@ -288,11 +295,13 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                 </NodeStyles.Column>
                 <NodeStyles.Header>
                     <NodeStyles.Title>Error Handler</NodeStyles.Title>
-                    {!readOnly && (
-                        <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                            <MoreVertIcon />
-                        </NodeStyles.StyledButton>
-                    )}
+                    <NodeStyles.StyledButton
+                        buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                        appearance="icon"
+                        onClick={handleOnMenuClick}
+                    >
+                        <MoreVertIcon />
+                    </NodeStyles.StyledButton>
                 </NodeStyles.Header>
                 {hasError && (
                     <NodeStyles.ErrorIcon>

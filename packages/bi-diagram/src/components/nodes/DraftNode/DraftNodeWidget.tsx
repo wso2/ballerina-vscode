@@ -82,24 +82,32 @@ export interface NodeWidgetProps extends Omit<DraftNodeWidgetProps, "children"> 
 
 export function DraftNodeWidget(props: DraftNodeWidgetProps) {
     const { model, engine } = props;
-    const { suggestions } = useDiagramContext();
+    const { draftNode, suggestions } = useDiagramContext();
+    console.log(">>> DraftNodeWidget context", { draftNode, suggestions } );
 
-    const generatingSuggestion = suggestions?.fetching;
-
-    return (
-        <NodeStyles.Node>
-            <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
-            {!generatingSuggestion && (
-                <NodeStyles.Row>
-                    <NodeStyles.Description>Select node from node panel.</NodeStyles.Description>
-                </NodeStyles.Row>
-            )}
-            {generatingSuggestion && (
+    // special case draft node if suggestions are fetching
+    if (suggestions?.fetching && !draftNode.override) {
+        return (
+            <NodeStyles.Node>
+                <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.Row>
                     <ProgressRing sx={{ width: 14 }} />
                     <NodeStyles.Description>Generating next suggestion...</NodeStyles.Description>
                 </NodeStyles.Row>
-            )}
+                <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
+            </NodeStyles.Node>
+        );
+    }
+
+    return (
+        <NodeStyles.Node>
+            <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
+            <NodeStyles.Row>
+                {draftNode?.showSpinner && <ProgressRing sx={{ width: 14 }} />}
+                <NodeStyles.Description>
+                    {draftNode?.description || "Select node from node panel."}
+                </NodeStyles.Description>
+            </NodeStyles.Row>
             <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
         </NodeStyles.Node>
     );
