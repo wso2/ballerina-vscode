@@ -256,7 +256,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
             >
                 {isAddingElement
                     ? <ProgressRing sx={{ height: '16px', width: '16px' }} />
-                    : <Codicon name="add" iconSx={{ color: "var(--vscode-inputOption-activeForeground)" }} />
+                    : <Codicon name="add" iconSx={{ color: "var(--vscode-textLink-foreground)" }} />
                 }
                     Add Element
             </Button>
