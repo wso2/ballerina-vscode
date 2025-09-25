@@ -230,6 +230,10 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
         }
     }, [model.node.suggested]);
 
+    useEffect(() => {
+        model.setSelected(isSelected);
+    }, [isSelected]);
+
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
             return;
