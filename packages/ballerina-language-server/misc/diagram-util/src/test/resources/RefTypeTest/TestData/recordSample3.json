@@ -9,7 +9,14 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string"
+          "typeName": "string",
+          "typeInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -20,7 +27,14 @@
           "dependentTypeHashes": [],
           "hashCode": "-1709258083",
           "name": "SampleRecord",
-          "typeName": "record"
+          "typeName": "record",
+          "typeInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -41,7 +55,14 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -52,7 +73,14 @@
               "dependentTypeHashes": [],
               "hashCode": "695203170",
               "name": "SampleType",
-              "typeName": "record"
+              "typeName": "record",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -63,7 +91,14 @@
         ],
         "hashCode": "-1709258083",
         "name": "SampleRecord",
-        "typeName": "record"
+        "typeName": "record",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       },
       "695203170": {
         "fields": [
@@ -72,7 +107,14 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "string",
-              "typeName": "string"
+              "typeName": "string",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -82,7 +124,14 @@
             "type": {
               "dependentTypeHashes": [],
               "name": "int",
-              "typeName": "int"
+              "typeName": "int",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -91,8 +140,22 @@
         "dependentTypeHashes": [],
         "hashCode": "695203170",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       }
+    },
+    "typeInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
     }
   }
 }

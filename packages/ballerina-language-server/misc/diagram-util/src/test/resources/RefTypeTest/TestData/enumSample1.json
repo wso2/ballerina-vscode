@@ -9,7 +9,14 @@
         "type": {
           "dependentTypeHashes": [],
           "name": "string",
-          "typeName": "string"
+          "typeName": "string",
+          "typeInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -20,21 +27,49 @@
           "memberTypes": [
             {
               "dependentTypeHashes": [],
-              "name": "FINANCE"
+              "name": "FINANCE",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             {
               "dependentTypeHashes": [],
-              "name": "IT"
+              "name": "IT",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             },
             {
               "dependentTypeHashes": [],
-              "name": "HR"
+              "name": "HR",
+              "typeInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
             }
           ],
           "dependentTypeHashes": [],
           "hashCode": "-959561237",
           "name": "DepartmentCode",
-          "typeName": "union"
+          "typeName": "union",
+          "typeInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -51,22 +86,57 @@
         "memberTypes": [
           {
             "dependentTypeHashes": [],
-            "name": "FINANCE"
+            "name": "FINANCE",
+            "typeInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "health.ccda.r1",
+              "packageName": "health.ccda.r1",
+              "version": "0.1.0",
+              "modulePrefix": "r1"
+            }
           },
           {
             "dependentTypeHashes": [],
-            "name": "IT"
+            "name": "IT",
+            "typeInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "health.ccda.r1",
+              "packageName": "health.ccda.r1",
+              "version": "0.1.0",
+              "modulePrefix": "r1"
+            }
           },
           {
             "dependentTypeHashes": [],
-            "name": "HR"
+            "name": "HR",
+            "typeInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "health.ccda.r1",
+              "packageName": "health.ccda.r1",
+              "version": "0.1.0",
+              "modulePrefix": "r1"
+            }
           }
         ],
         "dependentTypeHashes": [],
         "hashCode": "-959561237",
         "name": "DepartmentCode",
-        "typeName": "union"
+        "typeName": "union",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       }
+    },
+    "typeInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
     }
   }
 }

@@ -24,8 +24,6 @@ import com.google.gson.annotations.Expose;
  */
 public class TypeInfo {
     @Expose
-    public String name;
-    @Expose
     public String orgName;
     @Expose
     public String moduleName;
@@ -33,12 +31,14 @@ public class TypeInfo {
     public String packageName;
     @Expose
     public String version;
+    @Expose
+    public String modulePrefix;
 
-    public TypeInfo(String name, String orgName, String moduleName, String packageName, String version) {
-        this.name = name;
+    public TypeInfo(String orgName, String moduleName, String packageName, String version, String modulePrefix) {
         this.orgName = orgName;
         this.moduleName = moduleName;
         this.packageName = packageName;
         this.version = version;
+        this.modulePrefix = modulePrefix;
     }
 }
