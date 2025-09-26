@@ -161,7 +161,7 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
     };
 
     const handleUndo = async () => {
-        await rpcClient.getVisualizerRpcClient().undo();
+        await rpcClient.getVisualizerRpcClient().undo(1);
     };
 
     return (

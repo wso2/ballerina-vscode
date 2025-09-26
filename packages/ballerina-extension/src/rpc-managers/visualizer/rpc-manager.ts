@@ -33,7 +33,7 @@ import {
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import fs from "fs";
-import { history, openView, StateMachine, undoRedoManager, updateDataMapperView, updateView } from "../../stateMachine";
+import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
 import { notifyCurrentWebview } from "../../RPCLayer";
@@ -91,12 +91,12 @@ export class VisualizerRpcManager implements VisualizerAPI {
         }
     }
 
-    async undo(): Promise<string> {
+    async undo(count: number): Promise<string> {
         // Handle the undo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
         return new Promise((resolve, reject) => {
             StateMachine.setEditMode();
             const workspaceEdit = new WorkspaceEdit();
-            const revertedFiles = undoRedoManager.undo();
+            const revertedFiles = undoRedoManager.undo(count);
             if (revertedFiles) {
                 for (const [filePath, content] of revertedFiles.entries()) {
                     workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
@@ -136,12 +136,12 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    async redo(): Promise<string> {
+    async redo(count: number): Promise<string> {
         // Handle the redo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
         return new Promise((resolve, reject) => {
             StateMachine.setEditMode();
             const workspaceEdit = new WorkspaceEdit();
-            const revertedFiles = undoRedoManager.redo();
+            const revertedFiles = undoRedoManager.redo(count);
             if (revertedFiles) {
                 for (const [filePath, content] of revertedFiles.entries()) {
                     workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
