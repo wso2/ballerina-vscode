@@ -70,37 +70,43 @@ export function ServiceWizard(props: ServiceWizardProps) {
     const [pullingModules, setPullingModules] = useState<boolean>(false);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient()
-            .getServiceModel({ filePath: "", moduleName: type, listenerName: "" })
-            .then(res => {
+        const initializeServiceWizard = async () => {
+            try {
+                const serviceModelRes = await rpcClient.getServiceDesignerRpcClient()
+                    .getServiceModel({ filePath: "", moduleName: type, listenerName: "" });
+
                 setHeaderInfo({
-                    title: res.service.displayName || res.service.name,
-                    moduleName: res.service.moduleName
+                    title: serviceModelRes.service.displayName || serviceModelRes.service.name,
+                    moduleName: serviceModelRes.service.moduleName
                 });
-                return rpcClient.getServiceDesignerRpcClient().getListeners({ filePath: "", moduleName: type });
-            })
-            .then(res => {
-                console.log("Existing Listeners: ", res);
-                setExisting(res.hasListeners);
-                if (res.hasListeners) {
-                    return rpcClient.getServiceDesignerRpcClient().getServiceModel({ filePath: "", moduleName: type, listenerName: "" })
-                        .then(serviceRes => {
-                            console.log("Service Model: ", serviceRes);
-                            serviceRes.service.properties["listener"].editable = true;
-                            serviceRes.service.properties["listener"].addNewButton = true;
-                            setServiceModel(serviceRes.service);
-                            setStep(1);
-                            setListeners(res);
-                            return rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type });
-                        });
+
+                const listenersRes = await rpcClient.getServiceDesignerRpcClient()
+                    .getListeners({ filePath: "", moduleName: type });
+
+                console.log("Existing Listeners: ", listenersRes);
+                setExisting(listenersRes.hasListeners);
+
+                if (listenersRes.hasListeners) {
+                    const serviceRes = await rpcClient.getServiceDesignerRpcClient()
+                        .getServiceModel({ filePath: "", moduleName: type, listenerName: "" });
+
+                    console.log("Service Model: ", serviceRes);
+                    serviceRes.service.properties["listener"].editable = true;
+                    serviceRes.service.properties["listener"].addNewButton = true;
+                    setServiceModel(serviceRes.service);
+                    setStep(1);
                 }
-                setListeners(res);
-                return rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type });
-            })
-            .then(res => {
-                console.log("Listener Model: ", res);
-                setListenerModel(res.listener);
-            });
+                setListeners(listenersRes);
+                const listenerModelRes = await rpcClient.getServiceDesignerRpcClient()
+                    .getListenerModel({ moduleName: type });
+                console.log("Listener Model: ", listenerModelRes);
+                setListenerModel(listenerModelRes.listener);
+            } catch (error) {
+                console.error("Error initializing service wizard:", error);
+            }
+        };
+
+        initializeServiceWizard();
     }, []);
 
     const handleListenerSubmit = async (value?: ListenerModel) => {
