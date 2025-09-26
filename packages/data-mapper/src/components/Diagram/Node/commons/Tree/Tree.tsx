@@ -68,7 +68,10 @@ export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolea
         : 'var(--vscode-list-hoverBackground)',
     },
     color: 'var(--vscode-inputOption-activeForeground)',
-    borderBottom: '1.8px solid var(--vscode-dropdown-border)'
+    borderBottom: '1.8px solid var(--vscode-dropdown-border)',
+    ...(isSelected && {
+      outline: "1px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))"
+    })
 }));
 
 export const TreeBody = styled.div`
