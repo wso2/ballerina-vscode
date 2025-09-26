@@ -293,6 +293,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     isGraphql: false
                 },
             });
+            return;
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
