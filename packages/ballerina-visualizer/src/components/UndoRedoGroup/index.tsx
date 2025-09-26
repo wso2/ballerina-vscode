@@ -53,13 +53,13 @@ export function UndoRedoGroup() {
 
     const handleUndo = async () => {
         setUndoing(true);
-        await rpcClient.getVisualizerRpcClient().undo();
+        await rpcClient.getVisualizerRpcClient().undo(1);
         setUndoing(false);
     };
 
     const handleRedo = async () => {
         setRedoing(true);
-        await rpcClient.getVisualizerRpcClient().redo();
+        await rpcClient.getVisualizerRpcClient().redo(1);
         setRedoing(false);
     };
 

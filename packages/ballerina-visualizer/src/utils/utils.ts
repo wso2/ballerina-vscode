@@ -18,6 +18,7 @@
 
 import { STModification, FunctionParameters } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
+import { debouncedUndo, debouncedRedo } from "./debouncedUndoRedo";
 import { Parameter } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
 import { ParamConfig } from "@wso2/ui-toolkit";
@@ -43,11 +44,11 @@ export function transformNodePosition(position: NodePosition) {
 }
 
 export async function handleUndo(rpcClient: BallerinaRpcClient) {
-    await rpcClient.getVisualizerRpcClient().undo();
+    debouncedUndo(rpcClient);
 }
 
 export async function handleRedo(rpcClient: BallerinaRpcClient) {
-    await rpcClient.getVisualizerRpcClient().redo();
+    debouncedRedo(rpcClient);
 }
 
 const colors = {

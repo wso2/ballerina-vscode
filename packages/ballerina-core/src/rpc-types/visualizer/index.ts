@@ -27,8 +27,8 @@ export interface VisualizerAPI {
     goBack: () => void;
     goHome: () => void;
     goSelected: (index: number) => void;
-    undo: () => Promise<string>;
-    redo: () => Promise<string>;
+    undo: (count: number) => Promise<string>;
+    redo: (count: number) => Promise<string>;
     addToUndoStack: (params: AddToUndoStackRequest) => void;
     undoRedoState: () => Promise<UndoRedoStateResponse>;
     joinProjectPath: (segments: string | string[]) => Promise<string>;

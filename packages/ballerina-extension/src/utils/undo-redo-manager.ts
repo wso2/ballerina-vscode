@@ -156,40 +156,57 @@ export class UndoRedoManager implements IUndoRedoManager {
     }
 
     /**
-     * Undo the last batch operation
-     * Returns a map of file paths to their restored content
+     * Undo the last batch operation(s)
+     * @param count Number of operations to undo (default: 1)
+     * Returns a map of file paths to their restored content from the last operation
      */
-    public undo(): Map<string, string> | null {
-        if (this.undoStack.length === 0) {
-            console.log(`[Extension UndoRedoManager] No operations to undo`);
+    public undo(count: number = 1): Map<string, string> | null {
+        if (this.undoStack.length === 0 || count <= 0) {
+            console.log(`[Extension UndoRedoManager] No operations to undo or invalid count: ${count}`);
             return null;
         }
 
-        const lastOperation = this.undoStack.pop()!;
-        console.log(`[Extension UndoRedoManager] Undoing operation: ${lastOperation.id}`);
+        const actualCount = Math.min(count, this.undoStack.length);
+        console.log(`[Extension UndoRedoManager] Undoing ${actualCount} operations`);
 
-        // Create redo operation (reverse the changes)
-        const redoChanges: FileChange[] = lastOperation.changes.map(change => ({
-            path: change.path,
-            beforeContent: change.afterContent, // What we're changing from (current state)
-            afterContent: change.beforeContent  // What we're changing to (original state)
-        }));
+        // Collect all operations to undo
+        const operationsToUndo: BatchOperation[] = [];
+        for (let i = 0; i < actualCount; i++) {
+            const operation = this.undoStack.pop()!;
+            operationsToUndo.push(operation);
+        }
 
-        const redoOperation: BatchOperation = {
-            id: `redo_${lastOperation.id}`,
-            timestamp: Date.now(),
-            changes: redoChanges,
-            description: `${lastOperation.description || 'Batch operation'}`
-        };
+        // Create redo operations for all undone operations
+        const redoOperations: BatchOperation[] = [];
+        for (const operation of operationsToUndo) {
+            const redoChanges: FileChange[] = operation.changes.map(change => ({
+                path: change.path,
+                beforeContent: change.afterContent, // What we're changing from (current state)
+                afterContent: change.beforeContent  // What we're changing to (original state)
+            }));
 
-        this.redoStack.push(redoOperation);
+            const redoOperation: BatchOperation = {
+                id: `redo_${operation.id}`,
+                timestamp: Date.now(),
+                changes: redoChanges,
+                description: `${operation.description || 'Batch operation'}`
+            };
+
+            redoOperations.push(redoOperation);
+        }
+
+        // Add redo operations to redo stack (in reverse order to maintain correct sequence)
+        redoOperations.reverse().forEach(operation => {
+            this.redoStack.push(operation);
+        });
 
         // Limit redo stack size
-        if (this.redoStack.length > this.MAX_STACK_SIZE) {
+        while (this.redoStack.length > this.MAX_STACK_SIZE) {
             this.redoStack.shift();
         }
 
-        // Return the content to restore (beforeContent from original operation)
+        // Return only the files from the last operation (most recent one undone)
+        const lastOperation = operationsToUndo[operationsToUndo.length - 1];
         const restoredFiles = new Map<string, string>();
         for (const change of lastOperation.changes) {
             restoredFiles.set(change.path, change.beforeContent);
@@ -199,37 +216,54 @@ export class UndoRedoManager implements IUndoRedoManager {
     }
 
     /**
-     * Redo the last undone batch operation
-     * Returns a map of file paths to their restored content
+     * Redo the last undone batch operation(s)
+     * @param count Number of operations to redo (default: 1)
+     * Returns a map of file paths to their restored content from the last operation
      */
-    public redo(): Map<string, string> | null {
-        if (this.redoStack.length === 0) {
-            console.log(`[UndoRedoManager] No operations to redo`);
+    public redo(count: number = 1): Map<string, string> | null {
+        if (this.redoStack.length === 0 || count <= 0) {
+            console.log(`[UndoRedoManager] No operations to redo or invalid count: ${count}`);
             return null;
         }
 
-        const redoOperation = this.redoStack.pop()!;
-        console.log(`[UndoRedoManager] Redoing operation: ${redoOperation.id}`);
+        const actualCount = Math.min(count, this.redoStack.length);
+        console.log(`[UndoRedoManager] Redoing ${actualCount} operations`);
 
-        // Create undo operation (reverse the redo changes)
-        const undoChanges: FileChange[] = redoOperation.changes.map(change => ({
-            path: change.path,
-            beforeContent: change.afterContent, // What we're changing from
-            afterContent: change.beforeContent  // What we're changing to
-        }));
+        // Collect all operations to redo
+        const operationsToRedo: BatchOperation[] = [];
+        for (let i = 0; i < actualCount; i++) {
+            const operation = this.redoStack.pop()!;
+            operationsToRedo.push(operation);
+        }
 
-        const undoOperation: BatchOperation = {
-            id: redoOperation.id.replace('redo_', ''),
-            timestamp: Date.now(),
-            changes: undoChanges,
-            description: redoOperation.description?.replace('Redo: ', '') || 'Batch operation'
-        };
+        // Create undo operations for all redone operations
+        const undoOperations: BatchOperation[] = [];
+        for (const operation of operationsToRedo) {
+            const undoChanges: FileChange[] = operation.changes.map(change => ({
+                path: change.path,
+                beforeContent: change.afterContent, // What we're changing from
+                afterContent: change.beforeContent  // What we're changing to
+            }));
 
-        this.undoStack.push(undoOperation);
+            const undoOperation: BatchOperation = {
+                id: operation.id.replace('redo_', ''),
+                timestamp: Date.now(),
+                changes: undoChanges,
+                description: operation.description?.replace('Redo: ', '') || 'Batch operation'
+            };
 
-        // Return the content to restore (afterContent from redo operation)
+            undoOperations.push(undoOperation);
+        }
+
+        // Add undo operations to undo stack (in reverse order to maintain correct sequence)
+        undoOperations.reverse().forEach(operation => {
+            this.undoStack.push(operation);
+        });
+
+        // Return only the files from the last operation (most recent one redone)
+        const lastOperation = operationsToRedo[operationsToRedo.length - 1];
         const redoneFiles = new Map<string, string>();
-        for (const change of redoOperation.changes) {
+        for (const change of lastOperation.changes) {
             redoneFiles.set(change.path, change.beforeContent);
         }
 

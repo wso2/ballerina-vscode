@@ -72,12 +72,12 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(goSelected, HOST_EXTENSION, index);
     }
 
-    undo(): Promise<string> {
-        return this._messenger.sendRequest(undo, HOST_EXTENSION);
+    undo(count: number): Promise<string> {
+        return this._messenger.sendRequest(undo, HOST_EXTENSION, count);
     }
 
-    redo(): Promise<string> {
-        return this._messenger.sendRequest(redo, HOST_EXTENSION);
+    redo(count: number): Promise<string> {
+        return this._messenger.sendRequest(redo, HOST_EXTENSION, count);
     }
 
     addToUndoStack(params: AddToUndoStackRequest): void {
