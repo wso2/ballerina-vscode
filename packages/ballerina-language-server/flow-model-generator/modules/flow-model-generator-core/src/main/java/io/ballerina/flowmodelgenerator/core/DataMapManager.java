@@ -2156,15 +2156,13 @@ public class DataMapManager {
         List<Parameter> parameters = functionMetadata.parameters();
         List<String> paramNames = new ArrayList<>();
         for (Parameter parameter : parameters) {
-            String paramName = parameter.type();
-            if (parameter.isNullable()) {
-                paramName = paramName + "?";
-            }
-            paramName = paramName + " " + parameter.name();
+            String paramTypeName = parameter.type();
             if (parameter.isOptional()) {
-                paramName = paramName + " = " + getDefaultValue(parameter.kind());
+                if (!paramTypeName.contains("?") && !paramTypeName.contains("()")) {
+                    paramTypeName = paramTypeName + "?";
+                }
             }
-            paramNames.add(paramName);
+            paramNames.add(paramTypeName + " " + parameter.name());
         }
 
         Path functionsFilePath;
