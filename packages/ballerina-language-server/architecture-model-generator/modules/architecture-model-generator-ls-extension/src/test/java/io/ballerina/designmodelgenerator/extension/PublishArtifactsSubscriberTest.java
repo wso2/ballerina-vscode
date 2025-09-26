@@ -286,18 +286,15 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
 
     @Test
     public void testMultipleDidChangeEventsOnDifferentFiles() throws Exception {
-        // Setup: Initialize project cache with artifacts
+        // Initialize project cache with artifacts
         initializeProject();
         WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
 
-        // Setup first file - main.bal from old directory
-        String firstSourceDir = getSourcePath("new");
-        Path firstFilePath = Path.of(firstSourceDir, "main.bal");
+        // Setup two different source files in the same project
+        String sourceDir = getSourcePath("new");
+        Path firstFilePath = Path.of(sourceDir, "main.bal");
         String firstFileUri = firstFilePath.toAbsolutePath().normalize().toUri().toString();
-
-        // Setup second file - functions.bal from new directory
-        String secondSourceDir = getSourcePath("new");
-        Path secondFilePath = Path.of(secondSourceDir, "functions.bal");
+        Path secondFilePath = Path.of(sourceDir, "functions.bal");
         String secondFileUri = secondFilePath.toAbsolutePath().normalize().toUri().toString();
 
         // Create document service contexts for both files
@@ -335,9 +332,9 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
         LanguageServerContext languageServerContext = languageServer.getServerContext();
 
+        // Invoke the subscriber for both files using EventPublisher
         EventPublisher projectUpdatePublisher = EventSyncPubSubHolder.getInstance(languageServer.getServerContext())
                 .getPublisher(EventKind.PROJECT_UPDATE);
-
         projectUpdatePublisher.publish(mockClient, languageServerContext, firstDocumentServiceContext);
         projectUpdatePublisher.publish(mockClient, languageServerContext, secondDocumentServiceContext);
 
@@ -348,31 +345,18 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         // Verify the client was called for both files
         ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
         Mockito.verify(mockClient, Mockito.times(2)).publishArtifacts(artifactsCaptor.capture());
-
         List<ArtifactsParams> capturedValues = artifactsCaptor.getAllValues();
         Assert.assertEquals(capturedValues.size(), 2, "Expected artifacts to be published for both files");
 
-        // Verify that both URIs were processed
-        boolean firstUriFound = false;
-        boolean secondUriFound = false;
-
-        for (ArtifactsParams artifactsParams : capturedValues) {
-            String uri = artifactsParams.uri();
-            Assert.assertNotNull(uri, "Published artifacts URI should not be null");
-
-            if (firstFileUri.equals(uri)) {
-                firstUriFound = true;
-            } else if (secondFileUri.equals(uri)) {
-                secondUriFound = true;
-            }
-
-            // Verify artifacts are not empty
-            Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
-            Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
-        }
-
-        Assert.assertTrue(firstUriFound, "Artifacts should be published for first file: " + firstFileUri);
-        Assert.assertTrue(secondUriFound, "Artifacts should be published for second file: " + secondFileUri);
+        // Verify artifacts count - first should have 1 artifact, second should have 3 artifacts
+        ArtifactsParams firstArtifacts = capturedValues.get(0);
+        ArtifactsParams secondArtifacts = capturedValues.get(1);
+        int firstArtifactCount = firstArtifacts.artifacts().size();
+        int secondArtifactCount = secondArtifacts.artifacts().size();
+        Assert.assertTrue((firstArtifactCount == 1 && secondArtifactCount == 3) ||
+                         (firstArtifactCount == 3 && secondArtifactCount == 1),
+                         String.format("Expected artifact counts to be 1 and 3, but got %d and %d",
+                                     firstArtifactCount, secondArtifactCount));
     }
 
     @Test
