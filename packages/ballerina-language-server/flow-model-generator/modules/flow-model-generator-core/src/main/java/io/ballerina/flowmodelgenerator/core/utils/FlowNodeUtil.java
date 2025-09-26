@@ -97,16 +97,17 @@ public class FlowNodeUtil {
     /**
      * Creates an updated property with a new value while preserving metadata.
      *
+     * @param <T>              the type of the new value
      * @param originalProperty the original property
      * @param newValue         the new value to set
      * @return the updated property
      */
-    public static Property createUpdatedProperty(Property originalProperty, Object newValue) {
+    public static <T> Property createUpdatedProperty(Property originalProperty, T newValue) {
         if (originalProperty == null) {
             throw new IllegalArgumentException("Original property cannot be null");
         }
 
-        Property.Builder<Object> builder = new Property.Builder<>(null)
+        Property.Builder<T> builder = new Property.Builder<T>(null)
                 .type(Property.ValueType.valueOf(originalProperty.valueType()))
                 .typeConstraint(originalProperty.valueTypeConstraint())
                 .value(newValue);
