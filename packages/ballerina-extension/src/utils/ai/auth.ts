@@ -122,21 +122,11 @@ async function copilotTokenExists() {
 // Structured Auth Credentials Utils
 // ==================================
 export const storeAuthCredentials = async (credentials: AuthCredentials): Promise<void> => {
-    // Safely handle missing extension context
-    if (!extension.context?.secrets) {
-        console.warn('Extension context or secrets not available - skipping credential storage');
-        return;
-    }
     const credentialsJson = JSON.stringify(credentials);
     await extension.context.secrets.store(AUTH_CREDENTIALS_SECRET_KEY, credentialsJson);
 };
 
 export const getAuthCredentials = async (): Promise<AuthCredentials | undefined> => {
-    // Safely handle missing extension context
-    if (!extension.context?.secrets) {
-        return undefined;
-    }
-    
     const credentialsJson = await extension.context.secrets.get(AUTH_CREDENTIALS_SECRET_KEY);
     if (!credentialsJson) {
         return undefined;
@@ -151,11 +141,6 @@ export const getAuthCredentials = async (): Promise<AuthCredentials | undefined>
 };
 
 export const clearAuthCredentials = async (): Promise<void> => {
-    // Safely handle missing extension context
-    if (!extension.context?.secrets) {
-        console.warn('Extension context or secrets not available - skipping credential cleanup');
-        return;
-    }
     await extension.context.secrets.delete(AUTH_CREDENTIALS_SECRET_KEY);
 };
 
@@ -163,10 +148,6 @@ export const clearAuthCredentials = async (): Promise<void> => {
 // BI Copilot Auth Utils
 // ==================================
 export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
-    // Test environment fallback - check for ANTHROPIC_API_KEY
-    if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-        return LoginMethod.ANTHROPIC_KEY;
-    }
     
     const credentials = await getAuthCredentials();
     if (credentials) {
@@ -178,12 +159,6 @@ export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
 export const getAccessToken = async (): Promise<string | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Test environment fallback - check for ANTHROPIC_API_KEY first
-            if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-                resolve(process.env.ANTHROPIC_API_KEY.trim());
-                return;
-            }
-            
             const credentials = await getAuthCredentials();
 
             if (credentials) {

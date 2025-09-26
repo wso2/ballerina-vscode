@@ -31,7 +31,10 @@
         "onNotebook:ballerina-notebook",
         "onUri"
     ],
-    "extensionDependencies": [],
+    "extensionDependencies": [
+        "anweber.httpbook",
+        "WSO2.wso2-platform"
+    ],
     "contributes": {
         "languages": [
             {
@@ -1123,7 +1126,6 @@
         "watch-ballerina": "webpack --mode none --watch",
         "test-compile": "tsc -p ./",
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
-        "test:ai": "node scripts/test-ai.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.83.1 && npx extest get-chromedriver -c 1.83.1 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
@@ -1224,8 +1226,5 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/wso2/ballerina-plugin-vscode.git"
-    },
-    "_originalExtensionDependencies": [
-        "redhat.vscode-yaml"
-    ]
+    }
 }
