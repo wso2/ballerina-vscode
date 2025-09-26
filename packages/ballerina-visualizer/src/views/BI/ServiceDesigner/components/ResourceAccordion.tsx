@@ -18,18 +18,13 @@
  */
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import { Button, Codicon, Confirm, ContextMenu, Icon, LinkButton, Typography } from '@wso2/ui-toolkit';
+import { Button, Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { FunctionModel } from '@wso2/ballerina-core';
 
-type MethodProp = {
-    color: string;
-    hasLeftMargin?: boolean;
-};
 
 type ContainerProps = {
     borderColor?: string;
     haveErrors?: boolean;
-    showDottedBorder?: boolean;
 };
 
 type ButtonSectionProps = {
@@ -48,12 +43,7 @@ const AccordionContainer = styled.div<ContainerProps>`
         background-color: var(--vscode-list-hoverBackground);
         cursor: pointer;
     }
-    border: ${(p: ContainerProps) => {
-        if (p.haveErrors) return "1px solid red";
-        if (p.showDottedBorder) return "1px dashed var(--vscode-textSeparator-foreground)";
-        return "none";
-    }};
-    opacity: ${(p: ContainerProps) => p.showDottedBorder ? 0.6 : 1};
+    border: ${(p: ContainerProps) => p.haveErrors ? "1px solid red" : "none"};
 `;
 
 const AccordionHeader = styled.div<HeaderProps>`
@@ -63,63 +53,16 @@ const AccordionHeader = styled.div<HeaderProps>`
     grid-template-columns: 3fr 1fr;
 `;
 
-const LinkButtonWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 0 16px;
-
-    :hover {
-        outline: 1px solid var(--vscode-inputOption-activeBorder);
-    }
-`;
-
-const ButtonWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    font-size: 10px;
-    width: 40px;
-`;
-
-const MethodBox = styled.div<MethodProp>`
-    display: flex;
-    justify-content: center;
-    height: 25px;
-    min-width: 70px;
-    width: auto;
-    margin-left: ${(p: MethodProp) => p.hasLeftMargin ? "10px" : "0px"};
-    text-align: center;
-    padding: 3px 5px 3px 5px;
-    background-color: ${(p: MethodProp) => p.color};
-    color: #FFF;
-    align-items: center;
-    font-weight: bold;
-`;
-
 const MethodSection = styled.div`
     display: flex;
     gap: 4px;
 `;
-
-const verticalIconStyles = {
-    transform: "rotate(90deg)",
-    ":hover": {
-        backgroundColor: "var(--vscode-welcomePage-tileHoverBackground)",
-    }
-};
 
 const ButtonSection = styled.div<ButtonSectionProps>`
     display: flex;
     align-items: center;
     margin-left: auto;
     gap: ${(p: ButtonSectionProps) => p.isExpanded ? "8px" : "6px"};
-`;
-
-const AccordionContent = styled.div`
-    padding: 10px;
 `;
 
 const MethodPath = styled.span`
@@ -164,26 +107,10 @@ export interface ResourceAccordionProps {
     onEditResource: (resource: FunctionModel) => void;
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
-    showDottedBorder?: boolean;
-    showEnableButton?: boolean;
-    showDeleteIcon?: boolean;
-    showEditIcon?: boolean;
-    onEnable?: (func: FunctionModel) => void;
 }
 
 export function ResourceAccordion(params: ResourceAccordionProps) {
-    const { 
-        functionModel, 
-        goToSource, 
-        onEditResource, 
-        onDeleteResource, 
-        onResourceImplement,
-        showDottedBorder = false,
-        showEnableButton = false,
-        showDeleteIcon = true,
-        showEditIcon = true,
-        onEnable
-    } = params;
+    const { functionModel, goToSource, onEditResource, onDeleteResource, onResourceImplement } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -222,41 +149,32 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
         setConfirmEl(null);
     };
 
-    const handleEnableFunction = (e: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
-        e.stopPropagation();
-        if (onEnable) {
-            onEnable(functionModel);
-        }
-    };
-
     const handleResourceImplement = () => {
         onResourceImplement(functionModel)
     }
 
     return (
-        <AccordionContainer data-testid="service-design-view-resource" showDottedBorder={showDottedBorder}>
+        <AccordionContainer data-testid="service-design-view-resource">
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodPath>{functionModel.name.value}</MethodPath>
-                    <Icon name="info" isCodicon sx={{ fontSize: 14, marginLeft: 6, color: 'var(--vscode-descriptionForeground)' }} />
                 </MethodSection>
-                <ButtonSection>
-                    {showEnableButton && (
-                        <Button appearance="primary" tooltip="Enable Function" onClick={handleEnableFunction}>
-                            Enable
-                        </Button>
-                    )}
-                    {functionModel.editable && showEditIcon && onEditResource && (
-                        <Button appearance="icon" tooltip="Edit FunctionModel" onClick={handleEditResource} disabled={!functionModel.editable}>
-                            <Icon name="editIcon" sx={{ marginTop: 3.5 }} />
-                        </Button>
-                    )}
-                    {functionModel.editable && showDeleteIcon && onDeleteResource && (
-                        <Button appearance="icon" tooltip="Delete FunctionModel" onClick={handleDeleteResource} disabled={!functionModel.editable}>
-                            <Codicon name="trash" />
-                        </Button>
-                    )}
-                </ButtonSection>
+                {functionModel.editable &&
+                    <ButtonSection>
+                        <>
+                            {onEditResource! && (
+                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={handleEditResource} disabled={!functionModel.editable}>
+                                    <Icon name="editIcon" sx={{ marginTop: 3.5 }} />
+                                </Button>
+                            )}
+                            {onDeleteResource! && (
+                                <Button appearance="icon" tooltip="Delete FunctionModel" onClick={handleDeleteResource} disabled={!functionModel.editable}>
+                                    <Codicon name="trash" />
+                                </Button>
+                            )}
+                        </>
+                    </ButtonSection>
+                }
             </AccordionHeader>
             <Confirm
                 isOpen={isConfirmOpen}
@@ -270,4 +188,3 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
         </AccordionContainer>
     );
 };
-
