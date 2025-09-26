@@ -60,7 +60,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 1.3.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
-@JsonSegment("openAPILSExtension")
+@JsonSegment("ballerinaToOpenAPI")
 public class OpenAPIConverterService implements ExtendedLanguageServerService {
     private static final String SERVICE_NAME = "serviceName";
     private static final String SPEC = "spec";
