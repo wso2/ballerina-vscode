@@ -26,10 +26,14 @@ import io.ballerina.designmodelgenerator.extension.response.ArtifactsParams;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
+import org.ballerinalang.langserver.commons.eventsync.EventKind;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
+import org.ballerinalang.langserver.eventsync.EventPublisher;
+import org.ballerinalang.langserver.eventsync.EventSyncPubSubHolder;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
@@ -278,6 +282,97 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
         }
+    }
+
+    @Test
+    public void testMultipleDidChangeEventsOnDifferentFiles() throws Exception {
+        // Setup: Initialize project cache with artifacts
+        initializeProject();
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+
+        // Setup first file - main.bal from old directory
+        String firstSourceDir = getSourcePath("new");
+        Path firstFilePath = Path.of(firstSourceDir, "main.bal");
+        String firstFileUri = firstFilePath.toAbsolutePath().normalize().toUri().toString();
+
+        // Setup second file - functions.bal from new directory
+        String secondSourceDir = getSourcePath("new");
+        Path secondFilePath = Path.of(secondSourceDir, "functions.bal");
+        String secondFileUri = secondFilePath.toAbsolutePath().normalize().toUri().toString();
+
+        // Create document service contexts for both files
+        DocumentServiceContext firstDocumentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                firstFileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+        DocumentServiceContext secondDocumentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                secondFileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+
+        // Prepare change events for both files
+        VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier();
+        List<TextDocumentContentChangeEvent> firstChangeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(firstFilePath.toString())));
+        List<TextDocumentContentChangeEvent> secondChangeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(secondFilePath.toString())));
+
+        // Send didChange notifications for both files
+        try {
+            workspaceManager.didChange(firstFilePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, firstChangeEvents));
+            workspaceManager.didChange(secondFilePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, secondChangeEvents));
+        } catch (WorkspaceDocumentException e) {
+            Assert.fail("Error while sending didChange notifications", e);
+        }
+
+        // Create mock client
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        LanguageServerContext languageServerContext = languageServer.getServerContext();
+
+        EventPublisher projectUpdatePublisher = EventSyncPubSubHolder.getInstance(languageServer.getServerContext())
+                .getPublisher(EventKind.PROJECT_UPDATE);
+
+        projectUpdatePublisher.publish(mockClient, languageServerContext, firstDocumentServiceContext);
+        projectUpdatePublisher.publish(mockClient, languageServerContext, secondDocumentServiceContext);
+
+        // Wait for debouncer to complete processing for both files
+        waitForDebouncerCompletion(firstFileUri);
+        waitForDebouncerCompletion(secondFileUri);
+
+        // Verify the client was called for both files
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient, Mockito.times(2)).publishArtifacts(artifactsCaptor.capture());
+
+        List<ArtifactsParams> capturedValues = artifactsCaptor.getAllValues();
+        Assert.assertEquals(capturedValues.size(), 2, "Expected artifacts to be published for both files");
+
+        // Verify that both URIs were processed
+        boolean firstUriFound = false;
+        boolean secondUriFound = false;
+
+        for (ArtifactsParams artifactsParams : capturedValues) {
+            String uri = artifactsParams.uri();
+            Assert.assertNotNull(uri, "Published artifacts URI should not be null");
+
+            if (firstFileUri.equals(uri)) {
+                firstUriFound = true;
+            } else if (secondFileUri.equals(uri)) {
+                secondUriFound = true;
+            }
+
+            // Verify artifacts are not empty
+            Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
+            Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
+        }
+
+        Assert.assertTrue(firstUriFound, "Artifacts should be published for first file: " + firstFileUri);
+        Assert.assertTrue(secondUriFound, "Artifacts should be published for second file: " + secondFileUri);
     }
 
     @Test
