@@ -77,25 +77,30 @@ export function ServiceWizard(props: ServiceWizardProps) {
                     title: res.service.displayName || res.service.name,
                     moduleName: res.service.moduleName
                 });
+                return rpcClient.getServiceDesignerRpcClient().getListeners({ filePath: "", moduleName: type });
+            })
+            .then(res => {
+                console.log("Existing Listeners: ", res);
+                setExisting(res.hasListeners);
+                if (res.hasListeners) {
+                    return rpcClient.getServiceDesignerRpcClient().getServiceModel({ filePath: "", moduleName: type, listenerName: "" })
+                        .then(serviceRes => {
+                            console.log("Service Model: ", serviceRes);
+                            serviceRes.service.properties["listener"].editable = true;
+                            serviceRes.service.properties["listener"].addNewButton = true;
+                            setServiceModel(serviceRes.service);
+                            setStep(1);
+                            setListeners(res);
+                            return rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type });
+                        });
+                }
+                setListeners(res);
+                return rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type });
+            })
+            .then(res => {
+                console.log("Listener Model: ", res);
+                setListenerModel(res.listener);
             });
-        rpcClient.getServiceDesignerRpcClient().getListeners({ filePath: "", moduleName: type }).then(res => {
-            console.log("Existing Listeners: ", res);
-            setExisting(res.hasListeners);
-            if (res.hasListeners) {
-                rpcClient.getServiceDesignerRpcClient().getServiceModel({ filePath: "", moduleName: type, listenerName: "" }).then(res => {
-                    console.log("Service Model: ", res);
-                    res.service.properties["listener"].editable = true;
-                    res.service.properties["listener"].addNewButton = true;
-                    setServiceModel(res.service);
-                    setStep(1);
-                });
-            }
-            setListeners(res);
-        });
-        rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: type }).then(res => {
-            console.log("Listener Model: ", res);
-            setListenerModel(res.listener);
-        });
     }, []);
 
     const handleListenerSubmit = async (value?: ListenerModel) => {
