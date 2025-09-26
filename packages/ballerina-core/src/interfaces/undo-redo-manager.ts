@@ -80,13 +80,13 @@ export interface IUndoRedoManager {
      * Undo the last batch operation
      * Returns a map of file paths to their restored content
      */
-    undo(): Map<string, string> | null;
+    undo(count: number): Map<string, string> | null;
 
     /**
      * Redo the last undone batch operation
      * Returns a map of file paths to their restored content
      */
-    redo(): Map<string, string> | null;
+    redo(count: number): Map<string, string> | null;
 
     /**
      * Check if a batch operation is in progress
