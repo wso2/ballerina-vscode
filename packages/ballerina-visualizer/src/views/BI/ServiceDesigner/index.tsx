@@ -53,18 +53,6 @@ const LoadingContainer = styled.div`
     flex-direction: column;
 `;
 
-const InfoContainer = styled.div`
-    display: flex;
-    gap: 20px;
-    padding: 15px;
-    //border: 1px solid var(--vscode-editorIndentGuide-background);
-`;
-
-const InfoSection = styled.div`
-    display: flex;
-    align-items: center;
-`;
-
 const ServiceContainer = styled.div`
     padding-right: 10px;
     padding-left: 10px;
@@ -162,63 +150,6 @@ const PropertyValue = styled.div`
     align-items: center;
 `;
 
-// ServiceFieldsContainer and ServiceFieldsHeader are no longer needed as the table is now inside PropertiesSection
-
-const ServiceFieldsTable = styled.table`
-    width: 100%;
-    border-collapse: collapse;
-    background-color: var(--vscode-editor-background);
-`;
-
-const TableHeader = styled.th`
-    padding: 12px 8px;
-    text-align: left;
-    border-bottom: 1px solid var(--vscode-editorIndentGuide-background);
-    background-color: var(--vscode-editorWidget-background);
-    font-weight: 500;
-`;
-
-const TableRow = styled.tr`
-    border-bottom: 1px solid var(--vscode-editorIndentGuide-background);
-    
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-`;
-
-const TableCell = styled.td`
-    padding: 12px 8px;
-`;
-
-const ActionButtons = styled.div`
-    display: flex;
-    gap: 8px;
-    align-items: center;
-`;
-
-const ActionButton = styled.button`
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    color: var(--vscode-foreground);
-    transition: all 0.2s ease;
-    
-    &:hover {
-        background-color: var(--vscode-button-hoverBackground);
-        color: var(--vscode-button-foreground);
-    }
-    
-    &:active {
-        background-color: var(--vscode-button-background);
-    }
-`;
-
-
 interface ServiceDesignerProps {
     filePath: string;
     position: NodePosition;
@@ -228,13 +159,6 @@ interface ServiceDesignerProps {
 interface ReadonlyProperty {
     label: string;
     value: string | string[];
-}
-
-interface ServiceField {
-    name: string;
-    type: string;
-    isPrivate?: boolean;
-    isFinal?: boolean;
 }
 
 export function ServiceDesigner(props: ServiceDesignerProps) {
@@ -257,7 +181,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const [listeners, setListeners] = useState<string[]>([]);
     const [readonlyProperties, setReadonlyProperties] = useState<Set<ReadonlyProperty>>(new Set());
-    const [serviceFields, setServiceFields] = useState<ServiceField[]>([]);
     const [isHttpService, setIsHttpService] = useState<boolean>(false);
     const [objectMethods, setObjectMethods] = useState<FunctionModel[]>([]);
 
@@ -314,9 +237,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             setReadonlyProperties(readonlyProps);
             setIsHttpService(service.moduleName === "http");
         }
-
-        // Extract service fields if available (for service classes)
-        // setServiceFields([{ name: "field1", type: "string" }, { name: "field2", type: "int" }]);
 
         // Extract object methods if available (for service classes)
         const objectMethods = service.functions.filter((func) => func.kind === "DEFAULT");
@@ -874,18 +794,19 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         <div>
                                             <Typography key={"title"} variant="h3"
                                                 sx={{ marginLeft: 10, fontWeight: 'bold' }}
-                                            > Trigger Functions
+                                            > Handlers
                                             </Typography>
                                             <Typography key={"body"} variant="body3"
                                                 sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
                                             >
-                                                Enable trigger functions to handle events
+                                                Handle functions to process events
                                             </Typography>
                                         </div>
                                     </HeaderContainer>
                                     <FunctionsContainer>
                                         {serviceModel.functions
-                                            .filter((functionModel) => functionModel.kind === "REMOTE")
+                                            .filter((functionModel) => 
+                                                functionModel.kind === "REMOTE" && functionModel.enabled)
                                             .map((functionModel, index) => (
                                                 <ResourceAccordion
                                                     key={`${index}-${functionModel.name.value}`}
@@ -894,14 +815,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     onEditResource={handleFunctionEdit}
                                                     onDeleteResource={handleFunctionDelete}
                                                     onResourceImplement={handleOpenDiagram}
-                                                    showDottedBorder={!functionModel.enabled}
-                                                    showEnableButton={!functionModel.enabled}
-                                                    showDeleteIcon={functionModel.enabled}
-                                                    showEditIcon={functionModel.enabled}
-                                                    onEnable={(func: FunctionModel) => {
-                                                        const updatedFunc = { ...func, enabled: true };
-                                                        handleFunctionSubmit(updatedFunc);
-                                                    }}
                                                 />
                                             ))}
                                     </FunctionsContainer>
@@ -940,76 +853,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     onEditResource={handleFunctionEdit}
                                                     onDeleteResource={handleFunctionDelete}
                                                     onResourceImplement={handleOpenDiagram}
-                                                    showDottedBorder={!functionModel.enabled}
-                                                    showEnableButton={!functionModel.enabled}
-                                                    showDeleteIcon={functionModel.enabled}
-                                                    showEditIcon={functionModel.enabled}
-                                                    onEnable={(func: FunctionModel) => {
-                                                        const updatedFunc = { ...func, enabled: true };
-                                                        handleFunctionSubmit(updatedFunc);
-                                                    }}
                                                 />
                                             ))}
                                     </FunctionsContainer>
                                 </>
                             ))}
-
-                            {/* Service Fields Section */}
-                            {serviceFields.length > 0 && (
-                                <div style={{ padding: '15px', width: '40%' }}>
-                                    <div style={{ marginBottom: '15px' }}>
-                                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                            Service Fields
-                                        </Typography>
-                                        <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                                            Fields defined in the service class
-                                        </Typography>
-                                    </div>
-
-                                    <ServiceFieldsTable>
-                                        <thead>
-                                            <tr>
-                                                <TableHeader>Type</TableHeader>
-                                                <TableHeader>Field Name</TableHeader>
-                                                <TableHeader>Actions</TableHeader>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {serviceFields.map((field, index) => (
-                                                <TableRow key={`field-${index}`}>
-                                                    <TableCell>
-                                                        <Typography variant="body3">
-                                                            {field.type}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
-                                                            {field.name}
-                                                        </Typography>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <ActionButtons>
-                                                            <ActionButton
-                                                                onClick={() => handleFieldEdit()}
-                                                                title="Edit Field"
-                                                            >
-                                                                <Icon name="edit" isCodicon sx={{ fontSize: 12 }} />
-                                                            </ActionButton>
-                                                            <ActionButton
-                                                                onClick={() => handleFieldDelete()}
-                                                                title="Delete Field"
-                                                            >
-                                                                <Icon name="trash" isCodicon sx={{ fontSize: 12 }} />
-                                                            </ActionButton>
-                                                        </ActionButtons>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </tbody>
-                                    </ServiceFieldsTable>
-                                </div>
-                            )}
-
 
                             {functionModel && functionModel.kind === "RESOURCE" && (
                                 <PanelContainer
