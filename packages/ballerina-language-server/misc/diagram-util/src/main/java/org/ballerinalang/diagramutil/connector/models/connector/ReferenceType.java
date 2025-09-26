@@ -206,7 +206,12 @@ public class ReferenceType {
 
             for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
-                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleID);
+                ModuleID moduleId = getModuleID(memberTypeSymbol);
+                if (memberTypeSymbol.typeKind() == TypeDescKind.SINGLETON) {
+                    moduleId = moduleID;
+                }
+                assert moduleId != null;
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, moduleId);
                 if (memberType.dependentTypeHashes == null || memberType.dependentTypeHashes.isEmpty()) {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);

@@ -1031,7 +1031,7 @@ public class DataMapManager {
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
-                            memberNames.add(memberPort.typeName);
+                            memberNames.add(member.typeInfo.modulePrefix + ":" + memberPort.typeName);
                         }
                     }
                     unionPort.typeName = String.join(PIPE, memberNames);
