@@ -18,12 +18,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ActionButtons, View, ViewContent } from '@wso2/ui-toolkit';
-import styled from '@emotion/styled';
 import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
+import { TopNavigationBar } from '../../../components/TopNavigationBar';
+import { TitleBar } from '../../../components/TitleBar';
+import { getImportsForProperty } from '../../../utils/bi';
 export interface ResourceFormProps {
     // model: FunctionModel;
     // isSaving: boolean;
@@ -43,6 +44,8 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     const [fields, setFields] = useState<FormField[]>([]);
     const [location, setLocation] = useState<VisualizerLocation | null>(null);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    
 
         const handleParamChange = (param: Parameter) => {
             const name = `${param.formValues['variable']}`;
@@ -279,27 +282,76 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         console.log('Function Create: ', updatedFunctionModel);
     }
 
+    const handleFunctionSave = async (updatedFunction: FunctionModel) => {
+        try {
+            setIsSaving(true);
+            let artifacts;
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(model.codedata.lineRange.fileName);
+            
+            artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
+                filePath: currentFilePath,
+                codedata: {
+                    lineRange: {
+                        startLine: {
+                            line: model.codedata.lineRange.startLine.line,
+                            offset: model.codedata.lineRange.startLine.offset
+                        },
+                        endLine: {
+                            line: model.codedata.lineRange.endLine.line,
+                            offset: model.codedata.lineRange.endLine.offset
+                        }
+                    }
+                },
+                function: updatedFunction
+            });
+        } catch (error) {
+            console.error('Error updating function:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleFunctionCreate1 = (data: FormValues, formImports: FormImports) => {
+        console.log("Function create with data:", data);
+        const { name, returnType, parameters: params } = data;
+        const paramList = params ? getFunctionParametersList(params) : [];
+        const newFunctionModel = { ...model };
+        newFunctionModel.name.value = name;
+        newFunctionModel.returnType.value = returnType;
+        newFunctionModel.parameters = paramList;
+        newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
+        Object.entries(data).forEach(([key, value]) => {
+            if (newFunctionModel?.properties?.[key]) {
+                newFunctionModel.properties[key].value = value as string;
+            }
+        });
+        handleFunctionSave(newFunctionModel);
+    };
 
     return (
-                <>
-                    {fields.length > 0 && (
-                        <FormGeneratorNew
-                            fileName={location?.documentUri || ''}
-                            targetLineRange={model.codedata?.lineRange as LineRange}
-                            fields={fields}
-                            onSubmit={handleFunctionCreate}
-                            onBack={onClose}
-                            submitText={ "Save"}
-                            helperPaneSide="left"
-                            isSaving={false}
-                            preserveFieldOrder={true}
-                            recordTypeFields={recordTypeFields}
-                        />
-                    )}
-                </>
+        <>
+            <TopNavigationBar />
+            <TitleBar
+                title="Service Function"
+                subtitle="Build reusable custom flows"
+            />
+                {fields.length > 0 && (
+                    <FormGeneratorNew
+                        fileName={location?.documentUri || ''}
+                        targetLineRange={model.codedata?.lineRange as LineRange}
+                        fields={fields}
+                        onSubmit={handleFunctionCreate1}
+                        onBack={onClose}
+                        submitText={ "Save"}
+                        helperPaneSide="left"
+                        isSaving={isSaving}
+                        preserveFieldOrder={true}
+                        recordTypeFields={recordTypeFields}
+                    />
+                )}
+            </>
     );
 }
-
 
 export function convertSchemaToFormFields(schema: ConfigProperties): FormField[] {
     const formFields: FormField[] = [];
@@ -322,7 +374,6 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
 
     return formFields;
 }
-
 
 export function convertParameterToFormField(key: string, param: ParameterModel): FormField {
     return {
