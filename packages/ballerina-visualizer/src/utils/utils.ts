@@ -43,25 +43,11 @@ export function transformNodePosition(position: NodePosition) {
 }
 
 export async function handleUndo(rpcClient: BallerinaRpcClient) {
-    const lastsource = await rpcClient.getVisualizerRpcClient().undo();
-    const docUri = (await rpcClient.getVisualizerLocation()).documentUri;
-    if (lastsource) {
-        rpcClient.getLangClientRpcClient().updateFileContent({
-            filePath: docUri,
-            content: lastsource,
-        });
-    }
+    await rpcClient.getVisualizerRpcClient().undo();
 }
 
 export async function handleRedo(rpcClient: BallerinaRpcClient) {
-    const lastsource = await rpcClient.getVisualizerRpcClient().redo();
-    const docUri = (await rpcClient.getVisualizerLocation()).documentUri;
-    if (lastsource) {
-        rpcClient.getLangClientRpcClient().updateFileContent({
-            filePath: docUri,
-            content: lastsource,
-        });
-    }
+    await rpcClient.getVisualizerRpcClient().redo();
 }
 
 const colors = {

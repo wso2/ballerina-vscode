@@ -33,11 +33,12 @@ import {
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import fs from "fs";
-import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
+import { history, openView, StateMachine, undoRedoManager, updateDataMapperView, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
 import { notifyCurrentWebview } from "../../RPCLayer";
 import { updateCurrentArtifactLocation } from "../../utils/state-machine-utils";
+import { refreshDataMapper } from "../data-mapper/utils";
 
 export class VisualizerRpcManager implements VisualizerAPI {
 
@@ -82,6 +83,14 @@ export class VisualizerRpcManager implements VisualizerAPI {
         updateView();
     }
 
+    private async refreshDataMapperView(): Promise<void> {
+        const stateMachineContext = StateMachine.context();
+        if (stateMachineContext.view === MACHINE_VIEW.DataMapper || stateMachineContext.view === MACHINE_VIEW.InlineDataMapper) {
+            const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+            await refreshDataMapper(documentUri, codeData, name);
+        }
+    }
+
     async undo(): Promise<string> {
         // Handle the undo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
         return new Promise((resolve, reject) => {
@@ -104,6 +113,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
+                await this.refreshDataMapperView();
                 unsubscribe();
                 resolve("Undo successful"); // resolve the undo string
             });
@@ -148,6 +158,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
+                await this.refreshDataMapperView();
                 unsubscribe();
                 resolve("Redo successful");
             });

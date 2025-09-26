@@ -128,6 +128,7 @@ export function TitleBar(props: TitleBarProps) {
                         <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                     </IconButton>
                 )}
+                {actions && <UndoRedoGroup key={Date.now()} />}
                 <TitleSection>
                     <Title>{title}</Title>
                     {subtitle && <SubTitle>{subtitle}</SubTitle>}
@@ -140,7 +141,6 @@ export function TitleBar(props: TitleBarProps) {
                 )}
             </LeftContainer>
             <RightContainer>
-                {actions && <UndoRedoGroup key={Math.random()} />}
                 {actions && <ActionsContainer>{actions}</ActionsContainer>}
             </RightContainer>
         </TitleBarContainer>

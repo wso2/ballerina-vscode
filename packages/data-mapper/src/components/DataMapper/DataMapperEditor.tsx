@@ -139,7 +139,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
-        enrichChildFields
+        enrichChildFields,
+        undoRedoGroup
     } = props;
     const {
         model,
@@ -329,6 +330,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         onBack={handleOnBack}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
+                        undoRedoGroup={undoRedoGroup}
                     />
                 )}
                 {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
