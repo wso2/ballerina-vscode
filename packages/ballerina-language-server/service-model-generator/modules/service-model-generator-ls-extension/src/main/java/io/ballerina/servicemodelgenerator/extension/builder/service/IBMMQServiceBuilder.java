@@ -18,12 +18,25 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -111,6 +124,10 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String TOPIC_NAME_PARAM = PROPERTY_TOPIC_NAME + COLON_SEPARATOR;
     private static final String LISTENER_DECLARATION_FORMAT = "listener %s:%s %s = new (%s);";
 
+    // Function and parameter names
+    private static final String ON_MESSAGE_FUNCTION_NAME = "onMessage";
+    private static final String CALLER_PARAM_NAME = "caller";
+
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
@@ -143,8 +160,9 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         // Build service annotation
         String serviceAnnotation = buildServiceAnnotation(properties);
 
-        // Get required functions
+        // Get required functions with conditional onMessage signature
         List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        applyAckModeToOnMessageFunction(functions, properties);
         List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
 
         // Build complete service
@@ -305,6 +323,158 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         annotation.append(String.join(COMMA_SEPARATOR, configParams));
         annotation.append(CLOSE_BRACE).append(NEW_LINE);
         return annotation.toString();
+    }
+
+    private void applyAckModeToOnMessageFunction(List<Function> functions, Map<String, Value> properties) {
+        // Find the onMessage function
+        Function onMessageFunction = functions.stream()
+                .filter(func -> ON_MESSAGE_FUNCTION_NAME.equals(func.getName().getValue()))
+                .findFirst()
+                .orElse(null);
+
+        if (onMessageFunction == null) {
+            return;
+        }
+
+        // Get the session ack mode
+        Value sessionAckMode = properties.get(PROPERTY_SESSION_ACK_MODE);
+        if (sessionAckMode == null || sessionAckMode.getValue() == null) {
+            return;
+        }
+
+        String ackMode = sessionAckMode.getValue();
+        updateCallerParameterForAckMode(onMessageFunction, ackMode);
+    }
+
+    private void addCallerParameter(Function onMessageFunction) {
+        // Create caller parameter: ibmmq:Caller caller
+        Value callerType = new Value.ValueBuilder()
+                .value("ibmmq:Caller")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .enabled(true)
+                .editable(false)
+                .build();
+
+        Value callerName = new Value.ValueBuilder()
+                .value(CALLER_PARAM_NAME)
+                .valueType(VALUE_TYPE_STRING)
+                .enabled(true)
+                .editable(false)
+                .build();
+
+        Parameter callerParameter = new Parameter.Builder()
+                .metadata(new MetaData("Caller", "IBM MQ caller object for message acknowledgment"))
+                .kind("OPTIONAL")
+                .type(callerType)
+                .name(callerName)
+                .enabled(true)
+                .editable(false)
+                .optional(true)
+                .build();
+
+        // Add caller parameter as the second parameter (after message parameter)
+        onMessageFunction.getParameters().add(1, callerParameter);
+    }
+
+    private String extractAcknowledgmentMode(MappingConstructorExpressionNode mappingNode) {
+        // Parse the mapping constructor to find the sessionAckMode field
+        for (MappingFieldNode field : mappingNode.fields()) {
+            if (field instanceof SpecificFieldNode specificField) {
+                // Get the field name
+                String fieldName = specificField.fieldName().toString().trim();
+
+                // Check if this is the sessionAckMode field
+                if (PROPERTY_SESSION_ACK_MODE.equals(fieldName)) {
+                    // Get the field value
+                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
+                    if (valueExpr instanceof BasicLiteralNode literalNode) {
+                        return literalNode.literalToken().text().trim();
+                    }
+                }
+            }
+        }
+        return null; // Return null if sessionAckMode field not found
+    }
+
+    private void updateCallerParameterForAckMode(Function onMessageFunction, String ackMode) {
+        if (onMessageFunction == null) {
+            return;
+        }
+
+        // Find the caller parameter
+        Parameter callerParam = onMessageFunction.getParameters().stream()
+                .filter(param -> CALLER_PARAM_NAME.equals(param.getName().getValue()))
+                .findFirst()
+                .orElse(null);
+
+        if (ACK_AUTO.equals(ackMode)) {
+            // If AUTO_ACKNOWLEDGE, disable the caller parameter if it exists
+            if (callerParam != null) {
+                callerParam.setEnabled(false);
+            }
+        } else {
+            // For other modes (CLIENT_ACKNOWLEDGE, DUPS_OK_ACKNOWLEDGE, SESSION_TRANSACTED),
+            // enable the caller parameter if it exists, or create it if it doesn't
+            if (callerParam != null) {
+                callerParam.setEnabled(true);
+            } else {
+                addCallerParameter(onMessageFunction);
+            }
+        }
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        // Get service-level edits from parent
+        Map<String, List<TextEdit>> serviceEdits = super.updateModel(context);
+        List<TextEdit> allEdits = new ArrayList<>(serviceEdits.get(context.filePath()));
+
+        Service service = context.service();
+        ServiceDeclarationNode serviceNode = context.serviceNode();
+
+        // Find and update onMessage function if ack mode changed
+        try {
+            Function onMessageFunction = service.getFunctions().stream()
+                    .filter(func -> ON_MESSAGE_FUNCTION_NAME.equals(func.getName().getValue()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (onMessageFunction != null) {
+                // Extract and apply ack mode from annotation
+                String annotationExpr = service.getProperties().get("annotServiceConfig").getValue();
+                ExpressionNode exprNode = NodeParser.parseExpression(annotationExpr);
+                if (exprNode instanceof MappingConstructorExpressionNode mappingNode) {
+                    String ackMode = extractAcknowledgmentMode(mappingNode);
+                    if (ackMode != null) {
+                        updateCallerParameterForAckMode(onMessageFunction, ackMode);
+                    }
+                }
+
+                // Find corresponding FunctionDefinitionNode in the service
+                FunctionDefinitionNode functionNode = serviceNode.members().stream()
+                        .filter(member -> member instanceof FunctionDefinitionNode)
+                        .map(member -> (FunctionDefinitionNode) member)
+                        .filter(funcNode -> ON_MESSAGE_FUNCTION_NAME.equals(funcNode.functionName().text().trim()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (functionNode != null) {
+                    // Use FunctionBuilderRouter to generate function update edits
+                    Map<String, List<TextEdit>> functionEdits = FunctionBuilderRouter.updateFunction(
+                            IBM_MQ, onMessageFunction, context.filePath(), context.document(), functionNode);
+
+                    // Add function edits to the service edits
+                    if (functionEdits.containsKey(context.filePath())) {
+                        allEdits.addAll(functionEdits.get(context.filePath()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // If function update fails, just return service edits
+            // This ensures service-level updates still work even if function updates fail
+        }
+
+        return Map.of(context.filePath(), allEdits);
     }
 
     @Override
