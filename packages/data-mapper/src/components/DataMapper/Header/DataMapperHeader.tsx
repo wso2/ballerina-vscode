@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
 import HeaderBreadcrumb from "./HeaderBreadcrumb";
@@ -70,8 +70,24 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 {undoRedoGroup && undoRedoGroup()}
-                <Button onClick={handleOnRefresh} disabled={isRefreshing}>Refresh</Button>
-                <Button onClick={handleOnReset} disabled={isResetting}>Reset</Button>
+                <Button appearance="icon" onClick={handleOnRefresh} buttonSx={{ padding: "2px 4px" }} disabled={isRefreshing} tooltip="Refresh">
+                    <span style={{ pointerEvents: "none" }}>
+                        {isRefreshing ? (
+                            <ProgressRing sx={{ width: 16, height: 16 }} />
+                        ) : (
+                            <Codicon name="refresh" />
+                        )}
+                    </span>
+                </Button>
+                <Button appearance="icon" onClick={handleOnReset} buttonSx={{ padding: "2px 4px" }} disabled={isResetting} tooltip="Clear all mappings">
+                    <span style={{ pointerEvents: "none" }}>
+                        {isResetting ? (
+                            <ProgressRing sx={{ width: 16, height: 16 }} />
+                        ) : (
+                            <Codicon name="clear-all" />
+                        )}
+                    </span>
+                </Button>
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
