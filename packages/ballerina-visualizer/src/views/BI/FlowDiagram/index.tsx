@@ -1221,7 +1221,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(true);
-        setShowProgressSpinner(true);
         savingDraft();
         const noFormSubmitOptions = !options ||
             (
@@ -2131,7 +2130,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showSpinner: isDraftProcessing,
                 description: draftDescription,
             },
-            selectedNodeId, // ✅ Pass selected node ID for highlighting
+            selectedNodeId,
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
