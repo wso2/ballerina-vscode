@@ -247,28 +247,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const handleEdit = async (fileUri?: string, position?: NodePosition) => {
-        // Get CodeData using the current position instead of flow model
-        let functionCodeData: any = undefined;
-
-        if (position || currentPosition) {
-            try {
-                // Get the flow model to extract CodeData
-                const flowModelResponse = await rpcClient.getBIDiagramRpcClient().getFlowModel();
-                if (flowModelResponse?.flowModel?.nodes) {
-                    // Find the function definition node or EVENT_START node that contains the CodeData
-                    const functionNode = flowModelResponse.flowModel.nodes.find(node =>
-                        node.codedata.node === "EVENT_START" ||
-                        node.codedata.node === "FUNCTION_DEFINITION"
-                    );
-                    if (functionNode) {
-                        functionCodeData = functionNode.codedata;
-                    }
-                }
-            } catch (error) {
-                console.error("Error getting flow model for edit:", error);
-            }
-        }
-
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -278,21 +256,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             identifier: parentMetadata?.label || "",
             documentUri: fileUri,
             position: position || currentPosition
-            // metadata: functionCodeData ? {
-            //     name: parentMetadata?.label || "Function",
-            //     codeData: {
-            //         lineRange: {
-            //             fileName: fileUri || "",
-            //             startLine: {
-            //                 line: position?.startLine || currentPosition?.startLine || 0,
-            //                 offset: position?.startColumn || currentPosition?.startColumn || 0,
-            //             },
-            //             endLine: {
-            //                 line: position?.endLine || currentPosition?.endLine || 0,
-            //                 offset: position?.endColumn || currentPosition?.endColumn || 0,
-            //             },
-            //     },
-            // } } : undefined,
         };
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
