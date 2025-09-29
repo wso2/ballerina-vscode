@@ -75,12 +75,8 @@ public class ReferenceType {
             Optional<String> optName = typeSymbol.getName();
             name = optName.orElseGet(typeSymbol::signature);
         } else if (kind == SymbolKind.CONSTANT) {
-            RefConstType constType = new RefConstType(symbol.getName().orElse(""),
+            return new RefConstType(symbol.getName().orElse(""),
                     ((ConstantSymbol) symbol).broaderTypeDescriptor().signature());
-            ModuleID moduleId = getModuleID(symbol);
-            assert moduleId != null;
-            constType.typeInfo = createTypeInfo(moduleId);
-            return constType;
         } else if (kind == SymbolKind.ENUM) {
             return getEnumType((EnumSymbol) symbol, typeDefSymbols);
         }
@@ -93,7 +89,6 @@ public class ReferenceType {
         if (moduleId == null) {
             moduleId = getModuleIDForTypeSymbol(typeSymbol, null);
         }
-        assert moduleId != null;
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
         if (type.dependentTypes == null) {
@@ -114,6 +109,48 @@ public class ReferenceType {
 
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, ModuleID moduleID,
                                              List<Symbol> typeDefSymbols) {
+        TypeDescKind kind = symbol.typeKind();
+         if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
+            TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
+            ModuleID moduleId = getModuleID(typeRefSymbol);
+            return fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
+        } else if (kind == TypeDescKind.INT) {
+            RefType refType = new RefType("int");
+            refType.typeName = "int";
+            return refType;
+        } else if (kind == TypeDescKind.STRING) {
+            RefType refType = new RefType("string");
+            refType.typeName = "string";
+            return refType;
+        } else if (kind == TypeDescKind.FLOAT) {
+            RefType refType = new RefType("float");
+            refType.typeName = "float";
+            return refType;
+        } else if (kind == TypeDescKind.BOOLEAN) {
+            RefType refType = new RefType("boolean");
+            refType.typeName = "boolean";
+            return refType;
+        } else if (kind == TypeDescKind.NIL) {
+            RefType refType = new RefType("nil");
+            refType.typeName = "()";
+            return refType;
+        } else if (kind == TypeDescKind.DECIMAL) {
+            RefType refType = new RefType("decimal");
+            refType.typeName = "decimal";
+            return refType;
+        } else if (kind == TypeDescKind.NEVER) {
+            RefType refType = new RefType("never");
+            refType.typeName = "never";
+            return refType;
+        } else if (kind == TypeDescKind.SINGLETON) {
+            String typeName = symbol.signature();
+            if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
+                typeName = typeName.substring(1, typeName.length() - 1);
+            }
+            return new RefType(typeName);
+        }
+
         String typeHash = String.valueOf(Objects.hash(moduleID.toString(), name, symbol.signature()));
         String typeKey = String.valueOf((moduleID + ":" + name).hashCode());
 
@@ -129,7 +166,7 @@ public class ReferenceType {
             }
         }
 
-        TypeDescKind kind = symbol.typeKind();
+
         if (kind == TypeDescKind.RECORD) {
             RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) symbol;
             RefRecordType recordType = new RefRecordType(name);
@@ -147,7 +184,9 @@ public class ReferenceType {
                 TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
                 String fieldTypeName = fieldTypeSymbol.getName().orElse("");
                 ModuleID fieldModuleId = getModuleID(fieldSymbol);
-                assert fieldModuleId != null;
+                if (fieldModuleId == null) {
+                    fieldModuleId = getModuleIDForTypeSymbol(fieldTypeSymbol, moduleID);
+                }
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, typeDefSymbols);
                 if (fieldType.dependentTypeKeys == null || fieldType.dependentTypeKeys.isEmpty()) {
                     if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
@@ -190,6 +229,7 @@ public class ReferenceType {
             arrayType.hashCode = typeHash;
             arrayType.key = typeKey;
             arrayType.typeInfo = createTypeInfo(moduleID);
+            visitedTypeMap.put(typeKey, arrayType);
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
             ModuleID elementModuleId = getModuleIDForTypeSymbol(elementTypeSymbol, moduleID);
@@ -280,55 +320,6 @@ public class ReferenceType {
         } else if (kind == TypeDescKind.INTERSECTION) {
             IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) symbol;
             return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(), name, moduleID, typeDefSymbols);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
-            TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
-            ModuleID moduleId = getModuleID(typeRefSymbol);
-            assert moduleId != null;
-            return fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
-        } else if (kind == TypeDescKind.INT) {
-            RefType refType = new RefType("int");
-            refType.typeName = "int";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.STRING) {
-            RefType refType = new RefType("string");
-            refType.typeName = "string";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.FLOAT) {
-            RefType refType = new RefType("float");
-            refType.typeName = "float";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.BOOLEAN) {
-            RefType refType = new RefType("boolean");
-            refType.typeName = "boolean";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.NIL) {
-            RefType refType = new RefType("nil");
-            refType.typeName = "()";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.DECIMAL) {
-            RefType refType = new RefType("decimal");
-            refType.typeName = "decimal";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.NEVER) {
-            RefType refType = new RefType("never");
-            refType.typeName = "never";
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
-        } else if (kind == TypeDescKind.SINGLETON) {
-            String typeName = symbol.signature();
-            if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
-                typeName = typeName.substring(1, typeName.length() - 1);
-            }
-            RefType refType = new RefType(typeName);
-            refType.typeInfo = createTypeInfo(moduleID);
-            return refType;
         }
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
@@ -352,12 +343,21 @@ public class ReferenceType {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol) typeSymbol;
                 TypeSymbol memberType = arrayType.memberTypeDescriptor();
                 ModuleID memberModuleId = getModuleID(memberType);
-                return memberModuleId != null ? memberModuleId : fallbackModuleId;
+                if (memberModuleId != null) {
+                    return memberModuleId;
+                }
+                return getModuleIDForTypeSymbol(memberType, fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
                 return unionType.memberTypeDescriptors().stream()
-                        .map(ReferenceType::getModuleID)
+                        .map(memberType -> {
+                            ModuleID directModuleId = getModuleID(memberType);
+                            if (directModuleId != null) {
+                                return directModuleId;
+                            }
+                            return getModuleIDForTypeSymbol(memberType, fallbackModuleId);
+                        })
                         .filter(Objects::nonNull)
                         .findFirst()
                         .orElse(fallbackModuleId);
@@ -366,11 +366,18 @@ public class ReferenceType {
                 IntersectionTypeSymbol intersectionType = (IntersectionTypeSymbol) typeSymbol;
                 TypeSymbol effectiveType = intersectionType.effectiveTypeDescriptor();
                 ModuleID effectiveModuleId = getModuleID(effectiveType);
-                return effectiveModuleId != null ? effectiveModuleId : fallbackModuleId;
+                if (effectiveModuleId != null) {
+                    return effectiveModuleId;
+                }
+                return getModuleIDForTypeSymbol(effectiveType, fallbackModuleId);
             }
             case TYPE_REFERENCE -> {
                 TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) typeSymbol;
-                return getModuleID(typeRefSymbol);
+                ModuleID refModuleId = getModuleID(typeRefSymbol);
+                if (refModuleId != null) {
+                    return refModuleId;
+                }
+                return getModuleIDForTypeSymbol(typeRefSymbol.typeDescriptor(), fallbackModuleId);
             }
             default -> {
                 ModuleID directModuleId = getModuleID(typeSymbol);
@@ -385,14 +392,12 @@ public class ReferenceType {
         enumSymbol.members().forEach(member -> {
             String name = member.getName().orElse("");
             ModuleID moduleId = getModuleID(member);
-            assert moduleId != null;
             RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, typeDefSymbols);
             fields.add(semanticSymbol);
 
         });
         type = new RefEnumType(enumSymbol.getName().orElse(""), fields);
         ModuleID moduleId = getModuleID(enumSymbol);
-        assert moduleId != null;
         type.typeInfo = createTypeInfo(moduleId);
         return type;
     }

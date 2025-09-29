@@ -9,14 +9,7 @@
         "type": {
           "dependentTypeKeys": [],
           "name": "string",
-          "typeName": "string",
-          "typeInfo": {
-            "orgName": "ballerinax",
-            "moduleName": "health.ccda.r1",
-            "packageName": "health.ccda.r1",
-            "version": "0.1.0",
-            "modulePrefix": "r1"
-          }
+          "typeName": "string"
         },
         "optional": false,
         "defaultValue": ""
@@ -27,36 +20,15 @@
           "memberTypes": [
             {
               "dependentTypeKeys": [],
-              "name": "FINANCE",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "name": "FINANCE"
             },
             {
               "dependentTypeKeys": [],
-              "name": "IT",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "name": "IT"
             },
             {
               "dependentTypeKeys": [],
-              "name": "HR",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "name": "HR"
             }
           ],
           "dependentTypeKeys": [],
@@ -88,36 +60,15 @@
         "memberTypes": [
           {
             "dependentTypeKeys": [],
-            "name": "FINANCE",
-            "typeInfo": {
-              "orgName": "ballerinax",
-              "moduleName": "health.ccda.r1",
-              "packageName": "health.ccda.r1",
-              "version": "0.1.0",
-              "modulePrefix": "r1"
-            }
+            "name": "FINANCE"
           },
           {
             "dependentTypeKeys": [],
-            "name": "IT",
-            "typeInfo": {
-              "orgName": "ballerinax",
-              "moduleName": "health.ccda.r1",
-              "packageName": "health.ccda.r1",
-              "version": "0.1.0",
-              "modulePrefix": "r1"
-            }
+            "name": "IT"
           },
           {
             "dependentTypeKeys": [],
-            "name": "HR",
-            "typeInfo": {
-              "orgName": "ballerinax",
-              "moduleName": "health.ccda.r1",
-              "packageName": "health.ccda.r1",
-              "version": "0.1.0",
-              "modulePrefix": "r1"
-            }
+            "name": "HR"
           }
         ],
         "dependentTypeKeys": [],

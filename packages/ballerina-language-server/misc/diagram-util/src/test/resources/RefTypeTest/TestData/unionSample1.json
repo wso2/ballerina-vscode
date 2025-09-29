@@ -79,14 +79,7 @@
             "type": {
               "dependentTypeKeys": [],
               "name": "string",
-              "typeName": "string",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "typeName": "string"
             },
             "optional": false,
             "defaultValue": ""
@@ -135,14 +128,7 @@
             "type": {
               "dependentTypeKeys": [],
               "name": "string",
-              "typeName": "string",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "typeName": "string"
             },
             "optional": false,
             "defaultValue": ""
@@ -190,14 +176,7 @@
             "type": {
               "dependentTypeKeys": [],
               "name": "string",
-              "typeName": "string",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "typeName": "string"
             },
             "optional": false,
             "defaultValue": ""
@@ -244,14 +223,7 @@
             "type": {
               "dependentTypeKeys": [],
               "name": "string",
-              "typeName": "string",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "typeName": "string"
             },
             "optional": false,
             "defaultValue": ""
@@ -261,14 +233,7 @@
             "type": {
               "dependentTypeKeys": [],
               "name": "int",
-              "typeName": "int",
-              "typeInfo": {
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "packageName": "health.ccda.r1",
-                "version": "0.1.0",
-                "modulePrefix": "r1"
-              }
+              "typeName": "int"
             },
             "optional": false,
             "defaultValue": ""
