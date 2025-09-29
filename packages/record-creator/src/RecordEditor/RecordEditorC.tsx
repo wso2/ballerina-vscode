@@ -23,17 +23,16 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { createPropertyStatement } from "../utils";
 
 import { CreateRecord } from "../CreateRecord";
-import { UndoRedoManager } from "../components/UndoRedoManager";
 import { StatementEditorWrapper } from "@wso2/ballerina-statement-editor";
 import { Context } from "../Context";
 import { FormContainer } from "../style";
 import { RecordEditorCProps } from ".";
-
-const undoRedoManager = new UndoRedoManager();
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 export function RecordEditorC(props: RecordEditorCProps) {
     const { model, isDataMapper, onCancel, showHeader, onUpdate } = props;
 
+    const { rpcClient } = useRpcContext();
     const {
         props: {
             targetPosition,
@@ -47,8 +46,11 @@ export function RecordEditorC(props: RecordEditorCProps) {
     } = useContext(Context);
 
     const createModelSave = (recordString: string, pos: NodePosition) => {
-        undoRedoManager.updateContent(currentFile.path, currentFile.content);
-        undoRedoManager.addModification(currentFile.content);
+        rpcClient.getVisualizerRpcClient().addToUndoStack({
+            filePath: currentFile.path,
+            source: currentFile.content,
+            description: 'New Record Creation',
+        });
         applyModifications([createPropertyStatement(recordString, targetPosition, false)]);
         if (isDataMapper) {
             onCancel(recordString);
@@ -95,7 +97,6 @@ export function RecordEditorC(props: RecordEditorCProps) {
                     onCancel={onCancel}
                     onSave={createModelSave}
                     isDataMapper={isDataMapper}
-                    undoRedoManager={undoRedoManager}
                     showHeader={showHeader}
                     onUpdate={onUpdate}
                 />
