@@ -85,7 +85,7 @@ export function DraftNodeWidget(props: DraftNodeWidgetProps) {
     const { draftNode, suggestions } = useDiagramContext();
 
     // special case draft node if suggestions are fetching
-    if (suggestions?.fetching && !draftNode.override) {
+    if (suggestions?.fetching && !draftNode?.override) {
         return (
             <NodeStyles.Node>
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
