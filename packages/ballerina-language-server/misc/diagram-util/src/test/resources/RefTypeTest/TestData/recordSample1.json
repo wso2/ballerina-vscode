@@ -7,7 +7,7 @@
       {
         "fieldName": "sampleTypeName",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string",
           "typeInfo": {
@@ -24,7 +24,7 @@
       {
         "fieldName": "sampleTypeCode",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "int",
           "typeName": "int",
           "typeInfo": {
@@ -39,10 +39,12 @@
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [],
+    "dependentTypeKeys": [],
     "hashCode": "695203170",
+    "key": "441557406",
     "name": "SampleType",
     "typeName": "record",
+    "dependentTypes": {},
     "typeInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",

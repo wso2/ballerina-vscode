@@ -192,8 +192,9 @@ public class ReferenceType {
             arrayType.typeInfo = createTypeInfo(moduleID);
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
-            ModuleID moduleId = getModuleIDForTypeSymbol(elementTypeSymbol, moduleID);
-            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, moduleId, typeDefSymbols);
+            ModuleID elementModuleId = getModuleIDForTypeSymbol(elementTypeSymbol, moduleID);
+            RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, elementModuleId,
+                    typeDefSymbols);
             if (elementType.dependentTypeKeys == null || elementType.dependentTypeKeys.isEmpty()) {
                 if (elementType.hashCode != null && elementType.typeName.equals("record")) {
                     RefType t = new RefType(elementType.name);

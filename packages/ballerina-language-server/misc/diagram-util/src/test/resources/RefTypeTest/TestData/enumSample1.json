@@ -7,7 +7,7 @@
       {
         "fieldName": "name",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string",
           "typeInfo": {
@@ -26,7 +26,7 @@
         "type": {
           "memberTypes": [
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "FINANCE",
               "typeInfo": {
                 "orgName": "ballerinax",
@@ -37,7 +37,7 @@
               }
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "IT",
               "typeInfo": {
                 "orgName": "ballerinax",
@@ -48,7 +48,7 @@
               }
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "HR",
               "typeInfo": {
                 "orgName": "ballerinax",
@@ -59,8 +59,9 @@
               }
             }
           ],
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "-959561237",
+          "key": "-1253237511",
           "name": "DepartmentCode",
           "typeName": "union",
           "typeInfo": {
@@ -75,17 +76,18 @@
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "-959561237"
+    "dependentTypeKeys": [
+      "-1253237511"
     ],
     "hashCode": "1123774631",
+    "key": "1146573036",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
-      "-959561237": {
+      "-1253237511": {
         "memberTypes": [
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "FINANCE",
             "typeInfo": {
               "orgName": "ballerinax",
@@ -96,7 +98,7 @@
             }
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "IT",
             "typeInfo": {
               "orgName": "ballerinax",
@@ -107,7 +109,7 @@
             }
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "HR",
             "typeInfo": {
               "orgName": "ballerinax",
@@ -118,8 +120,9 @@
             }
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "-959561237",
+        "key": "-1253237511",
         "name": "DepartmentCode",
         "typeName": "union",
         "typeInfo": {
