@@ -426,6 +426,61 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         return null; // Return null if sessionAckMode field not found
     }
 
+    private String extractQueueName(MappingConstructorExpressionNode mappingNode) {
+        // Parse the mapping constructor to find the queueName field
+        for (MappingFieldNode field : mappingNode.fields()) {
+            if (field instanceof SpecificFieldNode specificField) {
+                // Get the field name
+                String fieldName = specificField.fieldName().toString().trim();
+
+                // Check if this is the queueName field
+                if (PROPERTY_QUEUE_NAME.equals(fieldName)) {
+                    // Get the field value
+                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
+                    if (valueExpr instanceof BasicLiteralNode literalNode) {
+                        return literalNode.literalToken().text().trim().replace("\"", "");
+                    }
+                }
+            }
+        }
+        return null; // Return null if queueName field not found
+    }
+
+    private void extractQueueNameFromAnnotation(Service service) {
+        Map<String, Value> properties = service.getProperties();
+        Map<String, Value> readonlyProperties = service.getReadonlyProperties();
+
+        // Get the annotation configuration from properties
+        Value annotServiceConfig = properties.get("annotServiceConfig");
+        if (annotServiceConfig == null || annotServiceConfig.getValue() == null) {
+            return;
+        }
+
+        // Parse the annotation expression
+        String annotationExpr = annotServiceConfig.getValue();
+        ExpressionNode exprNode = NodeParser.parseExpression(annotationExpr);
+        if (!(exprNode instanceof MappingConstructorExpressionNode mappingNode)) {
+            return;
+        }
+
+        // Extract queue name from the mapping
+        String queueName = extractQueueName(mappingNode);
+        if (queueName != null) {
+            // Create a new readonly property for the queue name
+            Value queueNameProperty = new Value.ValueBuilder()
+                    .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
+                    .value(queueName)
+                    .valueType(VALUE_TYPE_EXPRESSION)
+                    .setValueTypeConstraint(VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .editable(false)
+                    .build();
+
+            // Add the queue name as a readonly property
+            readonlyProperties.put(PROPERTY_QUEUE_NAME, queueNameProperty);
+        }
+    }
+
     private void updateCallerParameterForAckMode(Function onMessageFunction, String ackMode) {
         if (onMessageFunction == null) {
             return;
@@ -601,6 +656,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                     onErrorFunction.setEditable(true);
                 });
 
+        // Extract queue name from annotation and add as readonly property
+        extractQueueNameFromAnnotation(service);
         return service;
     }
 

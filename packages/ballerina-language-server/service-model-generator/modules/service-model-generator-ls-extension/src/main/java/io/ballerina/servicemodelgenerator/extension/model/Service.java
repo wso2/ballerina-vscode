@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +37,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueSt
  * @since 1.0.0
  */
 public class Service {
+
     private final String id;
     private final String name;
     private final String type;
@@ -48,12 +50,14 @@ public class Service {
     private final String icon;
     private Value documentation;
     private Map<String, Value> properties;
+    private Map<String, Value> readonlyProperties;
     private Codedata codedata;
     private List<Function> functions;
 
     public Service(String id, String name, String type, String displayName, String moduleName, String orgName,
                    String version, String packageName, String listenerProtocol, String icon, Value documentation,
-                   Map<String, Value> properties, Codedata codedata, List<Function> functions) {
+                   Map<String, Value> properties, Map<String, Value> readonlyProperties, Codedata codedata,
+                   List<Function> functions) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -66,6 +70,7 @@ public class Service {
         this.icon = icon;
         this.documentation = documentation;
         this.properties = properties;
+        this.readonlyProperties = readonlyProperties;
         this.functions = functions;
         this.codedata = codedata;
     }
@@ -213,6 +218,10 @@ public class Service {
         return properties;
     }
 
+    public Map<String, Value> getReadonlyProperties() {
+        return readonlyProperties;
+    }
+
     public void addProperties(Map<String, Value> properties) {
         if (Objects.isNull(properties)) {
             return;
@@ -225,6 +234,7 @@ public class Service {
     }
 
     public static class ServiceModelBuilder {
+
         private String id;
         private String name;
         private String type;
@@ -237,11 +247,13 @@ public class Service {
         private String icon;
         private Value documentation;
         private Map<String, Value> properties;
+        private Map<String, Value> readonlyProperties;
         private Codedata codedata;
         private List<Function> functions;
 
         public ServiceModelBuilder() {
             this.properties = new HashMap<>();
+            this.readonlyProperties = new LinkedHashMap<>();
             this.functions = new ArrayList<>();
         }
 
@@ -305,6 +317,11 @@ public class Service {
             return this;
         }
 
+        public ServiceModelBuilder setReadonlyProperties(Map<String, Value> readonlyProperties) {
+            this.readonlyProperties = readonlyProperties;
+            return this;
+        }
+
         public ServiceModelBuilder setCodedata(Codedata codedata) {
             this.codedata = codedata;
             return this;
@@ -317,7 +334,7 @@ public class Service {
 
         public Service build() {
             return new Service(id, name, type, displayName, moduleName, orgName, version, packageName,
-                    listenerProtocol, icon, documentation, properties, codedata, functions);
+                    listenerProtocol, icon, documentation, properties, readonlyProperties, codedata, functions);
         }
     }
 }
