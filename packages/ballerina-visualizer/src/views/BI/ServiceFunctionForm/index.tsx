@@ -18,22 +18,37 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo } from '@wso2/ballerina-core';
+import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, CodeData } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { TitleBar } from '../../../components/TitleBar';
 import { getImportsForProperty } from '../../../utils/bi';
+import { ViewContent, View } from '@wso2/ui-toolkit';
+import styled from '@emotion/styled';
+
+const FormContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    gap: 20px;
+`;
+
+const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+`;
 export interface ResourceFormProps {
-    // model: FunctionModel;
-    // isSaving: boolean;
-    // onSave: (functionModel: FunctionModel) => void;
-    // onClose: () => void;
+    codeData?: CodeData;
+    currentFilePath?: string;
+    projectPath?: string;
 }
 
 export function ServiceFunctionForm(props: ResourceFormProps) {
     console.log('>>> ServiceFunctionForm - Component rendered', props);
+    const { codeData, currentFilePath, projectPath } = props;
 
     const { rpcClient } = useRpcContext();
     console.log('>>> ServiceFunctionForm - rpcClient from context:', rpcClient);
@@ -45,42 +60,23 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     const [location, setLocation] = useState<VisualizerLocation | null>(null);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    
 
-        const handleParamChange = (param: Parameter) => {
-            const name = `${param.formValues['variable']}`;
-            const type = `${param.formValues['type']}`;
-            const hasDefaultValue = Object.keys(param.formValues).includes('defaultable') &&
-                param.formValues['defaultable'] !== undefined &&
-                param.formValues['defaultable'] !== '';
-    
-            const defaultValue = hasDefaultValue ? `${param.formValues['defaultable']}`.trim() : '';
-            let value = `${type} ${name}`;
-            if (defaultValue) {
-                value += ` = ${defaultValue}`;
-            }
-            return {
-                ...param,
-                key: name,
-                value: value
-            }
-        };
+    const handleParamChange = (param: Parameter) => {
+        const name = `${param.formValues['variable']}`;
+        const type = `${param.formValues['type']}`;
+        const hasDefaultValue = Object.keys(param.formValues).includes('defaultable') &&
+            param.formValues['defaultable'] !== undefined &&
+            param.formValues['defaultable'] !== '';
 
-    const handleClosePopup = () => {
-        // Close the popup - implement your close logic here
-        console.log('Closing ServiceFunctionForm');
-    };
-
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            // TODO: Implement save functionality
-            console.log('Saving function:', model);
-            // Add your save logic here
-        } catch (error) {
-            console.error('Error saving function:', error);
-        } finally {
-            setSaving(false);
+        const defaultValue = hasDefaultValue ? `${param.formValues['defaultable']}`.trim() : '';
+        let value = `${type} ${name}`;
+        if (defaultValue) {
+            value += ` = ${defaultValue}`;
+        }
+        return {
+            ...param,
+            key: name,
+            value: value
         }
     };
 
@@ -88,21 +84,27 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     useEffect(() => {
         console.log('>>> ServiceFunctionForm - useEffect triggered');
         console.log('>>> ServiceFunctionForm - rpcClient:', rpcClient);
+        console.log('>>> ServiceFunctionForm - codeData:', codeData);
+        console.log('>>> ServiceFunctionForm - currentFilePath:', currentFilePath);
 
         const loadProjectData = async () => {
             setIsLoading(true);
             try {
-                const location: VisualizerLocation = await rpcClient.getVisualizerLocation();
+                // Create a mock location object with the passed props
+                const location: VisualizerLocation = {
+                    documentUri: currentFilePath,
+                    projectUri: projectPath,
+                    dataMapperMetadata: codeData ? { name: '', codeData } : undefined
+                };
                 setLocation(location);
-                console.log('>>> ServiceFunctionForm - Retrieved location:', location);
+                console.log('>>> ServiceFunctionForm - Using passed location:', location);
 
-                // Check if we have CodeData from the flow diagram
-                if (location.dataMapperMetadata?.codeData) {
-                    const codeData = location.dataMapperMetadata.codeData;
-                    console.log('>>> ServiceFunctionForm - Found CodeData from flow diagram:', codeData);
+                // Check if we have CodeData from props
+                if (codeData && currentFilePath) {
+                    console.log('>>> ServiceFunctionForm - Found CodeData from props:', codeData);
 
                     const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
-                        filePath: location.documentUri ,
+                        filePath: currentFilePath,
                         codedata: codeData
                     });
                     setFunctionModel(functionModel.function);
@@ -115,12 +117,12 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
             }
         };
 
-        if (rpcClient) {
+        if (rpcClient && codeData && currentFilePath) {
             loadProjectData();
         } else {
-            console.error('>>> ServiceFunctionForm - rpcClient is not available');
+            console.error('>>> ServiceFunctionForm - Missing required props or rpcClient:', { rpcClient: !!rpcClient, codeData: !!codeData, currentFilePath: !!currentFilePath });
         }
-    }, [rpcClient]);
+    }, [rpcClient, codeData, currentFilePath, projectPath]);
 
             if (model?.properties) {
                 const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
@@ -259,36 +261,12 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         setFields(initialFields);
     }, [model]);
 
-    const onClose = () => {
-        handleClosePopup();
-    }
-    const handleFunctionCreate = (data: FormValues, formImports: FormImports) => {
-        if (!model) {
-            return;
-        }
-        const updatedFunctionModel: FunctionModel = {
-            ...model,
-            name: {
-                ...model.name,
-                value: data.name
-            },
-            parameters: getFunctionParametersList(data.parameters as Parameter[]),
-            returnType: {
-                ...model.returnType,
-                value: data.returnType,
-            }
-        };
-        setFunctionModel(updatedFunctionModel);
-        console.log('Function Create: ', updatedFunctionModel);
-    }
-
     const handleFunctionSave = async (updatedFunction: FunctionModel) => {
         try {
             setIsSaving(true);
-            let artifacts;
             const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(model.codedata.lineRange.fileName);
             
-            artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
+            await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
                 filePath: currentFilePath,
                 codedata: {
                     lineRange: {
@@ -311,7 +289,7 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         }
     };
 
-    const handleFunctionCreate1 = (data: FormValues, formImports: FormImports) => {
+    const handleFunctionCreate = (data: FormValues, formImports: FormImports) => {
         console.log("Function create with data:", data);
         const { name, returnType, parameters: params } = data;
         const paramList = params ? getFunctionParametersList(params) : [];
@@ -329,27 +307,32 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     };
 
     return (
-        <>
+        <View>
             <TopNavigationBar />
             <TitleBar
                 title="Service Function"
                 subtitle="Build reusable custom flows"
             />
-                {fields.length > 0 && (
-                    <FormGeneratorNew
-                        fileName={location?.documentUri || ''}
-                        targetLineRange={model.codedata?.lineRange as LineRange}
-                        fields={fields}
-                        onSubmit={handleFunctionCreate1}
-                        onBack={onClose}
-                        submitText={ "Save"}
-                        helperPaneSide="left"
-                        isSaving={isSaving}
-                        preserveFieldOrder={true}
-                        recordTypeFields={recordTypeFields}
-                    />
-                )}
-            </>
+            <ViewContent padding>
+                <Container>
+                    <FormContainer>
+                        {fields.length > 0 && (
+                            <FormGeneratorNew
+                                fileName={location?.documentUri || ''}
+                                targetLineRange={model.codedata?.lineRange as LineRange}
+                                fields={fields}
+                                onSubmit={handleFunctionCreate}
+                                submitText={ "Save"}
+                                helperPaneSide="left"
+                                isSaving={isSaving}
+                                preserveFieldOrder={true}
+                                recordTypeFields={recordTypeFields}
+                            />
+                        )}
+                    </FormContainer>
+                </Container>
+            </ViewContent>
+        </View>
     );
 }
 
