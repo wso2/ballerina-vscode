@@ -154,6 +154,7 @@
         "name": "year",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Year of manufacturing."
       },
       {
@@ -163,6 +164,7 @@
         "name": "make",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -172,6 +174,7 @@
         "name": "model",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],
@@ -242,7 +245,8 @@
             "type": "string",
             "name": "time",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "FUNCTION",
@@ -301,7 +305,8 @@
             "type": "int",
             "name": "year",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "FUNCTION",
@@ -497,6 +502,7 @@
           "name": "make",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -506,6 +512,7 @@
           "name": "model",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -573,7 +580,8 @@
               "type": "int",
               "name": "year",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "kind": "FUNCTION",

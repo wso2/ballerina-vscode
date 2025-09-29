@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
@@ -92,6 +94,15 @@ public class TypeUtils {
         ModuleID moduleId = typeSymbol.getModule().get().id();
         return String.format("%s/%s:%s",
                 moduleId.orgName(), moduleId.packageName(), typeSymbol.getName().get());
+    }
+
+    public static boolean isGraphqlIdAnnotation(AnnotationAttachmentSymbol annotAttach) {
+        AnnotationSymbol annot = annotAttach.typeDescriptor();
+        return annot.getName().isPresent()
+                && annot.getName().get().equals("ID")
+                && annot.getModule().isPresent()
+                && annot.getModule().get().id().orgName().equals("ballerina")
+                && annot.getModule().get().id().moduleName().equals("graphql");
     }
 
     private static void addTypeRefIds(TypeSymbol ts, ModuleInfo moduleInfo, List<String> typeRefs) {

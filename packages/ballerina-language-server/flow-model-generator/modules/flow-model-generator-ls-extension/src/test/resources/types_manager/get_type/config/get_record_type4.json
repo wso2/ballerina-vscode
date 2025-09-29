@@ -96,6 +96,7 @@
         "name": "name",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Name of the employee"
       },
       {
@@ -105,6 +106,7 @@
         "name": "age",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Age of the employee"
       },
       {
@@ -148,7 +150,8 @@
               "type": "xml",
               "name": "xml",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             },
             {
               "kind": "TYPE",
@@ -158,7 +161,8 @@
               "type": "City",
               "name": "City",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             },
             {
               "kind": "TYPE",
@@ -168,7 +172,8 @@
               "type": "UserAddress",
               "name": "UserAddress",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "allowAdditionalFields": false
@@ -176,6 +181,7 @@
         "name": "address",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Union of of type-refs and a built-in type"
       },
       {
@@ -220,6 +226,7 @@
               "name": "iA",
               "optional": false,
               "readonly": false,
+              "isGraphqlId": false,
               "docs": ""
             },
             {
@@ -264,6 +271,7 @@
                     "name": "iiA",
                     "optional": false,
                     "readonly": false,
+                    "isGraphqlId": false,
                     "docs": ""
                   }
                 ],
@@ -273,6 +281,7 @@
               "name": "iB",
               "optional": false,
               "readonly": false,
+              "isGraphqlId": false,
               "docs": ""
             }
           ],
@@ -282,6 +291,7 @@
         "name": "field1",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Anonymous nested record type"
       }
     ],
@@ -414,7 +424,8 @@
                 "type": "string",
                 "name": "string",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               },
               {
                 "kind": "TYPE",
@@ -422,7 +433,8 @@
                 "type": "int",
                 "name": "int",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               }
             ],
             "allowAdditionalFields": false
@@ -430,6 +442,7 @@
           "name": "no",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": "Union of built-in types"
         },
         {
@@ -439,6 +452,7 @@
           "name": "street",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -448,6 +462,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -457,6 +472,7 @@
           "name": "country",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -465,7 +481,8 @@
         "refs": [],
         "type": "string",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       },
       "includes": [
         "City"
@@ -563,6 +580,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -572,6 +590,7 @@
           "name": "country",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
@@ -329,12 +330,23 @@ public class TypeTransformer {
         recordTypeSymbol.fieldDescriptors().forEach((fieldName, fieldSymbol) -> {
             TypeData.TypeDataBuilder memberTypeDataBuilder = new TypeData.TypeDataBuilder();
             Object transformedFieldType = transform(fieldSymbol.typeDescriptor(), memberTypeDataBuilder);
+
+            boolean isGraphqlId = false;
+            List<AnnotationAttachmentSymbol> annotAttachments = fieldSymbol.annotAttachments();
+            for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
+                if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                    isGraphqlId = true;
+                    break;
+                }
+            }
+
             Member member = memberBuilder
                     .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
                     .optional(fieldSymbol.isOptional())
                     .readonly(fieldSymbol.qualifiers().contains(Qualifier.READONLY))
+                    .isGraphqlId(isGraphqlId)
                     .refs(getTypeRefs(transformedFieldType, fieldSymbol.typeDescriptor()))
                     .docs(getDocumentString(fieldSymbol))
                     .defaultValue(getDefaultValueOfField(typeDataBuilder.name(), fieldName).orElse(null))

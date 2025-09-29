@@ -96,6 +96,7 @@
         "name": "uuid",
         "optional": false,
         "readonly": true,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -105,6 +106,7 @@
         "name": "name",
         "optional": false,
         "readonly": true,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],

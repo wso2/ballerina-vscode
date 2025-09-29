@@ -45,6 +45,7 @@ public record Member(
         String defaultValue,
         boolean optional,
         boolean readonly,
+        boolean isGraphqlId,
         String docs,
         List<TypeData.Annotation> annotations,
         Map<String, String> imports
@@ -57,6 +58,7 @@ public record Member(
         private String defaultValue;
         private boolean optional = false;
         private boolean readonly = false;
+        private boolean isGraphqlId = false;
         private String docs;
         private List<TypeData.Annotation> annotations;
         private Map<String, String> imports;
@@ -99,6 +101,11 @@ public record Member(
             return this;
         }
 
+        public MemberBuilder isGraphqlId(boolean isGraphqlId) {
+            this.isGraphqlId = isGraphqlId;
+            return this;
+        }
+
         public MemberBuilder docs(String docs) {
             this.docs = docs;
             return this;
@@ -117,7 +124,7 @@ public record Member(
         public Member build() {
             Member member = new Member(
                     kind, refs != null ? List.copyOf(refs) : null,
-                    type, name, defaultValue, optional, readonly, docs,
+                    type, name, defaultValue, optional, readonly, isGraphqlId, docs,
                     annotations != null ? List.copyOf(annotations) : null,
                     imports != null ? Map.copyOf(imports) : null
             );
@@ -128,6 +135,7 @@ public record Member(
             this.defaultValue = null;
             this.optional = false;
             this.readonly = false;
+            this.isGraphqlId = false;
             this.docs = null;
             this.annotations = null;
             this.imports = null;
