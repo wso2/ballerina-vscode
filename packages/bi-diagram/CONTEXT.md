@@ -115,6 +115,7 @@ Each node type consists of three files following react-diagrams pattern:
 - Comment addition
 - Node property editing
 - Connection selection and management
+- Right-click context menu for node actions (Edit, Source, Delete, Breakpoints)
 
 ### 4. Error Handling
 - Error flow visualization toggle
@@ -184,6 +185,72 @@ const updatedFlow = addNodeVisitor.getUpdatedFlow();
 4. Register factory in diagram engine setup
 5. Add node type to constants and type unions
 6. Update visitors as needed for special handling
+
+### Implementing Right-Click Context Menus
+To add right-click context menu support to a node type:
+
+1. **Add Menu Button Reference State**:
+   ```typescript
+   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
+   ```
+
+2. **Add Context Menu Handler**:
+   ```typescript
+   const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+       event.preventDefault(); // Prevent browser's default context menu
+       setAnchorEl(menuButtonElement || event.currentTarget);
+   };
+   ```
+
+3. **Add Ref to Menu Button**:
+   ```typescript
+   <MenuButton ref={setMenuButtonElement} onClick={handleOnMenuClick}>
+   ```
+
+4. **Add Context Menu to Main Container**:
+   ```typescript
+   <NodeContainer onContextMenu={!readOnly ? handleOnContextMenu : undefined}>
+   ```
+
+This pattern ensures the context menu appears near the menu button for consistent UX.
+
+### Multi-Menu Context Support (AgentCallNode Example)
+For complex nodes with multiple menus like AgentCallNode:
+
+1. **Multiple Menu Button References**:
+   ```typescript
+   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
+   const [memoryMenuButtonElement, setMemoryMenuButtonElement] = useState<HTMLElement | null>(null);
+   ```
+
+2. **Separate Context Menu Handlers**:
+   ```typescript
+   const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+       event.preventDefault();
+       setAnchorEl(menuButtonElement || event.currentTarget);
+   };
+   
+   const handleMemoryContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+       event.preventDefault();
+       event.stopPropagation();
+       setMemoryMenuAnchorEl(memoryMenuButtonElement || event.currentTarget);
+   };
+   ```
+
+3. **Context Menu on Different Areas**:
+   - Main node container: triggers main menu
+   - Memory card/button: triggers memory-specific menu  
+   - Tool circles (SVG): triggers tool-specific menu for that tool
+
+4. **SVG Context Menu Support**:
+   ```typescript
+   <g onContextMenu={(e) => {
+       if (!readOnly) {
+           e.preventDefault();
+           handleToolMenuClick(e as any, tool);
+       }
+   }}>
+   ```
 
 ### Visitor Implementation
 1. Implement `BaseVisitor` interface from `@wso2/ballerina-core`

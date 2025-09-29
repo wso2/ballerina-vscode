@@ -168,12 +168,13 @@ export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { projectPath, onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
+    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
         useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [org, setOrg] = useState<string | null>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -235,6 +236,11 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         setMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setMenuAnchorEl(menuButtonElement || event.currentTarget);
     };
 
     const handleOnMenuClose = () => {
@@ -328,6 +334,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             isActiveBreakpoint={isActiveBreakpoint}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             {hasBreakpoint && (
                 <div
@@ -357,7 +364,11 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                     <NodeStyles.ActionButtonGroup>
                         {hasError && <DiagnosticsPopUp node={model.node} />}
                         {!readOnly && (
-                            <NodeStyles.MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                            <NodeStyles.MenuButton 
+                                ref={setMenuButtonElement}
+                                appearance="icon" 
+                                onClick={handleOnMenuClick}
+                            >
                                 <MoreVertIcon />
                             </NodeStyles.MenuButton>
                         )}
