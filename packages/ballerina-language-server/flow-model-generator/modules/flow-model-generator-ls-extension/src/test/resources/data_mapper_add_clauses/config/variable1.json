@@ -27,7 +27,7 @@
       "expression": "userInfo"
     }
   },
-  "targetField": "credentials",
+  "targetField": "credentials.0",
   "output": {
     "variable1.bal": [
       {
