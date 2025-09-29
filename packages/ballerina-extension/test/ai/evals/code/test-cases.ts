@@ -1,7 +1,20 @@
-// For development/testing: Set this to a small number (e.g., 1) for faster execution
-const MAX_TEST_CASES = process.env.AI_TEST_ENV === 'true' ? 1 : undefined;
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
 
-const allTestCases = [
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+export const testCases = [
   {
     prompt: "write an integration to get emails of the Users from a mysql table and send an email using gmail connector saying that you for buying the product",
     projectPath: "fresh_bi_package"
@@ -83,5 +96,3 @@ const allTestCases = [
     projectPath: "fresh_bi_package"
   }
 ];
-
-export const testCases = MAX_TEST_CASES ? allTestCases.slice(0, MAX_TEST_CASES) : allTestCases;
