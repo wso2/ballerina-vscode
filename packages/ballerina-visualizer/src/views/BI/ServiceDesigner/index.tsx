@@ -30,6 +30,7 @@ import {
     DIRECTORY_MAP,
     ProjectStructureArtifactResponse,
     PropertyModel,
+    ComponentInfo,
 } from "@wso2/ballerina-core";
 import { Button, Codicon, Icon, LinkButton, Typography, View, TextField } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -114,6 +115,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
             fetchService(position);
         }
+
+        rpcClient.onProjectContentUpdated(() => {
+            fetchService(position);
+        });
     }, [position]);
 
     const fetchService = (targetPosition: NodePosition) => {
@@ -231,8 +236,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 endLine: model.codedata.lineRange.endLine.line,
                 endColumn: model.codedata.lineRange.endLine.offset,
             };
-            const deleteAction: STModification = removeStatement(targetPosition);
-            await applyModifications(rpcClient, [deleteAction]);
+            const component: ComponentInfo = {
+                name: model.name.value,
+                filePath: model.codedata.lineRange.fileName,
+                startLine: targetPosition.startLine,
+                startColumn: targetPosition.startColumn,
+                endLine: targetPosition.endLine,
+                endColumn: targetPosition.endColumn,
+            };
+            await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
             fetchService(targetPosition);
         }
     };

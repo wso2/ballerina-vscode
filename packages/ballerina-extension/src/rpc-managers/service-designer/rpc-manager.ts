@@ -129,7 +129,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.addListenerSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true }, { artifactType: DIRECTORY_MAP.LISTENER });
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true }, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -166,7 +166,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.LISTENER });
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -221,7 +221,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.addServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE });
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Creation');
                 let result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -248,7 +248,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.updateServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE });
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -300,7 +300,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     params.filePath = targetFile;
                 }
                 const res: ResourceSourceCodeResponse = await context.langClient.addResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE });
+                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Resource Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -316,7 +316,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.updateResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res);
+                const artifacts = await updateSourceCode(res, null, 'Resource Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -344,7 +344,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.addFunctionSourceCode(params);
-                const artifacts = await updateSourceCode(res);
+                const artifacts = await updateSourceCode(res, null, 'Function Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
