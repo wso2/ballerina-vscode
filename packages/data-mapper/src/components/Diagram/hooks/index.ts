@@ -16,10 +16,6 @@
  * under the License.
  */
 
-export * from './config';
-export * from './logger';
-export * from './webview-utils';
-export * from './file-utils';
-export * from './source-utils';
-export * from './pull-module-progress';
-export * from './undo-redo-manager';
+export { useDiagramModel } from './useDiagramModel';
+export { useFocusLinkedNodes } from './useFocusLinkedNodes';
+export { useRepositionedNodes } from './useRepositionedNodes';
