@@ -18,7 +18,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, CodeData } from '@wso2/ballerina-core';
+import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, CodeData, NodePosition } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
@@ -41,20 +41,16 @@ const Container = styled.div`
     gap: 10px;
 `;
 export interface ResourceFormProps {
-    codeData?: CodeData;
+    // codeData?: CodeData;
+    position: NodePosition;
     currentFilePath?: string;
     projectPath?: string;
 }
 
 export function ServiceFunctionForm(props: ResourceFormProps) {
-    console.log('>>> ServiceFunctionForm - Component rendered', props);
-    const { codeData, currentFilePath, projectPath } = props;
-
+    const { position, currentFilePath, projectPath } = props;
     const { rpcClient } = useRpcContext();
-    console.log('>>> ServiceFunctionForm - rpcClient from context:', rpcClient);
-
     const [model, setFunctionModel] = useState<FunctionModel | null>(null);
-    const [saving, setSaving] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [fields, setFields] = useState<FormField[]>([]);
     const [location, setLocation] = useState<VisualizerLocation | null>(null);
@@ -82,11 +78,6 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
 
     // Load project components and structure
     useEffect(() => {
-        console.log('>>> ServiceFunctionForm - useEffect triggered');
-        console.log('>>> ServiceFunctionForm - rpcClient:', rpcClient);
-        console.log('>>> ServiceFunctionForm - codeData:', codeData);
-        console.log('>>> ServiceFunctionForm - currentFilePath:', currentFilePath);
-
         const loadProjectData = async () => {
             setIsLoading(true);
             try {
@@ -94,21 +85,31 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
                 const location: VisualizerLocation = {
                     documentUri: currentFilePath,
                     projectUri: projectPath,
-                    dataMapperMetadata: codeData ? { name: '', codeData } : undefined
+                    position: position,
                 };
                 setLocation(location);
                 console.log('>>> ServiceFunctionForm - Using passed location:', location);
 
                 // Check if we have CodeData from props
-                if (codeData && currentFilePath) {
-                    console.log('>>> ServiceFunctionForm - Found CodeData from props:', codeData);
-
+                if (position && currentFilePath) {
                     const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
                         filePath: currentFilePath,
-                        codedata: codeData
+                        codedata: {
+                            lineRange: {
+                                fileName: currentFilePath,
+                                startLine: {
+                                    line: position.startLine,
+                                    offset: position.startColumn
+                                },
+                                endLine: {
+                                    line: position.endLine,
+                                    offset: position.endColumn
+                                }
+                        
+                            }
+                        }
                     });
                     setFunctionModel(functionModel.function);
-                    console.log('>>> ServiceFunctionForm - Retrieved function model from source:', functionModel);
                 }
             } catch (error) {
                 console.error('>>> ServiceFunctionForm - Error loading project data:', error);
@@ -117,41 +118,38 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
             }
         };
 
-        if (rpcClient && codeData && currentFilePath) {
+        if (rpcClient && position && currentFilePath) {
             loadProjectData();
         } else {
-            console.error('>>> ServiceFunctionForm - Missing required props or rpcClient:', { rpcClient: !!rpcClient, codeData: !!codeData, currentFilePath: !!currentFilePath });
+            console.error('>>> ServiceFunctionForm - Missing required props or rpcClient:', { rpcClient: !!rpcClient, position: !!position, currentFilePath: !!currentFilePath });
         }
-    }, [rpcClient, codeData, currentFilePath, projectPath]);
+    }, [rpcClient, position, currentFilePath, projectPath]);
 
-            if (model?.properties) {
-                const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
-                    .filter(([_, property]) =>
-                        property.typeMembers &&
-                        property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
-                    )
-                    .map(([key, property]) => ({
-                        key,
-                        property: {
-                            ...property,
-                            metadata: {
-                                label: property.metadata?.label || key,
-                                description: property.metadata?.description || ''
-                            },
-                            valueType: property?.valueType || 'string',
-                            diagnostics: {
-                                hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
-                                diagnostics: property.diagnostics
-                            }
-                        } as Property,
-                        recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
-                    }));
-                console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
+    if (model?.properties) {
+        const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
+            .filter(([_, property]) =>
+                property.typeMembers &&
+                property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+            )
+            .map(([key, property]) => ({
+                key,
+                property: {
+                    ...property,
+                    metadata: {
+                        label: property.metadata?.label || key,
+                        description: property.metadata?.description || ''
+                    },
+                    valueType: property?.valueType || 'string',
+                    diagnostics: {
+                        hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                        diagnostics: property.diagnostics
+                    }
+                } as Property,
+                recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+            }));
+        setRecordTypeFields(recordTypeFields);
+    }
     
-                setRecordTypeFields(recordTypeFields);
-            }
-    
-
     const getFunctionParametersList = (params: Parameter[]) => {
             const paramList: ParameterModel[] = [];
             if (!model) {
@@ -374,7 +372,6 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
         lineRange: param?.codedata?.lineRange
     };
 }
-
 
 function convertParameterToParamValue(param: ParameterModel, index: number) {
     return {

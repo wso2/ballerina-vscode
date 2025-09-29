@@ -277,21 +277,22 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         MACHINE_VIEW.ServiceFunctionForm : MACHINE_VIEW.BIFunctionForm,
             identifier: parentMetadata?.label || "",
             documentUri: fileUri,
-            dataMapperMetadata: functionCodeData ? {
-                name: parentMetadata?.label || "Function",
-                codeData: {
-                    lineRange: {
-                        fileName: fileUri || "",
-                        startLine: {
-                            line: position?.startLine || currentPosition?.startLine || 0,
-                            offset: position?.startColumn || currentPosition?.startColumn || 0,
-                        },
-                        endLine: {
-                            line: position?.endLine || currentPosition?.endLine || 0,
-                            offset: position?.endColumn || currentPosition?.endColumn || 0,
-                        },
-                },
-            } } : undefined,
+            position: position || currentPosition
+            // metadata: functionCodeData ? {
+            //     name: parentMetadata?.label || "Function",
+            //     codeData: {
+            //         lineRange: {
+            //             fileName: fileUri || "",
+            //             startLine: {
+            //                 line: position?.startLine || currentPosition?.startLine || 0,
+            //                 offset: position?.startColumn || currentPosition?.startColumn || 0,
+            //             },
+            //             endLine: {
+            //                 line: position?.endLine || currentPosition?.endLine || 0,
+            //                 offset: position?.endColumn || currentPosition?.endColumn || 0,
+            //             },
+            //     },
+            // } } : undefined,
         };
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
