@@ -38,7 +38,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
-        "ref": "196591409"
+        "ref": "545732303"
       }
     ],
     "output": {
@@ -47,31 +47,11 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "196591409"
+      "ref": "545732303"
     },
     "mappings": [],
     "refs": {
-      "-1418772512": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "196591409": {
+      "545732303": {
         "fields": [
           {
             "member": {
@@ -94,7 +74,7 @@
                 "displayName": "password",
                 "typeName": "UserInfo",
                 "kind": "record",
-                "ref": "-1418772512"
+                "ref": "1889977605"
               },
               {
                 "member": {
@@ -114,10 +94,30 @@
             "typeName": "UserInfo|string[]",
             "kind": "union",
             "optional": false,
-            "ref": "-233843293"
+            "ref": "1484"
           }
         ],
         "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
         "kind": "record"
       }
     }

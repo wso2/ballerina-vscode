@@ -37,7 +37,7 @@
           "displayName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "ref": "-481592369"
+          "ref": "1889977605"
         },
         "name": "userInfo",
         "displayName": "userInfo",
@@ -54,7 +54,7 @@
         "displayName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "ref": "1085256861"
+        "ref": "242052496"
       },
       "name": "credentials",
       "displayName": "credentials",
@@ -76,7 +76,27 @@
       }
     ],
     "refs": {
-      "-481592369": {
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
         "fields": [
           {
             "name": "username",
@@ -101,26 +121,6 @@
           }
         ],
         "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "1085256861": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "Credentials",
         "kind": "record"
       }
     }
