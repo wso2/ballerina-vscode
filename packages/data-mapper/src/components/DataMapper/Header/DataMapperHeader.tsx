@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
 import HeaderBreadcrumb from "./HeaderBreadcrumb";
@@ -35,15 +35,32 @@ export interface DataMapperHeaderProps {
     onClose: () => void;
     onBack: () => void;
     onEdit?: () => void;
+    onRefresh: () => Promise<void>;
+    onReset: () => Promise<void>;
     autoMapWithAI: () => Promise<void>;
     undoRedoGroup: () => JSX.Element;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onBack, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+
+    const [isRefreshing, setIsRefreshing] = React.useState(false);
+    const [isResetting, setIsResetting] = React.useState(false);
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
+    };
+
+    const handleOnRefresh = async () => {
+        setIsRefreshing(true);
+        await onRefresh();
+        setIsRefreshing(false);
+    };
+
+    const handleOnReset = async () => {
+        setIsResetting(true);
+        await onReset();
+        setIsResetting(false);
     };
 
     return (
@@ -53,6 +70,8 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 {undoRedoGroup && undoRedoGroup()}
+                <Button onClick={handleOnRefresh} disabled={isRefreshing}>Refresh</Button>
+                <Button onClick={handleOnReset} disabled={isResetting}>Reset</Button>
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
