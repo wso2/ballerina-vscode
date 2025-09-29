@@ -18,7 +18,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, CodeData, NodePosition } from '@wso2/ballerina-core';
+import { FunctionModel, VisualizerLocation, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, NodePosition, EVENT_TYPE } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
@@ -53,7 +53,6 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
     const [model, setFunctionModel] = useState<FunctionModel | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [fields, setFields] = useState<FormField[]>([]);
-    const [location, setLocation] = useState<VisualizerLocation | null>(null);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -81,16 +80,6 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         const loadProjectData = async () => {
             setIsLoading(true);
             try {
-                // Create a mock location object with the passed props
-                const location: VisualizerLocation = {
-                    documentUri: currentFilePath,
-                    projectUri: projectPath,
-                    position: position,
-                };
-                setLocation(location);
-                console.log('>>> ServiceFunctionForm - Using passed location:', location);
-
-                // Check if we have CodeData from props
                 if (position && currentFilePath) {
                     const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
                         filePath: currentFilePath,
@@ -259,6 +248,18 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
         setFields(initialFields);
     }, [model]);
 
+    const handleNavigateBack = () => {
+        if (currentFilePath && position) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    documentUri: currentFilePath,
+                    position: position
+                }
+            });
+        }
+    };
+
     const handleFunctionSave = async (updatedFunction: FunctionModel) => {
         try {
             setIsSaving(true);
@@ -280,6 +281,9 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
                 },
                 function: updatedFunction
             });
+
+            handleNavigateBack();
+
         } catch (error) {
             console.error('Error updating function:', error);
         } finally {
@@ -316,7 +320,7 @@ export function ServiceFunctionForm(props: ResourceFormProps) {
                     <FormContainer>
                         {fields.length > 0 && (
                             <FormGeneratorNew
-                                fileName={location?.documentUri || ''}
+                                fileName={currentFilePath || ''}
                                 targetLineRange={model.codedata?.lineRange as LineRange}
                                 fields={fields}
                                 onSubmit={handleFunctionCreate}
