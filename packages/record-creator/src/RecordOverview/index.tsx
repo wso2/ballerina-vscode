@@ -19,9 +19,6 @@
 import React, { ReactNode, useContext, useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { ModulePart, STKindChecker, STNode, TypeDefinition } from "@wso2/syntax-tree";
-
-import { updatePropertyStatement } from "../utils";
-import { UndoRedoManager } from "../components/UndoRedoManager";
 import { RecordItemModel } from "../types";
 import {
     extractImportedRecordNames,
@@ -36,19 +33,20 @@ import { Button, Codicon, Icon, SidePanelTitleContainer, Tooltip, Typography } f
 import { Context } from "../Context";
 import { InputLabel, InputLabelDetail, InputWrapper, RecordFormWrapper, RecordList, useStyles } from "../style";
 import { RecordEditorC } from "../RecordEditor/RecordEditorC";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 export interface RecordOverviewProps {
     definitions: TypeDefinition | ModulePart;
     prevST?: STNode;
     type: "XML" | "JSON";
-    undoRedoManager?: UndoRedoManager;
     onComplete: () => void;
     onCancel: () => void;
 }
 
 export function RecordOverview(overviewProps: RecordOverviewProps) {
     const classes = useStyles();
-    const { definitions, prevST, undoRedoManager, type, onComplete, onCancel } = overviewProps;
+    const { definitions, prevST, type, onComplete, onCancel } = overviewProps;
+    const { rpcClient } = useRpcContext();
 
     const {
         props: {
@@ -145,8 +143,6 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
             }
         });
         setRecordNames(recordNameClone);
-        undoRedoManager.updateContent(currentFile.path, currentFile.content);
-        undoRedoManager.addModification(currentFile.content);
         applyModifications(getRemoveCreatedRecordRange(selectedRecords, fullST));
         if (recordNameClone.length === 0) {
             onCancel();
@@ -165,14 +161,8 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
         renderRecords();
     };
 
-    const handleUndo = () => {
-        const lastUpdateSource = undoRedoManager.undo();
-        applyModifications([updatePropertyStatement(lastUpdateSource, fullST.position)]);
-        if (lastUpdateSource === originalSource.source) {
-            // If original source matches to last updated source we assume there are no newly created record.
-            // Hence, we are closing the form.
-            onCancel();
-        }
+    const handleUndo = async () => {
+        await rpcClient.getVisualizerRpcClient().undo(1);
     };
 
     return (
@@ -186,7 +176,7 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
                     {listRecords?.length > 0 && (
                         <InputWrapper>
                             <InputLabel>
-                                <Codicon name="check" sx={{marginTop: 2, marginRight: 5 }} className={classes.inputSuccessTick} /> {successMsgText}
+                                <Codicon name="check" sx={{ marginTop: 2, marginRight: 5 }} className={classes.inputSuccessTick} /> {successMsgText}
                             </InputLabel>
                             <InputLabelDetail>{successMsgTextDetail}</InputLabelDetail>
                         </InputWrapper>
@@ -215,7 +205,7 @@ export function RecordOverview(overviewProps: RecordOverviewProps) {
                     </div>
                     <div className={classes.doneButtonWrapper}>
                         <Button appearance="primary" onClick={onComplete} data-testId="done-btn">
-                           {doneButtonText}
+                            {doneButtonText}
                         </Button>
                     </div>
                 </>

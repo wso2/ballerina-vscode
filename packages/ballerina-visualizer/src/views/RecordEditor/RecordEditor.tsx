@@ -91,7 +91,11 @@ export function RecordEditor(props: RecordEditorProps) {
             }
         });
         if (parseSuccess && newSource && filePath) {
-            rpcClient.getVisualizerRpcClient().addToUndoStack(newSource);
+            rpcClient.getVisualizerRpcClient().addToUndoStack({
+                source: newSource,
+                filePath,
+                description: 'Record Modification',
+            });
             await langServerRPCClient.updateFileContent({
                 content: newSource,
                 filePath
