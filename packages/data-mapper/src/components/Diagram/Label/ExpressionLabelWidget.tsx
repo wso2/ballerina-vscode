@@ -31,9 +31,11 @@ import { InputOutputPortModel } from '../Port';
 import { mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
+import { DiagramEngine } from '@projectstorm/react-diagrams';
 
 export interface ExpressionLabelWidgetProps {
     model: ExpressionLabelModel;
+    engine: DiagramEngine;
 }
 
 export const useStyles = () => ({
