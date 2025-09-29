@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
 import HeaderBreadcrumb from "./HeaderBreadcrumb";
@@ -35,15 +35,32 @@ export interface DataMapperHeaderProps {
     onClose: () => void;
     onBack: () => void;
     onEdit?: () => void;
+    onRefresh: () => Promise<void>;
+    onReset: () => Promise<void>;
     autoMapWithAI: () => Promise<void>;
     undoRedoGroup: () => JSX.Element;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onBack, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+
+    const [isRefreshing, setIsRefreshing] = React.useState(false);
+    const [isResetting, setIsResetting] = React.useState(false);
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
+    };
+
+    const handleOnRefresh = async () => {
+        setIsRefreshing(true);
+        await onRefresh();
+        setIsRefreshing(false);
+    };
+
+    const handleOnReset = async () => {
+        setIsResetting(true);
+        await onReset();
+        setIsResetting(false);
     };
 
     return (
@@ -53,6 +70,24 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 {undoRedoGroup && undoRedoGroup()}
+                <Button appearance="icon" onClick={handleOnRefresh} buttonSx={{ padding: "2px 4px" }} disabled={isRefreshing} tooltip="Refresh">
+                    <span style={{ pointerEvents: "none" }}>
+                        {isRefreshing ? (
+                            <ProgressRing sx={{ width: 16, height: 16 }} />
+                        ) : (
+                            <Codicon name="refresh" />
+                        )}
+                    </span>
+                </Button>
+                <Button appearance="icon" onClick={handleOnReset} buttonSx={{ padding: "2px 4px" }} disabled={isResetting} tooltip="Clear all mappings">
+                    <span style={{ pointerEvents: "none" }}>
+                        {isResetting ? (
+                            <ProgressRing sx={{ width: 16, height: 16 }} />
+                        ) : (
+                            <Codicon name="clear-all" />
+                        )}
+                    </span>
+                </Button>
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
