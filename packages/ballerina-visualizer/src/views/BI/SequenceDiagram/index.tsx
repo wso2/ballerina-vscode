@@ -97,7 +97,7 @@ export function BISequenceDiagram(props: BISequenceDiagramProps) {
                         model={flowModel}
                         onClickParticipant={() => {}}
                         onAddParticipant={() => {}}
-                        onReady={() => onReady(undefined, undefined, undefined)}
+                        onReady={onReady}
                     />
                 )}
                 {!flowModel && <MessageContainer>Loading sequence diagram ...</MessageContainer>}
