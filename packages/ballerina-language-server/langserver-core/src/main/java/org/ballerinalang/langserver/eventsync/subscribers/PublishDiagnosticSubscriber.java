@@ -51,7 +51,7 @@ public class PublishDiagnosticSubscriber implements EventSubscriber {
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext languageServerContext) {
         LSClientCapabilities lsClientCapabilities = context.languageServercontext().get(LSClientCapabilities.class);
-        if (lsClientCapabilities != null &&
+        if (lsClientCapabilities == null ||
                 !lsClientCapabilities.getInitializationOptions().isEnableLightWeightMode()) {
             // TODO: This is a legacy debouncer that does not consider multiple projects. Reuse the existing
             //  debouncer for diagnostics as well.
