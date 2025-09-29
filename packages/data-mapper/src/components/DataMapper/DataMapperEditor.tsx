@@ -280,6 +280,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
         useDMExpressionBarStore.getState().resetExpressionBarStore();
+        useDMQueryClausesPanelStore.getState().resetQueryClausesPanelStore();
     }
 
     const handleOnClose = () => {
