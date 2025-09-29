@@ -16,34 +16,34 @@
  * under the License.
  */
 
-import { useEffect, useState, useRef } from "react";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { NodePosition } from "@wso2/syntax-tree";
+import styled from "@emotion/styled";
 import {
+    DIRECTORY_MAP,
     EVENT_TYPE,
+    FunctionModel,
     LineRange,
     MACHINE_VIEW,
-    ServiceModel,
-    FunctionModel,
-    STModification,
-    removeStatement,
-    DIRECTORY_MAP,
     ProjectStructureArtifactResponse,
-    PropertyModel,
-    FieldType,
+    STModification,
+    ServiceModel,
+    removeStatement,
 } from "@wso2/ballerina-core";
-import { Button, Codicon, Icon, LinkButton, Typography, View, TextField, DropdownButton } from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
-import { ResourceAccordion } from "./components/ResourceAccordion";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
-import { FunctionConfigForm } from "./Forms/FunctionConfigForm";
-import { ResourceForm } from "./Forms/ResourceForm";
-import { FunctionForm } from "./Forms/FunctionForm";
-import { applyModifications, isPositionChanged } from "../../../utils/utils";
-import { TopNavigationBar } from "../../../components/TopNavigationBar";
-import { TitleBar } from "../../../components/TitleBar";
+import { NodePosition } from "@wso2/syntax-tree";
+import { Button, Codicon, Icon, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
+import { TitleBar } from "../../../components/TitleBar";
+import { TopNavigationBar } from "../../../components/TopNavigationBar";
+import { applyModifications, isPositionChanged } from "../../../utils/utils";
+import { AddServiceElementDropdown, DropdownOptionProps } from "./components/AddServiceElementDropdown";
+import { ResourceAccordion } from "./components/ResourceAccordion";
 import { ResourceAccordionV2 } from "./components/ResourceAccordionV2";
+import { FunctionConfigForm } from "./Forms/FunctionConfigForm";
+import { FunctionForm } from "./Forms/FunctionForm";
+import { ResourceForm } from "./Forms/ResourceForm";
+import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -80,7 +80,7 @@ const HeaderContainer = styled.div`
     justify-content: space-between;
 `;
 
-const ListenerContainer = styled.div`
+const ServiceMetadataContainer = styled.div`
     padding: 15px;
     border-bottom: 1px solid var(--vscode-editorIndentGuide-background);
     display: flex;
@@ -113,41 +113,64 @@ const ListenerItem = styled.div`
     gap: 10px;
     padding: 8px 12px;
     background-color: var(--vscode-editor-background);
+    transition: all 0.2s ease;
+    
+    &:hover .listener-icon {
+        border-color: var(--vscode-focusBorder);
+    }
+    
+    &:hover .listener-text {
+        color: var(--vscode-focusBorder);
+    }
 `;
 
 const ListenerIcon = styled.div`
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     background-color: var(--vscode-editor-background);
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--vscode-editorIndentGuide-background);
+    transition: border-color 0.2s ease;
 `;
 
 const PropertiesSection = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    flex: 1;
+    gap: 12px;
+    flex: 2;
     padding-left: 20px;
     border-left: 1px solid var(--vscode-editorIndentGuide-background);
 `;
 
 const PropertyItem = styled.div`
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 16px;
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 6px;
 `;
 
 const PropertyLabel = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 4px;
 `;
 
 const PropertyValue = styled.div`
     display: flex;
     align-items: center;
+    padding: 4px 8px;
+    background-color: var(--vscode-editor-background);
+    border-radius: 4px;
+    border: 1px solid var(--vscode-editorIndentGuide-background);
+    font-family: var(--vscode-editor-font-family);
+    font-size: 13px;
 `;
 
 interface ServiceDesignerProps {
@@ -161,6 +184,10 @@ interface ReadonlyProperty {
     value: string | string[];
 }
 
+export const ADD_HANDLER = "add-handler";
+export const ADD_INIT_FUNCTION = "add-init-function";
+export const ADD_REUSABLE_FUNCTION = "add-reusable-function";
+
 export function ServiceDesigner(props: ServiceDesignerProps) {
     const { filePath, position, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
@@ -171,8 +198,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [isNew, setIsNew] = useState<boolean>(false);
     const [showForm, setShowForm] = useState<boolean>(false);
     const [showFunctionConfigForm, setShowFunctionConfigForm] = useState<boolean>(false);
-    const [showInitFunctionForm, setShowInitFunctionForm] = useState<boolean>(false);
-    const [showFieldForm, setShowFieldForm] = useState<boolean>(false);
     const [projectListeners, setProjectListeners] = useState<ProjectStructureArtifactResponse[]>([]);
     const prevPosition = useRef(position);
 
@@ -183,6 +208,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [readonlyProperties, setReadonlyProperties] = useState<Set<ReadonlyProperty>>(new Set());
     const [isHttpService, setIsHttpService] = useState<boolean>(false);
     const [objectMethods, setObjectMethods] = useState<FunctionModel[]>([]);
+    const [dropdownOptions, setDropdownOptions] = useState<DropdownOptionProps[]>([]);
+    const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
+    const [enabledHandlers, setEnabledHandlers] = useState<FunctionModel[]>([]);
+    const [unusedHandlers, setUnusedHandlers] = useState<FunctionModel[]>([]);
 
     useEffect(() => {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
@@ -239,8 +268,57 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         }
 
         // Extract object methods if available (for service classes)
-        const objectMethods = service.functions.filter((func) => func.kind === "DEFAULT");
+        const objectMethods: FunctionModel[] = [];
+        const enabledHandlers: FunctionModel[] = [];
+        const unusedHandlers: FunctionModel[] = [];
+
+        let hasInitMethod = false;
+        service.functions.forEach(func => {
+            if (func.kind === "DEFAULT") {
+                if (func.name?.value === "init") {
+                    hasInitMethod = true;
+                    setInitMethod(func);
+                } else {
+                    objectMethods.push(func);
+                }
+            }
+            if (func.kind === "REMOTE" || func.kind === "RESOURCE") {
+                if (func.enabled) {
+                    enabledHandlers.push(func);
+                } else {
+                    unusedHandlers.push(func);
+                }
+            }
+        });
+
+        setEnabledHandlers(enabledHandlers);
+        setUnusedHandlers(unusedHandlers);
         setObjectMethods(objectMethods);
+
+        // Set dropdown options
+        const options: DropdownOptionProps[] = [];
+
+        if (unusedHandlers.length > 0) {
+            options.push({
+                title: "Add Handler",
+                description: "Select the handler to add",
+                value: ADD_HANDLER
+            });
+        }
+        if (!hasInitMethod) {
+            options.push({
+                title: "Add Init Function",
+                description: "Add a new init function within the service",
+                value: ADD_INIT_FUNCTION
+            });
+        }
+
+        options.push({
+            title: "Add Function",
+            description: "Add a new reusable function within the service",
+            value: ADD_REUSABLE_FUNCTION
+        });
+        setDropdownOptions(options);
     }
 
     const getProjectListeners = () => {
@@ -308,31 +386,43 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             });
     };
 
-    const handleNewFunction = () => {
+    const handleNewObjectMethod = () => {
+        rpcClient
+            .getServiceDesignerRpcClient()
+            .getFunctionModel({ type: "object", functionName: "default" })
+            .then((res) => {
+                console.log("New Function Model: ", res.function);
+                setFunctionModel(res.function);
+                setIsNew(true);
+                setShowForm(true);
+            });
+    };
+
+    const onSelectAddReusableFunction = () => {
+        setIsNew(true);
+        // setShowFunctionConfigForm(true);
+        handleNewObjectMethod();
+    };
+
+    const onSelectAddHandler = () => {
         setIsNew(true);
         setShowFunctionConfigForm(true);
     };
 
-    const handleNewInitFunction = () => {
-        setIsNew(true);
-        setShowInitFunctionForm(true);
-    };
-
-    const handleNewField = () => {
-        setIsNew(true);
-        setShowFieldForm(true);
+    const onSelectAddInitFunction = () => {
+        // TODO: Implement add init function functionality
     };
 
     const handleAddDropdownOption = (option: string) => {
         switch (option) {
-            case "reusable-function":
-                handleNewFunction();
+            case ADD_REUSABLE_FUNCTION:
+                onSelectAddReusableFunction();
                 break;
-            case "init-function":
-                handleNewInitFunction();
+            case ADD_INIT_FUNCTION:
+                onSelectAddInitFunction();
                 break;
-            case "field":
-                handleNewField();
+            case ADD_HANDLER:
+                onSelectAddHandler();
                 break;
         }
     };
@@ -399,6 +489,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setIsNew(false);
     };
 
+    /**
+     * This function invokes when a new function is added using right panel form.
+     * 
+     * @param value 
+     */
     const handleFunctionSubmit = async (value: FunctionModel) => {
         setIsSaving(true);
         const lineRange: LineRange = {
@@ -437,12 +532,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleInitFunctionClose = () => {
         setIsNew(false);
-        setShowInitFunctionForm(false);
     };
 
-    const handleFieldClose = () => {
+    const handleAddHandleClose = () => {
         setIsNew(false);
-        setShowFieldForm(false);
     };
 
     const handleServiceTryIt = () => {
@@ -477,39 +570,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         switch (true) {
             case label.includes("listener"):
                 return "bell";
-            case label.includes("path"):
+            case label.includes("path") || label.includes("base"):
                 return "link";
+            case label.includes("port"):
+                return "ports";
+            case label.includes("host"):
+                return "server";
+            case label.includes("name") || label.includes("queue"):
+                return "tag";
+            case label.includes("timeout"):
+                return "clock";
+            case label.includes("ssl") || label.includes("secure"):
+                return "lock";
+            case label.includes("config"):
+                return "gear";
             default:
                 return "info";
-        }
-    };
-
-    const getAttributeComponent = (component: PropertyModel) => {
-        const label = component.metadata.label.toLowerCase();
-        switch (true) {
-            case label.includes("listener"):
-                return component.values?.length > 0 ? (
-                    component.values.map((item, index) => (
-                        <LinkButton
-                            sx={{ fontSize: 12, padding: 8, gap: 4 }}
-                            key={`${index}-btn`}
-                            onClick={() => handleOpenListener(item)}
-                        >
-                            {item}
-                        </LinkButton>
-                    ))
-                ) : (
-                    <LinkButton
-                        sx={{ fontSize: 12, padding: 8, gap: 4 }}
-                        onClick={() => handleOpenListener(component.value)}
-                    >
-                        {component.value}
-                    </LinkButton>
-                );
-            case label.includes("path"):
-                return component.value;
-            default:
-                return component.value;
         }
     };
 
@@ -518,6 +594,45 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
+
+    const ListenerList = () => {
+        const listenerLabel = listeners.length > 1 ? "Listeners" : "Listener";
+        return (
+            <>
+                <ListenerHeader>
+                    <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                        {listenerLabel}
+                    </Typography>
+                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
+                        {listenerLabel} connected to the service
+                    </Typography>
+                </ListenerHeader>
+                <ListenerContent>
+                    {
+                        listeners.map((listener, index) => (
+                            <ListenerItem key={`${index}-listener`} onClick={() => handleOpenListener(listener)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <ListenerIcon className="listener-icon">
+                                    <Icon name="radio-tower" isCodicon sx={{ fontSize: 16 }} />
+                                </ListenerIcon>
+                                <Typography 
+                                    variant="body2"
+                                    className="listener-text"
+                                    sx={{
+                                        transition: 'color 0.2s ease'
+                                    }}
+                                >
+                                    {listener}
+                                </Typography>
+                                <Icon name="kebab-vertical" isCodicon sx={{ fontSize: 14, marginLeft: 'auto' }} />
+                            </ListenerItem>
+                        ))
+                    }
+                </ListenerContent>
+            </>
+        );
+    }
 
     return (
         <View>
@@ -558,138 +673,23 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         )
                                     }
                                     {serviceModel && (
-                                        <div style={{ position: 'relative', zIndex: 1000 }}>
-                                            <DropdownButton
-                                                buttonContent={
-                                                    <>
-                                                        <Codicon name="add" sx={{ marginRight: 8 }} />
-                                                        <ButtonText>Add</ButtonText>
-                                                    </>
-                                                }
-                                                selecteOption="reusable-function"
-                                                tooltip="Add Function or Fields"
-                                                dropDownAlign="bottom"
-                                                buttonSx={{
-                                                    appearance: 'none',
-                                                    backgroundColor: 'var(--vscode-button-background)',
-                                                    color: 'var(--vscode-button-foreground)',
-                                                    '&:hover': {
-                                                        backgroundColor: 'var(--vscode-button-hoverBackground)',
-                                                    },
-                                                    height: '28px',
-                                                    minHeight: '28px'
-                                                }}
-                                                optionButtonSx={{
-                                                    backgroundColor: 'var(--vscode-button-background)',
-                                                    borderColor: 'var(--vscode-button-border)',
-                                                    '&:hover': {
-                                                        backgroundColor: 'var(--vscode-button-hoverBackground)',
-                                                    },
-                                                    height: '28px',
-                                                    minHeight: '28px'
-                                                }}
-                                                dropdownSx={{
-                                                    zIndex: 9999,
-                                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                                                    border: '1px solid var(--vscode-dropdown-border)',
-                                                    backgroundColor: 'var(--vscode-dropdown-background)',
-                                                    minWidth: '280px',
-                                                    position: 'absolute',
-                                                    right: '0',
-                                                    left: 'auto'
-                                                }}
-                                                onOptionChange={handleAddDropdownOption}
-                                                onClick={() => { }}
-                                                options={[
-                                                    {
-                                                        content: (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 8px' }}>
-                                                                <Codicon name="symbol-method" sx={{ fontSize: 16, color: 'var(--vscode-symbolIcon-functionForeground)' }} />
-                                                                <div>
-                                                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>Add Reusable Function</Typography>
-                                                                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                                                                        Create a new reusable function
-                                                                    </Typography>
-                                                                </div>
-                                                            </div>
-                                                        ),
-                                                        value: "reusable-function",
-                                                    },
-                                                    {
-                                                        content: (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 8px' }}>
-                                                                <Codicon name="gear" sx={{ fontSize: 16, color: 'var(--vscode-symbolIcon-constructorForeground)' }} />
-                                                                <div>
-                                                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>Add Init Function</Typography>
-                                                                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                                                                        Create an initialization function
-                                                                    </Typography>
-                                                                </div>
-                                                            </div>
-                                                        ),
-                                                        value: "init-function",
-                                                    },
-                                                    {
-                                                        content: (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 8px' }}>
-                                                                <Codicon name="symbol-field" sx={{ fontSize: 16, color: 'var(--vscode-symbolIcon-fieldForeground)' }} />
-                                                                <div>
-                                                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>Add Field</Typography>
-                                                                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                                                                        Add a new service field
-                                                                    </Typography>
-                                                                </div>
-                                                            </div>
-                                                        ),
-                                                        value: "field",
-                                                    }
-                                                ]}
-                                            />
-                                        </div>
+                                        <AddServiceElementDropdown
+                                            buttonTitle="Add"
+                                            toolTip="Add Function or Handler"
+                                            defaultOption="reusable-function"
+                                            onOptionChange={handleAddDropdownOption}
+                                            options={dropdownOptions}
+                                        />
                                     )}
                                 </>
                             }
                         />
 
                         <ServiceContainer>
-                            <ListenerContainer>
+                            {/* Listing Listener and Service Configurations */}
+                            <ServiceMetadataContainer>
                                 <ListenerSection>
-                                    <ListenerHeader>
-                                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                            {listeners.length > 1 ? 'Listeners' : 'Listener'}
-                                        </Typography>
-                                        <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                                            Connected {listeners.length > 1 ? 'listeners' : 'listener'} to the service
-                                        </Typography>
-                                    </ListenerHeader>
-                                    <ListenerContent>
-                                        {
-                                            listeners.map((listener, index) => (
-                                                <ListenerItem
-                                                    key={`${index}-listener`}
-                                                    onClick={() => handleOpenListener(listener)}
-                                                    style={{ cursor: 'pointer' }}
-                                                >
-                                                    <ListenerIcon>
-                                                        {
-                                                            serviceModel.icon && (
-                                                                <img src={serviceModel.icon} alt={listener} style={{ width: "38px" }} />
-                                                            )
-                                                        }
-                                                        {
-                                                            !serviceModel.icon && (
-                                                                <Icon name="bell" isCodicon sx={{ fontSize: 16 }} />
-                                                            )
-                                                        }
-                                                    </ListenerIcon>
-                                                    <Typography variant="body2">
-                                                        {listener}
-                                                    </Typography>
-                                                    <Icon name="kebab-vertical" isCodicon sx={{ fontSize: 14, marginLeft: 'auto' }} />
-                                                </ListenerItem>
-                                            ))
-                                        }
-                                    </ListenerContent>
+                                    <ListenerList />
                                 </ListenerSection>
                                 {readonlyProperties.size > 0 && (
                                     <PropertiesSection>
@@ -697,12 +697,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             Array.from(readonlyProperties).map(prop => (
                                                 <PropertyItem key={prop.label}>
                                                     <PropertyLabel>
-                                                        <Typography variant="body3" sx={{ fontWeight: 'medium' }}>
-                                                            {prop.label}:
+                                                        <Icon name={findIcon(prop.label)} isCodicon sx={{ fontSize: 14, color: 'var(--vscode-symbolIcon-propertyForeground)' }} />
+                                                        <Typography variant="body3" sx={{ fontWeight: 'medium', color: 'var(--vscode-foreground)' }}>
+                                                            {prop.label}
                                                         </Typography>
                                                     </PropertyLabel>
                                                     <PropertyValue>
-                                                        <Typography variant="body3">
+                                                        <Typography variant="body3" sx={{ color: 'var(--vscode-editor-foreground)' }}>
                                                             {Array.isArray(prop.value) ? prop.value.join(", ") : prop.value}
                                                         </Typography>
                                                     </PropertyValue>
@@ -711,26 +712,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         }
                                     </PropertiesSection>
                                 )}
-                            </ListenerContainer>
+                            </ServiceMetadataContainer>
+
                             {/* Listing Resources in HTTP */}
                             {isHttpService && (
                                 <>
-                                    <HeaderContainer>
-                                        <div>
-                                            <Typography
-                                                key={"title"}
-                                                variant="h3"
-                                                sx={{ marginLeft: 10, fontWeight: 'bold' }}
-                                            >
-                                                Resource Functions
-                                            </Typography>
-                                            <Typography key={"body"} variant="body3"
-                                                sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
-                                            >
-                                                Resource functions to handle HTTP requests
-                                            </Typography>
-                                        </div>
-
+                                    <SectionHeader
+                                        title="Resource Endpoints"
+                                        subtitle="Define how the service responds to HTTP requests"
+                                    >
                                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
@@ -741,7 +731,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 </Button>
                                             )} */}
                                         </div>
-                                    </HeaderContainer>
+                                    </SectionHeader>
                                     <FunctionsContainer>
                                         {/* Add Resource Function - Dotted Accordion */}
                                         {!haveServiceTypeName && (
@@ -788,78 +778,71 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </>
                             )}
                             {/* Listing service type bound functions */}
-                            {!isHttpService && (
+                            {!isHttpService && enabledHandlers.length > 0 && (
                                 <>
-                                    <HeaderContainer>
-                                        <div>
-                                            <Typography key={"title"} variant="h3"
-                                                sx={{ marginLeft: 10, fontWeight: 'bold' }}
-                                            > Handlers
-                                            </Typography>
-                                            <Typography key={"body"} variant="body3"
-                                                sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
-                                            >
-                                                Handle functions to process events
-                                            </Typography>
-                                        </div>
-                                    </HeaderContainer>
+                                    <SectionHeader
+                                        title="Event Handlers"
+                                        subtitle="Define how the service responds to events"
+                                    />
                                     <FunctionsContainer>
-                                        {serviceModel.functions
-                                            .filter((functionModel) => 
-                                                functionModel.kind === "REMOTE" && functionModel.enabled)
-                                            .map((functionModel, index) => (
-                                                <ResourceAccordion
-                                                    key={`${index}-${functionModel.name.value}`}
-                                                    functionModel={functionModel}
-                                                    goToSource={() => { }}
-                                                    onEditResource={handleFunctionEdit}
-                                                    onDeleteResource={handleFunctionDelete}
-                                                    onResourceImplement={handleOpenDiagram}
-                                                />
-                                            ))}
+                                        {enabledHandlers.map((functionModel, index) => (
+                                            <ResourceAccordion
+                                                key={`${index}-${functionModel.name.value}`}
+                                                functionModel={functionModel}
+                                                goToSource={() => { }}
+                                                onEditResource={handleFunctionEdit}
+                                                onDeleteResource={handleFunctionDelete}
+                                                onResourceImplement={handleOpenDiagram}
+                                            />
+                                        ))}
                                     </FunctionsContainer>
                                 </>
                             )}
 
                             {/* Listing service type bound functions */}
-                            {(objectMethods.length > 0 && (
+                            {(initMethod && (
                                 <>
-                                    <HeaderContainer>
-                                        <div>
-                                            <Typography
-                                                key={"title"}
-                                                variant="h3"
-                                                sx={{ marginLeft: 10, fontWeight: 'bold' }}
-                                            >
-                                                Functions
-                                            </Typography>
-                                            <Typography
-                                                key={"body"}
-                                                variant="body3"
-                                                sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
-                                            >
-                                                Reusable functions within the service
-                                            </Typography>
-                                        </div>
-                                    </HeaderContainer>
+                                    <SectionHeader
+                                        title="Initialization Function"
+                                        subtitle="Define the initialization logic for the service"
+                                    />
                                     <FunctionsContainer>
-                                        {serviceModel.functions
-                                            .filter((functionModel) => functionModel.kind === "DEFAULT")
-                                            .map((functionModel, index) => (
-                                                <ResourceAccordion
-                                                    key={`${index}-${functionModel.name.value}`}
-                                                    functionModel={functionModel}
-                                                    goToSource={() => { }}
-                                                    onEditResource={handleFunctionEdit}
-                                                    onDeleteResource={handleFunctionDelete}
-                                                    onResourceImplement={handleOpenDiagram}
-                                                />
-                                            ))}
+                                        <ResourceAccordion
+                                            key={`init-${initMethod.name.value}`}
+                                            functionModel={initMethod}
+                                            goToSource={() => { }}
+                                            onEditResource={handleFunctionEdit}
+                                            onDeleteResource={handleFunctionDelete}
+                                            onResourceImplement={handleOpenDiagram}
+                                        />
                                     </FunctionsContainer>
                                 </>
                             ))}
 
-                            {functionModel && functionModel.kind === "RESOURCE" && (
+                            {/* Listing service type bound functions */}
+                            {(objectMethods.length > 0 && (
+                                <>
+                                    <SectionHeader
+                                        title="Functions"
+                                        subtitle="Reusable functions within the service"
+                                    />
+                                    <FunctionsContainer>
+                                        {objectMethods.map((functionModel, index) => (
+                                            <ResourceAccordion
+                                                key={`${index}-${functionModel.name.value}`}
+                                                functionModel={functionModel}
+                                                goToSource={() => { }}
+                                                onEditResource={handleFunctionEdit}
+                                                onDeleteResource={handleFunctionDelete}
+                                                onResourceImplement={handleOpenDiagram}
+                                            />
+                                        ))}
+                                    </FunctionsContainer>
+                                </>
+                            ))}
+
+                            {/* This is for adding or editing a http resource */}
+                            {functionModel && isHttpService && functionModel.kind === "RESOURCE" && (
                                 <PanelContainer
                                     title={"Resource Configuration"}
                                     show={showForm}
@@ -875,7 +858,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </PanelContainer>
                             )}
 
-                            {functionModel && functionModel.kind === "REMOTE" && (
+                            {/* This is for editing a remote or resource function */}
+                            {functionModel && !isHttpService && (
                                 <PanelContainer
                                     title={"Function Configuration"}
                                     show={showForm}
@@ -890,9 +874,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </PanelContainer>
                             )}
 
+                            {/* This is for adding a new handler to the service */}
                             {serviceModel && !isHttpService && (
                                 <PanelContainer
-                                    title={"Function Configuration"}
+                                    title={"Select Handler to Add"}
                                     show={showFunctionConfigForm}
                                     onClose={handleFunctionConfigClose}
                                 >
@@ -904,76 +889,38 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     />
                                 </PanelContainer>
                             )}
-
-                            {/* Init Function Form Panel */}
-                            {serviceModel && !isHttpService && (
-                                <PanelContainer
-                                    title={"Init Function Configuration"}
-                                    show={showInitFunctionForm}
-                                    onClose={handleInitFunctionClose}
-                                    width={600}
-                                >
-                                    <div style={{ padding: '20px' }}>
-                                        <Typography variant="body1" sx={{ marginBottom: '16px' }}>
-                                            Configure the initialization function for your service
-                                        </Typography>
-                                        <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                                            <Button appearance="primary" onClick={() => {
-                                                // TODO: Implement init function creation logic
-                                                console.log("Creating init function...");
-                                                handleInitFunctionClose();
-                                            }}>
-                                                Create Init Function
-                                            </Button>
-                                            <Button appearance="secondary" onClick={handleInitFunctionClose}>
-                                                Cancel
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </PanelContainer>
-                            )}
-
-                            {/* Field Form Panel */}
-                            {serviceModel && !isHttpService && (
-                                <PanelContainer
-                                    title={"Add Service Field"}
-                                    show={showFieldForm}
-                                    onClose={handleFieldClose}
-                                    width={600}
-                                >
-                                    <div style={{ padding: '20px' }}>
-                                        <Typography variant="body1" sx={{ marginBottom: '16px' }}>
-                                            Add a new field to your service
-                                        </Typography>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-                                            <TextField
-                                                placeholder="Field name"
-                                                sx={{ width: '100%' }}
-                                            />
-                                            <TextField
-                                                placeholder="Field type (e.g., string, int, boolean)"
-                                                sx={{ width: '100%' }}
-                                            />
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '12px' }}>
-                                            <Button appearance="primary" onClick={() => {
-                                                // TODO: Implement field creation logic
-                                                console.log("Creating field...");
-                                                handleFieldClose();
-                                            }}>
-                                                Add Field
-                                            </Button>
-                                            <Button appearance="secondary" onClick={handleFieldClose}>
-                                                Cancel
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </PanelContainer>
-                            )}
                         </ServiceContainer>
                     </>
                 )
             }
         </View>
+    );
+}
+
+interface SectionHeaderProps {
+    title: string;
+    subtitle: string;
+    children?: React.ReactNode;
+}
+
+function SectionHeader({ title, subtitle, children }: SectionHeaderProps) {
+    return (
+        <HeaderContainer>
+            <div>
+                <Typography
+                    variant="h3"
+                    sx={{ marginLeft: 10, fontWeight: 'bold' }}
+                >
+                    {title}
+                </Typography>
+                <Typography
+                    variant="body3"
+                    sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
+                >
+                    {subtitle}
+                </Typography>
+            </div>
+            {children}
+        </HeaderContainer>
     );
 }
