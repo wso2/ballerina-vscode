@@ -25,7 +25,7 @@ import { InputSearchHighlight } from '../commons/Search';
 import { TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { useIONodesStyles } from "../../../styles";
 import { getTypeName } from "../../utils/type-utils";
-import { TruncatedLabel } from "@wso2/ui-toolkit";
+import { TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { InputCategoryIcon } from "./InputCategoryIcon";
 
 export interface PrimitiveTypeItemWidgetProps {
@@ -51,16 +51,16 @@ export function PrimitiveTypeInputWidget(props: PrimitiveTypeItemWidgetProps) {
     };
 
     const label = (
-        <TruncatedLabel>
-            <span className={classes.valueLabel}>
+        <TruncatedLabelGroup style={{ alignItems: "baseline" }}>
+            <TruncatedLabel className={classes.valueLabel}>
                 <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
-            </span>
+            </TruncatedLabel>
             {typeName && (
-                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+                <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
-                </span>
+                </TruncatedLabel>
             )}
-        </TruncatedLabel>
+        </TruncatedLabelGroup>
     );
 
     return (
