@@ -1218,6 +1218,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(">>> No updated node found");
             updatedNode = selectedNodeRef.current;
             debouncedGetFlowModel();
+            return;
         }
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
