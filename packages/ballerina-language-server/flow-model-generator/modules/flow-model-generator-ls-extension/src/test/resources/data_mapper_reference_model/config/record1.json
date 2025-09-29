@@ -30,11 +30,33 @@
       "displayName": "finalNote",
       "typeName": "FinalNote",
       "kind": "record",
-      "ref": "-163075825"
+      "ref": "-1504175588"
     },
     "mappings": [],
     "refs": {
-      "897207248": {
+      "-736620629": {
+        "fields": [
+          {
+            "name": "note",
+            "displayName": "note",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "sampleRecord",
+            "displayName": "sampleRecord",
+            "typeName": "SampleRecord",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1384157561"
+          }
+        ],
+        "typeName": "ProgressNote",
+        "kind": "record"
+      },
+      "-1659459856": {
         "fields": [
           {
             "name": "sampleTypeName",
@@ -54,51 +76,7 @@
         "typeName": "SampleType",
         "kind": "record"
       },
-      "-163075825": {
-        "fields": [
-          {
-            "name": "finalNote",
-            "displayName": "finalNote",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "fields": [],
-            "name": "progressNote",
-            "displayName": "progressNote",
-            "typeName": "ProgressNote",
-            "kind": "record",
-            "optional": false,
-            "ref": "1030185792"
-          }
-        ],
-        "typeName": "FinalNote",
-        "kind": "record"
-      },
-      "1030185792": {
-        "fields": [
-          {
-            "name": "note",
-            "displayName": "note",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "fields": [],
-            "name": "sampleRecord",
-            "displayName": "sampleRecord",
-            "typeName": "SampleRecord",
-            "kind": "record",
-            "optional": false,
-            "ref": "-757648111"
-          }
-        ],
-        "typeName": "ProgressNote",
-        "kind": "record"
-      },
-      "-757648111": {
+      "-1384157561": {
         "fields": [
           {
             "name": "sampleRecordName",
@@ -114,10 +92,32 @@
             "typeName": "SampleType",
             "kind": "record",
             "optional": false,
-            "ref": "897207248"
+            "ref": "-1659459856"
           }
         ],
         "typeName": "SampleRecord",
+        "kind": "record"
+      },
+      "-1504175588": {
+        "fields": [
+          {
+            "name": "finalNote",
+            "displayName": "finalNote",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "progressNote",
+            "displayName": "progressNote",
+            "typeName": "ProgressNote",
+            "kind": "record",
+            "optional": false,
+            "ref": "-736620629"
+          }
+        ],
+        "typeName": "FinalNote",
         "kind": "record"
       }
     }

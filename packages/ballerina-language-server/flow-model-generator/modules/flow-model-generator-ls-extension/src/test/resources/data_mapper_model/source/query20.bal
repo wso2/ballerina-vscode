@@ -3,14 +3,14 @@ type ContactDetails record {|
     string[] addresses?;
 |};
 
-type Info2 record {|
+type Info record {|
     string[] secondaryPhones;
     string[] emails;
     string[][] addresses;
 |};
 
 type User record {|
-    Info2 info;
+    Info info;
 |};
 
 type Person record {|

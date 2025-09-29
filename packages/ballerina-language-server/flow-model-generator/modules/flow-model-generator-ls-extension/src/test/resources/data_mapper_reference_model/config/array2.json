@@ -30,33 +30,47 @@
       "displayName": "l1",
       "typeName": "L1",
       "kind": "record",
-      "ref": "-541564682"
+      "ref": "1428529"
     },
     "mappings": [],
     "refs": {
-      "-541564682": {
+      "1428530": {
         "fields": [
           {
+            "name": "l3",
+            "displayName": "l3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
             "member": {
-              "fields": [],
-              "name": "l2",
-              "displayName": "<l2Item>",
-              "typeName": "L2",
-              "kind": "record",
-              "ref": "1686465105"
+              "member": {
+                "fields": [],
+                "name": "l3Arr",
+                "displayName": "<l3ArrItemItem>",
+                "typeName": "L3",
+                "kind": "record",
+                "ref": "1428531"
+              },
+              "name": "l3Arr",
+              "displayName": "<l3ArrItem>",
+              "typeName": "L3[]",
+              "kind": "array",
+              "ref": "-457011656"
             },
-            "name": "l2",
-            "displayName": "l2",
-            "typeName": "L2[]",
+            "name": "l3Arr",
+            "displayName": "l3Arr",
+            "typeName": "L3[][]",
             "kind": "array",
             "optional": false,
-            "ref": "1686465105"
+            "ref": "-457011656"
           }
         ],
-        "typeName": "L1",
+        "typeName": "L2",
         "kind": "record"
       },
-      "-457011656": {
+      "1428531": {
         "fields": [
           {
             "name": "l4_1",
@@ -76,40 +90,26 @@
         "typeName": "L3",
         "kind": "record"
       },
-      "1686465105": {
+      "1428529": {
         "fields": [
           {
-            "name": "l3",
-            "displayName": "l3",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
             "member": {
-              "member": {
-                "fields": [],
-                "name": "l3Arr",
-                "displayName": "<l3ArrItemItem>",
-                "typeName": "L3",
-                "kind": "record",
-                "ref": "-457011656"
-              },
-              "name": "l3Arr",
-              "displayName": "<l3ArrItem>",
-              "typeName": "L3[]",
-              "kind": "array",
-              "ref": "-457011656"
+              "fields": [],
+              "name": "l2",
+              "displayName": "<l2Item>",
+              "typeName": "L2",
+              "kind": "record",
+              "ref": "1428530"
             },
-            "name": "l3Arr",
-            "displayName": "l3Arr",
-            "typeName": "L3[][]",
+            "name": "l2",
+            "displayName": "l2",
+            "typeName": "L2[]",
             "kind": "array",
             "optional": false,
-            "ref": "-457011656"
+            "ref": "1686465105"
           }
         ],
-        "typeName": "L2",
+        "typeName": "L1",
         "kind": "record"
       }
     }

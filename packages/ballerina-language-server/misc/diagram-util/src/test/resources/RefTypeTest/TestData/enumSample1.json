@@ -7,7 +7,7 @@
       {
         "fieldName": "name",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string"
         },
@@ -19,20 +19,21 @@
         "type": {
           "memberTypes": [
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "FINANCE"
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "IT"
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "HR"
             }
           ],
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "-959561237",
+          "key": "-1253237511",
           "name": "DepartmentCode",
           "typeName": "union"
         },
@@ -40,30 +41,32 @@
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "-959561237"
+    "dependentTypeKeys": [
+      "-1253237511"
     ],
     "hashCode": "1123774631",
+    "key": "1146573036",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
-      "-959561237": {
+      "-1253237511": {
         "memberTypes": [
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "FINANCE"
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "IT"
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "HR"
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "-959561237",
+        "key": "-1253237511",
         "name": "DepartmentCode",
         "typeName": "union"
       }

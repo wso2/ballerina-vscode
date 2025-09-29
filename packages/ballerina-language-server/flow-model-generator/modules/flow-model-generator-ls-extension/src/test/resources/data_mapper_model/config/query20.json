@@ -1,23 +1,23 @@
 {
-  "source": "query2_2.bal",
+  "source": "query20.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "query2_2.bal",
+      "fileName": "main.bal",
       "startLine": {
-        "line": 31,
+        "line": 21,
         "offset": 4
       },
       "endLine": {
-        "line": 36,
+        "line": 26,
         "offset": 21
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 31,
+    "line": 21,
     "offset": 4
   },
   "propertyKey": "expression",
@@ -26,56 +26,40 @@
     "inputs": [
       {
         "fields": [],
-        "name": "info",
-        "displayName": "info",
-        "typeName": "Info",
+        "name": "u",
+        "displayName": "u",
+        "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "ref": "1372788890"
+        "ref": "1373151159"
       },
       {
-        "fields": [],
         "name": "secondaryPhonesItem",
         "displayName": "secondaryPhonesItem",
-        "typeName": "SecondaryPhones",
-        "kind": "record",
-        "focusExpression": "info.secondaryPhones",
-        "ref": "-782972947"
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "u.info.secondaryPhones"
       }
     ],
     "output": {
       "member": {
-        "fields": [],
         "name": "phoneNumbers",
         "displayName": "<phoneNumbersItem>",
-        "typeName": "SecondaryPhonesX",
-        "kind": "record",
-        "ref": "1497642507"
+        "typeName": "string",
+        "kind": "string"
       },
       "name": "phoneNumbers",
       "displayName": "phoneNumbers",
-      "typeName": "SecondaryPhonesX[]",
-      "kind": "array",
-      "ref": "1040773059"
+      "typeName": "string[]",
+      "kind": "array"
     },
     "mappings": [
       {
-        "output": "phoneNumbers.code",
+        "output": "phoneNumbers",
         "inputs": [
-          "secondaryPhonesItem.code"
+          "secondaryPhonesItem"
         ],
-        "expression": "secondaryPhonesItem.code",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": false
-      },
-      {
-        "output": "phoneNumbers.number",
-        "inputs": [
-          "secondaryPhonesItem.number"
-        ],
-        "expression": "secondaryPhonesItem.number",
+        "expression": "secondaryPhonesItem\n",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
@@ -85,45 +69,25 @@
     "query": {
       "output": "phoneNumbers",
       "inputs": [
-        "info.secondaryPhones"
+        "u.info.secondaryPhones"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
           "name": "secondaryPhonesItem",
-          "type": "SecondaryPhones",
-          "expression": "info.secondaryPhones"
+          "type": "string",
+          "expression": "u.info.secondaryPhones"
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+          "expression": "secondaryPhonesItem"
         }
       }
     },
     "refs": {
-      "1497642507": {
-        "fields": [
-          {
-            "name": "code",
-            "displayName": "code",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "number",
-            "displayName": "number",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "SecondaryPhonesX",
-        "kind": "record"
-      },
       "-782972947": {
         "fields": [
           {
@@ -148,19 +112,16 @@
         "fields": [
           {
             "member": {
-              "fields": [],
               "name": "secondaryPhones",
               "displayName": "<secondaryPhonesItem>",
-              "typeName": "SecondaryPhones",
-              "kind": "record",
-              "ref": "-782972947"
+              "typeName": "string",
+              "kind": "string"
             },
             "name": "secondaryPhones",
             "displayName": "secondaryPhones",
-            "typeName": "SecondaryPhones[]",
+            "typeName": "string[]",
             "kind": "array",
-            "optional": false,
-            "ref": "-1392347127"
+            "optional": false
           },
           {
             "member": {
@@ -196,6 +157,21 @@
           }
         ],
         "typeName": "Info",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "info",
+            "displayName": "info",
+            "typeName": "Info",
+            "kind": "record",
+            "optional": false,
+            "ref": "1372788890"
+          }
+        ],
+        "typeName": "User",
         "kind": "record"
       }
     }
