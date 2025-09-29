@@ -16,6 +16,7 @@
  * under the License.
  */
 import {
+    AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
     HistoryEntry,
@@ -23,14 +24,21 @@ import {
     OpenViewRequest,
     PopupVisualizerLocation,
     SHARED_COMMANDS,
+    UndoRedoStateResponse,
     UpdateUndoRedoMangerRequest,
     VisualizerAPI,
-    VisualizerLocation
+    VisualizerLocation,
+    vscode,
 } from "@wso2/ballerina-core";
-import { commands, window } from "vscode";
+import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import { URI, Utils } from "vscode-uri";
+import fs from "fs";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
-import { URI, Utils } from "vscode-uri";
+import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { notifyCurrentWebview } from "../../RPCLayer";
+import { updateCurrentArtifactLocation } from "../../utils/state-machine-utils";
+import { refreshDataMapper } from "../data-mapper/utils";
 
 export class VisualizerRpcManager implements VisualizerAPI {
 
@@ -75,20 +83,110 @@ export class VisualizerRpcManager implements VisualizerAPI {
         updateView();
     }
 
-    async undo(): Promise<string> {
-        return undoRedoManager.undo();
+    private async refreshDataMapperView(): Promise<void> {
+        const stateMachineContext = StateMachine.context();
+        if (stateMachineContext.view === MACHINE_VIEW.DataMapper || stateMachineContext.view === MACHINE_VIEW.InlineDataMapper) {
+            const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+            await refreshDataMapper(documentUri, codeData, name);
+        }
     }
 
-    async redo(): Promise<string> {
-        return undoRedoManager.redo();
+    async undo(count: number): Promise<string> {
+        // Handle the undo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
+        return new Promise((resolve, reject) => {
+            StateMachine.setEditMode();
+            const workspaceEdit = new WorkspaceEdit();
+            const revertedFiles = undoRedoManager.undo(count);
+            if (revertedFiles) {
+                for (const [filePath, content] of revertedFiles.entries()) {
+                    workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
+                }
+            }
+            workspace.applyEdit(workspaceEdit);
+
+            // Get the artifact notification handler instance
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            // Subscribe to artifact updated notifications
+            let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+                console.log("Received notification:", payload);
+                updateCurrentArtifactLocation({ artifacts: payload.data });
+                clearTimeout(timeoutId);
+                StateMachine.setReadyMode();
+                notifyCurrentWebview();
+                await this.refreshDataMapperView();
+                unsubscribe();
+                resolve("Undo successful"); // resolve the undo string
+            });
+
+            // Set a timeout to reject if no notification is received within 10 seconds
+            const timeoutId = setTimeout(() => {
+                console.log("No artifact update notification received within 10 seconds");
+                unsubscribe();
+                StateMachine.setReadyMode();
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                reject(new Error("Operation timed out. Please try again."));
+            }, 10000);
+
+            // Clear the timeout when notification is received
+            const originalUnsubscribe = unsubscribe;
+            unsubscribe = () => {
+                clearTimeout(timeoutId);
+                originalUnsubscribe();
+            };
+        });
     }
 
-    addToUndoStack(source: string): void {
-        undoRedoManager.addModification(source);
+    async redo(count: number): Promise<string> {
+        // Handle the redo batch operation here. Use the vscode vscode.WorkspaceEdit() to revert the changes.
+        return new Promise((resolve, reject) => {
+            StateMachine.setEditMode();
+            const workspaceEdit = new WorkspaceEdit();
+            const revertedFiles = undoRedoManager.redo(count);
+            if (revertedFiles) {
+                for (const [filePath, content] of revertedFiles.entries()) {
+                    workspaceEdit.replace(Uri.file(filePath), new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), content);
+                }
+            }
+            workspace.applyEdit(workspaceEdit);
+
+            // Get the artifact notification handler instance
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            // Subscribe to artifact updated notifications
+            let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+                console.log("Received notification:", payload);
+                updateCurrentArtifactLocation({ artifacts: payload.data });
+                clearTimeout(timeoutId);
+                StateMachine.setReadyMode();
+                notifyCurrentWebview();
+                await this.refreshDataMapperView();
+                unsubscribe();
+                resolve("Redo successful");
+            });
+
+            // Set a timeout to reject if no notification is received within 10 seconds
+            const timeoutId = setTimeout(() => {
+                console.log("No artifact update notification received within 10 seconds");
+                unsubscribe();
+                StateMachine.setReadyMode();
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                reject(new Error("Operation timed out. Please try again."));
+            }, 10000);
+
+            // Clear the timeout when notification is received
+            const originalUnsubscribe = unsubscribe;
+            unsubscribe = () => {
+                clearTimeout(timeoutId);
+                originalUnsubscribe();
+            };
+        });
     }
 
-    updateUndoRedoManager(params: UpdateUndoRedoMangerRequest): void {
-        undoRedoManager.updateContent(params.filePath, params.fileContent);
+    addToUndoStack(params: AddToUndoStackRequest): void {
+        // Get the current file content from file
+        const currentFileContent = fs.readFileSync(params.filePath, 'utf8');
+        undoRedoManager.startBatchOperation();
+        undoRedoManager.addFileToBatch(params.filePath, currentFileContent, params.source);
+        undoRedoManager.commitBatchOperation(params.description);
     }
 
     async getThemeKind(): Promise<ColorThemeKind> {
@@ -103,5 +201,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
             const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
             resolve(filePath.fsPath);
         });
+    }
+    async undoRedoState(): Promise<UndoRedoStateResponse> {
+        return undoRedoManager.getUIState();
     }
 }
