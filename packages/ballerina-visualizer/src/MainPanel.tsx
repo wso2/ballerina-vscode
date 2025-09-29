@@ -530,7 +530,8 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.ServiceFunctionForm:
                         setViewComponent(<ServiceFunctionForm
-                            codeData={value.dataMapperMetadata?.codeData}
+                            // codeData={value.dataMapperMetadata?.codeData}
+                            position={value?.position}
                             currentFilePath={value.documentUri}
                             projectPath={value.projectUri}
                         />);
