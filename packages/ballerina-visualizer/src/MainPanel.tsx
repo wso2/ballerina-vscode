@@ -529,7 +529,11 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.ServiceFunctionForm:
-                        setViewComponent(<ServiceFunctionForm />);
+                        setViewComponent(<ServiceFunctionForm
+                            codeData={value.dataMapperMetadata?.codeData}
+                            currentFilePath={value.documentUri}
+                            projectPath={value.projectUri}
+                        />);
                         break;
                     default:
                         setNavActive(false);
