@@ -198,16 +198,18 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }, [views]);
 
     useEffect(() => {
-        generateNodes(model);
-
         const prevRootViewId = views[0].label;
         const newRootViewId = model.rootViewId;
 
         if (prevRootViewId !== newRootViewId) {
-            resetView({
+            const view = {
                 label: model.rootViewId,
                 targetField: name
-            });
+            };
+            generateNodes(model, [view]);
+            resetView(view);
+        } else {
+            generateNodes(model, views);
         }
     }, [model]);
 
@@ -218,7 +220,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         }
     }, []);
 
-    const generateNodes = (model: ExpandedDMModel) => {
+    const generateNodes = (model: ExpandedDMModel, views: View[]) => {
         try {
             const context = new DataMapperContext(
                 model, 
