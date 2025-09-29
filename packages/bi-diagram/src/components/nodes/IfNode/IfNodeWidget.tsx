@@ -137,6 +137,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -175,6 +176,11 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
     };
@@ -208,6 +214,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
             hovered={isHovered}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             <NodeStyles.Row>
                 <NodeStyles.Column onClick={handleOnClick}>
@@ -269,7 +276,11 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                     </NodeStyles.ErrorIcon>
                 )}
                 {!readOnly && (
-                    <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
+                    <NodeStyles.StyledButton 
+                        ref={setMenuButtonElement}
+                        appearance="icon" 
+                        onClick={handleOnMenuClick}
+                    >
                         <MoreVertIcon />
                     </NodeStyles.StyledButton>
                 )}

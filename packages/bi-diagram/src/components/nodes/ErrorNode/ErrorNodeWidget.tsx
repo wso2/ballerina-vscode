@@ -181,6 +181,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -232,6 +233,11 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
     };
@@ -263,6 +269,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                         onClick={handleOnClick}
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
+                        onContextMenu={!readOnly ? handleOnContextMenu : undefined}
                         selected={model.isSelected() || isExpanded}
                         hovered={isHovered || isExpanded}
                         hasError={hasError}
@@ -289,7 +296,11 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                 <NodeStyles.Header>
                     <NodeStyles.Title>Error Handler</NodeStyles.Title>
                     {!readOnly && (
-                        <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
+                        <NodeStyles.StyledButton 
+                            ref={setMenuButtonElement}
+                            appearance="icon" 
+                            onClick={handleOnMenuClick}
+                        >
                             <MoreVertIcon />
                         </NodeStyles.StyledButton>
                     )}

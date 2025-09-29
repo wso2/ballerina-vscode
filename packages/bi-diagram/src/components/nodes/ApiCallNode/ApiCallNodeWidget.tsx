@@ -207,6 +207,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [isCircleHovered, setIsCircleHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -252,6 +253,11 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
     };
@@ -289,6 +295,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 isActiveBreakpoint={isActiveBreakpoint}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
+                onContextMenu={!readOnly ? handleOnContextMenu : undefined}
             >
                 {hasBreakpoint && (
                     <div
@@ -315,7 +322,11 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                         <NodeStyles.ActionButtonGroup>
                             {hasError && <DiagnosticsPopUp node={model.node} />}
                             {!readOnly && (
-                                <NodeStyles.MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                                <NodeStyles.MenuButton 
+                                    ref={setMenuButtonElement}
+                                    appearance="icon" 
+                                    onClick={handleOnMenuClick}
+                                >
                                     <MoreVertIcon />
                                 </NodeStyles.MenuButton>
                             )}
