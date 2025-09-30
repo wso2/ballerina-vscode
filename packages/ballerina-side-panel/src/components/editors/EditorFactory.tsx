@@ -44,6 +44,7 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
+import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -187,6 +188,13 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
+    } else if (field.type === "CONDITIONAL_FIELDS" && field.editable) {
+        // Conditional fields is a group of fields which are conditionally shown based on a checkbox field
+        return (
+            <CheckBoxConditionalEditor
+                field={field}
             />
         );
     } else {
