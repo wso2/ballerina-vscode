@@ -97,9 +97,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String SERVICE_TYPE = "ibmmq:Service";
     private static final String LISTENER_TYPE = "Listener";
 
-    // Default values
-    private static final String DEFAULT_SESSION_ACK_MODE = "\"AUTO_ACKNOWLEDGE\"";
-
     // Display labels
     private static final String LABEL_QUEUE = "Queue";
     private static final String LABEL_TOPIC = "Topic";
@@ -121,6 +118,9 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String ACK_CLIENT = "\"CLIENT_ACKNOWLEDGE\"";
     private static final String ACK_DUPS_OK = "\"DUPS_OK_ACKNOWLEDGE\"";
     private static final String ACK_SESSION_TRANSACTED = "\"SESSION_TRANSACTED\"";
+
+    // Default values
+    private static final String DEFAULT_SESSION_ACK_MODE = ACK_AUTO;
 
     // Formatting strings
     private static final String BOOLEAN_TRUE = "true";
@@ -424,15 +424,15 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         return null; // Return null if sessionAckMode field not found
     }
 
-    private String extractQueueName(MappingConstructorExpressionNode mappingNode) {
-        // Parse the mapping constructor to find the queueName field
+    private String extractFieldValue(MappingConstructorExpressionNode mappingNode, String fieldName) {
+        // Parse the mapping constructor to find the specified field
         for (MappingFieldNode field : mappingNode.fields()) {
             if (field instanceof SpecificFieldNode specificField) {
                 // Get the field name
-                String fieldName = specificField.fieldName().toString().trim();
+                String currentFieldName = specificField.fieldName().toString().trim();
 
-                // Check if this is the queueName field
-                if (PROPERTY_QUEUE_NAME.equals(fieldName)) {
+                // Check if this is the field we're looking for
+                if (fieldName.equals(currentFieldName)) {
                     // Get the field value
                     ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
                     if (valueExpr instanceof BasicLiteralNode literalNode) {
@@ -441,10 +441,10 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 }
             }
         }
-        return null; // Return null if queueName field not found
+        return null; // Return null if field not found
     }
 
-    private void extractQueueNameFromAnnotation(Service service) {
+    private void extractDestinationFromAnnotation(Service service) {
         Map<String, Value> properties = service.getProperties();
         Map<String, Value> readonlyProperties = service.getReadonlyProperties();
 
@@ -461,8 +461,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             return;
         }
 
-        // Extract queue name from the mapping
-        String queueName = extractQueueName(mappingNode);
+        // Extract queue name first, then topic name if queue name not found
+        String queueName = extractFieldValue(mappingNode, PROPERTY_QUEUE_NAME);
         if (queueName != null) {
             // Create a new readonly property for the queue name
             Value queueNameProperty = new Value.ValueBuilder()
@@ -476,6 +476,23 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
             // Add the queue name as a readonly property
             readonlyProperties.put(PROPERTY_QUEUE_NAME, queueNameProperty);
+        } else {
+            // Try to extract topic name if queue name not found
+            String topicName = extractFieldValue(mappingNode, PROPERTY_TOPIC_NAME);
+            if (topicName != null) {
+                // Create a new readonly property for the topic name
+                Value topicNameProperty = new Value.ValueBuilder()
+                        .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
+                        .value(topicName)
+                        .valueType(VALUE_TYPE_EXPRESSION)
+                        .setValueTypeConstraint(VALUE_TYPE_STRING)
+                        .enabled(true)
+                        .editable(false)
+                        .build();
+
+                // Add the topic name as a readonly property
+                readonlyProperties.put(PROPERTY_TOPIC_NAME, topicNameProperty);
+            }
         }
     }
 
@@ -644,8 +661,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                     onErrorFunction.setEditable(true);
                 });
 
-        // Extract queue name from annotation and add as readonly property
-        extractQueueNameFromAnnotation(service);
+        // Extract destination from annotation and add as readonly property
+        extractDestinationFromAnnotation(service);
         return service;
     }
 
