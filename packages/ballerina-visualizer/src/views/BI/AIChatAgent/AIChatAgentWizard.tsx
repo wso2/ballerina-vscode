@@ -113,7 +113,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             const agentCallCodeData: CodeData = {
                 "node": "AGENT_CALL",
-                "org": "ballerina",
+                "org": aiModuleOrg.current,
                 "module": "ai",
                 "packageName": "ai",
                 "object": "Agent",
