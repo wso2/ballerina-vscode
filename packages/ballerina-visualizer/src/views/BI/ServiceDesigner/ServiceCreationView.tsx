@@ -98,6 +98,85 @@ enum PullingStatus {
     ERROR = "error",
 }
 
+/**
+ * Maps the properties to an array of FormField objects.
+ * 
+ * @param properties The properties to map.
+ * @returns An array of FormField objects.
+ */
+function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }): FormField[] {
+    if (!properties) return [];
+
+    return Object.entries(properties).map(([key, property]) => {
+
+        // Determine value for MULTIPLE_SELECT
+        let value: any = property.value;
+        if (property.valueType === "MULTIPLE_SELECT") {
+            if (property.values && property.values.length > 0) {
+                value = property.values;
+            } else if (property.value) {
+                value = [property.value];
+            } else if (property.items && property.items.length > 0) {
+                value = [property.items[0]];
+            } else {
+                value = [];
+            }
+        }
+
+        let items = undefined;
+        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+            items = property.items;
+        }
+
+        return {
+            key,
+            label: property?.metadata?.label,
+            type: property.valueType,
+            documentation: property?.metadata?.description || "",
+            valueType: property.valueTypeConstraint,
+            editable: true,
+            enabled: property.enabled ?? true,
+            optional: property.optional,
+            value,
+            valueTypeConstraint: property.valueTypeConstraint,
+            advanced: property.advanced,
+            diagnostics: [],
+            items,
+            choices: property.choices,
+            placeholder: property.placeholder,
+            addNewButton: property.addNewButton,
+            lineRange: property?.codedata?.lineRange,
+            advanceProps: mapPropertiesToFormFields(property.properties)
+        } as FormField;
+    });
+}
+
+/**
+ * Populate the ServiceInitModel from the form fields.
+ * 
+ * @param formFields The form fields to update.
+ * @param model The ServiceInitModel to update.
+ * @returns The updated ServiceInitModel.
+ */
+function populateServiceInitModelFromFormFields(formFields: FormField[], model: ServiceInitModel): ServiceInitModel {
+    if (!model || !model.properties || !formFields) return model;
+
+    formFields.forEach(field => {
+        const property = model.properties[field.key];
+        if (!property) return;
+
+        const value = field.value;
+
+        // Handle MULTIPLE_SELECT and EXPRESSION_SET types
+        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+            property.values = Array.isArray(value) ? value : value ? [value] : [];
+        } else {
+            property.value = value as string;
+        }
+    });
+    return model;
+}
+
 export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     const { orgName, packageName, moduleName, version } = props;
@@ -371,83 +450,4 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             )}
         </View>
     );
-}
-
-/**
- * Maps the properties to an array of FormField objects.
- * 
- * @param properties The properties to map.
- * @returns An array of FormField objects.
- */
-function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }): FormField[] {
-    if (!properties) return [];
-
-    return Object.entries(properties).map(([key, property]) => {
-
-        // Determine value for MULTIPLE_SELECT
-        let value: any = property.value;
-        if (property.valueType === "MULTIPLE_SELECT") {
-            if (property.values && property.values.length > 0) {
-                value = property.values;
-            } else if (property.value) {
-                value = [property.value];
-            } else if (property.items && property.items.length > 0) {
-                value = [property.items[0]];
-            } else {
-                value = [];
-            }
-        }
-
-        let items = undefined;
-        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
-            items = property.items;
-        }
-
-        return {
-            key,
-            label: property?.metadata?.label,
-            type: property.valueType,
-            documentation: property?.metadata?.description || "",
-            valueType: property.valueTypeConstraint,
-            editable: true,
-            enabled: property.enabled ?? true,
-            optional: property.optional,
-            value,
-            valueTypeConstraint: property.valueTypeConstraint,
-            advanced: property.advanced,
-            diagnostics: [],
-            items,
-            choices: property.choices,
-            placeholder: property.placeholder,
-            addNewButton: property.addNewButton,
-            lineRange: property?.codedata?.lineRange,
-            advanceProps: mapPropertiesToFormFields(property.properties)
-        } as FormField;
-    });
-}
-
-/**
- * Populate the ServiceInitModel from the form fields.
- * 
- * @param formFields The form fields to update.
- * @param model The ServiceInitModel to update.
- * @returns The updated ServiceInitModel.
- */
-function populateServiceInitModelFromFormFields(formFields: FormField[], model: ServiceInitModel): ServiceInitModel {
-    if (!model || !model.properties || !formFields) return model;
-
-    formFields.forEach(field => {
-        const property = model.properties[field.key];
-        if (!property) return;
-
-        const value = field.value;
-
-        // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
-            property.values = Array.isArray(value) ? value : value ? [value] : [];
-        } else {
-            property.value = value as string;
-        }
-    });
-    return model;
 }

@@ -22,7 +22,6 @@ import { CheckBoxGroup, FormCheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { EditorFactory } from "./EditorFactory";
 import { useFormContext } from "../../context";
-import { ContextAwareExpressionEditor } from "./ExpressionEditor";
 import { PropertyModel } from "@wso2/ballerina-core";
 
 const Form = styled.div`
@@ -69,7 +68,6 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
     const { field } = props;
     const { form } = useFormContext();
     const { register, control, watch } = form;
-    const [conditionalFields, setConditionalFields] = useState<FormField[]>([]);
     const [checkedStateFields, setCheckedStateFields] = useState<FormField[]>([]);
     const [uncheckedStateFields, setUncheckedStateFields] = useState<FormField[]>([]);
 
@@ -87,15 +85,6 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
             setUncheckedStateFields(mappedUncheckedStateFields);
         }
     }, [field]);
-
-
-    // useEffect(() => {
-    //     if (checked) {
-    //         setConditionalFields(checkedStateFields);
-    //     } else {
-    //         setConditionalFields(uncheckedStateFields);
-    //     }
-    // }, [checked, checkedStateFields, uncheckedStateFields]);
 
     // Add useEffect to set initial values
     useEffect(() => {
