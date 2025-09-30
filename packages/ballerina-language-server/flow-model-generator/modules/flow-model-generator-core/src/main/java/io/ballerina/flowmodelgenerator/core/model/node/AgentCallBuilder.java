@@ -131,7 +131,7 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNodeUtil.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
                 INSTRUCTIONS_PLACEHOLDER, instructionsValue);
 
-        nodeBuilder.properties().custom().hidden(true).stepOut().addProperty(NAME);
+        nodeBuilder.properties().custom().optional(true).hidden(true).stepOut().addProperty(NAME);
     }
 
     private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
