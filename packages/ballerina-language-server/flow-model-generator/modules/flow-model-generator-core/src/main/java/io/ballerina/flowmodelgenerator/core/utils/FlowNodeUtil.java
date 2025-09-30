@@ -250,10 +250,11 @@ public class FlowNodeUtil {
             Optional<Property> sourceProperty = sourceNode.getProperty(propertyName);
 
             // Only copy if source property exists and has a non-empty string value
-            if (sourceProperty.isPresent() &&
-                    sourceProperty.get().value() != null &&
-                    !sourceProperty.get().value().toString().isEmpty()) {
-                copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
+            if (sourceProperty.isPresent()) {
+                Property srcProp = sourceProperty.get();
+                if (srcProp.value() != null && !srcProp.value().toString().isEmpty()) {
+                    copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
+                }
             }
         }
     }
