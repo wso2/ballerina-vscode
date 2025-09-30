@@ -228,16 +228,14 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
         allEdits.put(context.filePath(), edits);
 
-        // Check and add IBM MQ platform dependency if not present
-        if (!hasIBMMQDependency(context)) {
-            Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
-            dependencyEdits.forEach((filePath, textEdits) -> {
-                allEdits.merge(filePath, textEdits, (existing, additional) -> {
-                    existing.addAll(additional);
-                    return existing;
-                });
+        // Check and add/update IBM MQ platform dependency if needed
+        Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
+        dependencyEdits.forEach((filePath, textEdits) -> {
+            allEdits.merge(filePath, textEdits, (existing, additional) -> {
+                existing.addAll(additional);
+                return existing;
             });
-        }
+        });
 
         return allEdits;
     }
@@ -638,29 +636,29 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private boolean hasIBMMQDependency(AddServiceInitModelContext context) {
+    private DependencyCheckResult checkIBMMQDependency(AddServiceInitModelContext context) {
         Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
         if (ballerinaToml.isEmpty()) {
-            return false;
+            return new DependencyCheckResult(false, false, null);
         }
 
         TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
         TopLevelNode platformNode = tomlTableNode.entries().get("platform");
         if (!(platformNode instanceof TomlTableNode platformTable)) {
-            return false;
+            return new DependencyCheckResult(false, false, null);
         }
 
         TopLevelNode java21Node = platformTable.entries().get("java21");
         if (!(java21Node instanceof TomlTableNode java21Table)) {
-            return false;
+            return new DependencyCheckResult(false, false, null);
         }
 
         TopLevelNode dependencyNode = java21Table.entries().get("dependency");
         if (!(dependencyNode instanceof TomlTableArrayNode dependencyArray)) {
-            return false;
+            return new DependencyCheckResult(false, false, null);
         }
 
-        // Check if IBM MQ dependency already exists with correct version
+        // Check if IBM MQ dependency already exists
         for (TomlTableNode dependencyTable : dependencyArray.children()) {
             TomlKeyValueNode groupIdNode = (TomlKeyValueNode) dependencyTable.entries().get("groupId");
             TomlKeyValueNode artifactIdNode = (TomlKeyValueNode) dependencyTable.entries().get("artifactId");
@@ -671,12 +669,13 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 String artifactId = artifactIdNode.value().toNativeValue().toString().replace("\"", "");
                 String version = versionNode.value().toNativeValue().toString().replace("\"", "");
 
-                return IBM_MQ_CLIENT_GROUP_ID.equals(groupId) &&
-                        IBM_MQ_CLIENT_ARTIFACT_ID.equals(artifactId) &&
-                        IBM_MQ_CLIENT_VERSION.equals(version);
+                if (IBM_MQ_CLIENT_GROUP_ID.equals(groupId) && IBM_MQ_CLIENT_ARTIFACT_ID.equals(artifactId)) {
+                    boolean correctVersion = IBM_MQ_CLIENT_VERSION.equals(version);
+                    return new DependencyCheckResult(true, correctVersion, versionNode);
+                }
             }
         }
-        return false;
+        return new DependencyCheckResult(false, false, null);
     }
 
     private Map<String, List<TextEdit>> createIBMMQDependencyEdits(AddServiceInitModelContext context) {
@@ -687,27 +686,45 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             return Map.of();
         }
 
-        TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
-        String dependencyText = String.format(
-                "%s%s[[%s]]%sgroupId = \"%s\"%sartifactId = \"%s\"%sversion = \"%s\"%s",
-                NEW_LINE,
-                NEW_LINE,
-                PLATFORM_JAVA21_DEPENDENCY,
-                NEW_LINE,
-                IBM_MQ_CLIENT_GROUP_ID,
-                NEW_LINE,
-                IBM_MQ_CLIENT_ARTIFACT_ID,
-                NEW_LINE,
-                IBM_MQ_CLIENT_VERSION,
-                NEW_LINE
-        );
+        DependencyCheckResult checkResult = checkIBMMQDependency(context);
 
-        TextEdit edit = new TextEdit(
-                PositionUtil.toRange(tomlTableNode.location().lineRange().endLine()),
-                dependencyText
-        );
+        if (checkResult.exists && !checkResult.correctVersion && checkResult.versionNode != null) {
+            // Update only the version field
+            TextEdit versionEdit = new TextEdit(
+                    PositionUtil.toRange(checkResult.versionNode.location().lineRange()),
+                    "version = \"" + IBM_MQ_CLIENT_VERSION + "\""
+            );
+            return Map.of(tomlPath.toString(), List.of(versionEdit));
+        } else if (!checkResult.exists) {
+            // Add the full dependency
+            TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+            String dependencyText = String.format(
+                    "%s%s[[%s]]%sgroupId = \"%s\"%sartifactId = \"%s\"%sversion = \"%s\"%s",
+                    NEW_LINE,
+                    NEW_LINE,
+                    PLATFORM_JAVA21_DEPENDENCY,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_GROUP_ID,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_ARTIFACT_ID,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_VERSION,
+                    NEW_LINE
+            );
 
-        return Map.of(tomlPath.toString(), List.of(edit));
+            TextEdit edit = new TextEdit(
+                    PositionUtil.toRange(tomlTableNode.location().lineRange().endLine()),
+                    dependencyText
+            );
+            return Map.of(tomlPath.toString(), List.of(edit));
+        }
+
+        // Dependency exists with correct version, no edits needed
+        return Map.of();
+    }
+
+    private record DependencyCheckResult(boolean exists, boolean correctVersion, TomlKeyValueNode versionNode) {
+
     }
 
     @Override
