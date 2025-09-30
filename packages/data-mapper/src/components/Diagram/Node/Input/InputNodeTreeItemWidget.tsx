@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Button, Codicon, Tooltip, TruncatedLabel } from "@wso2/ui-toolkit";
+import { Button, Codicon, Tooltip, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
@@ -73,19 +73,17 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const indentation = fields ? 0 : ((treeDepth + 1) * 16) + 8;
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }}>
-            <span style={{ opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
-                <span className={classes.valueLabel} style={{ marginLeft: indentation }}>
-                    <InputSearchHighlight>{displayName}</InputSearchHighlight>
-                    {dmType.optional && "?"}
-                </span>
-                {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
-                    <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
-                        {typeName}
-                    </span>
-                )}
-            </span>
-        </TruncatedLabel>
+        <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline", opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
+            <TruncatedLabel className={classes.valueLabel} style={{ marginLeft: indentation }}>
+                <InputSearchHighlight>{displayName}</InputSearchHighlight>
+                {dmType.optional && "?"}
+            </TruncatedLabel>
+            {typeName && !isEnumMember(portOut?.getParent() as InputNode) && (
+                <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+                    {typeName}
+                </TruncatedLabel>
+            )}
+        </TruncatedLabelGroup>
     );
 
     const handleExpand = () => {

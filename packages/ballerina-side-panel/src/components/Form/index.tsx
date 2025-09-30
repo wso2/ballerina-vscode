@@ -493,10 +493,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     // Expose a method to trigger the save
-    useImperativeHandle(ref, () => ({
-        triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
-        resetForm: (values) => reset(values),
-    }));
+    // useImperativeHandle(ref, () => ({
+    //     triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+    //     resetForm: (values) => reset(values),
+    // }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
         openRecordEditor?.(open, getValues(), typeField, newType);
