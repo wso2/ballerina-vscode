@@ -115,8 +115,9 @@ public class ReferenceType {
             return primitiveType;
         }
 
-        String typeHash = String.valueOf(Objects.hash(moduleID.toString(), name, symbol.signature()));
-        String typeKey = String.valueOf((moduleID + ":" + name).hashCode());
+        String moduleIdString = moduleID != null ?  moduleID.toString() : null;
+        String typeHash = String.valueOf(Objects.hash(moduleIdString, name, symbol.signature()));
+        String typeKey = String.valueOf((moduleIdString + ":" + name).hashCode());
 
         RefType type = visitedTypeMap.get(typeKey);
         if (type != null && !(symbol.typeKind().equals(TypeDescKind.TYPE_REFERENCE))) {
@@ -134,7 +135,7 @@ public class ReferenceType {
             RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) symbol;
             RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = typeHash;
-            recordType.typeInfo = createTypeInfo(moduleID);
+            recordType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             recordType.key = typeKey;
             if (name.isEmpty()) {
                 typeKey = typeHash;
@@ -147,6 +148,9 @@ public class ReferenceType {
                 TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
                 String fieldTypeName = fieldTypeSymbol.getName().orElse("");
                 ModuleID fieldModuleId = getModuleID(fieldSymbol);
+                if (fieldModuleId == null) {
+                    fieldModuleId = getModuleIDForTypeSymbol(fieldTypeSymbol, moduleID);
+                }
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, typeDefSymbols);
                 if (fieldType.dependentTypeKeys == null || fieldType.dependentTypeKeys.isEmpty()) {
                     if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
@@ -188,7 +192,7 @@ public class ReferenceType {
             RefArrayType arrayType = new RefArrayType(name);
             arrayType.hashCode = typeHash;
             arrayType.key = typeKey;
-            arrayType.typeInfo = createTypeInfo(moduleID);
+            arrayType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
             ModuleID elementModuleId = getModuleIDForTypeSymbol(elementTypeSymbol, moduleID);
@@ -234,13 +238,14 @@ public class ReferenceType {
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
             unionType.key = typeKey;
-            unionType.typeInfo = createTypeInfo(moduleID);
+            unionType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             visitedTypeMap.put(typeKey, unionType);
 
             for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
                 ModuleID memberModuleId = getModuleIDForTypeSymbol(memberTypeSymbol, moduleID);
-                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
+                        memberModuleId, typeDefSymbols);
                 if (memberType.dependentTypeKeys == null || memberType.dependentTypeKeys.isEmpty()) {
                     if (memberType.hashCode != null && memberType.typeName.equals("record")) {
                         RefType t = new RefType(memberType.name);
@@ -296,7 +301,7 @@ public class ReferenceType {
     }
 
     private static RefType getPrimitiveType(TypeDescKind kind, String name) {
-        if (kind == TypeDescKind.INT || kind == TypeDescKind.STRING || kind == TypeDescKind.FLOAT |
+        if (kind == TypeDescKind.INT || kind == TypeDescKind.STRING || kind == TypeDescKind.FLOAT ||
                 kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.NIL || kind == TypeDescKind.DECIMAL ||
                 kind == TypeDescKind.NEVER) {
             return createPrimitiveRefType(kind, name);
@@ -338,12 +343,21 @@ public class ReferenceType {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol) typeSymbol;
                 TypeSymbol memberType = arrayType.memberTypeDescriptor();
                 ModuleID memberModuleId = getModuleID(memberType);
-                return memberModuleId != null ? memberModuleId : fallbackModuleId;
+                if (memberModuleId != null) {
+                    return memberModuleId;
+                }
+                return getModuleIDForTypeSymbol(memberType, fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
                 return unionType.memberTypeDescriptors().stream()
-                        .map(ReferenceType::getModuleID)
+                        .map(member -> {
+                            ModuleID moduleId = getModuleID(member);
+                            if (moduleId != null) {
+                                return moduleId;
+                            }
+                            return getModuleIDForTypeSymbol(member, fallbackModuleId);
+                        })
                         .filter(Objects::nonNull)
                         .findFirst()
                         .orElse(fallbackModuleId);
@@ -360,7 +374,10 @@ public class ReferenceType {
             }
             default -> {
                 ModuleID directModuleId = getModuleID(typeSymbol);
-                return directModuleId != null ? directModuleId : fallbackModuleId;
+                if (directModuleId != null) {
+                    return directModuleId;
+                }
+                return fallbackModuleId;
             }
         }
     }
@@ -377,8 +394,7 @@ public class ReferenceType {
         });
         type = new RefEnumType(enumSymbol.getName().orElse(""), fields);
         ModuleID moduleId = getModuleID(enumSymbol);
-        assert moduleId != null;
-        type.typeInfo = createTypeInfo(moduleId);
+        type.typeInfo = moduleId != null ? createTypeInfo(moduleId) : null;
         return type;
     }
 
