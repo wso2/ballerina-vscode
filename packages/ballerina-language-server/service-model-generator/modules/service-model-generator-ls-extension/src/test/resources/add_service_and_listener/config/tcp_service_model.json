@@ -1,0 +1,95 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "3",
+    "displayName": "TCP Service",
+    "description": "Create TCP service to handle TCP client connections",
+    "orgName": "ballerina",
+    "packageName": "tcp",
+    "moduleName": "tcp",
+    "version": "1.13.0",
+    "type": "tcp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+    "properties": {
+      "localPort": {
+        "metadata": {
+          "label": "TCP Port",
+          "description": "The port on which the TCP service listens"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "80",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "value": "80",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "tcpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/tcp;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener tcp:Listener tcpListener = new (80);\nservice tcp:Service on tcpListener {\n    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {\n        do {\n            TcpEchoService connectionService = new TcpEchoService();\n            return connectionService;\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nservice class TcpEchoService {\n    *tcp:ConnectionService;\n\n    remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n\n    remote function onError(tcp:Error tcpError) returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n\n    remote function onClose() returns tcp:Error? {\n        do {\n\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n\n"
+      }
+    ]
+  }
+}

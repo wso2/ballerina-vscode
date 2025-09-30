@@ -19,7 +19,13 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
@@ -53,6 +59,8 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -62,13 +70,16 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.NameUtil;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -76,6 +87,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,6 +112,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
@@ -115,6 +128,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
  * @since 1.0.0
  */
 public final class Utils {
+
+    private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
+    private static final String MODULE_PULLING_FAILED_MESSAGE = "Failed to pull the module: %s";
+    private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
 
     private Utils() {
     }
@@ -183,8 +200,33 @@ public final class Utils {
             designApproach.getChoices().stream()
                     .filter(Value::isEnabled).findFirst()
                     .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
+            service.getProperties().remove(PROPERTY_DESIGN_APPROACH);
         }
+    }
+
+    /**
+     * Applies the properties of the enabled choice from the specified choice property key in the service init model.
+     * If an enabled choice exists, its properties are added to the service and the choice property is removed.
+     *
+     * @param service the service initialization model to update
+     * @param key the key of the choice property to process
+     */
+    public static void applyEnabledChoiceProperty(ServiceInitModel service, String key) {
+        Map<String, Value> properties = service.getProperties();
+        Value choiceProperty = properties.get(key);
+        if (Objects.isNull(choiceProperty) || !choiceProperty.isEnabled()
+                || Objects.isNull(choiceProperty.getChoices()) || choiceProperty.getChoices().isEmpty()) {
+            return;
+        }
+        boolean choiceEnabled = choiceProperty.getChoices().stream().anyMatch(Value::isEnabled);
+        if (!choiceEnabled) {
+            choiceProperty.getChoices().getFirst().setEnabled(true);
+        }
+        choiceProperty.getChoices().stream()
+                .filter(Value::isEnabled)
+                .findFirst()
+                .ifPresent(selectedChoice -> service.addProperties(selectedChoice.getProperties()));
+        properties.remove(key);
     }
 
     private static Optional<Service> getServiceByServiceType(String serviceType) {
@@ -1066,5 +1108,84 @@ public final class Utils {
             return input.substring(1);
         }
         return input;
+    }
+
+    public static List<Object> deserializeSelections(String jsonString) {
+        JsonElement jsonElement = JsonParser.parseString(jsonString);
+        Gson gson = new Gson();
+
+        if (!jsonElement.isJsonArray()) {
+            return new ArrayList<>();
+        }
+
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+
+        if (jsonArray.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Check the type of first element
+        JsonElement firstElement = jsonArray.get(0);
+
+        if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
+            // It's a List<String>
+            Type listType = new TypeToken<List<String>>() { }.getType();
+            return gson.fromJson(jsonString, listType);
+        } else if (firstElement.isJsonObject()) {
+            // Check if it has label and value properties (SelectionRecord)
+            if (firstElement.getAsJsonObject().has("label") &&
+                    firstElement.getAsJsonObject().has("value")) {
+                Type listType = new TypeToken<List<SelectionRecord>>() { }.getType();
+                return gson.fromJson(jsonString, listType);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public record SelectionRecord(String label, String value) { }
+
+    /**
+     * Resolves a Ballerina module by organization, package, and module name.
+     * If the module is not found locally, attempts to pull it from the central repository,
+     * notifies the client about the process.
+     *
+     * @param orgName        the organization name
+     * @param packageName    the package name
+     * @param moduleName     the module name
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    public static void resovleModule(String orgName, String packageName, String moduleName,
+                                     LSClientLogger lsClientLogger) {
+        CentralAPI centralApi = RemoteCentral.getInstance();
+        String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
+        ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);
+
+        if (PackageUtil.isModuleUnresolved(orgName, packageName, latestVersion)) {
+            notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE, moduleInfo, lsClientLogger);
+            Optional<SemanticModel> semanticModel =  PackageUtil.getSemanticModel(moduleInfo);
+            if (semanticModel.isEmpty()) {
+                notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE, moduleInfo, lsClientLogger);
+            } else {
+                notifyClient(MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE, moduleInfo, lsClientLogger);
+            }
+        }
+    }
+
+    /**
+     * Notifies the client with a formatted message about the module resolution status.
+     *
+     * @param messageType    the type of message (info, error, etc.)
+     * @param message        the message template
+     * @param moduleInfo     the module information
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    private static void notifyClient(MessageType messageType, String message, ModuleInfo moduleInfo,
+                                     LSClientLogger lsClientLogger) {
+        if (lsClientLogger != null) {
+            String signature =
+                    String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+            lsClientLogger.notifyClient(messageType, String.format(message, signature));
+        }
     }
 }

@@ -132,6 +132,9 @@ public class Value {
         if (value instanceof String) {
             return (String) value;
         }
+        if (value instanceof Boolean) {
+            return String.valueOf(value);
+        }
         if (value instanceof JsonPrimitive) {
             return ((JsonPrimitive) value).getAsString();
         }

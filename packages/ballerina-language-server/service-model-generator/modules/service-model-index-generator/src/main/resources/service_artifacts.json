@@ -3,10 +3,18 @@
     {
       "name": "http",
       "version": "2.14.0",
-      "serviceTypeSkipList": ["Service", "ServiceContract", "RequestInterceptor", "ResponseInterceptor",
-        "RequestErrorInterceptor", "ResponseErrorInterceptor", "InterceptableService"],
+      "serviceTypeSkipList": [
+        "Service",
+        "ServiceContract",
+        "RequestInterceptor",
+        "ResponseInterceptor",
+        "RequestErrorInterceptor",
+        "ResponseErrorInterceptor",
+        "InterceptableService"
+      ],
       "serviceDeclaration": {
         "displayName": "HTTP Service",
+        "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Http Service Type",
         "typeDescriptorDescription": "",
@@ -32,25 +40,35 @@
       },
       "annotations": {
         "ServiceConfig": {
-          "attachmentPoints": ["SERVICE"],
+          "attachmentPoints": [
+            "SERVICE"
+          ],
           "displayName": "Service Configuration",
           "description": "Define advanced configurations like service level security, etc.",
-          "typeConstrain": "http:HttpServiceConfig"
+          "typeConstraint": "http:HttpServiceConfig"
         },
         "ResourceConfig": {
-          "attachmentPoints": ["OBJECT_METHOD"],
+          "attachmentPoints": [
+            "OBJECT_METHOD"
+          ],
           "displayName": "Resource Configuration",
           "description": "Define advanced configurations like resource level media types, security, etc.",
-          "typeConstrain": "http:HttpResourceConfig"
+          "typeConstraint": "http:HttpResourceConfig"
         }
+      },
+      "initForm": {
       }
     },
     {
       "name": "graphql",
       "version": "1.16.0",
-      "serviceTypeSkipList": ["Interceptor", "Service"],
+      "serviceTypeSkipList": [
+        "Interceptor",
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "GraphQL Service",
+        "description": "Create GraphQL service",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "GraphQL Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -81,7 +99,7 @@
           ],
           "displayName": "Service Configuration",
           "description": "Define service configurations such as maximum query depth.",
-          "typeConstrain": "graphql:GraphqlServiceConfig"
+          "typeConstraint": "graphql:GraphqlServiceConfig"
         },
         "ResourceConfig": {
           "attachmentPoints": [
@@ -89,16 +107,43 @@
           ],
           "displayName": "Field Configuration",
           "description": "Define configurations such as field level cache.",
-          "typeConstrain": "graphql:GraphqlResourceConfig"
+          "typeConstraint": "graphql:GraphqlResourceConfig"
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Base Path",
+          "description": "The base path of the GraphQL service",
+          "defaultValue": "/graphql",
+          "placeholder": "/graphql",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_BASE_PATH",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "The port on which the GraphQL service listens",
+          "defaultValue": "8080",
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
         }
       }
     },
     {
       "name": "tcp",
       "version": "1.13.0",
-      "serviceTypeSkipList": ["ConnectionService"],
+      "serviceTypeSkipList": [
+        "ConnectionService"
+      ],
       "serviceDeclaration": {
         "displayName": "TCP Service",
+        "description": "Create TCP service to handle TCP client connections",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "TCP Service Type",
         "typeDescriptorDescription": "",
@@ -145,14 +190,30 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "localPort": {
+          "label": "TCP Port",
+          "description": "The port on which the TCP service listens",
+          "defaultValue": "80",
+          "placeholder": "80",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        }
       }
     },
     {
       "name": "file",
       "version": "1.12.0",
-      "serviceTypeSkipList": ["Service"],
+      "serviceTypeSkipList": [
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "Directory Service",
+        "description": "Create a service to monitor a directory for file events",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "",
@@ -243,17 +304,43 @@
                 }
               ]
             }
-
           ]
+        }
+      },
+      "initForm": {
+        "path": {
+          "label": "Path",
+          "description": "Directory path to be monitored",
+          "defaultValue": "",
+          "placeholder": "\"/tmp\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        },
+        "recursive": {
+          "label": "Recursive",
+          "description": "Recursively monitor all sub-directories",
+          "defaultValue": "false",
+          "placeholder": "false",
+          "valueType": "FLAG",
+          "typeConstraint": "boolean",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
         }
       }
     },
     {
       "name": "ftp",
       "version": "2.13.0",
-      "serviceTypeSkipList": ["Service"],
+      "serviceTypeSkipList": [
+        "Service"
+      ],
       "serviceDeclaration": {
         "displayName": "FTP Service",
+        "description": "Create a service to monitor a directory in a FTP server for file events",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -311,6 +398,61 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "host": {
+          "label": "Host",
+          "description": "Target FTP server url",
+          "defaultValue": "\"127.0.0.1\"",
+          "placeholder": "\"127.0.0.1\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "Target FTP server port",
+          "defaultValue": "21",
+          "placeholder": "21",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
+        },
+        "protocol": {
+          "label": "Protocol",
+          "description": "The protocol to connect to the FTP server",
+          "defaultValue": "\"ftp\"",
+          "placeholder": "\"ftp\"",
+          "valueType": "SINGLE_SELECT",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": [
+            {
+              "label": "ftp",
+              "value": "\"ftp\""
+            },
+            {
+              "label": "sftp",
+              "value": "\"sftp\""
+            }
+          ]
+        },
+        "path": {
+          "label": "Path",
+          "description": "The path to be monitored",
+          "defaultValue": "\"/\"",
+          "placeholder": "\"/\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
+        }
       }
     },
     {
@@ -319,6 +461,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "MQTT Event Handler",
+        "description": "Create a service to handle messages from an MQTT broker",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -364,8 +507,42 @@
                 }
               ]
             }
-
           ]
+        }
+      },
+      "initForm": {
+        "serviceUri": {
+          "label": "Service URI",
+          "description": "The URI of the MQTT broker",
+          "defaultValue": "",
+          "placeholder": "\"mqtt://localhost:1883\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "clientId": {
+          "label": "Client ID",
+          "description": "A unique identifier to identify by the MQTT broker",
+          "defaultValue": "",
+          "placeholder": "\"unique_client_001\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "subscriptions": {
+          "label": "Subscriptions",
+          "description": "The topics to subscribe to",
+          "defaultValue": "",
+          "placeholder": "\"topic1\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string|string[]",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
         }
       }
     },
@@ -375,6 +552,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "AI Agent Service",
+        "description": "",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Agent Service Type",
         "typeDescriptorDescription": "The service type descriptor",
@@ -402,6 +580,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "Azure Service Bus Event Handler",
+        "description": "Create a service to handle messages from an Azure Service Bus entity",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -471,6 +650,41 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "connectionString": {
+          "label": "Connection String",
+          "description": "The connection string to connect to the Azure Service Bus namespace",
+          "defaultValue": "",
+          "placeholder": "\"Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        },
+        "entityConfig": {
+          "label": "Entity Config",
+          "description": "The entity configuration to connect to the Azure Service Bus",
+          "defaultValue": "",
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "asb:TopicSubsConfig|asb:QueueConfig",
+          "typeMembers": [
+            {
+              "type": "TopicSubsConfig",
+              "packageInfo": "ballerinax:asb:3.9.0",
+              "kind": "RECORD_TYPE"
+            },
+            {
+              "type": "QueueConfig",
+              "packageInfo": "ballerinax:asb:3.9.0",
+              "kind": "RECORD_TYPE"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        }
       }
     },
     {
@@ -479,6 +693,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "RabbitMQ Event Handler",
+        "description": "Create a service to handle messages from a RabbitMQ queue",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -603,15 +818,51 @@
               ]
             }
           ]
-
         }
       },
       "annotations": {
         "ServiceConfig": {
-          "attachmentPoints": ["SERVICE"],
+          "attachmentPoints": [
+            "SERVICE"
+          ],
           "displayName": "Service Configuration",
           "description": "Define advanced queue configurations ",
-          "typeConstrain": "rabbitmq:RabbitMQServiceConfig"
+          "typeConstraint": "rabbitmq:RabbitMQServiceConfig"
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Queue Name",
+          "description": "The name of the queue to listen to",
+          "defaultValue": "",
+          "placeholder": "\"myQueue\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_BASE_PATH",
+          "selections": []
+        },
+        "host": {
+          "label": "Host",
+          "description": "The host used for establishing the connection",
+          "defaultValue": "",
+          "placeholder": "\"localhost\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "The port used for establishing the connection",
+          "defaultValue": "",
+          "placeholder": "5672",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
         }
       }
     },
@@ -621,6 +872,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "Kafka Event Handler",
+        "description": "Create a service to handle messages from Kafka topic(s)",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -701,6 +953,30 @@
             }
           ]
         }
+      },
+      "initForm": {
+        "bootstrapServers": {
+          "label": "Bootstrap Servers",
+          "description": "List of remote server endpoints of the Kafka brokers",
+          "defaultValue": "",
+          "placeholder": "\"localhost:9092\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string|string[]",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "topics": {
+          "label": "Topic(s)",
+          "description": "The topic(s) to subscribe to",
+          "defaultValue": "",
+          "placeholder": "\"myTopic\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string|string[]",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        }
       }
     },
     {
@@ -709,6 +985,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "Salesforce Event Handler",
+        "description": "Create a service to handle events from Salesforce",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -726,6 +1003,25 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "auth": {
+          "label": "Auth",
+          "description": "Configurations related to username/password authentication",
+          "defaultValue": "",
+          "placeholder": "{username: \"\", password: \"\"}",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "salesforce:CredentialsConfig",
+          "typeMembers": [
+            {
+              "type": "CredentialsConfig",
+              "packageInfo": "ballerinax:salesforce:8.2.0",
+              "kind": "RECORD_TYPE"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
+          "selections": []
+        }
       }
     },
     {
@@ -734,6 +1030,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "GitHub Event Handler",
+        "description": "Create a service to handle events from GitHub",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
         "typeDescriptorDescription": "The event channel name",
@@ -751,6 +1048,30 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "",
+          "placeholder": "\"IssuesService\"",
+          "valueType": "SINGLE_SELECT",
+          "typeConstraint": "github:GenericServiceType",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
+          "selections": [
+            "IssuesService",
+            "IssueCommentService",
+            "PullRequestService",
+            "PullRequestReviewService",
+            "PullRequestReviewCommentService",
+            "ReleaseService",
+            "LabelService",
+            "MilestoneService",
+            "PushService",
+            "ProjectCardService"
+          ]
+        }
       }
     },
     {
@@ -759,6 +1080,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "AI Agent Service",
+        "description": "",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Agent Service Type",
         "typeDescriptorDescription": "The service type descriptor",
@@ -784,6 +1106,7 @@
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "Twilio Event Handler",
+        "description": "Create a service to handle events from Twilio",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
         "typeDescriptorDescription": "The event channel name",
@@ -801,6 +1124,22 @@
         "kind": "event"
       },
       "serviceTypes": {
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "",
+          "placeholder": "\"CallStatusService\"",
+          "valueType": "SINGLE_SELECT",
+          "typeConstraint": "twilio:GenericServiceType",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
+          "selections": [
+            "CallStatusService",
+            "SmsStatusService"
+          ]
+        }
       }
     }
   ]
