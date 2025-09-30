@@ -22,7 +22,7 @@
             "description": "Target FTP server url"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"127.0.0.1\"",
           "valueType": "EXPRESSION",
@@ -41,7 +41,7 @@
             "description": "Target FTP server port"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "21",
           "valueType": "EXPRESSION",
@@ -60,7 +60,7 @@
             "description": "The protocol to connect to the FTP server"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"ftp\"",
           "valueType": "SINGLE_SELECT",
@@ -88,7 +88,7 @@
             "description": "The path to be monitored"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"/\"",
           "valueType": "EXPRESSION",

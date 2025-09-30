@@ -69,8 +69,8 @@ import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -160,7 +160,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     .value(property.defaultValue())
                     .setPlaceholder(property.placeholder())
                     .valueType(property.valueType())
-                    .setValueTypeConstraint(property.typeConstrain())
+                    .setValueTypeConstraint(property.typeConstraint())
                     .setItems(items)
                     .setTypeMembers(property.memberTypes())
                     .enabled(true)
@@ -220,8 +220,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             }
             if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
                 requiredParams.add(value.getValue());
-            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED)
-                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED)) {
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
+                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
                 includedParams.add(entry.getKey() + " = " +  value.getValue());
             }
         }

@@ -99,7 +99,7 @@ class ServiceIndexGenerator {
             List<PackageMetadataInfo>>>() {
     }.getType();
     private static final Logger LOGGER = Logger.getLogger(ServiceIndexGenerator.class.getName());
-    private static final String PACKAGE_JSON_FILE = "packages.json";
+    private static final String SERVICE_ARTIFACTS_JSON = "service_artifacts.json";
     private static final Gson GSON = new Gson();
 
     public static void main(String[] args) {
@@ -107,7 +107,7 @@ class ServiceIndexGenerator {
         BuildProject buildProject = PackageUtil.getSampleProject();
 
         Gson gson = new Gson();
-        URL resource = ServiceIndexGenerator.class.getClassLoader().getResource(PACKAGE_JSON_FILE);
+        URL resource = ServiceIndexGenerator.class.getClassLoader().getResource(SERVICE_ARTIFACTS_JSON);
         try (FileReader reader = new FileReader(Objects.requireNonNull(resource).getFile(), StandardCharsets.UTF_8)) {
             Map<String, List<PackageMetadataInfo>> packagesMap = gson.fromJson(reader,
                     typeToken);
@@ -211,7 +211,7 @@ class ServiceIndexGenerator {
                         descriptor.version().value().toString());
 
                 DatabaseManager.insertAnnotation(packageId, annotationName, attachPoints, annotation.displayName(),
-                        annotation.description(), annotation.typeConstrain(), pkgInfo);
+                        annotation.description(), annotation.typeConstraint(), pkgInfo);
             }
         }
 
@@ -222,7 +222,7 @@ class ServiceIndexGenerator {
                 ServiceInitializerProperty property = entry.getValue();
                 int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
                         property.label(), property.description(), property.defaultValue(), property.placeholder(),
-                        property.valueType(), property.typeConstrain(), property.sourceKind(),
+                        property.valueType(), property.typeConstraint(), property.sourceKind(),
                         GSON.toJson(property.selections()));
                 for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
                     DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
@@ -652,7 +652,7 @@ class ServiceIndexGenerator {
     }
 
     record ServiceInitializerProperty(String label, String description, String defaultValue, String placeholder,
-                                      String valueType, String typeConstrain,
+                                      String valueType, String typeConstraint,
                                       List<ServiceInitializerPropertyMemberType> typeMembers, String sourceKind,
                                       List<Object> selections) {
     }
@@ -660,7 +660,7 @@ class ServiceIndexGenerator {
     record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
     }
 
-    record Annotation(List<String> attachmentPoints, String displayName, String description, String typeConstrain) {
+    record Annotation(List<String> attachmentPoints, String displayName, String description, String typeConstraint) {
     }
 
     record ServiceType(

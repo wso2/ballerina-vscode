@@ -45,7 +45,7 @@
           ],
           "displayName": "Service Configuration",
           "description": "Define advanced configurations like service level security, etc.",
-          "typeConstrain": "http:HttpServiceConfig"
+          "typeConstraint": "http:HttpServiceConfig"
         },
         "ResourceConfig": {
           "attachmentPoints": [
@@ -53,7 +53,7 @@
           ],
           "displayName": "Resource Configuration",
           "description": "Define advanced configurations like resource level media types, security, etc.",
-          "typeConstrain": "http:HttpResourceConfig"
+          "typeConstraint": "http:HttpResourceConfig"
         }
       },
       "initForm": {
@@ -99,7 +99,7 @@
           ],
           "displayName": "Service Configuration",
           "description": "Define service configurations such as maximum query depth.",
-          "typeConstrain": "graphql:GraphqlServiceConfig"
+          "typeConstraint": "graphql:GraphqlServiceConfig"
         },
         "ResourceConfig": {
           "attachmentPoints": [
@@ -107,7 +107,7 @@
           ],
           "displayName": "Field Configuration",
           "description": "Define configurations such as field level cache.",
-          "typeConstrain": "graphql:GraphqlResourceConfig"
+          "typeConstraint": "graphql:GraphqlResourceConfig"
         }
       },
       "initForm": {
@@ -117,7 +117,7 @@
           "defaultValue": "/graphql",
           "placeholder": "/graphql",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
           "sourceKind": "SERVICE_BASE_PATH",
           "selections": []
@@ -128,7 +128,7 @@
           "defaultValue": "8080",
           "placeholder": "8080",
           "valueType": "EXPRESSION",
-          "typeConstrain": "int",
+          "typeConstraint": "int",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -198,7 +198,7 @@
           "defaultValue": "80",
           "placeholder": "80",
           "valueType": "EXPRESSION",
-          "typeConstrain": "int",
+          "typeConstraint": "int",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -314,9 +314,9 @@
           "defaultValue": "",
           "placeholder": "\"/tmp\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         },
         "recursive": {
@@ -325,9 +325,9 @@
           "defaultValue": "false",
           "placeholder": "false",
           "valueType": "FLAG",
-          "typeConstrain": "boolean",
+          "typeConstraint": "boolean",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
       }
@@ -406,9 +406,9 @@
           "defaultValue": "\"127.0.0.1\"",
           "placeholder": "\"127.0.0.1\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         },
         "port": {
@@ -417,9 +417,9 @@
           "defaultValue": "21",
           "placeholder": "21",
           "valueType": "EXPRESSION",
-          "typeConstrain": "int",
+          "typeConstraint": "int",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         },
         "protocol": {
@@ -428,9 +428,9 @@
           "defaultValue": "\"ftp\"",
           "placeholder": "\"ftp\"",
           "valueType": "SINGLE_SELECT",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": [
             {
               "label": "ftp",
@@ -448,9 +448,9 @@
           "defaultValue": "\"/\"",
           "placeholder": "\"/\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
       }
@@ -517,7 +517,7 @@
           "defaultValue": "",
           "placeholder": "\"mqtt://localhost:1883\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -528,7 +528,7 @@
           "defaultValue": "",
           "placeholder": "\"unique_client_001\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -539,7 +539,7 @@
           "defaultValue": "",
           "placeholder": "\"topic1\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string|string[]",
+          "typeConstraint": "string|string[]",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -658,9 +658,9 @@
           "defaultValue": "",
           "placeholder": "\"Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         },
         "entityConfig": {
@@ -669,7 +669,7 @@
           "defaultValue": "",
           "placeholder": "{}",
           "valueType": "EXPRESSION",
-          "typeConstrain": "asb:TopicSubsConfig|asb:QueueConfig",
+          "typeConstraint": "asb:TopicSubsConfig|asb:QueueConfig",
           "typeMembers": [
             {
               "type": "TopicSubsConfig",
@@ -682,7 +682,7 @@
               "kind": "RECORD_TYPE"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
       }
@@ -827,7 +827,7 @@
           ],
           "displayName": "Service Configuration",
           "description": "Define advanced queue configurations ",
-          "typeConstrain": "rabbitmq:RabbitMQServiceConfig"
+          "typeConstraint": "rabbitmq:RabbitMQServiceConfig"
         }
       },
       "initForm": {
@@ -837,7 +837,7 @@
           "defaultValue": "",
           "placeholder": "\"myQueue\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
           "sourceKind": "SERVICE_BASE_PATH",
           "selections": []
@@ -848,7 +848,7 @@
           "defaultValue": "",
           "placeholder": "\"localhost\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string",
+          "typeConstraint": "string",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -859,7 +859,7 @@
           "defaultValue": "",
           "placeholder": "5672",
           "valueType": "EXPRESSION",
-          "typeConstrain": "int",
+          "typeConstraint": "int",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -955,13 +955,13 @@
         }
       },
       "initForm": {
-        "boostrapServers": {
+        "bootstrapServers": {
           "label": "Bootstrap Servers",
           "description": "List of remote server endpoints of the Kafka brokers",
           "defaultValue": "",
           "placeholder": "\"localhost:9092\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string|string[]",
+          "typeConstraint": "string|string[]",
           "typeMembers": [],
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
@@ -972,9 +972,9 @@
           "defaultValue": "",
           "placeholder": "\"myTopic\"",
           "valueType": "EXPRESSION",
-          "typeConstrain": "string|string[]",
+          "typeConstraint": "string|string[]",
           "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
       }
@@ -1011,7 +1011,7 @@
           "defaultValue": "",
           "placeholder": "{username: \"\", password: \"\"}",
           "valueType": "EXPRESSION",
-          "typeConstrain": "salesforce:CredentialsConfig",
+          "typeConstraint": "salesforce:CredentialsConfig",
           "typeMembers": [
             {
               "type": "CredentialsConfig",
@@ -1019,7 +1019,7 @@
               "kind": "RECORD_TYPE"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FILED",
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
       }
@@ -1056,7 +1056,7 @@
           "defaultValue": "",
           "placeholder": "\"IssuesService\"",
           "valueType": "SINGLE_SELECT",
-          "typeConstrain": "github:GenericServiceType",
+          "typeConstraint": "github:GenericServiceType",
           "typeMembers": [],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
           "selections": [
@@ -1132,7 +1132,7 @@
           "defaultValue": "",
           "placeholder": "\"CallStatusService\"",
           "valueType": "SINGLE_SELECT",
-          "typeConstrain": "twilio:GenericServiceType",
+          "typeConstraint": "twilio:GenericServiceType",
           "typeMembers": [],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
           "selections": [

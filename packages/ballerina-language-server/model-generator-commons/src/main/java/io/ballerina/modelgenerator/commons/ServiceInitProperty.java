@@ -21,6 +21,6 @@ package io.ballerina.modelgenerator.commons;
 import java.util.List;
 
 public record ServiceInitProperty(String keyName, String label, String description, String defaultValue,
-                                  String placeholder, String valueType, String typeConstrain, String sourceKind,
+                                  String placeholder, String valueType, String typeConstraint, String sourceKind,
                                   String selections, List<ParameterMemberTypeData> memberTypes) {
 }

@@ -41,7 +41,7 @@ under the License.
             <class name="io.ballerina.servicemodelgenerator.extension.GetTypeListTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.GetFunctionModelFromSourceTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.GetServiceInitModelTest"/>
-            <class name="io.ballerina.servicemodelgenerator.extension.CreateServiceAndListenerTest"/>
+            <class name="io.ballerina.servicemodelgenerator.extension.AddServiceAndListenerTest"/>
         </classes>
     </test>
 </suite>

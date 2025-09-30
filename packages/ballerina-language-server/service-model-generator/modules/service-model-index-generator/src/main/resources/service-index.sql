@@ -86,7 +86,7 @@ CREATE TABLE Annotation (
     display_name TEXT,
     description TEXT,
     package_id INTEGER,
-    type_constrain TEXT, -- JSON type for parameter type information
+    type_constraint TEXT, -- JSON type for parameter type information
     package TEXT, -- format of the package is org:name:version
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
@@ -141,9 +141,9 @@ CREATE TABLE ServiceInitializerProperty (
     default_value TEXT,
     placeholder TEXT,
     value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT')),
-    type_constrain TEXT,
+    type_constraint TEXT,
     source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
-    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED', 'LISTENER_PARAM_INCLUDED_FILED')),
+    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD')),
     selections TEXT, -- Comma-separated values for selection options
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );

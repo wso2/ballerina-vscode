@@ -16,6 +16,25 @@
       "type": "rabbitmq",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
       "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Queue Name",
+            "description": "The name of the queue to listen to"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "\"myQueue\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
         "host": {
           "metadata": {
             "label": "Host",
@@ -46,25 +65,6 @@
           "placeholder": "5672",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
-          "value": "",
-          "items": [],
-          "typeMembers": [],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "basePath": {
-          "metadata": {
-            "label": "Queue Name",
-            "description": "The name of the queue to listen to"
-          },
-          "codedata": {
-            "argType": "SERVICE_BASE_PATH"
-          },
-          "placeholder": "\"myQueue\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
           "items": [],
           "typeMembers": [],
