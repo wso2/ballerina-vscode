@@ -60,6 +60,7 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String TOOLS = "tools";
     public static final String MODEL = "model";
     public static final String MEMORY = "memory";
+    public static final String NAME = "name";
 
     // Agent Call Properties
     public static final String QUERY = "query";
@@ -129,6 +130,8 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNodeUtil.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
         FlowNodeUtil.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
                 INSTRUCTIONS_PLACEHOLDER, instructionsValue);
+
+        nodeBuilder.properties().custom().hidden(true).stepOut().addProperty(NAME);
     }
 
     private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
@@ -177,6 +180,17 @@ public class AgentCallBuilder extends CallBuilder {
                 .setConstData()
                 .setTemplateData(modelProviderContext)
                 .build();
+
+        // If name is provided, use it to create a unique variable name for the model provider
+        Optional<Property> name = agentCallNode.getProperty(NAME);
+        if (name.isPresent() && name.get().value() != null && !name.get().value().toString().isEmpty()) {
+            String agentVariableName = name.get().value() + Constants.Ai.MODEL_TYPE_NAME;
+            Property variableProperty = modelProviderNode.properties().get(Property.VARIABLE_KEY);
+            if (variableProperty != null) {
+                Property updatedProperty = FlowNodeUtil.createUpdatedProperty(variableProperty, agentVariableName);
+                modelProviderNode.properties().put(Property.VARIABLE_KEY, updatedProperty);
+            }
+        }
 
         SourceBuilder modelProviderSourceBuilder = new SourceBuilder(modelProviderNode,
                 sourceBuilder.workspaceManager, projectRoot);
@@ -293,6 +307,18 @@ public class AgentCallBuilder extends CallBuilder {
             return;
         }
         FlowNodeUtil.copyCommonProperties(agentNode, agentCallNode);
+
+        // If name is provided in the agent call, update the variable name in the agent node
+        Optional<Property> name = agentCallNode.getProperty(NAME);
+        if (name.isPresent() && name.get().value() != null && !name.get().value().toString().isEmpty()) {
+            String agentVariableName = name.get().value() + Constants.Ai.AGENT_TYPE_NAME;
+            Property variableProperty = agentNode.properties().get(Property.VARIABLE_KEY);
+            if (variableProperty != null) {
+                Property updatedProperty = FlowNodeUtil.createUpdatedProperty(variableProperty, agentVariableName);
+                agentNode.properties().put(Property.VARIABLE_KEY, updatedProperty);
+            }
+        }
+
         updateSystemPromptProperty(agentNode, agentCallNode);
     }
 
