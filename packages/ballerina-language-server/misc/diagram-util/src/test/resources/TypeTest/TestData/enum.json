@@ -41,10 +41,10 @@
         "typeName": "enum",
         "optional": false,
         "typeInfo": {
-          "name": "DepartmentCode",
-          "orgName": "ballerinax",
-          "moduleName": "health.ccda.r1",
-          "version": "0.1.0"
+          "orgName": "DepartmentCode",
+          "moduleName": "ballerinax",
+          "packageName": "health.ccda.r1",
+          "modulePrefix": "0.1.0"
         },
         "defaultable": false,
         "documentation": "",

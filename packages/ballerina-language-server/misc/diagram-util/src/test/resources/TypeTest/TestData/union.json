@@ -40,10 +40,10 @@
               "typeName": "record",
               "optional": false,
               "typeInfo": {
-                "name": "RecordType1",
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "version": "0.1.0"
+                "orgName": "RecordType1",
+                "moduleName": "ballerinax",
+                "packageName": "health.ccda.r1",
+                "modulePrefix": "0.1.0"
               },
               "defaultable": false,
               "isRestType": false,
@@ -82,10 +82,10 @@
               "typeName": "record",
               "optional": false,
               "typeInfo": {
-                "name": "RecordType2",
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "version": "0.1.0"
+                "orgName": "RecordType2",
+                "moduleName": "ballerinax",
+                "packageName": "health.ccda.r1",
+                "modulePrefix": "0.1.0"
               },
               "defaultable": false,
               "isRestType": false,
@@ -96,10 +96,10 @@
           "typeName": "union",
           "optional": false,
           "typeInfo": {
-            "name": "UnionType",
-            "orgName": "ballerinax",
-            "moduleName": "health.ccda.r1",
-            "version": "0.1.0"
+            "orgName": "UnionType",
+            "moduleName": "ballerinax",
+            "packageName": "health.ccda.r1",
+            "modulePrefix": "0.1.0"
           },
           "defaultable": false,
           "isRestType": false,
@@ -169,10 +169,10 @@
                   "typeName": "record",
                   "optional": false,
                   "typeInfo": {
-                    "name": "RecordType1",
-                    "orgName": "ballerinax",
-                    "moduleName": "health.ccda.r1",
-                    "version": "0.1.0"
+                    "orgName": "RecordType1",
+                    "moduleName": "ballerinax",
+                    "packageName": "health.ccda.r1",
+                    "modulePrefix": "0.1.0"
                   },
                   "defaultable": false,
                   "isRestType": false,
@@ -211,10 +211,10 @@
                   "typeName": "record",
                   "optional": false,
                   "typeInfo": {
-                    "name": "RecordType2",
-                    "orgName": "ballerinax",
-                    "moduleName": "health.ccda.r1",
-                    "version": "0.1.0"
+                    "orgName": "RecordType2",
+                    "moduleName": "ballerinax",
+                    "packageName": "health.ccda.r1",
+                    "modulePrefix": "0.1.0"
                   },
                   "defaultable": false,
                   "isRestType": false,
@@ -225,10 +225,10 @@
               "typeName": "union",
               "optional": false,
               "typeInfo": {
-                "name": "UnionType",
-                "orgName": "ballerinax",
-                "moduleName": "health.ccda.r1",
-                "version": "0.1.0"
+                "orgName": "UnionType",
+                "moduleName": "ballerinax",
+                "packageName": "health.ccda.r1",
+                "modulePrefix": "0.1.0"
               },
               "defaultable": false,
               "isRestType": false,
@@ -255,10 +255,10 @@
         "typeName": "record",
         "optional": false,
         "typeInfo": {
-          "name": "RecordType3",
-          "orgName": "ballerinax",
-          "moduleName": "health.ccda.r1",
-          "version": "0.1.0"
+          "orgName": "RecordType3",
+          "moduleName": "ballerinax",
+          "packageName": "health.ccda.r1",
+          "modulePrefix": "0.1.0"
         },
         "defaultable": false,
         "documentation": "",
