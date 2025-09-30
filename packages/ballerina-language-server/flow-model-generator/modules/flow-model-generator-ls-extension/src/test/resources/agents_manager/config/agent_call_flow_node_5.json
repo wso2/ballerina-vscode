@@ -55,7 +55,7 @@
             "tools": [],
             "agent": {
               "systemPrompt": "{role: \"\", instructions: string ``}",
-              "instructions": "string ``",
+              "instructions": "",
               "role": "\"\"",
               "model": "self._AgentServiceModel",
               "tools": "[]"
@@ -295,7 +295,7 @@
               "description": "Define the agent's primary function"
             },
             "valueType": "STRING",
-            "value": "",
+            "value": "\"\"",
             "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
             "optional": true,
             "editable": true,
@@ -322,6 +322,12 @@
               "kind": "REQUIRED"
             },
             "defaultValue": ""
+          },
+          "name": {
+            "optional": true,
+            "editable": false,
+            "advanced": false,
+            "hidden": true
           },
           "connection": {
             "metadata": {
