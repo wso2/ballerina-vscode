@@ -176,12 +176,11 @@ public class ReferenceType {
                     }
                     recordType.dependentTypeKeys.addAll(fieldType.dependentTypeKeys);
                 }
-                if (fieldType.hashCode != null) {
+                if (fieldType.key != null) {
                     if (fieldType.name.isEmpty()) {
                         recordType.dependentTypeKeys.add(fieldType.hashCode);
                     } else {
-                        recordType.dependentTypeKeys.add(
-                                String.valueOf((fieldModuleId + ":" + fieldTypeName).hashCode()));
+                        recordType.dependentTypeKeys.add(fieldType.key);
                     }
                 }
             });
@@ -222,12 +221,11 @@ public class ReferenceType {
                 }
                 arrayType.dependentTypeKeys.addAll(elementType.dependentTypeKeys);
             }
-            if (elementType.hashCode != null) {
+            if (elementType.key != null) {
                 if (elementType.name.isEmpty()) {
                     arrayType.dependentTypeKeys.add(elementType.hashCode);
                 } else {
-                    arrayType.dependentTypeKeys.add(
-                            String.valueOf((elementModuleId + ":" + elementTypeName).hashCode()));
+                    arrayType.dependentTypeKeys.add(elementType.key);
                 }
             }
             arrayType.hashCode = arrayType.elementType.hashCode;
@@ -271,12 +269,11 @@ public class ReferenceType {
                     unionType.dependentTypeKeys.addAll(memberType.dependentTypeKeys);
 
                 }
-                if (memberType.hashCode != null) {
+                if (memberType.key != null) {
                     if (memberType.name.isEmpty()) {
                         unionType.dependentTypeKeys.add(memberType.hashCode);
                     } else {
-                        unionType.dependentTypeKeys.add(
-                                String.valueOf((memberModuleId + ":" + memberTypeName).hashCode()));
+                        unionType.dependentTypeKeys.add(memberType.key);
                     }
                 }
             }
