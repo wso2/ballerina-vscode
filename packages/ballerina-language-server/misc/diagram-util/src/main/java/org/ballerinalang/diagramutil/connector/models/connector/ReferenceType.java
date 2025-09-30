@@ -311,16 +311,16 @@ public class ReferenceType {
 
     private static RefType createPrimitiveRefType(TypeDescKind kind, String name) {
         RefType refType = new RefType(name);
-        switch (kind) {
-            case INT -> refType.typeName = "int";
-            case STRING -> refType.typeName = "string";
-            case FLOAT -> refType.typeName = "float";
-            case BOOLEAN -> refType.typeName = "boolean";
-            case NIL -> refType.typeName = "()";
-            case DECIMAL -> refType.typeName = "decimal";
-            case NEVER -> refType.typeName = "never";
+        refType.typeName = switch (kind) {
+            case INT -> "int";
+            case STRING -> "string";
+            case FLOAT -> "float";
+            case BOOLEAN -> "boolean";
+            case NIL -> "()";
+            case DECIMAL -> "decimal";
+            case NEVER -> "never";
             default -> throw new UnsupportedOperationException("Unsupported primitive type: " + kind);
-        }
+        };
         refType.name = refType.typeName;
         return refType;
     }
