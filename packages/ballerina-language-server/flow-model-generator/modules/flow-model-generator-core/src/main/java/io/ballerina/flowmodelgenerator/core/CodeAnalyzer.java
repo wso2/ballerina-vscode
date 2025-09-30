@@ -530,8 +530,17 @@ public class CodeAnalyzer extends NodeVisitor {
                     continue;
                 }
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) field;
-                agentData.put(specificFieldNode.fieldName().toString().trim(),
-                        specificFieldNode.valueExpr().orElseThrow().toString().trim());
+                ExpressionNode valueExpr = specificFieldNode.valueExpr().orElseThrow();
+                String value;
+                if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+                    TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
+                    value = templateExpr.content().stream()
+                            .map(Node::toString)
+                            .collect(Collectors.joining());
+                } else {
+                    value = valueExpr.toString().trim();
+                }
+                agentData.put(specificFieldNode.fieldName().toString().trim(), value);
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
