@@ -550,7 +550,36 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
                 // Add the topic name as a readonly property
                 readonlyProperties.put(PROPERTY_TOPIC_NAME, topicNameProperty);
+
+                // Extract and add subscriber name if present
+                String subscriberName = extractFieldValue(mappingNode, "subscriberName");
+                if (subscriberName != null && !subscriberName.isEmpty()) {
+                    Value subscriberNameProperty = new Value.ValueBuilder()
+                            .metadata("Subscriber Name", "The name to be used for the subscription.")
+                            .value(subscriberName)
+                            .valueType(VALUE_TYPE_EXPRESSION)
+                            .setValueTypeConstraint(VALUE_TYPE_STRING)
+                            .enabled(true)
+                            .editable(false)
+                            .build();
+                    readonlyProperties.put("subscriberName", subscriberNameProperty);
+                }
             }
+        }
+
+        // Extract and add session acknowledgment mode as readonly property
+        String ackMode = extractAcknowledgmentMode(mappingNode);
+        if (ackMode != null) {
+            Value ackModeProperty = new Value.ValueBuilder()
+                    .metadata(LABEL_SESSION_ACK_MODE, DESC_SESSION_ACK_MODE)
+                    .value(ackMode.replace("\"", ""))
+                    .valueType(VALUE_TYPE_EXPRESSION)
+                    .setValueTypeConstraint(VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .editable(false)
+                    .build();
+
+            readonlyProperties.put(PROPERTY_SESSION_ACK_MODE, ackModeProperty);
         }
     }
 
@@ -716,7 +745,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 .filter(func -> "onError".equals(func.getName().getValue()))
                 .findFirst().ifPresent(onErrorFunction -> {
                     onErrorFunction.setOptional(true);
-                    onErrorFunction.setEditable(true);
                 });
 
         // Extract destination from annotation and add as readonly property
