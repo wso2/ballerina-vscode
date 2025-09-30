@@ -186,6 +186,7 @@ interface ReadonlyProperty {
 export const ADD_HANDLER = "add-handler";
 export const ADD_INIT_FUNCTION = "add-init-function";
 export const ADD_REUSABLE_FUNCTION = "add-reusable-function";
+export const ADD_HTTP_RESOURCE = "add-http-resource";
 
 export function ServiceDesigner(props: ServiceDesignerProps) {
     const { filePath, position, serviceIdentifier } = props;
@@ -308,6 +309,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 value: ADD_HANDLER
             });
         }
+
+        if (service.moduleName === "http" && !service.properties.hasOwnProperty('serviceTypeName')) {
+            options.push({
+                title: "Add Resource",
+                description: "Add a new resource endpoint to the service",
+                value: ADD_HTTP_RESOURCE
+            });
+        }
+
         if (!hasInitMethod) {
             options.push({
                 title: "Add Init Function",
@@ -426,6 +436,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 break;
             case ADD_HANDLER:
                 onSelectAddHandler();
+                break;
+            case ADD_HTTP_RESOURCE:
+                handleNewResourceFunction();
                 break;
         }
     };
@@ -743,30 +756,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         </div>
                                     </SectionHeader>
                                     <FunctionsContainer>
-                                        {/* Add Resource Function - Dotted Accordion */}
-                                        {!haveServiceTypeName && (
-                                            <ResourceAccordionV2
-                                                key="add-resource"
-                                                resource={{
-                                                    id: "add-resource",
-                                                    name: "Add Resource Function",
-                                                    path: "",
-                                                    type: "placeholder",
-                                                    icon: "post-api",
-                                                    position: {
-                                                        startLine: 0,
-                                                        startColumn: 0,
-                                                        endLine: 0,
-                                                        endColumn: 0
-                                                    }
-                                                }}
-                                                readOnly={false}
-                                                isPlaceholder={true}
-                                                onEditResource={() => handleNewResourceFunction()}
-                                                onDeleteResource={() => { }}
-                                                onResourceImplement={() => handleNewResourceFunction()}
-                                            />
-                                        )}
                                         {resources
                                             .filter((resource) => {
                                                 const search = searchValue.toLowerCase();
