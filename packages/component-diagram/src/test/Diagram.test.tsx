@@ -110,11 +110,17 @@ async function renderAndCheckSnapshot(model: CDModel, testName: string) {
     expect(prettyDom).toBeTruthy();
 
     // Sanitization: remove dynamic IDs and non-deterministic attributes
-    const sanitizedDom = (prettyDom as string)
-        .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, '')
-        .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, '')
-        // Normalize vscode-button tag formatting: <vscode-button\n> -> <vscode-button>
-        .replaceAll(/<vscode-button\s+>/g, '<vscode-button>');
+    // Consolidated sanitization logic for better performance and maintainability
+    function sanitizeDom(domString: string): string {
+        // Remove dynamic attributes and normalize <vscode-button> tags in one pass
+        return domString
+            .replace(
+                /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g,
+                ''
+            )
+            .replace(/<vscode-button\s+>/g, '<vscode-button>');
+    }
+    const sanitizedDom = sanitizeDom(prettyDom as string);
     expect(sanitizedDom).toMatchSnapshot(testName);
 }
 
