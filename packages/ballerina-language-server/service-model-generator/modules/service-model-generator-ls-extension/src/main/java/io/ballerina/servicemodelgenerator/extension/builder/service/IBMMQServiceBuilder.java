@@ -114,14 +114,39 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String DESC_SESSION_ACK_MODE = "How messages received should be acknowledged.";
     private static final String DESC_DESTINATION = "The IBM MQ destination to expect messages from.";
 
-    // Acknowledgment mode options
-    private static final String ACK_AUTO = "\"AUTO_ACKNOWLEDGE\"";
-    private static final String ACK_CLIENT = "\"CLIENT_ACKNOWLEDGE\"";
-    private static final String ACK_DUPS_OK = "\"DUPS_OK_ACKNOWLEDGE\"";
-    private static final String ACK_SESSION_TRANSACTED = "\"SESSION_TRANSACTED\"";
+    /**
+     * Acknowledgment mode enum for IBM MQ sessions.
+     */
+    private enum AcknowledgmentMode {
+        AUTO_ACKNOWLEDGE("AUTO_ACKNOWLEDGE"),
+        CLIENT_ACKNOWLEDGE("CLIENT_ACKNOWLEDGE"),
+        DUPS_OK_ACKNOWLEDGE("DUPS_OK_ACKNOWLEDGE"),
+        SESSION_TRANSACTED("SESSION_TRANSACTED");
 
-    // Default values
-    private static final String DEFAULT_SESSION_ACK_MODE = ACK_AUTO;
+        private final String value;
+
+        AcknowledgmentMode(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getQuotedValue() {
+            return "\"" + value + "\"";
+        }
+
+        public static AcknowledgmentMode fromString(String value) {
+            String cleanValue = value.replace("\"", "");
+            for (AcknowledgmentMode mode : values()) {
+                if (mode.value.equals(cleanValue)) {
+                    return mode;
+                }
+            }
+            return AUTO_ACKNOWLEDGE;
+        }
+    }
 
     // Formatting strings
     private static final String BOOLEAN_TRUE = "true";
@@ -311,18 +336,18 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
     private Value buildSessionAckModeProperty() {
         List<Object> ackModeOptions = List.of(
-                ACK_AUTO,
-                ACK_CLIENT,
-                ACK_DUPS_OK,
-                ACK_SESSION_TRANSACTED
+                AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
+                AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
+                AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
+                AcknowledgmentMode.SESSION_TRANSACTED.getValue()
         );
 
         return new Value.ValueBuilder()
                 .metadata(LABEL_SESSION_ACK_MODE, DESC_SESSION_ACK_MODE)
-                .value(DEFAULT_SESSION_ACK_MODE)
+                .value(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
                 .valueType(VALUE_TYPE_SINGLE_SELECT)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder(DEFAULT_SESSION_ACK_MODE)
+                .setPlaceholder(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
                 .setItems(ackModeOptions)
                 .enabled(true)
                 .editable(true)
@@ -403,7 +428,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         // Add session acknowledgment mode
         Value sessionAckMode = properties.get(PROPERTY_SESSION_ACK_MODE);
         if (sessionAckMode != null && Objects.nonNull(sessionAckMode.getValue())) {
-            configParams.add(PROPERTY_SESSION_ACK_MODE + COLON_SEPARATOR + sessionAckMode.getValue());
+            AcknowledgmentMode mode = AcknowledgmentMode.fromString(sessionAckMode.getValue());
+            configParams.add(PROPERTY_SESSION_ACK_MODE + COLON_SEPARATOR + mode.getQuotedValue());
         }
 
         annotation.append(String.join(COMMA_SEPARATOR, configParams));
@@ -594,7 +620,9 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 .findFirst()
                 .orElse(null);
 
-        if (ACK_AUTO.equals(ackMode)) {
+        AcknowledgmentMode mode = AcknowledgmentMode.fromString(ackMode);
+
+        if (mode == AcknowledgmentMode.AUTO_ACKNOWLEDGE) {
             // If AUTO_ACKNOWLEDGE, disable the caller parameter if it exists
             if (callerParam != null) {
                 callerParam.setEnabled(false);
