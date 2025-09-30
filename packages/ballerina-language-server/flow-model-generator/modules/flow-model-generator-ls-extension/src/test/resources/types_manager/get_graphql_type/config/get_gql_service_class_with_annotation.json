@@ -207,7 +207,8 @@
             "type": "UserName",
             "name": "userName",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "REMOTE",
@@ -351,6 +352,7 @@
           "name": "number",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -360,6 +362,7 @@
           "name": "street",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -369,6 +372,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -520,6 +524,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -529,6 +534,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -778,6 +784,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -787,6 +794,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -798,6 +806,7 @@
           "name": "address",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

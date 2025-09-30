@@ -103,7 +103,8 @@
             "type": "string",
             "name": "name",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "RESOURCE",

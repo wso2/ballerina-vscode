@@ -151,6 +151,7 @@
         "name": "name",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],
