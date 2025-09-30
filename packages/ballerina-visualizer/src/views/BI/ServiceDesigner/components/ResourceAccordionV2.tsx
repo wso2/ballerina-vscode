@@ -263,4 +263,3 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
         </AccordionContainer>
     );
 };
-
