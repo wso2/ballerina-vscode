@@ -1,6 +1,6 @@
 {
     "automation": {
-        "name": "automation-modified",
+        "name": "automation",
         "location": {
             "filePath": "/project/path/test_sample/automation.bal",
             "startLine": {
