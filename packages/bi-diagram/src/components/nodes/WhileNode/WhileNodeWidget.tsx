@@ -38,13 +38,13 @@ import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { NodeIcon } from "../../NodeIcon";
 
 export namespace NodeStyles {
-    export const Node = styled.div<{ isEditable: boolean }>`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         color: ${ThemeColors.ON_SURFACE};
         color: ${ThemeColors.ON_SURFACE};
-        cursor: ${(props) => (props.isEditable ? "pointer" : "default")};
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Header = styled.div<{}>`
@@ -126,8 +126,10 @@ export namespace NodeStyles {
         selected: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint?: boolean;
         disabled: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -139,14 +141,17 @@ export namespace NodeStyles {
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
                 ? ThemeColors.ERROR
-                : props.hovered && !props.disabled
-                ? ThemeColors.HIGHLIGHT
+                : (props.isSelected || props.selected) && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
                 : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
         width: ${WHILE_NODE_WIDTH}px;
         height: ${WHILE_NODE_WIDTH}px;
+        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Hr = styled.hr`
@@ -186,7 +191,9 @@ export interface NodeWidgetProps extends Omit<WhileNodeWidgetProps, "children"> 
 
 export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly } = useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -201,9 +208,16 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
         }
     }, [model.node.suggested]);
 
+    useEffect(() => {
+        model.setSelected(isSelected);
+    }, [isSelected]);
+
     const isEditable = model.node.codedata.node !== "LOCK";
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             onGoToSource();
         } else {
@@ -238,6 +252,9 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
@@ -248,6 +265,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const menuItems: Item[] = [
@@ -266,7 +284,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const nodeViewState = model.node.viewState;
 
     return (
-        <NodeStyles.Node isEditable={isEditable}>
+        <NodeStyles.Node readOnly={isEditable || readOnly}>
             <NodeStyles.Row>
                 <NodeStyles.Column>
                     <NodeStyles.Box
@@ -277,8 +295,10 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                         selected={model.isSelected()}
                         hovered={isEditable && isHovered}
                         hasError={hasError}
+                        readOnly={readOnly}
                         isActiveBreakpoint={isActiveBreakpoint}
                         disabled={disabled}
+                        isSelected={isSelected}
                     >
                         {hasBreakpoint && (
                             <div
@@ -300,18 +320,19 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                 <NodeStyles.Header>
                     <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
                     {model.node.properties?.condition && (
-                        <NodeStyles.Description>{model.node.properties.condition?.value as ReactNode}</NodeStyles.Description>
+                        <NodeStyles.Description>
+                            {model.node.properties.condition?.value as ReactNode}
+                        </NodeStyles.Description>
                     )}
                 </NodeStyles.Header>
-                {!readOnly && (
-                    <NodeStyles.StyledButton 
-                        ref={setMenuButtonElement}
-                        appearance="icon" 
-                        onClick={handleOnMenuClick}
-                    >
-                        <MoreVertIcon />
-                    </NodeStyles.StyledButton>
-                )}
+                <NodeStyles.StyledButton
+                    ref={setMenuButtonElement}
+                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                    appearance="icon"
+                    onClick={handleOnMenuClick}
+                >
+                    <MoreVertIcon />
+                </NodeStyles.StyledButton>
                 {hasError && (
                     <NodeStyles.ErrorIcon>
                         <DiagnosticsPopUp node={model.node} />

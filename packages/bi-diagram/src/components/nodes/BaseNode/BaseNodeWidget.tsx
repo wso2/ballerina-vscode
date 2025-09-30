@@ -42,7 +42,9 @@ export namespace NodeStyles {
         disabled: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -59,9 +61,15 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
-        cursor: pointer;
+        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Header = styled.div<{}>`
@@ -168,8 +176,10 @@ export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
+    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -186,14 +196,17 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                 const vizualizerLocation = await rpcClient.getVisualizerLocation();
                 setOrg(vizualizerLocation.org);
             } catch (error) {
-                console.error('Failed to get visualizer location:', error);
+                console.error("Failed to get visualizer location:", error);
             }
         };
-        
+
         fetchOrg();
     }, []);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             // Handle action when cmd key is pressed
             if (model.node.codedata.node === "DATA_MAPPER_CALL") {
@@ -235,6 +248,9 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setMenuAnchorEl(event.currentTarget);
     };
 
@@ -245,6 +261,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+        setIsHovered(false);
     };
 
     const openDataMapper = async () => {
@@ -331,7 +348,9 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             hovered={isHovered}
             disabled={model.node.suggested}
             hasError={hasError}
+            readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
+            isSelected={isSelected}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}
@@ -363,15 +382,14 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                     </NodeStyles.Header>
                     <NodeStyles.ActionButtonGroup>
                         {hasError && <DiagnosticsPopUp node={model.node} />}
-                        {!readOnly && (
-                            <NodeStyles.MenuButton 
-                                ref={setMenuButtonElement}
-                                appearance="icon" 
-                                onClick={handleOnMenuClick}
-                            >
-                                <MoreVertIcon />
-                            </NodeStyles.MenuButton>
-                        )}
+                        <NodeStyles.MenuButton
+                            ref={setMenuButtonElement}
+                            buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                            appearance="icon"
+                            onClick={handleOnMenuClick}
+                        >
+                            <MoreVertIcon />
+                        </NodeStyles.MenuButton>
                     </NodeStyles.ActionButtonGroup>
                 </NodeStyles.Row>
                 <Popover
