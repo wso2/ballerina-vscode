@@ -262,7 +262,7 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         // Build main choice property
         Value destinationChoice = new Value.ValueBuilder()
                 .metadata(LABEL_DESTINATION, DESC_DESTINATION)
-                .value(true)
+                .value(0)
                 .valueType(VALUE_TYPE_CHOICE)
                 .enabled(true)
                 .editable(true)
