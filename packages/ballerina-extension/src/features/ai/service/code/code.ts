@@ -18,6 +18,7 @@ import { ModelMessage, generateText, streamText, stepCountIs } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
+import { anthropic } from "@ai-sdk/anthropic";
 import {
     getRewrittenPrompt,
     populateHistory,
@@ -39,10 +40,142 @@ import {
     SourceFiles,
     Command,
 } from "@wso2/ballerina-core";
-import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectFromResponse, getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
+
+async function handleTextEditorCommands(
+    updatedSourceFiles: SourceFiles[],
+    updatedFileNames: string[],
+    { command, path: filePath, file_text, insert_line, new_str, old_str, view_range,
+}: ExecuteArgs): Promise<{ success: boolean; message: string; content?: string }> {
+    try {
+        console.log(`[Text Editor Tool] Received command: '${command}' for file: '${filePath}'`);
+        switch (command) {
+            case TextEditorCommand.VIEW: {
+                const sourceFile: SourceFiles = updatedSourceFiles.find(f => f.filePath == filePath);
+                const content = sourceFile == undefined ? "" : sourceFile.content;
+                if (view_range && view_range.length === 2 && content != undefined) {
+                    const [start, end] = view_range;
+                    const lines = content.split('\n');
+
+                    const rangedContent = lines.slice(start - 1, end).join('\n');
+                    return { success: true, message: `Viewing lines ${start}-${end} of file ${filePath}.`, content: rangedContent };
+                }
+                return { success: true, message: `Viewing entire file ${filePath}.`, content };
+            }
+
+            case TextEditorCommand.CREATE: {
+                if (file_text === undefined) {
+                    throw new Error("The 'file_text' parameter is required for the 'create' command.");
+                }
+                
+                updatedSourceFiles.push({ filePath, content: file_text });
+                updatedFileNames.push(filePath);
+                return { success: true, message: `Successfully created file ${filePath}.` };
+            }
+
+            case TextEditorCommand.STR_REPLACE: {
+                if (old_str === undefined || new_str === undefined) {
+                    throw new Error("The 'old_str' and 'new_str' parameters are required for the 'str_replace' command.");
+                }
+                updatedFileNames.push(filePath);
+                await saveToHistory(updatedSourceFiles, filePath);
+                const sourceFile: SourceFiles = updatedSourceFiles.find(f => f.filePath == filePath);
+                const content = sourceFile == undefined ? "" : sourceFile.content;
+                const newContent = content.replace(`${old_str}`, new_str);
+                
+                if (content === newContent) {
+                    return { success: true, message: `String to replace was not found in ${filePath}. No changes made.` };
+                }
+
+                // updatedSourceFiles = updatedSourceFiles.filter(f => f.filePath != filePath);
+                // updatedSourceFiles.push({ filePath, content: newContent });  
+                
+                const index = updatedSourceFiles.findIndex(f => f.filePath == filePath);
+                if (index !== -1) {
+                    updatedSourceFiles[index].content = newContent;
+                } else {
+                    // If the file doesn't exist(Can't happen), create a new entry
+                    updatedSourceFiles.push({ filePath, content: newContent });
+                }
+
+                return { success: true, message: `Successfully replaced all occurrences of '${old_str}' in ${filePath}.` };
+            }
+
+            case TextEditorCommand.INSERT: {
+                if (insert_line === undefined || new_str === undefined) {
+                    throw new Error("The 'insert_line' and 'new_str' parameters are required for the 'insert' command.");
+                }
+                updatedFileNames.push(filePath);
+                await saveToHistory(updatedSourceFiles, filePath);
+                const sourceFile: SourceFiles = updatedSourceFiles.find(f => f.filePath == filePath);
+                const content = sourceFile == undefined ? "" : sourceFile.content;
+                const lines = content.split('\n');
+            
+                const clampedLine = Math.max(0, Math.min(lines.length, insert_line));
+
+                lines.splice(clampedLine, 0, new_str);
+                const newContent = lines.join('\n');
+                // updatedSourceFiles.push({ filePath, content: newContent });
+                const index = updatedSourceFiles.findIndex(f => f.filePath == filePath);
+                if (index !== -1) {
+                    updatedSourceFiles[index].content = newContent;
+                } else {
+                    // If the file doesn't exist(Can't happen), create a new entry
+                    updatedSourceFiles.push({ filePath, content: newContent });
+                }
+                return { success: true, message: `Successfully inserted text into ${filePath} at line ${insert_line}.` };
+            }
+
+            case TextEditorCommand.DELETE: {
+                if (old_str === undefined) {
+                    throw new Error("The 'old_str' parameter is required for the 'delete' command.");
+                }
+
+                updatedFileNames.push(filePath);
+                await saveToHistory(updatedSourceFiles, filePath);
+                const sourceFile: SourceFiles = updatedSourceFiles.find(f => f.filePath == filePath);
+                const content = sourceFile == undefined ? "" : sourceFile.content;
+                const newContent = content.replaceAll(old_str, '');
+
+                if (content === newContent) {
+                    return { success: true, message: `String to delete was not found in ${filePath}. No changes made.` };
+                }
+
+                updatedSourceFiles.push({ filePath, content: newContent });
+                return { success: true, message: `Successfully deleted all occurrences of '${old_str}' from ${filePath}.` };
+            }
+
+            case TextEditorCommand.UNDO_EDIT: {
+                const history = editHistory.get(filePath);
+                if (!history || history.length === 0) {
+                    throw new Error(`No edit history found for '${filePath}' to undo.`);
+                }
+                updatedFileNames.push(filePath);
+                const lastState = history.pop()!;
+                // updatedSourceFiles = updatedSourceFiles.filter(f => f.filePath != filePath);
+                // updatedSourceFiles.push({ filePath, content: lastState ? lastState : "" });
+                const index = updatedSourceFiles.findIndex(f => f.filePath == filePath);
+                if (index !== -1) {
+                    updatedSourceFiles[index].content = lastState ? lastState : "";
+                } else {
+                    // If the file doesn't exist(Can't happen), create a new entry
+                    updatedSourceFiles.push({ filePath, content: lastState ? lastState : "" });
+                }
+                return { success: true, message: `Successfully undid the last edit on ${filePath}.` };
+            }
+
+            default:
+                throw new Error(`The command '${command}' is not a valid command.`);
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        console.error(`[Text Editor Tool] Failed to execute command '${command}':`, errorMessage);
+        return { success: false, message: errorMessage };
+    }
+}
 
 function appendFinalMessages(
     history: ModelMessage[],
@@ -65,6 +198,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const project: ProjectSource = await getProjectSource(params.operationType);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
+    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    let updatedFileNames: string[] = [];
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
@@ -103,7 +238,13 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-    };
+        str_replace_editor: anthropic.tools.textEditor_20250124({
+            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
+                handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
+                    { command, path, old_str, new_str, file_text, insert_line, view_range });
+            }
+        })
+    }
 
     const { fullStream, response } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
@@ -125,22 +266,34 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 const toolName = part.toolName;
                 console.log(`[Tool Call] Tool call started: ${toolName}`);
                 eventHandler({ type: "tool_call", toolName });
-                assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                if (toolName == "LibraryProviderTool") {
+                    assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                } else {
+                    assistantResponse += `\n\n<toolcall>Applying code changes to the project files...</toolcall>`;
+                }
                 break;
             }
             case "tool-result": {
                 const toolName = part.toolName;
-                console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                console.log(
-                    "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
-                    part.output as Library[]
-                );
-                const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-                assistantResponse = assistantResponse.replace(
-                    `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                    `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
-                );
-                eventHandler({ type: "tool_result", toolName, libraryNames });
+                let toolResult: string[] = [];
+                if (toolName == "LibraryProviderTool") {
+                                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    console.log(
+                        "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
+                        part.output as Library[]
+                    );
+                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
+                    assistantResponse = assistantResponse.replace(
+                        `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                        `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                    );
+                    toolResult = libraryNames
+                } else if (toolName == "str_replace_editor") {
+                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    toolResult = [updatedFileNames[updatedFileNames.length - 1]];
+                }
+                eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
                 break;
             }
             case "text-delta": {
@@ -180,9 +333,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || finalResponse
                     : finalResponse;
 
+                finalResponse = updateFinalResponseWithCodeBlocks(finalResponse, updatedSourceFiles, updatedFileNames);
                 const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: finalResponse,
+                    assistant_response: finalResponse
                 });
+
                 finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
@@ -230,6 +385,30 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             }
         }
     }
+}
+
+function updateFinalResponseWithCodeBlocks(finalResponse: string, updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
+    const codeBlocks: string[] = [];
+
+    for (const fileName of updatedFileNames) {
+        const sourceFile = updatedSourceFiles.find(sf => sf.filePath === fileName);
+
+        if (sourceFile) {
+            const formattedBlock =
+`<code filename="${sourceFile.filePath}">
+\`\`\`ballerina
+${sourceFile.content}
+\`\`\`
+</code>`;
+            codeBlocks.push(formattedBlock);
+        }
+    }
+
+    if (codeBlocks.length > 0) {
+        return finalResponse + '\n\n' + codeBlocks.join('\n\n');
+    }
+
+    return finalResponse;
 }
 
 // Main public function that uses the default event handler
@@ -335,20 +514,20 @@ Important reminders:
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
-Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments (if any) at the end of the response.
-The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
-
-Each file that needs modifications should have a codeblock segment, and it MUST contain the complete file content with the proposed change. The codeblock segments should only contain .bal contents and should not generate or modify any other file types. Politely decline if the query requests such cases.
+Begin your response with the explanation. Once the explanation is finished, you must only use the **text_editor_20250124** tool to apply the necessary code changes.
+The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
+Instead of generating complete files in code blocks, you must apply surgical edits to the existing source code using the **text_editor_20250124** tool. For each file that requires changes:
+Analyze and Locate: Carefully examine the existing code to pinpoint the exact start_line and end_line for each required modification (e.g., insertion, replacement, or deletion).
+Generate Tool Calls: For each distinct edit, generate a precise call to the **text_editor_20250124** tool.
+To insert code, set the start_line and end_line to the same line number.
+To replace a block of code, specify the correct start_line and end_line for the targeted block.
+To delete code, specify the start_line and end_line of the block to be removed and provide an empty string for the code parameter.
+To create a new file, provide the new file path and the complete code for that file.
+Your goal is to modify only the relevant parts of the code to address the user's query. 
+Do not generate or modify any file types other than .bal. Politely decline if the query requests such cases.
 
 - DO NOT mention if libraries are not required for the user query or task.
 - Format responses using professional markdown with proper headings, lists, and styling
-
-Example Codeblock segment:
-<code filename="main.bal">
-\`\`\`ballerina
-//code goes here
-\`\`\`
-</code>
 `;
 }
 
@@ -436,8 +615,17 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         },
     ];
 
+    let updatedSourceFiles: SourceFiles[] = getProjectFromResponse(params.assistantResponse).sourceFiles;
+    let updatedFileNames: string[] = [];
+
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        str_replace_editor: anthropic.tools.textEditor_20250124({
+            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
+                handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
+                    { command, path, old_str, new_str, file_text, insert_line, view_range });
+            }
+        })
     };
 
     const { text, usage, providerMetadata } = await generateText({
@@ -449,10 +637,11 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
+    const responseText = updateFinalResponseWithCodeBlocks(text, updatedSourceFiles, updatedFileNames);
     // replace original response with new code blocks
-    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, text);
+    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, responseText);
     const postProcessResp: PostProcessResponse = await postProcess({
-        assistant_response: diagnosticFixResp,
+        assistant_response: diagnosticFixResp
     });
     diagnosticFixResp = postProcessResp.assistant_response;
     console.log("After auto repair, Diagnostics : ", postProcessResp.diagnostics.diagnostics);
@@ -515,4 +704,38 @@ export function replaceCodeBlocks(originalResp: string, newResp: string): string
     });
 
     return finalResp;
+}
+
+enum TextEditorCommand {
+    VIEW = 'view',
+    CREATE = 'create',
+    STR_REPLACE = 'str_replace',
+    INSERT = 'insert',
+    DELETE = 'delete',
+    UNDO_EDIT = 'undo_edit'
+}
+
+interface ExecuteArgs {
+    command: string;
+    path: string;
+    file_text?: string;
+    insert_line?: number;
+    new_str?: string;
+    old_str?: string;
+    view_range?: number[];
+}
+
+const editHistory: Map<string, string[]> = new Map();
+
+async function saveToHistory(sourceFiles: SourceFiles[], filePath: string): Promise<void> {
+    try {
+        const sourceFile: SourceFiles = sourceFiles.find(f => f.filePath == filePath);
+        const content = sourceFile == undefined ? "" : sourceFile.content;
+        if (!editHistory.has(filePath)) {
+            editHistory.set(filePath, []);
+        }
+        editHistory.get(filePath)?.push(content);
+    } catch (error) {
+        console.error(`[History] Failed to save state for ${filePath}:`, error);
+    }
 }
