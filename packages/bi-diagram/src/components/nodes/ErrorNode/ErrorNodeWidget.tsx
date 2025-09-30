@@ -114,6 +114,7 @@ export namespace NodeStyles {
         hasError: boolean;
         isActiveBreakpoint?: boolean;
         disabled: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -123,7 +124,13 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : (props.isSelected || props.selected) && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -177,7 +184,10 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
         readOnly,
         expandedErrorHandler,
         toggleErrorHandlerExpansion,
+        selectedNodeId,
     } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -229,11 +239,15 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
     };
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const menuItems: Item[] = [
@@ -268,6 +282,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                         hasError={hasError}
                         isActiveBreakpoint={isActiveBreakpoint}
                         disabled={disabled}
+                        isSelected={isSelected}
                     >
                         {hasBreakpoint && (
                             <div
@@ -288,11 +303,13 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                 </NodeStyles.Column>
                 <NodeStyles.Header>
                     <NodeStyles.Title>Error Handler</NodeStyles.Title>
-                    {!readOnly && (
-                        <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                            <MoreVertIcon />
-                        </NodeStyles.StyledButton>
-                    )}
+                    <NodeStyles.StyledButton
+                        buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                        appearance="icon"
+                        onClick={handleOnMenuClick}
+                    >
+                        <MoreVertIcon />
+                    </NodeStyles.StyledButton>
                 </NodeStyles.Header>
                 {hasError && (
                     <NodeStyles.ErrorIcon>
