@@ -28,12 +28,13 @@ import AddCommentPopup from "../../AddCommentPopup";
 import AddPromptPopup from "../../AddPromptPopup";
 
 namespace S {
-    export const Node = styled.div<{}>`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         justify-content: center;
         align-items: center;
         width: ${EMPTY_NODE_WIDTH}px;
         height: ${EMPTY_NODE_WIDTH}px;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export type CircleStyleProp = {
@@ -50,7 +51,7 @@ namespace S {
         border: 2px solid ${(props: CircleStyleProp) => (props.show ? ThemeColors.PRIMARY : "transparent")};
         background-color: ${(props: CircleStyleProp) => (props.show ? ThemeColors.PRIMARY_CONTAINER : "transparent")};
         border-radius: 50%;
-        cursor: ${(props: CircleStyleProp) => (props.clickable ? "pointer" : "default")};
+        cursor: ${(props: CircleStyleProp) => (props.clickable ? "pointer" : "not-allowed")};
     `;
 
     export const TopPortWidget = styled(PortWidget)`
@@ -80,7 +81,7 @@ interface EmptyNodeWidgetProps {
 
 export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const { node, engine } = props;
-    const { onAddNode, onAddNodePrompt } = useDiagramContext();
+    const { onAddNode, onAddNodePrompt, readOnly } = useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isCommentButtonHovered, setIsCommentButtonHovered] = useState(false);
@@ -92,6 +93,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const isPromptBoxOpen = Boolean(promptAnchorEl);
 
     const handleAddNode = () => {
+        if (readOnly) {
+            return;
+        }
         const topNode = node.getTopNode();
         if (!topNode) {
             console.error(">>> EmptyNodeWidget: handleAddNode: top node not found");
@@ -106,6 +110,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     const handleAddPrompt = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (!onAddNodePrompt) {
             console.error(">>> EmptyNodeWidget: handleAddPrompt: onAddNodePrompt not found");
             return;
@@ -125,6 +132,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     const handleAddComment = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setCommentAnchorEl(event.currentTarget);
     };
 
@@ -134,8 +144,12 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     return (
-        <S.Node onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            <S.Circle show={node.isVisible()} clickable={node.showButton}>
+        <S.Node
+            readOnly={readOnly}
+            onMouseEnter={() => !readOnly && setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <S.Circle show={node.isVisible()} clickable={node.showButton && !readOnly}>
                 <S.TopPortWidget port={node.getPort("in")!} engine={engine} />
                 {node.showButton && (
                     <div
@@ -176,11 +190,11 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                             height="20"
                             viewBox="0 0 24 24"
                             onClick={handleAddNode}
-                            onMouseEnter={() => setIsNodeButtonHovered(true)}
+                            onMouseEnter={() => !readOnly && setIsNodeButtonHovered(true)}
                             onMouseLeave={() => setIsNodeButtonHovered(false)}
-                            css={css`
-                                cursor: pointer;
-                            `}
+                            // css={css`
+                            //     cursor: pointer;
+                            // `}
                         >
                             <path
                                 fill={ThemeColors.SURFACE_BRIGHT}
