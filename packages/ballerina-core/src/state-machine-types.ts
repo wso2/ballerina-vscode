@@ -22,6 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { ModuleInfo } from "./interfaces/data-mapper";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
@@ -136,7 +137,10 @@ export interface VisualizerLocation {
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    moduleName?: string;
+    version?: string;
     dataMapperMetadata?: DataMapperMetadata;
+    artifactInfo?: ModuleInfo;
 }
 
 export interface ArtifactData {

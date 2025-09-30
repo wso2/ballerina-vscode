@@ -26,7 +26,7 @@ import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteComman
 import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
-import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
+import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
@@ -1365,6 +1365,17 @@ export interface ServiceClassModelResponse {
     stacktrace?: string;
 }
 
+export interface ServiceModelInitResponse {
+    serviceInitModel?: ServiceInitModel;
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface ServiceInitSourceRequest {
+    filePath: string;
+    serviceInitModel: ServiceInitModel;
+}
+
 // <-------- Type Related ------->
 
 export interface Type {
@@ -1912,6 +1923,8 @@ export interface BIInterface extends BaseLangClientInterface {
     addResourceSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
     addFunctionSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
     getResourceReturnTypes: (params: ResourceReturnTypesRequest) => Promise<ResourceReturnTypesResponse>;
+    getServiceInitModel: (params: ServiceModelRequest) => Promise<ServiceModelInitResponse>;
+    createServiceAndListener: (params: ServiceInitSourceRequest) => Promise<SourceEditResponse>;
 
     // Function APIs
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;

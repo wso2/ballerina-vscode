@@ -158,3 +158,17 @@ export interface ParameterModel extends PropertyModel {
 export interface ConfigProperties {
     [key: string]: PropertyModel | ParameterModel;
 }
+
+export interface ServiceInitModel {
+    id: string;
+    displayName: string;
+    description: string;
+    orgName: string;
+    packageName: string;
+    moduleName: string;
+    version: string;
+    type: string;
+    icon: string;
+    properties: { [key: string]: PropertyModel };
+}
+
