@@ -167,20 +167,20 @@ class DatabaseManager {
     }
 
     public static void insertAnnotation(int packageId, String annotName, String attachmentPoints,
-                                        String displayName, String description, String typeConstrain, String pkg) {
+                                        String displayName, String description, String typeConstraint, String pkg) {
         String sql = "INSERT INTO Annotation (package_id, annot_name, attachment_points, display_name, description, " +
-                "type_constrain, package) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstrain,
+                "type_constraint, package) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstraint,
                 pkg});
     }
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
                                                        String defaultValue, String placeholder, String valueType,
-                                                       String typeConstrain, String sourceKind, String selections) {
+                                                       String typeConstraint, String sourceKind, String selections) {
         String sql = "INSERT INTO ServiceInitializerProperty (package_id, key_name, label, description, " +
-                "default_value, placeholder, value_type, type_constrain, source_kind, selections) " +
+                "default_value, placeholder, value_type, type_constraint, source_kind, selections) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return insertEntry(sql, new Object[]{packageId, keyName, label, description, defaultValue, placeholder,
-                valueType, typeConstrain, sourceKind, selections});
+                valueType, typeConstraint, sourceKind, selections});
     }
 
     public static void insertServiceInitializerPropertyMemberType(int initializerId, String type, String kind,

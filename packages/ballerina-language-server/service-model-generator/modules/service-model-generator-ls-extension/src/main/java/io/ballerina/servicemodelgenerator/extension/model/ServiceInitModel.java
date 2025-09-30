@@ -25,6 +25,7 @@ import java.util.Objects;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_SERVICE_TYPE_DESCRIPTOR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPE_SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -115,14 +116,14 @@ public class ServiceInitModel {
     public String getServiceTypeName() {
         Value basePath = properties.get(PROPERTY_BASE_PATH);
         if (basePath == null) {
-            return "Service";
+            return TYPE_SERVICE;
         }
         Object value = basePath.getValue();
         Codedata codedata = basePath.getCodedata();
         if (value == null || codedata == null) {
-            return "Service";
+            return TYPE_SERVICE;
         }
-        return ARG_TYPE_SERVICE_TYPE_DESCRIPTOR.equals(codedata.getArgType()) ? value.toString() : "Service";
+        return ARG_TYPE_SERVICE_TYPE_DESCRIPTOR.equals(codedata.getArgType()) ? value.toString() : TYPE_SERVICE;
     }
 
     public String getBasePath(String listenerProtocol) {
@@ -134,7 +135,7 @@ public class ServiceInitModel {
             }
             builder.append(basePath.getValue());
         } else {
-            builder.append(listenerProtocol).append(COLON).append("Service");
+            builder.append(listenerProtocol).append(COLON).append(TYPE_SERVICE);
         }
         return builder.toString();
     }
@@ -154,7 +155,7 @@ public class ServiceInitModel {
     public String getServiceContractTypeName() {
         Value serviceContractType = properties.get("serviceTypeName");
         if (Objects.isNull(serviceContractType)) {
-            return "Service";
+            return TYPE_SERVICE;
         }
         return getValueString(serviceContractType);
     }

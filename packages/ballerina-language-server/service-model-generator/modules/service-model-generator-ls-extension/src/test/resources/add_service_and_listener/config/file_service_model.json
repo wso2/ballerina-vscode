@@ -18,7 +18,7 @@
           "description": "Directory path to be monitored"
         },
         "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_FILED"
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "placeholder": "\"/tmp\"",
         "valueType": "EXPRESSION",
@@ -37,7 +37,7 @@
           "description": "Recursively monitor all sub-directories"
         },
         "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED"
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "placeholder": "false",
         "valueType": "FLAG",

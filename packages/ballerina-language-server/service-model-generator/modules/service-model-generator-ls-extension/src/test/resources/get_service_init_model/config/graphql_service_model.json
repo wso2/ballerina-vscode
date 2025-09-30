@@ -16,25 +16,6 @@
       "type": "graphql",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
       "properties": {
-        "port": {
-          "metadata": {
-            "label": "Port",
-            "description": "The port on which the GraphQL service listens"
-          },
-          "codedata": {
-            "argType": "LISTENER_PARAM_REQUIRED"
-          },
-          "placeholder": "8080",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
-          "value": "8080",
-          "items": [],
-          "typeMembers": [],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
         "basePath": {
           "metadata": {
             "label": "Base Path",
@@ -47,6 +28,25 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "/graphql",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "port": {
+          "metadata": {
+            "label": "Port",
+            "description": "The port on which the GraphQL service listens"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "value": "8080",
           "items": [],
           "typeMembers": [],
           "enabled": true,

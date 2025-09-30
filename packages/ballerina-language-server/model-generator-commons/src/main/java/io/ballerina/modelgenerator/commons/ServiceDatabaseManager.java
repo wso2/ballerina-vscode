@@ -328,7 +328,7 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.default_value, ");
                 sql2.append("sip.placeholder, ");
                 sql2.append("sip.value_type as valueType, ");
-                sql2.append("sip.type_constrain as typeConstrain, ");
+                sql2.append("sip.type_constraint as typeConstraint, ");
                 sql2.append("sip.source_kind as sourceKind, ");
                 sql2.append("sip.selections ");
                 sql2.append("FROM ServiceInitializerProperty sip ");
@@ -349,7 +349,6 @@ public class ServiceDatabaseManager {
                     return Optional.of(serviceInitInfo);
                 }
             }
-            conn.close();
             return Optional.empty();
         } catch (SQLException e) {
             Logger.getGlobal().severe("Error executing query: " + e.getMessage());
@@ -366,7 +365,7 @@ public class ServiceDatabaseManager {
                 rs.getString("default_value"),
                 rs.getString("placeholder"),
                 rs.getString("valueType"),
-                rs.getString("typeConstrain"),
+                rs.getString("typeConstraint"),
                 rs.getString("sourceKind"),
                 rs.getString("selections"),
                 getServiceInitPropertyMemberTypes(initializerId)
@@ -424,7 +423,7 @@ public class ServiceDatabaseManager {
                 "a.attachment_points, " +
                 "a.display_name, " +
                 "a.description, " +
-                "a.type_constrain, " +
+                "a.type_constraint, " +
                 "a.package " +
                 "FROM Annotation a " +
                 "JOIN Package p ON a.package_id = p.package_id " +
@@ -443,7 +442,7 @@ public class ServiceDatabaseManager {
                                 .map(AnnotationAttachPoint::valueOf).toList(),
                         rs.getString("display_name"),
                         rs.getString("description"),
-                        rs.getString("type_constrain"),
+                        rs.getString("type_constraint"),
                         rs.getString("package")
                 ));
             }
@@ -553,7 +552,7 @@ public class ServiceDatabaseManager {
                 "a.annot_name, " +
                 "a.display_name, " +
                 "a.description, " +
-                "a.type_constrain, " +
+                "a.type_constraint, " +
                 "a.package " +
                 "FROM Annotation a " +
                 "JOIN Package p ON a.package_id = p.package_id " +
@@ -571,7 +570,7 @@ public class ServiceDatabaseManager {
                         rs.getString("annot_name"),
                         rs.getString("display_name"),
                         rs.getString("description"),
-                        rs.getString("type_constrain"),
+                        rs.getString("type_constraint"),
                         rs.getString("package"),
                         org,
                         packageName

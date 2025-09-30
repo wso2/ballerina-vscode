@@ -37,7 +37,7 @@
           "description": "The topic(s) to subscribe to"
         },
         "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_FILED"
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "placeholder": "\"myTopic\"",
         "valueType": "EXPRESSION",

@@ -103,12 +103,13 @@ public class Constants {
 
     public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
     public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
-    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED = "LISTENER_PARAM_INCLUDED_FILED";
-    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED =
-            "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD = "LISTENER_PARAM_INCLUDED_FIELD";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD =
+            "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
     public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
     public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
 
+    public static final String TYPE_SERVICE = "Service";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";

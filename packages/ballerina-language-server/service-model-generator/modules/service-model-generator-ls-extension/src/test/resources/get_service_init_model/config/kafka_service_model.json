@@ -16,7 +16,7 @@
       "type": "kafka",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
       "properties": {
-        "boostrapServers": {
+        "bootstrapServers": {
           "metadata": {
             "label": "Bootstrap Servers",
             "description": "List of remote server endpoints of the Kafka brokers"
@@ -41,7 +41,7 @@
             "description": "The topic(s) to subscribe to"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_FILED"
+            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
           },
           "placeholder": "\"myTopic\"",
           "valueType": "EXPRESSION",

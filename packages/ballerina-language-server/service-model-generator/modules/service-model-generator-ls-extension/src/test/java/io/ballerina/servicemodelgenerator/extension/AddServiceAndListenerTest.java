@@ -44,7 +44,7 @@ import java.util.Map;
  *
  * @since 1.3.0
  */
-public class CreateServiceAndListenerTest extends AbstractLSTest {
+public class AddServiceAndListenerTest extends AbstractLSTest {
 
     private static final Type TEXT_EDIT_LIST_TYPE = new TypeToken<Map<String, List<TextEdit>>>() {
     }.getType();
@@ -144,7 +144,7 @@ public class CreateServiceAndListenerTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return CreateServiceAndListenerTest.class;
+        return AddServiceAndListenerTest.class;
     }
 
     @Override
@@ -154,7 +154,7 @@ public class CreateServiceAndListenerTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "createServiceAndListener";
+        return "addServiceAndListener";
     }
 
     /**

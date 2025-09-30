@@ -944,7 +944,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @return {@link CommonSourceResponse} of the common source response
      */
     @JsonRequest
-    public CompletableFuture<CommonSourceResponse> createServiceAndListener(ServiceInitSourceRequest request) {
+    public CompletableFuture<CommonSourceResponse> addServiceAndListener(ServiceInitSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
