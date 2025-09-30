@@ -1,0 +1,43 @@
+{
+  "source": "variable4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4.bal",
+      "startLine": {
+        "line": 5,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 6,
+        "offset": 115
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "persons.0",
+  "fieldId": "0.id",
+  "property": {
+    "valueType": "EXPRESSION",
+    "valueTypeConstraint": "string",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "variable4.bal",
+        "startLine": {
+          "line": 6,
+          "offset": 24
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 49
+        }
+      }
+    }
+  }
+}
