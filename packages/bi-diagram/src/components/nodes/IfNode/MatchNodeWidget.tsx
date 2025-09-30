@@ -46,6 +46,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -90,6 +91,11 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
         setIsHovered(false);
@@ -130,6 +136,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
             readOnly={readOnly}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             <NodeStyles.Row>
                 <NodeStyles.Column onClick={handleOnClick}>
@@ -190,6 +197,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                     </NodeStyles.ErrorIcon>
                 )}
                 <NodeStyles.StyledButton
+                    ref={setMenuButtonElement}
                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                     appearance="icon"
                     onClick={handleOnMenuClick}
