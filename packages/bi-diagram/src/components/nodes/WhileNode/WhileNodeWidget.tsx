@@ -197,6 +197,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
 
     const [isHovered, setIsHovered] = React.useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -257,6 +258,11 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
         setIsHovered(false);
@@ -285,6 +291,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                         onClick={isEditable ? handleOnClick : undefined}
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
+                        onContextMenu={!readOnly ? handleOnContextMenu : undefined}
                         selected={model.isSelected()}
                         hovered={isEditable && isHovered}
                         hasError={hasError}
@@ -319,6 +326,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                     )}
                 </NodeStyles.Header>
                 <NodeStyles.StyledButton
+                    ref={setMenuButtonElement}
                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                     appearance="icon"
                     onClick={handleOnMenuClick}

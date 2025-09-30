@@ -320,6 +320,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const [toolAnchorEl, setToolAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [selectedTool, setSelectedTool] = useState<ToolData | null>(null);
     const [memoryMenuAnchorEl, setMemoryMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
+    const [memoryMenuButtonElement, setMemoryMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const isToolMenuOpen = Boolean(toolAnchorEl);
     const isMemoryMenuOpen = Boolean(memoryMenuAnchorEl);
@@ -412,6 +414,11 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         setAnchorEl(event.currentTarget);
     };
 
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
+    };
+
     const handleOnMenuClose = () => {
         setAnchorEl(null);
         setIsBoxHovered(false);
@@ -460,6 +467,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         }
         event.stopPropagation();
         setMemoryMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleMemoryContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setMemoryMenuAnchorEl(memoryMenuButtonElement || event.currentTarget);
     };
 
     const handleMemoryMenuClose = () => {
@@ -528,6 +541,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 isSelected={isSelected}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
+                onContextMenu={!readOnly ? handleOnContextMenu : undefined}
             >
                 {hasBreakpoint && (
                     <div
@@ -557,6 +571,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             <NodeStyles.ActionButtonGroup>
                                 {hasError && <DiagnosticsPopUp node={model.node} />}
                                 <NodeStyles.MenuButton
+                                    ref={setMenuButtonElement}
                                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                                     appearance="icon"
                                     onClick={handleOnMenuClick}
@@ -592,7 +607,11 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     <NodeStyles.MemoryContainer>
                         <NodeStyles.Row readOnly={readOnly}>
                             {nodeMetadata?.memory ? (
-                                <NodeStyles.MemoryCard readOnly={readOnly} onClick={onMemoryManagerClick}>
+                                <NodeStyles.MemoryCard 
+                                    readOnly={readOnly} 
+                                    onClick={onMemoryManagerClick} 
+                                    onContextMenu={!readOnly ? handleMemoryContextMenu : undefined}
+                                >
                                     <NodeStyles.Row readOnly={readOnly}>
                                         <div style={{ flex: 1 }}>
                                             <NodeStyles.MemoryTitle>Memory</NodeStyles.MemoryTitle>
@@ -601,6 +620,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                             </NodeStyles.MemoryMeta>
                                         </div>
                                         <NodeStyles.MenuButton
+                                            ref={setMemoryMenuButtonElement}
                                             buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                                             appearance="icon"
                                             onClick={handleOnMemoryMenuClick}
@@ -717,6 +737,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             (index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
                         })`}
                         onClick={() => onToolClick(tool)}
+                        onContextMenu={(e) => {
+                            if (!readOnly) {
+                                e.preventDefault();
+                                handleToolMenuClick(e as any, tool);
+                            }
+                        }}
                         css={css`
                             cursor: ${readOnly ? "default" : "pointer"};
                             &:hover circle {
