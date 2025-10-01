@@ -42,6 +42,7 @@ export function convertTestResultToUsecaseResult(testResult: TestCaseResult): Us
         compiled: testResult.passed && diagnostics.length === 0,
         duration: testResult.result.duration,
         timestamp: testResult.result.startTime,
+        evaluationResult: testResult.evaluationResult,
         errorEvents: errorEvents.length > 0 ? errorEvents : undefined
     };
 }
@@ -58,7 +59,8 @@ export function createFailedUsecaseResult(useCase: TestUseCase, reason: unknown)
         files: [{ fileName: FILES.ERROR_TXT, content: errorMessage }],
         compiled: false,
         duration: undefined,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        evaluationResult: { is_correct: false, reasoning: 'Error occurred', rating: 0 }
     };
 }
 
@@ -74,6 +76,7 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[]):
     const durations = results.filter(r => r.duration).map(r => r.duration!);
     const totalDuration = durations.reduce((sum, d) => sum + d, 0);
     const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
+    const evaluationSummary = results.reduce((sum, r) => sum + (r.evaluationResult.rating || 0), 0);
     
     return {
         results: results,
@@ -83,6 +86,7 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[]):
         accuracy: Math.round(accuracy * 100) / 100,
         totalDuration,
         averageDuration: Math.round(averageDuration),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        evaluationSummary
     };
 }

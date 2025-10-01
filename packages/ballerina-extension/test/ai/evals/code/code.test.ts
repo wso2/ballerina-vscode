@@ -22,7 +22,7 @@ import * as vscode from "vscode";
 import * as dotenv from "dotenv";
 
 import { testCases } from "./test-cases";
-import { TestUseCase, Summary, TestConfiguration } from "./types";
+import { TestUseCase, Summary } from "./types";
 import {
     DEFAULT_TEST_CONFIG,
     TIMING,
@@ -41,12 +41,17 @@ import {
     logExecutionCompletion
 } from "./result-management";
 
+
+const PROJECT_ROOT = path.resolve(__dirname, PATHS.PROJECT_ROOT_RELATIVE);
+
 // Convert imported test cases to TestUseCase format
 const TEST_USE_CASES: readonly TestUseCase[] = testCases.map((testCase, index) => ({
     id: `usecase_${index + 1}`,
     description: testCase.prompt.substring(0, 50) + "...",
     usecase: testCase.prompt,
-    operationType: "CODE_GENERATION" as const
+    operationType: "CODE_GENERATION" as const,
+    // projectPath: path.join(PROJECT_ROOT, testCase.projectPath)
+    projectPath: path.join(PROJECT_ROOT)
 }));
 
 /**
@@ -125,7 +130,6 @@ async function setupTestEnvironment(): Promise<void> {
     await commands.executeCommand(VSCODE_COMMANDS.CLOSE_ALL_EDITORS);
     
     // Add the Ballerina workspace to trigger workspaceContains activation event
-    const PROJECT_ROOT = path.resolve(__dirname, PATHS.PROJECT_ROOT_RELATIVE);
     const currentFolderCount = workspace.workspaceFolders?.length || 0;
     workspace.updateWorkspaceFolders(currentFolderCount, 0, {
         uri: Uri.file(PROJECT_ROOT),

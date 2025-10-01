@@ -33,7 +33,8 @@ export async function persistUsecaseResult(
     const compactResult: UsecaseCompact = {
         usecase: usecaseResult.usecase,
         compiled: usecaseResult.compiled,
-        duration: usecaseResult.duration
+        duration: usecaseResult.duration,
+        evaluationResult: usecaseResult.evaluationResult
     };
 
     await fs.promises.writeFile(
