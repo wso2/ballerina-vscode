@@ -54,6 +54,7 @@ public class DataMappingCustomFunctionTest extends AbstractLSTest {
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
                 {Path.of("union.json")},
+                {Path.of("optional_parameter1.json")},
         };
     }
 
@@ -68,7 +69,7 @@ public class DataMappingCustomFunctionTest extends AbstractLSTest {
                         sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.codedata(), testConfig.mapping(), testConfig.functionMetadata(),
                         testConfig.targetField());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 

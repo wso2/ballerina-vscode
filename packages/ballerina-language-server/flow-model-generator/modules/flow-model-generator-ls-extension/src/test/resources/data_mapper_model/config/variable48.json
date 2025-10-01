@@ -31,7 +31,7 @@
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
-        "ref": "1026316765"
+        "ref": "3692983"
       },
       {
         "fields": [],
@@ -40,7 +40,7 @@
         "typeName": "FileSystem",
         "kind": "record",
         "category": "module-variable",
-        "ref": "1026316765"
+        "ref": "3692983"
       }
     ],
     "output": {
@@ -63,7 +63,7 @@
       }
     ],
     "refs": {
-      "1026316765": {
+      "3692983": {
         "fields": [
           {
             "name": "name",

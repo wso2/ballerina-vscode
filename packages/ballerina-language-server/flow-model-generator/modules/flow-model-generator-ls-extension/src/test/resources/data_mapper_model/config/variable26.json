@@ -30,7 +30,7 @@
         "typeName": "Person",
         "kind": "record",
         "category": "parameter",
-        "ref": "1965861305"
+        "ref": "887620673"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "ref": "677675252"
+        "ref": "1373151159"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "displayName": "u",
       "typeName": "User",
       "kind": "record",
-      "ref": "677675252"
+      "ref": "1373151159"
     },
     "mappings": [],
     "refs": {
@@ -160,7 +160,31 @@
         "typeName": "",
         "kind": "record"
       },
-      "1965861305": {
+      "1373151159": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "customer",
+            "displayName": "customer",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-656952594"
+          },
+          {
+            "fields": [],
+            "name": "account",
+            "displayName": "account",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1686583489"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "887620673": {
         "fields": [
           {
             "name": "fullName",
@@ -268,30 +292,6 @@
           }
         ],
         "typeName": "",
-        "kind": "record"
-      },
-      "677675252": {
-        "fields": [
-          {
-            "fields": [],
-            "name": "customer",
-            "displayName": "customer",
-            "typeName": "",
-            "kind": "record",
-            "optional": false,
-            "ref": "-656952594"
-          },
-          {
-            "fields": [],
-            "name": "account",
-            "displayName": "account",
-            "typeName": "",
-            "kind": "record",
-            "optional": false,
-            "ref": "-1686583489"
-          }
-        ],
-        "typeName": "User",
         "kind": "record"
       }
     }

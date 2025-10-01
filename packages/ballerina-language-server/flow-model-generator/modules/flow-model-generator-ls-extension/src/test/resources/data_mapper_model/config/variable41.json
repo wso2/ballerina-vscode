@@ -43,7 +43,7 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "ref": "1722113469"
+        "ref": "1527622454"
       }
     ],
     "output": {
@@ -58,11 +58,11 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "ref": "1722113469"
+      "ref": "1527622454"
     },
     "mappings": [],
     "refs": {
-      "1722113469": {
+      "1527622454": {
         "fields": [
           {
             "name": "clientName",
