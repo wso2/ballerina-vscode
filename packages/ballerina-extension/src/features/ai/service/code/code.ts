@@ -89,9 +89,6 @@ async function handleTextEditorCommands(
                 if (content === newContent) {
                     return { success: true, message: `String to replace was not found in ${filePath}. No changes made.` };
                 }
-
-                // updatedSourceFiles = updatedSourceFiles.filter(f => f.filePath != filePath);
-                // updatedSourceFiles.push({ filePath, content: newContent });  
                 
                 const index = updatedSourceFiles.findIndex(f => f.filePath == filePath);
                 if (index !== -1) {
@@ -244,7 +241,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     { command, path, old_str, new_str, file_text, insert_line, view_range });
             }
         })
-    }
+    };
 
     const { fullStream, response } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
