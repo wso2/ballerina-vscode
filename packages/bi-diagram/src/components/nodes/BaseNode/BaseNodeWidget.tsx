@@ -184,6 +184,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [org, setOrg] = useState<string | null>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
@@ -251,6 +252,11 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         setMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setMenuAnchorEl(menuButtonElement || event.currentTarget);
     };
 
     const handleOnMenuClose = () => {
@@ -347,6 +353,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             isSelected={isSelected}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             {hasBreakpoint && (
                 <div
@@ -376,6 +383,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                     <NodeStyles.ActionButtonGroup>
                         {hasError && <DiagnosticsPopUp node={model.node} />}
                         <NodeStyles.MenuButton
+                            ref={setMenuButtonElement}
                             buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                             appearance="icon"
                             onClick={handleOnMenuClick}
