@@ -206,14 +206,15 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
 }
 
 export function convertParameterToParamValue(param: ParameterModel, index: number) {
+    const paramDefaultValue = typeof param?.defaultValue === 'string' ? param?.defaultValue : param?.defaultValue?.value;
     return {
         id: index,
         key: param.name.value,
-        value: `${param.type.value} ${param.name.value}${(param.defaultValue as any)?.value ? ` = ${(param.defaultValue as any)?.value}` : ''}`,
+        value: `${param.type.value} ${param.name.value}${paramDefaultValue ? ` = ${paramDefaultValue}` : ''}`,
         formValues: {
             variable: param.name.value,
             type: param.type.value,
-            defaultable: (param.defaultValue as any)?.value || ''
+            defaultable: paramDefaultValue || ''
         },
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,
