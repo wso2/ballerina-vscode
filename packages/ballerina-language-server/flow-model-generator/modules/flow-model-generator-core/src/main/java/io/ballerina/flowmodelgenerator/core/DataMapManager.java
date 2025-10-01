@@ -1795,35 +1795,17 @@ public class DataMapManager {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
 
-        TargetNode expression = getTargetNode(stNode, targetField, semanticModel);
-        if (expression == null) {
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
             return null;
         }
-        TypeSymbol typeSymbol = CommonUtils.getRawType(expression.typeSymbol());
-        String[] splits = fieldId.split(DOT);
-        for (int i = 1; i < splits.length; i++) {
-            String split = splits[i];
-            TypeDescKind typeDescKind = typeSymbol.typeKind();
-            if (split.matches("\\d+")) {
-                if (typeDescKind != TypeDescKind.ARRAY) {
-                    return null;
-                }
-                typeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
-            } else {
-                if (typeDescKind != TypeDescKind.RECORD) {
-                    return null;
-                }
-                RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
-                RecordFieldSymbol recordFieldSymbol = recordTypeSymbol.fieldDescriptors().get(split);
-                typeSymbol = CommonUtils.getRawType(recordFieldSymbol.typeDescriptor());
-            }
-        }
 
+        TypeSymbol typeSymbol = getTargetType(targetNode.typeSymbol(), fieldId);
         Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
         dataMapManagerBuilder = dataMapManagerBuilder
                 .type(Property.ValueType.EXPRESSION)
                 .typeConstraint(CommonUtils.getTypeSignature(semanticModel, typeSymbol, false));
-        LineRange lineRange = getFieldExprRange(expression.matchingNode().expr(), 1, splits);
+        LineRange lineRange = getFieldExprRange(targetNode.matchingNode().expr(), 1, fieldId.split(DOT));
         if (lineRange != null) {
             dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();
         }
