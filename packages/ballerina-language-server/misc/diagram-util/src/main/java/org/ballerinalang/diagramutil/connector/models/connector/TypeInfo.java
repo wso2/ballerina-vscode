@@ -33,8 +33,6 @@ public class TypeInfo {
     public String packageName;
     @Expose
     public String version;
-    @Expose
-    public String modulePrefix;
 
     public TypeInfo(String name, String orgName, String moduleName, String packageName, String version) {
         this.name = name;
