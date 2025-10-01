@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, generateText, streamText } from "ai";
+import { ModelMessage, generateText, streamText, stepCountIs } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
@@ -45,23 +45,16 @@ import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 
 function appendFinalMessages(
-    history: CoreMessage[],
-    finalMessages: CoreMessage[],
+    history: ModelMessage[],
+    finalMessages: ModelMessage[],
     cacheOptions: ProviderCacheOptions
 ): void {
-    const knownIds = new Set<string>();
     for (let i = 0; i < finalMessages.length - 1; i++) {
         const message = finalMessages[i];
-        const messageWithId = message as CoreMessage & { id?: string };
-        const messageId = messageWithId.id;
-
-        if ((message.role === "assistant" || message.role === "tool") && messageId && !knownIds.has(messageId)) {
-            knownIds.add(messageId);
-
+        if (message.role === "assistant" || message.role === "tool") {
             if (i === finalMessages.length - 2) {
                 message.providerOptions = cacheOptions;
             }
-
             history.push(message);
         }
     }
@@ -83,7 +76,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
             : "- No libraries available";
 
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
         {
             role: "system",
             content: getSystemPromptPrefix(sourceFiles, params.operationType, GenerationType.CODE_GENERATION),
@@ -114,10 +107,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const { fullStream, response } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 4096 * 4,
+        maxOutputTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
-        maxSteps: 10,
+        stopWhen: stepCountIs(10),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
@@ -140,9 +133,9 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 console.log(`[Tool Call] Tool call finished: ${toolName}`);
                 console.log(
                     "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
-                    part.result as Library[]
+                    part.output as Library[]
                 );
-                const libraryNames = (part.result as Library[]).map((lib) => lib.name);
+                const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                 assistantResponse = assistantResponse.replace(
                     `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
                     `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
@@ -151,8 +144,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 break;
             }
             case "text-delta": {
-                assistantResponse += part.textDelta;
-                eventHandler({ type: "content_block", content: part.textDelta });
+                assistantResponse += part.text;
+                eventHandler({ type: "content_block", content: part.text });
                 break;
             }
             case "error": {
@@ -161,7 +154,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "error", content: getErrorMessage(error) });
                 break;
             }
-            case "step-start": {
+            case "text-start": {
                 if (assistantResponse !== "") {
                     eventHandler({ type: "content_block", content: " \n" });
                     assistantResponse += " \n";
@@ -429,7 +422,7 @@ export async function repairCodeCore(
 }
 
 export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
         ...params.previousMessages,
         {
             role: "assistant",
@@ -449,7 +442,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     const { text, usage, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 4096 * 4,
+        maxOutputTokens: 4096 * 4,
         temperature: 0,
         tools,
         messages: allMessages,
