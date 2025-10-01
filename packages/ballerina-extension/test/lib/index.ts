@@ -33,13 +33,18 @@ export async function runTests(options: TestOptions): Promise<number> {
 	if (!options.vscodeExecutablePath) {
 		options.vscodeExecutablePath = await downloadAndUnzipVSCode();
 		const [cli, ...args] = resolveCliPathFromVSCodeExecutablePath(options.vscodeExecutablePath)
-		if (packageJson.extensionDependencies) {
+		if (packageJson.extensionDependencies && packageJson.extensionDependencies.length > 0) {
+			console.log(`Installing ${packageJson.extensionDependencies.length} extension dependencies...`);
 			for (const extensionId of packageJson.extensionDependencies) {
+				console.log(`Installing extension: ${extensionId}`);
 				cp.spawnSync(cli, [...args, '--install-extension', extensionId], {
 					encoding: 'utf-8',
 					stdio: 'inherit',
 				})
 			}
+			console.log('Extension dependencies installed successfully');
+		} else {
+			console.log('No extension dependencies found in package.json');
 		}
 	}
 	if (!options.vscodeExecutablePath) {
