@@ -60,6 +60,7 @@ export interface ServiceClassModel { // for Ballerina Service Classes
     properties?: ConfigProperties;
     functions?: FunctionModel[];
     codedata?: CodeData;
+    documentation?: PropertyModel;
     fields?: FieldType[];
 }
 
@@ -88,6 +89,7 @@ export interface FunctionModel {
     parameters: ParameterModel[];
     schema?: ConfigProperties;
     returnType: ReturnTypeModel;
+    documentation?: PropertyModel;
     qualifiers?: string[];
 }
 
@@ -152,6 +154,7 @@ export interface ParameterModel extends PropertyModel {
     kind?: "REQUIRED" | "OPTIONAL",
     type?: PropertyModel;
     name?: PropertyModel;
+    documentation?: PropertyModel;
 }
 
 
