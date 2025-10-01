@@ -17,7 +17,8 @@
     "sourceCode": ""
   },
   "propertyKey": "expression",
-  "targetField": "var1.names.1.0",
+  "targetField": "var1",
+  "outputId": "var1.names.1.0",
   "output": {
     "variable5.bal": [
       {
