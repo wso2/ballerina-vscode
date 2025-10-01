@@ -1,5 +1,7 @@
 // Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
 
+import { LLMEvaluationResult } from "../utils/evaluator-utils";
+
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
 // in compliance with the License.
@@ -47,6 +49,7 @@ export interface UsecaseResult {
     readonly duration?: number;
     readonly timestamp?: number;
     readonly errorEvents?: readonly string[];
+    readonly evaluationResult: LLMEvaluationResult;
 }
 
 /**
@@ -61,6 +64,7 @@ export interface Summary {
     readonly totalDuration: number;
     readonly averageDuration: number;
     readonly timestamp: number;
+    readonly evaluationSummary: number
 }
 
 /**
@@ -80,4 +84,5 @@ export interface UsecaseCompact {
     readonly usecase: string;
     readonly compiled: boolean;
     readonly duration?: number;
+    readonly evaluationResult: LLMEvaluationResult;
 }
