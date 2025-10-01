@@ -568,7 +568,8 @@ public class CodeAnalyzer extends NodeVisitor {
         // Find the agent variable declaration to get the correct line range and source code
         NonTerminalNode statementNode = newExpressionNode.parent();
         while (statementNode != null && statementNode.kind() != SyntaxKind.LOCAL_VAR_DECL &&
-                statementNode.kind() != SyntaxKind.MODULE_VAR_DECL) {
+                statementNode.kind() != SyntaxKind.MODULE_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
             statementNode = statementNode.parent();
         }
 
