@@ -359,16 +359,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             enrichedNodeProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
             console.log(">>> Form properties", { formProperties, formTemplateProperties, enrichedNodeProperties });
         }
-        if (Object.keys(formProperties).length === 0) {
-            // update node position
-            node.codedata.lineRange = {
-                ...targetLineRange,
-                fileName: fileName,
-            };
-            // add node to source code
-            onSubmit();
-            return;
-        }
 
         // hide connection property if node is a REMOTE_ACTION_CALL or RESOURCE_ACTION_CALL node
         if (node.codedata.node === "REMOTE_ACTION_CALL" || node.codedata.node === "RESOURCE_ACTION_CALL") {
@@ -1296,7 +1286,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     // default form
     return (
         <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
-            {fields && fields.length > 0 && (
+            {fields && (
                 <Form
                     ref={ref}
                     formFields={fields}

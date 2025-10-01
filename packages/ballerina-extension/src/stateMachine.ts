@@ -2,7 +2,7 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
@@ -14,7 +14,7 @@ import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName } from './utils';
+import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
@@ -25,7 +25,7 @@ interface MachineContext extends VisualizerLocation {
 }
 
 export let history: History;
-export let undoRedoManager: UndoRedoManager;
+export let undoRedoManager: IUndoRedoManager;
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -375,8 +375,8 @@ const stateMachine = createMachine<MachineContext>(
 
                     // Check if there are any "cannot resolve module" diagnostics
                     const hasMissingModuleDiagnostics = diagnostics.errorDiagnosticMap &&
-                        Object.values(diagnostics.errorDiagnosticMap).some(fileDiagnostics => 
-                            fileDiagnostics.some(diagnostic => 
+                        Object.values(diagnostics.errorDiagnosticMap).some(fileDiagnostics =>
+                            fileDiagnostics.some(diagnostic =>
                                 diagnostic.message.includes('cannot resolve module')
                             )
                         );
@@ -576,7 +576,6 @@ const stateMachine = createMachine<MachineContext>(
                             });
                         }
                     }
-                    undoRedoManager.updateContent(documentUri, node?.syntaxTree?.source);
                 }
                 const lastView = getLastHistory().location;
                 return resolve(lastView);
@@ -689,7 +688,7 @@ export function updateDataMapperView(codedata?: CodeData, variableName?: string)
         // Update popup context when data mapper is in popup view
         const popupLocation = StateMachinePopup.context();
         popupLocation.dataMapperMetadata = dataMapperMetadata;
-        
+
         StateMachinePopup.sendEvent(EVENT_TYPE.VIEW_UPDATE, popupLocation);
     } else {
         // Update main view history when data mapper is in main view
