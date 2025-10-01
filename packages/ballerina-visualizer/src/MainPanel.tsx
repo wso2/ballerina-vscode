@@ -455,9 +455,9 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
                             <ServiceClassDesigner
-                                type={value?.type}
+                                fileName={value?.documentUri}
+                                position={value?.position}
                                 isGraphql={value?.isGraphql}
-                                projectUri={value?.projectUri}
                             />
                         );
                         break;
