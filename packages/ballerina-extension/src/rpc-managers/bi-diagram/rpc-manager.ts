@@ -1604,12 +1604,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async updateServiceClass(params: ServiceClassSourceRequest): Promise<SourceEditResponse> {
+    async updateServiceClass(params: ServiceClassSourceRequest): Promise<UpdatedArtifactsResponse> {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateServiceClass(params);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'Service Class Update');
-                resolve(res);
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Service Class Update');
+                resolve({ artifacts });
             } catch (error) {
                 console.log(error);
             }
