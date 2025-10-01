@@ -52,7 +52,6 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
             <DropdownButton
                 buttonContent={
                     <>
-                        <Codicon name="add" sx={{ marginRight: 8 }} />
                         <ButtonText>{buttonTitle}</ButtonText>
                     </>
                 }
@@ -61,20 +60,11 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                 dropDownAlign="bottom"
                 buttonSx={{
                     appearance: 'none',
-                    backgroundColor: 'var(--vscode-button-background)',
-                    color: 'var(--vscode-button-foreground)',
-                    '&:hover': {
-                        backgroundColor: 'var(--vscode-button-hoverBackground)',
-                    },
                     height: '28px',
                     minHeight: '28px'
                 }}
                 optionButtonSx={{
-                    backgroundColor: 'var(--vscode-button-background)',
                     borderColor: 'var(--vscode-button-border)',
-                    '&:hover': {
-                        backgroundColor: 'var(--vscode-button-hoverBackground)',
-                    },
                     height: '28px',
                     minHeight: '28px'
                 }}

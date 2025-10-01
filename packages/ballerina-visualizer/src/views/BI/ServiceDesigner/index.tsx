@@ -186,6 +186,7 @@ interface ReadonlyProperty {
 export const ADD_HANDLER = "add-handler";
 export const ADD_INIT_FUNCTION = "add-init-function";
 export const ADD_REUSABLE_FUNCTION = "add-reusable-function";
+export const EXPORT_OAS = "export-oas";
 export const ADD_HTTP_RESOURCE = "add-http-resource";
 
 export function ServiceDesigner(props: ServiceDesignerProps) {
@@ -331,6 +332,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             description: "Add a new reusable function within the service",
             value: ADD_REUSABLE_FUNCTION
         });
+
+        options.push({
+            title: "Export OpenAPI Spec",
+            description: "Export the OpenAPI spec for the service",
+            value: EXPORT_OAS
+        });
+
         setDropdownOptions(options);
     }
 
@@ -439,6 +447,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 break;
             case ADD_HTTP_RESOURCE:
                 handleNewResourceFunction();
+                break;
+            case EXPORT_OAS:
+                handleExportOAS();
                 break;
         }
     };
@@ -639,7 +650,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <ListenerIcon className="listener-icon">
                                     <Icon name="radio-tower" isCodicon sx={{ fontSize: 16 }} />
                                 </ListenerIcon>
-                                <Typography 
+                                <Typography
                                     variant="body2"
                                     className="listener-text"
                                     sx={{
@@ -682,9 +693,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
                                                 </Button>
-                                                <Button appearance="secondary" tooltip="Export OpenAPI Spec" onClick={handleExportOAS}>
+                                                {/* <Button appearance="secondary" tooltip="Export OpenAPI Spec" onClick={handleExportOAS}>
                                                     <Icon name="bi-export" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Export</ButtonText>
-                                                </Button>
+                                                </Button> */}
                                                 {/* {
                                                     !haveServiceTypeName && (
                                                         <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
@@ -697,8 +708,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     }
                                     {serviceModel && (
                                         <AddServiceElementDropdown
-                                            buttonTitle="Add"
-                                            toolTip="Add Function or Handler"
+                                            buttonTitle="More"
+                                            toolTip="More options"
                                             defaultOption="reusable-function"
                                             onOptionChange={handleAddDropdownOption}
                                             options={dropdownOptions}
@@ -741,18 +752,18 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             {isHttpService && (
                                 <>
                                     <SectionHeader
-                                        title="Resource Endpoints"
+                                        title="Resources"
                                         subtitle="Define how the service responds to HTTP requests"
                                     >
                                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                             )}
-                                            {/* {!haveServiceTypeName && (
+                                            {!haveServiceTypeName && (
                                                 <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
                                                 </Button>
-                                            )} */}
+                                            )}
                                         </div>
                                     </SectionHeader>
                                     <FunctionsContainer>
