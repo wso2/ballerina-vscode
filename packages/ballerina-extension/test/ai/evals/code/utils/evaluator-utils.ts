@@ -19,6 +19,7 @@ import { ProjectModule, ProjectSource, SourceFile, SourceFiles } from "@wso2/bal
 import { createAnthropic } from "@ai-sdk/anthropic";
 import path from "path";
 import fs from "fs";
+import { z } from 'zod';
 
 export interface LLMEvaluationResult {
     is_correct: boolean;
@@ -28,6 +29,25 @@ export interface LLMEvaluationResult {
 
 const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
+});
+
+// Define the schema using Zod
+const evaluationSchema = z.object({
+    is_correct: z.boolean().describe(
+        'Boolean indicating whether the final code correctly and completely implements the user query. ' +
+        'True means the implementation is correct, false means it has errors, missing functionality, or does not meet the requirements.'
+    ),
+    reasoning: z.string().describe(
+        'A clear and concise explanation of your evaluation decision. ' +
+        'If the code is correct, briefly explain what was implemented successfully. ' +
+        'If incorrect, specifically identify what is wrong, missing, or does not match the requirements. ' +
+        'Focus on functional correctness, completeness, and alignment with the user query.'
+    ),
+    rating: z.number().min(0).max(10).describe(
+        'A numerical rating from 0 to 10 evaluating the overall quality and accuracy of the final code. ' +
+        '0 = completely incorrect or broken, 5 = partially correct with significant issues, 10 = perfect implementation. ' +
+        'Consider correctness, completeness, code quality, and how well it fulfills the user query.'
+    )
 });
 
 /**
@@ -45,7 +65,6 @@ export async function evaluateCodeWithLLM(
     finalSource: SourceFiles[]
 ): Promise<LLMEvaluationResult> {
     console.log("🤖 Starting LLM-based semantic evaluation...");
-    // console.log("🤖 Starting LLM-based semantic evaluation..." + `${JSON.stringify(initialSource)}` + `\n\n ${JSON.stringify(finalSource)} ` + ` ${userQuery}`);
 
     const stringifySources = (sources: SourceFiles[]): string => {
         if (sources.length === 0) return "No files in the project.";
@@ -55,45 +74,74 @@ export async function evaluateCodeWithLLM(
     const initialCodeString = stringifySources(initialSource);
     const finalCodeString = stringifySources(finalSource);
 
-    const systemPrompt = `You are an expert Ballerina developer and an meticulous code reviewer. Your task is to evaluate if the 'Final Code' correctly and completely implements the 'User Query', using the 'Initial Code' as the starting point.
+    const systemPrompt = `You are an expert Ballerina developer and a meticulous code reviewer specializing in evaluating code changes.
 
-Respond ONLY with a valid JSON object with two fields:
-1. "is_correct": A boolean value. 'true' if the final code is a correct implementation of the query, 'false' otherwise.
-2. "reasoning": A string explaining your decision. Be concise. If it's incorrect, clearly state what is wrong or missing.
-3. "rating": A numer rating the quality and the accuracy based on the user query of the final code on a scale from 0 to 10, where 10 is perfect.
+Your role is to:
+1. Compare the initial code state with the final code state
+2. Determine if the final code correctly implements the user's requested changes
+3. Assess completeness, correctness, and quality of the implementation
+4. Provide specific, actionable feedback
 
-Do NOT provide any other text, greetings, or explanations outside of the JSON object.`;
+Be thorough but concise. Focus on functional correctness and whether the user's requirements are met.`;
 
     const userPrompt = `
 # User Query
+The user requested the following change:
 \`\`\`
 ${userQuery}
 \`\`\`
 
-# Initial Code
+# Initial Code (Before Changes)
 \`\`\`ballerina
 ${initialCodeString}
 \`\`\`
 
-# Final Code
+# Final Code (After Changes)
 \`\`\`ballerina
 ${finalCodeString}
 \`\`\`
-`;
+
+---
+
+Evaluate whether the Final Code correctly implements the User Query. Consider:
+- Does it fulfill all requirements in the user query?
+- Are there any bugs or logical errors?
+- Is any functionality missing or incomplete?
+- Does it maintain or improve code quality?
+
+Use the submit_evaluation tool to provide your assessment.`;
 
     try {
-        const { text } = await generateText({
-            // model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        const result = await generateText({
             model: anthropic('claude-sonnet-4-20250514'),
             system: systemPrompt,
             prompt: userPrompt,
             temperature: 0.1,
-            maxTokens: 1024,
+            tools: {
+                submit_evaluation: {
+                    description: 
+                        'Submit a comprehensive evaluation of whether the final code correctly implements the user query.',
+                    parameters: evaluationSchema,
+                }
+            },
+            toolChoice: {
+                type: 'tool',
+                toolName: 'submit_evaluation'
+            },
+            maxSteps: 1,
         });
 
-        const result: LLMEvaluationResult = JSON.parse(text);
-        console.log(`✅ LLM Evaluation Complete. Correct: ${result.is_correct}. Reason: ${result.reasoning}, Rating: ${result.rating}`);
-        return result;
+        // Extract the tool call result
+        const toolCall = result.toolCalls[0];
+        
+        if (!toolCall || toolCall.toolName !== 'submit_evaluation') {
+            throw new Error("Expected submit_evaluation tool call but received none");
+        }
+
+        const evaluationResult = toolCall.args as LLMEvaluationResult;
+        
+        console.log(`✅ LLM Evaluation Complete. Correct: ${evaluationResult.is_correct}. Reason: ${evaluationResult.reasoning}, Rating: ${evaluationResult.rating}`);
+        return evaluationResult;
 
     } catch (error) {
         console.error("Error during LLM evaluation:", error);
@@ -103,20 +151,6 @@ ${finalCodeString}
             rating: 0
         };
     }
-}
-
-export function getProjectFromResponse(req: string): SourceFiles[] {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(req)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({ filePath, content: fileContent });
-    }
-
-    return sourceFiles;
 }
 
 export async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
@@ -170,4 +204,18 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
     }
 
     return projectSource;
+}
+
+export function getProjectFromResponse(req: string): SourceFiles[] {
+    const sourceFiles: SourceFile[] = [];
+    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
+    let match;
+
+    while ((match = regex.exec(req)) !== null) {
+        const filePath = match[1];
+        const fileContent = match[2].trim();
+        sourceFiles.push({ filePath, content: fileContent });
+    }
+
+    return sourceFiles;
 }
