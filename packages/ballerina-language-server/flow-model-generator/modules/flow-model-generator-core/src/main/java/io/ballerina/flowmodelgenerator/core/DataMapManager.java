@@ -935,8 +935,14 @@ public class DataMapManager {
             if (type.typeName.equals("record")) {
                 if (type instanceof RefRecordType recordType) {
                     String referenceKey = recordType.key;
-                    MappingRecordPort recordPort = new MappingRecordPort(id, name, typeName != null ?
-                            typeName : "record", "record", referenceKey);
+                    String recordTypeName = typeName != null ? typeName : "record";
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type) && typeName != null) {
+                        recordTypeName = type.moduleInfo.modulePrefix + ":" + recordTypeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", referenceKey);
+                    recordPort.typeInfo = typeInfo;
                     for (ReferenceType.Field field : recordType.fields) {
                         MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
                                 field.type(), visitedTypes, references);
@@ -959,7 +965,15 @@ public class DataMapManager {
                     }
                     return new MappingRecordPort(recordPort);
                 } else {
-                    return new MappingRecordPort(id, name, typeName, "record", type.key);
+                    String recordTypeName = typeName;
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        recordTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingRecordPort recordPort =new MappingRecordPort(id, name, recordTypeName, "record", type.key);
+                    recordPort.typeInfo = typeInfo;
+                    return recordPort;
                 }
             } else if (type.typeName.equals("array")) {
                 if (type instanceof RefArrayType arrayType) {
@@ -968,8 +982,14 @@ public class DataMapManager {
                     if (memberPort != null && memberPort.displayName == null) {
                         memberPort.displayName = getItemName(name);
                     }
-                    MappingArrayPort arrayPort = new MappingArrayPort(id, name, memberPort == null ? "record" :
-                            memberPort.typeName + "[]", "array", type.hashCode);
+                    String arrayTypeName = memberPort == null ? "array[]" : memberPort.typeName + "[]";
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingArrayPort arrayPort = new MappingArrayPort(id, name, arrayTypeName, "array", type.hashCode);
+                    arrayPort.typeInfo = typeInfo;
                     arrayPort.setMember(memberPort);
                     if (arrayType.dependentTypes == null) {
                         return arrayPort;
@@ -986,7 +1006,14 @@ public class DataMapManager {
                 }
             } else if (type.typeName.equals("enum")) {
                 if (type instanceof RefEnumType enumType) {
-                    MappingEnumPort enumPort = new MappingEnumPort(id, typeName, typeName, "enum", type.key);
+                    String enumTypeName = typeName;
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        enumTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingEnumPort enumPort = new MappingEnumPort(id, enumTypeName, enumTypeName, "enum", type.key);
+                    enumPort.typeInfo = typeInfo;
                     for (RefType member : enumType.members) {
                         MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
                                 member, visitedTypes, references);
@@ -1005,22 +1032,31 @@ public class DataMapManager {
                     }
                     return enumPort;
                 } else {
-                    return new MappingEnumPort(id, name, typeName, "enum", type.key);
+                    String enumTypeName = typeName;
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        enumTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingEnumPort enumPort =  new MappingEnumPort(id, name, enumTypeName, "enum", type.key);
+                    enumPort.typeInfo = typeInfo;
+                    return enumPort;
                 }
             } else if (type.typeName.equals("union")) {
                 if (type instanceof RefUnionType unionType) {
                     List<String> memberNames = new ArrayList<>();
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
                     MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.key);
+                    unionPort.typeInfo = typeInfo;
                     for (RefType member : unionType.memberTypes) {
                         MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
-                            if (isExternalType(member)) {
-                                memberNames.add(member.moduleInfo.modulePrefix + ":" + memberPort.typeName);
-                            } else {
-                                memberNames.add(memberPort.typeName);
-                            }
+                            memberNames.add(memberPort.typeName);
                         }
                     }
                     unionPort.typeName = String.join(PIPE, memberNames);
@@ -1035,13 +1071,38 @@ public class DataMapManager {
                     }
                     return unionPort;
                 } else {
-                    return new MappingUnionPort(id, name, typeName, "union", type.key);
+                    String unionTypeName = typeName;
+                    TypeInfo typeInfo = null;
+                    if (isExternalType(type)) {
+                        unionTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
+                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                    }
+                    MappingUnionPort mappingUnionPort = new
+                            MappingUnionPort(id, name, unionTypeName, "union", type.key);
+                    mappingUnionPort.typeInfo = typeInfo;
+                    return mappingUnionPort;
                 }
             } else if (type.hashCode == null || type.hashCode.isEmpty()) {
-                return new MappingPort(id, name, type.typeName, type.typeName);
+                String portTypeName = type.typeName;
+                TypeInfo typeInfo = null;
+                if (isExternalType(type)) {
+                    portTypeName = type.moduleInfo.modulePrefix + ":" + type.typeName;
+                    typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+                }
+                MappingPort mappingPort =  new MappingPort(id, name, portTypeName, portTypeName);
+                mappingPort.typeInfo = typeInfo;
+                return  mappingPort;
             }
         } else {
-            return new MappingPort(id, name, typeName, typeName);
+            String portTypeName = typeName;
+            TypeInfo typeInfo = null;
+            if (isExternalType(type)) {
+                portTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
+                typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
+            }
+            MappingPort mappingPort = new MappingPort(id, name, portTypeName, portTypeName);
+            mappingPort.typeInfo = typeInfo;
+            return mappingPort;
         }
         return null;
     }
@@ -2333,6 +2394,7 @@ public class DataMapManager {
         ModuleInfo moduleInfo;
         Boolean optional;
         String ref;
+        TypeInfo typeInfo;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2485,6 +2547,9 @@ public class DataMapManager {
         MappingUnionPort(String name, String displayName, String typeName, String kind, String reference) {
             super(name, displayName, typeName, kind, reference);
         }
+    }
+
+    public record TypeInfo(String orgName, String moduleName) {
     }
 
     private static class GenInputsVisitor extends NodeVisitor {

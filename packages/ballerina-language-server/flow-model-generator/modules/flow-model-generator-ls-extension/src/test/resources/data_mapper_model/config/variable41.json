@@ -34,7 +34,7 @@
         "fields": [],
         "name": "var1",
         "displayName": "var1",
-        "typeName": "Options",
+        "typeName": "redis:Options",
         "kind": "record",
         "category": "local-variable",
         "moduleInfo": {
@@ -50,7 +50,7 @@
       "fields": [],
       "name": "var2",
       "displayName": "var2",
-      "typeName": "Options",
+      "typeName": "redis:Options",
       "kind": "record",
       "moduleInfo": {
         "org": "ballerinax",
@@ -86,7 +86,7 @@
             "optional": false
           }
         ],
-        "typeName": "Options",
+        "typeName": "redis:Options",
         "kind": "record"
       }
     }
