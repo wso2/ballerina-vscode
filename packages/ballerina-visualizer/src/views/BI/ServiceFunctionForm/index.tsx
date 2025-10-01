@@ -176,7 +176,8 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                 valueTypeConstraint: model.returnType.valueTypeConstraint || ''
             }
         ];
-        setFields(initialFields);
+        const enabledFields = initialFields.filter(field => field.enabled);
+        setFields(enabledFields);
     };
 
     useEffect(() => {
