@@ -1668,10 +1668,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return new Promise((resolve, reject) => {
-            params.queryMap = {
-                ...params.queryMap,
-                includeCurrentOrganizationInSearch: extension.ballerinaExtInstance.getIncludeCurrentOrgComponents(),
-            };
             StateMachine.langClient().search(params).then((res) => {
                 resolve(res);
             }).catch((error) => {
