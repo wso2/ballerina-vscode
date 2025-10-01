@@ -36,7 +36,7 @@
           "key": "-1253237511",
           "name": "DepartmentCode",
           "typeName": "union",
-          "typeInfo": {
+          "moduleInfo": {
             "orgName": "ballerinax",
             "moduleName": "health.ccda.r1",
             "packageName": "health.ccda.r1",
@@ -76,7 +76,7 @@
         "key": "-1253237511",
         "name": "DepartmentCode",
         "typeName": "union",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -85,7 +85,7 @@
         }
       }
     },
-    "typeInfo": {
+    "moduleInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",
       "packageName": "health.ccda.r1",

@@ -1017,7 +1017,7 @@ public class DataMapManager {
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
                             if (isExternalType(member)) {
-                                memberNames.add(member.typeInfo.modulePrefix + ":" + memberPort.typeName);
+                                memberNames.add(member.moduleInfo.modulePrefix + ":" + memberPort.typeName);
                             } else {
                                 memberNames.add(memberPort.typeName);
                             }
@@ -1061,12 +1061,12 @@ public class DataMapManager {
     }
 
     private boolean isExternalType(RefType refType) {
-        if (refType.typeInfo == null) {
+        if (refType.moduleInfo == null) {
             return false;
         }
         ModuleInfo currentModuleInfo = ModuleInfo.from(this.document.module().descriptor());
-        return !refType.typeInfo.orgName.equals(currentModuleInfo.org()) ||
-               !refType.typeInfo.packageName.equals(currentModuleInfo.packageName());
+        return !refType.moduleInfo.orgName.equals(currentModuleInfo.org()) ||
+               !refType.moduleInfo.packageName.equals(currentModuleInfo.packageName());
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {

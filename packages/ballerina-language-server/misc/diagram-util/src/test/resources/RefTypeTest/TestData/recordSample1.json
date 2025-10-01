@@ -31,7 +31,7 @@
     "name": "SampleType",
     "typeName": "record",
     "dependentTypes": {},
-    "typeInfo": {
+    "moduleInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",
       "packageName": "health.ccda.r1",

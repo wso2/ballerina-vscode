@@ -22,7 +22,7 @@
           "key": "441557406",
           "name": "SampleType",
           "typeName": "record",
-          "typeInfo": {
+          "moduleInfo": {
             "orgName": "ballerinax",
             "moduleName": "health.ccda.r1",
             "packageName": "health.ccda.r1",
@@ -70,7 +70,7 @@
         "key": "441557406",
         "name": "SampleType",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -79,7 +79,7 @@
         }
       }
     },
-    "typeInfo": {
+    "moduleInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",
       "packageName": "health.ccda.r1",

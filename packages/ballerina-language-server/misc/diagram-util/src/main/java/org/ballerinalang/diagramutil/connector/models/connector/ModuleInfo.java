@@ -22,7 +22,7 @@ import com.google.gson.annotations.Expose;
 /**
  * ReferenceTypeInfo model.
  */
-public class ReferenceTypeInfo {
+public class ModuleInfo {
     @Expose
     public String orgName;
     @Expose
@@ -34,8 +34,8 @@ public class ReferenceTypeInfo {
     @Expose
     public String modulePrefix;
 
-    public ReferenceTypeInfo(String orgName, String moduleName,
-                             String packageName, String version, String modulePrefix) {
+    public ModuleInfo(String orgName, String moduleName,
+                      String packageName, String version, String modulePrefix) {
         this.orgName = orgName;
         this.moduleName = moduleName;
         this.packageName = packageName;

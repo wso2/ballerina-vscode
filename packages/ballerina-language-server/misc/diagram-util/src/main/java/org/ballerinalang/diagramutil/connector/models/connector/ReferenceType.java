@@ -135,7 +135,7 @@ public class ReferenceType {
             RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) symbol;
             RefRecordType recordType = new RefRecordType(name);
             recordType.hashCode = typeHash;
-            recordType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+            recordType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             recordType.key = typeKey;
             if (name.isEmpty()) {
                 typeKey = typeHash;
@@ -158,7 +158,7 @@ public class ReferenceType {
                         t.hashCode = fieldType.hashCode;
                         t.key = fieldType.key;
                         t.typeName = fieldType.typeName;
-                        t.typeInfo = fieldType.typeInfo;
+                        t.moduleInfo = fieldType.moduleInfo;
                         recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                     } else {
                         recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
@@ -169,7 +169,7 @@ public class ReferenceType {
                         t.hashCode = fieldType.hashCode;
                         t.key = fieldType.key;
                         t.typeName = fieldType.typeName;
-                        t.typeInfo = fieldType.typeInfo;
+                        t.moduleInfo = fieldType.moduleInfo;
                         recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
                     } else {
                         recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
@@ -191,7 +191,7 @@ public class ReferenceType {
             RefArrayType arrayType = new RefArrayType(name);
             arrayType.hashCode = typeHash;
             arrayType.key = typeKey;
-            arrayType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+            arrayType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
             ModuleID elementModuleId = getModuleID(elementTypeSymbol, moduleID);
@@ -203,7 +203,7 @@ public class ReferenceType {
                     t.hashCode = elementType.hashCode;
                     t.key = elementType.key;
                     t.typeName = elementType.typeName;
-                    t.typeInfo = elementType.typeInfo;
+                    t.moduleInfo = elementType.moduleInfo;
                     arrayType.elementType = t;
                 } else {
                     arrayType.elementType = elementType;
@@ -214,7 +214,7 @@ public class ReferenceType {
                     t.hashCode = elementType.hashCode;
                     t.key = elementType.key;
                     t.typeName = elementType.typeName;
-                    t.typeInfo = elementType.typeInfo;
+                    t.moduleInfo = elementType.moduleInfo;
                     arrayType.elementType = t;
                 } else {
                     arrayType.elementType = elementType;
@@ -236,7 +236,7 @@ public class ReferenceType {
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
             unionType.key = typeKey;
-            unionType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+            unionType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             visitedTypeMap.put(typeKey, unionType);
 
             for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
@@ -250,7 +250,7 @@ public class ReferenceType {
                         t.hashCode = memberType.hashCode;
                         t.key = memberType.key;
                         t.typeName = memberType.typeName;
-                        t.typeInfo = memberType.typeInfo;
+                        t.moduleInfo = memberType.moduleInfo;
                         unionType.memberTypes.add(t);
                     } else {
                         unionType.memberTypes.add(memberType);
@@ -261,7 +261,7 @@ public class ReferenceType {
                         t.hashCode = memberType.hashCode;
                         t.key = memberType.key;
                         t.typeName = memberType.typeName;
-                        t.typeInfo = memberType.typeInfo;
+                        t.moduleInfo = memberType.moduleInfo;
                         unionType.memberTypes.add(t);
                     } else {
                         unionType.memberTypes.add(memberType);
@@ -284,8 +284,7 @@ public class ReferenceType {
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
-            ModuleID moduleId = getModuleID(typeRefSymbol);
-            return fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
+            return fromSemanticSymbol(typeSymbol, name, moduleID, typeDefSymbols);
         } else if (kind == TypeDescKind.SINGLETON) {
             String typeName = symbol.signature();
             if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
@@ -323,8 +322,8 @@ public class ReferenceType {
     }
 
 
-    private static ReferenceTypeInfo createTypeInfo(ModuleID moduleID) {
-        return new ReferenceTypeInfo(moduleID.orgName(),
+    private static ModuleInfo createTypeInfo(ModuleID moduleID) {
+        return new ModuleInfo(moduleID.orgName(),
                 moduleID.moduleName(), moduleID.packageName(), moduleID.version(),
                 moduleID.modulePrefix());
     }
@@ -392,7 +391,7 @@ public class ReferenceType {
         });
         type = new RefEnumType(enumSymbol.getName().orElse(""), fields);
         ModuleID moduleId = getModuleID(enumSymbol);
-        type.typeInfo = moduleId != null ? createTypeInfo(moduleId) : null;
+        type.moduleInfo = moduleId != null ? createTypeInfo(moduleId) : null;
         return type;
     }
 

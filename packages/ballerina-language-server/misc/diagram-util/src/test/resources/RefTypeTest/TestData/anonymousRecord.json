@@ -13,7 +13,7 @@
             "key": "810360723",
             "name": "",
             "typeName": "record",
-            "typeInfo": {
+            "moduleInfo": {
               "orgName": "ballerinax",
               "moduleName": "health.ccda.r1",
               "packageName": "health.ccda.r1",
@@ -29,7 +29,7 @@
           "key": "810360723",
           "name": "",
           "typeName": "array",
-          "typeInfo": {
+          "moduleInfo": {
             "orgName": "ballerinax",
             "moduleName": "health.ccda.r1",
             "packageName": "health.ccda.r1",
@@ -48,7 +48,7 @@
           "key": "227271973",
           "name": "",
           "typeName": "record",
-          "typeInfo": {
+          "moduleInfo": {
             "orgName": "ballerinax",
             "moduleName": "health.ccda.r1",
             "packageName": "health.ccda.r1",
@@ -89,7 +89,7 @@
         "key": "-1339925238",
         "name": "",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -117,7 +117,7 @@
               "key": "-1339925238",
               "name": "",
               "typeName": "record",
-              "typeInfo": {
+              "moduleInfo": {
                 "orgName": "ballerinax",
                 "moduleName": "health.ccda.r1",
                 "packageName": "health.ccda.r1",
@@ -136,7 +136,7 @@
         "key": "810360723",
         "name": "",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -162,7 +162,7 @@
         "key": "91951033",
         "name": "",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -180,7 +180,7 @@
               "key": "91951033",
               "name": "",
               "typeName": "record",
-              "typeInfo": {
+              "moduleInfo": {
                 "orgName": "ballerinax",
                 "moduleName": "health.ccda.r1",
                 "packageName": "health.ccda.r1",
@@ -199,7 +199,7 @@
         "key": "227271973",
         "name": "",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -208,7 +208,7 @@
         }
       }
     },
-    "typeInfo": {
+    "moduleInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",
       "packageName": "health.ccda.r1",

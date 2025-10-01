@@ -10,7 +10,7 @@
         "key": "441557406",
         "name": "SampleType",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -24,7 +24,7 @@
         "key": "-941197899",
         "name": "SampleRecord",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -38,7 +38,7 @@
         "key": "-293660967",
         "name": "ProgressNote",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -52,7 +52,7 @@
         "key": "-1852042834",
         "name": "FinalNote",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -92,7 +92,7 @@
               "key": "-293660967",
               "name": "ProgressNote",
               "typeName": "record",
-              "typeInfo": {
+              "moduleInfo": {
                 "orgName": "ballerinax",
                 "moduleName": "health.ccda.r1",
                 "packageName": "health.ccda.r1",
@@ -113,7 +113,7 @@
         "key": "-1852042834",
         "name": "FinalNote",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -141,7 +141,7 @@
               "key": "-941197899",
               "name": "SampleRecord",
               "typeName": "record",
-              "typeInfo": {
+              "moduleInfo": {
                 "orgName": "ballerinax",
                 "moduleName": "health.ccda.r1",
                 "packageName": "health.ccda.r1",
@@ -161,7 +161,7 @@
         "key": "-293660967",
         "name": "ProgressNote",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -189,7 +189,7 @@
               "key": "441557406",
               "name": "SampleType",
               "typeName": "record",
-              "typeInfo": {
+              "moduleInfo": {
                 "orgName": "ballerinax",
                 "moduleName": "health.ccda.r1",
                 "packageName": "health.ccda.r1",
@@ -208,7 +208,7 @@
         "key": "-941197899",
         "name": "SampleRecord",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -244,7 +244,7 @@
         "key": "441557406",
         "name": "SampleType",
         "typeName": "record",
-        "typeInfo": {
+        "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",
           "packageName": "health.ccda.r1",
@@ -253,7 +253,7 @@
         }
       }
     },
-    "typeInfo": {
+    "moduleInfo": {
       "orgName": "ballerinax",
       "moduleName": "health.ccda.r1",
       "packageName": "health.ccda.r1",
