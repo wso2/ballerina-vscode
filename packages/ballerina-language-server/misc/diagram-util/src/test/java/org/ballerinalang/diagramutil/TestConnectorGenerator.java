@@ -210,6 +210,7 @@ public class TestConnectorGenerator {
         Assert.assertEquals(connector.functions.get(2).displayAnnotation.get("label"), "Test client get function");
         // Enum
         Assert.assertEquals(connector.functions.get(8).parameters.get(0).typeName, "enum");
+        Assert.assertEquals(connector.functions.get(8).parameters.get(0).typeInfo.name, "Color");
         // Table
         Assert.assertEquals(connector.functions.get(6).parameters.get(3).typeName, "table");
         // Map

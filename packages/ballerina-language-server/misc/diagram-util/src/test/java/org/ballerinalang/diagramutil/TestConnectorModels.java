@@ -22,7 +22,6 @@ public class TestConnectorModels {
     private final String moduleName = "testModule";
     private final String packageName = "testPackage";
     private final String version = "0.1.0";
-    private final String modulePrefix = "testPrefix";
     private final String documentation = "test documentation";
     private final String recordType = "record";
     private final String initFunc = "init";
@@ -38,7 +37,7 @@ public class TestConnectorModels {
 
     @BeforeClass
     public void initConnectorModels() {
-        typeInfo = new TypeInfo(orgName, moduleName, packageName, version, modulePrefix);
+        typeInfo = new TypeInfo(connectorName, orgName, moduleName, packageName, version);
 
         type = new Type();
         type.typeName = recordType;

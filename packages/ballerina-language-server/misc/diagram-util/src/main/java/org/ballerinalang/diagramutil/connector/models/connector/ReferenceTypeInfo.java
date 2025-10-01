@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -20,11 +20,9 @@ package org.ballerinalang.diagramutil.connector.models.connector;
 import com.google.gson.annotations.Expose;
 
 /**
- * TypeInfo model.
+ * ReferenceTypeInfo model.
  */
-public class TypeInfo {
-    @Expose
-    public String name;
+public class ReferenceTypeInfo {
     @Expose
     public String orgName;
     @Expose
@@ -36,11 +34,12 @@ public class TypeInfo {
     @Expose
     public String modulePrefix;
 
-    public TypeInfo(String name, String orgName, String moduleName, String packageName, String version) {
-        this.name = name;
+    public ReferenceTypeInfo(String orgName, String moduleName,
+                             String packageName, String version, String modulePrefix) {
         this.orgName = orgName;
         this.moduleName = moduleName;
         this.packageName = packageName;
         this.version = version;
+        this.modulePrefix = modulePrefix;
     }
 }

@@ -21,7 +21,7 @@ package org.ballerinalang.diagramutil.connector.models.connector.reftypes;
  * Reference-based type model.
  */
 import com.google.gson.annotations.Expose;
-import org.ballerinalang.diagramutil.connector.models.connector.TypeInfo;
+import org.ballerinalang.diagramutil.connector.models.connector.ReferenceTypeInfo;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +41,7 @@ public class RefType  implements Cloneable {
     @Expose
     public Map<String, RefType> dependentTypes;
     @Expose
-    public TypeInfo typeInfo;
+    public ReferenceTypeInfo typeInfo;
 
 
     public RefType(String name) {

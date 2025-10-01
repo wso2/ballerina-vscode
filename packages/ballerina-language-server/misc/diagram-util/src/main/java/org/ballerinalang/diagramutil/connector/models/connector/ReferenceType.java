@@ -323,8 +323,9 @@ public class ReferenceType {
     }
 
 
-    private static TypeInfo createTypeInfo(ModuleID moduleID) {
-        return new TypeInfo(moduleID.orgName(), moduleID.moduleName(), moduleID.packageName(), moduleID.version(),
+    private static ReferenceTypeInfo createTypeInfo(ModuleID moduleID) {
+        return new ReferenceTypeInfo(moduleID.orgName(),
+                moduleID.moduleName(), moduleID.packageName(), moduleID.version(),
                 moduleID.modulePrefix());
     }
 
