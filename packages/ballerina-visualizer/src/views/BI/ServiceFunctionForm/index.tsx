@@ -32,6 +32,8 @@ import {
     convertParameterToParamValue,
     handleFunctionCreate
 } from './utils';
+import { LoaderContainer } from '../../../components/RelativeLoader/styles';
+import { RelativeLoader } from '../../../components/RelativeLoader';
 
 const FormContainer = styled.div`
     display: flex;
@@ -191,23 +193,6 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
         }
     };
 
-    if (!model) {
-        return (
-            <View>
-                <TopNavigationBar />
-                <TitleBar
-                    title="Service Function"
-                    subtitle="Loading..."
-                />
-                <ViewContent padding>
-                    <Container>
-                        <div>Loading function data...</div>
-                    </Container>
-                </ViewContent>
-            </View>
-        );
-    }
-
     return (
         <View>
             <TopNavigationBar />
@@ -217,21 +202,27 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
             />
             <ViewContent padding>
                 <Container>
-                    <FormContainer>
-                        {fields.length > 0 && (
-                            <FormGeneratorNew
-                                fileName={currentFilePath || ''}
-                                targetLineRange={model.codedata?.lineRange as LineRange}
-                                fields={fields}
-                                onSubmit={onFunctionCreate}
-                                submitText="Save"
-                                helperPaneSide="left"
-                                isSaving={isSaving}
-                                preserveFieldOrder={true}
-                                recordTypeFields={recordTypeFields}
-                            />
-                        )}
-                    </FormContainer>
+                    {!model ? (
+                        <LoaderContainer>
+                            <RelativeLoader />
+                        </LoaderContainer>
+                    ) : (
+                        <FormContainer>
+                            {fields.length > 0 && (
+                                <FormGeneratorNew
+                                    fileName={currentFilePath || ''}
+                                    targetLineRange={model.codedata?.lineRange as LineRange}
+                                    fields={fields}
+                                    onSubmit={onFunctionCreate}
+                                    submitText="Save"
+                                    helperPaneSide="left"
+                                    isSaving={isSaving}
+                                    preserveFieldOrder={true}
+                                    recordTypeFields={recordTypeFields}
+                                />
+                            )}
+                        </FormContainer>
+                    )}
                 </Container>
             </ViewContent>
         </View>
