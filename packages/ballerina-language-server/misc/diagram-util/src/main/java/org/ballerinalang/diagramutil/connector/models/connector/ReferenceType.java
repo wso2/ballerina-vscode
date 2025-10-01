@@ -87,7 +87,7 @@ public class ReferenceType {
 
         ModuleID moduleId = getModuleID(symbol);
         if (moduleId == null) {
-            moduleId = getModuleIDForTypeSymbol(typeSymbol, null);
+            moduleId = getModuleID(typeSymbol, null);
         }
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
@@ -149,7 +149,7 @@ public class ReferenceType {
                 String fieldTypeName = fieldTypeSymbol.getName().orElse("");
                 ModuleID fieldModuleId = getModuleID(fieldSymbol);
                 if (fieldModuleId == null) {
-                    fieldModuleId = getModuleIDForTypeSymbol(fieldTypeSymbol, moduleID);
+                    fieldModuleId = getModuleID(fieldTypeSymbol, moduleID);
                 }
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, typeDefSymbols);
                 if (fieldType.dependentTypeKeys == null || fieldType.dependentTypeKeys.isEmpty()) {
@@ -194,7 +194,7 @@ public class ReferenceType {
             arrayType.typeInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             TypeSymbol elementTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
             String elementTypeName = elementTypeSymbol.getName().orElse("");
-            ModuleID elementModuleId = getModuleIDForTypeSymbol(elementTypeSymbol, moduleID);
+            ModuleID elementModuleId = getModuleID(elementTypeSymbol, moduleID);
             RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, elementModuleId,
                     typeDefSymbols);
             if (elementType.dependentTypeKeys == null || elementType.dependentTypeKeys.isEmpty()) {
@@ -241,7 +241,7 @@ public class ReferenceType {
 
             for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
-                ModuleID memberModuleId = getModuleIDForTypeSymbol(memberTypeSymbol, moduleID);
+                ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
                         memberModuleId, typeDefSymbols);
                 if (memberType.dependentTypeKeys == null || memberType.dependentTypeKeys.isEmpty()) {
@@ -335,7 +335,7 @@ public class ReferenceType {
                 : null;
     }
 
-    private static ModuleID getModuleIDForTypeSymbol(TypeSymbol typeSymbol, ModuleID fallbackModuleId) {
+    private static ModuleID getModuleID(TypeSymbol typeSymbol, ModuleID fallbackModuleId) {
         switch (typeSymbol.typeKind()) {
             case ARRAY -> {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol) typeSymbol;
@@ -344,7 +344,7 @@ public class ReferenceType {
                 if (memberModuleId != null) {
                     return memberModuleId;
                 }
-                return getModuleIDForTypeSymbol(memberType, fallbackModuleId);
+                return getModuleID(memberType, fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
@@ -354,7 +354,7 @@ public class ReferenceType {
                             if (moduleId != null) {
                                 return moduleId;
                             }
-                            return getModuleIDForTypeSymbol(member, fallbackModuleId);
+                            return getModuleID(member, fallbackModuleId);
                         })
                         .filter(Objects::nonNull)
                         .findFirst()
