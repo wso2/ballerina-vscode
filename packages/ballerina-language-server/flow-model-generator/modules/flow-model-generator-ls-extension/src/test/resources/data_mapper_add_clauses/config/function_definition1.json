@@ -1,10 +1,10 @@
 {
-  "source": "function_defn1.bal",
+  "source": "function_definition1.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "DATA_MAPPER_DEFINITION",
     "lineRange": {
-      "fileName": "function_defn1.bal",
+      "fileName": "function_definition1.bal",
       "startLine": {
         "line": 17,
         "offset": 0
@@ -25,9 +25,9 @@
       "expression": "userInfo.username == \"Alex\""
     }
   },
-  "targetField": "credentials",
+  "targetField": "transform2.0",
   "output": {
-    "function_defn1.bal": [
+    "function_definition1.bal": [
       {
         "range": {
           "start": {
