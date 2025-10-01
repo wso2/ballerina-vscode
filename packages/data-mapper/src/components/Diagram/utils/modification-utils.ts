@@ -21,7 +21,7 @@ import { InputOutputPortModel, ValueType } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { getTargetField, getValueType } from "./common-utils";
+import { expandArrayFn, getTargetField, getValueType } from "./common-utils";
 import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getTypeName, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
@@ -161,6 +161,8 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	};
 
 	await context?.convertToQuery(mapping, clauseType, viewId, name);
+
+	expandArrayFn(context, input, getTargetField(viewId, output));
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {
