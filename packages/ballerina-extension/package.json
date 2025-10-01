@@ -24,6 +24,7 @@
         "Snippets"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onLanguage:ballerina",
         "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
