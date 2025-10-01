@@ -23,6 +23,7 @@
     "expression": "\"Alex\"",
     "diagnostics": []
   },
+  "targetField": "student",
   "output": {
     "variable2.bal": [
       {

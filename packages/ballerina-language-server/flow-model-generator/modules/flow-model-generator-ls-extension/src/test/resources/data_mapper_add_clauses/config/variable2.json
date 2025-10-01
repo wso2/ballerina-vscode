@@ -25,7 +25,7 @@
       "expression": "userInfo.username == \"Alex\""
     }
   },
-  "targetField": "credentials",
+  "targetField": "credentials.0",
   "output": {
     "variable2.bal": [
       {

@@ -31,7 +31,7 @@
         "typeName": "Input",
         "kind": "record",
         "category": "parameter",
-        "ref": "-1703435696"
+        "ref": "-393207458"
       }
     ],
     "output": {
@@ -40,7 +40,7 @@
       "displayName": "transform1",
       "typeName": "Output",
       "kind": "record",
-      "ref": "-1514999486"
+      "ref": "873824749"
     },
     "mappings": [
       {
@@ -56,20 +56,7 @@
       }
     ],
     "refs": {
-      "-1514999486": {
-        "fields": [
-          {
-            "name": "fullName",
-            "displayName": "fullName",
-            "typeName": "string",
-            "kind": "string",
-            "optional": true
-          }
-        ],
-        "typeName": "Output",
-        "kind": "record"
-      },
-      "-1703435696": {
+      "-393207458": {
         "fields": [
           {
             "fields": [],
@@ -78,13 +65,13 @@
             "typeName": "User",
             "kind": "record",
             "optional": true,
-            "ref": "-1064739742"
+            "ref": "1373151159"
           }
         ],
         "typeName": "Input",
         "kind": "record"
       },
-      "-1064739742": {
+      "1373151159": {
         "fields": [
           {
             "name": "firstName",
@@ -95,6 +82,19 @@
           }
         ],
         "typeName": "User",
+        "kind": "record"
+      },
+      "873824749": {
+        "fields": [
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "typeName": "Output",
         "kind": "record"
       }
     }

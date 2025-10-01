@@ -31,7 +31,7 @@
         "typeName": "MyType",
         "kind": "record",
         "category": "variable",
-        "ref": "1826392918"
+        "ref": "819315698"
       },
       {
         "name": "kItem",
@@ -82,7 +82,7 @@
       }
     },
     "refs": {
-      "1826392918": {
+      "819315698": {
         "fields": [
           {
             "member": {

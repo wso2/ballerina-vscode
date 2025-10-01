@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "local-variable",
-        "ref": "1177817223"
+        "ref": "1373151159"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "1177817223"
+        "ref": "1373151159"
       }
     ],
     "output": {
@@ -48,7 +48,7 @@
       "displayName": "var3",
       "typeName": "Person5",
       "kind": "record",
-      "ref": "1800505404"
+      "ref": "1746437140"
     },
     "mappings": [
       {
@@ -110,7 +110,48 @@
       }
     ],
     "refs": {
-      "-1867509383": {
+      "1373151159": {
+        "fields": [
+          {
+            "member": {
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "phoneNumber",
+            "displayName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "1746437140": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "contacts",
+              "displayName": "<contactsItem>",
+              "typeName": "Temp",
+              "kind": "record",
+              "ref": "1373108160"
+            },
+            "name": "contacts",
+            "displayName": "contacts",
+            "typeName": "Temp[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-1867509383"
+          }
+        ],
+        "typeName": "Person5",
+        "kind": "record"
+      },
+      "1373108160": {
         "fields": [
           {
             "name": "primaryPhone",
@@ -134,47 +175,6 @@
           }
         ],
         "typeName": "Temp",
-        "kind": "record"
-      },
-      "1800505404": {
-        "fields": [
-          {
-            "member": {
-              "fields": [],
-              "name": "contacts",
-              "displayName": "<contactsItem>",
-              "typeName": "Temp",
-              "kind": "record",
-              "ref": "-1867509383"
-            },
-            "name": "contacts",
-            "displayName": "contacts",
-            "typeName": "Temp[]",
-            "kind": "array",
-            "optional": false,
-            "ref": "-1867509383"
-          }
-        ],
-        "typeName": "Person5",
-        "kind": "record"
-      },
-      "1177817223": {
-        "fields": [
-          {
-            "member": {
-              "name": "phoneNumber",
-              "displayName": "<phoneNumberItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "name": "phoneNumber",
-            "displayName": "phoneNumber",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          }
-        ],
-        "typeName": "User",
         "kind": "record"
       }
     }

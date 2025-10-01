@@ -1,0 +1,327 @@
+{
+  "filePath": "suffixed.test_pack/types.bal",
+  "position": {
+    "line": 4,
+    "offset": 5
+  },
+  "description": "Get a record type with a field that references another type in the same package with a suffix",
+  "type": {
+    "name": "MyType2",
+    "editable": true,
+    "metadata": {
+      "label": "MyType2",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD",
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 5
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 12
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "MyType2",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [
+          "MyType"
+        ],
+        "type": "MyType",
+        "name": "name1",
+        "optional": false,
+        "readonly": false,
+        "docs": ""
+      },
+      {
+        "kind": "FIELD",
+        "refs": [
+          "\"Red\""
+        ],
+        "type": "\"Red\"",
+        "name": "selectedColor",
+        "optional": false,
+        "readonly": false,
+        "docs": ""
+      },
+      {
+        "kind": "FIELD",
+        "refs": [
+          "Color"
+        ],
+        "type": "Color",
+        "name": "colorOptions",
+        "optional": false,
+        "readonly": false,
+        "docs": ""
+      }
+    ],
+    "includes": [],
+    "allowAdditionalFields": false
+  },
+  "refs": [
+    {
+      "name": "MyType",
+      "editable": true,
+      "metadata": {
+        "label": "MyType",
+        "description": ""
+      },
+      "codedata": {
+        "node": "RECORD",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 0,
+            "offset": 11
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "MyType",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isPublic": {
+          "metadata": {
+            "label": "public",
+            "description": "Is this public"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "FIELD",
+          "refs": [],
+          "type": "string",
+          "name": "name1",
+          "optional": false,
+          "readonly": false,
+          "docs": ""
+        }
+      ],
+      "includes": [],
+      "allowAdditionalFields": false
+    },
+    {
+      "name": "Color",
+      "editable": true,
+      "metadata": {
+        "label": "Color",
+        "description": ""
+      },
+      "codedata": {
+        "node": "ENUM",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 10,
+            "offset": 10
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "Color",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "valueType": "FLAG",
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "valueType": "STRING",
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "NAME",
+          "refs": [],
+          "type": "\"Red\"",
+          "name": "Red",
+          "optional": false,
+          "readonly": false
+        },
+        {
+          "kind": "NAME",
+          "refs": [],
+          "type": "\"Green\"",
+          "name": "Green",
+          "optional": false,
+          "readonly": false
+        },
+        {
+          "kind": "NAME",
+          "refs": [],
+          "type": "\"Blue\"",
+          "name": "Blue",
+          "optional": false,
+          "readonly": false
+        }
+      ],
+      "allowAdditionalFields": false
+    }
+  ]
+}

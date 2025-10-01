@@ -30,7 +30,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-235867440"
+        "ref": "545732303"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "displayName": "var1909",
       "typeName": "Person",
       "kind": "record",
-      "ref": "-1781951605"
+      "ref": "887620673"
     },
     "mappings": [
       {
@@ -66,7 +66,7 @@
       }
     ],
     "refs": {
-      "-235867440": {
+      "545732303": {
         "fields": [
           {
             "name": "firstName",
@@ -93,22 +93,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "-263690226": {
-        "fields": [
-          {
-            "fields": [],
-            "name": "bar",
-            "displayName": "bar",
-            "typeName": "Student",
-            "kind": "record",
-            "optional": false,
-            "ref": "-235867440"
-          }
-        ],
-        "typeName": "",
-        "kind": "record"
-      },
-      "-1781951605": {
+      "887620673": {
         "fields": [
           {
             "name": "name",
@@ -142,6 +127,21 @@
           }
         ],
         "typeName": "Person",
+        "kind": "record"
+      },
+      "-263690226": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "bar",
+            "displayName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "optional": false,
+            "ref": "545732303"
+          }
+        ],
+        "typeName": "",
         "kind": "record"
       }
     }
