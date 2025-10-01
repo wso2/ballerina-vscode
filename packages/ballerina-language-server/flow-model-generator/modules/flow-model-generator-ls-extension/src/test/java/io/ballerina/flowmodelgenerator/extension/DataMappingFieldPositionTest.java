@@ -47,6 +47,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
                 {Path.of("variable2_1.json")},
                 {Path.of("variable3.json")},
                 {Path.of("function_definition1.json")},
+                {Path.of("variable4.json")},
         };
     }
 

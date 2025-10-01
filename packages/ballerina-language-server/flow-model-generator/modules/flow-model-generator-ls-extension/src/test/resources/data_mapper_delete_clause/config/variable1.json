@@ -18,7 +18,7 @@
     "isNew": true
   },
   "index": 0,
-  "targetField": "credentials",
+  "targetField": "credentials.0",
   "output": {
     "variable1.bal": [
       {

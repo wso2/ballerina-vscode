@@ -1,0 +1,48 @@
+{
+  "source": "variable3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 101
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": -1,
+  "clause": {
+    "type": "let",
+    "properties": {
+      "name": "i",
+      "type": "int",
+      "expression": "2"
+    }
+  },
+  "targetField": "credentials.0",
+  "output": {
+    "variable3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 65
+          },
+          "end": {
+            "line": 19,
+            "character": 65
+          }
+        },
+        "newText": "\nlet int i = 2"
+      }
+    ]
+  }
+}

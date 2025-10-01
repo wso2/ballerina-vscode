@@ -30,7 +30,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "parameter",
-        "ref": "1177817223"
+        "ref": "1373151159"
       }
     ],
     "output": {
@@ -39,7 +39,7 @@
       "displayName": "var3",
       "typeName": "Person",
       "kind": "record",
-      "ref": "-530812682"
+      "ref": "887620673"
     },
     "mappings": [
       {
@@ -104,29 +104,7 @@
       }
     ],
     "refs": {
-      "-530812682": {
-        "fields": [
-          {
-            "member": {
-              "fields": [],
-              "name": "contacts",
-              "displayName": "<contactsItem>",
-              "typeName": "Contact",
-              "kind": "record",
-              "ref": "1530779283"
-            },
-            "name": "contacts",
-            "displayName": "contacts",
-            "typeName": "Contact[]",
-            "kind": "array",
-            "optional": false,
-            "ref": "1530779283"
-          }
-        ],
-        "typeName": "Person",
-        "kind": "record"
-      },
-      "1530779283": {
+      "-918562636": {
         "fields": [
           {
             "name": "primaryPhone",
@@ -146,7 +124,29 @@
         "typeName": "Contact",
         "kind": "record"
       },
-      "1177817223": {
+      "887620673": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "contacts",
+              "displayName": "<contactsItem>",
+              "typeName": "Contact",
+              "kind": "record",
+              "ref": "-918562636"
+            },
+            "name": "contacts",
+            "displayName": "contacts",
+            "typeName": "Contact[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1530779283"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "1373151159": {
         "fields": [
           {
             "member": {

@@ -38,7 +38,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "variable",
-        "ref": "1493913948"
+        "ref": "545732303"
       },
       {
         "fields": [],
@@ -47,7 +47,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "variable",
-        "ref": "-1418772512"
+        "ref": "1889977605"
       },
       {
         "name": "x",
@@ -104,27 +104,7 @@
       }
     },
     "refs": {
-      "-1418772512": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "1493913948": {
+      "545732303": {
         "fields": [
           {
             "member": {
@@ -148,6 +128,26 @@
           }
         ],
         "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
         "kind": "record"
       }
     }

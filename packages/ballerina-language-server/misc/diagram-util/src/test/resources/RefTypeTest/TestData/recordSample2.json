@@ -7,7 +7,7 @@
       {
         "fieldName": "sampleRecordName",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string"
         },
@@ -17,8 +17,9 @@
       {
         "fieldName": "recordType",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "695203170",
+          "key": "441557406",
           "name": "SampleType",
           "typeName": "record"
         },
@@ -26,19 +27,20 @@
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "695203170"
+    "dependentTypeKeys": [
+      "441557406"
     ],
     "hashCode": "-1709258083",
+    "key": "-941197899",
     "name": "SampleRecord",
     "typeName": "record",
     "dependentTypes": {
-      "695203170": {
+      "441557406": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
             "type": {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "string",
               "typeName": "string"
             },
@@ -48,7 +50,7 @@
           {
             "fieldName": "sampleTypeCode",
             "type": {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "int",
               "typeName": "int"
             },
@@ -56,8 +58,9 @@
             "defaultValue": ""
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "695203170",
+        "key": "441557406",
         "name": "SampleType",
         "typeName": "record"
       }

@@ -29,7 +29,7 @@
         "typeName": "Department",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-676835306"
+        "ref": "-954444226"
       }
     ],
     "output": {
@@ -38,7 +38,7 @@
       "displayName": "alice",
       "typeName": "Employee",
       "kind": "record",
-      "ref": "281439725"
+      "ref": "-944716646"
     },
     "mappings": [
       {
@@ -63,7 +63,7 @@
       }
     ],
     "refs": {
-      "-676835306": {
+      "-954444226": {
         "fields": [
           {
             "name": "name",
@@ -79,7 +79,7 @@
               "displayName": "<employeesItem>",
               "typeName": "Employee",
               "kind": "record",
-              "ref": "281439725"
+              "ref": "-944716646"
             },
             "name": "employees",
             "displayName": "employees",
@@ -92,7 +92,7 @@
         "typeName": "Department",
         "kind": "record"
       },
-      "281439725": {
+      "-944716646": {
         "fields": [
           {
             "name": "name",
@@ -108,7 +108,7 @@
             "typeName": "Department",
             "kind": "record",
             "optional": false,
-            "ref": "-676835306"
+            "ref": "-954444226"
           }
         ],
         "typeName": "Employee",

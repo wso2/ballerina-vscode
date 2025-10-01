@@ -26,10 +26,14 @@ import io.ballerina.designmodelgenerator.extension.response.ArtifactsParams;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
+import org.ballerinalang.langserver.commons.eventsync.EventKind;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
+import org.ballerinalang.langserver.eventsync.EventPublisher;
+import org.ballerinalang.langserver.eventsync.EventSyncPubSubHolder;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
@@ -274,10 +278,85 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         if (!publishedArtifacts.equals(expectedArtifacts)) {
             TestConfig updatedConfig =
                     new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-            // updateConfig(configJsonPath, updatedConfig);
+//             updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
         }
+    }
+
+    @Test
+    public void testMultipleDidChangeEventsOnDifferentFiles() throws Exception {
+        // Initialize project cache with artifacts
+        initializeProject();
+        WorkspaceManager workspaceManager = languageServer.getWorkspaceManager();
+
+        // Setup two different source files in the same project
+        String sourceDir = getSourcePath("new");
+        Path firstFilePath = Path.of(sourceDir, "main.bal");
+        String firstFileUri = firstFilePath.toAbsolutePath().normalize().toUri().toString();
+        Path secondFilePath = Path.of(sourceDir, "functions.bal");
+        String secondFileUri = secondFilePath.toAbsolutePath().normalize().toUri().toString();
+
+        // Create document service contexts for both files
+        DocumentServiceContext firstDocumentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                firstFileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+        DocumentServiceContext secondDocumentServiceContext = ContextBuilder.buildDocumentServiceContext(
+                secondFileUri,
+                workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                languageServer.getServerContext()
+        );
+
+        // Prepare change events for both files
+        VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier();
+        List<TextDocumentContentChangeEvent> firstChangeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(firstFilePath.toString())));
+        List<TextDocumentContentChangeEvent> secondChangeEvents =
+                List.of(new TextDocumentContentChangeEvent(getText(secondFilePath.toString())));
+
+        // Send didChange notifications for both files
+        try {
+            workspaceManager.didChange(firstFilePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, firstChangeEvents));
+            workspaceManager.didChange(secondFilePath,
+                    new DidChangeTextDocumentParams(versionedTextDocumentIdentifier, secondChangeEvents));
+        } catch (WorkspaceDocumentException e) {
+            Assert.fail("Error while sending didChange notifications", e);
+        }
+
+        // Create mock client
+        ExtendedLanguageClient mockClient = Mockito.mock(ExtendedLanguageClient.class);
+        LanguageServerContext languageServerContext = languageServer.getServerContext();
+
+        // Invoke the subscriber for both files using EventPublisher
+        EventPublisher projectUpdatePublisher = EventSyncPubSubHolder.getInstance(languageServer.getServerContext())
+                .getPublisher(EventKind.PROJECT_UPDATE);
+        projectUpdatePublisher.publish(mockClient, languageServerContext, firstDocumentServiceContext);
+        projectUpdatePublisher.publish(mockClient, languageServerContext, secondDocumentServiceContext);
+
+        // Wait for debouncer to complete processing for both files
+        waitForDebouncerCompletion(firstFileUri);
+        waitForDebouncerCompletion(secondFileUri);
+
+        // Verify the client was called for both files
+        ArgumentCaptor<ArtifactsParams> artifactsCaptor = ArgumentCaptor.forClass(ArtifactsParams.class);
+        Mockito.verify(mockClient, Mockito.times(2)).publishArtifacts(artifactsCaptor.capture());
+        List<ArtifactsParams> capturedValues = artifactsCaptor.getAllValues();
+        Assert.assertEquals(capturedValues.size(), 2, "Expected artifacts to be published for both files");
+
+        // Verify artifacts count - first should have 1 artifact, second should have 3 artifacts
+        ArtifactsParams firstArtifacts = capturedValues.get(0);
+        ArtifactsParams secondArtifacts = capturedValues.get(1);
+        int firstArtifactCount = firstArtifacts.artifacts().size();
+        int secondArtifactCount = secondArtifacts.artifacts().size();
+        Assert.assertTrue((firstArtifactCount == 1 && secondArtifactCount == 3) ||
+                         (firstArtifactCount == 3 && secondArtifactCount == 1),
+                         String.format("Expected artifact counts to be 1 and 3, but got %d and %d",
+                                     firstArtifactCount, secondArtifactCount));
     }
 
     @Test
@@ -342,7 +421,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         if (!publishedArtifacts.equals(expectedArtifacts)) {
             TestConfig updatedConfig =
                     new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-            // updateConfig(configJsonPath, updatedConfig);
+//             updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
         }

@@ -7,7 +7,7 @@
       {
         "fieldName": "sampleTypeName",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string"
         },
@@ -17,7 +17,7 @@
       {
         "fieldName": "sampleTypeCode",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "int",
           "typeName": "int"
         },
@@ -25,9 +25,11 @@
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [],
+    "dependentTypeKeys": [],
     "hashCode": "695203170",
+    "key": "441557406",
     "name": "SampleType",
-    "typeName": "record"
+    "typeName": "record",
+    "dependentTypes": {}
   }
 }

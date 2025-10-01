@@ -26,6 +26,10 @@ import org.ballerinalang.langserver.commons.eventsync.EventKind;
 import org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber;
 import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Publishes diagnostics.
  *
@@ -35,6 +39,8 @@ import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 public class PublishDiagnosticSubscriber implements EventSubscriber {
 
     public static final String NAME = "Publish diagnostic subscriber";
+    private CompletableFuture<Boolean> latestScheduled = null;
+    private static final long DIAGNOSTIC_DELAY = 1;
 
     @Override
     public EventKind eventKind() {
@@ -45,9 +51,21 @@ public class PublishDiagnosticSubscriber implements EventSubscriber {
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext languageServerContext) {
         LSClientCapabilities lsClientCapabilities = context.languageServercontext().get(LSClientCapabilities.class);
-        if (!lsClientCapabilities.getInitializationOptions().isEnableLightWeightMode()) {
-            DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(languageServerContext);
-            diagnosticsHelper.compileAndSendDiagnostics(client, context);
+        if (lsClientCapabilities == null ||
+                !lsClientCapabilities.getInitializationOptions().isEnableLightWeightMode()) {
+            // TODO: This is a legacy debouncer that does not consider multiple projects. Reuse the existing
+            //  debouncer for diagnostics as well.
+            if (latestScheduled != null && !latestScheduled.isDone()) {
+                latestScheduled.completeExceptionally(new Throwable("Cancelled diagnostic publishing"));
+            }
+
+            Executor delayedExecutor = CompletableFuture.delayedExecutor(DIAGNOSTIC_DELAY, TimeUnit.SECONDS);
+            CompletableFuture<Boolean> scheduledFuture = CompletableFuture.supplyAsync(() -> true, delayedExecutor);
+            latestScheduled = scheduledFuture;
+            scheduledFuture.thenAcceptAsync(aBoolean -> {
+                DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(languageServerContext);
+                diagnosticsHelper.compileAndSendDiagnostics(client, context);
+            });
         }
     }
 
