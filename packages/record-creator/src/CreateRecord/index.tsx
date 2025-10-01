@@ -23,7 +23,6 @@ import { RecordConfigTypeSelector } from "../RecordConfigTypeSelector";
 import { RecordFromJson } from "../RecordFromJson";
 import { RecordFromXml } from "../RecordFromXml";
 import { Context } from "../Context";
-import { UndoRedoManager } from "../components/UndoRedoManager";
 import { isSupportedSLVersion } from "../components/FormComponents/Utils";
 import { FormContainer } from "../style";
 
@@ -36,7 +35,6 @@ enum ConfigState {
 
 export interface CreateRecordProps {
     isDataMapper?: boolean;
-    undoRedoManager?: UndoRedoManager;
     onCancel: (createdNewRecord?: string) => void;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     showHeader?: boolean;
@@ -44,7 +42,7 @@ export interface CreateRecordProps {
 }
 
 export function CreateRecord(props: CreateRecordProps) {
-    const { isDataMapper, undoRedoManager, showHeader, onSave, onCancel, onUpdate } = props;
+    const { isDataMapper, showHeader, onSave, onCancel, onUpdate } = props;
     const {
         props: { targetPosition, ballerinaVersion },
     } = useContext(Context);
@@ -87,7 +85,6 @@ export function CreateRecord(props: CreateRecordProps) {
                 )}
                 {editorState === ConfigState.IMPORT_FROM_JSON && (
                     <RecordFromJson
-                        undoRedoManager={undoRedoManager}
                         onCancel={onCancel}
                         onSave={handleImportJsonSave}
                         isHeaderHidden={showHeader ? false : isDataMapper}
@@ -96,7 +93,6 @@ export function CreateRecord(props: CreateRecordProps) {
                 )}
                 {editorState === ConfigState.IMPORT_FROM_XML && (
                     <RecordFromXml
-                        undoRedoManager={undoRedoManager}
                         onCancel={onCancel}
                         onSave={handleImportXmlSave}
                         isHeaderHidden={showHeader ? false : isDataMapper}

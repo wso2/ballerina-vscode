@@ -225,11 +225,6 @@ export function PanelManager(props: PanelManagerProps) {
         setSidePanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
-    const handleSubmitAndClose = () => {
-        onSubmitForm();
-        onClose();
-    };
-
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
             case SubPanelView.HELPER_PANEL:

@@ -63,16 +63,15 @@ const PopupContainer = styled.div`
 `;
 
 const StatusCard = styled.div`
-    margin: 16px 16px 0 16px;
-    padding: 16px;
-    border-radius: 8px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     gap: 16px;
 
     & > svg {
-        font-size: 24px;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
         color: ${ThemeColors.ON_SURFACE};
     }
 `;
@@ -82,10 +81,14 @@ const StatusContainer = styled.div`
     justify-content: center;
     align-items: center;
     height: 100%;
+    padding: 40px;
 `;
 
 const StatusText = styled(Typography)`
-    color: ${ThemeColors.ON_SURFACE};
+    margin-top: 16px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: 14px;
+    text-align: center;
 `;
 
 enum WizardStep {
@@ -196,7 +199,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     }
                     return res;
                 }),
-                timeoutPromise.then(() => nodeTemplatePromise)
+                timeoutPromise.then(() => nodeTemplatePromise),
             ]);
 
             if (didTimeout) {
@@ -269,7 +272,9 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         selectedNodeRef.current = undefined;
                         setSavingFormStatus(SavingFormStatus.SUCCESS);
                         const newConnection = response.artifacts.find((artifact) => artifact.isNew);
-                        onClose ? onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION }) : gotoHome();
+                        onClose
+                            ? onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION })
+                            : gotoHome();
                     } else {
                         console.error(">>> Error updating source code", response);
                         setSavingFormStatus(SavingFormStatus.ERROR);
@@ -280,20 +285,22 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     const handleOnGenerateSubmit = async (data: FormValues) => {
         // Note: Project path is empty as the value is overridden in the rpc client
-        const response = await rpcClient
-            .getBIDiagramRpcClient()
-            .generateOpenApiClient({ openApiContractPath: data["openApiSpecPath"], projectPath: "", module: data["module"] });
+        const response = await rpcClient.getBIDiagramRpcClient().generateOpenApiClient({
+            openApiContractPath: data["openApiSpecPath"],
+            projectPath: "",
+            module: data["module"],
+        });
         if (response.errorMessage) {
             setGenConnectorFields((prevFields) =>
                 prevFields.map((field) =>
                     field.key === "module"
                         ? {
-                            ...field,
-                            diagnostics: [
-                                ...field.diagnostics,
-                                { message: response.errorMessage, severity: "ERROR" },
-                            ],
-                        }
+                              ...field,
+                              diagnostics: [
+                                  ...field.diagnostics,
+                                  { message: response.errorMessage, severity: "ERROR" },
+                              ],
+                          }
                         : field
                 )
             );
@@ -358,21 +365,25 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     onClose={onClose}
                     openCustomConnectorView={openCustomConnectorView}
                 />
-            ) : (currentStep === WizardStep.CONNECTOR_LIST) && (
-                <>
-                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5`, zIndex: 1999 }} />
-                    <PopupContainer>
-                        <ConnectorView
-                            key={connectorsViewKey}
-                            fileName={fileName}
-                            targetLinePosition={target}
-                            onSelectConnector={handleOnSelectConnector}
-                            onAddGeneratedConnector={handleOnAddGeneratedConnector}
-                            onClose={onClose}
-                            isPopupView={true}
+            ) : (
+                currentStep === WizardStep.CONNECTOR_LIST && (
+                    <>
+                        <Overlay
+                            sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5`, zIndex: 1999 }}
                         />
-                    </PopupContainer>
-                </>
+                        <PopupContainer>
+                            <ConnectorView
+                                key={connectorsViewKey}
+                                fileName={fileName}
+                                targetLinePosition={target}
+                                onSelectConnector={handleOnSelectConnector}
+                                onAddGeneratedConnector={handleOnAddGeneratedConnector}
+                                onClose={onClose}
+                                isPopupView={true}
+                            />
+                        </PopupContainer>
+                    </>
+                )
             )}
             {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
                 <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
@@ -403,13 +414,29 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                 )}
                                 {pullingStatus === PullingStatus.SUCCESS && (
                                     <StatusCard>
-                                        <Icon name="bi-success" sx={{ color: ThemeColors.PRIMARY, fontSize: "18px" }} />
+                                        <Icon
+                                            name="bi-success"
+                                            sx={{
+                                                color: ThemeColors.PRIMARY,
+                                                fontSize: "28px",
+                                                width: "28px",
+                                                height: "28px",
+                                            }}
+                                        />
                                         <StatusText variant="body2">Connector package pulled successfully.</StatusText>
                                     </StatusCard>
                                 )}
                                 {pullingStatus === PullingStatus.ERROR && (
                                     <StatusCard>
-                                        <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "18px" }} />
+                                        <Icon
+                                            name="bi-error"
+                                            sx={{
+                                                color: ThemeColors.ERROR,
+                                                fontSize: "28px",
+                                                width: "28px",
+                                                height: "28px",
+                                            }}
+                                        />
                                         <StatusText variant="body2">
                                             Failed to pull the connector package. Please try again.
                                         </StatusText>
@@ -420,8 +447,8 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         {!pullingStatus && selectedNodeRef.current && (
                             <>
                                 <BodyText style={{ padding: "20px 16px 0 16px" }}>
-                                    Provide the necessary configuration details for the selected connector to complete the
-                                    setup.
+                                    Provide the necessary configuration details for the selected connector to complete
+                                    the setup.
                                 </BodyText>
                                 <ConnectionConfigView
                                     fileName={fileName}
@@ -472,7 +499,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     </>
                 </PanelContainer>
             )}
-        </Container >
+        </Container>
     );
 }
 
