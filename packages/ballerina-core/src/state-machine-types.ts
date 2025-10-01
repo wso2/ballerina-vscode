@@ -223,10 +223,12 @@ export interface ChatError {
     type: "error";
     content: string;
 }
+
 export interface ToolCall {
     type: "tool_call";
     toolName: string;
 }
+
 export interface ToolResult {
     type: "tool_result";
     toolName: string;

@@ -161,9 +161,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "error", content: getErrorMessage(error) });
                 break;
             }
-            case "step-finish": {
-                eventHandler({ type: "content_block", content: "\n" });
-                assistantResponse += "\n";
+            case "step-start": {
+                if (assistantResponse !== "") {
+                    eventHandler({ type: "content_block", content: " \n" });
+                    assistantResponse += " \n";
+                }
                 break;
             }
             case "finish": {
