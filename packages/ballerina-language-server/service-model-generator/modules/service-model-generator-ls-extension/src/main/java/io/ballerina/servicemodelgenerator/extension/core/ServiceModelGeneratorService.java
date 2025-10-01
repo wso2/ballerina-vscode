@@ -896,7 +896,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             try {
                 Path filePath = Path.of(request.filePath());
                 Project project = this.workspaceManager.loadProject(filePath);
-                return new TypeResponse(TypeCompletionGenerator.getTypes(project));
+                return new TypeResponse(TypeCompletionGenerator.getTypes(project, request.context()));
             } catch (Throwable e) {
                 return new TypeResponse(Collections.emptyList());
             }
