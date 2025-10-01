@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
@@ -164,21 +164,21 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabel style={{ marginRight: "auto" }}>
+		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
 			{valueLabel && (
-				<span className={classes.valueLabelHeader}>
+				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-				</span>
+				</TruncatedLabel>
 			)}
-			<span className={
+			<TruncatedLabel className={
 				classnames(
 					isUnknownType ? classes.unknownTypeLabel : classes.typeLabel,
 					isDisabled ? classes.labelDisabled : ""
 				)
 			}>
 				{typeName || ''}
-			</span>
-		</TruncatedLabel>
+			</TruncatedLabel>
+		</TruncatedLabelGroup>
 	);
 
 	const valConfigMenuItems: ValueConfigMenuItem[] = [
