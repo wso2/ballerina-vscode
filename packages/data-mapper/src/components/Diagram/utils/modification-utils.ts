@@ -160,7 +160,7 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 		expression: input
 	};
 
-	await context?.convertToQuery(mapping, clauseType, viewId, name);
+	await context.convertToQuery(mapping, clauseType, viewId, name);
 
 	expandArrayFn(context, input, getTargetField(viewId, output));
 }
