@@ -221,7 +221,8 @@ public class DataMapManager {
             TypeSymbol targetTypeSymbol = targetNode.typeSymbol();
             TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
             if (rawtargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
-                targetTypeSymbol = filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());
+                targetTypeSymbol =
+                        filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());
             }
             refType = ReferenceType.fromSemanticSymbol(targetTypeSymbol, typeDefSymbols);
         } catch (UnsupportedOperationException e) {
