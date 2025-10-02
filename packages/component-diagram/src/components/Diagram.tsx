@@ -250,7 +250,7 @@ export function Diagram(props: DiagramProps) {
             const automationNode = new EntryNodeModel(automation, "automation");
             nodes.push(automationNode);
             // link connections
-            automation.connections.forEach((connectionUuid) => {
+            automation.connections?.forEach((connectionUuid) => {
                 const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
                 if (connectionNode) {
                     const link = createNodesLink(automationNode, connectionNode);

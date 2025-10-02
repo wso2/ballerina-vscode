@@ -38,7 +38,7 @@ const valueLabel = {
 };
 
 const addElementButton = {
-    color: "var(--vscode-inputOption-activeForeground)",
+    color: "var(--vscode-textLink-foreground)",
     display: "flex",
     justifyContent: "space-between",
     opacity: 0.7
@@ -92,10 +92,7 @@ export const useIONodesStyles = () => ({
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        color: "inherit",
-        "&:hover": {
-            overflow: "visible"
-        },
+        color: "inherit"
     }),
     nodeType: css({
         float: 'right',
