@@ -100,6 +100,7 @@
         "name": "profile21",
         "description": "",
         "returnType": "AbstractProfile",
+        "isGraphqlId": false,
         "refs": [
           "AbstractProfile"
         ],
@@ -152,6 +153,7 @@
         "name": "profile",
         "description": "",
         "returnType": "UserProfile",
+        "isGraphqlId": false,
         "refs": [
           "UserProfile"
         ],
@@ -215,6 +217,7 @@
         "name": "updateName",
         "description": "",
         "returnType": "UserProfile",
+        "isGraphqlId": false,
         "refs": [
           "UserProfile"
         ],
@@ -550,6 +553,7 @@
           "name": "name",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -600,6 +604,7 @@
           "name": "age",
           "description": "",
           "returnType": "int",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -650,6 +655,7 @@
           "name": "isAdult",
           "description": "",
           "returnType": "boolean",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {

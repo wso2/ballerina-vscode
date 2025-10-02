@@ -179,6 +179,7 @@
         "name": "name",
         "description": "",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -229,6 +230,7 @@
         "name": "subject",
         "description": "",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -279,6 +281,7 @@
         "name": "profile",
         "description": "",
         "returnType": "Profile",
+        "isGraphqlId": false,
         "refs": [
           "Profile"
         ],
@@ -425,6 +428,7 @@
           "name": "name",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {

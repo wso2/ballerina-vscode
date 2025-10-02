@@ -166,6 +166,7 @@
           ],
           "allowAdditionalFields": false
         },
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {

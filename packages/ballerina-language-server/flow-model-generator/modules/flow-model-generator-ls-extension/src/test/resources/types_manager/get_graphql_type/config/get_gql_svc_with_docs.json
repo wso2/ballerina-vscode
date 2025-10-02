@@ -111,6 +111,7 @@
         "name": "hello",
         "description": "Returns a greeting message that includes provided name.",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
