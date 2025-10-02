@@ -276,12 +276,12 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const handleResourceSubmit = async (value: FunctionModel) => {
         setIsSaving(true);
+        handleUpdateDiagram();
         const lineRange: LineRange = {
             startLine: { line: servicePosition.startLine, offset: servicePosition.startColumn },
             endLine: { line: servicePosition.endLine, offset: servicePosition.endColumn },
         };
         let res = undefined;
-
         res = await rpcClient
             .getServiceDesignerRpcClient()
             .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value });
