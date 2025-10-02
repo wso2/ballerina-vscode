@@ -33,19 +33,19 @@ import {
     Command,
     DocumentationGeneratorIntermediaryState
 } from "@wso2/ballerina-core";
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
 import { RPCLayer } from "../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { GenerationType } from "./libs/libs";
 import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
-export function populateHistory(chatHistory: ChatEntry[]): CoreMessage[] {
+export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
     if (!chatHistory || chatHistory.length === 0) {
         return [];
     }
 
-    const messages: CoreMessage[] = [];
+    const messages: ModelMessage[] = [];
     for (const history of chatHistory) {
         // Map actor to role, defaulting to "user" if not "assistant"
         const role: MessageRole = history.actor === "assistant" ? "assistant" : "user";

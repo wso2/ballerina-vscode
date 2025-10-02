@@ -255,7 +255,7 @@ export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation>
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
 
-// ------------------> AI Related state types <----------------------- 
+// ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
@@ -284,11 +284,11 @@ export type AIMachineEventMap = {
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
     [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
-    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: { 
-        accessKeyId: string; 
-        secretAccessKey: string; 
-        region: string; 
-        sessionToken?: string; 
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+        sessionToken?: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;

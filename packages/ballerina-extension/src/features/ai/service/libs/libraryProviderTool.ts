@@ -23,7 +23,6 @@ import { selectRequiredFunctions } from "./funcs";
 const LibraryProviderToolSchema = jsonSchema<{
     libraryNames: string[];
     userPrompt: string;
-    libraries: Library[];
 }>({
     type: "object",
     properties: {
@@ -35,22 +34,6 @@ const LibraryProviderToolSchema = jsonSchema<{
         userPrompt: {
             type: "string",
             description: "User query to determine relevant functions and types",
-        },
-        libraries: {
-            type: "array",
-            items: {
-                type: "object",
-                properties: {
-                    name: { type: "string" },
-                    description: { type: "string" },
-                    typeDefs: { type: "array", items: { type: "object" } },
-                    clients: { type: "array", items: { type: "object" } },
-                    functions: { type: "array", items: { type: "object" } },
-                    services: { type: "array", items: { type: "object" } },
-                },
-                required: ["name", "description", "typeDefs", "clients"],
-            },
-            description: "Retrieved library details",
         },
     },
     required: ["libraryNames", "userPrompt"],
@@ -81,7 +64,7 @@ export function getLibraryProviderTool(libraryDescriptions: string, generationTy
 This tool analyzes a user query and returns **only the relevant** clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
 
 To use this tool:
-- Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query. 
+- Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query.
 - Select the minimal set of libraries that can fulfill the query based on their descriptions. Do not assume library contents unless provided by the tool.
 - Call this tool with the selected libraryNames and the user query.
 
@@ -118,7 +101,7 @@ Before calling this tool:
 
 Available libraries:
 ${libraryDescriptions}`,
-        parameters: LibraryProviderToolSchema,
+        inputSchema: LibraryProviderToolSchema,
         execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
             console.log(
                 `[LibraryProviderTool] Called with ${input.libraryNames.length} libraries: ${input.libraryNames.join(
