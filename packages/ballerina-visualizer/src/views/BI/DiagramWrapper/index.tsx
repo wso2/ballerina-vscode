@@ -285,6 +285,15 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         res = await rpcClient
             .getServiceDesignerRpcClient()
             .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value });
+        /**
+         * Update the artifact identifier to the current updated resource 
+         * Resource identifier pattern --> METHOD#PATH --> 'get#foo' OR METHOD#WITH_PARAMS ---> 'post#bar/[string car]]'
+         */
+        const accessor = value.accessor.value;
+        const path = value.name.value;
+        const resourceIdentifier = `${accessor}#${path}`;
+        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { identifier: resourceIdentifier } });
+
         setIsSaving(false);
         setFunctionModel(undefined);
     };
@@ -465,7 +474,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     />
                 )
             }
-            {/* This is for adding or editing a http resource */}
+            {/* This is for editing a http resource */}
             {functionModel && isResource && functionModel.kind === "RESOURCE" && (
                 <PanelContainer
                     title={"Resource Configuration"}
