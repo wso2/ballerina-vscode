@@ -80,6 +80,7 @@ import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
@@ -366,7 +367,7 @@ public class CodeAnalyzer extends NodeVisitor {
         ClassSymbol classSymbol = optClassSymbol.get();
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
-            populateAgentMetaData(expressionNode, remoteMethodCallActionNode, classSymbol);
+            populateAgentMetaData(expressionNode, classSymbol);
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -374,27 +375,31 @@ public class CodeAnalyzer extends NodeVisitor {
                 classSymbol.getName().orElseThrow());
     }
 
-    private void populateAgentMetaData(ExpressionNode expressionNode, NonTerminalNode callNode,
-                                       ClassSymbol classSymbol) {
+    private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
+        Map<String, String> agentData = new HashMap<>();
         if (isClassField(expressionNode)) {
-            ServiceDeclarationNode serviceDeclaration = getParentServiceDeclaration(callNode);
-            for (Node member : serviceDeclaration.members()) {
-                if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
-                    continue;
-                }
-                FunctionDefinitionNode funcDef = (FunctionDefinitionNode) member;
-                if (funcDef.functionName().text().equals("init")) {
-                    for (StatementNode statement : ((FunctionBodyBlockNode) funcDef.functionBody()).statements()) {
-                        if (statement.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
-                            continue;
-                        }
-                        AssignmentStatementNode assignmentStmtNode = (AssignmentStatementNode) statement;
-                        if (!assignmentStmtNode.varRef().toSourceCode().trim()
-                                .equals(expressionNode.toSourceCode())) {
-                            continue;
-                        }
-                        ImplicitNewExpressionNode newExpressionNode = getNewExpr(assignmentStmtNode.expression());
-                        genAgentData(newExpressionNode, classSymbol);
+            FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) expressionNode;
+            Optional<Symbol> fieldSymbol = semanticModel.symbol(fieldAccess.fieldName());
+            if (fieldSymbol.isEmpty() || fieldSymbol.get().kind() != SymbolKind.CLASS_FIELD) {
+                return;
+            }
+
+            // Get all references to this field
+            List<Location> references = semanticModel.references(fieldSymbol.get());
+
+            // Find the assignment in the init method
+            for (Location location : references) {
+                ModulePartNode modulePartNode = CommonUtils.getDocument(project, location).syntaxTree().rootNode();
+                NonTerminalNode node = modulePartNode.findNode(location.textRange());
+
+                // Check if this reference is part of an assignment statement
+                if (node.parent() instanceof AssignmentStatementNode assignmentStmt) {
+                    FunctionDefinitionNode parentFunc = getParentFunction(assignmentStmt);
+                    if (parentFunc != null && parentFunc.functionName().text().equals("init")) {
+                        ImplicitNewExpressionNode newExpr = getNewExpr(assignmentStmt.expression());
+                        agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                        genAgentData(newExpr, classSymbol, agentData);
+                        break;
                     }
                 }
             }
@@ -422,8 +427,20 @@ public class CodeAnalyzer extends NodeVisitor {
             NonTerminalNode varNode = varNodeOpt.get();
             ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
             if (initializerExpr != null) {
+                // Determine scope based on variable declaration type
+                NonTerminalNode scopeNode = varNode;
+                while (scopeNode != null) {
+                    if (scopeNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                        agentData.put(Property.SCOPE_KEY, Property.GLOBAL_SCOPE);
+                        break;
+                    } else if (scopeNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                        agentData.put(Property.SCOPE_KEY, Property.LOCAL_SCOPE);
+                        break;
+                    }
+                    scopeNode = scopeNode.parent();
+                }
                 ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
-                genAgentData(newExpressionNode, classSymbol);
+                genAgentData(newExpressionNode, classSymbol, agentData);
             }
         }
     }
@@ -448,7 +465,8 @@ public class CodeAnalyzer extends NodeVisitor {
         return null;
     }
 
-    private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
+    private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol,
+                              Map<String, String> agentData) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
             throw new IllegalStateException("ParenthesizedArgList not found for the new expression: " +
@@ -459,7 +477,6 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode systemPromptArg = null;
         ExpressionNode memory = null;
 
-        Map<String, String> agentData = new HashMap<>();
         for (FunctionArgumentNode arg : argList.get().arguments()) {
             if (arg.kind() == SyntaxKind.NAMED_ARG) {
                 NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
@@ -544,6 +561,7 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("agent", agentData);
         }
 
+        // TODO: If memory manager is null we should not define a default one here.
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
             nodeBuilder.metadata().addData("memory",
@@ -618,6 +636,15 @@ public class CodeAnalyzer extends NodeVisitor {
             throw new IllegalStateException("Service declaration not found");
         }
         return (ServiceDeclarationNode) currentNode;
+    }
+
+    private FunctionDefinitionNode getParentFunction(NonTerminalNode node) {
+        NonTerminalNode currentNode = node;
+        while (currentNode != null && currentNode.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION &&
+                currentNode.kind() != SyntaxKind.FUNCTION_DEFINITION) {
+            currentNode = currentNode.parent();
+        }
+        return currentNode instanceof FunctionDefinitionNode ? (FunctionDefinitionNode) currentNode : null;
     }
 
     private NonTerminalNode getParentNode(NonTerminalNode node) {
@@ -1707,7 +1734,7 @@ public class CodeAnalyzer extends NodeVisitor {
         ClassSymbol classSymbol = optClassSymbol.get();
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
-            populateAgentMetaData(expressionNode, methodCallExpressionNode, classSymbol);
+            populateAgentMetaData(expressionNode, classSymbol);
         } else if (isAiVectorKnowledgeBase(classSymbol)) {
             startNode(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, expressionNode.parent());
         } else {
