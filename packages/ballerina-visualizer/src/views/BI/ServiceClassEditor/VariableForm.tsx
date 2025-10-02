@@ -50,7 +50,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: model.name.metadata?.description,
                 value: model?.name.value || '',
                 valueType: model.name?.valueType,
-                valueTypeConstraint: model.name?.valueTypeConstraint || '',
+                valueTypeConstraint: model.name?.valueTypeConstraint,
                 lineRange: model?.name?.codedata?.lineRange
             },
             {
@@ -64,7 +64,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: model.type.metadata?.description,
                 value: model?.type.value || '',
                 valueType: model.type?.valueType,
-                valueTypeConstraint: model.type?.valueTypeConstraint || ''
+                valueTypeConstraint: model.type?.valueTypeConstraint
             },
             {
                 key: 'expression',
@@ -77,7 +77,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: (model.defaultValue as PropertyModel)?.metadata?.description,
                 value: (model.defaultValue as PropertyModel)?.value || '',
                 valueType: (model.defaultValue as PropertyModel)?.valueType,
-                valueTypeConstraint: (model.defaultValue as PropertyModel)?.valueTypeConstraint || ''
+                valueTypeConstraint: (model.defaultValue as PropertyModel)?.valueTypeConstraint
             }
         ];
         setFields(initialFields);
