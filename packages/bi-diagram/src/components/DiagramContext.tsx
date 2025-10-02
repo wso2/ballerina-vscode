@@ -65,6 +65,12 @@ export interface DiagramContextState {
     onConnectionSelect?: (connectionName: string) => void;
     goToSource: (node: FlowNode) => void;
     openView: (filePath: string, position: NodePosition) => void;
+    draftNode?: {
+        override: boolean;
+        showSpinner?: boolean;
+        description?: string;
+    };
+    selectedNodeId?: string;
     agentNode: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
@@ -111,6 +117,12 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     addBreakpoint: () => {},
     removeBreakpoint: () => {},
     openView: () => {},
+    draftNode: {
+        override: true,
+        showSpinner: false,
+        description: "",
+    },
+    selectedNodeId: undefined,
     agentNode: {
         onModelSelect: () => {},
         onAddTool: () => {},

@@ -175,7 +175,7 @@ export interface BIDiagramAPI {
     getServiceClassModel: (params: ModelFromCodeRequest) => Promise<ServiceClassModelResponse>;
     updateClassField: (params: ClassFieldModifierRequest) => Promise<SourceEditResponse>;
     addClassField: (params: AddFieldRequest) => Promise<SourceEditResponse>;
-    updateServiceClass: (params: ServiceClassSourceRequest) => Promise<SourceEditResponse>;
+    updateServiceClass: (params: ServiceClassSourceRequest) => Promise<UpdatedArtifactsResponse>;
     createGraphqlClassType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     getRecordConfig: (params: GetRecordConfigRequest) => Promise<GetRecordConfigResponse>;
     updateRecordConfig: (params: UpdateRecordConfigRequest) => Promise<GetRecordConfigResponse>;
