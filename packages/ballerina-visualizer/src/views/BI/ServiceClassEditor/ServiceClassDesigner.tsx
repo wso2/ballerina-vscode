@@ -622,7 +622,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                         <VariableForm
                             model={editingVariable}
                             filePath={serviceClassFilePath}
-                            lineRange={serviceClassModel.codedata.lineRange}
+                            lineRange={editingVariable.codedata.lineRange}
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}
