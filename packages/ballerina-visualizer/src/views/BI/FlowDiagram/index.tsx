@@ -459,7 +459,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .getBIDiagramRpcClient()
                     .getFlowModel()
                     .then((model) => {
-                        console.log(">>> flow model", model);
+                        console.log(">>> BIFlowDiagram getFlowModel", model);
                         if (model?.flowModel) {
                             updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
@@ -930,7 +930,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 },
             });
         }
-        handleOnCloseSidePanel();
         if (isCreatingNewDataLoader.current) {
             isCreatingNewDataLoader.current = false;
             await handleDataLoaderAdded();
@@ -942,7 +941,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         closeSidePanelAndFetchUpdatedFlowModel();
-        // debouncedGetFlowModel(); // DUPLICATE
     };
 
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
