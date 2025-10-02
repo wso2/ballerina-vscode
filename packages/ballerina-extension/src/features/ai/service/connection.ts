@@ -96,8 +96,9 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
             AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+        } else {
+            throw error;
         }
-        return;
     }
 }
 

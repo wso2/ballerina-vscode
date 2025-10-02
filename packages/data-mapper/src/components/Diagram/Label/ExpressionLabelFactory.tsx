@@ -41,6 +41,6 @@ export class ExpressionLabelFactory extends AbstractReactFactory<ExpressionLabel
 		if (event.model.link?.pendingMappingType) {
 			return <MappingOptionsWidget model={event.model} />;
 		}
-		return <ExpressionLabelWidget model={event.model} />;
+		return <ExpressionLabelWidget model={event.model} engine={this.engine} />;
 	}
 }
