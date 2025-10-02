@@ -985,18 +985,21 @@ public class DataMapManager {
                         memberPort.displayName = getItemName(name);
                     }
                     String arrayTypeName;
+                    boolean isUnionMember = false;
                     if (memberPort == null) {
                         arrayTypeName = "array[]";
                     } else {
                         String memberTypeName = memberPort.typeName;
                         if (memberPort.kind.endsWith("union")) {
                             memberTypeName = "(" + memberTypeName + ")";
+                            isUnionMember = true;
                         }
                         arrayTypeName = memberTypeName + "[]";
                     }
                     TypeInfo typeInfo = null;
-                    if (isExternalType(type) && !arrayTypeName.contains(":")) {
-                        arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
+                    if (isExternalType(type)) {
+                        arrayTypeName = !isUnionMember ? type.moduleInfo.modulePrefix + ":" + arrayTypeName :
+                                arrayTypeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
                     MappingArrayPort arrayPort = new MappingArrayPort(id, name,
