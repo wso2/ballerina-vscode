@@ -87,6 +87,6 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[]):
         totalDuration,
         averageDuration: Math.round(averageDuration),
         timestamp: Date.now(),
-        evaluationSummary
+        evaluationSummary: (evaluationSummary / totalUsecases)
     };
 }

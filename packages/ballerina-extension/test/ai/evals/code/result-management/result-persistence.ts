@@ -76,7 +76,8 @@ export async function persistSummary(summary: Summary, resultsDir: string): Prom
         totalUsecases: summary.totalUsecases,
         totalCompiled: summary.totalCompiled,
         totalFailed: summary.totalFailed,
-        accuracy: summary.accuracy
+        accuracy: summary.accuracy,
+        evaluationSummary: summary.evaluationSummary
     };
 
     await fs.promises.writeFile(
