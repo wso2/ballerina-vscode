@@ -32,6 +32,7 @@ import java.util.Map;
  * @param defaultValue  Default value of the member.
  * @param optional      Whether the member is optional.
  * @param readonly      Whether the member is readonly.
+ * @param isGraphqlId   Whether the member is a graphql ID
  * @param docs          Documentation of the member
  * @param annotations   Annotations of the member.
  * @param imports       Imports of the member.
