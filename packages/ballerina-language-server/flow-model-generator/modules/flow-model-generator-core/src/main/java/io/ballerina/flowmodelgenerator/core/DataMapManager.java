@@ -2196,7 +2196,7 @@ public class DataMapManager {
                 functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
             } else {
                 functionRange = new Range(new Position(0, 0), new Position(0, 0));
-                }
+            }
 
             ReturnType returnType = functionMetadata.returnType();
             String functionName = getFunctionName(parameters, returnType, semanticModel);
@@ -2478,7 +2478,8 @@ public class DataMapManager {
             this.ref = reference;
         }
 
-        MappingPort(String name, String displayName, String typeName, String kind, String reference, TypeInfo typeInfo) {
+        MappingPort(String name, String displayName, String typeName, String kind,
+                    String reference, TypeInfo typeInfo) {
             this.name = name;
             this.displayName = displayName;
             this.typeName = typeName;
