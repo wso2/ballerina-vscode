@@ -78,6 +78,7 @@ export interface DataMapperEditorProps {
     onClose: () => void;
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
+    undoRedoGroup: () => JSX.Element;
 }
 
 export interface DataMapperProps extends DataMapperEditorProps {

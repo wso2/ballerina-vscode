@@ -97,7 +97,7 @@ export * from "./rpc-types/agent-chat/rpc-type";
 export * from "./history";
 
 // ------ Undo Redo Manger class -------->
-export * from "./undo-redo-manager";
+export * from "./interfaces/undo-redo-manager";
 
 // ------ Util functions -------->
 export * from "./utils";

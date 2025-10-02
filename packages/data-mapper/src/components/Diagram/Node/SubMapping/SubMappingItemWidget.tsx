@@ -19,7 +19,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 
-import { Button, Codicon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import classnames from "classnames";
 
@@ -70,17 +70,16 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
     const expanded = !(portOut && portOut.attributes.collapsed);
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }} data-testid={`sub-mapping-item-widget-label-${id}`}>
-            <span className={classes.valueLabelHeader}>
+        <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }} data-testid={`sub-mapping-item-widget-label-${id}`}>
+            <TruncatedLabel className={classes.valueLabelHeader}>
                 <OutputSearchHighlight>{name}</OutputSearchHighlight>
-            </span>
+            </TruncatedLabel>
             {typeName && (
-                <span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+                <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
-                </span>
+                </TruncatedLabel>
             )}
-
-        </TruncatedLabel>
+        </TruncatedLabelGroup>
     );
 
     const onClickAddSubMappingAtTop = () => {
