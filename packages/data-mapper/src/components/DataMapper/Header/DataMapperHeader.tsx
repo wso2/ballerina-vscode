@@ -33,12 +33,14 @@ export interface DataMapperHeaderProps {
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
+    onBack: () => void;
     onEdit?: () => void;
     autoMapWithAI: () => Promise<void>;
+    undoRedoGroup: () => JSX.Element;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onEdit, autoMapWithAI } = props;
+    const { views, switchView, hasEditDisabled, onClose, onBack, onEdit, autoMapWithAI, undoRedoGroup } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -47,9 +49,10 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
     return (
         <HeaderContainer>
             <HeaderContent>
-                <IconButton onClick={onClose}>
+                <IconButton onClick={onBack}>
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
+                {undoRedoGroup && undoRedoGroup()}
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (

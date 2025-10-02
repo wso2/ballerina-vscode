@@ -26,6 +26,10 @@ import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
+// Constants for type definitions
+const TYPE_RECORD = 'Record';
+const TYPE_CONSTRUCTOR = 'Constructor';
+
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
     const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
@@ -227,7 +231,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
         console.error(`[AI Request Failed] Libraries: [${libraryNames}], Duration: ${duration}s, Error: ${error}`);
-        throw new Error(`Failed to parse bulk functions response: ${error}`);
+        throw error;
     }
 }
 
@@ -260,7 +264,7 @@ function filteredFunctions(functions: (RemoteFunction | ResourceFunction)[]): (M
             };
             output.push(res);
         } else { // RemoteFunction
-            if (item.type !== "Constructor") {
+            if (item.type !== TYPE_CONSTRUCTOR) {
                 const rem: MinifiedRemoteFunction = {
                     name: item.name,
                     parameters: item.parameters.map(param => param.name),
@@ -411,7 +415,7 @@ function selectFunctions(originalFunctions: RemoteFunction[] | undefined, funcRe
 
 function getConstructor(functions: (RemoteFunction | ResourceFunction)[]): RemoteFunction | null {
     for (const func of functions) {
-        if ('type' in func && func.type === "Constructor") {
+        if ('type' in func && func.type === TYPE_CONSTRUCTOR) {
             return func as RemoteFunction;
         }
     }
@@ -492,7 +496,7 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
         
         processedTypes.add(typeDef.name);
         
-        if (typeDef.type === 'record') {
+        if (typeDef.type === TYPE_RECORD) {
             const recordDef = typeDef as RecordTypeDefinition;
             for (const field of recordDef.fields) {
                 const foundTypes = addInternalRecord(field.type, ownRecords, allTypeDefs);
@@ -597,7 +601,7 @@ function getExternalTypeDefRefs(
     
     // Check type definition fields
     for (const typeDef of allTypeDefs) {
-        if (typeDef.type === 'Record') {
+        if (typeDef.type === TYPE_RECORD) {
             const recordDef = typeDef as RecordTypeDefinition;
             for (const field of recordDef.fields) {
                 addExternalRecord(field.type, externalRecords);

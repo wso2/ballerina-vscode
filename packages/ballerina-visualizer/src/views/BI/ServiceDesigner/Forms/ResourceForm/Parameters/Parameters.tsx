@@ -58,6 +58,7 @@ export function Parameters(props: ParametersProps) {
 
     const [editModel, setEditModel] = useState<ParameterModel>(undefined);
     const [isNew, setIsNew] = useState<boolean>(false);
+    const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
 
@@ -69,6 +70,13 @@ export function Parameters(props: ParametersProps) {
     const onEdit = (parameter: ParameterModel) => {
         setIsNew(false);
         setEditModel(parameter);
+        // Find and store the index of the parameter being edited
+        const index = parameters.findIndex(p => 
+            p.metadata?.label === parameter.metadata?.label && 
+            p.name?.value === parameter.name?.value && 
+            p.httpParamType === parameter.httpParamType
+        );
+        setEditingIndex(index);
     };
 
     const onAddParamClick = () => {
@@ -76,6 +84,7 @@ export function Parameters(props: ParametersProps) {
         queryModel.type.value = "";
         setIsNew(true);
         setEditModel(queryModel);
+        setEditingIndex(-1);
     };
 
     const onAddPayloadClick = () => {
@@ -83,12 +92,14 @@ export function Parameters(props: ParametersProps) {
         payloadModel.type.value = "";
         setIsNew(true);
         setEditModel(payloadModel);
+        setEditingIndex(-1);
     };
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(p => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value);
         onChange(updatedParameters);
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const onAdvanceDelete = (param: ParameterModel) => {
@@ -99,12 +110,14 @@ export function Parameters(props: ParametersProps) {
         })
         onChange([...parameters]);
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const onAdvanceSaveParam = (param: ParameterModel) => {
         param.enabled = true;
         onChange(parameters.map(p => p.metadata.label === param.metadata.label ? param : p));
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const onAdvancedChecked = (param: ParameterModel, checked: boolean) => {
@@ -112,10 +125,17 @@ export function Parameters(props: ParametersProps) {
         param.name.value = param.metadata.label.toLowerCase().replace(/ /g, "_");
         onChange(parameters.map(p => p.metadata.label === param.metadata.label ? param : p));
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const onChangeParam = (param: ParameterModel) => {
         setEditModel(param);
+        // Update the parameters array in real-time for existing parameters
+        if (!isNew && editingIndex >= 0) {
+            const updatedParameters = [...parameters];
+            updatedParameters[editingIndex] = param;
+            onChange(updatedParameters);
+        }
     };
 
     const onSaveParam = (param: ParameterModel) => {
@@ -124,13 +144,23 @@ export function Parameters(props: ParametersProps) {
             onChange([...parameters, param]);
             setIsNew(false);
         } else {
-            onChange(parameters.map(p => p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p));
+            // Use the editingIndex for more reliable updates
+            if (editingIndex >= 0) {
+                const updatedParameters = [...parameters];
+                updatedParameters[editingIndex] = param;
+                onChange(updatedParameters);
+            } else {
+                // Fallback to the original logic if index is not available
+                onChange(parameters.map(p => p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p));
+            }
         }
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const onParamEditCancel = () => {
         setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     return (
