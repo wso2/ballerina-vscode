@@ -431,4 +431,8 @@ public class ReferenceType {
         }
     }
 
+    public static void clearVisitedTypeMap() {
+        visitedTypeMap.clear();
+    }
+
 }
