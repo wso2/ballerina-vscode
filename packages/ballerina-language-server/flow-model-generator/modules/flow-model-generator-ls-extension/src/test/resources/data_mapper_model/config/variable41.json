@@ -43,7 +43,11 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "ref": "1527622454"
+        "ref": "1527622454",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "redis"
+        }
       }
     ],
     "output": {
@@ -58,7 +62,11 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "ref": "1527622454"
+      "ref": "1527622454",
+      "typeInfo": {
+        "orgName": "ballerinax",
+        "moduleName": "redis"
+      }
     },
     "mappings": [],
     "refs": {

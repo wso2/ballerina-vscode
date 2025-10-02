@@ -2483,6 +2483,16 @@ public class DataMapManager {
             this.ref = reference;
         }
 
+        MappingPort(String name, String displayName, String typeName, String kind, String reference, TypeInfo typeInfo) {
+            this.name = name;
+            this.displayName = displayName;
+            this.typeName = typeName;
+            this.kind = kind;
+            this.ref = reference;
+            this.typeInfo = typeInfo;
+        }
+
+
         String getCategory() {
             return this.category;
         }
@@ -2554,7 +2564,7 @@ public class DataMapManager {
 
         MappingRecordPort(MappingRecordPort mappingRecordPort) {
             super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
-                    mappingRecordPort.kind, mappingRecordPort.ref);
+                    mappingRecordPort.kind, mappingRecordPort.ref, mappingRecordPort.typeInfo);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort, boolean isReferenceType) {
