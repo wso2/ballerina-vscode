@@ -121,7 +121,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                 documentation: nameProperty.metadata?.description,
                 value: nameProperty.value || '',
                 valueType: nameProperty?.valueType,
-                valueTypeConstraint: nameProperty.valueTypeConstraint || '',
+                valueTypeConstraint: nameProperty?.valueTypeConstraint,
                 lineRange: nameProperty.codedata?.lineRange
             });
         }
@@ -140,7 +140,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                 documentation: docProperty.metadata?.description || '',
                 value: docProperty.value || '',
                 valueType: docProperty.valueType,
-                valueTypeConstraint: docProperty.valueTypeConstraint || '',
+                valueTypeConstraint: docProperty?.valueTypeConstraint,
                 lineRange: docProperty.codedata?.lineRange
             });
         }
