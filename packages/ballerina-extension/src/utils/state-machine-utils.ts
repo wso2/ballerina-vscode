@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { DIRECTORY_MAP, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
 import { NodePosition, STKindChecker, STNode, traversNode } from "@wso2/syntax-tree";
-import { StateMachine } from "../stateMachine";
+import { StateMachine, openView } from "../stateMachine";
 import { Uri } from "vscode";
 import { UIDGenerationVisitor } from "./history/uid-generation-visitor";
 import { FindNodeByUidVisitor } from "./history/find-node-by-uid";
@@ -481,5 +481,53 @@ function getSTByRangeReq(documentUri: string, position: NodePosition) {
             }
         }
     };
+}
+
+export async function updateCurrentArtifactLocation(artifacts: UpdatedArtifactsResponse) {
+    if (artifacts.artifacts.length === 0) {
+        return;
+    }
+    console.log(">>> Updating current artifact location", { artifacts });
+    // Get the updated component and update the location
+    const currentIdentifier = StateMachine.context().identifier;
+    const currentType = StateMachine.context().type;
+
+    // Find the correct artifact by currentIdentifier (id)
+    let currentArtifact = undefined;
+    for (const artifact of artifacts.artifacts) {
+        if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
+            currentArtifact = artifact;
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find(
+                    (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                );
+                if (resource) {
+                    currentArtifact = resource;
+                    break;
+                }
+            }
+
+        } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+            currentArtifact = artifact;
+        }
+
+        // Check if artifact has resources and find within those
+        if (artifact.resources && artifact.resources.length > 0) {
+            const resource = artifact.resources.find(
+                (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+            );
+            if (resource) {
+                currentArtifact = resource;
+            }
+        }
+    }
+
+    if (currentArtifact) {
+        openView(EVENT_TYPE.UPDATE_PROJECT_LOCATION, {
+            documentUri: currentArtifact.path,
+            position: currentArtifact.position,
+            identifier: currentIdentifier,
+        });
+    }
 }
 

@@ -18,6 +18,7 @@
 
 import { STModification, FunctionParameters } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
+import { debouncedUndo, debouncedRedo } from "./debouncedUndoRedo";
 import { Parameter } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
 import { ParamConfig } from "@wso2/ui-toolkit";
@@ -43,25 +44,11 @@ export function transformNodePosition(position: NodePosition) {
 }
 
 export async function handleUndo(rpcClient: BallerinaRpcClient) {
-    const lastsource = await rpcClient.getVisualizerRpcClient().undo();
-    const docUri = (await rpcClient.getVisualizerLocation()).documentUri;
-    if (lastsource) {
-        rpcClient.getLangClientRpcClient().updateFileContent({
-            filePath: docUri,
-            content: lastsource,
-        });
-    }
+    debouncedUndo(rpcClient);
 }
 
 export async function handleRedo(rpcClient: BallerinaRpcClient) {
-    const lastsource = await rpcClient.getVisualizerRpcClient().redo();
-    const docUri = (await rpcClient.getVisualizerLocation()).documentUri;
-    if (lastsource) {
-        rpcClient.getLangClientRpcClient().updateFileContent({
-            filePath: docUri,
-            content: lastsource,
-        });
-    }
+    debouncedRedo(rpcClient);
 }
 
 const colors = {
@@ -119,7 +106,10 @@ export const applyModifications = async (rpcClient: BallerinaRpcClient, modifica
         },
     });
     if (parseSuccess) {
-        rpcClient.getVisualizerRpcClient().addToUndoStack(newSource);
+        rpcClient.getVisualizerRpcClient().addToUndoStack({
+            source: newSource,
+            filePath,
+        });
         await langServerRPCClient.updateFileContent({
             content: newSource,
             filePath
@@ -231,22 +221,22 @@ export const isPositionChanged = (prev: NodePosition, current: NodePosition) => 
 export function formatWithProperIndentation(content: string, baseIndent: number = 1): string {
     const lines = content.split('\n');
     let currentIndent = baseIndent;
-    
+
     return lines.map(line => {
         const trimmedLine = line.trim();
-        
+
         // Decrease indent for closing braces/brackets
         if (trimmedLine.startsWith('}') || trimmedLine.startsWith(']')) {
             currentIndent = Math.max(1, currentIndent - 1);
         }
-        
+
         const indentedLine = '    '.repeat(currentIndent) + trimmedLine;
-        
+
         // Increase indent for opening braces/brackets
         if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[')) {
             currentIndent++;
         }
-        
+
         return indentedLine;
     }).join('\n');
 }
