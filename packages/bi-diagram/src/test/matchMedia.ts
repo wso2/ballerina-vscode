@@ -15,17 +15,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-export interface View {
-    label: string;
-    sourceField?: string;
-    targetField: string;
-    subMappingInfo?: SubMappingInfo;
-}
 
-export interface SubMappingInfo {
-    index: number;
-    mappingName: string;
-    mappingType: string;
-    mapFnIndex?: number;
-    focusedOnSubMappingRoot?: boolean;
-}
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    })),
+});
+
+window.HTMLElement.prototype.scrollIntoView = jest.fn()
+
+
