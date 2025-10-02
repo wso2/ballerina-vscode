@@ -3,7 +3,6 @@ import { Story, Meta } from "@storybook/react/types-6-0";
 import { Diagram, DiagramProps } from "../components/Diagram";
 
 import model1 from "./1-start.json";
-import model2 from "./2-start-with-error.json";
 
 export default {
     title: "BI/Diagram",
@@ -15,9 +14,4 @@ const Template: Story<DiagramProps> = (args: JSX.IntrinsicAttributes & DiagramPr
 export const Start = Template.bind({});
 Start.args = {
     model: model1,
-};
-
-export const StartWithError = Template.bind({});
-StartWithError.args = {
-    model: model2,
 };
