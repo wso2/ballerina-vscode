@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { generateText, CoreMessage } from "ai";
+import { generateText, ModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 
@@ -407,14 +407,14 @@ function getPromptForProcessType(processType: ProcessType): string {
 async function extractionUsingClaude({ pdfData, processType }: { pdfData: string; processType: ProcessType }): Promise<string> {
     const promptText = getPromptForProcessType(processType);
     
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         {
             role: "user",
             content: [
                 {
                     type: "file",
                     data: pdfData,
-                    mimeType: "application/pdf"
+                    mediaType: "application/pdf"
                 },
                 {
                     type: "text",
@@ -426,7 +426,7 @@ async function extractionUsingClaude({ pdfData, processType }: { pdfData: string
 
     const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: messages,
         abortSignal: AIPanelAbortController.getInstance().signal
@@ -449,14 +449,14 @@ async function imageExtractionUsingClaude({
     // Convert extension to proper media type
     const mimeType = extension === "png" ? "image/png" : "image/jpeg";
     
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         {
             role: "user",
             content: [
                 {
                     type: "image",
                     image: imgData,
-                    mimeType: mimeType
+                    mediaType: mimeType
                 },
                 {
                     type: "text",
@@ -468,7 +468,7 @@ async function imageExtractionUsingClaude({
 
     const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: messages,
         abortSignal: AIPanelAbortController.getInstance().signal
@@ -486,7 +486,7 @@ async function textExtractionUsingClaude({
 }): Promise<string> {
     const promptText = getPromptForProcessType(processType);
     
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         {
             role: "user",
             content: promptText + "\n\n" + textContent
@@ -495,7 +495,7 @@ async function textExtractionUsingClaude({
 
     const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: messages,
         abortSignal: AIPanelAbortController.getInstance().signal

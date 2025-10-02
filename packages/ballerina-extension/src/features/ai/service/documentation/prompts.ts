@@ -15,7 +15,7 @@
 // under the License.
 
 import { DocumentationGenerationRequest } from "./documentation";
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 import { flattenProjectToText, getExternalTypesAsJsonSchema } from "./utils";
 
 // ==============================================
@@ -220,12 +220,12 @@ Important Guidelines:
 //            MESSAGE CREATION FUNCTIONS
 // ==============================================
 
-export function createDocumentationGenMessages(request: DocumentationGenerationRequest): CoreMessage[] {
+export function createDocumentationGenMessages(request: DocumentationGenerationRequest): ModelMessage[] {
   const docGenUser1 = createDocumentationGenUser1Message(request);
   return [docGenUser1];
 }
 
-export function createDocumentationGenUser1Message(request: DocumentationGenerationRequest): CoreMessage {
+export function createDocumentationGenUser1Message(request: DocumentationGenerationRequest): ModelMessage {
   const flattenedProject = flattenProjectToText(request.projectSource);
   const typeSchemas = request.openApiSpec ? getExternalTypesAsJsonSchema(request.openApiSpec) : "{}";
 
