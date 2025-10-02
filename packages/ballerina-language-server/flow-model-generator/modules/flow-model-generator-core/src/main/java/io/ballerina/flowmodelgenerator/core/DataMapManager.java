@@ -1016,7 +1016,11 @@ public class DataMapManager {
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
-                            memberNames.add(memberPort.typeName);
+                            if (isExternalType(member)) {
+                                memberNames.add(member.moduleInfo.modulePrefix + ":" + memberPort.typeName);
+                            } else {
+                                memberNames.add(memberPort.typeName);
+                            }
                         }
                     }
                     unionPort.typeName = String.join(PIPE, memberNames);
@@ -1054,6 +1058,15 @@ public class DataMapManager {
             Optional<ModuleSymbol> module = symbol.getModule();
             module.ifPresent(moduleSymbol -> mappingPort.moduleInfo = ModuleInfo.from(moduleSymbol.id()));
         }
+    }
+
+    private boolean isExternalType(RefType refType) {
+        if (refType.moduleInfo == null) {
+            return false;
+        }
+        ModuleInfo currentModuleInfo = ModuleInfo.from(this.document.module().descriptor());
+        return !refType.moduleInfo.orgName.equals(currentModuleInfo.org()) ||
+               !refType.moduleInfo.packageName.equals(currentModuleInfo.packageName());
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {

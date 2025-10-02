@@ -21,7 +21,14 @@
           "hashCode": "1848974004",
           "key": "-1350022124",
           "name": "SampleRecord",
-          "typeName": "record"
+          "typeName": "record",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r2",
+            "packageName": "health.ccda.r2",
+            "version": "0.1.0",
+            "modulePrefix": "r2"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -34,7 +41,14 @@
             "hashCode": "-210370019",
             "key": "-702485192",
             "name": "ProgressNote",
-            "typeName": "record"
+            "typeName": "record",
+            "moduleInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "health.ccda.r2",
+              "packageName": "health.ccda.r2",
+              "version": "0.1.0",
+              "modulePrefix": "r2"
+            }
           },
           "dependentTypeKeys": [
             "-1350022124",
@@ -44,7 +58,14 @@
           "hashCode": "-210370019",
           "key": "-702485192",
           "name": "",
-          "typeName": "array"
+          "typeName": "array",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r2",
+            "packageName": "health.ccda.r2",
+            "version": "0.1.0",
+            "modulePrefix": "r2"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -80,7 +101,14 @@
               "hashCode": "-1112251293",
               "key": "-555514947",
               "name": "SampleType",
-              "typeName": "record"
+              "typeName": "record",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r2",
+                "packageName": "health.ccda.r2",
+                "version": "0.1.0",
+                "modulePrefix": "r2"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -92,7 +120,14 @@
         "hashCode": "1848974004",
         "key": "-1350022124",
         "name": "SampleRecord",
-        "typeName": "record"
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r2",
+          "packageName": "health.ccda.r2",
+          "version": "0.1.0",
+          "modulePrefix": "r2"
+        }
       },
       "-702485192": {
         "fields": [
@@ -113,7 +148,14 @@
               "hashCode": "1848974004",
               "key": "-1350022124",
               "name": "SampleRecord",
-              "typeName": "record"
+              "typeName": "record",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r2",
+                "packageName": "health.ccda.r2",
+                "version": "0.1.0",
+                "modulePrefix": "r2"
+              }
             },
             "optional": false,
             "defaultValue": ""
@@ -126,7 +168,14 @@
         "hashCode": "-210370019",
         "key": "-702485192",
         "name": "ProgressNote",
-        "typeName": "record"
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r2",
+          "packageName": "health.ccda.r2",
+          "version": "0.1.0",
+          "modulePrefix": "r2"
+        }
       },
       "-555514947": {
         "fields": [
@@ -155,8 +204,22 @@
         "hashCode": "-1112251293",
         "key": "-555514947",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r2",
+          "packageName": "health.ccda.r2",
+          "version": "0.1.0",
+          "modulePrefix": "r2"
+        }
       }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r2",
+      "packageName": "health.ccda.r2",
+      "version": "0.1.0",
+      "modulePrefix": "r2"
     }
   }
 }

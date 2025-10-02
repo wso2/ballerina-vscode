@@ -30,6 +30,13 @@
     "key": "441557406",
     "name": "SampleType",
     "typeName": "record",
-    "dependentTypes": {}
+    "dependentTypes": {},
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
+    }
   }
 }

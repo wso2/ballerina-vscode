@@ -35,7 +35,14 @@
           "hashCode": "-959561237",
           "key": "-1253237511",
           "name": "DepartmentCode",
-          "typeName": "union"
+          "typeName": "union",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
@@ -68,8 +75,22 @@
         "hashCode": "-959561237",
         "key": "-1253237511",
         "name": "DepartmentCode",
-        "typeName": "union"
+        "typeName": "union",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
     }
   }
 }
