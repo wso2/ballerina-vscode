@@ -32,6 +32,8 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 import io.ballerina.servicemodelgenerator.extension.builder.NodeBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -44,6 +46,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -67,14 +70,16 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.CLASS;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -147,10 +152,28 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
             functionModel = getEnrichedFunctionModel(CLASS, functionDefinitionNode);
         } else {
-            functionModel = getEnrichedFunctionModel(SERVICE_DIAGRAM, functionDefinitionNode);
+            functionModel = getFunctionInsideService(context);
         }
         functionModel.setEditable(true);
         return functionModel;
+    }
+
+    private Function getFunctionInsideService(ModelFromSourceContext context) {
+        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
+        boolean isResource = functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.text().equals(RESOURCE));
+        String functionName = isResource ? getPath(functionDefinitionNode.relativeResourcePath())
+                : functionDefinitionNode.functionName().text().trim();
+        Optional<ServiceTypeFunction> matchingServiceTypeFunction = ServiceDatabaseManager.getInstance()
+                .getMatchingServiceTypeFunction(context.orgName(), context.moduleName(), context.serviceType(),
+                        functionName);
+        if (matchingServiceTypeFunction.isEmpty()) {
+            return getEnrichedFunctionModel(SERVICE_DIAGRAM, functionDefinitionNode);
+        }
+        Function targetFunction = ServiceModelUtils.getFunction(matchingServiceTypeFunction.get());
+        Function sourceFunction = getFunctionModel(functionDefinitionNode, Map.of());
+        ServiceModelUtils.updateFunction(targetFunction, sourceFunction);
+        return targetFunction;
     }
 
     /**

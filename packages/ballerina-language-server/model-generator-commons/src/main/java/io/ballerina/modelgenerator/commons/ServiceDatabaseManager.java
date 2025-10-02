@@ -454,6 +454,63 @@ public class ServiceDatabaseManager {
         }
     }
 
+    public Optional<ServiceTypeFunction> getMatchingServiceTypeFunction(String orgName, String moduleName,
+                                                                        String serviceType, String functionName) {
+        StringBuilder sql = new StringBuilder("SELECT ");
+        sql.append("f.function_id, ");
+        sql.append("f.name, ");
+        sql.append("f.description, ");
+        sql.append("f.accessor, ");
+        sql.append("f.kind, ");
+        sql.append("f.return_type, ");
+        sql.append("f.return_error, ");
+        sql.append("f.return_type_editable, ");
+        sql.append("f.import_statements, ");
+        sql.append("f.enable ");
+        sql.append("FROM ServiceTypeFunction f ");
+        sql.append("JOIN ServiceType st ON f.service_type_id = st.service_type_id ");
+        sql.append("JOIN Package p ON st.package_id = p.package_id ");
+        sql.append("WHERE p.name = ? AND st.name = ? AND f.name = ?");
+        if (orgName != null) {
+            sql.append(" AND p.org = ?");
+        }
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            stmt.setString(1, moduleName);
+            stmt.setString(2, serviceType);
+            stmt.setString(3, functionName);
+            if (orgName != null) {
+                stmt.setString(4, orgName);
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int functionId = rs.getInt("function_id");
+                List<ServiceTypeFunction.ServiceTypeFunctionParameter> params = getServiceFunctionParams(functionId);
+                ServiceTypeFunction function = new ServiceTypeFunction(
+                        rs.getInt("function_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("accessor"),
+                        rs.getString("kind"),
+                        rs.getString("return_type"),
+                        rs.getInt("return_error"),
+                        rs.getInt("return_type_editable"),
+                        rs.getString("import_statements"),
+                        rs.getInt("enable"),
+                        params
+                );
+                conn.close();
+                return Optional.of(function);
+            }
+            conn.close();
+            return Optional.empty();
+        } catch (SQLException e) {
+            Logger.getGlobal().severe("Error executing query: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     public List<ServiceTypeFunction> getMatchingServiceTypeFunctions(int packageId, String serviceType) {
 
         String sql = "SELECT " +

@@ -85,6 +85,16 @@ public class ServiceModelUtils {
     }
 
     public static void updateFunction(Function target, Function source, Service service) {
+        updateFunction(target, source);
+        Value requiredFunctions = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
+        if (Objects.nonNull(requiredFunctions)) {
+            if (source.isEnabled() && requiredFunctions.getItems().contains(source.getName().getValue())) {
+                requiredFunctions.setValue(source.getName().getValue());
+            }
+        }
+    }
+
+    public static void updateFunction(Function target, Function source) {
         target.setEnabled(source.isEnabled());
         target.setCodedata(source.getCodedata());
         updateValue(target.getAccessor(), source.getAccessor());
@@ -107,12 +117,6 @@ public class ServiceModelUtils {
             foundSourceParam.ifPresent(value -> updateParameter(targetParameter, value));
         }
         updateValue(target.getReturnType(), source.getReturnType());
-        Value requiredFunctions = service.getProperty(Constants.PROPERTY_REQUIRED_FUNCTIONS);
-        if (Objects.nonNull(requiredFunctions)) {
-            if (source.isEnabled() && requiredFunctions.getItems().contains(source.getName().getValue())) {
-                requiredFunctions.setValue(source.getName().getValue());
-            }
-        }
     }
 
     private static boolean isEqual(Value target, Value source) {

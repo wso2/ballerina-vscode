@@ -22,11 +22,13 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
@@ -41,6 +43,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 
 /**
  * Represents the function builder router of the service model generator.
@@ -80,9 +83,16 @@ public class FunctionBuilderRouter {
     }
 
     public static Function getFunctionFromSource(String moduleName, SemanticModel semanticModel, Node functionNode) {
-        NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        ModelFromSourceContext context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
-                moduleName, null, null, null);
+        ModelFromSourceContext context;
+        if (functionNode.parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
+            ServiceMetadata metadata = deriveServiceType(serviceDeclarationNode, semanticModel);
+            context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+                    metadata.serviceType(), metadata.orgName(), metadata.packageName(), metadata.moduleName());
+        } else {
+            context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+                    moduleName, null, null, moduleName);
+        }
+        NodeBuilder<Function> functionBuilder = getFunctionBuilder(context.moduleName());
         return functionBuilder.getModelFromSource(context);
     }
 }

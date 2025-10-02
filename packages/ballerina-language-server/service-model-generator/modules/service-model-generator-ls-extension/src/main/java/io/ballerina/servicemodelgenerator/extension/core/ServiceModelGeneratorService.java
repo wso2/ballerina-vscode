@@ -117,13 +117,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
@@ -528,10 +527,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             }
             String moduleName = (request.codedata().getModuleName() != null) ?
                     request.codedata().getModuleName() : DEFAULT;
-            if (moduleName.equals(DEFAULT) &&
-                    functionDefinitionNode.parent() instanceof ServiceDeclarationNode serviceDecNode) {
-                moduleName = deriveServiceType(serviceDecNode, semanticModelOp.get()).moduleName();
-            }
             Function function = FunctionBuilderRouter.getFunctionFromSource(moduleName, semanticModelOp.get(),
                     functionDefinitionNode);
             return new FunctionFromSourceResponse(function);

@@ -1,0 +1,248 @@
+{
+  "filePath": "sample5/main.bal",
+  "description": "",
+  "codedata": {
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 5,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 11,
+        "offset": 5
+      }
+    }
+  },
+  "response": {
+    "metadata": {
+      "label": "",
+      "description": ""
+    },
+    "kind": "OBJECT_METHOD",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "valueType": "IDENTIFIER",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "onConsumerRecord",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "personStream",
+          "description": "personStream"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "Person[]",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "personStream",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "myCaller",
+          "description": "myCaller"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "kafka:Caller",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "myCaller",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    ],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "valueType": "TYPE",
+      "value": "error?",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 5,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 11,
+          "offset": 5
+        }
+      }
+    }
+  }
+}
