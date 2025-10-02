@@ -982,9 +982,18 @@ public class DataMapManager {
                     if (memberPort != null && memberPort.displayName == null) {
                         memberPort.displayName = getItemName(name);
                     }
-                    String arrayTypeName = memberPort == null ? "array[]" : memberPort.typeName + "[]";
+                    String arrayTypeName;
+                    if (memberPort == null) {
+                        arrayTypeName = "array[]";
+                    } else {
+                        String memberTypeName = memberPort.typeName;
+                        if (memberPort.kind.endsWith("union")) {
+                            memberTypeName = "(" + memberTypeName + ")";
+                        }
+                        arrayTypeName = memberTypeName + "[]";
+                    }
                     TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
+                    if (isExternalType(type) && !arrayTypeName.contains(":")) {
                         arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
@@ -1071,14 +1080,12 @@ public class DataMapManager {
                     }
                     return unionPort;
                 } else {
-                    String unionTypeName = typeName;
                     TypeInfo typeInfo = null;
                     if (isExternalType(type)) {
-                        unionTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
                     MappingUnionPort mappingUnionPort = new
-                            MappingUnionPort(id, name, unionTypeName, "union", type.key);
+                            MappingUnionPort(id, name, typeName, "union", type.key);
                     mappingUnionPort.typeInfo = typeInfo;
                     return mappingUnionPort;
                 }
