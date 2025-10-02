@@ -407,7 +407,10 @@ public class CodeAnalyzer extends NodeVisitor {
             if (symbol.isEmpty()) {
                 throw new IllegalStateException("Symbol not found for the expression: " + expressionNode);
             }
-            VariableSymbol variableSymbol = (VariableSymbol) symbol.get();
+            if (!(symbol.get() instanceof VariableSymbol variableSymbol)) {
+                throw new IllegalStateException("Expected a VariableSymbol but found: " +
+                        symbol.get().getClass().getSimpleName());
+            }
             Optional<Location> optLocation = variableSymbol.getLocation();
             if (optLocation.isEmpty()) {
                 throw new IllegalStateException("Location not found for the variable symbol: " +
