@@ -247,7 +247,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                     onModelChange={handleModelChange}
                                 />
                             ) : (
-                                <Typography variant="body3">Record construction assistance is unavailable. Please check the Suggestions tab.</Typography>
+                                <Typography variant="body3">Record construction assistance is unavailable.</Typography>
                             )}
                     </>
                 )}

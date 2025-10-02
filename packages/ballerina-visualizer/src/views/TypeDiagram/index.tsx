@@ -258,6 +258,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
     const addNewType = async () => {
         setTypeEditorState((prevState) => ({
             ...prevState,
+            editingTypeId: undefined,
+            editingType: undefined,
             isTypeCreatorOpen: true,
         }));
     };
@@ -286,9 +288,14 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
-                    type: type,
-                    projectUri: projectUri,
-                    isGraphql: false
+                    isGraphql: false,
+                    position: {
+                        startLine: type.codedata.lineRange?.startLine?.line,
+                        startColumn: type.codedata.lineRange?.startLine?.offset,
+                        endLine: type.codedata.lineRange?.endLine?.line,
+                        endColumn: type.codedata.lineRange?.endLine?.offset,
+                    },
+                    documentUri: type.codedata.lineRange?.fileName
                 },
             });
         }

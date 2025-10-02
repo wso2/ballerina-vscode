@@ -371,6 +371,11 @@ export function NodeList(props: NodeListProps) {
         setSearchText(text);
     };
 
+    const handleBackClick = () => {
+        setSearchText("");
+        onBack();
+    }
+
     useEffect(() => {
         setIsSearching(false);
     }, [categories]);
@@ -430,6 +435,7 @@ export function NodeList(props: NodeListProps) {
 
                         return (
                             <Tooltip 
+                                key={node.id + index}
                                 content={node.description} 
                                 sx={{ 
                                     maxWidth: "280px",
@@ -439,7 +445,6 @@ export function NodeList(props: NodeListProps) {
                                 }}
                             >
                                 <S.Component
-                                    key={node.id + index}
                                     enabled={node.enabled}
                                     onClick={() => handleAddNode(node)}
                                 >
@@ -788,7 +793,7 @@ export function NodeList(props: NodeListProps) {
                     )}
                     {onBack && title && (
                         <S.LeftAlignRow>
-                            <S.BackButton appearance="icon" onClick={onBack}>
+                            <S.BackButton appearance="icon" onClick={handleBackClick}>
                                 <BackIcon />
                             </S.BackButton>
                             {title}
