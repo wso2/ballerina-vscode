@@ -20,9 +20,16 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { ProgressRing, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
-import { ModelFromCodeRequest, NodePosition, PropertyModel, ServiceClassModel } from "@wso2/ballerina-core";
+import {
+    EVENT_TYPE, MACHINE_VIEW,
+    ModelFromCodeRequest,
+    NodePosition,
+    PropertyModel,
+    ServiceClassModel,
+    ServiceClassSourceRequest,
+    UpdatedArtifactsResponse
+} from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../components/FormHeader";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -63,6 +70,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
     const [filePath, setFilePath] = useState<string>("");
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const editTitle = `Update the configuration details for the Service Class as needed.`
 
@@ -89,33 +97,112 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
             context: "TYPE_DIAGRAM"
         }
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
-        const property = serviceClassModelResponse.model.properties["name"];
-        const serviceClassFields = convertToFormField(property);
-        setServiceClassFields(serviceClassFields);
-        setServiceClassModel(serviceClassModelResponse.model);
+        if (serviceClassModelResponse.model) {
+            const serviceClassFields = convertToFormField(serviceClassModelResponse.model);
+            setServiceClassFields(serviceClassFields);
+            setServiceClassModel(serviceClassModelResponse.model);
+        }
     }
 
-    const convertToFormField = (property: PropertyModel): FormField[] => {
-        const fields: FormField[] = [
-            {
+    const convertToFormField = (model: ServiceClassModel): FormField[] => {
+        const fields: FormField[] = [];
+
+        // Add name field
+        const nameProperty = model.properties?.["name"] as PropertyModel;
+        if (nameProperty) {
+            fields.push({
                 key: 'name',
-                label: property.metadata.label || 'Service Class Name',
+                label: nameProperty.metadata?.label || 'Service Class Name',
                 type: 'IDENTIFIER',
-                optional: property.optional,
-                editable: property.editable,
-                advanced: property.advanced,
-                enabled: property.enabled,
-                documentation: property.metadata?.description,
-                value: property.value || '',
-                valueType: property?.valueType,
-                valueTypeConstraint: property.valueTypeConstraint || '',
-                lineRange: property.codedata?.lineRange
-            }];
+                optional: nameProperty.optional,
+                editable: nameProperty.editable,
+                advanced: nameProperty.advanced,
+                enabled: nameProperty.enabled,
+                documentation: nameProperty.metadata?.description,
+                value: nameProperty.value || '',
+                valueType: nameProperty?.valueType,
+                valueTypeConstraint: nameProperty?.valueTypeConstraint,
+                lineRange: nameProperty.codedata?.lineRange
+            });
+        }
+
+        // Add documentation field
+        if (model.documentation) {
+            const docProperty = model.documentation as PropertyModel;
+            fields.push({
+                key: 'documentation',
+                label: docProperty.metadata?.label || 'Documentation',
+                type: docProperty.valueType || 'string',
+                optional: docProperty.optional,
+                editable: docProperty.editable,
+                advanced: docProperty.advanced,
+                enabled: docProperty.enabled,
+                documentation: docProperty.metadata?.description || '',
+                value: docProperty.value || '',
+                valueType: docProperty.valueType,
+                valueTypeConstraint: docProperty?.valueTypeConstraint,
+                lineRange: docProperty.codedata?.lineRange
+            });
+        }
+
         return fields;
     }
 
     const handleOnSubmit = async (data: FormValues) => {
-        rpcClient.getVisualizerRpcClient()?.goBack();
+        setIsSaving(true);
+        const updatedModel = { ...serviceClassModel };
+        let hasChanges = false;
+
+        // Check and update name if changed
+        if (data.name && updatedModel.properties?.["name"]) {
+            const currentName = (updatedModel.properties["name"] as PropertyModel).value;
+            if (currentName !== data.name) {
+                (updatedModel.properties["name"] as PropertyModel).value = data.name;
+                hasChanges = true;
+            }
+        }
+
+        // Check and update documentation if changed
+        if (updatedModel.documentation) {
+            const currentDocumentation = updatedModel.documentation.value;
+            const newDocumentation = data.documentation;
+            if (currentDocumentation !== newDocumentation) {
+                updatedModel.documentation.value = newDocumentation;
+                hasChanges = true;
+            }
+        }
+
+        // Only proceed with update if there are actual changes
+        if (hasChanges) {
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+
+            const updateModelRequest: ServiceClassSourceRequest = {
+                filePath: currentFilePath,
+                serviceClass: updatedModel
+            };
+
+            const artifactsRes: UpdatedArtifactsResponse = await rpcClient.getBIDiagramRpcClient().updateServiceClass(updateModelRequest);
+            // get matching artifact to the updated model
+            const serviceArtifact = artifactsRes.artifacts.find(res => res.name === updatedModel.properties["name"].value);
+
+            if (serviceArtifact) {
+                await rpcClient
+                    .getVisualizerRpcClient()
+                    .openView({
+                        type: EVENT_TYPE.OPEN_VIEW,
+                        location: {
+                            view: MACHINE_VIEW.BIServiceClassDesigner,
+                            position: serviceArtifact.position,
+                            isGraphql: false,
+                            documentUri: fileName,
+                        }
+                    });
+            }
+        } else {
+            // No changes detected, just go back
+            rpcClient.getVisualizerRpcClient()?.goBack();
+        }
+        setIsSaving(false);
     }
 
     return (
@@ -145,6 +232,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                                                 }}
                                                 fields={serviceClassFields}
                                                 onSubmit={handleOnSubmit}
+                                                isSaving={isSaving}
                                             />
                                         }
                                     </FormContainer>
