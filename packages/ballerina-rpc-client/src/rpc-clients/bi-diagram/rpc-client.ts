@@ -426,7 +426,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(addClassField, HOST_EXTENSION, params);
     }
 
-    updateServiceClass(params: ServiceClassSourceRequest): Promise<SourceEditResponse> {
+    updateServiceClass(params: ServiceClassSourceRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(updateServiceClass, HOST_EXTENSION, params);
     }
 
