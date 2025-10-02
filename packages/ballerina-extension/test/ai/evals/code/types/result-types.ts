@@ -75,6 +75,7 @@ export interface SummaryCompact {
     readonly totalCompiled: number;
     readonly totalFailed: number;
     readonly accuracy: number;
+    readonly evaluationSummary: number
 }
 
 /**
