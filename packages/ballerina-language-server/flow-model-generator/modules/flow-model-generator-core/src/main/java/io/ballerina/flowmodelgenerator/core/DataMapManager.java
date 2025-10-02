@@ -130,6 +130,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -2193,16 +2194,27 @@ public class DataMapManager {
         try {
             workspaceManager.loadProject(filePath);
             Range functionRange;
+            Document document = null;
             try {
-                Document document = workspaceManager.document(functionsFilePath).orElse(null);
-                assert document != null;
-                functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
-            } catch (ProjectException e) {
+                document = workspaceManager.document(functionsFilePath).orElse(null);
+                if (document != null) {
+                    functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+                } else {
+                    functionRange = new Range(new Position(0, 0), new Position(0, 0));
+                }
+            } catch (Exception e) {
                 functionRange = new Range(new Position(0, 0), new Position(0, 0));
             }
+
             ReturnType returnType = functionMetadata.returnType();
             String functionName = getFunctionName(parameters, returnType, semanticModel);
             List<TextEdit> textEdits = new ArrayList<>();
+
+            if (functionMetadata.importTypeInfo() != null && !functionMetadata.importTypeInfo().isEmpty()) {
+                textEdits.addAll(generateImportTextEdits(workspaceManager, functionsFilePath,
+                        functionMetadata.importTypeInfo(), document));
+            }
+
             if (isCustomFunction) {
                 textEdits.add(new TextEdit(functionRange, System.lineSeparator() + "function " +
                         functionName + "(" + String.join(", ", paramNames) + ") returns " + returnType.type + " {}"));
@@ -2216,6 +2228,44 @@ public class DataMapManager {
         } catch (WorkspaceDocumentException | EventSyncException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<TextEdit> generateImportTextEdits(WorkspaceManager workspaceManager, Path filePath,
+                                                    List<TypeInfo> importTypeInfoList, Document document) {
+        List<TextEdit> importEdits = new ArrayList<>();
+
+        if (document == null) {
+            TreeSet<String> importStmts = new TreeSet<>();
+            for (TypeInfo typeInfo : importTypeInfoList) {
+                importStmts.add(getImportStmt(typeInfo.orgName(), typeInfo.moduleName()));
+            }
+            if (!importStmts.isEmpty()) {
+                String importsStmts = String.join("", importStmts);
+                importEdits.add(new TextEdit(CommonUtils.toRange(0, 0), importsStmts));
+            }
+            return importEdits;
+        }
+
+        ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+        TreeSet<String> importStmts = new TreeSet<>();
+
+        for (TypeInfo typeInfo : importTypeInfoList) {
+            if (!CommonUtils.importExists(modulePartNode, typeInfo.orgName(), typeInfo.moduleName())) {
+                importStmts.add(getImportStmt(typeInfo.orgName(), typeInfo.moduleName()));
+            }
+        }
+
+        if (!importStmts.isEmpty()) {
+            String importsStmts = String.join("", importStmts);
+            importEdits.add(new TextEdit(CommonUtils.toRange(modulePartNode.lineRange().startLine()),
+                    importsStmts));
+        }
+
+        return importEdits;
+    }
+
+    private static String getImportStmt(String org, String module) {
+        return String.format("import %s/%s;%n", org, module);
     }
 
     private static String getExpressionBody(String returnType) {
@@ -2360,7 +2410,8 @@ public class DataMapManager {
         }
     }
 
-    private record FunctionMetadata(List<Parameter> parameters, ReturnType returnType) {
+    private record FunctionMetadata(List<Parameter> parameters, ReturnType returnType,
+                                    List<TypeInfo> importTypeInfo) {
     }
 
     private record Parameter(String name, String type, boolean isOptional, boolean isNullable, String kind) {
