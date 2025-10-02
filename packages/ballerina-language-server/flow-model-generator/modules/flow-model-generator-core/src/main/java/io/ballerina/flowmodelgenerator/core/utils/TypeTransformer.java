@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
+import io.ballerina.compiler.api.symbols.Annotatable;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -129,8 +130,7 @@ public class TypeTransformer {
         TypeData.TypeDataBuilder typeDataBuilder = new TypeData.TypeDataBuilder();
         String typeName = getTypeName(classSymbol);
         List<Qualifier> qualifiers = classSymbol.qualifiers();
-        String networkQualifier = qualifiers.contains(Qualifier.SERVICE) ?
-                "service" : (qualifiers.contains(Qualifier.CLIENT) ? "client" : "");
+        String networkQualifier = getNetworkQualifier(qualifiers);
         typeDataBuilder
                 .name(typeName)
                 .metadata()
@@ -615,6 +615,16 @@ public class TypeTransformer {
 
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
 
+        // return type annotation
+        functionTypeSymbol.returnTypeAnnotations().ifPresent( returnTypeAnnots -> {
+            for (AnnotationAttachmentSymbol annotAttachment : returnTypeAnnots.annotAttachments()) {
+                if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                    functionBuilder.isGraphqlId(true);
+                    break;
+                }
+            }
+        });
+
         // return type
         functionTypeSymbol.returnTypeDescriptor().ifPresent(returnType -> {
             Object transformed = transform(returnType, new TypeData.TypeDataBuilder());
@@ -627,10 +637,21 @@ public class TypeTransformer {
         functionTypeSymbol.params().ifPresent(params -> {
             List<Member> parameters = params.stream().map(param -> {
                 Object transformedParamType = transform(param.typeDescriptor(), new TypeData.TypeDataBuilder());
+
+                boolean isGraphqlId = false;
+                List<AnnotationAttachmentSymbol> annotAttachments = param.annotAttachments();
+                for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
+                    if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                        isGraphqlId = true;
+                        break;
+                    }
+                }
+
                 return memberBuilder
                         .name(param.getName().orElse(null))
                         .kind(Member.MemberKind.FIELD)
                         .type(transformedParamType)
+                        .isGraphqlId(isGraphqlId)
                         .refs(getTypeRefs(transformedParamType, param.typeDescriptor()))
                         .build();
             }).toList();
@@ -742,5 +763,11 @@ public class TypeTransformer {
         // If a non-readonly type is found, we treat it as a first-class non-intersection type with readonly flag on
         typeDataBuilder.properties().isReadOnly(true, true, true, false);
         return transform(nonReadonlyTypeSymbol, typeDataBuilder);
+    }
+
+    private String getNetworkQualifier(List<Qualifier> qualifiers) {
+        return qualifiers.contains(Qualifier.SERVICE)
+                ? Qualifier.SERVICE.getValue()
+                : (qualifiers.contains(Qualifier.CLIENT) ? Qualifier.CLIENT.getValue() : "");
     }
 }
