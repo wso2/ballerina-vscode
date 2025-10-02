@@ -82,7 +82,11 @@ export interface DiagramProps {
         onAccept(): void;
         onDiscard(): void;
     };
-    projectPath?: string;
+    project?: {
+        org: string;
+        path: string;
+        getProjectPath?:(segments: string | string[]) => Promise<string>;
+    };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
     expressionContext?: ExpressionContextProps;
@@ -105,12 +109,12 @@ export function Diagram(props: DiagramProps) {
         agentNode,
         aiNodes,
         suggestions,
-        projectPath,
+        project,
         addBreakpoint,
         removeBreakpoint,
         breakpointInfo,
         readOnly,
-        expressionContext
+        expressionContext,
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
@@ -183,7 +187,10 @@ export function Diagram(props: DiagramProps) {
                 const onFailureBranch = node.branches?.find((branch) => branch.codedata?.node === "ON_FAILURE");
                 if (onFailureBranch) {
                     // Check if any child nodes in the onFailure branch match the active breakpoint
-                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(onFailureBranch, activeBreakpoint);
+                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(
+                        onFailureBranch,
+                        activeBreakpoint
+                    );
                     if (hasActiveBreakpointInOnFailure) {
                         errorHandlerIdToExpand = node.id;
                         return;
@@ -280,10 +287,6 @@ export function Diagram(props: DiagramProps) {
         setShowComponentPanel(true);
     };
 
-    const toggleDiagramFlow = () => {
-        setShowErrorFlow(!showErrorFlow);
-    };
-
     const toggleErrorHandlerExpansion = (nodeId: string) => {
         setExpandedErrorHandler((prev) => (prev === nodeId ? undefined : nodeId));
     };
@@ -314,9 +317,9 @@ export function Diagram(props: DiagramProps) {
         agentNode: agentNode,
         aiNodes: aiNodes,
         suggestions: suggestions,
-        projectPath: projectPath,
+        project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
-        expressionContext: expressionContext
+        expressionContext: expressionContext,
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {
