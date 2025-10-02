@@ -100,7 +100,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
-import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -942,7 +941,8 @@ public class DataMapManager {
                         recordTypeName = type.moduleInfo.modulePrefix + ":" + recordTypeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
-                    MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", referenceKey);
+                    MappingRecordPort recordPort = new MappingRecordPort(id, name,
+                            recordTypeName, "record", referenceKey);
                     recordPort.typeInfo = typeInfo;
                     for (ReferenceType.Field field : recordType.fields) {
                         MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
@@ -972,7 +972,8 @@ public class DataMapManager {
                         recordTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
-                    MappingRecordPort recordPort =new MappingRecordPort(id, name, recordTypeName, "record", type.key);
+                    MappingRecordPort recordPort = new MappingRecordPort(id, name,
+                            recordTypeName, "record", type.key);
                     recordPort.typeInfo = typeInfo;
                     return recordPort;
                 }
@@ -998,7 +999,8 @@ public class DataMapManager {
                         arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
                         typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
                     }
-                    MappingArrayPort arrayPort = new MappingArrayPort(id, name, arrayTypeName, "array", type.hashCode);
+                    MappingArrayPort arrayPort = new MappingArrayPort(id, name,
+                            arrayTypeName, "array", type.hashCode);
                     arrayPort.typeInfo = typeInfo;
                     arrayPort.setMember(memberPort);
                     if (arrayType.dependentTypes == null) {
@@ -2194,17 +2196,12 @@ public class DataMapManager {
         try {
             workspaceManager.loadProject(filePath);
             Range functionRange;
-            Document document = null;
-            try {
-                document = workspaceManager.document(functionsFilePath).orElse(null);
-                if (document != null) {
-                    functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
-                } else {
-                    functionRange = new Range(new Position(0, 0), new Position(0, 0));
-                }
-            } catch (Exception e) {
+            Document document = workspaceManager.document(functionsFilePath).orElse(null);
+            if (document != null) {
+                functionRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            } else {
                 functionRange = new Range(new Position(0, 0), new Position(0, 0));
-            }
+                }
 
             ReturnType returnType = functionMetadata.returnType();
             String functionName = getFunctionName(parameters, returnType, semanticModel);
@@ -2532,6 +2529,10 @@ public class DataMapManager {
 
         public void setFocusExpression(String focusExpression) {
             this.focusExpression = focusExpression;
+        }
+
+        public TypeInfo getTypeInfo() {
+            return typeInfo;
         }
 
     }
