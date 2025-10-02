@@ -931,193 +931,185 @@ public class DataMapManager {
 
     private MappingPort getRefMappingPort(String id, String name, String typeName, RefType type,
                                           Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
-        if (type.typeName != null) {
-            if (type.typeName.equals("record")) {
-                if (type instanceof RefRecordType recordType) {
-                    String referenceKey = recordType.key;
-                    String recordTypeName = typeName != null ? typeName : "record";
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type) && typeName != null) {
-                        recordTypeName = type.moduleInfo.modulePrefix + ":" + recordTypeName;
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingRecordPort recordPort = new MappingRecordPort(id, name,
-                            recordTypeName, "record", referenceKey);
-                    recordPort.typeInfo = typeInfo;
-                    for (ReferenceType.Field field : recordType.fields) {
-                        MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
-                                field.type(), visitedTypes, references);
-                        if (fieldPort != null) {
-                            fieldPort.setOptional(field.optional());
-                        }
-                        recordPort.fields.add(fieldPort);
-                    }
-                    if (!references.containsKey(referenceKey)) {
-                        MappingRecordPort referenceRecordPort = new MappingRecordPort(recordPort, false);
-                        references.put(referenceKey, referenceRecordPort);
-                    }
-                    if (recordType.dependentTypes != null) {
-                        Map<String, RefType> dependentTypes = recordType.dependentTypes;
-                        for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
-                            String key = entry.getKey();
-                            RefType value = entry.getValue();
-                            getRefMappingPort(id + "." + key, key, value, visitedTypes, references);
-                        }
-                    }
-                    return new MappingRecordPort(recordPort);
-                } else {
-                    String recordTypeName = typeName;
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        recordTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingRecordPort recordPort = new MappingRecordPort(id, name,
-                            recordTypeName, "record", type.key);
-                    recordPort.typeInfo = typeInfo;
-                    return recordPort;
-                }
-            } else if (type.typeName.equals("array")) {
-                if (type instanceof RefArrayType arrayType) {
-                    MappingPort memberPort = getRefMappingPort(id, getItemName(name), arrayType.elementType,
-                            visitedTypes, references);
-                    if (memberPort != null && memberPort.displayName == null) {
-                        memberPort.displayName = getItemName(name);
-                    }
-                    String arrayTypeName;
-                    boolean isUnionMember = false;
-                    if (memberPort == null) {
-                        arrayTypeName = "array[]";
-                    } else {
-                        String memberTypeName = memberPort.typeName;
-                        if (memberPort.kind.endsWith("union")) {
-                            memberTypeName = "(" + memberTypeName + ")";
-                            isUnionMember = true;
-                        }
-                        arrayTypeName = memberTypeName + "[]";
-                    }
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        arrayTypeName = !isUnionMember ? type.moduleInfo.modulePrefix + ":" + arrayTypeName :
-                                arrayTypeName;
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingArrayPort arrayPort = new MappingArrayPort(id, name,
-                            arrayTypeName, "array", type.hashCode);
-                    arrayPort.typeInfo = typeInfo;
-                    arrayPort.setMember(memberPort);
-                    if (arrayType.dependentTypes == null) {
-                        return arrayPort;
-                    }
-                    Map<String, RefType> dependentTypes = arrayType.dependentTypes;
-                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
-                        String key = entry.getKey();
-                        RefType value = entry.getValue();
-                        getRefMappingPort(id + "." + key, key, value, visitedTypes, references);
-                    }
-                    return arrayPort;
-                } else {
-                    return new MappingArrayPort(id, name, "array[]", "array", type.key);
-                }
-            } else if (type.typeName.equals("enum")) {
-                if (type instanceof RefEnumType enumType) {
-                    String enumTypeName = typeName;
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        enumTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingEnumPort enumPort = new MappingEnumPort(id, enumTypeName, enumTypeName, "enum", type.key);
-                    enumPort.typeInfo = typeInfo;
-                    for (RefType member : enumType.members) {
-                        MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
-                                member, visitedTypes, references);
-                        if (memberPort != null) {
-                            enumPort.members.add(memberPort);
-                        }
-                    }
-                    if (enumType.dependentTypes == null) {
-                        return enumPort;
-                    }
-                    Map<String, RefType> dependentTypes = enumType.dependentTypes;
-                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
-                        String key = entry.getKey();
-                        RefType value = entry.getValue();
-                        getRefMappingPort(id + "." + key, key, value, visitedTypes, references);
-                    }
-                    return enumPort;
-                } else {
-                    String enumTypeName = typeName;
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        enumTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingEnumPort enumPort =  new MappingEnumPort(id, name, enumTypeName, "enum", type.key);
-                    enumPort.typeInfo = typeInfo;
-                    return enumPort;
-                }
-            } else if (type.typeName.equals("union")) {
-                if (type instanceof RefUnionType unionType) {
-                    List<String> memberNames = new ArrayList<>();
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.key);
-                    unionPort.typeInfo = typeInfo;
-                    for (RefType member : unionType.memberTypes) {
-                        MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes,
-                                references);
-                        if (memberPort != null) {
-                            unionPort.members.add(memberPort);
-                            memberNames.add(memberPort.typeName);
-                        }
-                    }
-                    unionPort.typeName = String.join(PIPE, memberNames);
-                    if (unionType.dependentTypes == null) {
-                        return unionPort;
-                    }
-                    Map<String, RefType> dependentTypes = unionType.dependentTypes;
-                    for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
-                        String key = entry.getKey();
-                        RefType value = entry.getValue();
-                        getRefMappingPort(id + "." + key, key, value, visitedTypes, references);
-                    }
-                    return unionPort;
-                } else {
-                    TypeInfo typeInfo = null;
-                    if (isExternalType(type)) {
-                        typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                    }
-                    MappingUnionPort mappingUnionPort = new
-                            MappingUnionPort(id, name, typeName, "union", type.key);
-                    mappingUnionPort.typeInfo = typeInfo;
-                    return mappingUnionPort;
-                }
-            } else if (type.hashCode == null || type.hashCode.isEmpty()) {
-                String portTypeName = type.typeName;
-                TypeInfo typeInfo = null;
-                if (isExternalType(type)) {
-                    portTypeName = type.moduleInfo.modulePrefix + ":" + type.typeName;
-                    typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-                }
-                MappingPort mappingPort =  new MappingPort(id, name, portTypeName, portTypeName);
-                mappingPort.typeInfo = typeInfo;
-                return  mappingPort;
-            }
-        } else {
-            String portTypeName = typeName;
-            TypeInfo typeInfo = null;
-            if (isExternalType(type)) {
-                portTypeName = type.moduleInfo.modulePrefix + ":" + typeName;
-                typeInfo = new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
-            }
-            MappingPort mappingPort = new MappingPort(id, name, portTypeName, portTypeName);
-            mappingPort.typeInfo = typeInfo;
-            return mappingPort;
+        if (type.typeName == null) {
+            return createSimpleMappingPort(id, name, typeName, type);
         }
-        return null;
+
+        return switch (type.typeName) {
+            case "record" -> handleRecordType(id, name, typeName, type, visitedTypes, references);
+            case "array" -> handleArrayType(id, name, type, visitedTypes, references);
+            case "enum" -> handleEnumType(id, name, typeName, type, visitedTypes, references);
+            case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
+            default -> (type.hashCode == null || type.hashCode.isEmpty())
+                    ? createSimpleMappingPort(id, name, type.typeName, type)
+                    : null;
+        };
+    }
+
+    private MappingPort handleRecordType(String id, String name, String typeName, RefType type,
+                                         Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefRecordType recordType)) {
+            return createRecordPort(id, name, typeName, type);
+        }
+
+        String recordTypeName = resolveTypeName(typeName != null ? typeName : "record", type, typeName != null);
+        TypeInfo typeInfo = createTypeInfo(type, typeName != null);
+        MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", recordType.key);
+        recordPort.typeInfo = typeInfo;
+
+        populateRecordFields(recordPort, recordType, visitedTypes, references);
+        addToReferences(references, recordType.key, recordPort);
+        processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
+
+        return new MappingRecordPort(recordPort);
+    }
+
+    private MappingPort handleArrayType(String id, String name, RefType type,
+                                        Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefArrayType arrayType)) {
+            return new MappingArrayPort(id, name, "array[]", "array", type.key);
+        }
+
+        String itemName = getItemName(name);
+        MappingPort memberPort = getRefMappingPort(id, itemName, arrayType.elementType, visitedTypes, references);
+        if (memberPort != null && memberPort.displayName == null) {
+            memberPort.displayName = itemName;
+        }
+
+        String arrayTypeName = buildArrayTypeName(memberPort, type);
+        TypeInfo typeInfo = createTypeInfo(type, true);
+        MappingArrayPort arrayPort = new MappingArrayPort(id, name, arrayTypeName, "array", type.hashCode);
+        arrayPort.typeInfo = typeInfo;
+        arrayPort.setMember(memberPort);
+
+        processDependentTypes(id, arrayType.dependentTypes, visitedTypes, references);
+        return arrayPort;
+    }
+
+    private MappingPort handleEnumType(String id, String name, String typeName, RefType type,
+                                       Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        String enumTypeName = resolveTypeName(typeName, type, true);
+        TypeInfo typeInfo = createTypeInfo(type, true);
+
+        if (!(type instanceof RefEnumType enumType)) {
+            MappingEnumPort enumPort = new MappingEnumPort(id, name, enumTypeName, "enum", type.key);
+            enumPort.typeInfo = typeInfo;
+            return enumPort;
+        }
+
+        MappingEnumPort enumPort = new MappingEnumPort(id, enumTypeName, enumTypeName, "enum", type.key);
+        enumPort.typeInfo = typeInfo;
+
+        for (RefType member : enumType.members) {
+            MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
+                    member, visitedTypes, references);
+            if (memberPort != null) {
+                enumPort.members.add(memberPort);
+            }
+        }
+
+        processDependentTypes(id, enumType.dependentTypes, visitedTypes, references);
+        return enumPort;
+    }
+
+    private MappingPort handleUnionType(String id, String name, String typeName, RefType type,
+                                        Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        TypeInfo typeInfo = createTypeInfo(type, true);
+        MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.key);
+        unionPort.typeInfo = typeInfo;
+
+        if (!(type instanceof RefUnionType unionType)) {
+            return unionPort;
+        }
+
+        List<String> memberNames = new ArrayList<>();
+        for (RefType member : unionType.memberTypes) {
+            MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes, references);
+            if (memberPort != null) {
+                unionPort.members.add(memberPort);
+                memberNames.add(memberPort.typeName);
+            }
+        }
+        unionPort.typeName = String.join(PIPE, memberNames);
+
+        processDependentTypes(id, unionType.dependentTypes, visitedTypes, references);
+        return unionPort;
+    }
+
+    private MappingPort createSimpleMappingPort(String id, String name, String typeName, RefType type) {
+        String portTypeName = resolveTypeName(typeName, type, true);
+        TypeInfo typeInfo = createTypeInfo(type, true);
+        MappingPort mappingPort = new MappingPort(id, name, portTypeName, portTypeName);
+        mappingPort.typeInfo = typeInfo;
+        return mappingPort;
+    }
+
+    private MappingRecordPort createRecordPort(String id, String name, String typeName, RefType type) {
+        String recordTypeName = resolveTypeName(typeName, type, true);
+        TypeInfo typeInfo = createTypeInfo(type, true);
+        MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", type.key);
+        recordPort.typeInfo = typeInfo;
+        return recordPort;
+    }
+
+    private String resolveTypeName(String typeName, RefType type, boolean includePrefix) {
+        if (!isExternalType(type) || !includePrefix) {
+            return typeName;
+        }
+        return type.moduleInfo.modulePrefix + ":" + typeName;
+    }
+
+    private TypeInfo createTypeInfo(RefType type, boolean condition) {
+        return (isExternalType(type) && condition)
+                ? new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName)
+                : null;
+    }
+
+    private String buildArrayTypeName(MappingPort memberPort, RefType type) {
+        if (memberPort == null) {
+            return "array[]";
+        }
+
+        String memberTypeName = memberPort.typeName;
+        boolean isUnionMember = memberPort.kind.endsWith("union");
+        if (isUnionMember) {
+            memberTypeName = "(" + memberTypeName + ")";
+        }
+
+        String arrayTypeName = memberTypeName + "[]";
+        if (isExternalType(type) && !isUnionMember) {
+            arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
+        }
+        return arrayTypeName;
+    }
+
+    private void populateRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
+                                      Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        for (ReferenceType.Field field : recordType.fields) {
+            MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
+                    field.type(), visitedTypes, references);
+            if (fieldPort != null) {
+                fieldPort.setOptional(field.optional());
+            }
+            recordPort.fields.add(fieldPort);
+        }
+    }
+
+    private void addToReferences(Map<String, MappingPort> references, String key, MappingRecordPort recordPort) {
+        if (!references.containsKey(key)) {
+            references.put(key, new MappingRecordPort(recordPort, false));
+        }
+    }
+
+    private void processDependentTypes(String id, Map<String, RefType> dependentTypes,
+                                       Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (dependentTypes == null) {
+            return;
+        }
+
+        for (Map.Entry<String, RefType> entry : dependentTypes.entrySet()) {
+            getRefMappingPort(id + "." + entry.getKey(), entry.getKey(), entry.getValue(), visitedTypes, references);
+        }
     }
 
     private String getItemName(String name) {
