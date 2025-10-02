@@ -141,7 +141,7 @@ export function OperationForm(props: OperationFormProps) {
             documentation: model.name.metadata?.description || '',
             value: model.name.value,
             valueType: model.name.valueType,
-            valueTypeConstraint: model.name.valueTypeConstraint || '',
+            valueTypeConstraint: model.name?.valueTypeConstraint,
             lineRange: model?.name?.codedata?.lineRange
         });
 
@@ -158,7 +158,7 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.documentation.metadata?.description || '',
                 value: model.documentation.value,
                 valueType: model.documentation.valueType,
-                valueTypeConstraint: model.documentation.valueTypeConstraint || ''
+                valueTypeConstraint: model.documentation?.valueTypeConstraint
             });
         }
 
@@ -191,7 +191,7 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
                 valueType: model.returnType.valueType,
-                valueTypeConstraint: model.returnType.valueTypeConstraint || ''
+                valueTypeConstraint: model.returnType?.valueTypeConstraint
             }
         );
 
@@ -302,7 +302,7 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
         documentation: param.metadata?.description || '',
         value: param.value || '',
         valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || '',
+        valueTypeConstraint: param?.valueTypeConstraint,
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };
