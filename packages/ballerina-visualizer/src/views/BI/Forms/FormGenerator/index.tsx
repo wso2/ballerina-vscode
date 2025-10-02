@@ -317,7 +317,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!node) {
             return;
         }
-        if (node.codedata.node === "VARIABLE" && 
+        if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
             handleValueTypeConstChange(node.properties.type.value as string);
@@ -357,17 +357,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (nodeFormTemplate) {
             const formTemplateProperties = getFormProperties(nodeFormTemplate);
             enrichedNodeProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
-            console.log(">>> Form properties", { formProperties, formTemplateProperties, enrichedNodeProperties });
-        }
-        if (Object.keys(formProperties).length === 0) {
-            // update node position
-            node.codedata.lineRange = {
-                ...targetLineRange,
-                fileName: fileName,
-            };
-            // add node to source code
-            onSubmit();
-            return;
         }
 
         // hide connection property if node is a REMOTE_ACTION_CALL or RESOURCE_ACTION_CALL node
@@ -402,7 +391,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }));
 
         setRecordTypeFields(recordTypeFields);
-        console.log(">>> Fields with RECORD_TYPE:", recordTypeFields);
 
         // get node properties
         const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
@@ -411,13 +399,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleOnSubmit = (data: FormValues, dirtyFields: any) => {
-        console.log(">>> on form generator submit", data);
+        console.log(">>> FormGenerator handleOnSubmit", data);
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
-            console.log(">>> Updated node", updatedNode);
-
             const dataMapperMode = data["openInDataMapper"] ? DataMapperDisplayMode.VIEW : DataMapperDisplayMode.NONE;
-
             onSubmit( updatedNode, dataMapperMode, formImports);
         }
     };
@@ -438,7 +423,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
         const context: VisualizerLocation = {
             documentUri: filePath,
             position: position,
@@ -976,7 +960,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // Create the record type field for expression
         const expressionEntry = Object.entries(getFormProperties(node))
-            .find(([_, property]) => property.metadata?.label === "Expression");
+            .find(([_, property]) => {
+                if (node.codedata.node === "VARIABLE") {
+                    return property.metadata?.label === "Expression";
+                } else if (node.codedata.node === "CONFIG_VARIABLE") {
+                    return property.metadata?.label === "Default Value";
+                }
+                return false;
+            });
 
         if (!expressionEntry) return;
 
@@ -1288,8 +1279,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     // default form
     return (
-        <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
-            {fields && fields.length > 0 && (
+        <EditorContext.Provider
+            value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}
+        >
+            {fields && (
                 <Form
                     ref={ref}
                     formFields={fields}
@@ -1317,7 +1310,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
                     formImports={formImports}
                     handleSelectedTypeChange={handleSelectedTypeChange}
-                    preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
+                    preserveOrder={
+                        node.codedata.node === ("VARIABLE" as NodeKind) ||
+                        node.codedata.node === ("CONFIG_VARIABLE" as NodeKind) ||
+                        node.codedata.node === ("ASSIGN" as NodeKind)
+                    }
                     scopeFieldAddon={scopeFieldAddon}
                     newServerUrl={newServerUrl}
                     onChange={onChange}
@@ -1325,24 +1322,23 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onToolsChange={props.onToolsChange}
                 />
             )}
-            {
-                stack.map((item, i) => <DynamicModal
+            {stack.map((item, i) => (
+                <DynamicModal
                     key={i}
                     width={420}
                     height={600}
                     anchorRef={undefined}
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
-                    setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 20px' }}>
+                    setOpenState={handleTypeEditorStateChange}
+                >
+                    <div style={{ padding: "0px 20px" }}>
                         {stack.slice(0, i + 1).length > 2 && (
                             <BreadcrumbContainer>
                                 {stack.slice(0, i + 1).map((stackItem, index) => (
                                     <React.Fragment key={index}>
                                         {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "NewType"}
-                                        </BreadcrumbItem>
+                                        <BreadcrumbItem>{stackItem?.type?.name || "NewType"}</BreadcrumbItem>
                                     </React.Fragment>
                                 ))}
                             </BreadcrumbContainer>
@@ -1355,13 +1351,13 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={() => { }}
+                            onTypeCreate={() => {}}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                         />
                     </div>
-                </DynamicModal>)
-            }
+                </DynamicModal>
+            ))}
         </EditorContext.Provider>
     );
 });

@@ -55,6 +55,7 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
+import { UndoRedoGroup } from "../../components/UndoRedoGroup";
 
 // Types for model comparison
 interface ModelSignature {
@@ -82,7 +83,7 @@ export function DataMapperView(props: DataMapperProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
-    const [isUpdatingSource ,setIsUpdatingSource] = useState<boolean>(false);
+    const [isUpdatingSource, setIsUpdatingSource] = useState<boolean>(false);
 
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
@@ -95,12 +96,12 @@ export function DataMapperView(props: DataMapperProps) {
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
-    
+
     useEffect(() => {
-        const positionChanged = 
-            prevPositionRef.current?.line !== position?.line || 
+        const positionChanged =
+            prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
-        
+
         setViewState(prevState => ({
             viewId: positionChanged ? name : prevState.viewId || name,
             codedata: codedata,
@@ -108,7 +109,7 @@ export function DataMapperView(props: DataMapperProps) {
             // This ensures that changing the position resets the sub-mapping context.
             subMappingName: !positionChanged && prevState.subMappingName
         }));
-        
+
         prevPositionRef.current = position;
     }, [name, codedata, position]);
 
@@ -237,7 +238,8 @@ export function DataMapperView(props: DataMapperProps) {
                 filePath,
                 codedata: viewState.codedata,
                 varName: name,
-                targetField: outputId,
+                outputId: outputId,
+                targetField: viewId,
                 propertyKey: "expression", // TODO: Remove this once the API is updated
                 subMappingName: viewState.subMappingName
             };
@@ -570,11 +572,12 @@ export function DataMapperView(props: DataMapperProps) {
                     fieldId: outputId,
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
                 let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                     filePath,
                     context: {
                         expression: value,
-                        startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
+                        startLine: startLine,
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
@@ -626,6 +629,10 @@ export function DataMapperView(props: DataMapperProps) {
         setFilteredCompletions([]);
     }
 
+    const undoRedoGroup = () => {
+        return <UndoRedoGroup key={Date.now()} />;
+    }
+
     return (
         <>
             {isFetching && (
@@ -660,6 +667,7 @@ export function DataMapperView(props: DataMapperProps) {
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
+                            undoRedoGroup={undoRedoGroup}
                             expressionBar={{
                                 completions: filteredCompletions,
                                 isUpdatingSource,
