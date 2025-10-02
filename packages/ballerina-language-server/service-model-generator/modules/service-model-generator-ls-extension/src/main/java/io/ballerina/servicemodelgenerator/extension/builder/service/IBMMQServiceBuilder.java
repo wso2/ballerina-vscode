@@ -39,6 +39,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
 import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
@@ -55,7 +56,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
@@ -176,6 +180,35 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
+        // Check for existing IBM MQ listeners
+        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                context.semanticModel(), context.project());
+
+        if (!listeners.isEmpty()) {
+            // Remove listener configuration properties
+            Value listenerVarNameProperty = properties.remove(KEY_LISTENER_VAR_NAME);
+            Value name = properties.remove("name");
+            Value host = properties.remove("host");
+            Value port = properties.remove("port");
+            Value channel = properties.remove("channel");
+
+            // Build choice between existing and new listener
+            Value createNewListenerChoice =
+                    buildCreateNewListenerChoice(listenerVarNameProperty, name, host, port, channel);
+            Value useExistingListenerChoice = buildUseExistingListenerChoice(listeners);
+
+            Value choicesProperty = new Value.ValueBuilder()
+                    .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
+                    .value(true)
+                    .valueType(VALUE_TYPE_CHOICE)
+                    .enabled(true)
+                    .editable(true)
+                    .setAdvanced(true)
+                    .build();
+            choicesProperty.setChoices(List.of(useExistingListenerChoice, createNewListenerChoice));
+            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+        }
+
         // Add destination choice (Queue vs Topic)
         Value destinationChoice = buildDestinationChoice();
         properties.put(PROPERTY_DESTINATION, destinationChoice);
@@ -192,6 +225,67 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESTINATION);
 
+        Map<String, Value> properties = serviceInitModel.getProperties();
+
+        // Handle existing listener if configured
+        if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
+            return addServiceWithNewListener(context);
+        }
+        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+
+        ListenerDTO listenerDTO;
+        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
+            listenerDTO = new ListenerDTO(IBM_MQ, properties.get(KEY_EXISTING_LISTENER).getValue(), "");
+        } else {
+            listenerDTO = buildIBMMQListenerDTO(context);
+        }
+
+        // Build service annotation
+        String serviceAnnotation = buildServiceAnnotation(properties);
+
+        // Get required functions with conditional onMessage signature
+        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        applyAckModeToOnMessageFunction(functions, properties);
+        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
+
+        // Build complete service
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(listenerDTO.listenerDeclaration())
+                .append(NEW_LINE)
+                .append(serviceAnnotation)
+                .append(SERVICE).append(SPACE).append(SERVICE_TYPE).append(SPACE)
+                .append(ON).append(SPACE).append(listenerDTO.listenerVarName()).append(SPACE)
+                .append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        Map<String, List<TextEdit>> allEdits = new HashMap<>();
+        List<TextEdit> edits = new ArrayList<>();
+
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        allEdits.put(context.filePath(), edits);
+
+        // Check and add/update IBM MQ platform dependency if needed
+        Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
+        dependencyEdits.forEach((filePath, textEdits) -> {
+            allEdits.merge(filePath, textEdits, (existing, additional) -> {
+                existing.addAll(additional);
+                return existing;
+            });
+        });
+
+        return allEdits;
+    }
+
+    private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
 
         ListenerDTO listenerDTO = buildIBMMQListenerDTO(context);
@@ -238,6 +332,51 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         });
 
         return allEdits;
+    }
+
+    private Value buildCreateNewListenerChoice(Value listenerVarNameProperty, Value name, Value host,
+                                               Value port, Value channel) {
+        Map<String, Value> newListenerProps = new LinkedHashMap<>();
+        newListenerProps.put("name", name);
+        newListenerProps.put("host", host);
+        newListenerProps.put("port", port);
+        newListenerProps.put("channel", channel);
+        newListenerProps.put(KEY_LISTENER_VAR_NAME, listenerVarNameProperty);
+        return new Value.ValueBuilder()
+                .metadata("Create New Listener", "Create a new IBM MQ listener")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(false)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(newListenerProps)
+                .build();
+    }
+
+    private Value buildUseExistingListenerChoice(Set<String> listeners) {
+        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+        List<String> items = listeners.stream().toList();
+        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
+        Value existingListenerOptions = new Value.ValueBuilder()
+                .metadata("Select Listener", "Select from the existing IBM MQ listeners")
+                .value(items.getFirst())
+                .valueType(VALUE_TYPE_SINGLE_SELECT)
+                .setItems(itemsAsObject)
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+        existingListenerProps.put(KEY_EXISTING_LISTENER, existingListenerOptions);
+
+        return new Value.ValueBuilder()
+                .metadata("Use Existing Listener", "Use Existing Listener")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(false)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingListenerProps)
+                .build();
     }
 
     private Value buildDestinationChoice() {
