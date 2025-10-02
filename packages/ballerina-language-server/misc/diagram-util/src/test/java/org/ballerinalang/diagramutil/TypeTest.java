@@ -82,7 +82,7 @@ public class TypeTest {
         String typeJson = gson.toJson(type).concat(System.lineSeparator());
         String expectedTypeJson = gson.toJson(jsonObject.get("Type")).concat(System.lineSeparator());
         if (!typeJson.equals(expectedTypeJson)) {
-//            updateConfig(jsonPath, TypeJson);
+//            updateConfig(jsonPath, typeJson);
             Assert.fail(
                     String.format("Type JSON does not match.\n Expected : %s\n Received %s",
                             expectedTypeJson, typeJson));

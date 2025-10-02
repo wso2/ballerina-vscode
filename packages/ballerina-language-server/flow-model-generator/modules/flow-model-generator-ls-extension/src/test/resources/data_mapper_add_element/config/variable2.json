@@ -14,10 +14,11 @@
         "offset": 66
       }
     },
-    "sourceCode": "UserInfo[] userInfo = [];"
+    "sourceCode": ""
   },
   "propertyKey": "expression",
-  "targetField": "department.students",
+  "targetField": "department",
+  "outputId": "department.students",
   "output": {
     "variable2.bal": [
       {

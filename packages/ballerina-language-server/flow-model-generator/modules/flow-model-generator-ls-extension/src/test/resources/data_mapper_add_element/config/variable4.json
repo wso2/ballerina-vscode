@@ -17,7 +17,8 @@
     "sourceCode": ""
   },
   "propertyKey": "expression",
-  "targetField": "department.students.0.address",
+  "targetField": "department",
+  "outputId": "department.students.0.address",
   "output": {
     "variable3.bal": [
       {

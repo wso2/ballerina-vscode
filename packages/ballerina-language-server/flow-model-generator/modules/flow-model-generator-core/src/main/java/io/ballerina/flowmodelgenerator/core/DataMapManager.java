@@ -1024,7 +1024,11 @@ public class DataMapManager {
                                 references);
                         if (memberPort != null) {
                             unionPort.members.add(memberPort);
-                            memberNames.add(memberPort.typeName);
+                            if (isExternalType(member)) {
+                                memberNames.add(member.moduleInfo.modulePrefix + ":" + memberPort.typeName);
+                            } else {
+                                memberNames.add(memberPort.typeName);
+                            }
                         }
                     }
                     unionPort.typeName = String.join(PIPE, memberNames);
@@ -1062,6 +1066,15 @@ public class DataMapManager {
             Optional<ModuleSymbol> module = symbol.getModule();
             module.ifPresent(moduleSymbol -> mappingPort.moduleInfo = ModuleInfo.from(moduleSymbol.id()));
         }
+    }
+
+    private boolean isExternalType(RefType refType) {
+        if (refType.moduleInfo == null) {
+            return false;
+        }
+        ModuleInfo currentModuleInfo = ModuleInfo.from(this.document.module().descriptor());
+        return !refType.moduleInfo.orgName.equals(currentModuleInfo.org()) ||
+               !refType.moduleInfo.packageName.equals(currentModuleInfo.packageName());
     }
 
     public JsonElement getSource(Path filePath, JsonElement cd, JsonElement mp, String targetField) {
@@ -1694,7 +1707,8 @@ public class DataMapManager {
         return kind == TypeDescKind.RECORD;
     }
 
-    public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField) {
+    public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField,
+                                  String outputId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
 
@@ -1706,18 +1720,22 @@ public class DataMapManager {
         if (targetNode == null) {
             return gson.toJsonTree(textEditsMap);
         }
-        TypeSymbol targetType = targetNode.typeSymbol();
         MatchingNode matchingNode = targetNode.matchingNode();
         if (matchingNode == null) {
             return gson.toJsonTree(textEditsMap);
         }
+        TypeSymbol targetType = targetNode.typeSymbol();
         if (matchingNode.queryExpr() != null) {
             targetType = resolveArrayMemberType(targetType);
         }
-        targetType = resolveArrayMemberType(targetType);
+        targetType = resolveArrayMemberType(getTargetType(targetType, outputId));
         String defaultVal = DefaultValueGeneratorUtil.getDefaultValueForType(targetType);
 
-        ExpressionNode expr = matchingNode.expr();
+        MatchingNode matchingExpr = getTargetMappingExpr(matchingNode.expr(), outputId);
+        if (matchingExpr == null) {
+            return gson.toJsonTree(textEditsMap);
+        }
+        ExpressionNode expr = matchingExpr.expr();
         if (expr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
             throw new IllegalStateException("Expression is not a list constructor");
         }

@@ -17,7 +17,8 @@
     "sourceCode": "UserInfo[] userInfo = [];"
   },
   "propertyKey": "expression",
-  "targetField": "var1.names",
+  "targetField": "var1",
+  "outputId": "var1.names",
   "output": {
     "variable5.bal": [
       {
