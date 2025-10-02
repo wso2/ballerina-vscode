@@ -218,7 +218,13 @@ public class DataMapManager {
         Map<String, MappingPort> references = new HashMap<>();
         RefType refType;
         try {
-            refType = ReferenceType.fromSemanticSymbol(targetNode.typeSymbol(), typeDefSymbols);
+            TypeSymbol targetTypeSymbol = targetNode.typeSymbol();
+            TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
+            if (rawtargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
+                targetTypeSymbol =
+                        filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());
+            }
+            refType = ReferenceType.fromSemanticSymbol(targetTypeSymbol, typeDefSymbols);
         } catch (UnsupportedOperationException e) {
             return null;
         }
@@ -786,23 +792,7 @@ public class DataMapManager {
         TypeSymbol ts = typeSymbol;
         List<String> errorOrNil = new ArrayList<>();
         if (rawType.typeKind() == TypeDescKind.UNION) {
-            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) rawType;
-            List<TypeSymbol> memberTypes = new ArrayList<>();
-            for (TypeSymbol member : unionTypeSymbol.memberTypeDescriptors()) {
-                TypeSymbol rawMemberType = CommonUtils.getRawType(member);
-                if (rawMemberType.typeKind() == TypeDescKind.ERROR || rawMemberType.typeKind() == TypeDescKind.NIL) {
-                    errorOrNil.add(member.signature());
-                    continue;
-                }
-                memberTypes.add(member);
-            }
-
-            if (memberTypes.size() == 1) {
-                ts = memberTypes.getFirst();
-            } else {
-                ts = semanticModel.types().builder().UNION_TYPE
-                        .withMemberTypes(memberTypes.toArray(TypeSymbol[]::new)).build();
-            }
+            ts = filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawType, errorOrNil);
         }
 
         List<Symbol> typeDefSymbols = semanticModel.moduleSymbols().stream()
@@ -823,6 +813,24 @@ public class DataMapManager {
             typeName = typeName + PIPE + String.join(PIPE, errorOrNil);
         }
         return getRefMappingPort(id, name, typeName, refType, new HashMap<>(), references);
+    }
+
+    private TypeSymbol filterErrorOrNil(SemanticModel semanticModel, UnionTypeSymbol unionTypeSymbol,
+                                        List<String> errorOrNil) {
+        List<TypeSymbol> memberTypes = new ArrayList<>();
+        for (TypeSymbol member : unionTypeSymbol.memberTypeDescriptors()) {
+            TypeSymbol rawMemberType = CommonUtils.getRawType(member);
+            if (rawMemberType.typeKind() == TypeDescKind.ERROR || rawMemberType.typeKind() == TypeDescKind.NIL) {
+                errorOrNil.add(member.signature());
+                continue;
+            }
+            memberTypes.add(member);
+        }
+        if (memberTypes.size() == 1) {
+            return memberTypes.getFirst();
+        }
+        return semanticModel.types().builder().UNION_TYPE
+                .withMemberTypes(memberTypes.toArray(TypeSymbol[]::new)).build();
     }
 
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
