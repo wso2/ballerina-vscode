@@ -692,7 +692,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                 setCategories(convertedCategories);
                 initialCategoriesRef.current = convertedCategories; // Store initial categories
-                
+
                 setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
             })
@@ -864,41 +864,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // await handleSearch(searchText, functionType, "CHUNKER");
     };
 
-    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        console.log(">>> Updating current artifact location", { artifacts });
-        // Get the updated component and update the location
-        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
-        const currentType = (await rpcClient.getVisualizerLocation()).type;
-
-        // Find the correct artifact by currentIdentifier (id)
-        let currentArtifact = artifacts.artifacts.at(0);
-        for (const artifact of artifacts.artifacts) {
-            if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
-                currentArtifact = artifact;
-                if (artifact.resources && artifact.resources.length > 0) {
-                    const resource = artifact.resources.find(
-                        (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
-                    );
-                    if (resource) {
-                        currentArtifact = resource;
-                        break;
-                    }
-                }
-
-            } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
-                currentArtifact = artifact;
-            }
-
-            // Check if artifact has resources and find within those
-            if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find(
-                    (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
-                );
-                if (resource) {
-                    currentArtifact = resource;
-                }
-            }
-        }
+    const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
+        const currentArtifact = await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
         if (currentArtifact) {
             console.log(">>> currentArtifact", currentArtifact);
             if (isCreatingNewModelProvider.current) {
@@ -921,14 +888,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 await handleVectorKnowledgeBaseAdded();
                 return;
             }
-            await rpcClient.getVisualizerRpcClient().openView({
-                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-                location: {
-                    documentUri: currentArtifact.path,
-                    position: currentArtifact.position,
-                    identifier: currentIdentifier,
-                },
-            });
         }
         handleOnCloseSidePanel();
         if (isCreatingNewDataLoader.current) {
@@ -1287,7 +1246,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     if (noFormSubmitOptions) {
                         selectedNodeRef.current = undefined;
-                        await updateCurrentArtifactLocation(response);
+                        await updateArtifactLocation(response);
                     }
                     if (options?.closeSidePanel) {
                         selectedNodeRef.current = undefined;
@@ -1331,7 +1290,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         }
 
-        await updateCurrentArtifactLocation(deleteNodeResponse);
+        await updateArtifactLocation(deleteNodeResponse);
 
         selectedNodeRef.current = undefined;
         closeSidePanelAndFetchUpdatedFlowModel();
@@ -1380,7 +1339,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
                     selectedNodeRef.current = undefined;
-                    await updateCurrentArtifactLocation(response);
+                    await updateArtifactLocation(response);
                     closeSidePanelAndFetchUpdatedFlowModel();
                 } else {
                     console.error(">>> Error updating source code", response);
