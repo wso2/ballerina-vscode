@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * The extended service for the OpenAPIConverter endpoint.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 public class OpenAPIConverterResponse {
     @Deprecated

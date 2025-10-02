@@ -21,7 +21,7 @@ package io.ballerina.openapi.extension;
 /**
  * Represents the Service constants.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 public class OpenAPIServiceConstants {
     public static final String CAPABILITY_NAME = "openAPILSExtension";

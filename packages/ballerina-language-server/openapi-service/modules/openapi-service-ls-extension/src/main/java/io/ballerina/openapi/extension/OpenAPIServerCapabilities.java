@@ -23,7 +23,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaServerCapabili
 /**
  * Server capabilities for the OpenAPI converter service.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 public class OpenAPIServerCapabilities extends BallerinaServerCapability {
 

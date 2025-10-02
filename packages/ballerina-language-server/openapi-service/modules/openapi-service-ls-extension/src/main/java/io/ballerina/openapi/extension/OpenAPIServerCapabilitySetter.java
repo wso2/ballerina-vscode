@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * Capability setter for the {@link OpenAPIConverterService}.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaServerCapabilitySetter")
 public class OpenAPIServerCapabilitySetter extends

@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for the Ballerina to OpenAPI LS extension endpoint.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("openAPILSExtension")

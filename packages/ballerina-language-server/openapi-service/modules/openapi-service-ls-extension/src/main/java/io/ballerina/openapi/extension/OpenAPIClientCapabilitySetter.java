@@ -24,7 +24,7 @@ import org.ballerinalang.langserver.commons.registration.BallerinaClientCapabili
 /**
  * Client Capability setter for the {@link OpenAPIConverterService}.
  *
- * @since 1.3.0
+ * @since 1.2.1
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.registration.BallerinaClientCapabilitySetter")
 public class OpenAPIClientCapabilitySetter extends
