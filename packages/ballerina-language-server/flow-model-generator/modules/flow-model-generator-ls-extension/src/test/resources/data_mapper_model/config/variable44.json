@@ -32,7 +32,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "myStudent",
         "displayName": "myStudent",
         "typeName": "Student",
@@ -41,7 +40,6 @@
         "ref": "545732303"
       },
       {
-        "fields": [],
         "name": "student1",
         "displayName": "student1",
         "typeName": "Student",
@@ -51,7 +49,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "student2",
       "displayName": "student2",
       "typeName": "Student",

@@ -31,7 +31,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "var1",
         "displayName": "var1",
         "typeName": "redis:Options",
@@ -51,7 +50,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "var2",
       "displayName": "var2",
       "typeName": "redis:Options",

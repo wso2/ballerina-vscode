@@ -32,7 +32,6 @@
         "category": "variable"
       },
       {
-        "fields": [],
         "name": "u",
         "displayName": "u",
         "typeName": "User",
@@ -41,7 +40,6 @@
         "ref": "1373151159"
       },
       {
-        "fields": [],
         "name": "secondaryPhonesItem",
         "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",

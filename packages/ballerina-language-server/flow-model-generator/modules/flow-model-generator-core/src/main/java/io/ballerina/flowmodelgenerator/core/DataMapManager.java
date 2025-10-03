@@ -959,11 +959,12 @@ public class DataMapManager {
         MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", recordType.key);
         recordPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
 
-        populateRecordFields(recordPort, recordType, visitedTypes, references);
+        processRecordFields(recordPort, recordType, visitedTypes, references);
         addToReferences(references, recordType.key, recordPort);
         processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
 
-        return new MappingRecordPort(recordPort);
+        recordPort.fields = null;
+        return recordPort;
     }
 
     private MappingPort handleArrayType(String id, String name, RefType type,
@@ -1079,14 +1080,12 @@ public class DataMapManager {
         return arrayTypeName;
     }
 
-    private void populateRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
-                                      Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+    private void processRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
+                                     Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
         for (ReferenceType.Field field : recordType.fields) {
             MappingPort fieldPort = getRefMappingPort(field.fieldName(), field.fieldName(),
                     field.type(), visitedTypes, references);
-            if (fieldPort != null) {
-                fieldPort.setOptional(field.optional());
-            }
+            fieldPort.setOptional(field.optional());
             recordPort.fields.add(fieldPort);
         }
     }
@@ -2552,11 +2551,6 @@ public class DataMapManager {
 
         MappingRecordPort(String name, String displayName, String typeName, String kind, Boolean optional) {
             super(name, displayName, typeName, kind, optional);
-        }
-
-        MappingRecordPort(MappingRecordPort mappingRecordPort) {
-            super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
-                    mappingRecordPort.kind, mappingRecordPort.ref, mappingRecordPort.typeInfo);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort, boolean isReferenceType) {

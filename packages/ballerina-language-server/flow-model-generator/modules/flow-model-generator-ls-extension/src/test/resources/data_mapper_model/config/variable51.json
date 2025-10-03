@@ -25,7 +25,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "arr1",
         "displayName": "arr1",
         "typeName": "simpleTypeArr",
@@ -51,7 +50,6 @@
         "ref": "802102543"
       },
       {
-        "fields": [],
         "name": "m2ItemItem",
         "displayName": "m2ItemItem",
         "typeName": "MyType2",

@@ -31,7 +31,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "userInfo",
         "displayName": "userInfo",
         "typeName": "UserInfo",
@@ -55,7 +54,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "student",
       "displayName": "student",
       "typeName": "Student",

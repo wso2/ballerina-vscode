@@ -32,7 +32,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "bank",
         "displayName": "bank",
         "typeName": "Bank",
@@ -74,7 +73,6 @@
         "ref": "-481592369"
       },
       {
-        "fields": [],
         "name": "info",
         "displayName": "info",
         "typeName": "UserInfo",

@@ -52,7 +52,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "engineering",
       "displayName": "engineering",
       "typeName": "Department",

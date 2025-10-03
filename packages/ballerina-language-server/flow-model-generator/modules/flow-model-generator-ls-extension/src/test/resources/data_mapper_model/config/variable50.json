@@ -25,7 +25,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "arr1",
         "displayName": "arr1",
         "typeName": "simpleTypeArr",
@@ -35,7 +34,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "arr2",
       "displayName": "arr2",
       "typeName": "simpleTypeArr",

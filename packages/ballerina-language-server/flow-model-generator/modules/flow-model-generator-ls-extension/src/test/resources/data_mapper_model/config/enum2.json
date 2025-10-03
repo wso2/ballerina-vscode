@@ -24,7 +24,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "engineering",
         "displayName": "engineering",
         "typeName": "Department",
@@ -61,7 +60,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "engineering2",
       "displayName": "engineering2",
       "typeName": "Department",

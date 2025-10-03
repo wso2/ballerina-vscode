@@ -50,7 +50,6 @@
         "ref": "-1025985123"
       },
       {
-        "fields": [],
         "name": "elephant",
         "displayName": "elephant",
         "typeName": "Elephant|error",
@@ -60,7 +59,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "animalType",
       "displayName": "animalType",
       "typeName": "AnimalType",

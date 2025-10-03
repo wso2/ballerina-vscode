@@ -25,7 +25,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "u",
         "displayName": "u",
         "typeName": "User",

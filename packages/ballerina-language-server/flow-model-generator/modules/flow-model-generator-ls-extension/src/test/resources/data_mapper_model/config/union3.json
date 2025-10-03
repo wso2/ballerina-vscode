@@ -24,7 +24,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "dog",
         "displayName": "dog",
         "typeName": "Dog|()",
@@ -33,7 +32,6 @@
         "ref": "44278736"
       },
       {
-        "fields": [],
         "name": "elephant",
         "displayName": "elephant",
         "typeName": "Elephant",
@@ -43,7 +41,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "animalType",
       "displayName": "animalType",
       "typeName": "AnimalType",

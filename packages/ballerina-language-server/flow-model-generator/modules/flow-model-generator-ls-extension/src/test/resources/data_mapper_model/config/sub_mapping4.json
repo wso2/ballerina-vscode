@@ -48,7 +48,6 @@
         "ref": "-1418772512"
       },
       {
-        "fields": [],
         "name": "user",
         "displayName": "user",
         "typeName": "UserInfo",

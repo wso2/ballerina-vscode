@@ -24,7 +24,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "u",
         "displayName": "u",
         "typeName": "User",
@@ -34,7 +33,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "p",
       "displayName": "p",
       "typeName": "Person",

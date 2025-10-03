@@ -32,7 +32,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "userInfo",
         "displayName": "userInfo",
         "typeName": "UserInfo",
@@ -42,7 +41,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "student",
       "displayName": "student",
       "typeName": "Student",
@@ -51,7 +49,6 @@
     },
     "subMappings": [
       {
-        "fields": [],
         "name": "s",
         "displayName": "s",
         "typeName": "Student",

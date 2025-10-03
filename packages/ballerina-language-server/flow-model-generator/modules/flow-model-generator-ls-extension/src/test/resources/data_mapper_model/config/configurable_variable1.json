@@ -40,7 +40,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "student",
       "displayName": "student",
       "typeName": "Student",

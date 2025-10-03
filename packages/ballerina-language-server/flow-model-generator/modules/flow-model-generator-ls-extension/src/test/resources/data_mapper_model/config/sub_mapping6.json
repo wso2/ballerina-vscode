@@ -32,7 +32,6 @@
         "category": "constant"
       },
       {
-        "fields": [],
         "name": "s",
         "displayName": "s",
         "typeName": "Student",
@@ -41,7 +40,6 @@
         "ref": "545732303"
       },
       {
-        "fields": [],
         "name": "userInfo",
         "displayName": "userInfo",
         "typeName": "UserInfo",

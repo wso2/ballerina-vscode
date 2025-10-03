@@ -25,7 +25,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "l2Item",
         "displayName": "l2Item",
         "typeName": "l2Item",
@@ -35,7 +34,6 @@
         "ref": "1640916549"
       },
       {
-        "fields": [],
         "name": "var1",
         "displayName": "var1",
         "typeName": "MyType4",
@@ -44,7 +42,6 @@
         "ref": "-371017086"
       },
       {
-        "fields": [],
         "name": "l3ArrItem",
         "displayName": "l3ArrItem",
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
