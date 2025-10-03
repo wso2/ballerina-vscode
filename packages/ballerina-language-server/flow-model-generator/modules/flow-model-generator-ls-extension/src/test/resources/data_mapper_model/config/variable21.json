@@ -24,6 +24,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "std",
         "displayName": "std",
         "typeName": "Student",
@@ -33,6 +34,7 @@
       }
     ],
     "output": {
+      "fields": [],
       "name": "var1909",
       "displayName": "var1909",
       "typeName": "Person",

@@ -31,6 +31,7 @@
         "category": "constant"
       },
       {
+        "fields": [],
         "name": "user",
         "displayName": "user",
         "typeName": "UserInfo",
@@ -39,6 +40,7 @@
         "ref": "-1155761164"
       },
       {
+        "fields": [],
         "name": "user1",
         "displayName": "user1",
         "typeName": "UserInfo",
@@ -47,6 +49,7 @@
         "ref": "-1155761164"
       },
       {
+        "fields": [],
         "name": "user2",
         "displayName": "user2",
         "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
@@ -56,6 +59,7 @@
       }
     ],
     "output": {
+      "fields": [],
       "name": "student",
       "displayName": "student",
       "typeName": "Student",

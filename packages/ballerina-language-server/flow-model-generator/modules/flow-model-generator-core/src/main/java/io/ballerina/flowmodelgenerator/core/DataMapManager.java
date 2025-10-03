@@ -963,8 +963,7 @@ public class DataMapManager {
         addToReferences(references, recordType.key, recordPort);
         processDependentTypes(id, recordType.dependentTypes, visitedTypes, references);
 
-        recordPort.fields = null;
-        return recordPort;
+        return new MappingRecordPort(recordPort);
     }
 
     private MappingPort handleArrayType(String id, String name, RefType type,
@@ -2555,6 +2554,11 @@ public class DataMapManager {
 
         MappingRecordPort(String name, String displayName, String typeName, String kind, Boolean optional) {
             super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingRecordPort(MappingRecordPort mappingRecordPort) {
+            super(mappingRecordPort.name, mappingRecordPort.displayName, mappingRecordPort.typeName,
+                    mappingRecordPort.kind, mappingRecordPort.ref, mappingRecordPort.typeInfo);
         }
 
         MappingRecordPort(MappingRecordPort mappingRecordPort, boolean isReferenceType) {

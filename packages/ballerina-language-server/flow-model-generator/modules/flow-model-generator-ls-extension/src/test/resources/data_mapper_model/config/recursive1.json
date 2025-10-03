@@ -25,6 +25,7 @@
   "model": {
     "inputs": [],
     "output": {
+      "fields": [],
       "name": "person",
       "displayName": "person",
       "typeName": "Person",

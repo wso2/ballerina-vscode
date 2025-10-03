@@ -25,6 +25,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "fs1",
         "displayName": "fs1",
         "typeName": "FileSystem",
@@ -33,6 +34,7 @@
         "ref": "3692983"
       },
       {
+        "fields": [],
         "name": "fs2",
         "displayName": "fs2",
         "typeName": "FileSystem",

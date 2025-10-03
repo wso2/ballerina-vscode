@@ -24,6 +24,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "elephant",
         "displayName": "elephant",
         "typeName": "Elephant|InvalidIntError",
@@ -32,6 +33,7 @@
         "ref": "-2143678211"
       },
       {
+        "fields": [],
         "name": "elephantOrNil",
         "displayName": "elephantOrNil",
         "typeName": "Elephant|()",
@@ -41,6 +43,7 @@
       }
     ],
     "output": {
+      "fields": [],
       "name": "animalType",
       "displayName": "animalType",
       "typeName": "AnimalType",

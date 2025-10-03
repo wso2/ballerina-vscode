@@ -25,6 +25,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "input",
         "displayName": "input",
         "typeName": "Input",
@@ -34,6 +35,7 @@
       }
     ],
     "output": {
+      "fields": [],
       "name": "transform1",
       "displayName": "transform1",
       "typeName": "Output",

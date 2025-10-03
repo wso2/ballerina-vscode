@@ -25,6 +25,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "info",
         "displayName": "info",
         "typeName": "Info",
@@ -49,6 +50,7 @@
         "ref": "-1392347127"
       },
       {
+        "fields": [],
         "name": "secondaryPhonesItem",
         "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",

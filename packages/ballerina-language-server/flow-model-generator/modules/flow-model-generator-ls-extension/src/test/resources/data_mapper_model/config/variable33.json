@@ -24,6 +24,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "u1",
         "displayName": "u1",
         "typeName": "User",
@@ -32,6 +33,7 @@
         "ref": "1373151159"
       },
       {
+        "fields": [],
         "name": "user",
         "displayName": "user",
         "typeName": "User",
@@ -41,6 +43,7 @@
       }
     ],
     "output": {
+      "fields": [],
       "name": "var3",
       "displayName": "var3",
       "typeName": "Person5",

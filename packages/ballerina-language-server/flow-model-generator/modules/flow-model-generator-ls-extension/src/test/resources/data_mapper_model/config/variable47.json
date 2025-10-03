@@ -25,6 +25,7 @@
   "model": {
     "inputs": [
       {
+        "fields": [],
         "name": "v1",
         "displayName": "v1",
         "typeName": "MyType",

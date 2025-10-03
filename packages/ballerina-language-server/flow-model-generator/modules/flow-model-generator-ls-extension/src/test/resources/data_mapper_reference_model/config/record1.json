@@ -25,6 +25,7 @@
   "model": {
     "inputs": [],
     "output": {
+      "fields": [],
       "name": "finalNote",
       "displayName": "finalNote",
       "typeName": "FinalNote",

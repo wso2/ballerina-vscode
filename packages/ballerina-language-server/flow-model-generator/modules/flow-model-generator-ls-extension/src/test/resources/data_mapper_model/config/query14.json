@@ -97,6 +97,7 @@
         "ref": "2079019383"
       },
       {
+        "fields": [],
         "name": "y",
         "displayName": "y",
         "typeName": "MyType",
