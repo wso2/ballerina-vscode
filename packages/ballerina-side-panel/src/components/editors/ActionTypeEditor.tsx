@@ -144,18 +144,36 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
         if (typeof typeValue === 'string') {
             const trimmedValue = typeValue.trim();
 
-            // Check for traditional optional syntax (ends with '?')
+            // Check for optional syntax (ends with '?')
             if (trimmedValue.endsWith('?')) {
                 return true;
             }
 
+            // Check for standalone () - representing nil
             if (trimmedValue === '()') {
                 return true;
             }
 
+            // Check for union with () - representing nil
             if (trimmedValue.includes('()')) {
                 const unionParts = trimmedValue.split('|').map(part => part.trim());
                 return unionParts.some(part => part === '()');
+            }
+
+            // Check for stream<T> where T is optional
+            // Pattern: stream<string?, error> or stream<int|(), string>
+            if (trimmedValue.startsWith('stream<') && trimmedValue.includes('>')) {
+                const streamMatch = trimmedValue.match(/^stream<(.+)>$/);
+                if (streamMatch) {
+                    const typeParams = streamMatch[1];
+                    // Split by comma to get individual type parameters
+                    const params = typeParams.split(',').map(param => param.trim());
+                    // Check if the first type parameter (T) is optional
+                    if (params.length > 0) {
+                        const firstParam = params[0];
+                        return checkTypeOptional(firstParam);
+                    }
+                }
             }
 
             return false;
@@ -176,27 +194,49 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
         const currentValue = form.getValues(field.key) || field.value || '';
         console.log('handleMakeOptional - currentValue:', currentValue, 'field.value:', field.value);
 
-        if (!currentValue.toString().endsWith('?') && exprRef.current) {
-            const newValue = currentValue + '?';
-            console.log('Adding ? to make optional:', newValue);
+        if (exprRef.current) {
+            let newValue = currentValue;
 
-            // Update the form value using setValue instead of onChange
-            form.setValue(field.key, newValue, { shouldValidate: true, shouldDirty: true });
+            // Check if it's a stream type
+            if (currentValue.startsWith('stream<') && currentValue.includes('>')) {
+                const streamMatch = currentValue.match(/^stream<(.+)>$/);
+                if (streamMatch) {
+                    const typeParams = streamMatch[1];
+                    const params = typeParams.split(',').map(param => param.trim());
 
-            // Update the expression editor value directly
-            if (exprRef.current.inputElement) {
-                exprRef.current.inputElement.value = newValue;
+                    if (params.length > 0) {
+                        const firstParam = params[0];
+                        // Add ? to the first type parameter if it doesn't already have one
+                        if (!firstParam.endsWith('?') && !checkTypeOptional(firstParam)) {
+                            const modifiedFirstParam = firstParam + '?';
+                            params[0] = modifiedFirstParam;
+                            newValue = `stream<${params.join(', ')}>`;
+                        }
+                    }
+                }
+            } else if (!currentValue.toString().endsWith('?')) {
+                // For non-stream types, add ? at the end
+                newValue = currentValue + '?';
             }
 
-            // Move cursor to the end
-            const newCursorPosition = newValue.length;
-            cursorPositionRef.current = newCursorPosition;
+            // Only update if the value actually changed
+            if (newValue !== currentValue) {
+                // Update the form value using setValue instead of onChange
+                form.setValue(field.key, newValue, { shouldValidate: true, shouldDirty: true });
 
-            // Immediately update the optional state
-            setIsTypeOptional(true);
+                // Update the expression editor value directly
+                if (exprRef.current.inputElement) {
+                    exprRef.current.inputElement.value = newValue;
+                }
 
+                // Move cursor to the end
+                const newCursorPosition = newValue.length;
+                cursorPositionRef.current = newCursorPosition;
+
+                setIsTypeOptional(true);
+            }
         } else {
-            console.log('Not adding ? - already ends with ? or no exprRef');
+            console.log('Not adding ? - no exprRef');
         }
     };
 
