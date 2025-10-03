@@ -1005,7 +1005,6 @@ public class DataMapManager {
             MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes, references);
             unionPort.members.add(memberPort);
             memberNames.add(memberPort.typeName);
-
         }
         unionPort.typeName = String.join(PIPE, memberNames);
 
@@ -2174,8 +2173,7 @@ public class DataMapManager {
             List<TextEdit> textEdits = new ArrayList<>();
 
             if (functionMetadata.importTypeInfo() != null && !functionMetadata.importTypeInfo().isEmpty()) {
-                textEdits.addAll(generateImportTextEdits(workspaceManager, functionsFilePath,
-                        functionMetadata.importTypeInfo(), document));
+                textEdits.addAll(generateImportTextEdits(functionMetadata.importTypeInfo(), document));
             }
 
             if (isCustomFunction) {
@@ -2193,8 +2191,7 @@ public class DataMapManager {
         }
     }
 
-    private List<TextEdit> generateImportTextEdits(WorkspaceManager workspaceManager, Path filePath,
-                                                    List<TypeInfo> importTypeInfoList, Document document) {
+    private List<TextEdit> generateImportTextEdits(List<TypeInfo> importTypeInfoList, Document document) {
         List<TextEdit> importEdits = new ArrayList<>();
 
         if (document == null) {
