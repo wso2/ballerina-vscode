@@ -940,9 +940,12 @@ public class DataMapManager {
             case "array" -> handleArrayType(id, name, type, visitedTypes, references);
             case "enum" -> handleEnumType(id, name, typeName, type, visitedTypes, references);
             case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
-            default -> (type.hashCode == null || type.hashCode.isEmpty())
-                    ? createSimpleMappingPort(id, name, type.typeName, type)
-                    : null;
+            default -> {
+                if (type.hashCode != null && !type.hashCode.isEmpty()) {
+                    throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
+                }
+                yield createSimpleMappingPort(id, name, type.typeName, type);
+            }
         };
     }
 
@@ -953,9 +956,8 @@ public class DataMapManager {
         }
 
         String recordTypeName = resolveTypeName(typeName != null ? typeName : "record", type, typeName != null);
-        TypeInfo typeInfo = createTypeInfo(type, typeName != null);
         MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", recordType.key);
-        recordPort.typeInfo = typeInfo;
+        recordPort.typeInfo = (typeName != null && isExternalType(type)) ? createTypeInfo(type) : null;
 
         populateRecordFields(recordPort, recordType, visitedTypes, references);
         addToReferences(references, recordType.key, recordPort);
@@ -977,9 +979,8 @@ public class DataMapManager {
         }
 
         String arrayTypeName = buildArrayTypeName(memberPort, type);
-        TypeInfo typeInfo = createTypeInfo(type, true);
         MappingArrayPort arrayPort = new MappingArrayPort(id, name, arrayTypeName, "array", type.hashCode);
-        arrayPort.typeInfo = typeInfo;
+        arrayPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         arrayPort.setMember(memberPort);
 
         processDependentTypes(id, arrayType.dependentTypes, visitedTypes, references);
@@ -989,7 +990,7 @@ public class DataMapManager {
     private MappingPort handleEnumType(String id, String name, String typeName, RefType type,
                                        Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
         String enumTypeName = resolveTypeName(typeName, type, true);
-        TypeInfo typeInfo = createTypeInfo(type, true);
+        TypeInfo typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
 
         if (!(type instanceof RefEnumType enumType)) {
             MappingEnumPort enumPort = new MappingEnumPort(id, name, enumTypeName, "enum", type.key);
@@ -1014,9 +1015,8 @@ public class DataMapManager {
 
     private MappingPort handleUnionType(String id, String name, String typeName, RefType type,
                                         Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
-        TypeInfo typeInfo = createTypeInfo(type, true);
         MappingUnionPort unionPort = new MappingUnionPort(id, name, typeName, "union", type.key);
-        unionPort.typeInfo = typeInfo;
+        unionPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
 
         if (!(type instanceof RefUnionType unionType)) {
             return unionPort;
@@ -1038,17 +1038,15 @@ public class DataMapManager {
 
     private MappingPort createSimpleMappingPort(String id, String name, String typeName, RefType type) {
         String portTypeName = resolveTypeName(typeName, type, true);
-        TypeInfo typeInfo = createTypeInfo(type, true);
         MappingPort mappingPort = new MappingPort(id, name, portTypeName, portTypeName);
-        mappingPort.typeInfo = typeInfo;
+        mappingPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return mappingPort;
     }
 
     private MappingRecordPort createRecordPort(String id, String name, String typeName, RefType type) {
         String recordTypeName = resolveTypeName(typeName, type, true);
-        TypeInfo typeInfo = createTypeInfo(type, true);
         MappingRecordPort recordPort = new MappingRecordPort(id, name, recordTypeName, "record", type.key);
-        recordPort.typeInfo = typeInfo;
+        recordPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return recordPort;
     }
 
@@ -1059,10 +1057,8 @@ public class DataMapManager {
         return type.moduleInfo.modulePrefix + ":" + typeName;
     }
 
-    private TypeInfo createTypeInfo(RefType type, boolean condition) {
-        return (isExternalType(type) && condition)
-                ? new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName)
-                : null;
+    private TypeInfo createTypeInfo(RefType type) {
+        return new TypeInfo(type.moduleInfo.orgName, type.moduleInfo.moduleName);
     }
 
     private String buildArrayTypeName(MappingPort memberPort, RefType type) {
