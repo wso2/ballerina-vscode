@@ -132,8 +132,8 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
 
     const [isTypeHelperOpen, setIsTypeHelperOpen] = useState<boolean>(false);
 
-    /** HACK: FE implementation till we get the LS api to check the optionalsupport
-     * Checks if a type is optional by detecting various optional patterns:
+    /** HACK: FE implementation check the optional support of a type till the LS supports it
+     * Issue: https://github.com/wso2/product-ballerina-integrator/issues/1262
      */
     const checkTypeOptional = (typeValue: string | any[]): boolean => {
         if (!typeValue) {
@@ -190,9 +190,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
     };
 
     const handleMakeOptional = async () => {
-        console.log('handleMakeOptional triggered', form.getValues(field.key), form.watch(field.key));
         const currentValue = form.getValues(field.key) || field.value || '';
-        console.log('handleMakeOptional - currentValue:', currentValue, 'field.value:', field.value);
 
         if (exprRef.current) {
             let newValue = currentValue;
@@ -235,8 +233,6 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
 
                 setIsTypeOptional(true);
             }
-        } else {
-            console.log('Not adding ? - no exprRef');
         }
     };
 
@@ -497,7 +493,13 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                     }
                 </S.Header>
                 {field.valueTypeConstraint &&
-                    <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>{sanitizeType(field.valueTypeConstraint as string)}</S.Type>}
+                    <S.Type
+                        isVisible={focused}
+                        title={field.valueTypeConstraint as string}
+                    >
+                        {sanitizeType(field.valueTypeConstraint as string)}
+                    </S.Type>
+                }
             </S.HeaderContainer>
             <Controller
                 control={control}
@@ -510,9 +512,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                     }
                 }}
                 render={({ field: { name, value, onChange }, fieldState: { error } }) => {
-                    // Store onChange function and current value in refs so they can be accessed by the icon click handler
                     onChangeRef.current = onChange;
-                    // currentValueRef.current = value;
 
                     return (
                         <div>
