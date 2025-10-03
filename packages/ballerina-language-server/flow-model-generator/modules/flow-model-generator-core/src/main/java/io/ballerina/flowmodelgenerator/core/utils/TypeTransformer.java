@@ -180,8 +180,7 @@ public class TypeTransformer {
         typeDataBuilder.codedata().node(NodeKind.OBJECT);
 
         List<Qualifier> qualifiers = objectTypeSymbol.qualifiers();
-        String networkQualifier = qualifiers.contains(Qualifier.SERVICE) ?
-                "service" : (qualifiers.contains(Qualifier.CLIENT) ? "client" : "");
+        String networkQualifier = getNetworkQualifier(qualifiers);
         typeDataBuilder.properties()
                 .isIsolated(qualifiers.contains(Qualifier.ISOLATED), true, true, false)
                 .networkQualifier(networkQualifier, true, true, false);
@@ -335,6 +334,7 @@ public class TypeTransformer {
             for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
                 if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
                     isGraphqlId = true;
+                    insertGraphqlImport(memberBuilder);
                     break;
                 }
             }
@@ -355,6 +355,16 @@ public class TypeTransformer {
         typeDataBuilder.members(fieldMembers);
 
         return typeDataBuilder.build();
+    }
+
+    private static void insertGraphqlImport(Member.MemberBuilder memberBuilder) {
+        // TODO: Annotations from other imported modules are not supported yet
+        memberBuilder.imports(
+                Map.of(
+                        TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                        TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
+                )
+        );
     }
 
     public Object transform(UnionTypeSymbol unionTypeSymbol, TypeData.TypeDataBuilder typeDataBuilder) {
@@ -618,6 +628,13 @@ public class TypeTransformer {
         functionTypeSymbol.returnTypeAnnotations().ifPresent(returnTypeAnnots -> {
             for (AnnotationAttachmentSymbol annotAttachment : returnTypeAnnots.annotAttachments()) {
                 if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                    // TODO: Annotations from other imported modules are not supported yet
+                    functionBuilder.imports(
+                            Map.of(
+                                    TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
+                            )
+                    );
                     functionBuilder.isGraphqlId(true);
                     break;
                 }
@@ -642,6 +659,8 @@ public class TypeTransformer {
                 for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
                     if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
                         isGraphqlId = true;
+                        // TODO: Annotations from other imported modules are not supported yet
+                        insertGraphqlImport(memberBuilder);
                         break;
                     }
                 }
