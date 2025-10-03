@@ -22,6 +22,7 @@ import { useDiagramContext } from "../DiagramContext";
 import styled from "@emotion/styled";
 import { POPUP_BOX_WIDTH } from "../../resources/constants";
 import { TextArea, ThemeColors, Codicon, ProgressRing } from "@wso2/ui-toolkit";
+import { PopupOverlay } from "../PopupOverlay";
 
 export namespace PopupStyles {
     export const Container = styled.div`
@@ -36,6 +37,7 @@ export namespace PopupStyles {
         background-color: ${ThemeColors.SURFACE};
         color: ${ThemeColors.ON_SURFACE};
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
     `;
 
     export const Header = styled.div`
@@ -49,6 +51,8 @@ export namespace PopupStyles {
     export const Title = styled.div`
         font-size: 14px;
         font-family: "GilmerMedium";
+        margin-bottom: 2px;
+        margin-left: 2px;
     `;
 
     export const CloseButton = styled.div`
@@ -155,39 +159,42 @@ export function AddCommentPopup(props: AddCommentPopupProps) {
     };
 
     return (
-        <PopupStyles.Container
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onWheel={handleWheel}
-        >
-            <PopupStyles.Header>
-                <PopupStyles.Title>Add Comment</PopupStyles.Title>
-                <PopupStyles.CloseButton onClick={onClose} title="Close (Esc)">
-                    <Codicon name="close" />
-                </PopupStyles.CloseButton>
-            </PopupStyles.Header>
+        <>
+            <PopupOverlay onClose={onClose} />
+            <PopupStyles.Container
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onWheel={handleWheel}
+            >
+                <PopupStyles.Header>
+                    <PopupStyles.Title>Add Comment</PopupStyles.Title>
+                    <PopupStyles.CloseButton onClick={onClose} title="Close (Esc)">
+                        <Codicon name="close" />
+                    </PopupStyles.CloseButton>
+                </PopupStyles.Header>
 
-            <TextArea
-                placeholder="Enter a comment here"
-                value={comment}
-                onTextChange={handleOnCommentChange}
-                rows={4}
-                resize="vertical"
-                autoFocus
-                disabled={isSaving}
-                sx={{ width: "100%" }}
-            />
+                <TextArea
+                    placeholder="Enter a comment here"
+                    value={comment}
+                    onTextChange={handleOnCommentChange}
+                    rows={4}
+                    resize="vertical"
+                    autoFocus
+                    disabled={isSaving}
+                    sx={{ width: "100%" }}
+                />
 
-            {!isSaving ? (
-                <PopupStyles.InfoText>Press Enter to add a comment. Press Esc to cancel.</PopupStyles.InfoText>
-            ) : (
-                <PopupStyles.SavingContainer>
-                    <ProgressRing sx={{ width: 14, height: 14 }} />
-                    <span>Saving comment...</span>
-                </PopupStyles.SavingContainer>
-            )}
-        </PopupStyles.Container>
+                {!isSaving ? (
+                    <PopupStyles.InfoText>Press Enter to add a comment. Press Esc to cancel.</PopupStyles.InfoText>
+                ) : (
+                    <PopupStyles.SavingContainer>
+                        <ProgressRing sx={{ width: 14, height: 14 }} />
+                        <span>Saving comment...</span>
+                    </PopupStyles.SavingContainer>
+                )}
+            </PopupStyles.Container>
+        </>
     );
 }
 
