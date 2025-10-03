@@ -61,8 +61,8 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -508,8 +508,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             }
             if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
                 requiredParams.add(value.getValue());
-            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FILED)
-                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED)) {
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
+                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
                 includedParams.add(entry.getKey() + EQUALS_SEPARATOR + value.getValue());
             }
         }
