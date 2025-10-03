@@ -86,9 +86,9 @@ const IconButton = styled.div`
     }
 
     & > div:first-child {
-        width: 24px;
-        height: 24px;
-        font-size: 24px;
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
     }
 `;
 
@@ -125,7 +125,7 @@ export function TitleBar(props: TitleBarProps) {
             <LeftContainer>
                 {!hideBack && (
                     <IconButton data-testid="back-button" onClick={handleBackButtonClick}>
-                        <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
+                        <Icon name="bi-arrow-back" iconSx={{ fontSize: "20px", color: "var(--vscode-foreground)" }} />
                     </IconButton>
                 )}
                 {actions && <UndoRedoGroup key={Date.now()} />}
