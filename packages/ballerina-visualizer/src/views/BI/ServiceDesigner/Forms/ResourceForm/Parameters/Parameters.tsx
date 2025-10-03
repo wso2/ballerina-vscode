@@ -19,7 +19,7 @@
 
 import React, { useState } from 'react';
 
-import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup } from '@wso2/ui-toolkit';
+import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, ThemeColors } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
@@ -42,6 +42,27 @@ const AdvancedParamTitleWrapper = styled.div`
 	flex-direction: row;
 `;
 
+const OptionalConfigRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+`;
+
+const OptionalConfigButtonContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: flex-end;
+`;
+
+const OptionalConfigContent = styled.div`
+    margin-top: 16px;
+    padding-left: 24px;
+`;
+
 export function Parameters(props: ParametersProps) {
     const { parameters, readonly, onChange, schemas, showPayload } = props;
 
@@ -54,6 +75,16 @@ export function Parameters(props: ParametersProps) {
     const advancedDisabledParameters = parameters.filter(param => !param.httpParamType && !param.enabled);
     const advancedEnabledParameters = parameters.filter(param => !param.httpParamType && param.enabled);
     const advancedAllParameters = parameters.filter(param => !param.httpParamType).sort((a, b) => b.metadata.label.localeCompare(a.metadata.label));
+
+    const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(advancedEnabledParameters.length > 0);
+
+    const handleShowOptionalConfigurations = () => {
+        setShowOptionalConfigurations(true);
+    };
+
+    const handleHideOptionalConfigurations = () => {
+        setShowOptionalConfigurations(false);
+    };
 
 
     const [editModel, setEditModel] = useState<ParameterModel>(undefined);
@@ -71,9 +102,9 @@ export function Parameters(props: ParametersProps) {
         setIsNew(false);
         setEditModel(parameter);
         // Find and store the index of the parameter being edited
-        const index = parameters.findIndex(p => 
-            p.metadata?.label === parameter.metadata?.label && 
-            p.name?.value === parameter.name?.value && 
+        const index = parameters.findIndex(p =>
+            p.metadata?.label === parameter.metadata?.label &&
+            p.name?.value === parameter.name?.value &&
             p.httpParamType === parameter.httpParamType
         );
         setEditingIndex(index);
@@ -267,23 +298,46 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters End --------------------> */}
 
             {/* <-------------------- Advanced Parameters Checkbox Start --------------------> */}
-
             <>
-                <AdvancedParamTitleWrapper>
-                    <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Advanced Parameters</Typography>
-                </AdvancedParamTitleWrapper>
-                <CheckBoxGroup direction="vertical">
-                    {
-                        advancedAllParameters.map((param: ParameterModel, index) => (
-                            <CheckBox
-                                key={index}
-                                label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
-                                checked={param.enabled}
-                                onChange={(checked) => onAdvancedChecked(param, checked)}
-                            />
-                        ))
-                    }
-                </CheckBoxGroup>
+                <OptionalConfigRow>
+                    Advanced Parameters
+                    <OptionalConfigButtonContainer>
+                        {!showOptionalConfigurations && (
+                            <LinkButton
+                                onClick={handleShowOptionalConfigurations}
+                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                            >
+                                <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                Expand
+                            </LinkButton>
+                        )}
+                        {showOptionalConfigurations && (
+                            <LinkButton
+                                onClick={handleHideOptionalConfigurations}
+                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                            >
+                                <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                Collapse
+                            </LinkButton>
+                        )}
+                    </OptionalConfigButtonContainer>
+                </OptionalConfigRow>
+                {showOptionalConfigurations && (
+                    <OptionalConfigContent>
+                        <CheckBoxGroup direction="vertical">
+                            {
+                                advancedAllParameters.map((param: ParameterModel, index) => (
+                                    <CheckBox
+                                        key={index}
+                                        label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
+                                        checked={param.enabled}
+                                        onChange={(checked) => onAdvancedChecked(param, checked)}
+                                    />
+                                ))
+                            }
+                        </CheckBoxGroup>
+                    </OptionalConfigContent>
+                )}
                 <Divider />
             </>
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
