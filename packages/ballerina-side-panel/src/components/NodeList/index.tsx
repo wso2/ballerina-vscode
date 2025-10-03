@@ -435,6 +435,7 @@ export function NodeList(props: NodeListProps) {
 
                         return (
                             <Tooltip 
+                                key={node.id + index}
                                 content={node.description} 
                                 sx={{ 
                                     maxWidth: "280px",
@@ -444,7 +445,6 @@ export function NodeList(props: NodeListProps) {
                                 }}
                             >
                                 <S.Component
-                                    key={node.id + index}
                                     enabled={node.enabled}
                                     onClick={() => handleAddNode(node)}
                                 >

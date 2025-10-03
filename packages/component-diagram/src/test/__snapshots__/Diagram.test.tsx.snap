@@ -1,0 +1,4279 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: ai-agent-complex 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 1010px;"
+        >
+          <div
+            class="css-1v2vksi"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-1pw7pch"
+            >
+              <div
+                class="css-i39d00"
+              >
+                <div
+                  class="css-1spvwsg"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-connection"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="css-12znkyi"
+              >
+                <div
+                  class="css-nps6m6"
+                >
+                  redisClient
+                </div>
+                <div
+                  class="css-1vv0d9"
+                >
+                  Connection
+                </div>
+              </div>
+              <div
+                class="css-ij0d9h css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+              <div
+                class="css-165ws9o"
+              >
+                <div
+                  class="css-1jh13ph"
+                >
+                  Show More Resources
+                </div>
+                <div
+                  class="port "
+                  data-name="view-all-resources"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 332px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-ai-agent"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    AI Service
+                  </div>
+                  <div
+                    class="css-14sqwk5"
+                  />
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+            <div
+              class="port css-1npsqqa"
+              data-name="post-chat"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 332px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  ai:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders connections complex correctly: connections-complex 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 1010px;"
+        >
+          <div
+            class="css-1v2vksi"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-1pw7pch"
+            >
+              <div
+                class="css-i39d00"
+              >
+                <div
+                  class="css-1spvwsg"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-connection"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="css-12znkyi"
+              >
+                <div
+                  class="css-nps6m6"
+                >
+                  redisClient
+                </div>
+                <div
+                  class="css-1vv0d9"
+                >
+                  Connection
+                </div>
+              </div>
+              <div
+                class="css-ij0d9h css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+              <div
+                class="css-165ws9o"
+              >
+                <div
+                  class="css-1jh13ph"
+                >
+                  Show More Resources
+                </div>
+                <div
+                  class="port "
+                  data-name="view-all-resources"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders empty project correctly: empty-project 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      />
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: graphql-complex 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 1010px;"
+        >
+          <div
+            class="css-1v2vksi"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-1pw7pch"
+            >
+              <div
+                class="css-i39d00"
+              >
+                <div
+                  class="css-1spvwsg"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-connection"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="css-12znkyi"
+              >
+                <div
+                  class="css-nps6m6"
+                >
+                  redisClient
+                </div>
+                <div
+                  class="css-1vv0d9"
+                >
+                  Connection
+                </div>
+              </div>
+              <div
+                class="css-ij0d9h css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-ai-agent"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    AI Service
+                  </div>
+                  <div
+                    class="css-14sqwk5"
+                  />
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+            <div
+              class="port css-1npsqqa"
+              data-name="post-chat"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 244px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-zr8vic"
+                  >
+                    <i
+                      class="fw-bi-graphql"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    GraphQL Service
+                  </div>
+                  <div
+                    class="css-14sqwk5"
+                  />
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 340px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+              <div
+                class="css-165ws9o"
+              >
+                <div
+                  class="css-1jh13ph"
+                >
+                  Show More Resources
+                </div>
+                <div
+                  class="port "
+                  data-name="view-all-resources"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  ai:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 244px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  graphql:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 340px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders multiple connections complex correctly: multiple-connections-complex 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 1010px;"
+        >
+          <div
+            class="css-1v2vksi"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-1pw7pch"
+            >
+              <div
+                class="css-i39d00"
+              >
+                <div
+                  class="css-1spvwsg"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-connection"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="css-12znkyi"
+              >
+                <div
+                  class="css-nps6m6"
+                >
+                  redisClient
+                </div>
+                <div
+                  class="css-1vv0d9"
+                >
+                  Connection
+                </div>
+              </div>
+              <div
+                class="css-ij0d9h css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-ai-agent"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    AI Service
+                  </div>
+                  <div
+                    class="css-14sqwk5"
+                  />
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+            <div
+              class="port css-1npsqqa"
+              data-name="post-chat"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 244px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-zr8vic"
+                  >
+                    <i
+                      class="fw-bi-graphql"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    GraphQL Service
+                  </div>
+                  <div
+                    class="css-14sqwk5"
+                  />
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 340px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+              <div
+                class="css-165ws9o"
+              >
+                <div
+                  class="css-1jh13ph"
+                >
+                  Show More Resources
+                </div>
+                <div
+                  class="port "
+                  data-name="view-all-resources"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  ai:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 244px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  graphql:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 340px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders multiple services correctly: multiple-services 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+              <div
+                class="css-165ws9o"
+              >
+                <div
+                  class="css-1jh13ph"
+                >
+                  Show More Resources
+                </div>
+                <div
+                  class="port "
+                  data-name="view-all-resources"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders only automation correctly: only-automation 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      />
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 0px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m10.925 15.125l-1.4-1.4q-.15-.15-.325-.225t-.362-.075t-.375.075t-.338.225q-.3.3-.3.713t.3.712l2.125 2.15q.15.15.325.213t.375.062t.375-.062t.325-.213l4.225-4.225q.3-.3.3-.725t-.3-.725t-.725-.3t-.725.3zM6 22q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h7.175q.4 0 .763.15t.637.425l4.85 4.85q.275.275.425.638t.15.762V20q0 .825-.587 1.413T18 22zm7-14V4H6v16h12V9h-4q-.425 0-.712-.288T13 8M6 4v5zv16z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    Automation
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Component Diagram - Snapshot Tests renders simple service correctly: simple-service 1`] = `
+"<div>
+  <div
+    class="css-qrq0mx"
+  >
+    <div
+      class="css-1b56tvn"
+    >
+      <div
+        class="css-cs29wk"
+      >
+        <i
+          class="fw-bi-fit-screen"
+        />
+      </div>
+    </div>
+    <div
+      class="css-1cig59z"
+    >
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-plus"
+          />
+        </div>
+      </div>
+      <div
+        class="css-1b56tvn"
+      >
+        <div
+          class="css-cs29wk"
+        >
+          <i
+            class="fw-bi-minus"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="css-15d0qwh"
+    color="var(--vscode-foreground)"
+  >
+    <div
+      class="css-18f0176"
+    >
+      <svg
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <g
+        >
+          <g
+            pointer-events="all"
+          >
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="transparent"
+              stroke-width="16"
+            />
+            <path
+              d="M400 300 C400 300, 400 300, 400 300"
+              fill="none"
+              stroke="var(--vscode-foreground)"
+              stroke-width="1.5"
+            />
+            <defs>
+              <marker
+                markerHeight="8"
+                markerWidth="8"
+                orient="auto"
+                refX="6"
+                refY="4"
+                viewBox="0 0 8 8"
+              >
+                <polygon
+                  fill="var(--vscode-foreground)"
+                  points="0,8 0,0 6,4"
+                />
+              </marker>
+            </defs>
+            <defs>
+              <marker
+                markerHeight="10"
+                markerWidth="10"
+                orient="auto"
+                refX="5"
+                refY="5"
+                viewBox="0 0 10 10"
+              >
+                <polyline
+                  fill="none"
+                  points="0,5 5,2.5 2,0"
+                  stroke="var(--vscode-foreground)"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  transform="matrix(1,0,0,1,1.5,2.5)"
+                />
+              </marker>
+            </defs>
+          </g>
+        </g>
+      </svg>
+      <div
+        class="css-12q0bj3"
+        style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+      >
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 610px;"
+        >
+          <div
+            class="css-18qyo8"
+          >
+            <div
+              class="port css-17ojsx0"
+              data-name="in"
+            />
+            <div
+              class="css-3747zb"
+            >
+              <div
+                class="css-1qsh1rq"
+              >
+                <div
+                  class="css-e6qb9j"
+                >
+                  <div
+                    class="css-pk5gz1"
+                  >
+                    <i
+                      class="fw-bi-globe"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-qfsllv"
+                >
+                  <div
+                    class="css-3zq9ag"
+                  />
+                  <div
+                    class="css-14sqwk5"
+                  >
+                    http:Service
+                  </div>
+                </div>
+                <div
+                  class="css-ij0d9h css-1qcscwo"
+                >
+                  <vscode-button>
+                    <svg
+                      height="24"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                      />
+                    </svg>
+                    <input
+                      slot="form-associated-proxy"
+                      style="display: none;"
+                      type="undefined"
+                    />
+                  </vscode-button>
+                </div>
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-1ve7bhg"
+                    color="#3d7eff"
+                  >
+                    get
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /greeting
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="get-greeting"
+                />
+              </div>
+              <div
+                class="css-18qyo8"
+              >
+                <div
+                  class="css-1hw7c52"
+                >
+                  <div
+                    class="css-n0ufzt"
+                    color="#49cc90"
+                  >
+                    post
+                  </div>
+                  <div
+                    class="css-3zq9ag"
+                  >
+                    /users
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="post-users"
+                />
+              </div>
+            </div>
+            <div />
+            <div
+              class="port css-1npsqqa"
+              data-name="out"
+            />
+          </div>
+        </div>
+        <div
+          class="node css-nlpftr"
+          style="top: 100px; left: 250px;"
+        >
+          <div
+            class="css-1tzm7i5"
+          >
+            <div
+              class="css-tgthlr"
+            >
+              <div
+                class="css-j6r2z4"
+              >
+                <div
+                  class="port css-17ojsx0"
+                  data-name="in"
+                />
+                <div
+                  class="css-1entvng"
+                >
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      color="currentColor"
+                      d="M14 8a2 2 0 1 1-4 0a2 2 0 0 1 4 0m2.959-3C17.619 5.87 18 6.898 18 8s-.381 2.13-1.041 3M7.04 5C6.381 5.87 6 6.898 6 8s.381 2.13 1.041 3m13.275-8C21.38 4.43 22 6.15 22 8s-.62 3.57-1.684 5M3.684 3C2.62 4.43 2 6.15 2 8s.62 3.57 1.684 5M11 10L7 21m10 0l-4-11m-4.5 7h7"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="port css-1npsqqa"
+                  data-name="out"
+                />
+              </div>
+              <div
+                class="css-1958obz css-1qcscwo"
+              >
+                <vscode-button>
+                  <svg
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                    />
+                  </svg>
+                  <input
+                    slot="form-associated-proxy"
+                    style="display: none;"
+                    type="undefined"
+                  />
+                </vscode-button>
+              </div>
+              <div
+                class="css-90fogs"
+              >
+                <div
+                  class="css-dwbn0j"
+                />
+                <div
+                  class="css-1vv0d9"
+                >
+                  http:Listener
+                </div>
+              </div>
+            </div>
+            <div />
+          </div>
+        </div>
+      </div>
+      <div
+        class="css-12q0bj3"
+      >
+        <div
+          class="css-15d0qwh"
+          color="var(--vscode-foreground)"
+        >
+          <div
+            class="css-8z0lf3"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-1vredql"
+              color="var(--vscode-contrastBorder, var(--vscode-button-background))"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
