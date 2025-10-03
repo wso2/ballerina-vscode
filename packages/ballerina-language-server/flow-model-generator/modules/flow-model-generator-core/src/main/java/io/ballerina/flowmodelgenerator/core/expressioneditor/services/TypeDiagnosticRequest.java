@@ -46,6 +46,7 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
     private static final String UNDEFINED_TYPE = "undefined type '%s'";
     private static final String INVALID_SUBTYPE = "expected a subtype of '%s', but found '%s'";
     private static final DiagnosticErrorCode UNKNOWN_TYPE_ERROR_CODE = DiagnosticErrorCode.UNKNOWN_TYPE;
+    private static final String VAR_KEYWORD = "var";
 
     public TypeDiagnosticRequest(ExpressionEditorContext context) {
         super(context);
@@ -54,6 +55,16 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
     @Override
     protected Node getParsedNode(String text) {
         return NodeParser.parseTypeDescriptor(getTrimmedOutput(text));
+    }
+
+    @Override
+    protected Set<Diagnostic> getSyntaxDiagnostics(ExpressionEditorContext context) {
+        String inputExpression = getTrimmedOutput(context.info().expression());
+        // Skip validation for 'var' as it is a type inference keyword
+        if (isVarType(inputExpression)) {
+            return Set.of();
+        }
+        return super.getSyntaxDiagnostics(context);
     }
 
     @Override
@@ -66,6 +77,11 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
         }
         Set<Diagnostic> diagnostics = new HashSet<>();
         String inputExpression = getTrimmedOutput(context.info().expression());
+
+        // Skip validation for 'var' as it is a type inference keyword
+        if (isVarType(inputExpression)) {
+            return diagnostics;
+        }
 
         // Check for undefined types
         Types types = semanticModel.get().types();
@@ -93,6 +109,10 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
             }
         }
         return diagnostics;
+    }
+
+    private static boolean isVarType(String inputExpression) {
+        return inputExpression.trim().equals(VAR_KEYWORD);
     }
 
     private String getTrimmedOutput(String text) {
