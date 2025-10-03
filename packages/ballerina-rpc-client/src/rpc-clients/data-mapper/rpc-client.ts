@@ -22,6 +22,7 @@ import {
     AddClausesRequest,
     AddSubMappingRequest,
     AllDataMapperSourceRequest,
+    ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DMModelRequest,
     DataMapperAPI,
@@ -48,6 +49,7 @@ import {
     addClauses,
     addNewArrayElement,
     addSubMapping,
+    clearTypeCache,
     convertToQuery,
     deleteClause,
     deleteMapping,
@@ -149,5 +151,9 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
         return this._messenger.sendRequest(getProcessTypeReference, HOST_EXTENSION, params);
+    }
+
+    clearTypeCache(): Promise<ClearTypeCacheResponse> {
+        return this._messenger.sendRequest(clearTypeCache, HOST_EXTENSION);
     }
 }
