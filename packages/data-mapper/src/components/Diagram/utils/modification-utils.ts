@@ -120,7 +120,7 @@ function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext
 	const typeInfo = [...getImportTypeInfo(inputField), ...getImportTypeInfo(outputField)];
 
 	const filteredTypeInfo = Array.from(
-		new Map(typeInfo.map(item => [JSON.stringify(item), item])).values()
+		new Map(typeInfo.map(item => [item.orgName + ':' + item.moduleName + ':' + item.name + ':' + item.version, item])).values()
 	);
 
 	const metadata: FnMetadata = {
