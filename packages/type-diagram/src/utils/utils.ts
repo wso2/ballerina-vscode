@@ -231,53 +231,73 @@ export function focusToNode(node: NodeModel, currentZoomLevel: number, diagramEn
 export const getAttributeType = (attr: Member | TypeFunctionModel): string => {
 
     const type = 'returnType' in attr ? attr.returnType : (attr as Member).type;
+    const isOptional = 'optional' in attr && attr.optional;
 
     if (typeof type === 'string') {
-        return type;
+        return isOptional ? `${type}|()` : type;
     }
+
+    const formatUnionType = (types: string[]): string => types.join('|');
 
     // Get base type representation based on node kind
     const getTypeString = (members: Member[]): string => {
         const memberTypes = members.map(member => {
             if (typeof member.type === 'string') {
-                return member.type;
+                return member.optional ? `${member.type}|()` : member.type;
             }
             return getAttributeType(member);
         });
 
+        let baseType: string;
         switch (type.codedata.node) {
             case 'ARRAY':
-                return `${memberTypes[0]}[]`;
+                const elementType = memberTypes[0];
+                const elementMember = members[0];
+                // Check if the immediate child is a union type
+                const isUnionType = typeof elementMember.type === 'object' && elementMember.type.codedata.node === 'UNION';
+                baseType = isUnionType ? `(${elementType})[]` : `${elementType}[]`;
+                break;
             case 'UNION':
-                return memberTypes.reverse().join('|');
+                baseType = formatUnionType(memberTypes);
+                break;
             case 'MAP':
-                return `map<${memberTypes[0]}>`;
+                baseType = `map<${memberTypes[0]}>`;
+                break;
             case 'TABLE':
                 const rowType = members.find(m => m.name === 'rowType');
                 const keyConstraint = members.find(m => m.name === 'keyConstraintType');
                 const tableType = rowType ? getAttributeType(rowType) : 'unknown';
-                return keyConstraint
+                baseType = keyConstraint
                     ? `table<${tableType}> key<${getAttributeType(keyConstraint)}>`
                     : `table<${tableType}>`;
+                break;
             case 'STREAM':
-                return `stream<${memberTypes.reverse().join(',')}>`;
+                baseType = `stream<${[...members].reverse().join(',')}>`;
+                break;
             case 'FUTURE':
-                return `future<${memberTypes[0] || ''}>`;
+                baseType = `future<${memberTypes[0] || ''}>`;
+                break;
             case 'TYPEDESC':
-                return `typedesc<${memberTypes[0] || ''}>`;
+                baseType = `typedesc<${memberTypes[0] || ''}>`;
+                break;
             case 'TUPLE':
-                return `[${memberTypes.reverse().join(',')}]`;
+                baseType = `[${[...members].reverse().join(',')}]`;
+                break;
             case 'RECORD':
                 const recordMembers = [...members].reverse().map(member => {
                     const memberType = typeof member.type === 'string' ? member.type : getAttributeType(member);
                     return `${memberType} ${member.name}`;
                 });
-                return `record {${recordMembers.join(', ')}}`;// TODO: Verify anonymous records representation
+                baseType = `record {${recordMembers.join(', ')}}`;// TODO: Verify anonymous records representation
+                break;
             case 'ERROR':
-                return `error`; // HACK: This is a hack to represent error till we get refs a empty
+                baseType = `error`; // HACK: This is a hack to represent error till we get refs a empty
+                break;
             default:
-                return type.name || 'unknown';
+                baseType = type.name || 'unknown';
         }
+
+        return isOptional ? `${baseType}|()` : baseType;
     };
 
     return getTypeString(type.members);
