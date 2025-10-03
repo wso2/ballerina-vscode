@@ -2536,6 +2536,10 @@ public class DataMapManager {
             return typeInfo;
         }
 
+        public String getRef() {
+            return ref;
+        }
+
     }
 
     private static class MappingRecordPort extends MappingPort {
