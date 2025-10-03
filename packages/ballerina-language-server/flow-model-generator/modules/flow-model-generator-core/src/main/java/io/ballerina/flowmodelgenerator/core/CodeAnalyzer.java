@@ -617,7 +617,7 @@ public class CodeAnalyzer extends NodeVisitor {
         AgentCallBuilder.setAgentProperties(nodeBuilder, context, agentData);
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
 
-        nodeBuilder.metadata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
+        nodeBuilder.codedata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
     }
 
     private boolean isClassField(ExpressionNode expr) {

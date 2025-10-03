@@ -210,7 +210,7 @@ public class AgentCallBuilder extends CallBuilder {
 
     private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode,
                                                  Path projectRoot) {
-        Object agentCodedataObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_CODEDATA);
+        Object agentCodedataObj = agentCallNode.codedata().data().get(Constants.Ai.AGENT_CODEDATA);
 
         if (agentCodedataObj == null) {
             return AiUtils.createDefaultTemplateContext(sourceBuilder,
