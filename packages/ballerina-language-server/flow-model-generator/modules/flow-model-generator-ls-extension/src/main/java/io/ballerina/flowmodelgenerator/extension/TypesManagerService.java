@@ -545,16 +545,17 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                                                            String version, Path filePath) {
         // Check cache with filePath
         CacheKey keyWithPath = new CacheKey(org, packageName, version);
-        SemanticModel cachedModel = semanticModelCache.get(keyWithPath);
-        if (cachedModel != null) {
-            return Optional.of(cachedModel);
-        }
         // Try to load via filePath-specific method
         Optional<SemanticModel> model = PackageUtil.getSemanticModelIfMatched(workspaceManager, filePath, org,
                 packageName, moduleName, version);
         if (model.isPresent()) {
             semanticModelCache.put(keyWithPath, model.get());
             return model;
+        }
+
+        SemanticModel cachedModel = semanticModelCache.get(keyWithPath);
+        if (cachedModel != null) {
+            return Optional.of(cachedModel);
         }
 
         // Fallback to general package lookup
