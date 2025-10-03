@@ -752,8 +752,8 @@
           "advanced": false
         },
         "enabled": true,
-        "editable": false,
-        "optional": false,
+        "editable": true,
+        "optional": true,
         "advanced": false,
         "hidden": false
       },
@@ -822,8 +822,8 @@
           "advanced": false
         },
         "enabled": true,
-        "editable": false,
-        "optional": false,
+        "editable": true,
+        "optional": true,
         "advanced": false,
         "hidden": false
       },
@@ -893,8 +893,8 @@
           "advanced": false
         },
         "enabled": true,
-        "editable": false,
-        "optional": false,
+        "editable": true,
+        "optional": true,
         "advanced": false,
         "hidden": false
       }
