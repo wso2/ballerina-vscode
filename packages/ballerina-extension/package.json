@@ -213,14 +213,6 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
-                "ballerina.includeCurrentOrganizationInSearch": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Include components from the current organization in the search. This queries the Ballerina Central using the organization specified in the `Ballerina.toml`.",
-                    "tags": [
-                        "experimental"
-                    ]
-                },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,
