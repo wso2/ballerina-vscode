@@ -90,7 +90,11 @@ export interface DiagramContextState {
         onAccept(): void;
         onDiscard(): void;
     };
-    projectPath?: string;
+    project?: {
+        org: string;
+        path: string;
+        getProjectPath?:(segments: string | string[]) => Promise<string>;
+    };
     readOnly?: boolean;
     lockCanvas?: boolean;
     setLockCanvas?: (lock: boolean) => void;
@@ -142,7 +146,11 @@ export const DiagramContext = React.createContext<DiagramContextState>({
         onAccept: () => {},
         onDiscard: () => {},
     },
-    projectPath: "",
+    project: {
+        org: "",
+        path: "",
+        getProjectPath: () => Promise.resolve(""),
+    },
     readOnly: false,
     lockCanvas: false,
     setLockCanvas: (lock: boolean) => {},
