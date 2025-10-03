@@ -15,17 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-export interface View {
-    label: string;
-    sourceField?: string;
-    targetField: string;
-    subMappingInfo?: SubMappingInfo;
-}
 
-export interface SubMappingInfo {
-    index: number;
-    mappingName: string;
-    mappingType: string;
-    mapFnIndex?: number;
-    focusedOnSubMappingRoot?: boolean;
-}
+module.exports = {
+    presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        '@babel/preset-typescript',
+        ['@babel/preset-react', { runtime: 'automatic' }],
+    ],
+};
+
+
