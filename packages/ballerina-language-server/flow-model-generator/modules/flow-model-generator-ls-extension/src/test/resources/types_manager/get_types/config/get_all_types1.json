@@ -698,6 +698,7 @@
           "name": "getMake",
           "description": "Get the make of the vehicle",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -758,6 +759,7 @@
           "name": "setYear",
           "description": "",
           "returnType": "()",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -1726,6 +1728,7 @@
           "name": "getUuid",
           "description": "",
           "returnType": "int",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -2698,6 +2701,7 @@
           "name": "[int id]/country",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -2758,6 +2762,7 @@
           "name": "getYear",
           "description": "",
           "returnType": "int",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -2818,6 +2823,7 @@
           "name": "setYear",
           "description": "",
           "returnType": "()",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -2868,6 +2874,7 @@
           "name": "getMake",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
