@@ -158,7 +158,10 @@
             "name": "username",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": true
+            "isGraphqlId": true,
+            "imports": {
+              "graphql": "ballerina/graphql"
+            }
           },
           {
             "kind": "FIELD",
@@ -213,6 +216,9 @@
             "advanced": false,
             "hidden": false
           }
+        },
+        "imports": {
+          "graphql": "ballerina/graphql"
         }
       }
     ],

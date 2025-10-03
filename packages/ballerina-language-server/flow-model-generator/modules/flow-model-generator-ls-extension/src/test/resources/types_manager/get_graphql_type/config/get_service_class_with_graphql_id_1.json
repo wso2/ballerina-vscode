@@ -194,6 +194,9 @@
             "advanced": false,
             "hidden": false
           }
+        },
+        "imports": {
+          "graphql": "ballerina/graphql"
         }
       }
     ],

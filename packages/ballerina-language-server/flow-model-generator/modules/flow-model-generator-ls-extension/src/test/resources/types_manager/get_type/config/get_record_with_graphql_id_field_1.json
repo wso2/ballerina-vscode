@@ -97,7 +97,10 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": true,
-        "docs": ""
+        "docs": "",
+        "imports": {
+          "graphql": "ballerina/graphql"
+        }
       },
       {
         "kind": "FIELD",
