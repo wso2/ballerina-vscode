@@ -2161,6 +2161,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
+            overlay: {
+                visible: selectedNodeId !== undefined,
+                onClickOverlay: handleOnCloseSidePanel,
+            },
         }),
         [
             flowModel,

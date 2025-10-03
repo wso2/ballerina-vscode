@@ -72,14 +72,23 @@ export namespace NodeStyles {
         cursor: pointer;
     `;
 
-    export const Circle = styled.div<{ hovered: boolean }>`
+    export const Circle = styled.div<NodeStyleProp>`
         width: ${COMMENT_NODE_CIRCLE_WIDTH}px;
         height: ${COMMENT_NODE_CIRCLE_WIDTH}px;
         border-radius: 50%;
-        border: ${DRAFT_NODE_BORDER_WIDTH}px solid
-            ${(props: { hovered: boolean }) => (props.hovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY)};
-        background-color: ${(props: { hovered: boolean }) =>
-            props.hovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY};
+        border: ${NODE_BORDER_WIDTH}px solid;
+        border-color: ${(props: NodeStyleProp) =>
+            props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.PRIMARY};
+        background-color: ${(props: NodeStyleProp) =>
+            props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.PRIMARY};
         display: flex;
         justify-content: center;
         align-items: flex-end;
@@ -210,7 +219,12 @@ export function CommentNodeWidget(props: CommentNodeWidgetProps) {
 
     return (
         <NodeStyles.Node onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            <NodeStyles.Circle hovered={isHovered}>
+            <NodeStyles.Circle
+                hovered={isHovered}
+                disabled={model.node.suggested}
+                isSelected={isSelected}
+                readOnly={readOnly}
+            >
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
             </NodeStyles.Circle>
