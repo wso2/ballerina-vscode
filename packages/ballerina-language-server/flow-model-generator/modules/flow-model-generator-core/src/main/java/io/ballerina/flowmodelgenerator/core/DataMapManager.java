@@ -265,28 +265,26 @@ public class DataMapManager {
                     MappingPort mappingPort = getRefMappingPort(fromClauseVar, fromClauseVar,
                             Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, typeDefSymbols)),
                             new HashMap<>(), references);
-                    if (mappingPort != null) {
-                        mappingPort.setFocusExpression(expression.toString().trim());
-                        NonTerminalNode parent = matchingNode.queryExpr().parent();
-                        SyntaxKind parentKind = parent.kind();
-                        while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
-                                && parentKind != SyntaxKind.EXPRESSION_FUNCTION_BODY) {
-                            if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
-                                QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
-                                FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
-                                ExpressionNode parentExpression = parentFromClause.expression();
-                                String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
-                                        .toSourceCode().trim();
-                                Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
-                                if (expressionTypeSymbol.isPresent() && CommonUtils.getRawType(
-                                        expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
-                                    setFocusExpressionForInputPort(inputPorts, parentFromClauseVar,
-                                            parentExpression.toString().trim());
-                                }
+                    mappingPort.setFocusExpression(expression.toString().trim());
+                    NonTerminalNode parent = matchingNode.queryExpr().parent();
+                    SyntaxKind parentKind = parent.kind();
+                    while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
+                            && parentKind != SyntaxKind.EXPRESSION_FUNCTION_BODY) {
+                        if (parentKind == SyntaxKind.QUERY_EXPRESSION) {
+                            QueryExpressionNode parentQueryExpr = (QueryExpressionNode) parent;
+                            FromClauseNode parentFromClause = parentQueryExpr.queryPipeline().fromClause();
+                            ExpressionNode parentExpression = parentFromClause.expression();
+                            String parentFromClauseVar = parentFromClause.typedBindingPattern().bindingPattern()
+                                    .toSourceCode().trim();
+                            Optional<TypeSymbol> expressionTypeSymbol = semanticModel.typeOf(parentExpression);
+                            if (expressionTypeSymbol.isPresent() && CommonUtils.getRawType(
+                                    expressionTypeSymbol.get()).typeKind() == TypeDescKind.ARRAY) {
+                                setFocusExpressionForInputPort(inputPorts, parentFromClauseVar,
+                                        parentExpression.toString().trim());
                             }
-                            parent = parent.parent();
-                            parentKind = parent.kind();
                         }
+                        parent = parent.parent();
+                        parentKind = parent.kind();
                     }
                     inputPorts.add(mappingPort);
                     itemType = memberTypeSymbol.signature().trim();
@@ -748,10 +746,6 @@ public class DataMapManager {
                 }
                 MappingPort refMappingPort = getRefMappingPort(refType.name, refType.name, refType, new HashMap<>(),
                         references);
-
-                if (refMappingPort == null) {
-                    continue;
-                }
                 setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "constant";
                 refMappingPorts.add(refMappingPort);
@@ -768,9 +762,6 @@ public class DataMapManager {
 
                 MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName, refType,
                         new HashMap<>(), references);
-                if (refMappingPort == null) {
-                    continue;
-                }
                 setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "enum";
                 enumPorts.add(refMappingPort);
@@ -846,9 +837,6 @@ public class DataMapManager {
                 }
                 MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, new HashMap<>(),
                         references);
-                if (refMappingPort == null) {
-                    continue;
-                }
                 VariableSymbol varSymbol = (VariableSymbol) symbol;
                 setModuleInfo(varSymbol.typeDescriptor(), refMappingPort);
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
@@ -875,9 +863,6 @@ public class DataMapManager {
 
                 MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, new HashMap<>(),
                         references);
-                if (refMappingPort == null) {
-                    continue;
-                }
                 setModuleInfo(((ParameterSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "parameter";
                 mappingPorts.add(refMappingPort);
@@ -893,9 +878,6 @@ public class DataMapManager {
                 }
                 MappingPort refMappingPort = getRefMappingPort(refType.name, refType.name, refType, new HashMap<>(),
                         references);
-                if (refMappingPort == null) {
-                    continue;
-                }
                 setModuleInfo(((ConstantSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "constant";
                 mappingPorts.add(refMappingPort);
@@ -912,9 +894,6 @@ public class DataMapManager {
 
                 MappingPort refMappingPort = getRefMappingPort(refType.typeName, refType.typeName, refType,
                         new HashMap<>(), references);
-                if (refMappingPort == null) {
-                    continue;
-                }
                 setModuleInfo(((EnumSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "enum";
                 enumPorts.add(refMappingPort);
@@ -974,7 +953,7 @@ public class DataMapManager {
 
         String itemName = getItemName(name);
         MappingPort memberPort = getRefMappingPort(id, itemName, arrayType.elementType, visitedTypes, references);
-        if (memberPort != null && memberPort.displayName == null) {
+        if (memberPort.displayName == null) {
             memberPort.displayName = itemName;
         }
 
@@ -1004,9 +983,8 @@ public class DataMapManager {
         for (RefType member : enumType.members) {
             MappingPort memberPort = getRefMappingPort(enumPort.typeName + "." + member.name, member.name,
                     member, visitedTypes, references);
-            if (memberPort != null) {
-                enumPort.members.add(memberPort);
-            }
+            enumPort.members.add(memberPort);
+
         }
 
         processDependentTypes(id, enumType.dependentTypes, visitedTypes, references);
@@ -1025,10 +1003,9 @@ public class DataMapManager {
         List<String> memberNames = new ArrayList<>();
         for (RefType member : unionType.memberTypes) {
             MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes, references);
-            if (memberPort != null) {
-                unionPort.members.add(memberPort);
-                memberNames.add(memberPort.typeName);
-            }
+            unionPort.members.add(memberPort);
+            memberNames.add(memberPort.typeName);
+
         }
         unionPort.typeName = String.join(PIPE, memberNames);
 
