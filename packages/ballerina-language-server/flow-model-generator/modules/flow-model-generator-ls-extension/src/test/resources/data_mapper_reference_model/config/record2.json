@@ -25,7 +25,6 @@
   "model": {
     "inputs": [
       {
-        "fields": [],
         "name": "progressNote",
         "displayName": "progressNote",
         "typeName": "ProgressNote",
@@ -34,7 +33,6 @@
         "ref": "-736620629"
       },
       {
-        "fields": [],
         "name": "sampleRecord",
         "displayName": "sampleRecord",
         "typeName": "SampleRecord",
@@ -43,7 +41,6 @@
         "ref": "-1384157561"
       },
       {
-        "fields": [],
         "name": "sampleType",
         "displayName": "sampleType",
         "typeName": "SampleType",
@@ -53,7 +50,6 @@
       }
     ],
     "output": {
-      "fields": [],
       "name": "finalNote",
       "displayName": "finalNote",
       "typeName": "FinalNote",
