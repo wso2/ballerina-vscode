@@ -272,7 +272,7 @@ export const getAttributeType = (attr: Member | TypeFunctionModel): string => {
                     : `table<${tableType}>`;
                 break;
             case 'STREAM':
-                baseType = `stream<${memberTypes.reverse().join(',')}>`;
+                baseType = `stream<${[...members].reverse().join(',')}>`;
                 break;
             case 'FUTURE':
                 baseType = `future<${memberTypes[0] || ''}>`;
@@ -281,7 +281,7 @@ export const getAttributeType = (attr: Member | TypeFunctionModel): string => {
                 baseType = `typedesc<${memberTypes[0] || ''}>`;
                 break;
             case 'TUPLE':
-                baseType = `[${memberTypes.reverse().join(',')}]`;
+                baseType = `[${[...members].reverse().join(',')}]`;
                 break;
             case 'RECORD':
                 const recordMembers = [...members].reverse().map(member => {
