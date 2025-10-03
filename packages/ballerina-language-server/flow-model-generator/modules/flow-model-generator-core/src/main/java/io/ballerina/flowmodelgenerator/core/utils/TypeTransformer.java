@@ -20,7 +20,6 @@ package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
-import io.ballerina.compiler.api.symbols.Annotatable;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -616,7 +615,7 @@ public class TypeTransformer {
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
 
         // return type annotation
-        functionTypeSymbol.returnTypeAnnotations().ifPresent( returnTypeAnnots -> {
+        functionTypeSymbol.returnTypeAnnotations().ifPresent(returnTypeAnnots -> {
             for (AnnotationAttachmentSymbol annotAttachment : returnTypeAnnots.annotAttachments()) {
                 if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
                     functionBuilder.isGraphqlId(true);

@@ -41,6 +41,10 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class TypeUtils {
+    public static final String BALLERINA_ORG = "ballerina";
+    public static final String GRAPHQL_DEFAULT_MODULE_PREFIX = "graphql";
+    public static final String GRAPHQL_ID_ANNOTATION_NAME = "ID";
+
     private static final Set<TypeDescKind> BUILT_IN_TYPE_KINDS = Set.of(
             TypeDescKind.INT, TypeDescKind.BYTE, TypeDescKind.FLOAT,
             TypeDescKind.DECIMAL, TypeDescKind.BOOLEAN, TypeDescKind.STRING, TypeDescKind.READONLY,
@@ -105,10 +109,10 @@ public class TypeUtils {
     public static boolean isGraphqlIdAnnotation(AnnotationAttachmentSymbol annotAttach) {
         AnnotationSymbol annot = annotAttach.typeDescriptor();
         return annot.getName().isPresent()
-                && annot.getName().get().equals("ID")
+                && annot.getName().get().equals(GRAPHQL_ID_ANNOTATION_NAME)
                 && annot.getModule().isPresent()
-                && annot.getModule().get().id().orgName().equals("ballerina")
-                && annot.getModule().get().id().moduleName().equals("graphql");
+                && annot.getModule().get().id().orgName().equals(BALLERINA_ORG)
+                && annot.getModule().get().id().moduleName().equals(GRAPHQL_DEFAULT_MODULE_PREFIX);
     }
 
     private static void addTypeRefIds(TypeSymbol ts, ModuleInfo moduleInfo, List<String> typeRefs) {
