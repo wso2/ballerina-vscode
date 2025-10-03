@@ -384,7 +384,7 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> queueProps = new LinkedHashMap<>();
         queueProps.put(PROPERTY_QUEUE_NAME, new Value.ValueBuilder()
                 .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
-                .value("")
+                .value("\"DEV.QUEUE.1\"")
                 .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
                 .setPlaceholder("")
@@ -405,7 +405,7 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> topicProps = new LinkedHashMap<>();
         topicProps.put(PROPERTY_TOPIC_NAME, new Value.ValueBuilder()
                 .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
-                .value("")
+                .value("\"SYSTEM.BASE.TOPIC\"")
                 .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
                 .setPlaceholder("")
@@ -541,7 +541,7 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             }
 
             Value subscriberName = properties.get("subscriberName");
-            if (subscriberName != null && subscriberName.getValue() != null) {
+            if (subscriberName != null && subscriberName.getValue() != null && !subscriberName.getValue().isBlank()) {
                 configParams.add("subscriberName" + COLON_SEPARATOR + subscriberName.getValue());
             }
 
@@ -904,7 +904,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 if (functionNode != null) {
                     // Use FunctionBuilderRouter to generate function update edits
                     Map<String, List<TextEdit>> functionEdits = FunctionBuilderRouter.updateFunction(
-                            IBM_MQ, onMessageFunction, context.filePath(), context.document(), functionNode);
+                            IBM_MQ, onMessageFunction, context.filePath(), context.document(), functionNode,
+                            context.semanticModel(), context.project(), context.workspaceManager());
 
                     // Add function edits to the service edits
                     if (functionEdits.containsKey(context.filePath())) {
