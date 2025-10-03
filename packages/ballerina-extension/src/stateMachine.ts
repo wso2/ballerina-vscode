@@ -242,6 +242,7 @@ const stateMachine = createMachine<MachineContext>(
                                 actions: assign({
                                     view: (context, event) => event.data.view,
                                     identifier: (context, event) => event.data.identifier,
+                                    parentIdentifier: (context, event) => event.data.parentIdentifier,
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
