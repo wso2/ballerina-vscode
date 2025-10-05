@@ -27,6 +27,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import ExpressionBarWrapper from "./ExpressionBar";
 import EditButton from "./EditButton";
+import { RefreshResetGroup } from "./RefreshResetGroup";
 
 export interface DataMapperHeaderProps {
     views: View[];
@@ -44,23 +45,8 @@ export interface DataMapperHeaderProps {
 export function DataMapperHeader(props: DataMapperHeaderProps) {
     const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
 
-    const [isRefreshing, setIsRefreshing] = React.useState(false);
-    const [isResetting, setIsResetting] = React.useState(false);
-
     const handleAutoMap = async () => {
         await autoMapWithAI();
-    };
-
-    const handleOnRefresh = async () => {
-        setIsRefreshing(true);
-        await onRefresh();
-        setIsRefreshing(false);
-    };
-
-    const handleOnReset = async () => {
-        setIsResetting(true);
-        await onReset();
-        setIsResetting(false);
     };
 
     return (
@@ -70,24 +56,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 {undoRedoGroup && undoRedoGroup()}
-                <Button appearance="icon" onClick={handleOnRefresh} buttonSx={{ padding: "2px 4px" }} disabled={isRefreshing} tooltip="Refresh">
-                    <span style={{ pointerEvents: "none" }}>
-                        {isRefreshing ? (
-                            <ProgressRing sx={{ width: 16, height: 16 }} />
-                        ) : (
-                            <Codicon name="refresh" />
-                        )}
-                    </span>
-                </Button>
-                <Button appearance="icon" onClick={handleOnReset} buttonSx={{ padding: "2px 4px" }} disabled={isResetting} tooltip="Clear all mappings">
-                    <span style={{ pointerEvents: "none" }}>
-                        {isResetting ? (
-                            <ProgressRing sx={{ width: 16, height: 16 }} />
-                        ) : (
-                            <Codicon name="clear-all" />
-                        )}
-                    </span>
-                </Button>
+                <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
