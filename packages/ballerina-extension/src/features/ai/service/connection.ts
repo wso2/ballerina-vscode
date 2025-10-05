@@ -22,7 +22,7 @@ import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
