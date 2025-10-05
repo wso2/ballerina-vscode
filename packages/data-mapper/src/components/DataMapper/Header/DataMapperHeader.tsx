@@ -98,7 +98,7 @@ const HeaderContent = styled.div`
     background-color: var(--vscode-editorWidget-background);
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
     border-bottom: 1px solid rgba(102,103,133,0.15);
 `;
 

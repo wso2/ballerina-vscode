@@ -25,47 +25,52 @@ const ButtonGroup = styled.div`
     align-items: center;
 `;
 
+interface ActionButtonProps {
+    onClick: () => Promise<void>;
+    iconName: string;
+    tooltip: string;
+}
+
+function ActionButton({ onClick, iconName, tooltip }: ActionButtonProps) {
+    const [inProgress, setInProgress] = useState(false);
+    
+    const handleOnClick = async () => {
+        setInProgress(true);
+        await onClick();
+        setInProgress(false);
+    };
+    
+    return (
+        <Button appearance="icon" onClick={handleOnClick} disabled={inProgress} tooltip={tooltip}>
+            <span style={{ pointerEvents: "none" }}>
+                {inProgress ? (
+                    <ProgressRing sx={{ width: 16, height: 16 }} />
+                ) : (
+                    <Codicon name={iconName} />
+                )}
+            </span>
+        </Button>
+    );
+}
+
 interface RefreshResetGroupProps {
     onRefresh: () => Promise<void>;
     onReset: () => Promise<void>;
 }
 
 export function RefreshResetGroup({ onRefresh, onReset }: RefreshResetGroupProps) {
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isResetting, setIsResetting] = useState(false);
-
-    const handleOnRefresh = async () => {
-        setIsRefreshing(true);
-        await onRefresh();
-        setIsRefreshing(false);
-    };
-
-    const handleOnReset = async () => {
-        setIsResetting(true);
-        await onReset();
-        setIsResetting(false);
-    };
-
     return (
         <ButtonGroup>
-            <Button appearance="icon" onClick={handleOnRefresh} buttonSx={{ padding: "2px 4px" }} disabled={isRefreshing} tooltip="Refresh">
-                <span style={{ pointerEvents: "none" }}>
-                    {isRefreshing ? (
-                        <ProgressRing sx={{ width: 16, height: 16 }} />
-                    ) : (
-                        <Codicon name="refresh" />
-                    )}
-                </span>
-            </Button>
-            <Button appearance="icon" onClick={handleOnReset} buttonSx={{ padding: "2px 4px" }} disabled={isResetting} tooltip="Clear all mappings">
-                <span style={{ pointerEvents: "none" }}>
-                    {isResetting ? (
-                        <ProgressRing sx={{ width: 16, height: 16 }} />
-                    ) : (
-                        <Codicon name="clear-all" />
-                    )}
-                </span>
-            </Button>
+            <ActionButton 
+                onClick={onRefresh}
+                iconName="refresh"
+                tooltip="Refresh"
+            />
+            <ActionButton 
+                onClick={onReset}
+                iconName="clear-all"
+                tooltip="Clear all mappings"
+            />
         </ButtonGroup>
     );
 }
