@@ -1,0 +1,299 @@
+{
+    "automation": {
+        "name": "automation",
+        "location": {
+            "filePath": "/project/path/test_sample/automation.bal",
+            "startLine": {
+                "line": 3,
+                "offset": 0
+            },
+            "endLine": {
+                "line": 10,
+                "offset": 1
+            }
+        },
+        "connections": ["6c7ae89c-c248-9443-2c0b-5534b3581ac0"],
+        "type": "automation",
+        "uuid": "462782dc-5263-4780-8562-0c8296acf00a",
+        "enableFlowModel": true,
+        "sortText": "Z"
+    },
+    "connections": [
+        {
+            "symbol": "redisClient",
+            "location": {
+                "filePath": "/project/path/test_sample/connections.bal",
+                "startLine": {
+                    "line": 3,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 3,
+                    "offset": 46
+                }
+            },
+            "scope": 1,
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png",
+            "dependentFunctions": [],
+            "dependentConnection": [],
+            "uuid": "6c7ae89c-c248-9443-2c0b-5534b3581ac0",
+            "enableFlowModel": true,
+            "sortText": "connections.bal3"
+        },
+        {
+            "symbol": "_testAgentModel",
+            "location": {
+                "filePath": "/project/path/test_sample/connections.bal",
+                "startLine": {
+                    "line": 4,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 4,
+                    "offset": 80
+                }
+            },
+            "scope": 1,
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png",
+            "dependentFunctions": [],
+            "dependentConnection": [],
+            "uuid": "f1caedfd-fad2-9932-47fa-645c55741600",
+            "enableFlowModel": true,
+            "sortText": "connections.bal4"
+        }
+    ],
+    "listeners": [
+        {
+            "symbol": "testAgentListener",
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 44,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 44,
+                    "offset": 90
+                }
+            },
+            "attachedServices": ["7cf8230a-cf10-3394-197f-01560110a191"],
+            "kind": 1,
+            "type": "ai:Listener",
+            "args": [
+                {
+                    "key": "listenOn",
+                    "value": "check http:getDefaultListener()"
+                }
+            ],
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png",
+            "uuid": "072638fa-b170-dec3-052e-04fa8f00a698",
+            "enableFlowModel": true,
+            "sortText": "main.bal44"
+        },
+        {
+            "symbol": "graphqlDefaultListener",
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 4,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 4,
+                    "offset": 73
+                }
+            },
+            "attachedServices": ["6c8f4595-6307-7482-e41d-ea97cea135d9"],
+            "kind": 1,
+            "type": "graphql:Listener",
+            "args": [
+                {
+                    "key": "listenTo",
+                    "value": "8080"
+                }
+            ],
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.1.png",
+            "uuid": "87d006c9-a759-2007-1822-15a7491467b8",
+            "enableFlowModel": true,
+            "sortText": "main.bal4"
+        },
+        {
+            "symbol": "httpDefaultListener",
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 6,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 6,
+                    "offset": 71
+                }
+            },
+            "attachedServices": ["4c43aaec-e668-9c1a-f94f-cb145f652af9"],
+            "kind": 1,
+            "type": "http:Listener",
+            "args": [],
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+            "uuid": "e15f45b1-5461-9faa-b741-6713ce8567d3",
+            "enableFlowModel": true,
+            "sortText": "main.bal6"
+        }
+    ],
+    "services": [
+        {
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 46,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 51,
+                    "offset": 1
+                }
+            },
+            "attachedListeners": ["072638fa-b170-dec3-052e-04fa8f00a698"],
+            "connections": [],
+            "functions": [],
+            "remoteFunctions": [],
+            "resourceFunctions": [
+                {
+                    "accessor": "post",
+                    "path": "chat",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 47,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 50,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                }
+            ],
+            "absolutePath": "/testAgent ",
+            "type": "ai:Service",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png",
+            "uuid": "7cf8230a-cf10-3394-197f-01560110a191",
+            "enableFlowModel": true,
+            "sortText": "main.bal46"
+        },
+        {
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 53,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 55,
+                    "offset": 1
+                }
+            },
+            "attachedListeners": ["87d006c9-a759-2007-1822-15a7491467b8"],
+            "connections": [],
+            "functions": [],
+            "remoteFunctions": [],
+            "resourceFunctions": [],
+            "absolutePath": "/graphql ",
+            "type": "graphql:Service",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.1.png",
+            "uuid": "6c8f4595-6307-7482-e41d-ea97cea135d9",
+            "enableFlowModel": true,
+            "sortText": "main.bal53"
+        },
+        {
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 8,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 42,
+                    "offset": 1
+                }
+            },
+            "attachedListeners": ["e15f45b1-5461-9faa-b741-6713ce8567d3"],
+            "connections": [],
+            "functions": [],
+            "remoteFunctions": [],
+            "resourceFunctions": [
+                {
+                    "accessor": "get",
+                    "path": "greeting",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 9,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 17,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "post",
+                    "path": "users",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 19,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 25,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "put",
+                    "path": "users/[string id]",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 27,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 33,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "delete",
+                    "path": "users/[string id]",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 35,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 41,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                }
+            ],
+            "absolutePath": "/ ",
+            "type": "http:Service",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+            "uuid": "4c43aaec-e668-9c1a-f94f-cb145f652af9",
+            "enableFlowModel": true,
+            "sortText": "main.bal8"
+        }
+    ]
+}
