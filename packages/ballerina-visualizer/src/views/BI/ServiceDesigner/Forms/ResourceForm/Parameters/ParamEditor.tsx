@@ -129,7 +129,7 @@ export function ParamEditor(props: ParamProps) {
 
     const onParameterSubmit = (dataValues: any, formImports: FormImports) => {
         console.log('Param values', dataValues);
-        onSave({
+        const updatedParam = {
             ...param,
             type: {
                 ...param.type,
@@ -140,9 +140,17 @@ export function ParamEditor(props: ParamProps) {
             defaultValue: {
                 ...(param.defaultValue as PropertyModel),
                 value: dataValues['defaultValue'] ?? (param.defaultValue as PropertyModel)?.value,
-                enabled: dataValues['defaultValue'] && true
+                enabled: !!dataValues['defaultValue']
             }
-        });
+        };
+        
+        // Update the parent component's state first
+        onChange(updatedParam);
+        
+        // Then call onSave if provided
+        if (onSave) {
+            onSave(updatedParam);
+        }
     };
 
     useEffect(() => {

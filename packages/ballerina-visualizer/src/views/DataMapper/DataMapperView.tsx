@@ -529,8 +529,15 @@ export function DataMapperView(props: DataMapperProps) {
         onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
     }
 
-
     const onDMRefresh = async () => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .clearTypeCache();
+            console.log(">>> [Data Mapper] clearTypeCache response:", resp);
+        } catch (error) {
+            console.error(error);
+        }
         await refetch();
     };
 

@@ -193,6 +193,7 @@ export function CommentNodeWidget(props: CommentNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsHovered(false);
     };
 
     const menuItems: Item[] = [

@@ -258,9 +258,14 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceClassDesigner,
-                type: type,
-                projectUri: projectUri,
-                isGraphql: true
+                isGraphql: true,
+                position: {
+                    startLine: type.codedata.lineRange?.startLine?.line,
+                    startColumn: type.codedata.lineRange?.startLine?.offset,
+                    endLine: type.codedata.lineRange?.endLine?.line,
+                    endColumn: type.codedata.lineRange?.endLine?.offset,
+                },
+                documentUri: type.codedata.lineRange?.fileName,
             },
         });
         setEditingType(undefined);

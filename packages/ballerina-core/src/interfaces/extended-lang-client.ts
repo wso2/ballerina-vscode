@@ -470,6 +470,10 @@ export interface MapWithFnRequest {
     subMappingName?: string;
 }
 
+export interface ClearTypeCacheResponse {
+    success: boolean;
+}
+
 export interface GetDataMapperCodedataRequest {
     filePath: string;
     codedata: CodeData;
@@ -909,7 +913,6 @@ export type SearchQueryParams = {
     offset?: number;
     orgName?: string;
     includeAvailableFunctions?: string;
-    includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
 }
 
