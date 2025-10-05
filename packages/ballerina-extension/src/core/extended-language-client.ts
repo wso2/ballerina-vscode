@@ -259,7 +259,8 @@ import {
     onMigrationToolLogs,
     GetMigrationToolsResponse,
     DeleteSubMappingRequest,
-    DeleteClauseRequest
+    DeleteClauseRequest,
+    ClearTypeCacheResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -357,6 +358,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/fieldPosition',
+    DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
@@ -805,6 +807,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getProperty(params: PropertyRequest): Promise<PropertyResponse | NOT_SUPPORTED_TYPE> {
         return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_PROPERTY, params);
+    }
+
+    async clearTypeCache(): Promise<ClearTypeCacheResponse> {
+        return this.sendRequest<ClearTypeCacheResponse>(EXTENDED_APIS.DATA_MAPPER_CLEAR_TYPE_CACHE);
     }
 
     async getGraphqlModel(params: GraphqlDesignServiceParams): Promise<GraphqlDesignService | NOT_SUPPORTED_TYPE> {
