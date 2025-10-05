@@ -343,6 +343,7 @@ export async function toMaximizedLibrariesFromLibJson(
     const minifiedLibrariesWithoutRecords: Library[] = [];
 
     for (const funcResponse of functionResponses) {
+        console.log(`[toMaximizedLibrariesFromLibJson] Processing library: ${funcResponse.name}`);
         // Find the original library to get complete information
         const originalLib = originalLibraries.find((lib) => lib.name === funcResponse.name);
         if (!originalLib) {

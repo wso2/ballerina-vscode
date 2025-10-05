@@ -29,11 +29,11 @@ const LibraryProviderToolSchema = jsonSchema<{
         libraryNames: {
             type: "array",
             items: { type: "string" },
-            description: "List of Ballerina library names to fetch details for",
+            description: "List of Ballerina libraries to fetch details for. Each library name should be in the format 'organization/libraryName'",
         },
         userPrompt: {
             type: "string",
-            description: "User query to determine relevant functions and types",
+            description: "User query to determine which libraries are needed to fulfill the request",
         },
     },
     required: ["libraryNames", "userPrompt"],
@@ -60,47 +60,29 @@ export async function LibraryProviderTool(
 
 export function getLibraryProviderTool(libraryDescriptions: string, generationType: GenerationType) {
     return tool({
-        description: `Fetches detailed information about Ballerina libraries, including clients, functions, and types.
-This tool analyzes a user query and returns **only the relevant** clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
-
-To use this tool:
-- Analyze the user query provided in the user message to identify the relevant Ballerina libraries needed to fulfill the query.
-- Select the minimal set of libraries that can fulfill the query based on their descriptions. Do not assume library contents unless provided by the tool.
-- Call this tool with the selected libraryNames and the user query.
-
-# Example
-**Context** (library descriptions):
-${JSON.stringify(
-    [
-        {
-            name: "ballerinax/azure.openai.chat",
-            description: "Provides a Ballerina client for the Azure OpenAI Chat API.",
-        },
-        {
-            name: "ballerinax/github",
-            description: "Provides a Ballerina client for the GitHub API.",
-        },
-        {
-            name: "ballerinax/slack",
-            description: "Provides a Ballerina client for the Slack API.",
-        },
-        {
-            name: "ballerinax/http",
-            description: "Allows to interact with HTTP services.",
-        },
-    ],
-    null,
-    2
-)}
-**Query**: Write an application to read GitHub issues, summarize them, and post the summary to a Slack channel.
-**Tool Call**: Call with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
-
-Before calling this tool:
-- **Review all library descriptions** below.
-- Select only the libraries that might be needed to fulfill the user query.
+        description: `Fetches detailed information about Ballerina libraries along with their API documentation, including services, clients, functions, and types.
+This tool analyzes a user query and returns **only the relevant** services, clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
 
 Available libraries:
-${libraryDescriptions}`,
+<AVAILABLE LIBRARIES>
+${libraryDescriptions}
+</AVAILABLE LIBRARIES>
+
+Before calling this tool:
+- Review all library names and their descriptions.
+- Analyze the user query provided in the user message to identify the relevant Ballerina libraries which can be utilized to fulfill the query.
+- Select the minimal set of libraries that can fulfill the query based on their descriptions. 
+
+# Example
+**Query**: Write an integration to read GitHub issues, summarize them, and post the summary to a Slack channel.
+**Tool Call**: Call with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
+
+
+Tool Response:
+Tool responds with the following information about the requested libraries:
+name, description, type definitions (records, objects, enums, type aliases), clients(if any), functions and services(if any).
+
+`,
         inputSchema: LibraryProviderToolSchema,
         execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
             console.log(
