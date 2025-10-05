@@ -56,6 +56,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 {undoRedoGroup && undoRedoGroup()}
+                <VerticalDivider />
                 <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
@@ -109,11 +110,17 @@ const Title = styled.h2`
     color: var(--vscode-foreground);
 `;
 
+const VerticalDivider = styled.div`
+    height: 20px;
+    width: 1px;
+    background-color: var(--dropdown-border);
+`;
+
 const RightContainer = styled.div<{ isClickable: boolean }>`
     display: flex;
     align-items: center;
     gap: 12px;
-    pointer-events: ${({ isClickable }) => (isClickable ? 'auto' : 'none')};
+    pointer-events: ${({ isClickable }) => (isClickable ? "auto" : "none")};
     opacity: ${({ isClickable }) => (isClickable ? 1 : 0.5)};
 `;
 
