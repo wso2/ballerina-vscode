@@ -412,7 +412,13 @@ export class DataMapperRpcManager implements DataMapperAPI {
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .clearTypeCache()
+                .then((resp) => {
+                    resolve(resp);
+                });
+        });
     }
 }
