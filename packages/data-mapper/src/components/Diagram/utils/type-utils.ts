@@ -52,3 +52,8 @@ export function isEnumMember(parent: InputNode): boolean {
     }
     return parent.filteredInputType?.kind === TypeKind.Enum;
 }
+
+export function isPrimitive(typeKind: TypeKind): boolean {
+    return typeKind === TypeKind.String || typeKind === TypeKind.Int || typeKind === TypeKind.Float ||
+        typeKind === TypeKind.Decimal || typeKind === TypeKind.Boolean || typeKind === TypeKind.Byte;
+}

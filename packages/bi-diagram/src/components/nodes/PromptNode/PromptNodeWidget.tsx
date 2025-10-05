@@ -46,6 +46,7 @@ export namespace NodeStyles {
         hovered: boolean;
         hasError: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -62,7 +63,13 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
     `;
 
@@ -186,7 +193,7 @@ export namespace NodeStyles {
     export const StyledCircle = styled.circle`
         cursor: pointer;
         &:hover {
-            stroke: ${ThemeColors.HIGHLIGHT};
+            stroke: ${ThemeColors.SECONDARY};
         }
     `;
 }
@@ -209,13 +216,16 @@ export interface NodeWidgetProps extends Omit<PromptNodeWidgetProps, "children">
 export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const { model, engine } = props;
     const {
-        projectPath,
+        project,
         goToSource,
         openView,
         onNodeSave,
         expressionContext,
         aiNodes,
+        selectedNodeId,
     } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
     const {
         completions,
         triggerCharacters,
@@ -260,13 +270,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         goToSource?.(model.node);
     };
 
-    const openDataMapper = () => {
+    const openDataMapper = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -274,13 +285,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             });
     };
 
-    const viewFunction = () => {
+    const viewFunction = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -435,6 +447,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                 disabled={model.node.suggested}
                 hasError={hasError}
                 isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
