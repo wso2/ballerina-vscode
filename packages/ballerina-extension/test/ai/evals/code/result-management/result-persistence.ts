@@ -16,24 +16,35 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { UsecaseResult, Summary, SummaryCompact, UsecaseCompact } from '../types';
+import { UsecaseResult, Summary, SummaryCompact, UsecaseCompact, IterationSummary } from '../types';
 import { BALLERINA_TOML_TEMPLATE, FILES } from '../utils/constants';
 
 /**
  * Persists a single use case result to the file system
  */
 export async function persistUsecaseResult(
-    usecaseResult: UsecaseResult, 
-    index: number, 
-    resultsDir: string
+    usecaseResult: UsecaseResult,
+    index: number,
+    resultsDir: string,
+    iteration?: number
 ): Promise<void> {
-    const resultDir = path.join(resultsDir, index.toString());
+    // Create directory structure: results/iteration_X/Y/ or results/Y/ if no iterations
+    let resultDir: string;
+    if (iteration !== undefined) {
+        const iterationDir = path.join(resultsDir, `iteration_${iteration}`);
+        await fs.promises.mkdir(iterationDir, { recursive: true });
+        resultDir = path.join(iterationDir, index.toString());
+    } else {
+        resultDir = path.join(resultsDir, index.toString());
+    }
     await fs.promises.mkdir(resultDir, { recursive: true });
 
     const compactResult: UsecaseCompact = {
         usecase: usecaseResult.usecase,
         compiled: usecaseResult.compiled,
         duration: usecaseResult.duration,
+        iteration: usecaseResult.iteration,
+        toolEvents: usecaseResult.toolEvents,
         evaluationResult: usecaseResult.evaluationResult
     };
 
@@ -54,6 +65,14 @@ export async function persistUsecaseResult(
         );
     }
 
+    // Persist tool events if present
+    if (usecaseResult.toolEvents && usecaseResult.toolEvents.length > 0) {
+        await fs.promises.writeFile(
+            path.join(resultDir, "tool-events.json"),
+            JSON.stringify(usecaseResult.toolEvents, null, 2)
+        );
+    }
+
     const codeDir = path.join(resultDir, "code");
     await fs.promises.mkdir(codeDir, { recursive: true });
 
@@ -65,7 +84,7 @@ export async function persistUsecaseResult(
         await fs.promises.writeFile(filePath, file.content);
     }
 
-    console.log(`Result persisted for index ${index}: ${usecaseResult.usecase}${usecaseResult.errorEvents ? ` (${usecaseResult.errorEvents.length} error events)` : ''}`);
+    console.log(`Result persisted for index ${index}${iteration !== undefined ? ` (iteration ${iteration})` : ''}: ${usecaseResult.usecase}${usecaseResult.errorEvents ? ` (${usecaseResult.errorEvents.length} error events)` : ''}${usecaseResult.toolEvents ? ` (${usecaseResult.toolEvents.length} tool events)` : ''}`);
 }
 
 /**
@@ -91,4 +110,34 @@ export async function persistSummary(summary: Summary, resultsDir: string): Prom
     );
 
     console.log("Summary files saved");
+}
+
+/**
+ * Persists iteration summary information to the file system
+ */
+export async function persistIterationSummary(iterationSummary: IterationSummary, resultsDir: string): Promise<void> {
+    const iterationDir = path.join(resultsDir, `iteration_${iterationSummary.iteration}`);
+    await fs.promises.mkdir(iterationDir, { recursive: true });
+
+    // Create compact summary (without full results)
+    const compactSummary: SummaryCompact = {
+        totalUsecases: iterationSummary.totalUsecases,
+        totalCompiled: iterationSummary.totalCompiled,
+        totalFailed: iterationSummary.totalFailed,
+        accuracy: iterationSummary.accuracy
+    };
+
+    // Save compact summary
+    await fs.promises.writeFile(
+        path.join(iterationDir, "summary.json"),
+        JSON.stringify(compactSummary, null, 2)
+    );
+
+    // Save detailed summary with all results
+    await fs.promises.writeFile(
+        path.join(iterationDir, "summary_detailed.json"),
+        JSON.stringify(iterationSummary, null, 2)
+    );
+
+    console.log(`Iteration ${iterationSummary.iteration} summary saved: ${iterationSummary.totalCompiled}/${iterationSummary.totalUsecases} passed (${iterationSummary.accuracy}%)`);
 }

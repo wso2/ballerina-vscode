@@ -25,37 +25,42 @@ import { commands, Uri, workspace } from 'vscode';
  * Processes a single batch of test cases in parallel
  */
 export async function processSingleBatch(
-    batch: readonly TestUseCase[], 
-    batchNumber: number
+    batch: readonly TestUseCase[],
+    batchNumber: number,
+    iteration?: number
 ): Promise<readonly UsecaseResult[]> {
     try {
-        console.log(`\n📋 Processing batch ${batchNumber}: ${batch.map(uc => uc.id).join(', ')}`);
+        console.log(`\n📋 Processing batch ${batchNumber}${iteration !== undefined ? ` (iteration ${iteration})` : ''}: ${batch.map(uc => uc.id).join(', ')}`);
 
         // All test cases in the batch SHOULD share the same project path
         await setupTestEnvironmentForBatch(batch[0].projectPath);
-        const batchPromises = batch.map(useCase => 
+        const batchPromises = batch.map(useCase =>
             executeSingleTestCase(useCase)
         );
-        
+    
         const batchResults = await Promise.allSettled(batchPromises);
         const usecaseResults: UsecaseResult[] = [];
-        
+    
         for (let j = 0; j < batchResults.length; j++) {
             const settledResult = batchResults[j];
             const useCase = batch[j];
-            
+    
             let usecaseResult: UsecaseResult;
-            
+    
             if (settledResult.status === 'fulfilled') {
-                usecaseResult = convertTestResultToUsecaseResult(settledResult.value);
+                usecaseResult = convertTestResultToUsecaseResult(settledResult.value, iteration);
             } else {
                 console.error(`❌ Test case ${useCase.id} failed:`, settledResult.reason);
                 usecaseResult = createFailedUsecaseResult(useCase, settledResult.reason);
+                // Add iteration to failed result
+                if (iteration !== undefined) {
+                    usecaseResult = { ...usecaseResult, iteration };
+                }
             }
-            
+    
             usecaseResults.push(usecaseResult);
         }
-        
+    
         return usecaseResults;
     } catch (error) {
         console.error(`❌ Batch ${batchNumber} processing failed:`, (error as Error).message);

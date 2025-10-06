@@ -164,6 +164,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     break;
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
+                eventHandler({ type: "evals_tool_result", toolName, output: part.output });
+
                 break;
             }
             case "text-delta": {

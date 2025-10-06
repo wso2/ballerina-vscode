@@ -39,6 +39,39 @@ export interface DiagnosticMessage {
 }
 
 /**
+ * Tool call event - matches ChatNotify ToolCall from state-machine-types
+ */
+export interface ToolCallEvent {
+    readonly type: "tool_call";
+    readonly toolName: string;
+}
+
+/**
+ * Tool result event - matches ChatNotify ToolResult from state-machine-types
+ * Contains the library names returned by the LibraryProviderTool
+ */
+export interface ToolResultEvent {
+    readonly type: "tool_result";
+    readonly toolName: string;
+    readonly libraryNames: readonly string[];
+}
+
+/**
+ * Evals tool result event - matches ChatNotify EvalsToolResult from state-machine-types
+ * Contains the full JSON output from the LibraryProviderTool for debugging
+ */
+export interface EvalsToolResultEvent {
+    readonly type: "evals_tool_result";
+    readonly toolName: string;
+    readonly output: any;
+}
+
+/**
+ * Union type for all tool events captured during test execution
+ */
+export type ToolEvent = ToolCallEvent | ToolResultEvent | EvalsToolResultEvent;
+
+/**
  * Use case execution result
  */
 export interface UsecaseResult {
@@ -49,6 +82,34 @@ export interface UsecaseResult {
     readonly duration?: number;
     readonly timestamp?: number;
     readonly errorEvents?: readonly string[];
+    readonly toolEvents?: readonly ToolEvent[];
+    readonly iteration?: number;
+}
+
+/**
+ * Per-test-case accuracy across iterations
+ */
+export interface TestCaseAccuracy {
+    readonly testCaseIndex: number;
+    readonly usecase: string;
+    readonly successCount: number;
+    readonly totalAttempts: number;
+    readonly accuracy: number;
+}
+
+/**
+ * Iteration-specific summary
+ */
+export interface IterationSummary {
+    readonly iteration: number;
+    readonly totalUsecases: number;
+    readonly totalCompiled: number;
+    readonly totalFailed: number;
+    readonly accuracy: number;
+    readonly totalDuration: number;
+    readonly averageDuration: number;
+    readonly timestamp: number;
+    readonly results: readonly UsecaseResult[];
     readonly evaluationResult: LLMEvaluationResult;
 }
 
@@ -64,6 +125,9 @@ export interface Summary {
     readonly totalDuration: number;
     readonly averageDuration: number;
     readonly timestamp: number;
+    readonly iterations?: number;
+    readonly iterationResults?: readonly IterationSummary[];
+    readonly perTestCaseAccuracy?: readonly TestCaseAccuracy[];
     readonly evaluationSummary: number
 }
 
@@ -85,5 +149,7 @@ export interface UsecaseCompact {
     readonly usecase: string;
     readonly compiled: boolean;
     readonly duration?: number;
+    readonly iteration?: number;
+    readonly toolEvents?: readonly ToolEvent[];
     readonly evaluationResult: LLMEvaluationResult;
 }
