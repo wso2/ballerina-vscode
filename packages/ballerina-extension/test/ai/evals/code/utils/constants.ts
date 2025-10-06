@@ -22,7 +22,8 @@ import * as path from 'path';
  */
 export const DEFAULT_TEST_CONFIG: TestConfiguration = {
     // should be 1, 5, 10, 15, 20 ...
-    maxConcurrency: 5
+    maxConcurrency: 5,
+    iterations: 3
 } as const;
 
 /**

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Summary, UsecaseResult } from '../types';
+import { Summary, UsecaseResult, IterationSummary, TestCaseAccuracy } from '../types';
 
 /**
  * Generates comprehensive report from test summary
@@ -23,12 +23,22 @@ export function generateComprehensiveReport(summary: Summary): void {
     console.log('\n' + '='.repeat(80));
     console.log('📊 COMPREHENSIVE TEST EXECUTION REPORT');
     console.log('='.repeat(80));
-    
-    console.log(`\n📈 SUMMARY:`);
+
+    console.log(`\n📈 OVERALL SUMMARY:`);
     console.log(`   Total Use Cases: ${summary.totalUsecases}`);
     console.log(`   Compiled Successfully: ${summary.totalCompiled} (${Math.round(summary.accuracy)}%)`);
     console.log(`   Failed: ${summary.totalFailed} (${Math.round((summary.totalFailed / summary.totalUsecases) * 100)}%)`);
     console.log(`   Overall Accuracy: ${summary.accuracy}%`);
+
+    // Display iteration-specific summaries if multiple iterations
+    if (summary.iterations && summary.iterations > 1 && summary.iterationResults) {
+        logIterationSummaries(summary.iterationResults);
+    }
+
+    // Display per-test-case accuracy if multiple iterations
+    if (summary.iterations && summary.iterations > 1 && summary.perTestCaseAccuracy) {
+        logPerTestCaseAccuracy(summary.perTestCaseAccuracy);
+    }
 
     logSuccessfulCompilations(summary.results);
 
@@ -89,12 +99,58 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
 }
 
 /**
+ * Logs iteration-specific summaries
+ */
+function logIterationSummaries(iterationResults: readonly IterationSummary[]): void {
+    console.log('\n📊 PER-ITERATION ACCURACY:');
+    iterationResults.forEach(iter => {
+        console.log(`   Iteration ${iter.iteration}: ${iter.totalCompiled}/${iter.totalUsecases} passed (${iter.accuracy}%)`);
+    });
+}
+
+/**
+ * Logs per-test-case accuracy across iterations
+ */
+function logPerTestCaseAccuracy(testCaseAccuracy: readonly TestCaseAccuracy[]): void {
+    console.log('\n🎯 PER-TEST-CASE ACCURACY (across all iterations):');
+
+    // Group by accuracy ranges for better readability
+    const highAccuracy = testCaseAccuracy.filter(tc => tc.accuracy >= 80);
+    const mediumAccuracy = testCaseAccuracy.filter(tc => tc.accuracy >= 50 && tc.accuracy < 80);
+    const lowAccuracy = testCaseAccuracy.filter(tc => tc.accuracy < 50);
+
+    if (highAccuracy.length > 0) {
+        console.log('\n   ✅ High Success Rate (≥80%):');
+        highAccuracy.forEach(tc => {
+            console.log(`      Test ${tc.testCaseIndex}: ${tc.successCount}/${tc.totalAttempts} (${tc.accuracy}%) - ${tc.usecase.substring(0, 60)}...`);
+        });
+    }
+
+    if (mediumAccuracy.length > 0) {
+        console.log('\n   ⚠️  Medium Success Rate (50-79%):');
+        mediumAccuracy.forEach(tc => {
+            console.log(`      Test ${tc.testCaseIndex}: ${tc.successCount}/${tc.totalAttempts} (${tc.accuracy}%) - ${tc.usecase.substring(0, 60)}...`);
+        });
+    }
+
+    if (lowAccuracy.length > 0) {
+        console.log('\n   ❌ Low Success Rate (<50%):');
+        lowAccuracy.forEach(tc => {
+            console.log(`      Test ${tc.testCaseIndex}: ${tc.successCount}/${tc.totalAttempts} (${tc.accuracy}%) - ${tc.usecase.substring(0, 60)}...`);
+        });
+    }
+}
+
+/**
  * Logs execution start information
  */
-export function logExecutionStart(totalCases: number, maxConcurrency: number, resultsDir: string): void {
-    console.log(`\n🔥 Starting parallel execution of ${totalCases} test cases:`);
+export function logExecutionStart(totalCases: number, maxConcurrency: number, resultsDir: string, iterations?: number): void {
+    console.log(`\n🔥 Starting parallel execution of ${totalCases} test cases${iterations && iterations > 1 ? ` (${iterations} iterations)` : ''}:`);
     console.log(`   Max Concurrency: ${maxConcurrency}`);
     console.log(`   Results Directory: ${resultsDir}`);
+    if (iterations && iterations > 1) {
+        console.log(`   Total Test Runs: ${totalCases * iterations}`);
+    }
 }
 
 /**

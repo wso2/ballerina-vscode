@@ -74,6 +74,16 @@ export function createTestEventHandler(useCase?: TestUseCase): {
                 console.log(`[${useCase?.id || 'unknown'}] Diagnostics received`);
                 diagnostics.push(...(event.diagnostics || []));
                 break;
+            case "tool_call":
+                console.log(`[${useCase?.id || 'unknown'}] Tool called: ${event.toolName}`);
+                break;
+            case "tool_result":
+                console.log(`[${useCase?.id || 'unknown'}] Tool result from ${event.toolName}: ${event.libraryNames?.join(', ') || 'no libraries'}`);
+                break;
+            case "evals_tool_result":
+                console.log(`[${useCase?.id || 'unknown'}] [EVALS] Tool result from ${event.toolName}:`);
+                console.log(JSON.stringify(event.output, null, 2));
+                break;
             default:
                 console.warn(`[${useCase?.id || 'unknown'}] Unhandled event type: ${(event as unknown as { type: string }).type}`);
                 break;

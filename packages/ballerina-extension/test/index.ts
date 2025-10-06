@@ -23,8 +23,8 @@ if (!tty.getWindowSize) {
 let mocha = new Mocha({
     ui: "tdd",
     useColors: true,
-    timeout: 1000000,
-    retries: 3
+    timeout: 10000000,
+    retries: 1
 });
 
 function configure(mochaOpts: any): void {
