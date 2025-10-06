@@ -76,7 +76,7 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[]):
     const durations = results.filter(r => r.duration).map(r => r.duration!);
     const totalDuration = durations.reduce((sum, d) => sum + d, 0);
     const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
-    const evaluationSummary = results.reduce((sum, r) => sum + (r.evaluationResult.rating || 0), 0);
+    const evaluationSummary = results.reduce((sum, r) => sum + (r.evaluationResult == undefined ? 0 : (r.evaluationResult.rating == undefined ? 0 : r.evaluationResult.rating)), 0);
     
     return {
         results: results,

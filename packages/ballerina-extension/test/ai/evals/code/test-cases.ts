@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-export const testCases = [
+export const initialTestCases = [
   {
     prompt: "write an integration to get emails of the Users from a mysql table and send an email using gmail connector saying that you for buying the product",
     projectPath: "fresh_bi_package"
@@ -94,5 +94,82 @@ export const testCases = [
   {
     prompt: "Generate a CSV report from Google Sheets data and send the report to a Slack channel.",
     projectPath: "fresh_bi_package"
+  },
+];
+
+export const textEditSpecializedTestCases = [
+  {
+    // Covers: 1 (Look into files), 3 (Create new file)
+    // This prompt requires the copilot to understand where to place specific configurations (`connections.bal`, `config.bal`),
+    // handle data mapping logic (`data_mappings.bal`), and also create a completely new file (`salesforce_listener.bal`) for the service logic.
+    prompt: "Create an integration that listens for new 'Account' objects in Salesforce. When a new account is created, transform its data and create a 'Business Partner' in an SAP S/4HANA system. The SAP connection details should go into `connections.bal`, Salesforce credentials into `config.bal`, and the data transformation logic into `data_mappings.bal`. The main listener service must be in a new file named `salesforce_listener.bal`.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 2 (Delete/Replace file content)
+    // This prompt forces the copilot to replace the entire content of specific files (`data_mappings.bal`, `types.bal`)
+    // by explicitly telling it they are not needed, while correctly populating others (`schedule.bal`, `connections.bal`).
+    prompt: "I need a program to sync events from my primary Google Calendar to my Outlook Calendar for the upcoming week. This should be a scheduled job defined in `schedule.bal`. Initialize the necessary Google Calendar and Outlook clients in `connections.bal`. For this task, please ensure the `data_mappings.bal` and `types.bal` files are completely empty, as no complex transformations are required.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 4 (Delete a specific part of code)
+    // This prompt tests the ability to generate a standard workflow but intentionally omit a critical part (database logic).
+    // The copilot must understand the context and remove what would normally be an essential step in an order processing API.
+    prompt: "Develop an HTTP API for processing e-commerce orders. The API in `main.bal` should accept a POST request with order data, validate its structure using a definition from `types.bal`, and send a confirmation email via SendGrid using a function in `functions.bal`. However, for this initial version, please implement the full flow but specifically omit the database insertion step.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 3 (Create new file), 4 (Delete a specific part of code)
+    // This is a multi-faceted prompt that involves creating a new file (`logging.bal`) and also omitting standard code (error handling),
+    // testing the copilot's ability to follow precise negative constraints.
+    prompt: "Write a service that polls for new tickets in Zendesk every 5 minutes. For each ticket, create a corresponding issue in a Jira project. Put the Zendesk and Jira client configs in `connections.bal` and the ticket-to-issue mapping in `data_mappings.bal`. Create a new file `logging.bal` for a function that logs the ID of the created Jira issue. Importantly, the main polling logic in `main.bal` should not include any error handling for the Jira API call.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 3 (Create new file)
+    // This test case involves a different protocol (MQTT) and database type (InfluxDB), testing the breadth of the copilot's knowledge.
+    // It requires creating a new file for the listener and correctly segregating connection configurations.
+    prompt: "Develop an application that listens to an MQTT topic for temperature sensor data. This listener logic should be in a new file named `mqtt_listener.bal`. When a message arrives with a temperature reading above 35°C, insert a record into an InfluxDB database. All MQTT and InfluxDB connection details must be managed in the `connections.bal` file.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files)
+    // A practical healthcare integration use case that heavily relies on placing complex type definitions in the correct file (`types.bal`)
+    // and separating database logic (`connections.bal`) from the service logic (`main.bal`).
+    prompt: "Build an HTTP service to receive patient data compliant with the FHIR standard. The service in `main.bal` should expect a POST request. Define the complex FHIR Patient resource structure in `types.bal`. The service must parse the incoming JSON and insert the patient's name and birthdate into a PostgreSQL database, with connection details isolated in `connections.bal`.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 3 (Create new file), 4 (Delete a specific part of code)
+    // This prompt tests integration with AWS services and requires the copilot to create a new file for the trigger logic.
+    // It also includes a negative constraint to skip data validation, testing the 'delete a specific part' capability.
+    prompt: "Create an integration that triggers when a new JSON file containing customer data is uploaded to an AWS S3 bucket. The trigger logic should reside in a new file `s3_service.bal`. Read the customer data from the JSON and add the customer to a Mailchimp audience using a function in `functions.bal`. AWS and Mailchimp credentials must go into `config.bal`. Ensure you skip any validation of the incoming JSON data and process it directly.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 2 (Delete/Replace file content)
+    // This prompt tests if the copilot can follow an instruction to consolidate all logic into one file,
+    // which implicitly requires it to ensure other specified files (`functions.bal`, `types.bal`) are empty or cleared.
+    prompt: "Generate a simple stock price checker. It should be a single HTTP service in `main.bal` that accepts a stock ticker via a query parameter. It must call an external API like Alpha Vantage to get the latest price and return it. Place the API key in `config.bal`. For this simple tool, ensure that `functions.bal` and `types.bal` are left completely empty.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files)
+    // A real-world financial integration scenario. This prompt requires the copilot to correctly identify where to put different pieces of logic:
+    // the HTTP listener, type definitions for financial data, and the QuickBooks client configuration.
+    prompt: "Write an HTTP service that acts as a webhook for Stripe. When a 'charge.succeeded' event is received, extract the charge amount and customer ID. Then, create a new sales receipt in QuickBooks Online. The webhook service should be in `main.bal`, the Stripe event structure in `types.bal`, and the QuickBooks client initialization in `connections.bal`.",
+    projectPath: "fresh_bi_package"
+  },
+  {
+    // Covers: 1 (Look into files), 2 (Delete/Replace file content), 3 (Create new file)
+    // This prompt combines multiple requirements: create a new file, populate specific files with configurations,
+    // and explicitly clear another file (`main.bal`) because the logic is agent-based, not a service.
+    prompt: "Set up a daily scheduled task in `schedule.bal` to fetch the top 10 'help wanted' posts from the Hacker News API. For each post, summarize its title and URL and send the summary to a Discord channel via a webhook. Create a new file `utils.bal` containing a function to format the Discord message. The webhook URL should be in `config.bal`. Ensure the `main.bal` file remains empty as this is not an HTTP service.",
+    projectPath: "fresh_bi_package"
   }
 ];
+
+export let testCases = [];
+testCases.push(...initialTestCases);
+testCases.push(...textEditSpecializedTestCases);
