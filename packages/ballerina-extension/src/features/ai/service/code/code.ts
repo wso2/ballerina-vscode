@@ -128,6 +128,21 @@ function handleTextEditorCommands(
                 // Check if file already exists
                 const existingFile = getFileContent(updatedSourceFiles, filePath);
                 if (existingFile !== null) {
+                    if (existingFile.trim() == "") {
+                        // Overwrite empty file
+                        console.warn(`[Text Editor] Overwriting empty file '${filePath}'.`);
+                        updateOrCreateFile(updatedSourceFiles, filePath, file_text);
+
+                        if (!updatedFileNames.includes(filePath)) {
+                            updatedFileNames.push(filePath);
+                        }
+
+                        return {
+                            success: true,
+                            message: `Successfully created file '${filePath}'.).`
+                        };
+                    }
+
                     return {
                         success: false,
                         message: `File '${filePath}' already exists. Use 'str_replace' command to modify it or double check the filepath.`,

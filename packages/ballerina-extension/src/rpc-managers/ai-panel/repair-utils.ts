@@ -213,6 +213,10 @@ export async function removeUnusedImports(diagnosticsResult: Diagnostics[], lang
 
             // Update file content
             const { source } = syntaxTree as SyntaxTree;
+            if (!source) {
+                // Handle the case where source is undefined, when compiler issue occurs
+                return false;
+            }
             const absolutePath = fileURLToPath(fielUri);
             writeBallerinaFileDidOpenTemp(absolutePath, source);
             projectModified = true;
