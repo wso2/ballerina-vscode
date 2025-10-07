@@ -383,8 +383,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             return (
                 <>
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
-                        <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                        Edit
+                        <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                        Configure
                     </ActionButton >
                     <ActionButton
                         appearance="secondary"
@@ -400,8 +400,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (parentMetadata && !isResource && !isRemote) {
             return (
                 <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
-                    <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                    Edit
+                    <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                    Configure
                 </ActionButton>
             );
         }
