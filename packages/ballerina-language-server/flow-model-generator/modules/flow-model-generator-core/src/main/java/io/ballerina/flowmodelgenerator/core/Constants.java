@@ -106,7 +106,6 @@ public class Constants {
 
         public static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
         public static final String AGENT_TYPE_NAME = "Agent";
-        public static final String MODEL_TYPE_NAME = "Model";
 
         public static final String AGENT_RUN_METHOD_NAME = "run";
         public static final String AGENT_SYMBOL_NAME = "init";
