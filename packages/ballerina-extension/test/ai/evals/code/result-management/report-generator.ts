@@ -29,6 +29,7 @@ export function generateComprehensiveReport(summary: Summary): void {
     console.log(`   Compiled Successfully: ${summary.totalCompiled} (${Math.round(summary.accuracy)}%)`);
     console.log(`   Failed: ${summary.totalFailed} (${Math.round((summary.totalFailed / summary.totalUsecases) * 100)}%)`);
     console.log(`   Overall Accuracy: ${summary.accuracy}%`);
+    console.log(`   Average LLM Evaluation Rating: ${summary.evaluationSummary.toFixed(2)}/10`);
 
     // Display iteration-specific summaries if multiple iterations
     if (summary.iterations && summary.iterations > 1 && summary.iterationResults) {
@@ -58,6 +59,9 @@ function logSuccessfulCompilations(results: readonly UsecaseResult[]): void {
         console.log(`      Duration: ${result.duration || 'N/A'}ms`);
         console.log(`      Files Generated: ${result.files.length}`);
         console.log(`      Diagnostics: ${result.diagnostics.length} (${result.diagnostics.length === 0 ? '✅ Clean' : '⚠️ Has Issues'})`);
+        if (result.evaluationResult) {
+            console.log(`      LLM Rating: ${result.evaluationResult.rating.toFixed(1)}/10 (${result.evaluationResult.is_correct ? '✅' : '❌'})`);
+        }
         if (result.files.length > 0) {
             console.log(`      Files: ${result.files.map(f => f.fileName).join(', ')}`);
         }
@@ -75,6 +79,10 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
         console.log(`      Duration: ${result.duration || 'N/A'}ms`);
         console.log(`      Diagnostic Issues: ${result.diagnostics.length}`);
         console.log(`      Error Events: ${result.errorEvents ? result.errorEvents.length : 0}`);
+        if (result.evaluationResult) {
+            console.log(`      LLM Rating: ${result.evaluationResult.rating.toFixed(1)}/10`);
+            console.log(`      LLM Reasoning: ${result.evaluationResult.reasoning.substring(0, 100)}${result.evaluationResult.reasoning.length > 100 ? '...' : ''}`);
+        }
         
         if (result.errorEvents && result.errorEvents.length > 0) {
             console.log(`      Key Errors:`);
@@ -104,7 +112,7 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
 function logIterationSummaries(iterationResults: readonly IterationSummary[]): void {
     console.log('\n📊 PER-ITERATION ACCURACY:');
     iterationResults.forEach(iter => {
-        console.log(`   Iteration ${iter.iteration}: ${iter.totalCompiled}/${iter.totalUsecases} passed (${iter.accuracy}%)`);
+        console.log(`   Iteration ${iter.iteration}: ${iter.totalCompiled}/${iter.totalUsecases} passed (${iter.accuracy}%) - Avg Rating: ${iter.evaluationResult.rating.toFixed(2)}/10`);
     });
 }
 

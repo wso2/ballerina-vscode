@@ -84,6 +84,7 @@ export interface UsecaseResult {
     readonly errorEvents?: readonly string[];
     readonly toolEvents?: readonly ToolEvent[];
     readonly iteration?: number;
+    readonly evaluationResult: LLMEvaluationResult;
 }
 
 /**

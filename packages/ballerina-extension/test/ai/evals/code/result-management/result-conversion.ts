@@ -103,7 +103,10 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[], 
     const durations = results.filter(r => r.duration).map(r => r.duration!);
     const totalDuration = durations.reduce((sum, d) => sum + d, 0);
     const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
-    const evaluationSummary = results.reduce((sum, r) => sum + (r.evaluationResult == undefined ? 0 : (r.evaluationResult.rating == undefined ? 0 : r.evaluationResult.rating)), 0);
+    
+    // Calculate average rating from evaluation results
+    const totalRating = results.reduce((sum, r) => sum + (r.evaluationResult?.rating ?? 0), 0);
+    const averageRating = totalUsecases > 0 ? totalRating / totalUsecases : 0;
 
     let iterationResults: IterationSummary[] | undefined;
     let perTestCaseAccuracy: TestCaseAccuracy[] | undefined;
@@ -123,7 +126,7 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[], 
         totalDuration,
         averageDuration: Math.round(averageDuration),
         timestamp: Date.now(),
-        evaluationSummary: (evaluationSummary / totalUsecases),
+        evaluationSummary: averageRating,
         iterations: totalIterations,
         iterationResults,
         perTestCaseAccuracy
@@ -143,6 +146,10 @@ export function generateIterationSummary(iterationResults: readonly UsecaseResul
     const totalDuration = durations.reduce((sum, d) => sum + d, 0);
     const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
 
+    // Calculate average rating from evaluation results
+    const totalRating = iterationResults.reduce((sum, r) => sum + (r.evaluationResult?.rating ?? 0), 0);
+    const averageRating = totalUsecases > 0 ? totalRating / totalUsecases : 0;
+
     return {
         iteration: iterationNumber,
         totalUsecases,
@@ -152,7 +159,12 @@ export function generateIterationSummary(iterationResults: readonly UsecaseResul
         totalDuration,
         averageDuration: Math.round(averageDuration),
         timestamp: Date.now(),
-        results: iterationResults
+        results: iterationResults,
+        evaluationResult: {
+            is_correct: totalCompiled === totalUsecases,
+            reasoning: `${totalCompiled}/${totalUsecases} tests compiled successfully`,
+            rating: averageRating
+        }
     };
 }
 
@@ -173,6 +185,10 @@ function calculateIterationSummaries(results: readonly UsecaseResult[], totalIte
         const totalDuration = durations.reduce((sum, d) => sum + d, 0);
         const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
 
+        // Calculate average rating from evaluation results
+        const totalRating = iterationResults.reduce((sum, r) => sum + (r.evaluationResult?.rating ?? 0), 0);
+        const averageRating = totalUsecases > 0 ? totalRating / totalUsecases : 0;
+
         summaries.push({
             iteration: i,
             totalUsecases,
@@ -182,7 +198,12 @@ function calculateIterationSummaries(results: readonly UsecaseResult[], totalIte
             totalDuration,
             averageDuration: Math.round(averageDuration),
             timestamp: Date.now(),
-            results: iterationResults
+            results: iterationResults,
+            evaluationResult: {
+                is_correct: totalCompiled === totalUsecases,
+                reasoning: `${totalCompiled}/${totalUsecases} tests compiled successfully`,
+                rating: averageRating
+            }
         });
     }
 
