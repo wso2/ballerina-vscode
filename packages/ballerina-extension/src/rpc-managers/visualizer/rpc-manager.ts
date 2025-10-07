@@ -215,6 +215,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Get the updated component and update the location
             const currentIdentifier = StateMachine.context().identifier;
             const currentType = StateMachine.context().type;
+            const parentIdentifier = StateMachine.context().parentIdentifier;
 
             // Find the correct artifact by currentIdentifier (id)
             let currentArtifact = undefined;
@@ -235,8 +236,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
                     currentArtifact = artifact;
                 }
 
-                // Check if artifact has resources and find within those
-                if (artifact.resources && artifact.resources.length > 0) {
+                // Check if parent artifact is matched and has resources and find within those
+                if (parentIdentifier && artifact.name === parentIdentifier && artifact.resources && artifact.resources.length > 0) {
                     const resource = artifact.resources.find(
                         (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
                     );
