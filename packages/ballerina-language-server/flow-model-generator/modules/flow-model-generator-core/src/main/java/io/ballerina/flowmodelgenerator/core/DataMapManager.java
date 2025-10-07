@@ -2692,7 +2692,8 @@ public class DataMapManager {
         @Override
         public void visit(IndexedExpressionNode node) {
             String source = node.toSourceCode().trim();
-            inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
+            String normalized = source.replaceAll("\\[[^]]+]", "");
+            inputs.add(normalized);
         }
 
         @Override
