@@ -107,7 +107,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_editor: anthropic.tools.textEditor_20250728({
+        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
             async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
                 const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
                     { command, path, old_str, new_str, file_text, insert_line, view_range });
@@ -157,7 +157,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
                     );
                     toolResult = libraryNames;
-                } else if (toolName == "str_replace_editor") {
+                } else if (toolName == "str_replace_based_edit_tool") {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
                     break;
                 }
@@ -383,9 +383,8 @@ Important reminders:
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
-Once the explanation is finished, you must apply surgical edits to the existing source code using the **textEditor_20250728** tool.
+Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
-If the file is already shown in the user prompt, do **not** try to create it again.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
 Your goal is to modify only the relevant parts of the code to address the user's query. 
@@ -505,7 +504,8 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         {
             role: "user",
             content:
-                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the LibraryProviderTool if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy. Fix the compiler errors and return the corrected response. \n Errors: \n " +
+                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+                "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
@@ -515,7 +515,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_editor: anthropic.tools.textEditor_20250728({
+        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
             async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
                 const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
                     { command, path, old_str, new_str, file_text, insert_line, view_range });
@@ -524,7 +524,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         })
     };
 
-    const { text, usage, providerMetadata } = await generateText({
+    const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 4096 * 4,
         temperature: 0,
