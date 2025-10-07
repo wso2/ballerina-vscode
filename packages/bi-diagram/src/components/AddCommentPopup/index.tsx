@@ -122,11 +122,13 @@ export function AddCommentPopup(props: AddCommentPopupProps) {
     const handleSaveComment = () => {
         setIsSaving(true);
         if (!comment.trim()) {
+            setIsSaving(false);
             return;
         }
 
         if (!target) {
             console.error(">>> AddCommentPopup: AddCommentPopup: target not found");
+            setIsSaving(false);
             return;
         }
 
