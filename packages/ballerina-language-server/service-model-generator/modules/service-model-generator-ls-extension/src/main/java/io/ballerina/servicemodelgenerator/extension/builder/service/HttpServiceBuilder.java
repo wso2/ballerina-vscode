@@ -70,7 +70,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
