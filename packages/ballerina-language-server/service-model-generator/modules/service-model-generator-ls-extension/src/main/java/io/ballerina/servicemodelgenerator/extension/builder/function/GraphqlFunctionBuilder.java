@@ -78,6 +78,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isInitFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateFunctionDocs;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 /**
@@ -159,6 +160,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         commonFuncModel.setEditable(actualFunction.isEditable());
         commonFuncModel.setEnabled(true);
         commonFuncModel.setKind(actualFunction.getKind());
+        commonFuncModel.setDocumentation(actualFunction.getDocumentation());
         commonFuncModel.setCodedata(actualFunction.getCodedata());
         updateValue(commonFuncModel.getAccessor(), actualFunction.getAccessor());
         updateValue(commonFuncModel.getName(), actualFunction.getName());
@@ -186,6 +188,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange(), GRAPHQL, BALLERINA));
         functionModel.setCanAddParameters(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
+        updateFunctionDocs(functionDefinitionNode, functionModel);
         return functionModel;
     }
 

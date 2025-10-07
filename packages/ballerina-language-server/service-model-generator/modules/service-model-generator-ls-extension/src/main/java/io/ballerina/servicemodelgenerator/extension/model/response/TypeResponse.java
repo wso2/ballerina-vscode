@@ -29,5 +29,9 @@ import java.util.List;
 public record TypeResponse(List<TypeCompletion> completions) {
 
     public record TypeCompletion(String category, String label, String type, String statusCode) {
+
+        public TypeCompletion(String category, String label, String type) {
+            this(category, label, type, null);
+        }
     }
 }

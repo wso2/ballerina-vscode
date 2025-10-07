@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
@@ -381,6 +382,21 @@ public class ServiceModelUtils {
                 .setValueTypeConstraint(protocol + ":" + "Listener")
                 .setPlaceholder("")
                 .optional(false)
+                .setAdvanced(false)
+                .enabled(true)
+                .editable(true);
+
+        return valueBuilder.build();
+    }
+
+    public static Value getServiceDocumentation() {
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        valueBuilder
+                .setMetadata(SERVICE_DOCUMENTATION_METADATA)
+                .setCodedata(new Codedata("DOCUMENTATION"))
+                .valueType(Constants.VALUE_TYPE_STRING)
+                .setValueTypeConstraint("string")
+                .optional(true)
                 .setAdvanced(false)
                 .enabled(true)
                 .editable(true);

@@ -18,6 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -34,6 +36,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_ENUM_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_INPUT_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_SCALAR_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_USER_DEFINED_TYPE;
+
 /**
  * Generate type completions for different service model related forms.
  *
@@ -42,8 +50,15 @@ import java.util.List;
 public class TypeCompletionGenerator {
 
     private static final List<TypeCompletion> DEFAULT_HTTP_STATUS_RESPONSES;
+    private static final List<TypeCompletion> DEFAULT_GRAPHQL_RETURN_TYPES;
+    private static final List<TypeCompletion> DEFAULT_GRAPHQL_INPUT_TYPES;
+
     static {
         List<TypeCompletion> defaultResponses = new ArrayList<>();
+        List<TypeCompletion> returnTypes = new ArrayList<>();
+        List<TypeCompletion> inputTypes = new ArrayList<>();
+
+        // HTTP status code types
         defaultResponses.add(new TypeCompletion(
                 "1XX", "Continue", "http:Continue", "100"));
         defaultResponses.add(new TypeCompletion(
@@ -166,7 +181,33 @@ public class TypeCompletionGenerator {
                 "5XX", "Not Extended", "http:NotExtended", "510"));
         defaultResponses.add(new TypeCompletion(
                 "5XX", "Network Authentication Required", "http:NetworkAuthenticationRequired", "511"));
+
+        // GraphQL Scalar types
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "int", "int"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "string", "string"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "boolean", "boolean"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "decimal", "decimal"));
+        inputTypes.add(new TypeCompletion(GRAPHQL_SCALAR_TYPE, "float", "float"));
+
+        returnTypes.addAll(inputTypes);
+        returnTypes.add(new TypeCompletion("Error Types", "error", "error"));
         DEFAULT_HTTP_STATUS_RESPONSES = Collections.unmodifiableList(defaultResponses);
+        DEFAULT_GRAPHQL_RETURN_TYPES = Collections.unmodifiableList(returnTypes);
+        DEFAULT_GRAPHQL_INPUT_TYPES = Collections.unmodifiableList(inputTypes);
+    }
+
+    public static List<TypeCompletion> getTypes(Project project, String context) {
+        switch (context) {
+            case GRAPHQL_FIELD_TYPE -> {
+                return getGraphqlTypes(project, false);
+            }
+            case GRAPHQL_INPUT_TYPE -> {
+                return getGraphqlTypes(project, true);
+            }
+            default -> {
+                return getTypes(project);
+            }
+        }
     }
 
     public static List<TypeCompletion> getTypes(Project project) {
@@ -194,7 +235,7 @@ public class TypeCompletionGenerator {
                                             String statusCode = HttpUtil.HTTP_CODES.get(typeReferenceName);
                                             String typeName = typeDef.typeName().text();
                                             typeCompletions.add(new TypeCompletion(
-                                                    "User Defined", typeName, typeName, statusCode));
+                                                    GRAPHQL_USER_DEFINED_TYPE, typeName, typeName, statusCode));
                                         }
                                     }
                                 }
@@ -206,6 +247,35 @@ public class TypeCompletionGenerator {
         // Add the http:Response type
         typeCompletions.add(new TypeCompletion("Error Type", "error", "error", "500"));
 
+        return typeCompletions;
+    }
+
+    private static List<TypeCompletion> getGraphqlTypes(Project project, boolean isInput) {
+        List<TypeCompletion> typeCompletions =
+                new ArrayList<>(isInput ? DEFAULT_GRAPHQL_INPUT_TYPES : DEFAULT_GRAPHQL_RETURN_TYPES);
+        Module defaultModule = project.currentPackage().getDefaultModule();
+        defaultModule.documentIds().forEach(
+            documentId -> {
+                Document document = defaultModule.document(documentId);
+                ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+                for (Node member : modulePartNode.members()) {
+                    if (member instanceof TypeDefinitionNode typeDefNode) {
+                        if (typeDefNode.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC && isInput) {
+                            String typeName = typeDefNode.typeName().text();
+                            typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                        } else if (!isInput) {
+                            String typeName = typeDefNode.typeName().text();
+                            typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                        }
+                    } else if (member instanceof ClassDefinitionNode classDefNode && !isInput) {
+                        String typeName = classDefNode.className().text();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_USER_DEFINED_TYPE, typeName, typeName));
+                    } else if (member instanceof EnumDeclarationNode enumNode) {
+                        String typeName = enumNode.identifier().toString().trim();
+                        typeCompletions.add(new TypeCompletion(GRAPHQL_ENUM_TYPE, typeName, typeName));
+                    }
+                }
+            });
         return typeCompletions;
     }
 }

@@ -265,6 +265,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     public static Map<String, List<TextEdit>> buildUpdateModel(UpdateModelContext context) {
         List<TextEdit> edits = new ArrayList<>();
         Map<String, String> imports = new HashMap<>();
+        Utils.addFunctionDocTextEdits(context.function(), context.functionNode(), edits);
         Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits, imports);
 
         String functionName = context.functionNode().functionName().text().trim();

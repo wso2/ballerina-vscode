@@ -1,0 +1,49 @@
+{
+  "filePath": "sample2",
+  "description": "Get the list of GraphQL input types",
+  "context": "GRAPHQL_INPUT_TYPE",
+  "result": {
+    "completions": [
+      {
+        "category": "Scalar Types",
+        "label": "int",
+        "type": "int"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "string",
+        "type": "string"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "boolean",
+        "type": "boolean"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "decimal",
+        "type": "decimal"
+      },
+      {
+        "category": "Scalar Types",
+        "label": "float",
+        "type": "float"
+      },
+      {
+        "category": "User Defined",
+        "label": "TeacherRecord",
+        "type": "TeacherRecord"
+      },
+      {
+        "category": "User Defined",
+        "label": "StudentRecord",
+        "type": "StudentRecord"
+      },
+      {
+        "category": "Enum Types",
+        "label": "Color",
+        "type": "Color"
+      }
+    ]
+  }
+}
