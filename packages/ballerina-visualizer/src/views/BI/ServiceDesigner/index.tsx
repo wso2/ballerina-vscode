@@ -775,7 +775,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <>
                                     <SectionHeader
                                         title="Resources"
-                                        subtitle="Define how the service responds to HTTP requests"
+                                        subtitle={`${resourcesCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
                                     >
                                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                             {resources.length > 10 && (
