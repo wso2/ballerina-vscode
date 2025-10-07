@@ -41,7 +41,7 @@ export const TIMING = {
  * Path constants
  */
 export const PATHS = {
-    PROJECT_ROOT_RELATIVE: "../../../../../test/data/bi_empty",
+    PROJECT_ROOT_RELATIVE: "../../../../../test/data",
     ENV_FILE_RELATIVE: "../../../../.env",
     DEFAULT_RESULTS_DIR: "../../../../../../test/ai/evals/code/results"
 } as const;
