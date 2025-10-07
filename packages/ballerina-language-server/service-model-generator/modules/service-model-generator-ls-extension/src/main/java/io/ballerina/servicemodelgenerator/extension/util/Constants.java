@@ -169,6 +169,10 @@ public class Constants {
     // organization names
     public static final String BALLERINA = "ballerina";
 
+    // types
+    public static final String USER_DEFINED_TYPE = "User-Defined";
+    public static final String ERROR_TYPE = "Error Types";
+
     // annotation attachment points
     public static final String OBJECT_METHOD = "OBJECT_METHOD";
 
@@ -191,7 +195,6 @@ public class Constants {
 
     // GraphQL types
     public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
-    public static final String GRAPHQL_USER_DEFINED_TYPE = "User Defined";
     public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
 
     private Constants() {
