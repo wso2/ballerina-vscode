@@ -98,7 +98,10 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  0
+                ]
               },
               {
                 "output": "student.credentials.0.password",
@@ -109,7 +112,10 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  1
+                ]
               }
             ]
           }
