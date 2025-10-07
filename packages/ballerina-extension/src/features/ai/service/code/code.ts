@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ModelMessage, generateText, streamText, stepCountIs } from "ai";
+import { ModelMessage, generateText, streamText, stepCountIs, AssistantModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
@@ -44,332 +44,7 @@ import { getProjectFromResponse, getProjectSource, postProcess } from "../../../
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
-
-interface TextEditorResult {
-    success: boolean;
-    message: string;
-    content?: string;
-    error?: string;
-}
-
-function handleTextEditorCommands(
-    updatedSourceFiles: SourceFiles[],
-    updatedFileNames: string[],
-    args: ExecuteArgs
-): TextEditorResult {
-    const { command, path: filePath, file_text, insert_line, new_str, old_str, view_range } = args;
-
-    try {
-        console.log(`[Text Editor] Command: '${command}', File: '${filePath}'`);
-
-        // Validate file path for all commands
-        const pathValidation = validateFilePath(filePath);
-        if (!pathValidation.valid) {
-            return {
-                success: false,
-                message: `Invalid file path: ${pathValidation.error}`,
-                error: 'Error: INVALID_PATH'
-            };
-        }
-
-        switch (command) {
-            case TextEditorCommand.VIEW: {
-                const content = getFileContent(updatedSourceFiles, filePath);
-                
-                // File not found error
-                if (content === null) {
-                    return {
-                        success: false,
-                        message: `File '${filePath}' not found. Please create it first or double check the file path.`,
-                        error: 'Error: FILE_NOT_FOUND'
-                    };
-                }
-
-                if (view_range && view_range.length === 2) {
-                    let [start, end] = view_range;
-                    const lines = content.split('\n');
-                    if (end == -1) {
-                        end = lines.length;
-                    }
-                    
-                    // Validate line range
-                    if (start < 1 || end < start || start > lines.length) {
-                        return {
-                            success: false,
-                            message: `Invalid line range [${start}, ${end}]. File has ${lines.length} lines. Please double check the range.`,
-                            error: 'Error: INVALID_RANGE'
-                        };
-                    }
-
-                    const rangedContent = lines.slice(start - 1, Math.min(end, lines.length)).join('\n');
-                    return {
-                        success: true,
-                        message: `Viewing lines ${start}-${Math.min(end, lines.length)} of ${filePath}.`,
-                        content: rangedContent
-                    };
-                }
-
-                return {
-                    success: true,
-                    message: `Viewing entire file ${filePath}).`,
-                    content
-                };
-            }
-
-            case TextEditorCommand.CREATE: {
-                if (file_text === undefined) {
-                    return {
-                        success: false,
-                        message: "The 'file_text' parameter is required for the 'create' command.",
-                        error: 'Error: MISSING_PARAMETER'
-                    };
-                }
-
-                // Check if file already exists
-                const existingFile = getFileContent(updatedSourceFiles, filePath);
-                if (existingFile !== null) {
-                    if (existingFile.trim() == "") {
-                        // Overwrite empty file
-                        console.warn(`[Text Editor] Overwriting empty file '${filePath}'.`);
-                        updateOrCreateFile(updatedSourceFiles, filePath, file_text);
-
-                        if (!updatedFileNames.includes(filePath)) {
-                            updatedFileNames.push(filePath);
-                        }
-
-                        return {
-                            success: true,
-                            message: `Successfully created file '${filePath}'.).`
-                        };
-                    }
-
-                    return {
-                        success: false,
-                        message: `File '${filePath}' already exists. Use 'str_replace' command to modify it or double check the filepath.`,
-                        error: 'Error: FILE_ALREADY_EXISTS'
-                    };
-                }
-
-                updateOrCreateFile(updatedSourceFiles, filePath, file_text);
-                if (!updatedFileNames.includes(filePath)) {
-                    updatedFileNames.push(filePath);
-                }
-
-                return {
-                    success: true,
-                    message: `Successfully created file '${filePath}' with ${file_text.split('\n').length} lines.`
-                };
-            }
-
-            case TextEditorCommand.STR_REPLACE: {
-                if (old_str === undefined || new_str === undefined) {
-                    return {
-                        success: false,
-                        message: "Both 'old_str' and 'new_str' parameters are required for 'str_replace' command.",
-                        error: 'Error: MISSING_PARAMETER'
-                    };
-                }
-
-                const content = getFileContent(updatedSourceFiles, filePath);
-                
-                // File not found error
-                if (content === null) {
-                    return {
-                        success: false,
-                        message: `File '${filePath}' not found. Cannot perform replacement. double check the file path.`,
-                        error: 'Error: FILE_NOT_FOUND'
-                    };
-                }
-
-                // Count occurrences for validation
-                const occurrenceCount = countOccurrences(content, old_str);
-
-                // No matches for replacement
-                if (occurrenceCount === 0) {
-                    return {
-                        success: false,
-                        message: `String to replace was not found in '${filePath}'. Please verify the exact text to replace, including whitespace and line breaks.`,
-                        error: 'Error: NO_MATCH_FOUND',
-                        content: content.substring(0, 500) + '...'
-                    };
-                }
-
-                // Multiple matches for replacement
-                if (occurrenceCount > 1) {
-                    return {
-                        success: false,
-                        message: `Found ${occurrenceCount} occurrences of the text in '${filePath}'. The 'str_replace' command requires exactly one unique match. Please make 'old_str' more specific..`,
-                        error: 'Error: MULTIPLE_MATCHES',
-                        content: `Occurrences: ${occurrenceCount}`
-                    };
-                }
-
-                // Save to history before making changes
-                saveToHistory(updatedSourceFiles, filePath);
-                
-                // Perform replacement (exactly one occurrence)
-                const newContent = content.replace(`${old_str}`, new_str);
-                updateOrCreateFile(updatedSourceFiles, filePath, newContent);
-                
-                if (!updatedFileNames.includes(filePath)) {
-                    updatedFileNames.push(filePath);
-                }
-
-                return {
-                    success: true,
-                    message: `Successfully replaced text in '${filePath}'. Changed ${old_str.split('\n').length} line(s).`
-                };
-            }
-
-            case TextEditorCommand.INSERT: {
-                if (insert_line === undefined || new_str === undefined) {
-                    return {
-                        success: false,
-                        message: "Both 'insert_line' and 'new_str' parameters are required for 'insert' command.",
-                        error: 'Error: MISSING_PARAMETER'
-                    };
-                }
-
-                const content = getFileContent(updatedSourceFiles, filePath);
-                
-                // File not found error
-                if (content === null) {
-                    return {
-                        success: false,
-                        message: `File '${filePath}' not found. Cannot insert text.`,
-                        error: 'Error: FILE_NOT_FOUND'
-                    };
-                }
-
-                const lines = content.split('\n');
-                
-                // Validate insert line
-                if (insert_line < 0 || insert_line > lines.length) {
-                    return {
-                        success: false,
-                        message: `Invalid insert line ${insert_line}. File has ${lines.length} lines. Use line 0-${lines.length}.`,
-                        error: 'Error: INVALID_LINE_NUMBER'
-                    };
-                }
-
-                // Save to history before making changes
-                saveToHistory(updatedSourceFiles, filePath);
-
-                const clampedLine = Math.max(0, Math.min(lines.length, insert_line));
-                lines.splice(clampedLine, 0, new_str);
-                const newContent = lines.join('\n');
-
-                updateOrCreateFile(updatedSourceFiles, filePath, newContent);
-                
-                if (!updatedFileNames.includes(filePath)) {
-                    updatedFileNames.push(filePath);
-                }
-
-                return {
-                    success: true,
-                    message: `Successfully inserted ${new_str.split('\n').length} line(s) at line ${insert_line} in '${filePath}'.`
-                };
-            }
-
-            case TextEditorCommand.DELETE: {
-                if (old_str === undefined) {
-                    return {
-                        success: false,
-                        message: "The 'old_str' parameter is required for 'delete' command.",
-                        error: 'Error: MISSING_PARAMETER'
-                    };
-                }
-
-                const content = getFileContent(updatedSourceFiles, filePath);
-                
-                // File not found error
-                if (content === null) {
-                    return {
-                        success: false,
-                        message: `File '${filePath}' not found. Cannot delete text.`,
-                        error: 'Error: FILE_NOT_FOUND'
-                    };
-                }
-
-                const occurrenceCount = countOccurrences(content, old_str);
-
-                // No matches found
-                if (occurrenceCount === 0) {
-                    return {
-                        success: false,
-                        message: `String to delete was not found in '${filePath}'. No changes made. Double check the text to delete, including whitespace and line breaks.`,
-                        error: 'Error: NO_MATCH_FOUND'
-                    };
-                }
-
-                // Save to history before making changes
-                saveToHistory(updatedSourceFiles, filePath);
-
-                const newContent = content.replaceAll(old_str, '');
-                updateOrCreateFile(updatedSourceFiles, filePath, newContent);
-                
-                if (!updatedFileNames.includes(filePath)) {
-                    updatedFileNames.push(filePath);
-                }
-
-                return {
-                    success: true,
-                    message: `Successfully deleted ${occurrenceCount} occurrence(s) of text from '${filePath}'.`
-                };
-            }
-
-            case TextEditorCommand.UNDO_EDIT: {
-                const history = editHistory.get(filePath);
-                
-                if (!history || history.length === 0) {
-                    return {
-                        success: false,
-                        message: `No edit history found for '${filePath}'. Cannot undo.`,
-                        error: 'NO_HISTORY'
-                    };
-                }
-
-                const lastState = history.pop()!;
-                updateOrCreateFile(updatedSourceFiles, filePath, lastState);
-                
-                if (!updatedFileNames.includes(filePath)) {
-                    updatedFileNames.push(filePath);
-                }
-
-                return {
-                    success: true,
-                    message: `Successfully undid last edit on '${filePath}'. ${history.length} undo(s) remaining.`
-                };
-            }
-
-            default:
-                return {
-                    success: false,
-                    message: `Unknown command '${command}'. Valid commands: view, create, str_replace, insert, delete, undo_edit.`,
-                    error: 'INVALID_COMMAND'
-                };
-        }
-    } catch (error) {
-        // Catch any unexpected errors
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        console.error(`[Text Editor] Failed to execute '${command}':`, error);
-        
-        // Check for permission errors (if you have file system access)
-        if (errorMessage.includes('EACCES') || errorMessage.includes('EPERM')) {
-            return {
-                success: false,
-                message: `Permission denied: Cannot access '${filePath}'. Check file permissions.`,
-                error: 'PERMISSION_DENIED'
-            };
-        }
-
-        return {
-            success: false,
-            message: `Error executing '${command}': ${errorMessage}`,
-            error: 'EXECUTION_ERROR'
-        };
-    }
-}
+import { handleTextEditorCommands } from "../libs/text_editor_tool";
 
 function appendFinalMessages(
     history: ModelMessage[],
@@ -793,11 +468,36 @@ export async function repairCodeCore(
 }
 
 export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
+    const messages: ModelMessage[] = [...params.previousMessages];
+    const lastMessage = messages[messages.length - 1];
+    let isToolCallExistInLastMessage = false;
+    let lastMessageToolCallInfo = {toolName: "", toolCallId: ""};
+
+    const lastMessageIsAssistantCall = lastMessage?.role === 'assistant';
+    if (lastMessageIsAssistantCall) {
+        const assistantMessage: AssistantModelMessage = lastMessage as AssistantModelMessage;
+        if (Array.isArray(assistantMessage.content)) {
+            const lastToolCall = assistantMessage.content.filter(c => c.type === 'tool-call');
+            isToolCallExistInLastMessage = lastToolCall.length > 0;
+            lastMessageToolCallInfo = lastToolCall[0];
+        }
+    }
+
     const allMessages: ModelMessage[] = [
         ...params.previousMessages,
-        {
+        !isToolCallExistInLastMessage? {
             role: "assistant",
             content: params.assistantResponse,
+        }: {
+            role: "tool",
+            content: [
+                {
+                    type: "tool-result",
+                    toolName: lastMessageToolCallInfo?.toolName as string || "PreviousAssistantMessageCall",
+                    result: params.assistantResponse,
+                    toolCallId: lastMessageToolCallInfo?.toolCallId as string || "PreviousAssistantMessageCallId"
+                }
+            ]
         },
         {
             role: "user",
@@ -897,106 +597,4 @@ export function replaceCodeBlocks(originalResp: string, newResp: string): string
     });
 
     return finalResp;
-}
-
-enum TextEditorCommand {
-    VIEW = 'view',
-    CREATE = 'create',
-    STR_REPLACE = 'str_replace',
-    INSERT = 'insert',
-    DELETE = 'delete',
-    UNDO_EDIT = 'undo_edit'
-}
-
-interface ExecuteArgs {
-    command: string;
-    path: string;
-    file_text?: string;
-    insert_line?: number;
-    new_str?: string;
-    old_str?: string;
-    view_range?: number[];
-}
-
-const editHistory = new Map<string, string[]>();
-const MAX_HISTORY_SIZE = 50;
-
-function saveToHistory(
-    updatedSourceFiles: SourceFiles[],
-    filePath: string
-): void {
-    const sourceFile = updatedSourceFiles.find(f => f.filePath === filePath);
-    if (!sourceFile) { return; }
-
-    if (!editHistory.has(filePath)) {
-        editHistory.set(filePath, []);
-    }
-
-    const history = editHistory.get(filePath)!;
-    history.push(sourceFile.content);
-
-    if (history.length > MAX_HISTORY_SIZE) {
-        history.shift();
-    }
-}
-
-function validateFilePath(filePath: string): { valid: boolean; error?: string } {
-    if (!filePath || typeof filePath !== 'string') {
-        return { valid: false, error: 'File path is required and must be a string.' };
-    }
-
-    if (filePath.includes('..') || filePath.includes('~')) {
-        return { valid: false, error: 'File path contains invalid characters (.., ~).' };
-    }
-
-    const validExtensions = ['.bal', '.toml', '.md'];
-    const hasValidExtension = validExtensions.some(ext => filePath.endsWith(ext));
-    
-    if (!hasValidExtension) {
-        return { valid: false, error: `File must have a valid extension: ${validExtensions.join(', ')}` };
-    }
-
-    return { valid: true };
-}
-
-function findFileIndex(files: SourceFiles[], filePath: string): number {
-    return files.findIndex(f => f.filePath === filePath);
-}
-
-function getFileContent(files: SourceFiles[], filePath: string): string {
-    const file = files.find(f => f.filePath === filePath);
-    return file?.content ?? null;
-}
-
-function countOccurrences(text: string, searchString: string): number {
-    if (searchString.trim().length == 0 && text.trim().length == 0) {
-        return 1; // Edge case: empty string occurs once in an empty string
-    }
-
-    if (!searchString) { return 0; }
-    let count = 0;
-    let position = 0;
-    
-    while ((position = text.indexOf(`${searchString}`, position)) !== -1) {
-        count++;
-        if (count > 1) {
-            break;
-        }
-        position += searchString.length;
-    }
-    
-    return count;
-}
-
-function updateOrCreateFile(
-    files: SourceFiles[],
-    filePath: string,
-    content: string
-): void {
-    const index = findFileIndex(files, filePath);
-    if (index !== -1) {
-        files[index].content = content;
-    } else {
-        files.push({ filePath, content });
-    }
 }
