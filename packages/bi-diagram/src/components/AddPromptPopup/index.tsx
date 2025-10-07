@@ -130,7 +130,7 @@ export function AddPromptPopup(props: AddPromptPopupProps) {
             return;
         }
 
-        onAddNodePrompt?.(node, { startLine: target, endLine: target }, prompt);
+        onAddNodePrompt(node, { startLine: target, endLine: target }, prompt);
         // No need to close - diagram will rerender and popup will disappear
     };
 
