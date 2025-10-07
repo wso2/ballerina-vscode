@@ -161,7 +161,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     toolResult = libraryNames;
                 } else if (toolName == "str_replace_editor") {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                    toolResult = [updatedFileNames[updatedFileNames.length - 1]];
+                    break;
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
                 break;

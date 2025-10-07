@@ -49,10 +49,7 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
 
     } catch (error) {
         const result = getResult();
-        console.error(`❌ Test case ${useCase.id} failed with error:`, (error as Error).message);
-        console.error(`❌ Test case ${useCase.id} failed with error:`, (error as Error).stack);
-        console.error(`❌ Test case ${useCase.id} failed with error:`, (error as Error).cause);
-        console.error(`❌ Test case ${useCase.id} failed with error:`, (error as Error).name);
+        console.error(`❌ Test case ${useCase.id} failed with error:`, error);
         return {
             useCase,
             result,
