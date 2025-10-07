@@ -55,6 +55,7 @@ public class DataMappingCustomFunctionTest extends AbstractLSTest {
                 {Path.of("variable2.json")},
                 {Path.of("union.json")},
                 {Path.of("optional_parameter1.json")},
+                {Path.of("redis.json")},
         };
     }
 

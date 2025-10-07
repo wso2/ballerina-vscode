@@ -1,0 +1,90 @@
+{
+  "source": "proj3/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 7,
+        "offset": 65
+      }
+    },
+    "sourceCode": "function pv1ToEncounter(Student pv1) returns redis:Options => {};"
+  },
+  "mapping": {
+    "output": "pv1ToEncounter",
+    "expression": "pv1"
+  },
+  "functionMetadata": {
+    "returnType": {
+      "type": "redis:Options",
+      "kind": "record"
+    },
+    "parameters": [
+      {
+        "name": "pv1",
+        "type": "Student",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "record"
+      }
+    ],
+    "importTypeInfo": [
+      {
+        "orgName": "ballerinax",
+        "moduleName": "redis"
+      }
+    ]
+  },
+  "targetField": "pv1ToEncounter",
+  "output": {
+    "proj3/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 7,
+            "character": 62
+          },
+          "end": {
+            "line": 7,
+            "character": 64
+          }
+        },
+        "newText": "mapRecordToRecord1(pv1)"
+      }
+    ],
+    "proj3/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerinax/redis;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction mapRecordToRecord1(Student pv1) returns redis:Options {}"
+      }
+    ]
+  }
+}
