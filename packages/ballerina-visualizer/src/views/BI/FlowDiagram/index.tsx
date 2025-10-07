@@ -873,7 +873,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Get the updated component and update the location
         const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
         const currentType = (await rpcClient.getVisualizerLocation()).type;
-
+        const parentIdentifier = (await rpcClient.getVisualizerLocation()).parentIdentifier;
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         for (const artifact of artifacts.artifacts) {
@@ -893,8 +893,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 currentArtifact = artifact;
             }
 
-            // Check if artifact has resources and find within those
-            if (artifact.resources && artifact.resources.length > 0) {
+            // Check if parent artifact is matched and has resources and find within those
+            if (parentIdentifier && artifact.name === parentIdentifier && artifact.resources && artifact.resources.length > 0) {
                 const resource = artifact.resources.find(
                     (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
                 );
@@ -2161,6 +2161,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
+            overlay: {
+                visible: selectedNodeId !== undefined,
+                onClickOverlay: handleOnCloseSidePanel,
+            },
         }),
         [
             flowModel,
