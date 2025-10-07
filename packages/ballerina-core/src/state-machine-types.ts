@@ -121,6 +121,7 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectUri?: string;
     identifier?: string;
+    parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
     position?: NodePosition;
     syntaxTree?: STNode;

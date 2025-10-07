@@ -16,5 +16,12 @@
  * under the License.
  */
 
-export { Diagram } from './Diagram';
-export { PopupOverlay } from './PopupOverlay';
+module.exports = {
+    presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        '@babel/preset-typescript',
+        ['@babel/preset-react', { runtime: 'automatic' }],
+    ],
+};
+
+
