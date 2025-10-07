@@ -121,14 +121,14 @@ Use the submit_evaluation tool to provide your assessment.`;
                 submit_evaluation: {
                     description: 
                         'Submit a comprehensive evaluation of whether the final code correctly implements the user query.',
-                    parameters: evaluationSchema,
+                    inputSchema: evaluationSchema,
                 }
             },
             toolChoice: {
                 type: 'tool',
                 toolName: 'submit_evaluation'
             },
-            maxSteps: 1,
+            maxRetries: 1,
         });
 
         // Extract the tool call result
@@ -138,7 +138,7 @@ Use the submit_evaluation tool to provide your assessment.`;
             throw new Error("Expected submit_evaluation tool call but received none");
         }
 
-        const evaluationResult = toolCall.args as LLMEvaluationResult;
+        const evaluationResult = toolCall.input as LLMEvaluationResult;
         
         console.log(`✅ LLM Evaluation Complete. Correct: ${evaluationResult.is_correct}. Reason: ${evaluationResult.reasoning}, Rating: ${evaluationResult.rating}`);
         return evaluationResult;

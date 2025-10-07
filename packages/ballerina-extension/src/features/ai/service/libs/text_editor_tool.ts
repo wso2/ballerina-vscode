@@ -159,7 +159,7 @@ function saveToHistory(
     filePath: string
 ): void {
     const sourceFile = updatedSourceFiles.find(f => f.filePath === filePath);
-    if (!sourceFile) return;
+    if (!sourceFile) { return; }
 
     if (!editHistory.has(filePath)) {
         editHistory.set(filePath, []);
@@ -182,14 +182,14 @@ function countOccurrences(text: string, searchString: string): number {
         return 1;
     }
 
-    if (!searchString) return 0;
+    if (!searchString) { return 0; }
 
     let count = 0;
     let position = 0;
     
     while ((position = text.indexOf(searchString, position)) !== -1) {
         count++;
-        if (count > 1) break;
+        if (count > 1) { break; }
         position += searchString.length;
     }
     
