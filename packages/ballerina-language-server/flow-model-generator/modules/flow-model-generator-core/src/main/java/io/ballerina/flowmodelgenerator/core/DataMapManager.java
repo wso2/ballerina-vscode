@@ -38,6 +38,7 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
@@ -635,12 +636,32 @@ public class DataMapManager {
         List<String> inputs = new ArrayList<>();
         expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument, dataMappingDocument);
+        List<Integer> elementAccessIndex = null;
+        if (containsArrayAccess(expr)) {
+            elementAccessIndex = extractArrayIndices(expr, semanticModel);
+        }
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
                 expr.kind() == SyntaxKind.QUERY_EXPRESSION,
                 expr.kind() == SyntaxKind.FUNCTION_CALL,
-                customFunctionRange);
+                null,
+                customFunctionRange,
+                elementAccessIndex);
         elements.add(mapping);
+    }
+
+    private boolean containsArrayAccess(Node node) {
+        if (node.kind() == SyntaxKind.INDEXED_EXPRESSION) {
+            return true;
+        }
+        if (node instanceof NonTerminalNode nonTerminalNode) {
+            for (Node child : nonTerminalNode.children()) {
+                if (containsArrayAccess(child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private LineRange getCustomFunctionRange(Node expr, Document functionDocument, Document dataMappingDocument) {
@@ -692,6 +713,13 @@ public class DataMapManager {
             diagnosticMsgs.add(diagnostic.message());
         }
         return diagnosticMsgs;
+    }
+
+    private List<Integer> extractArrayIndices(Node expr, SemanticModel semanticModel) {
+        List<Integer> indices = new ArrayList<>();
+        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices, semanticModel);
+        expr.accept(visitor);
+        return indices.isEmpty() ? null : indices;
     }
 
     private List<MappingPort> getInputPorts(SemanticModel semanticModel, Document document, LinePosition position,
@@ -2361,25 +2389,25 @@ public class DataMapManager {
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                            List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
-                           Map<String, String> imports, LineRange functionRange) {
+                           Map<String, String> imports, LineRange functionRange, List<Integer> elementAccessIndex) {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
             this(output, inputs, expression, diagnostics, elements, null,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
                         LineRange customFunctionRange) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression, isFunctionCall, null,
-                    customFunctionRange);
+                    customFunctionRange, null);
         }
     }
 
@@ -2703,6 +2731,93 @@ public class DataMapManager {
         @Override
         public void visit(OptionalFieldAccessExpressionNode node) {
             inputs.add(node.toSourceCode().trim().replace("?", ""));
+        }
+    }
+
+    private static class ArrayIndexExtractorVisitor extends NodeVisitor {
+        private final List<Integer> indices;
+        private final SemanticModel semanticModel;
+
+        ArrayIndexExtractorVisitor(List<Integer> indices, SemanticModel semanticModel) {
+            this.indices = indices;
+            this.semanticModel = semanticModel;
+        }
+
+        @Override
+        public void visit(IndexedExpressionNode node) {
+            node.containerExpression().accept(this);
+
+            SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
+            for (ExpressionNode keyExpr : keyExpressions) {
+                Integer indexValue = extractIndexValue(keyExpr);
+                indices.add(indexValue != null ? indexValue : -1);
+            }
+        }
+
+        private Integer extractIndexValue(ExpressionNode keyExpr) {
+            String indexStr = keyExpr.toSourceCode().trim();
+            try {
+                return Integer.parseInt(indexStr);
+            } catch (NumberFormatException e) {
+                Optional<Symbol> symbolOpt = semanticModel.symbol(keyExpr);
+                if (symbolOpt.isPresent()) {
+                    Symbol symbol = symbolOpt.get();
+                    if (symbol instanceof ConstantSymbol constSymbol) {
+                        return extractConstantValue(constSymbol.constValue());
+                    } else if (symbol instanceof VariableSymbol varSymbol) {
+                        return tryExtractFromVariableInitializer(varSymbol);
+                    }
+                }
+                return null;
+            }
+        }
+
+        private Integer tryExtractFromVariableInitializer(VariableSymbol varSymbol) {
+            return null;
+        }
+
+        private Integer extractConstantValue(Object constValue) {
+            if (constValue instanceof ConstantValue constantValue) {
+                Object value = constantValue.value();
+                if (value instanceof Long) {
+                    return ((Long) value).intValue();
+                } else if (value instanceof Integer) {
+                    return (Integer) value;
+                } else if (value instanceof Short) {
+                    return ((Short) value).intValue();
+                } else if (value instanceof Byte) {
+                    return ((Byte) value).intValue();
+                }
+            } else if (constValue instanceof Long) {
+                return ((Long) constValue).intValue();
+            } else if (constValue instanceof Integer) {
+                return (Integer) constValue;
+            } else if (constValue instanceof Short) {
+                return ((Short) constValue).intValue();
+            } else if (constValue instanceof Byte) {
+                return ((Byte) constValue).intValue();
+            }
+            return null;
+        }
+
+        @Override
+        public void visit(FieldAccessExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(OptionalFieldAccessExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(BracedExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(CheckExpressionNode node) {
+            node.expression().accept(this);
         }
     }
 }
