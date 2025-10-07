@@ -73,8 +73,8 @@
             "optional": false
           },
           {
-            "name": "type",
-            "displayName": "type",
+            "name": "'type",
+            "displayName": "'type",
             "typeName": "string",
             "kind": "string",
             "optional": false

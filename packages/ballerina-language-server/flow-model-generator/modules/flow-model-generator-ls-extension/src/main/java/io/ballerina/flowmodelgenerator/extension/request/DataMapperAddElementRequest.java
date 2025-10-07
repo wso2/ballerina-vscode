@@ -27,8 +27,9 @@ import com.google.gson.JsonElement;
  * @param codedata    Details of the node
  * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
+ * @param outputId    The output identifier
  * @since 1.0.0
  */
 public record DataMapperAddElementRequest(String filePath, JsonElement codedata, String propertyKey,
-                                          String targetField) {
+                                          String targetField, String outputId) {
 }

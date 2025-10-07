@@ -17,7 +17,8 @@
     "sourceCode": ""
   },
   "propertyKey": "expression",
-  "targetField": "credentials.0.ids",
+  "targetField": "credentials",
+  "outputId": "credentials.0.ids",
   "output": {
     "variable4_1.bal": [
       {

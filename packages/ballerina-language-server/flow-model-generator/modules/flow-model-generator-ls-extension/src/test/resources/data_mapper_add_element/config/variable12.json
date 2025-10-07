@@ -18,6 +18,7 @@
   },
   "propertyKey": "expression",
   "targetField": "var2.0",
+  "outputId": "var2",
   "output": {
     "variable7.bal": [
       {
