@@ -81,14 +81,14 @@
                 "fileName": "main.bal",
                 "startLine": {
                   "line": 9,
-                  "offset": 40
+                  "offset": 8
                 },
                 "endLine": {
                   "line": 12,
-                  "offset": 9
+                  "offset": 10
                 }
               },
-              "sourceCode": "new (systemPrompt = {role: \"\", instructions: string ``},\n            model = self._AgentServiceModel,\n            tools = []\n        )",
+              "sourceCode": "self._AgentServiceAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n            model = self._AgentServiceModel,\n            tools = []\n        );",
               "isNew": false
             }
           }
@@ -322,12 +322,6 @@
               "kind": "REQUIRED"
             },
             "defaultValue": ""
-          },
-          "name": {
-            "optional": true,
-            "editable": false,
-            "advanced": false,
-            "hidden": true
           },
           "connection": {
             "metadata": {

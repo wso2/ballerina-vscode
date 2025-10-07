@@ -308,12 +308,6 @@
             },
             "defaultValue": ""
           },
-          "name": {
-            "optional": true,
-            "editable": false,
-            "advanced": false,
-            "hidden": true
-          },
           "connection": {
             "metadata": {
               "label": "Connection",

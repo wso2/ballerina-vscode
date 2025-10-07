@@ -55,7 +55,7 @@
             "tools": [],
             "agent": {
               "systemPrompt": "{role: \"\", instructions: string ``}",
-              "instructions": "string ``",
+              "instructions": "",
               "role": "\"\"",
               "model": "_WorkflowAgentModel",
               "tools": "[]"
@@ -295,7 +295,7 @@
               "description": "Define the agent's primary function"
             },
             "valueType": "STRING",
-            "value": "",
+            "value": "\"\"",
             "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
             "optional": true,
             "editable": true,
