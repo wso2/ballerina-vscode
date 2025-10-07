@@ -41,6 +41,7 @@
               "instructions": "\"Help the students with their questions.\"",
               "agentType": "ai:REACT_AGENT",
               "role": "\"Math tutor\"",
+              "scope": "Global",
               "model": "myModel",
               "tools": "[set, sum, mutiply]"
             },
@@ -52,7 +53,30 @@
               "name": "myModel",
               "path": "https://bcentral-packageicons.azureedge.net/images/agent_agent_0.1.0.png",
               "type": "AzureOpenAiProvider"
+            }
+          }
+        },
+        "codedata": {
+          "node": "AGENT_CALL",
+          "org": "ballerinax",
+          "module": "ai",
+          "packageName": "ai",
+          "object": "Agent",
+          "symbol": "run",
+          "version": "1.0.1",
+          "lineRange": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 85,
+              "offset": 4
             },
+            "endLine": {
+              "line": 85,
+              "offset": 68
+            }
+          },
+          "sourceCode": "string result = check agent->run(\"What is the sum of 1 and 2?\");",
+          "data": {
             "agentCodedata": {
               "node": "AGENT",
               "org": "ballerinax",
@@ -76,27 +100,6 @@
               "isNew": false
             }
           }
-        },
-        "codedata": {
-          "node": "AGENT_CALL",
-          "org": "ballerinax",
-          "module": "ai",
-          "packageName": "ai",
-          "object": "Agent",
-          "symbol": "run",
-          "version": "1.0.1",
-          "lineRange": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 85,
-              "offset": 4
-            },
-            "endLine": {
-              "line": 85,
-              "offset": 68
-            }
-          },
-          "sourceCode": "string result = check agent->run(\"What is the sum of 1 and 2?\");"
         },
         "returning": false,
         "properties": {
@@ -273,6 +276,21 @@
             "editable": true,
             "advanced": true,
             "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": ""
+            }
           },
           "role": {
             "metadata": {
