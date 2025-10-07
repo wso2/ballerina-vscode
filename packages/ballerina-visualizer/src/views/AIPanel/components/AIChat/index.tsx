@@ -1944,7 +1944,7 @@ const AIChat: React.FC = () => {
                                                 nextSegment &&
                                                 (nextSegment.type === SegmentType.Code ||
                                                     (nextSegment.type === SegmentType.Text &&
-                                                        nextSegment.text.trim() === ""))
+                                                        (nextSegment.text != "\n" && nextSegment.text.trim() === "")))
                                             ) {
                                                 return;
                                             } else {

@@ -17,7 +17,9 @@
 import { TestUseCase, UsecaseResult } from '../types';
 import { executeSingleTestCase } from './test-execution';
 import { convertTestResultToUsecaseResult, createFailedUsecaseResult } from '../result-management/result-conversion';
-import { TIMING } from './constants';
+import { FILES, PATHS, TIMING, VSCODE_COMMANDS } from './constants';
+import path from 'path';
+import { commands, Uri, workspace } from 'vscode';
 
 /**
  * Processes a single batch of test cases in parallel
@@ -26,32 +28,38 @@ export async function processSingleBatch(
     batch: readonly TestUseCase[], 
     batchNumber: number
 ): Promise<readonly UsecaseResult[]> {
-    console.log(`\n📋 Processing batch ${batchNumber}: ${batch.map(uc => uc.id).join(', ')}`);
+    try {
+        console.log(`\n📋 Processing batch ${batchNumber}: ${batch.map(uc => uc.id).join(', ')}`);
 
-    const batchPromises = batch.map(useCase => 
-        executeSingleTestCase(useCase)
-    );
-    
-    const batchResults = await Promise.allSettled(batchPromises);
-    const usecaseResults: UsecaseResult[] = [];
-    
-    for (let j = 0; j < batchResults.length; j++) {
-        const settledResult = batchResults[j];
-        const useCase = batch[j];
+        // All test cases in the batch SHOULD share the same project path
+        await setupTestEnvironmentForBatch(batch[0].projectPath);
+        const batchPromises = batch.map(useCase => 
+            executeSingleTestCase(useCase)
+        );
         
-        let usecaseResult: UsecaseResult;
+        const batchResults = await Promise.allSettled(batchPromises);
+        const usecaseResults: UsecaseResult[] = [];
         
-        if (settledResult.status === 'fulfilled') {
-            usecaseResult = convertTestResultToUsecaseResult(settledResult.value);
-        } else {
-            console.error(`❌ Test case ${useCase.id} failed:`, settledResult.reason);
-            usecaseResult = createFailedUsecaseResult(useCase, settledResult.reason);
+        for (let j = 0; j < batchResults.length; j++) {
+            const settledResult = batchResults[j];
+            const useCase = batch[j];
+            
+            let usecaseResult: UsecaseResult;
+            
+            if (settledResult.status === 'fulfilled') {
+                usecaseResult = convertTestResultToUsecaseResult(settledResult.value);
+            } else {
+                console.error(`❌ Test case ${useCase.id} failed:`, settledResult.reason);
+                usecaseResult = createFailedUsecaseResult(useCase, settledResult.reason);
+            }
+            
+            usecaseResults.push(usecaseResult);
         }
         
-        usecaseResults.push(usecaseResult);
+        return usecaseResults;
+    } catch (error) {
+        console.error(`❌ Batch ${batchNumber} processing failed:`, (error as Error).message);
     }
-    
-    return usecaseResults;
 }
 
 /**
@@ -73,4 +81,34 @@ export async function handleBatchDelay(
  */
 export function wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function setupTestEnvironmentForBatch(projectPath: string): Promise<void> {
+    // Wait for VSCode startup to complete
+    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETUP_DELAY));
+    
+    await commands.executeCommand(VSCODE_COMMANDS.CLOSE_ALL_EDITORS);
+    
+    // Add the Ballerina workspace to trigger workspaceContains activation event
+    const currentFolderCount = workspace.workspaceFolders?.length || 0;
+    workspace.updateWorkspaceFolders(0, currentFolderCount, {
+        uri: Uri.file(projectPath),
+    });
+    
+    // Give VSCode time to detect the workspace and trigger activation
+    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
+    
+    // Force extension activation by opening a Ballerina file
+    try {
+        const testBalFile = Uri.file(path.join(projectPath, FILES.MAIN_BAL));
+        await commands.executeCommand(VSCODE_COMMANDS.OPEN, testBalFile);
+        await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPEN_DELAY));
+    } catch (error) {
+        // Fallback: try to execute a ballerina command to force activation
+        try {
+            await commands.executeCommand(VSCODE_COMMANDS.SHOW_EXAMPLES);
+        } catch (cmdError) {
+            // Extension might still be loading
+        }
+    }
 }

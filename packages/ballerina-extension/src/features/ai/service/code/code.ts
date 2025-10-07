@@ -14,10 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ModelMessage, generateText, streamText, stepCountIs } from "ai";
+import { ModelMessage, generateText, streamText, stepCountIs, AssistantModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
+import { anthropic } from "@ai-sdk/anthropic";
 import {
     getRewrittenPrompt,
     populateHistory,
@@ -39,10 +40,11 @@ import {
     SourceFiles,
     Command,
 } from "@wso2/ballerina-core";
-import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectFromResponse, getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
+import { handleTextEditorCommands } from "../libs/text_editor_tool";
 
 function appendFinalMessages(
     history: ModelMessage[],
@@ -65,6 +67,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const project: ProjectSource = await getProjectSource(params.operationType);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
+    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    let updatedFileNames: string[] = [];
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
@@ -103,6 +107,13 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
+            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
+                const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
+                    { command, path, old_str, new_str, file_text, insert_line, view_range });
+                return result.message;
+            }
+        })
     };
 
     const { fullStream, response } = streamText({
@@ -125,22 +136,32 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 const toolName = part.toolName;
                 console.log(`[Tool Call] Tool call started: ${toolName}`);
                 eventHandler({ type: "tool_call", toolName });
-                assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                if (toolName == "LibraryProviderTool") {
+                    assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                }
                 break;
             }
             case "tool-result": {
                 const toolName = part.toolName;
-                console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                console.log(
-                    "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
-                    part.output as Library[]
-                );
-                const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-                assistantResponse = assistantResponse.replace(
-                    `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                    `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
-                );
-                eventHandler({ type: "tool_result", toolName, libraryNames });
+                let toolResult: string[] = [];
+                if (toolName == "LibraryProviderTool") {
+                                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    console.log(
+                        "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
+                        part.output as Library[]
+                    );
+                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
+                    assistantResponse = assistantResponse.replace(
+                        `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                        `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                    );
+                    toolResult = libraryNames;
+                } else if (toolName == "str_replace_based_edit_tool") {
+                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    break;
+                }
+                eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
                 break;
             }
             case "text-delta": {
@@ -180,9 +201,11 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || finalResponse
                     : finalResponse;
 
+                finalResponse = updateFinalResponseWithCodeBlocks(finalResponse, updatedSourceFiles, updatedFileNames);
                 const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: finalResponse,
+                    assistant_response: finalResponse
                 });
+
                 finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
@@ -230,6 +253,30 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             }
         }
     }
+}
+
+function updateFinalResponseWithCodeBlocks(finalResponse: string, updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
+    const codeBlocks: string[] = [];
+
+    for (const fileName of updatedFileNames) {
+        const sourceFile = updatedSourceFiles.find(sf => sf.filePath === fileName);
+
+        if (sourceFile) {
+            const formattedBlock =
+`<code filename="${sourceFile.filePath}">
+\`\`\`ballerina
+${sourceFile.content}
+\`\`\`
+</code>`;
+            codeBlocks.push(formattedBlock);
+        }
+    }
+
+    if (codeBlocks.length > 0) {
+        return finalResponse + '\n\n' + codeBlocks.join('\n\n');
+    }
+
+    return finalResponse;
 }
 
 // Main public function that uses the default event handler
@@ -335,20 +382,16 @@ Important reminders:
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
-Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments (if any) at the end of the response.
-The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
+Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
+Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
+The complete source code will be provided in the <existing_code> section of the user prompt.
+When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
-Each file that needs modifications should have a codeblock segment, and it MUST contain the complete file content with the proposed change. The codeblock segments should only contain .bal contents and should not generate or modify any other file types. Politely decline if the query requests such cases.
+Your goal is to modify only the relevant parts of the code to address the user's query. 
+Do not generate or modify any file types other than .bal. Politely decline if the query requests such cases.
 
 - DO NOT mention if libraries are not required for the user query or task.
 - Format responses using professional markdown with proper headings, lists, and styling
-
-Example Codeblock segment:
-<code filename="main.bal">
-\`\`\`ballerina
-//code goes here
-\`\`\`
-</code>
 `;
 }
 
@@ -422,25 +465,66 @@ export async function repairCodeCore(
 }
 
 export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
+    const messages: ModelMessage[] = [...params.previousMessages];
+    const lastMessage = messages[messages.length - 1];
+    let isToolCallExistInLastMessage = false;
+    let lastMessageToolCallInfo = {toolName: "", toolCallId: ""};
+
+    const lastMessageIsAssistantCall = lastMessage?.role === 'assistant';
+    if (lastMessageIsAssistantCall) {
+        const assistantMessage: AssistantModelMessage = lastMessage as AssistantModelMessage;
+        if (Array.isArray(assistantMessage.content)) {
+            const lastToolCall = assistantMessage.content.filter(c => c.type === 'tool-call');
+            isToolCallExistInLastMessage = lastToolCall.length > 0;
+            lastMessageToolCallInfo = lastToolCall[0];
+        }
+    }
+
     const allMessages: ModelMessage[] = [
         ...params.previousMessages,
-        {
+        !isToolCallExistInLastMessage? {
             role: "assistant",
-            content: params.assistantResponse,
+            content: [
+                {
+                    type: "text",
+                    text: params.assistantResponse
+                }
+            ]
+        }: {
+            role: "tool",
+            content: [
+                {
+                    type: "tool-result",
+                    toolName: lastMessageToolCallInfo?.toolName as string || "PreviousAssistantMessageCall",
+                    result: params.assistantResponse,
+                    toolCallId: lastMessageToolCallInfo?.toolCallId as string || "PreviousAssistantMessageCallId"
+                }
+            ]
         },
         {
             role: "user",
             content:
-                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the LibraryProviderTool if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy. Fix the compiler errors and return the corrected response. \n Errors: \n " +
+                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+                "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
 
+    let updatedSourceFiles: SourceFiles[] = getProjectFromResponse(params.assistantResponse).sourceFiles;
+    let updatedFileNames: string[] = [];
+
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
+            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
+                const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
+                    { command, path, old_str, new_str, file_text, insert_line, view_range });
+                return result.message; 
+            }
+        })
     };
 
-    const { text, usage, providerMetadata } = await generateText({
+    const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 4096 * 4,
         temperature: 0,
@@ -449,10 +533,11 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
+    const responseText = updateFinalResponseWithCodeBlocks(text, updatedSourceFiles, updatedFileNames);
     // replace original response with new code blocks
-    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, text);
+    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, responseText);
     const postProcessResp: PostProcessResponse = await postProcess({
-        assistant_response: diagnosticFixResp,
+        assistant_response: diagnosticFixResp
     });
     diagnosticFixResp = postProcessResp.assistant_response;
     console.log("After auto repair, Diagnostics : ", postProcessResp.diagnostics.diagnostics);
