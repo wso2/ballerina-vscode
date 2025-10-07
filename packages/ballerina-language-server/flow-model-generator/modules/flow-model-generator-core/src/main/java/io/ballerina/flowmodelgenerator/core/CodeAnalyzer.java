@@ -627,17 +627,6 @@ public class CodeAnalyzer extends NodeVisitor {
         return false;
     }
 
-    private ServiceDeclarationNode getParentServiceDeclaration(NonTerminalNode node) {
-        NonTerminalNode currentNode = node;
-        while (currentNode != null && currentNode.kind() != SyntaxKind.SERVICE_DECLARATION) {
-            currentNode = currentNode.parent();
-        }
-        if (currentNode == null) {
-            throw new IllegalStateException("Service declaration not found");
-        }
-        return (ServiceDeclarationNode) currentNode;
-    }
-
     private FunctionDefinitionNode getParentFunction(NonTerminalNode node) {
         NonTerminalNode currentNode = node;
         while (currentNode != null && currentNode.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION &&
