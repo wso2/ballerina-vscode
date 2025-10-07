@@ -217,7 +217,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener http:Listener customHttpListener = new (9090);\nservice /api on customHttpListener {\n    resource function get greeting() returns error|json|http:InternalServerError {\n        do {\n        } on fail error err {\n            // handle error\n            return error(\"unhandled error\", err);\n        }\n    }\n}\n"
+        "newText": "\nlistener http:Listener customHttpListener = new (9090);\nservice /api on customHttpListener {\n}\n"
       }
     ]
   }
