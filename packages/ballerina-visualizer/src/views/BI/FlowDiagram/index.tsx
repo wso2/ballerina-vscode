@@ -101,7 +101,6 @@ export type FormSubmitOptions = {
     closeSidePanel?: boolean;
     updateLineRange?: boolean;
     postUpdateCallBack?: () => void;
-
 };
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
@@ -123,6 +122,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
+    const [projectOrg, setProjectOrg] = useState<string>("");
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -189,6 +189,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
+        });
+
+        rpcClient.getVisualizerLocation().then((location) => {
+            setProjectOrg(location.org);
         });
     }, [rpcClient]);
 
@@ -2069,6 +2073,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSidePanelView(targetPanel);
     };
 
+    const handleGetProjectPath = async (segments: string | string[]) => {
+        return rpcClient.getVisualizerRpcClient().joinProjectPath(segments);
+    };
+
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;
     const memoizedDiagramProps = useMemo(
         () => ({
@@ -2105,19 +2113,25 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAccept: onAcceptSuggestions,
                 onDiscard: onDiscardSuggestions,
             },
-            projectPath,
+            project: {
+                org: projectOrg,
+                path: projectPath,
+                getProjectPath: handleGetProjectPath,
+            },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
         }),
         [
             flowModel,
             fetchingAiSuggestions,
+            projectOrg,
             projectPath,
             breakpointInfo,
             showProgressSpinner,
             showProgressIndicator,
             hasDraft,
             selectedNodeId,
+            rpcClient,
         ]
     );
 
