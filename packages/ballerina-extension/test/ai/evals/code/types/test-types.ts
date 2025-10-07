@@ -15,6 +15,7 @@
 // under the License.
 
 import { ChatNotify } from "@wso2/ballerina-core";
+import { LLMEvaluationResult } from "../utils/evaluator-utils";
 
 /**
  * Test use case definition
@@ -23,6 +24,7 @@ export interface TestUseCase {
     readonly id: string;
     readonly description: string;
     readonly usecase: string;
+    readonly projectPath: string;
     readonly operationType: "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
     readonly fileAttachments?: readonly { fileName: string; content: string; }[];
 }
@@ -56,4 +58,5 @@ export interface TestCaseResult {
         readonly noErrorCheck: boolean;
         readonly noDiagnosticsCheck: boolean;
     };
+    readonly evaluationResult?: LLMEvaluationResult;
 }
