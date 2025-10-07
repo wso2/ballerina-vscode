@@ -146,7 +146,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                 queryMap: {
                     limit: 60,
                     filterByCurrentOrg:
-                        filter ?? false,
+                        filter ?? selectedConnectorCategory === "CurrentOrg" ?? false,
                 },
                 searchKind: "CONNECTOR"
             })

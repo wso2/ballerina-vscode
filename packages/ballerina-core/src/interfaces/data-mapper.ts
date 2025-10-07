@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { TypeInfo } from "./ballerina";
 import { CodeData } from "./bi";
 import { LineRange } from "./common";
 
@@ -73,13 +74,6 @@ export interface DMDiagnostic {
     };
 }
 
-export interface ModuleInfo {
-    org?: string
-    packageName?: string
-    moduleName?: string
-    version?: string
-}
-
 export interface IOType {
     id: string;
     category?: InputCategory;
@@ -97,7 +91,7 @@ export interface IOType {
     isRecursive?: boolean;
     isDeepNested?: boolean;
     ref?: string;
-    moduleInfo? : ModuleInfo;
+    typeInfo?: TypeInfo;
 }
 
 export interface Mapping {
@@ -166,6 +160,7 @@ export interface IOTypeField {
     optional?: boolean;
     ref?: string;
     focusExpression?: string;
+    typeInfo?: TypeInfo;
 }
 
 export interface EnumMember {
@@ -216,7 +211,8 @@ export interface ResultClause {
 
 export interface FnMetadata {
     returnType: FnReturnType,
-    parameters: FnParams[]
+    parameters: FnParams[],
+    importTypeInfo?: TypeInfo[]
 }
 
 export interface FnParams{
