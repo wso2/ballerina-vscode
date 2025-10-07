@@ -158,7 +158,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
                         `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
                     );
-                    toolResult = libraryNames
+                    toolResult = libraryNames;
                 } else if (toolName == "str_replace_editor") {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
                     toolResult = [updatedFileNames[updatedFileNames.length - 1]];
@@ -487,7 +487,12 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         ...params.previousMessages,
         !isToolCallExistInLastMessage? {
             role: "assistant",
-            content: params.assistantResponse,
+            content: [
+                {
+                    type: "text",
+                    text: params.assistantResponse
+                }
+            ]
         }: {
             role: "tool",
             content: [
