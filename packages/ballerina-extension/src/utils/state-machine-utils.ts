@@ -261,6 +261,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
                     for (const resource of dir.resources) {
                         const view = findViewByArtifact(resource, position, documentUri, projectUri);
                         if (view) {
+                            view.location.parentIdentifier = dir.name;
                             return view;
                         }
                     }
@@ -277,7 +278,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
     }
 }
 
-function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: NodePosition, documentUri: string, projectUri?: string) {
+function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: NodePosition, documentUri: string, projectUri?: string): HistoryEntry {
     const currentDocumentUri = documentUri;
     const artifactUri = dir.path;
     if (artifactUri === currentDocumentUri && isPositionWithinRange(position, dir.position)) {

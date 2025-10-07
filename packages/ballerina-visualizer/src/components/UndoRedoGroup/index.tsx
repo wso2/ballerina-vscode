@@ -19,14 +19,14 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { UndoRedoStateResponse } from "@wso2/ballerina-core";
 
 
 const ButtonGroup = styled.div`
     display: flex;
     align-items: center;
-    gap: 2px;
+    padding-right: 4px;
 `;
 
 
@@ -65,21 +65,21 @@ export function UndoRedoGroup() {
 
     return (
         <ButtonGroup>
-            <Button appearance="icon" onClick={handleUndo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canUndo || undoing} tooltip={`Undo ${undoDescription}`}>
+            <Button appearance="icon" onClick={handleUndo} disabled={!undoRedoState?.canUndo || undoing} tooltip={`Undo ${undoDescription || ""}`}>
                 <span style={{ pointerEvents: "none" }}>
                     {undoing ? (
                         <ProgressRing color={ThemeColors.PRIMARY} sx={{ width: 16, height: 16 }} />
                     ) : (
-                        <Codicon name="discard" />
+                        <Icon sx={{ fontSize: "16px" }} name="bi-undo" />
                     )}
                 </span>
             </Button>
-            <Button appearance="icon" onClick={handleRedo} buttonSx={{ padding: "2px 4px" }} disabled={!undoRedoState?.canRedo || redoing} tooltip={`Redo ${redoDescription}`}>
+            <Button appearance="icon" onClick={handleRedo} disabled={!undoRedoState?.canRedo || redoing} tooltip={`Redo ${redoDescription || ""}`}>
                 <span style={{ pointerEvents: "none" }}>
                     {redoing ? (
                         <ProgressRing color={ThemeColors.PRIMARY} sx={{ width: 16, height: 16 }} />
                     ) : (
-                        <Codicon name="redo" />
+                        <Icon sx={{ fontSize: "16px" }} name="bi-redo" />
                     )}
                 </span>
             </Button>
