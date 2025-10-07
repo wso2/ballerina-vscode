@@ -6,18 +6,18 @@
     "lineRange": {
       "fileName": "variable1.bal",
       "startLine": {
-        "line": 19,
+        "line": 20,
         "offset": 12
       },
       "endLine": {
-        "line": 19,
+        "line": 20,
         "offset": 33
       }
     },
     "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 17,
+    "line": 20,
     "offset": 12
   },
   "propertyKey": "expression",
@@ -38,7 +38,7 @@
         "typeName": "Student",
         "kind": "record",
         "category": "module-variable",
-        "ref": "-1801106114"
+        "ref": "545732303"
       }
     ],
     "output": {
@@ -47,11 +47,11 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-1801106114"
+      "ref": "545732303"
     },
     "mappings": [],
     "refs": {
-      "-1801106114": {
+      "545732303": {
         "fields": [
           {
             "name": "username",
@@ -63,6 +63,13 @@
           {
             "name": "password",
             "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
             "typeName": "string",
             "kind": "string",
             "optional": false

@@ -76,7 +76,8 @@ public class DataMappingAddElementTest extends AbstractLSTest {
 
         DataMapperAddElementRequest request =
                 new DataMapperAddElementRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField());
+                        testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(),
+                        testConfig.outputId());
         JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
@@ -105,7 +106,8 @@ public class DataMappingAddElementTest extends AbstractLSTest {
 
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), newMap);
+                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), testConfig.outputId(),
+                    newMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -139,10 +141,11 @@ public class DataMappingAddElementTest extends AbstractLSTest {
      * @param codedata    Details of the node
      * @param propertyKey The property key
      * @param targetField The target field to add the element
+     * @param outputId    The identifier for the output
      * @param output      generated source expression
      */
     private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
-                              String targetField, Map<String, List<TextEdit>> output) {
+                              String targetField, String outputId, Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;

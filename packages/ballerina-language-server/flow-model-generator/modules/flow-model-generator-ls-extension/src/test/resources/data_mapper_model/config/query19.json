@@ -32,7 +32,7 @@
             "displayName": "<arr3ItemItem>",
             "typeName": "RecType",
             "kind": "record",
-            "ref": "-1897494121"
+            "ref": "-788289410"
           },
           "name": "arr3",
           "displayName": "<arr3Item>",
@@ -54,7 +54,7 @@
           "displayName": "<arr3ItemItem>",
           "typeName": "RecType",
           "kind": "record",
-          "ref": "-1897494121"
+          "ref": "-788289410"
         },
         "name": "arr3Item",
         "displayName": "arr3Item",
@@ -72,7 +72,7 @@
             "displayName": "<arr4ItemItem>",
             "typeName": "RecType",
             "kind": "record",
-            "ref": "-1897494121"
+            "ref": "-788289410"
           },
           "name": "arr4",
           "displayName": "<arr4Item>",
@@ -94,27 +94,27 @@
         "typeName": "RecType",
         "kind": "record",
         "focusExpression": "arr3Item",
-        "ref": "-1897494121"
+        "ref": "-788289410"
       }
     ],
     "output": {
       "member": {
         "fields": [],
-        "name": "0",
-        "displayName": "<0Item>",
+        "name": "recType",
+        "displayName": "<recTypeItem>",
         "typeName": "RecType",
         "kind": "record",
-        "ref": "-1897494121"
+        "ref": "-788289410"
       },
-      "name": "0",
-      "displayName": "0",
+      "name": "recType",
+      "displayName": "recType",
       "typeName": "RecType[]",
       "kind": "array",
       "ref": "-1897494121"
     },
     "mappings": [
       {
-        "output": "0.i",
+        "output": "recType.i",
         "inputs": [],
         "expression": "0",
         "diagnostics": [],
@@ -124,7 +124,7 @@
       }
     ],
     "query": {
-      "output": "0",
+      "output": "recType",
       "inputs": [
         "arr3Item"
       ],
@@ -145,7 +145,7 @@
       }
     },
     "refs": {
-      "-1897494121": {
+      "-788289410": {
         "fields": [
           {
             "name": "i",

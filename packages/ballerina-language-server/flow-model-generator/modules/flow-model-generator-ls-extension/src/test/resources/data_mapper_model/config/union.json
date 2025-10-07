@@ -30,7 +30,7 @@
         "typeName": "Dog",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-27067364"
+        "ref": "44278736"
       },
       {
         "fields": [],
@@ -39,7 +39,7 @@
         "typeName": "Elephant",
         "kind": "record",
         "category": "local-variable",
-        "ref": "252136892"
+        "ref": "-2143678211"
       }
     ],
     "output": {
@@ -50,7 +50,7 @@
           "displayName": "animal1",
           "typeName": "Dog",
           "kind": "record",
-          "ref": "-27067364"
+          "ref": "44278736"
         },
         {
           "fields": [],
@@ -58,14 +58,14 @@
           "displayName": "animal1",
           "typeName": "Elephant",
           "kind": "record",
-          "ref": "252136892"
+          "ref": "-2143678211"
         }
       ],
       "name": "animal1",
       "displayName": "animal1",
       "typeName": "Dog|Elephant",
       "kind": "union",
-      "ref": "-390580094"
+      "ref": "1478230493"
     },
     "mappings": [
       {
@@ -81,7 +81,7 @@
       }
     ],
     "refs": {
-      "252136892": {
+      "-2143678211": {
         "fields": [
           {
             "name": "name",
@@ -101,7 +101,7 @@
         "typeName": "Elephant",
         "kind": "record"
       },
-      "-27067364": {
+      "44278736": {
         "fields": [
           {
             "name": "name",

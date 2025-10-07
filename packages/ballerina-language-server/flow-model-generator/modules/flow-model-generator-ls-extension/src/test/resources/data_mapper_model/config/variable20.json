@@ -39,7 +39,7 @@
         "kind": "record",
         "category": "variable",
         "focusExpression": "banks",
-        "ref": "668760670"
+        "ref": "1372568104"
       },
       {
         "member": {
@@ -48,7 +48,7 @@
           "displayName": "<banksItem>",
           "typeName": "Bank",
           "kind": "record",
-          "ref": "668760670"
+          "ref": "1372568104"
         },
         "name": "banks",
         "displayName": "banks",
@@ -64,7 +64,7 @@
           "displayName": "<userInfoItem>",
           "typeName": "UserInfo",
           "kind": "record",
-          "ref": "-481592369"
+          "ref": "1889977605"
         },
         "name": "userInfo",
         "displayName": "userInfo",
@@ -80,7 +80,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "focusExpression": "bank.userInfo",
-        "ref": "-481592369"
+        "ref": "1889977605"
       }
     ],
     "output": {
@@ -90,7 +90,7 @@
         "displayName": "<credentialsItem>",
         "typeName": "Credentials",
         "kind": "record",
-        "ref": "1085256861"
+        "ref": "242052496"
       },
       "name": "credentials",
       "displayName": "credentials",
@@ -146,7 +146,7 @@
       }
     },
     "refs": {
-      "668760670": {
+      "1372568104": {
         "fields": [
           {
             "name": "name",
@@ -162,7 +162,7 @@
               "displayName": "<userInfoItem>",
               "typeName": "UserInfo",
               "kind": "record",
-              "ref": "-481592369"
+              "ref": "1889977605"
             },
             "name": "userInfo",
             "displayName": "userInfo",
@@ -175,7 +175,27 @@
         "typeName": "Bank",
         "kind": "record"
       },
-      "-481592369": {
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
         "fields": [
           {
             "name": "username",
@@ -200,26 +220,6 @@
           }
         ],
         "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "1085256861": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "Credentials",
         "kind": "record"
       }
     }

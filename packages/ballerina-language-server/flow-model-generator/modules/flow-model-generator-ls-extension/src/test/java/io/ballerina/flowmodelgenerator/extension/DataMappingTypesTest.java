@@ -45,7 +45,7 @@ public class DataMappingTypesTest extends AbstractLSTest {
         DataMapperTypesRequest request =
                 new DataMapperTypesRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.diagram(), testConfig.propertyKey());
-        JsonObject type = getResponse(request).getAsJsonObject("type");
+        JsonObject type = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("type");
 
         if (!type.equals(testConfig.type())) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),

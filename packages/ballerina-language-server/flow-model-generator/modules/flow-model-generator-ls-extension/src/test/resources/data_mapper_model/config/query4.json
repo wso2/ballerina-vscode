@@ -31,7 +31,7 @@
         "typeName": "User",
         "kind": "record",
         "category": "variable",
-        "ref": "1409956942"
+        "ref": "1373151159"
       },
       {
         "fields": [],
@@ -40,7 +40,7 @@
         "typeName": "SecondaryPhones",
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
-        "ref": "-1392347127"
+        "ref": "-782972947"
       }
     ],
     "output": {
@@ -50,7 +50,7 @@
         "displayName": "<phoneNumbersItem>",
         "typeName": "SecondaryPhonesX",
         "kind": "record",
-        "ref": "297170993"
+        "ref": "1497642507"
       },
       "name": "phoneNumbers",
       "displayName": "phoneNumbers",
@@ -130,22 +130,34 @@
       }
     },
     "refs": {
-      "1409956942": {
+      "1497642507": {
         "fields": [
           {
-            "fields": [],
-            "name": "info",
-            "displayName": "info",
-            "typeName": "Info",
-            "kind": "record",
-            "optional": false,
-            "ref": "-36697220"
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
           }
         ],
-        "typeName": "User",
+        "typeName": "SecondaryPhonesX",
         "kind": "record"
       },
-      "-1392347127": {
+      "-782972947": {
         "fields": [
           {
             "name": "code",
@@ -165,20 +177,23 @@
         "typeName": "SecondaryPhones",
         "kind": "record"
       },
-      "-36697220": {
+      "1372788890": {
         "fields": [
           {
             "member": {
+              "fields": [],
               "name": "secondaryPhones",
               "displayName": "<secondaryPhonesItem>",
-              "typeName": "string",
-              "kind": "string"
+              "typeName": "SecondaryPhones",
+              "kind": "record",
+              "ref": "-782972947"
             },
             "name": "secondaryPhones",
             "displayName": "secondaryPhones",
-            "typeName": "string[]",
+            "typeName": "SecondaryPhones[]",
             "kind": "array",
-            "optional": false
+            "optional": false,
+            "ref": "-1392347127"
           },
           {
             "member": {
@@ -216,31 +231,19 @@
         "typeName": "Info",
         "kind": "record"
       },
-      "297170993": {
+      "1373151159": {
         "fields": [
           {
-            "name": "code",
-            "displayName": "code",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "number",
-            "displayName": "number",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "email",
-            "displayName": "email",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
+            "fields": [],
+            "name": "info",
+            "displayName": "info",
+            "typeName": "Info",
+            "kind": "record",
+            "optional": false,
+            "ref": "1372788890"
           }
         ],
-        "typeName": "SecondaryPhonesX",
+        "typeName": "User",
         "kind": "record"
       }
     }

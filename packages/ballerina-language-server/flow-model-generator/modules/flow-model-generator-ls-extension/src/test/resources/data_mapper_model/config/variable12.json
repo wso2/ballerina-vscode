@@ -37,7 +37,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-1418772512"
+        "ref": "1889977605"
       }
     ],
     "output": {
@@ -46,7 +46,7 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "1568106809"
+      "ref": "545732303"
     },
     "mappings": [
       {
@@ -98,7 +98,7 @@
       }
     ],
     "refs": {
-      "1568106809": {
+      "545732303": {
         "fields": [
           {
             "name": "id",
@@ -114,7 +114,7 @@
             "typeName": "Credentials",
             "kind": "record",
             "optional": false,
-            "ref": "1085256861"
+            "ref": "242052496"
           },
           {
             "name": "length",
@@ -127,27 +127,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "-1418772512": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "1085256861": {
+      "242052496": {
         "fields": [
           {
             "name": "username",
@@ -165,6 +145,26 @@
           }
         ],
         "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
         "kind": "record"
       }
     }

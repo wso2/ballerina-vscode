@@ -117,7 +117,7 @@ public class DataMappingSourceTest extends AbstractLSTest {
         DataMapperSourceRequest request =
                 new DataMapperSourceRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.codedata(), testConfig.mapping(), "", testConfig.targetField());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 

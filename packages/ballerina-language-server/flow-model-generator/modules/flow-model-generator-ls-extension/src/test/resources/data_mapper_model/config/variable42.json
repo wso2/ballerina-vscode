@@ -37,7 +37,7 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-481592369"
+        "ref": "1889977605"
       },
       {
         "name": "x",
@@ -60,7 +60,7 @@
       "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-863925971"
+      "ref": "545732303"
     },
     "mappings": [
       {
@@ -89,7 +89,7 @@
       }
     ],
     "refs": {
-      "-863925971": {
+      "545732303": {
         "fields": [
           {
             "name": "username",
@@ -116,7 +116,7 @@
         "typeName": "Student",
         "kind": "record"
       },
-      "-481592369": {
+      "1889977605": {
         "fields": [
           {
             "name": "username",

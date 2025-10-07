@@ -7,7 +7,7 @@
       {
         "fieldName": "sampleRecordName",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string"
         },
@@ -17,28 +17,37 @@
       {
         "fieldName": "recordType",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "695203170",
+          "key": "441557406",
           "name": "SampleType",
-          "typeName": "record"
+          "typeName": "record",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "695203170"
+    "dependentTypeKeys": [
+      "441557406"
     ],
     "hashCode": "-1709258083",
+    "key": "-941197899",
     "name": "SampleRecord",
     "typeName": "record",
     "dependentTypes": {
-      "695203170": {
+      "441557406": {
         "fields": [
           {
             "fieldName": "sampleTypeName",
             "type": {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "string",
               "typeName": "string"
             },
@@ -48,7 +57,7 @@
           {
             "fieldName": "sampleTypeCode",
             "type": {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "int",
               "typeName": "int"
             },
@@ -56,11 +65,26 @@
             "defaultValue": ""
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "695203170",
+        "key": "441557406",
         "name": "SampleType",
-        "typeName": "record"
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
     }
   }
 }

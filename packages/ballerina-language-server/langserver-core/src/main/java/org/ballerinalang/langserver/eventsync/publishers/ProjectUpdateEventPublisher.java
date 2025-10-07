@@ -24,10 +24,6 @@ import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.ballerinalang.langserver.commons.eventsync.EventKind;
 import org.ballerinalang.langserver.eventsync.AbstractEventPublisher;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Publishes the project update event.
  *
@@ -36,8 +32,6 @@ import java.util.concurrent.TimeUnit;
 @JavaSPIService("org.ballerinalang.langserver.eventsync.EventPublisher")
 public class ProjectUpdateEventPublisher extends AbstractEventPublisher {
     public static final String NAME = "Project update event publisher";
-    private CompletableFuture<Boolean> latestScheduled = null;
-    private static final long DIAGNOSTIC_DELAY = 1;
     
     @Override
     public EventKind getKind() {
@@ -52,14 +46,7 @@ public class ProjectUpdateEventPublisher extends AbstractEventPublisher {
     @Override
     public void publish(ExtendedLanguageClient client, LanguageServerContext serverContext,
                         DocumentServiceContext context) {
-        if (latestScheduled != null && !latestScheduled.isDone()) {
-            latestScheduled.completeExceptionally(new Throwable("Cancelled project update event publisher"));
-        }
-
-        Executor delayedExecutor = CompletableFuture.delayedExecutor(DIAGNOSTIC_DELAY, TimeUnit.SECONDS);
-        CompletableFuture<Boolean> scheduledFuture = CompletableFuture.supplyAsync(() -> true, delayedExecutor);
-        latestScheduled = scheduledFuture;
-        scheduledFuture.thenAcceptAsync(aBoolean -> subscribers.parallelStream()
-                .forEach(subscriber -> subscriber.onEvent(client, context, serverContext)));
+        subscribers.parallelStream()
+                .forEach(subscriber -> subscriber.onEvent(client, context, serverContext));
     }
 }

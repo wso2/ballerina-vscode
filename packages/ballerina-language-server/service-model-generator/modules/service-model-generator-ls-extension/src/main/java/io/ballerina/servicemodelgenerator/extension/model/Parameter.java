@@ -227,10 +227,12 @@ public class Parameter {
     }
 
     public static Parameter getNewField() {
-        return new Parameter.Builder()
+        return new Builder()
                 .type(type(FIELD_TYPE_METADATA))
                 .name(name(FIELD_NAME_METADATA))
                 .defaultValue(defaultValue(FIELD_DEFAULT_VALUE_METADATA))
+                .editable(true)
+                .optional(true)
                 .build();
     }
 

@@ -1,0 +1,179 @@
+{
+  "source": "query20.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 21,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 21
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 21,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "u",
+        "displayName": "u",
+        "typeName": "User",
+        "kind": "record",
+        "category": "variable",
+        "ref": "1373151159"
+      },
+      {
+        "name": "secondaryPhonesItem",
+        "displayName": "secondaryPhonesItem",
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "u.info.secondaryPhones"
+      }
+    ],
+    "output": {
+      "member": {
+        "name": "phoneNumbers",
+        "displayName": "<phoneNumbersItem>",
+        "typeName": "string",
+        "kind": "string"
+      },
+      "name": "phoneNumbers",
+      "displayName": "phoneNumbers",
+      "typeName": "string[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "phoneNumbers",
+        "inputs": [
+          "secondaryPhonesItem"
+        ],
+        "expression": "secondaryPhonesItem\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "phoneNumbers",
+      "inputs": [
+        "u.info.secondaryPhones"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "secondaryPhonesItem",
+          "type": "string",
+          "expression": "u.info.secondaryPhones"
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "secondaryPhonesItem"
+        }
+      }
+    },
+    "refs": {
+      "-782972947": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "SecondaryPhones",
+        "kind": "record"
+      },
+      "1372788890": {
+        "fields": [
+          {
+            "member": {
+              "name": "secondaryPhones",
+              "displayName": "<secondaryPhonesItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "secondaryPhones",
+            "displayName": "secondaryPhones",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "emails",
+              "displayName": "<emailsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "emails",
+            "displayName": "emails",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "member": {
+                "name": "addresses",
+                "displayName": "<addressesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "name": "addresses",
+              "displayName": "<addressesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "name": "addresses",
+            "displayName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "Info",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "info",
+            "displayName": "info",
+            "typeName": "Info",
+            "kind": "record",
+            "optional": false,
+            "ref": "1372788890"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
+  }
+}

@@ -32,7 +32,7 @@
         "kind": "record",
         "category": "variable",
         "focusExpression": "var1.l1.l2",
-        "ref": "2072204783"
+        "ref": "1640916549"
       },
       {
         "fields": [],
@@ -41,7 +41,7 @@
         "typeName": "MyType4",
         "kind": "record",
         "category": "variable",
-        "ref": "360065391"
+        "ref": "-371017086"
       },
       {
         "fields": [],
@@ -50,7 +50,7 @@
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "focusExpression": "l2Item.l3Arr",
-        "ref": "-1019813121"
+        "ref": "83688130"
       }
     ],
     "output": {
@@ -110,7 +110,7 @@
       }
     },
     "refs": {
-      "-791387238": {
+      "-791343032": {
         "fields": [
           {
             "name": "l3",
@@ -126,46 +126,37 @@
               "displayName": "<l3ArrItem>",
               "typeName": "",
               "kind": "record",
-              "ref": "1847207892"
+              "ref": "1847252098"
             },
             "name": "l3Arr",
             "displayName": "l3Arr",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
-            "ref": "1847207892"
+            "ref": "1847252098"
           }
         ],
         "typeName": "",
         "kind": "record"
       },
-      "2072204783": {
+      "1847252098": {
         "fields": [
           {
-            "name": "l3",
-            "displayName": "l3",
+            "name": "l4_1",
+            "displayName": "l4_1",
             "typeName": "int",
             "kind": "int",
             "optional": false
           },
           {
-            "member": {
-              "fields": [],
-              "name": "l3Arr",
-              "displayName": "<l3ArrItem>",
-              "typeName": "",
-              "kind": "record",
-              "ref": "1847207892"
-            },
-            "name": "l3Arr",
-            "displayName": "l3Arr",
-            "typeName": "[]",
-            "kind": "array",
-            "optional": false,
-            "ref": "1847207892"
+            "name": "l4_2",
+            "displayName": "l4_2",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
           }
         ],
-        "typeName": "l2Item",
+        "typeName": "",
         "kind": "record"
       },
       "1011837363": {
@@ -177,20 +168,20 @@
               "displayName": "<l2Item>",
               "typeName": "",
               "kind": "record",
-              "ref": "-791387238"
+              "ref": "-791343032"
             },
             "name": "l2",
             "displayName": "l2",
             "typeName": "[]",
             "kind": "array",
             "optional": false,
-            "ref": "-791387238"
+            "ref": "-791343032"
           }
         ],
         "typeName": "",
         "kind": "record"
       },
-      "-1019813121": {
+      "83688130": {
         "fields": [
           {
             "name": "l4_1",
@@ -230,7 +221,7 @@
         "typeName": "",
         "kind": "record"
       },
-      "360065391": {
+      "-371017086": {
         "fields": [
           {
             "fields": [],
@@ -243,6 +234,35 @@
           }
         ],
         "typeName": "MyType4",
+        "kind": "record"
+      },
+      "1640916549": {
+        "fields": [
+          {
+            "name": "l3",
+            "displayName": "l3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "l3Arr",
+              "displayName": "<l3ArrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1847252098"
+            },
+            "name": "l3Arr",
+            "displayName": "l3Arr",
+            "typeName": "[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1847252098"
+          }
+        ],
+        "typeName": "l2Item",
         "kind": "record"
       }
     }

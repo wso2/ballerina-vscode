@@ -7,7 +7,7 @@
       {
         "fieldName": "name",
         "type": {
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "name": "string",
           "typeName": "string"
         },
@@ -19,54 +19,78 @@
         "type": {
           "memberTypes": [
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "FINANCE"
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "IT"
             },
             {
-              "dependentTypeHashes": [],
+              "dependentTypeKeys": [],
               "name": "HR"
             }
           ],
-          "dependentTypeHashes": [],
+          "dependentTypeKeys": [],
           "hashCode": "-959561237",
+          "key": "-1253237511",
           "name": "DepartmentCode",
-          "typeName": "union"
+          "typeName": "union",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
         },
         "optional": false,
         "defaultValue": ""
       }
     ],
-    "dependentTypeHashes": [
-      "-959561237"
+    "dependentTypeKeys": [
+      "-1253237511"
     ],
     "hashCode": "1123774631",
+    "key": "1146573036",
     "name": "Department",
     "typeName": "record",
     "dependentTypes": {
-      "-959561237": {
+      "-1253237511": {
         "memberTypes": [
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "FINANCE"
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "IT"
           },
           {
-            "dependentTypeHashes": [],
+            "dependentTypeKeys": [],
             "name": "HR"
           }
         ],
-        "dependentTypeHashes": [],
+        "dependentTypeKeys": [],
         "hashCode": "-959561237",
+        "key": "-1253237511",
         "name": "DepartmentCode",
-        "typeName": "union"
+        "typeName": "union",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
       }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
     }
   }
 }

@@ -31,7 +31,7 @@
         "typeName": "simpleTypeArr",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-268419592"
+        "ref": "-1661226903"
       }
     ],
     "output": {
@@ -40,7 +40,7 @@
       "displayName": "arr2",
       "typeName": "simpleTypeArr",
       "kind": "record",
-      "ref": "-268419592"
+      "ref": "-1661226903"
     },
     "mappings": [
       {
@@ -137,48 +137,6 @@
       }
     ],
     "refs": {
-      "-842473667": {
-        "fields": [
-          {
-            "member": {
-              "name": "k",
-              "displayName": "<kItem>",
-              "typeName": "string",
-              "kind": "string"
-            },
-            "name": "k",
-            "displayName": "k",
-            "typeName": "string[]",
-            "kind": "array",
-            "optional": false
-          },
-          {
-            "member": {
-              "fields": [],
-              "name": "l",
-              "displayName": "<lItem>",
-              "typeName": "MyType2",
-              "kind": "record",
-              "ref": "802102543"
-            },
-            "name": "l",
-            "displayName": "l",
-            "typeName": "MyType2[]",
-            "kind": "array",
-            "optional": false,
-            "ref": "802102543"
-          },
-          {
-            "name": "i",
-            "displayName": "i",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "MyType",
-        "kind": "record"
-      },
       "429276051": {
         "fields": [
           {
@@ -194,7 +152,20 @@
         "typeName": "",
         "kind": "record"
       },
-      "1012320595": {
+      "293955111": {
+        "fields": [
+          {
+            "name": "Ccc",
+            "displayName": "Ccc",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1012364801": {
         "fields": [
           {
             "name": "p",
@@ -216,20 +187,80 @@
         "typeName": "",
         "kind": "record"
       },
-      "293955111": {
+      "819315698": {
         "fields": [
           {
-            "name": "Ccc",
-            "displayName": "Ccc",
-            "typeName": "int",
-            "kind": "int",
+            "member": {
+              "name": "k",
+              "displayName": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "k",
+            "displayName": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "l",
+              "displayName": "<lItem>",
+              "typeName": "MyType2",
+              "kind": "record",
+              "ref": "-371017088"
+            },
+            "name": "l",
+            "displayName": "l",
+            "typeName": "MyType2[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "802102543"
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "string",
+            "kind": "string",
             "optional": false
           }
         ],
-        "typeName": "",
+        "typeName": "MyType",
         "kind": "record"
       },
-      "-268419592": {
+      "-371017088": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "arr",
+              "displayName": "<arrItem>",
+              "typeName": "",
+              "kind": "record",
+              "ref": "1012364801"
+            },
+            "name": "arr",
+            "displayName": "arr",
+            "typeName": "[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1012364801"
+          },
+          {
+            "fields": [],
+            "name": "Aa",
+            "displayName": "Aa",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "429276051"
+          }
+        ],
+        "typeName": "MyType2",
+        "kind": "record"
+      },
+      "-1661226903": {
         "fields": [
           {
             "name": "a0",
@@ -297,7 +328,7 @@
             "typeName": "MyType",
             "kind": "record",
             "optional": false,
-            "ref": "-842473667"
+            "ref": "819315698"
           },
           {
             "member": {
@@ -306,7 +337,7 @@
               "displayName": "<m1Item>",
               "typeName": "MyType",
               "kind": "record",
-              "ref": "-842473667"
+              "ref": "819315698"
             },
             "name": "m1",
             "displayName": "m1",
@@ -323,7 +354,7 @@
                 "displayName": "<m2ItemItem>",
                 "typeName": "MyType2",
                 "kind": "record",
-                "ref": "802102543"
+                "ref": "-371017088"
               },
               "name": "m2",
               "displayName": "<m2Item>",
@@ -340,37 +371,6 @@
           }
         ],
         "typeName": "simpleTypeArr",
-        "kind": "record"
-      },
-      "802102543": {
-        "fields": [
-          {
-            "member": {
-              "fields": [],
-              "name": "arr",
-              "displayName": "<arrItem>",
-              "typeName": "",
-              "kind": "record",
-              "ref": "1012320595"
-            },
-            "name": "arr",
-            "displayName": "arr",
-            "typeName": "[]",
-            "kind": "array",
-            "optional": false,
-            "ref": "1012320595"
-          },
-          {
-            "fields": [],
-            "name": "Aa",
-            "displayName": "Aa",
-            "typeName": "",
-            "kind": "record",
-            "optional": false,
-            "ref": "429276051"
-          }
-        ],
-        "typeName": "MyType2",
         "kind": "record"
       },
       "-1137921160": {

@@ -17,7 +17,8 @@
     "sourceCode": "UserInfo[] userInfo = [];"
   },
   "propertyKey": "expression",
-  "targetField": "department.students",
+  "targetField": "department",
+  "outputId": "department.students",
   "output": {
     "variable2_1.bal": [
       {

@@ -65,6 +65,8 @@ public class DataMappingDeleteTest extends AbstractLSTest {
                 {Path.of("variable7.json")},
                 {Path.of("variable8.json")},
                 {Path.of("variable9.json")},
+                {Path.of("variable10.json")},
+                {Path.of("variable11.json")},
         };
     }
 
@@ -77,7 +79,7 @@ public class DataMappingDeleteTest extends AbstractLSTest {
         DataMappingDeleteRequest request = new DataMappingDeleteRequest(
                 sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(),
                 testConfig.mapping(), testConfig.targetField());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, textEditListType);
 
