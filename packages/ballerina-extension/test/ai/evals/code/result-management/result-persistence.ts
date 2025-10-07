@@ -124,7 +124,8 @@ export async function persistIterationSummary(iterationSummary: IterationSummary
         totalUsecases: iterationSummary.totalUsecases,
         totalCompiled: iterationSummary.totalCompiled,
         totalFailed: iterationSummary.totalFailed,
-        accuracy: iterationSummary.accuracy
+        accuracy: iterationSummary.accuracy,
+        evaluationSummary: iterationSummary.evaluationResult.rating
     };
 
     // Save compact summary

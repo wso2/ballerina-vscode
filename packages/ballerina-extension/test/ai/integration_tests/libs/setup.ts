@@ -29,7 +29,7 @@ const TIMING = {
 };
 
 const PATHS = {
-    PROJECT_ROOT_RELATIVE: "../../../../../test/data/bi_empty",
+    PROJECT_ROOT_RELATIVE: "../../../../../test/data/bi_empty_project",
     ENV_FILE_RELATIVE: "../../../../.env",
 };
 

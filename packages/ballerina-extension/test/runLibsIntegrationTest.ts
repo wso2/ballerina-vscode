@@ -69,7 +69,7 @@ async function main() {
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [
-                path.resolve(__dirname, '../../test/data/bi_empty')
+                path.resolve(__dirname, '../../test/data/bi_empty_project')
             ],
             extensionTestsEnv: {
                 ...envKeys,

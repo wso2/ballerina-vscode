@@ -31,9 +31,7 @@
         "onNotebook:ballerina-notebook",
         "onUri"
     ],
-    "extensionDependencies": [
-
-    ],
+    "extensionDependencies": [],
     "contributes": {
         "languages": [
             {
@@ -965,21 +963,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f180"
+                    "fontCharacter": "\\f182"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f5"
+                    "fontCharacter": "\\f1f7"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17b"
+                    "fontCharacter": "\\f17d"
                 }
             },
             "distro-source-view": {
@@ -993,7 +991,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1d0"
+                    "fontCharacter": "\\f1d2"
                 }
             },
             "distro-cached-rounded": {
