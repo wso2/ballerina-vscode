@@ -20,29 +20,56 @@ import React, { useEffect, useState } from "react";
 import { FlowNode, Branch, LinePosition } from "../../utils/types";
 import { useDiagramContext } from "../DiagramContext";
 import styled from "@emotion/styled";
-import { NODE_PADDING, POPUP_BOX_WIDTH } from "../../resources/constants";
-import { Button, PromptTextField, ThemeColors } from "@wso2/ui-toolkit";
+import { POPUP_BOX_WIDTH } from "../../resources/constants";
+import { TextArea, ThemeColors, Codicon, ProgressRing } from "@wso2/ui-toolkit";
+import { PopupOverlay } from "../PopupOverlay";
 
 export namespace PopupStyles {
     export const Container = styled.div`
+        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: flex-start;
         width: ${POPUP_BOX_WIDTH}px;
-        padding: ${NODE_PADDING / 2}px ${NODE_PADDING}px;
-        border-radius: 4px;
+        padding: 8px;
+        border-radius: 6px;
         background-color: ${ThemeColors.SURFACE};
         color: ${ThemeColors.ON_SURFACE};
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
     `;
 
-    export const Row = styled.div`
+    export const Header = styled.div`
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 4px;
+        align-items: center;
         width: 100%;
+    `;
+
+    export const Title = styled.div`
+        font-size: 14px;
+        font-family: "GilmerMedium";
+        margin-bottom: 2px;
+        margin-left: 2px;
+    `;
+
+    export const CloseButton = styled.div`
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        opacity: 0.7;
+        transition: opacity 0.2s, background-color 0.2s;
+
+        &:hover {
+            opacity: 1;
+            background-color: ${ThemeColors.ON_SURFACE}10;
+        }
     `;
 
     export const InfoText = styled.div`
@@ -50,6 +77,15 @@ export namespace PopupStyles {
         font-family: monospace;
         color: ${ThemeColors.ON_SURFACE};
         opacity: 0.7;
+    `;
+
+    export const GeneratingContainer = styled.div`
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: ${ThemeColors.ON_SURFACE};
+        opacity: 0.8;
     `;
 }
 
@@ -64,11 +100,16 @@ export function AddPromptPopup(props: AddPromptPopupProps) {
     const { onAddNodePrompt, suggestions } = useDiagramContext();
 
     const [prompt, setPrompt] = useState("");
+    const isGenerating = suggestions?.fetching || false;
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 onClose();
+            } else if (event.key === "Enter" && !event.shiftKey && !isGenerating) {
+                // Enter to generate, Shift+Enter for new line
+                event.preventDefault();
+                handleAddPrompt();
             }
         };
 
@@ -77,46 +118,83 @@ export function AddPromptPopup(props: AddPromptPopupProps) {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [prompt]);
+    }, [prompt, isGenerating]);
 
     const handleAddPrompt = () => {
+        if (!prompt.trim()) {
+            return;
+        }
+
         if (!target) {
             console.error(">>> AddPromptPopup: AddPromptPopup: target not found");
             return;
         }
+
         onAddNodePrompt(node, { startLine: target, endLine: target }, prompt);
+        // No need to close - diagram will rerender and popup will disappear
     };
 
     const handleOnPromptChange = (value: string) => {
         setPrompt(value);
     };
 
-    return (
-        <PopupStyles.Container>
-            <PromptTextField
-                placeholder="Enter a prompt to generate next node"
-                value={prompt}
-                onTextChange={handleOnPromptChange}
-                onEnter={handleAddPrompt}
-                sx={{ width: "100%" }}
-                readOnly={suggestions?.fetching}
-            />
+    const handleMouseDown = (e: React.MouseEvent) => {
+        // Prevent mouse events from propagating to the canvas
+        e.stopPropagation();
+    };
 
-            <PopupStyles.Row>
-                <PopupStyles.InfoText>Press ESC to cancel.</PopupStyles.InfoText>
-                <Button
-                    onClick={handleAddPrompt}
-                    buttonSx={{
-                        height: 18,
-                        marginBottom: 2,
-                    }}
-                    
-                    disabled={suggestions?.fetching}
-                >
-                    Generate
-                </Button>
-            </PopupStyles.Row>
-        </PopupStyles.Container>
+    const handleMouseMove = (e: React.MouseEvent) => {
+        // Prevent mouse move events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+        // Prevent mouse up events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        // Prevent wheel events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    return (
+        <>
+            <PopupOverlay onClose={onClose} />
+            <PopupStyles.Container
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onWheel={handleWheel}
+            >
+                <PopupStyles.Header>
+                    <PopupStyles.Title>Generate Node</PopupStyles.Title>
+                    <PopupStyles.CloseButton onClick={onClose} title="Close (Esc)">
+                        <Codicon name="close" />
+                    </PopupStyles.CloseButton>
+                </PopupStyles.Header>
+
+                <TextArea
+                    placeholder="Enter a prompt to generate next node"
+                    value={prompt}
+                    onTextChange={handleOnPromptChange}
+                    rows={4}
+                    resize="vertical"
+                    autoFocus
+                    disabled={isGenerating}
+                    sx={{ width: "100%" }}
+                />
+
+                {!isGenerating ? (
+                    <PopupStyles.InfoText>Press Enter to generate node. Press Esc to cancel.</PopupStyles.InfoText>
+                ) : (
+                    <PopupStyles.GeneratingContainer>
+                        <ProgressRing sx={{ width: 14, height: 14 }} />
+                        <span>Generating nodes...</span>
+                    </PopupStyles.GeneratingContainer>
+                )}
+            </PopupStyles.Container>
+        </>
     );
 }
 
