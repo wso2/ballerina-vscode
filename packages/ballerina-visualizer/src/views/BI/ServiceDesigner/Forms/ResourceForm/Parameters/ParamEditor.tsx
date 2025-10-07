@@ -37,10 +37,11 @@ export interface ParamProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
+    isNewResource?: boolean;
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel } = props;
+    const { param, hideType = false, onChange, onSave, onCancel, isNewResource } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -143,10 +144,10 @@ export function ParamEditor(props: ParamProps) {
                 enabled: !!dataValues['defaultValue']
             }
         };
-        
+
         // Update the parent component's state first
         onChange(updatedParam);
-        
+
         // Then call onSave if provided
         if (onSave) {
             onSave(updatedParam);
@@ -172,7 +173,7 @@ export function ParamEditor(props: ParamProps) {
             {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType === "PAYLOAD" ? "Payload" : "Parameter"} Configuration</Typography>}
             {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label} Configuration</Typography>}
             <Divider />
-            {param.httpParamType !== "PAYLOAD" &&
+            {param.httpParamType !== "PAYLOAD" && !isNewResource &&
                 <EditorContent>
                     {param.httpParamType && (
                         <Dropdown
