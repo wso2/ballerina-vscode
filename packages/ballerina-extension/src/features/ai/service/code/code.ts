@@ -107,7 +107,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_editor: anthropic.tools.textEditor_20250124({
+        str_replace_editor: anthropic.tools.textEditor_20250728({
             async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
                 const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
                     { command, path, old_str, new_str, file_text, insert_line, view_range });
@@ -138,8 +138,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "tool_call", toolName });
                 if (toolName == "LibraryProviderTool") {
                     assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
-                } else {
-                    // assistantResponse += `\n\n<toolcall>Applying code changes to the project files...</toolcall>`;
                 }
                 break;
             }
@@ -385,7 +383,7 @@ Important reminders:
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
-Once the explanation is finished, you must apply surgical edits to the existing source code using the **text_editor_20250124** tool.
+Once the explanation is finished, you must apply surgical edits to the existing source code using the **textEditor_20250728** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
 If the file is already shown in the user prompt, do **not** try to create it again.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
@@ -517,7 +515,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_editor: anthropic.tools.textEditor_20250124({
+        str_replace_editor: anthropic.tools.textEditor_20250728({
             async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
                 const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
                     { command, path, old_str, new_str, file_text, insert_line, view_range });
