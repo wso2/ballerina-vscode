@@ -25,7 +25,7 @@ import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
 import { ConfigProperties, ParameterModel } from '@wso2/ballerina-core';
 
-export interface ParametersProps {
+export interface ParametersNewProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void,
     schemas: ConfigProperties;
@@ -64,7 +64,7 @@ const OptionalConfigContent = styled.div`
     padding-left: 24px;
 `;
 
-export function Parameters(props: ParametersProps) {
+export function ParametersNew(props: ParametersNewProps) {
     const { parameters, readonly, onChange, schemas, showPayload, isNewResource } = props;
 
     const queryModel = schemas["query"] as ParameterModel;
@@ -198,7 +198,7 @@ export function Parameters(props: ParametersProps) {
     return (
         <div>
             {/* <---------------- Normal Parameters Start Query|Header ----------------> */}
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Parameters</Typography>
+            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Query Parameters</Typography>
             {normalParameters.map((param: ParameterModel, index) => (
                 <ParamItem
                     key={index}
@@ -209,6 +209,7 @@ export function Parameters(props: ParametersProps) {
             ))}
             {editModel && (editModel.httpParamType === "QUERY" || editModel.httpParamType === "Header") &&
                 <ParamEditor
+                    isNewResource={isNewResource}
                     param={editModel}
                     onChange={onChangeParam}
                     onSave={onSaveParam}
@@ -219,7 +220,7 @@ export function Parameters(props: ParametersProps) {
             <AddButtonWrapper >
                 <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddParamClick)}>
                     <Codicon name="add" />
-                    <>Add Parameter</>
+                    <>Query Parameter</>
                 </LinkButton>
             </AddButtonWrapper>
 
@@ -299,7 +300,7 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters End --------------------> */}
 
             {/* <-------------------- Advanced Parameters Checkbox Start --------------------> */}
-            <>
+            {/* <>
                 <OptionalConfigRow>
                     Advanced Parameters
                     <OptionalConfigButtonContainer>
@@ -340,7 +341,7 @@ export function Parameters(props: ParametersProps) {
                     </OptionalConfigContent>
                 )}
                 <Divider />
-            </>
+            </> */}
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
         </div >

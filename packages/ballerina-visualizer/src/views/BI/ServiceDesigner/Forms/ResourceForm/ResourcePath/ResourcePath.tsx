@@ -23,7 +23,7 @@ import { PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 
-const verbs = [
+export const verbs = [
 	{
 		content: 'GET',
 		id: 'GET',
@@ -72,10 +72,11 @@ export interface ResourcePathProps {
 	method: PropertyModel;
 	onChange: (method: PropertyModel, path: PropertyModel) => void;
 	onError: (hasErros: boolean) => void;
+	isNew?: boolean;
 }
 
 export function ResourcePath(props: ResourcePathProps) {
-	const { method, path, onChange, onError } = props;
+	const { method, path, onChange, onError, isNew } = props;
 
 	const [inputValue, setInputValue] = useState('');
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
@@ -131,25 +132,27 @@ export function ResourcePath(props: ResourcePathProps) {
 	return (
 		<>
 			<PathContainer>
-				<div
-					style={{
-						width: 160,
-						marginTop: -1.3
-					}}
-				>
-					<Dropdown
-						sx={{ width: 160 }}
-						isRequired
-						errorMsg=""
-						id="drop-down"
-						items={verbs}
-						label="HTTP Method"
-						onValueChange={handleMethodChange}
-						value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
-					/>
-				</div>
+				{!isNew && (
+					<div
+						style={{
+							width: 160,
+							marginTop: -1.3
+						}}
+					>
+						<Dropdown
+							sx={{ width: 160 }}
+							isRequired
+							errorMsg=""
+							id="drop-down"
+							items={verbs}
+							label="HTTP Method"
+							onValueChange={handleMethodChange}
+							value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
+						/>
+					</div>
+				)}
 				<TextField
-					sx={{ marginLeft: 15, flexGrow: 1 }}
+					sx={{ marginLeft: isNew ? 0 : 15, flexGrow: 1 }}
 					autoFocus
 					required
 					errorMsg={resourcePathErrors}

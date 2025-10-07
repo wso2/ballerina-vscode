@@ -455,7 +455,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleNewFunctionClose = () => {
-        setIsNew(false);
         setShowForm(false);
     };
 
@@ -851,8 +850,26 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </>
                             ))}
 
-                            {/* This is for adding or editing a http resource */}
-                            {functionModel && isHttpService && functionModel.kind === "RESOURCE" && (
+                            {/* This is for adding a http resource */}
+                            {functionModel && isHttpService && functionModel.kind === "RESOURCE" && isNew && (
+                                <PanelContainer
+                                    title={"New Resource Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={400}
+                                >
+                                    <ResourceForm
+                                        model={functionModel}
+                                        isSaving={isSaving}
+                                        onSave={handleResourceSubmit}
+                                        onClose={handleNewFunctionClose}
+                                        isNew={isNew}
+                                    />
+                                </PanelContainer>
+                            )}
+
+                            {/* This is for editing a http resource */}
+                            {functionModel && isHttpService && functionModel.kind === "RESOURCE" && !isNew && (
                                 <PanelContainer
                                     title={"Resource Configuration"}
                                     show={showForm}

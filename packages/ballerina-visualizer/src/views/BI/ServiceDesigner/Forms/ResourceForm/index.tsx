@@ -25,6 +25,7 @@ import styled from '@emotion/styled';
 import { HTTP_METHOD } from '../../utils';
 import { FunctionModel, ParameterModel, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
+import { NewResource } from './NewResource';
 
 const AdvancedParamTitleWrapper = styled.div`
 	display: flex;
@@ -36,10 +37,11 @@ export interface ResourceFormProps {
 	isSaving: boolean;
 	onSave: (functionModel: FunctionModel) => void;
 	onClose: () => void;
+	isNew?: boolean;
 }
 
 export function ResourceForm(props: ResourceFormProps) {
-	const { model, isSaving, onSave, onClose } = props;
+	const { model, isSaving, onSave, onClose, isNew } = props;
 
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
@@ -86,22 +88,34 @@ export function ResourceForm(props: ResourceFormProps) {
 		onSave(functionModel);
 	}
 
-	return (
-		<>
-			{isSaving && <ProgressIndicator id="resource-loading-bar" />}
-			<SidePanelBody>
-				<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-					onError={onResourcePathError} />
-				<Divider />
-				<Parameters showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
-				<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-				<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
-				<ActionButtons
-					primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
-					secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
-					sx={{ justifyContent: "flex-end" }}
-				/>
-			</SidePanelBody>
-		</>
-	);
+	const editForm = () => {
+		return (
+			<>
+				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
+				<SidePanelBody>
+					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
+						onError={onResourcePathError} />
+					<Divider />
+					<Parameters showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
+					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
+					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+					<ActionButtons
+						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
+						secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
+						sx={{ justifyContent: "flex-end" }}
+					/>
+				</SidePanelBody>
+			</>
+		)
+	}
+
+	const newForm = () => {
+		return (
+			<>
+				<NewResource model={functionModel} isSaving={isSaving} onSave={onSave} onClose={onClose} />
+			</>
+		)
+	}
+
+	return isNew ? newForm() : editForm();
 }
