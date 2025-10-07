@@ -163,8 +163,6 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 
-        List<String> functionsStr = List.of(defaultGreetingsDefinition());
-
         String basePath = properties.get("basePath").getValue();
         StringBuilder builder = new StringBuilder(NEW_LINE)
                 .append(listenerDeclaration)
@@ -172,7 +170,6 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
                 .append(SERVICE).append(SPACE).append(basePath)
                 .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
                 .append(NEW_LINE)
-                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
                 .append(CLOSE_BRACE).append(NEW_LINE);
 
         List<TextEdit> edits = new ArrayList<>();
@@ -232,17 +229,6 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         return Map.of(context.filePath(), edits);
-    }
-
-    private static String defaultGreetingsDefinition() {
-        String f = "    resource function get greeting() returns error|json|http:InternalServerError {%n" +
-                "        do {%n" +
-                "        } on fail error err {%n" +
-                "            // handle error%n" +
-                "            return error(\"unhandled error\", err);%n" +
-                "        }%n" +
-                "    }";
-        return f.formatted();
     }
 
     @Override
