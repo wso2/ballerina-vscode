@@ -161,6 +161,19 @@ const PropertyLabel = styled.div`
     margin-bottom: 4px;
 `;
 
+const EmptyReadmeContainer = styled.div`
+    display: flex;
+    margin: 80px 0px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+`;
+
+const Description = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+`;
+
 const PropertyValue = styled.div`
     display: flex;
     align-items: center;
@@ -628,6 +641,16 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
 
+
+    const resourcesCount = resources
+        .filter((resource) => {
+            const search = searchValue.toLowerCase();
+            const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+            const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+            return nameMatch || iconMatch;
+        })
+        .length;
+
     const ListenerList = () => {
         const listenerLabel = listeners.length > 1 ? "Listeners" : "Listener";
         return (
@@ -758,7 +781,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                             )}
-                                            {!haveServiceTypeName && (
+                                            {!haveServiceTypeName && resourcesCount > 0 && (
                                                 <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
                                                 </Button>
@@ -784,6 +807,20 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 />
                                             ))}
                                     </FunctionsContainer>
+
+                                    {resourcesCount === 0 && (
+                                        <EmptyReadmeContainer>
+                                            <Description variant="body2">
+                                                No resources found. Add a new resource.
+                                            </Description>
+                                            <Button
+                                                appearance="primary"
+                                                onClick={handleNewResourceFunction}>
+                                                <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                Add Resource
+                                            </Button>
+                                        </EmptyReadmeContainer>
+                                    )}
                                 </>
                             )}
                             {/* Listing service type bound functions */}
