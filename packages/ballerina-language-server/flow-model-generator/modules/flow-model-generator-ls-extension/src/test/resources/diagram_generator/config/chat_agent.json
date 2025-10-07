@@ -57,6 +57,7 @@
               "systemPrompt": "{role: \"\", instructions: string ``}",
               "instructions": "",
               "role": "\"\"",
+              "scope": "Global",
               "model": "_WorkflowAgentModel",
               "tools": "[]"
             },
@@ -68,7 +69,30 @@
               "name": "_WorkflowAgentModel",
               "path": "https://bcentral-packageicons.azureedge.net/images/._._0.0.0.png",
               "type": "OpenAiProvider"
+            }
+          }
+        },
+        "codedata": {
+          "node": "AGENT_CALL",
+          "org": "ballerinax",
+          "module": "ai",
+          "packageName": "ai",
+          "object": "Agent",
+          "symbol": "run",
+          "version": "1.0.1",
+          "lineRange": {
+            "fileName": "chat_agent.bal",
+            "startLine": {
+              "line": 14,
+              "offset": 8
             },
+            "endLine": {
+              "line": 14,
+              "offset": 97
+            }
+          },
+          "sourceCode": "string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);",
+          "data": {
             "agentCodedata": {
               "node": "AGENT",
               "org": "ballerinax",
@@ -92,27 +116,6 @@
               "isNew": false
             }
           }
-        },
-        "codedata": {
-          "node": "AGENT_CALL",
-          "org": "ballerinax",
-          "module": "ai",
-          "packageName": "ai",
-          "object": "Agent",
-          "symbol": "run",
-          "version": "1.0.1",
-          "lineRange": {
-            "fileName": "chat_agent.bal",
-            "startLine": {
-              "line": 14,
-              "offset": 8
-            },
-            "endLine": {
-              "line": 14,
-              "offset": 97
-            }
-          },
-          "sourceCode": "string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);"
         },
         "returning": false,
         "properties": {
@@ -288,6 +291,21 @@
             "editable": true,
             "advanced": true,
             "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": ""
+            }
           },
           "role": {
             "metadata": {
