@@ -79,7 +79,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSi
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -150,7 +149,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
         Function functionModel;
         if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
-            functionModel = getEnrichedFunctionModel(CLASS, functionDefinitionNode);
+            functionModel = getObjectFunctionFromSource(CLASS, functionDefinitionNode);
         } else {
             functionModel = getFunctionInsideService(context);
         }
@@ -167,13 +166,30 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         Optional<ServiceTypeFunction> matchingServiceTypeFunction = ServiceDatabaseManager.getInstance()
                 .getMatchingServiceTypeFunction(context.orgName(), context.moduleName(), context.serviceType(),
                         functionName);
-        if (matchingServiceTypeFunction.isEmpty()) {
-            return getEnrichedFunctionModel(SERVICE_DIAGRAM, functionDefinitionNode);
+        return matchingServiceTypeFunction.map(serviceTypeFunction ->
+                getServiceTypeBoundedFunctionFromSource(serviceTypeFunction, functionDefinitionNode))
+                .orElseGet(() -> getObjectFunctionFromSource(SERVICE_DIAGRAM, functionDefinitionNode));
+    }
+
+    static Function getServiceTypeBoundedFunctionFromSource(ServiceTypeFunction serviceTypeFunction,
+                                                            FunctionDefinitionNode functionDefinitionNode) {
+        Function function = ServiceModelUtils.getFunction(serviceTypeFunction);
+        FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
+        Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
+        if (returnTypeDesc.isPresent()) {
+            FunctionReturnType returnType = function.getReturnType();
+            returnType.setValue(returnTypeDesc.get().type().toString().trim());
         }
-        Function targetFunction = ServiceModelUtils.getFunction(matchingServiceTypeFunction.get());
-        Function sourceFunction = getFunctionModel(functionDefinitionNode, Map.of());
-        ServiceModelUtils.updateFunction(targetFunction, sourceFunction);
-        return targetFunction;
+        SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
+        List<Parameter> parameterModels = new ArrayList<>();
+        parameters.forEach(parameterNode -> {
+            Optional<Parameter> parameterModel = getParameterModel(parameterNode);
+            parameterModel.ifPresent(parameterModels::add);
+        });
+        function.setParameters(parameterModels);
+        function.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        updateAnnotationAttachmentProperty(functionDefinitionNode, function);
+        return function;
     }
 
     /**
@@ -184,8 +200,8 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         return "";
     }
 
-    static Function getEnrichedFunctionModel(ServiceClassUtil.ServiceClassContext context,
-                                             FunctionDefinitionNode functionDefinitionNode) {
+    static Function getObjectFunctionFromSource(ServiceClassUtil.ServiceClassContext context,
+                                                FunctionDefinitionNode functionDefinitionNode) {
         Function functionModel = Function.getNewFunctionModel(context);
         functionModel.getName().setValue(functionDefinitionNode.functionName().text().trim());
 

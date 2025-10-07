@@ -87,7 +87,8 @@ public class FunctionBuilderRouter {
         if (functionNode.parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
             ServiceMetadata metadata = deriveServiceType(serviceDeclarationNode, semanticModel);
             context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
-                    metadata.serviceType(), metadata.orgName(), metadata.packageName(), metadata.moduleName());
+                    metadata.serviceTypeIdentifier(), metadata.orgName(), metadata.packageName(),
+                    metadata.moduleName());
         } else {
             context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
                     moduleName, null, null, moduleName);

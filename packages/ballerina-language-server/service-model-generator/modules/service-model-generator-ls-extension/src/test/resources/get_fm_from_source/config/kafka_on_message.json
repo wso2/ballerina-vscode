@@ -16,30 +16,24 @@
   },
   "response": {
     "metadata": {
-      "label": "",
-      "description": ""
+      "label": "onConsumerRecord",
+      "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
     },
-    "kind": "OBJECT_METHOD",
-    "accessor": {
-      "metadata": {
-        "label": "Accessor",
-        "description": "The accessor of the function"
-      },
-      "valueType": "IDENTIFIER",
-      "enabled": true,
-      "editable": true,
-      "optional": false,
-      "advanced": false
-    },
+    "kind": "REMOTE",
     "name": {
       "metadata": {
-        "label": "Function Name",
-        "description": "The name of the function"
+        "label": "onConsumerRecord",
+        "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
       },
+      "codedata": {
+        "type": "FUNCTION_NAME"
+      },
+      "placeholder": "onConsumerRecord",
       "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "string",
       "value": "onConsumerRecord",
       "enabled": true,
-      "editable": true,
+      "editable": false,
       "optional": false,
       "advanced": false
     },
@@ -161,76 +155,24 @@
         "hidden": false
       }
     ],
-    "schema": {
-      "parameter": {
-        "type": {
-          "metadata": {
-            "label": "Parameter Type",
-            "description": "The type of the parameter"
-          },
-          "valueType": "TYPE",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "metadata": {
-            "label": "Parameter Name",
-            "description": "The name of the parameter"
-          },
-          "valueType": "IDENTIFIER",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "defaultValue": {
-          "metadata": {
-            "label": "Default Value",
-            "description": "The default value of the parameter"
-          },
-          "valueType": "EXPRESSION",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "documentation": {
-          "metadata": {
-            "label": "Description",
-            "description": "The description of the parameter"
-          },
-          "valueType": "STRING",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "hidden": false
-      }
-    },
     "returnType": {
-      "hasError": false,
+      "hasError": true,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
       },
+      "placeholder": "error?",
       "valueType": "TYPE",
       "value": "error?",
       "enabled": true,
-      "editable": true,
+      "editable": false,
       "optional": true,
       "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": true,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
