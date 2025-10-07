@@ -3,72 +3,123 @@
   "description": "Get the list of GraphQL return types",
   "context": "GRAPHQL_FIELD_TYPE",
   "result": {
-    "completions": [
-      {
-        "category": "Scalar Types",
-        "label": "int",
-        "type": "int"
+    "left": [{
+      "label" : "int",
+      "labelDetails" : {
+        "detail" : "Scalar Types",
+        "description" : "Scalar Types"
       },
-      {
-        "category": "Scalar Types",
-        "label": "string",
-        "type": "string"
+      "kind" : "TypeParameter",
+      "detail" : "int",
+      "insertText" : "int"
+    }, {
+      "label" : "string",
+      "labelDetails" : {
+        "detail" : "Scalar Types",
+        "description" : "Scalar Types"
       },
-      {
-        "category": "Scalar Types",
-        "label": "boolean",
-        "type": "boolean"
+      "kind" : "TypeParameter",
+      "detail" : "string",
+      "insertText" : "string"
+    }, {
+      "label" : "boolean",
+      "labelDetails" : {
+        "detail" : "Scalar Types",
+        "description" : "Scalar Types"
       },
-      {
-        "category": "Scalar Types",
-        "label": "decimal",
-        "type": "decimal"
+      "kind" : "TypeParameter",
+      "detail" : "boolean",
+      "insertText" : "boolean"
+    }, {
+      "label" : "decimal",
+      "labelDetails" : {
+        "detail" : "Scalar Types",
+        "description" : "Scalar Types"
       },
-      {
-        "category": "Scalar Types",
-        "label": "float",
-        "type": "float"
+      "kind" : "TypeParameter",
+      "detail" : "decimal",
+      "insertText" : "decimal"
+    }, {
+      "label" : "float",
+      "labelDetails" : {
+        "detail" : "Scalar Types",
+        "description" : "Scalar Types"
       },
-      {
-        "category": "Error Types",
-        "label": "error",
-        "type": "error"
+      "kind" : "TypeParameter",
+      "detail" : "float",
+      "insertText" : "float"
+    }, {
+      "label" : "error",
+      "labelDetails" : {
+        "detail" : "Error Types",
+        "description" : "Error Types"
       },
-      {
-        "category": "User Defined",
-        "label": "Teacher",
-        "type": "Teacher"
+      "kind" : "Event",
+      "detail" : "error",
+      "insertText" : "error"
+    }, {
+      "label" : "Teacher",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "User Defined",
-        "label": "Student",
-        "type": "Student"
+      "kind" : "Interface",
+      "detail" : "Teacher",
+      "insertText" : "Teacher"
+    }, {
+      "label" : "Student",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "User Defined",
-        "label": "Profile",
-        "type": "Profile"
+      "kind" : "Interface",
+      "detail" : "Student",
+      "insertText" : "Student"
+    }, {
+      "label" : "Profile",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "User Defined",
-        "label": "TeacherRecord",
-        "type": "TeacherRecord"
+      "kind" : "Interface",
+      "detail" : "Profile",
+      "insertText" : "Profile"
+    }, {
+      "label" : "TeacherRecord",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "User Defined",
-        "label": "StudentRecord",
-        "type": "StudentRecord"
+      "kind" : "Interface",
+      "detail" : "TeacherRecord",
+      "insertText" : "TeacherRecord"
+    }, {
+      "label" : "StudentRecord",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "User Defined",
-        "label": "ProfileType",
-        "type": "ProfileType"
+      "kind" : "Interface",
+      "detail" : "StudentRecord",
+      "insertText" : "StudentRecord"
+    }, {
+      "label" : "ProfileType",
+      "labelDetails" : {
+        "detail" : "User-Defined",
+        "description" : "User-Defined"
       },
-      {
-        "category": "Enum Types",
-        "label": "Color",
-        "type": "Color"
-      }
-    ]
+      "kind" : "Interface",
+      "detail" : "ProfileType",
+      "insertText" : "ProfileType"
+    }, {
+      "label" : "Color",
+      "labelDetails" : {
+        "detail" : "Enum Types",
+        "description" : "Enum Types"
+      },
+      "kind" : "Enum",
+      "detail" : "Color",
+      "insertText" : "Color"
+    }]
   }
 }
