@@ -188,7 +188,8 @@ export type ChatNotify =
     | ChatError
     | ToolCall
     | ToolResult
-    | EvalsToolResult;
+    | EvalsToolResult
+    | UsageMetricsEvent;
 
 export interface ChatStart {
     type: "start";
@@ -241,6 +242,17 @@ export interface EvalsToolResult {
     type: "evals_tool_result";
     toolName: string;
     output: any;
+}
+
+export interface UsageMetricsEvent {
+    type: "usage_metrics";
+    isRepair?: boolean;
+    usage: {
+        inputTokens: number;
+        cacheCreationInputTokens: number;
+        cacheReadInputTokens: number;
+        outputTokens: number;
+    };
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

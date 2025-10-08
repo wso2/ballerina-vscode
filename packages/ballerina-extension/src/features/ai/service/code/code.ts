@@ -114,7 +114,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
-    const { fullStream, response } = streamText({
+    const { fullStream, response, providerMetadata } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 4096 * 4,
         temperature: 0,
@@ -203,6 +203,21 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 const postProcessedResp: PostProcessResponse = await postProcess({
                     assistant_response: finalResponse
                 });
+                const finalProviderMetadata = await providerMetadata;
+                // Emit usage metrics event for test tracking
+                if (finalProviderMetadata?.anthropic?.usage) {
+                    const anthropicUsage = finalProviderMetadata.anthropic.usage as any;
+                    eventHandler({
+                        type: "usage_metrics",
+                        isRepair: false,
+                        usage: {
+                            inputTokens: anthropicUsage.input_tokens || 0,
+                            cacheCreationInputTokens: anthropicUsage.cache_creation_input_tokens || 0,
+                            cacheReadInputTokens: anthropicUsage.cache_read_input_tokens || 0,
+                            outputTokens: anthropicUsage.output_tokens || 0,
+                        }
+                    });
+                }
 
                 finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
@@ -225,7 +240,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                             diagnostics: diagnostics
                         },
                         libraryDescriptions,
-                        updatedSourceFiles
+                        updatedSourceFiles,
+                        eventHandler
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
@@ -433,7 +449,7 @@ export async function repairCodeCore(
     eventHandler: CopilotEventHandler
 ): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params, libraryDescriptions, []);
+    const resp = await repairCode(params, libraryDescriptions, [], eventHandler);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
@@ -442,7 +458,7 @@ export async function repairCodeCore(
 }
 
 export async function repairCode(params: RepairParams,
-        libraryDescriptions: string, sourceFiles: SourceFiles[] = []): Promise<RepairResponse> {
+    libraryDescriptions: string, sourceFiles: SourceFiles[] = [], eventHandler?: CopilotEventHandler): Promise<RepairResponse> {
     const allMessages: ModelMessage[] = [...params.previousMessages];
     const lastMessage = allMessages[allMessages.length - 1];
     let isToolCallExistInLastMessage = false;
@@ -461,7 +477,7 @@ export async function repairCode(params: RepairParams,
     const userRepairMessage: ModelMessage = {
         role: "user",
         content:
-            "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+            "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." +
             "And also do not create any new files. Just carefully analyze the error descriptions and update the existing code to fix the errors. \n Errors: \n " +
             params.diagnostics.map((d) => d.message).join("\n"),
     };
@@ -495,7 +511,7 @@ export async function repairCode(params: RepairParams,
 
     allMessages.push(userRepairMessage);
 
-    let updatedSourceFiles: SourceFiles[] = sourceFiles.length == 0 ? 
+    let updatedSourceFiles: SourceFiles[] = sourceFiles.length == 0 ?
                                         getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
     let updatedFileNames: string[] = [];
 
@@ -507,7 +523,7 @@ export async function repairCode(params: RepairParams,
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
-    const { text } = await generateText({
+    const { text, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 4096 * 4,
         temperature: 0,
@@ -516,7 +532,21 @@ export async function repairCode(params: RepairParams,
         stopWhen: stepCountIs(50),
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
-
+    const repairProviderMetadata = await providerMetadata;
+    // Emit repair usage metrics event if event handler is provided
+    if (eventHandler && repairProviderMetadata?.anthropic?.usage) {
+        const anthropicUsage = repairProviderMetadata.anthropic.usage as any;
+        eventHandler({
+            type: "usage_metrics",
+            isRepair: true,
+            usage: {
+                inputTokens: anthropicUsage.input_tokens || 0,
+                cacheCreationInputTokens: anthropicUsage.cache_creation_input_tokens || 0,
+                cacheReadInputTokens: anthropicUsage.cache_read_input_tokens || 0,
+                outputTokens: anthropicUsage.output_tokens || 0,
+            },
+        });
+    }
     const responseText = updateFinalResponseWithCodeBlocks(text, updatedSourceFiles, updatedFileNames);
     // replace original response with new code blocks
     let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, responseText);

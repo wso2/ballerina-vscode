@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { TestCaseResult, TestUseCase, UsecaseResult, DiagnosticMessage, Summary, ToolEvent, ToolCallEvent, ToolResultEvent, EvalsToolResultEvent, IterationSummary, TestCaseAccuracy } from '../types';
+import { TestCaseResult, TestUseCase, UsecaseResult, DiagnosticMessage, Summary, ToolEvent, ToolCallEvent, ToolResultEvent, EvalsToolResultEvent, IterationSummary, TestCaseAccuracy, AggregatedUsageMetrics } from '../types';
 import { extractSourceFilesFromContent } from '../utils/content-parser';
 import { FILES } from '../utils/constants';
 
@@ -70,7 +70,8 @@ export function convertTestResultToUsecaseResult(testResult: TestCaseResult, ite
         evaluationResult: testResult.evaluationResult,
         errorEvents: errorEvents.length > 0 ? errorEvents : undefined,
         toolEvents: toolEvents.length > 0 ? toolEvents : undefined,
-        iteration
+        iteration,
+        usage: testResult.result.usageMetrics?.usage
     };
 }
 
@@ -79,7 +80,7 @@ export function convertTestResultToUsecaseResult(testResult: TestCaseResult, ite
  */
 export function createFailedUsecaseResult(useCase: TestUseCase, reason: unknown): UsecaseResult {
     const errorMessage = (reason as { message?: string })?.message || 'Unknown error';
-    
+
     return {
         usecase: useCase.usecase,
         diagnostics: [{ message: errorMessage }],
@@ -117,6 +118,10 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[], 
         perTestCaseAccuracy = calculatePerTestCaseAccuracy(results, totalIterations);
     }
 
+
+    const aggregatedUsage = calculateAggregatedUsage(results);
+    const overallCacheValidation = calculateOverallCacheValidation(results, aggregatedUsage);
+
     return {
         results: results,
         totalUsecases,
@@ -129,7 +134,9 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[], 
         evaluationSummary: averageRating,
         iterations: totalIterations,
         iterationResults,
-        perTestCaseAccuracy
+        perTestCaseAccuracy,
+        aggregatedUsage,
+        overallCacheValidation
     };
 }
 
@@ -233,4 +240,155 @@ function calculatePerTestCaseAccuracy(results: readonly UsecaseResult[], totalIt
     }
 
     return Array.from(accuracyMap.values());
+}
+
+
+/**
+ * Calculates aggregated usage metrics from all results
+ */
+function calculateAggregatedUsage(results: readonly UsecaseResult[]): AggregatedUsageMetrics | undefined {
+    const resultsWithUsage = results.filter(r => r.usage);
+
+    if (resultsWithUsage.length === 0) {
+        return undefined;
+    }
+
+    const totalUseCases = resultsWithUsage.length;
+
+    // Track initial generation cache stats
+    let initialHits = 0;
+    let initialCreations = 0;
+
+    // Track repair stats by iteration
+    const repairStats: { [iteration: number]: { count: number; hits: number; creation: number } } = {};
+    const repairCounts: { [iteration: number]: Set<string> } = {}; // Track which use cases reached each repair
+
+    for (const result of resultsWithUsage) {
+        if (result.usage) {
+            // Count initial generation cache usage
+            if (result.usage.initial.cacheReadInputTokens > 0) {
+                initialHits++;
+            }
+            if (result.usage.initial.cacheCreationInputTokens > 0) {
+                initialCreations++;
+            }
+
+            // Count repair cache usage by iteration
+            result.usage.repairs.forEach((repair) => {
+                const iteration = repair.iteration;
+                const useCaseKey = result.usecase; // Use usecase as unique identifier
+
+                if (!repairStats[iteration]) {
+                    repairStats[iteration] = { count: 0, hits: 0, creation: 0 };
+                }
+                if (!repairCounts[iteration]) {
+                    repairCounts[iteration] = new Set();
+                }
+
+                // Track which use cases reached this repair iteration
+                repairCounts[iteration].add(useCaseKey);
+
+                if (repair.cacheReadInputTokens > 0) {
+                    repairStats[iteration].hits++;
+                }
+                if (repair.cacheCreationInputTokens > 0) {
+                    repairStats[iteration].creation++;
+                }
+            });
+        }
+    }
+
+    // Update count based on unique use cases that reached each repair iteration
+    Object.keys(repairStats).forEach(iteration => {
+        const iterationNum = parseInt(iteration);
+        repairStats[iterationNum].count = repairCounts[iterationNum]?.size || 0;
+    });
+
+    // Build the repairs object with dynamic repair keys
+    const repairs: { [repairIteration: string]: { count: number; hits: number; creation: number } } = {};
+    Object.keys(repairStats).forEach(iteration => {
+        const repairKey = `repair${iteration}`;
+        repairs[repairKey] = repairStats[parseInt(iteration)];
+    });
+
+    return {
+        totalUseCases,
+        initialGeneration: {
+            hits: initialHits,
+            creation: initialCreations
+        },
+        repairs
+    };
+}
+
+/**
+ * Calculate comprehensive cache validation across all use cases
+ */
+function calculateOverallCacheValidation(results: readonly UsecaseResult[], aggregatedUsage?: AggregatedUsageMetrics) {
+    if (!aggregatedUsage) {
+        return undefined;
+    }
+
+    // 1. Initial generation validation: No more than 1 use case should create fresh cache
+    const InitialGenCacheCreation = aggregatedUsage.initialGeneration.creation;
+    const initialGenerationValidation: "pass" | "fail" = InitialGenCacheCreation > 1 ? "fail" : "pass";
+
+    // 2. First repair validation: All use cases should have cache reads (can have writes)
+    const firstRepairStats = aggregatedUsage.repairs.repair1;
+    let firstRepairValidation: "pass" | "fail" | "not_applicable" = "not_applicable";
+    if (firstRepairStats) {
+        firstRepairValidation = firstRepairStats.hits === firstRepairStats.count ? "pass" : "fail";
+    }
+    // 3. Subsequent repairs validation: Should not have any cache writes
+    let subsequentRepairsValidation: "pass" | "fail" | "not_applicable" = "not_applicable";
+    const subsequentRepairKeys = Object.keys(aggregatedUsage.repairs)
+        .filter(key => key !== 'repair1')
+        .sort((a, b) => {
+            const aNum = parseInt(a.replace('repair', ''));
+            const bNum = parseInt(b.replace('repair', ''));
+            return aNum - bNum;
+        });
+
+    if (subsequentRepairKeys.length > 0) {
+        const hasSubsequentWrites = subsequentRepairKeys.some(key =>
+            aggregatedUsage.repairs[key].creation > 0
+        );
+        subsequentRepairsValidation = hasSubsequentWrites ? "fail" : "pass";
+    }
+
+    // Build repair iteration counts
+    const repairIterationCounts: { [repairIteration: string]: number } = {};
+    Object.entries(aggregatedUsage.repairs).forEach(([repairKey, repairData]) => {
+        repairIterationCounts[repairKey] = repairData.count;
+    });
+
+    // Collect validation issues
+    const validationIssues: string[] = [];
+    if (initialGenerationValidation === "fail") {
+        validationIssues.push(`Multiple use cases (${InitialGenCacheCreation}) creating fresh cache in initial generation - indicates poor cache pre-warming`);
+    }
+    if (firstRepairValidation === "fail") {
+        validationIssues.push(`First repair iteration has cache reads less than use cases that reached it (${firstRepairStats?.hits}/${firstRepairStats?.count}) - all should have reads`);
+    }
+    if (subsequentRepairsValidation === "fail") {
+        const writeCounts = subsequentRepairKeys.map(key =>
+            `${key}: ${aggregatedUsage.repairs[key].creation}`
+        ).filter(count => !count.endsWith(': 0'));
+        validationIssues.push(`Subsequent repairs have cache writes - ${writeCounts.join(', ')}`);
+    }
+
+    // Overall status
+    const overallStatus: "pass" | "fail" = (initialGenerationValidation === "fail" ||
+                                           firstRepairValidation === "fail" ||
+                                           subsequentRepairsValidation === "fail") ? "fail" : "pass";
+
+    return {
+        initialCacheEfficiency: initialGenerationValidation,
+        firstRepairAllReads: firstRepairValidation,
+        subsequentRepairsNoWrites: subsequentRepairsValidation,
+        overallStatus,
+        InitialGenCacheCreation,
+        repairIterationCounts,
+        validationIssues
+    };
 }
