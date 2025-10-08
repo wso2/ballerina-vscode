@@ -35,6 +35,7 @@ import { TYPE_HELPER_OPERATORS } from '../TypeEditor/constants';
 import { useMutation } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { LoadingRing } from "../../../components/Loader";
+import { TypeHelperContext } from "../../../constants";
 import styled from "@emotion/styled";
 
 const LoadingContainer = styled.div`
@@ -62,7 +63,7 @@ type TypeHelperProps = {
     updateImports: (key: string, imports: {[key: string]: string}, codedata?: CodeData) => void;
     onTypeCreate: (typeName: string) => void;
     onCloseCompletions?: () => void;
-    typeHelperContext?: "GRAPHQL_FIELD_TYPE" | "GRAPHQL_INPUT_TYPE" | "HTTP_STATUS_CODE";
+    typeHelperContext?: TypeHelperContext;
 };
 
 const TypeHelperEl = (props: TypeHelperProps) => {
@@ -106,7 +107,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 try {
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
 
-                    const types = (typeHelperContext === "GRAPHQL_FIELD_TYPE" || typeHelperContext === "GRAPHQL_INPUT_TYPE")
+                    const types = (typeHelperContext === TypeHelperContext.GRAPHQL_FIELD_TYPE || typeHelperContext === TypeHelperContext.GRAPHQL_INPUT_TYPE)
                         ? await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: filePath,
                             context: typeHelperContext,
@@ -125,19 +126,22 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                     setFilteredBasicTypes(basicTypes);
                     fetchedInitialTypes.current = true;
 
-                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                        filePath: filePath,
-                        position: targetLineRange,
-                        queryMap: {
-                            q: '',
-                            offset: 0,
-                            limit: 1000
-                        },
-                        searchKind: 'TYPE'
-                    });
+                    if (typeHelperContext === TypeHelperContext.HTTP_STATUS_CODE) {
+                        const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                            filePath: filePath,
+                            position: targetLineRange,
+                            queryMap: {
+                                q: '',
+                                offset: 0,
+                                limit: 1000
+                            },
+                            searchKind: 'TYPE'
+                        });
 
-                    const importedTypes = getImportedTypes(searchResponse.categories);
-                    setImportedTypes(importedTypes);
+                        const importedTypes = getImportedTypes(searchResponse.categories);
+                        setImportedTypes(importedTypes);
+                    }
+
                 } catch (error) {
                     console.error(error);
                 } finally {
