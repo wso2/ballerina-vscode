@@ -81,7 +81,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        buildServiceNodeBody(getServiceMembers(agentVarName, modelVarName), serviceBuilder);
+        buildServiceNodeBody(getServiceMembers(agentVarName, modelVarName, service.getOrgName()), serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
@@ -106,11 +106,11 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private List<String> getServiceMembers(String agentVarName, String modelVarName) {
+    private List<String> getServiceMembers(String agentVarName, String modelVarName, String orgName) {
         return List.of(
                 getServiceFields(agentVarName),
                 getServiceInitFunction(agentVarName, modelVarName),
-                getAgentChatFunction(agentVarName)
+                getAgentChatFunction(agentVarName, orgName)
         );
     }
 
@@ -145,14 +145,17 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         );
     }
 
-    private static String getAgentChatFunction(String agentVarName) {
+    private static String getAgentChatFunction(String agentVarName, String orgName) {
+        String methodCall = BALLERINA.equals(orgName)
+            ? String.format("self.%s.run(request.message, request.sessionId)", agentVarName)
+            : String.format("self.%s->run(request.message, request.sessionId)", agentVarName);
         return String.format(
                 "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
                         "returns ai:ChatRespMessage|error {%s" +
-                        "        string stringResult = check self.%s.run(request.message, request.sessionId);%s" +
+                        "        string stringResult = check %s;%s" +
                         "        return {message: stringResult};%s" +
                         "    }",
-                NEW_LINE, agentVarName, NEW_LINE, NEW_LINE
+                NEW_LINE, methodCall, NEW_LINE, NEW_LINE
         );
     }
 
