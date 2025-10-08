@@ -62,6 +62,7 @@ type TypeHelperProps = {
     updateImports: (key: string, imports: {[key: string]: string}, codedata?: CodeData) => void;
     onTypeCreate: (typeName: string) => void;
     onCloseCompletions?: () => void;
+    typeHelperContext?: "GRAPHQL_FIELD_TYPE" | "GRAPHQL_INPUT_TYPE" | "HTTP_STATUS_CODE";
 };
 
 const TypeHelperEl = (props: TypeHelperProps) => {
@@ -80,7 +81,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         updateImports,
         onTypeCreate,
         onCloseCompletions,
-        exprRef
+        exprRef,
+        typeHelperContext 
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -97,57 +99,55 @@ const TypeHelperEl = (props: TypeHelperProps) => {
     const fetchedInitialTypes = useRef<boolean>(false);
 
     const debouncedSearchTypeHelper = useCallback(
-        debounce((searchText: string, isType: boolean) => {
+        debounce(async (searchText: string, isType: boolean) => {
+            if (!rpcClient) return;
+
             if (isType && !fetchedInitialTypes.current) {
-                if (rpcClient) {
-                    rpcClient
-                        .getBIDiagramRpcClient()
-                        .getVisibleTypes({
+                try {
+                    const isFetchingTypesForDM = valueTypeConstraint === "json";
+
+                    const types = (typeHelperContext === "GRAPHQL_FIELD_TYPE" || typeHelperContext === "GRAPHQL_INPUT_TYPE")
+                        ? await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                            filePath: filePath,
+                            context: typeHelperContext,
+                        })
+                        : await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                             filePath: filePath,
                             position: {
                                 line: targetLineRange.startLine.line,
                                 offset: targetLineRange.startLine.offset
                             },
                             ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
-                        })
-                        .then((types) => {
-                            const isFetchingTypesForDM = valueTypeConstraint === "json";
-                            const basicTypes = getTypes(types, isFetchingTypesForDM);
-                            setBasicTypes(basicTypes);
-                            setFilteredBasicTypes(basicTypes);
-                            fetchedInitialTypes.current = true;
-
-                            /* Get imported types */
-                            rpcClient
-                                .getBIDiagramRpcClient()
-                                .search({
-                                    filePath: filePath,
-                                    position: targetLineRange,
-                                    queryMap: {
-                                        q: '',
-                                        offset: 0,
-                                        limit: 1000
-                                    },
-                                    searchKind: 'TYPE'
-                                })
-                                .then((response) => {
-                                    const importedTypes = getImportedTypes(response.categories);
-                                    setImportedTypes(importedTypes);
-                                })
-                                .finally(() => {
-                                    setLoading(false);
-                                });
-                        })
-                        .catch((error) => {
-                            console.error(error);
-                            setLoading(false);
                         });
+
+                    const basicTypes = getTypes(types, isFetchingTypesForDM);
+                    setBasicTypes(basicTypes);
+                    setFilteredBasicTypes(basicTypes);
+                    fetchedInitialTypes.current = true;
+
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        filePath: filePath,
+                        position: targetLineRange,
+                        queryMap: {
+                            q: '',
+                            offset: 0,
+                            limit: 1000
+                        },
+                        searchKind: 'TYPE'
+                    });
+
+                    const importedTypes = getImportedTypes(searchResponse.categories);
+                    setImportedTypes(importedTypes);
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    setLoading(false);
                 }
             } else if (isType) {
                 setFilteredBasicTypes(filterTypes(basicTypes, searchText));
-                rpcClient
-                    .getBIDiagramRpcClient()
-                    .search({
+
+                try {
+                    const response = await rpcClient.getBIDiagramRpcClient().search({
                         filePath: filePath,
                         position: targetLineRange,
                         queryMap: {
@@ -156,20 +156,21 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                             limit: 1000
                         },
                         searchKind: 'TYPE'
-                    })
-                    .then((response) => {
-                        const importedTypes = getImportedTypes(response.categories);
-                        setImportedTypes(importedTypes);
-                    })
-                    .finally(() => {
-                        setLoading(false);
                     });
+
+                    const importedTypes = getImportedTypes(response.categories);
+                    setImportedTypes(importedTypes);
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
             } else {
                 setFilteredOperators(filterOperators(TYPE_HELPER_OPERATORS, searchText));
                 setLoading(false);
             }
         }, 150),
-        [basicTypes, filePath, targetLineRange]
+        [basicTypes, filePath, targetLineRange, valueTypeConstraint, typeHelperContext, rpcClient]
     );
 
     const handleSearchTypeHelper = useCallback(
