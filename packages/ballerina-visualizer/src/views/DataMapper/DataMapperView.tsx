@@ -93,7 +93,7 @@ export function DataMapperView(props: DataMapperProps) {
         model,
         isFetching,
         isError,
-        refetch
+        refreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
@@ -120,10 +120,12 @@ export function DataMapperView(props: DataMapperProps) {
         const currentSignature = JSON.stringify(getModelSignature(model));
         const prevSignature = prevSignatureRef.current;
 
-        const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
-        const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
-        const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
+        const triggerRefresh = model.triggerRefresh;
+
+        const hasInputsChanged =  triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'inputs');
+        const hasOutputChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'output');
+        const hasSubMappingsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
+        const hasRefsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
         const isExpandedModel = !('refs' in model);
@@ -538,7 +540,7 @@ export function DataMapperView(props: DataMapperProps) {
         } catch (error) {
             console.error(error);
         }
-        await refetch();
+        await refreshDMModel();
     };
 
     const onDMReset = async () => {

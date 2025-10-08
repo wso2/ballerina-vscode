@@ -517,7 +517,8 @@ export function expandDMModel(
         mappings: model.mappings,
         query: model.query,
         source: "",
-        rootViewId
+        rootViewId,
+        triggerRefresh: model.triggerRefresh
     };
 }
 
