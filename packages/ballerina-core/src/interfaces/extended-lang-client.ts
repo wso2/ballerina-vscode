@@ -396,7 +396,8 @@ export interface AddArrayElementRequest {
     filePath: string;
     codedata: CodeData;
     varName?: string;
-    targetField?: string;
+    outputId: string;
+    targetField: string;
     propertyKey?: string;
     subMappingName?: string;
 }
@@ -908,7 +909,6 @@ export type SearchQueryParams = {
     offset?: number;
     orgName?: string;
     includeAvailableFunctions?: string;
-    includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
 }
 

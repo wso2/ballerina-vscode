@@ -1485,7 +1485,7 @@ const AIChat: React.FC = () => {
             assistant_response = `Here are the data mappings:\n\n`;
             assistant_response += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
 
-            const moduleInfo = metadata.mappingsModel.output.moduleInfo;
+            const moduleInfo = metadata.mappingsModel.output.typeInfo;
             const hasModuleInfo = moduleInfo && moduleInfo.moduleName;
 
             const typePrefix = hasModuleInfo ? `${moduleInfo.moduleName.split(".").pop()}:${typeName}` : typeName;
