@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
@@ -52,29 +53,71 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
-        return super.getModelTemplate(context);
+        return super.getModelTemplate(context).map(service -> {
+            Map<String, Value> properties = service.getProperties();
+            Value agentNameProperty = new Value.ValueBuilder()
+                    .metadata("Agent Name", "The name of the agent variable")
+                    .enabled(true)
+                    .editable(true)
+                    .value("chatAgent")
+                    .valueType("string")
+                    .setPlaceholder("chatAgent")
+                    .build();
+            properties.put("agentName", agentNameProperty);
+            return service;
+        });
     }
 
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
         List<TextEdit> edits = new ArrayList<>();
-        ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
-        if (Objects.nonNull(defaultListener)) {
-            String stmt = getDefaultListenerDeclarationStmt(defaultListener);
-            edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
-        }
-
         Service service = context.service();
+
+        String agentName = getAgentNameFromService(service);
+        String agentVarName = agentName + "Agent";
+        String modelVarName = "_" + agentName + "Model";
+
+        addDefaultListenerEdit(context, edits);
+
         populateRequiredFuncsDesignApproachAndServiceType(service);
         populateRequiredFunctionsForServiceType(service);
 
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        buildServiceNodeBody(List.of(getAgentChatFunction()), serviceBuilder);
+        buildServiceNodeBody(getServiceMembers(agentVarName, modelVarName), serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
 
+        addRequiredImports(service, rootNode, edits);
+
+        return Map.of(context.filePath(), edits);
+    }
+
+    private String getAgentNameFromService(Service service) {
+        Value agentNameValue = service.getProperty("agentName");
+        return agentNameValue != null && agentNameValue.isEnabledWithValue()
+                ? agentNameValue.getValue()
+                : "chat";
+    }
+
+    private void addDefaultListenerEdit(AddModelContext context, List<TextEdit> edits) {
+        ListenerUtil.DefaultListener defaultListener = ListenerUtil.getDefaultListener(context);
+        if (Objects.nonNull(defaultListener)) {
+            String stmt = getDefaultListenerDeclarationStmt(defaultListener);
+            edits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
+        }
+    }
+
+    private List<String> getServiceMembers(String agentVarName, String modelVarName) {
+        return List.of(
+                getServiceFields(agentVarName),
+                getServiceInitFunction(agentVarName, modelVarName),
+                getAgentChatFunction(agentVarName)
+        );
+    }
+
+    private void addRequiredImports(Service service, ModulePartNode rootNode, List<TextEdit> edits) {
         Set<String> importStmts = new HashSet<>();
         if (!importExists(rootNode, BALLERINA, HTTP)) {
             importStmts.add(Utils.getImportStmt(BALLERINA, HTTP));
@@ -87,14 +130,32 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
             String importsStmts = String.join(NEW_LINE, importStmts);
             edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
         }
-
-        return Map.of(context.filePath(), edits);
     }
 
-    private static String getAgentChatFunction() {
-        return "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
-                "returns ai:ChatRespMessage|error {" + NEW_LINE +
-                "    }";
+    private static String getServiceFields(String agentVarName) {
+        return "    private final ai:Agent " + agentVarName + ";";
+    }
+
+    private static String getServiceInitFunction(String agentVarName, String modelVarName) {
+        return String.format(
+                "    function init() returns error? { %s" +
+                "        self.%s = check new (%s" +
+                "            systemPrompt = {role: string ``, instructions: string ``}, model = %s, tools = []%s" +
+                "        );%s" +
+                "    }",
+                NEW_LINE, agentVarName, NEW_LINE, modelVarName, NEW_LINE, NEW_LINE
+        );
+    }
+
+    private static String getAgentChatFunction(String agentVarName) {
+        return String.format(
+                "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
+                "returns ai:ChatRespMessage|error {%s" +
+                "        string stringResult = check self.%s.run(request.message, request.sessionId);%s" +
+                "        return {message: stringResult};%s" +
+                "    }",
+                NEW_LINE, agentVarName, NEW_LINE, NEW_LINE
+        );
     }
 
     @Override
