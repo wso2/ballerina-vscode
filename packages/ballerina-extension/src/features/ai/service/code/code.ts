@@ -161,11 +161,9 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     toolResult = libraryNames;
                 } else if (toolName == "str_replace_based_edit_tool") {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                    break;
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
                 eventHandler({ type: "evals_tool_result", toolName, output: part.output });
-
                 break;
             }
             case "text-delta": {
@@ -369,14 +367,15 @@ ${JSON.stringify(langlibs, null, 2)}
 ### File modifications
 - Prefer modifying existing bal files but you can create new bal files if necessary.
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
-- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) unless asked.
-- In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
-- For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
+- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 1, along with the selected libraries and their functions.
 Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
+
+Your goal is to modify only the relevant parts of the code to address the user's query. 
+Do not generate or modify any file types other than .bal. Politely decline if the query qq
 `;
 }
 
@@ -548,8 +547,9 @@ export function stringifyExistingCode(existingCode: SourceFiles[], op: Operation
             continue;
         }
 
-        existingCodeStr = existingCodeStr + "filepath : " + filePath + "\n";
-        existingCodeStr = existingCodeStr + file.content + "\n";
+        existingCodeStr += `<file filename="${filePath}">\n`;
+        existingCodeStr += `<content>\n${file.content}\n</content>\n`;
+        existingCodeStr += `</file>\n`;
     }
     return existingCodeStr;
 }
