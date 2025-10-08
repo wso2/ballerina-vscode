@@ -121,7 +121,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         maxOutputTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
-        stopWhen: stepCountIs(10),
+        stopWhen: stepCountIs(50),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
@@ -383,7 +383,7 @@ Important reminders:
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
-Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
+Once the explanation is finished, you must apply precise targeted edits to the existing source code using the **str_replace_based_edit_tool** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
@@ -482,23 +482,10 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     const userRepairMessage: ModelMessage = {
         role: "user",
-        content: `The generated code has the following compiler errors. Follow this systematic approach to fix all issues:
-
-        1. **Analyze All Errors**: First, carefully review all compiler errors listed below to understand the full scope of issues across all files.
-        2. **Identify Affected Files**: Determine which files contain errors by examining the error messages for file paths and locations.
-        3. **Gather File Contents**: For each file that needs changes:
-        - First, check if the file content exists in the conversation history
-        - If not found in history, use **str_replace_based_edit_tool** with the 'view' operation to read the current file content
-
-        4. **Verify Library Information**: Before making fixes, check the context and API documentation already provided in the conversation history. Only use the **LibraryProviderTool** if additional library information is needed that wasn't covered in previous tool responses.
-
-        5. **Fix Each File Systematically**: Use **str_replace_based_edit_tool** to make surgical, targeted edits for the determined files:
-        - Process one file at a time
-        - For each file, make ALL necessary corrections before moving to the next file
-        - Use precise **str_replace** operations that target only the erroneous sections
-        - Double-check all functions, types, and record field access for accuracy
-        - Do NOT regenerate entire code blocks; only replace the specific lines that need changes
-    **Compiler Errors:** ${params.diagnostics.map((d) => d.message).join("\n")}`,
+        content:
+            "Generated code returns the following compiler errors. Using the library details from the `LibraryProviderTool` results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+            "Do not create any new files. Just update the existing code to fix the errors. \n Errors: \n " +
+            params.diagnostics.map((d) => d.message).join("\n"),
     }
 
     if (isToolCallExistInLastMessage) {
@@ -550,6 +537,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         temperature: 0,
         tools,
         messages: allMessages,
+        stopWhen: stepCountIs(50),
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
