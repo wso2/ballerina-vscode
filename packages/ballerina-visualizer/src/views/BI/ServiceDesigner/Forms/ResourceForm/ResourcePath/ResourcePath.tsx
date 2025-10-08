@@ -168,12 +168,14 @@ export function ResourcePath(props: ResourcePathProps) {
 					onFocus={(e) => e.target.select()}
 				/>
 			</PathContainer>
-			<AddButtonWrapper>
-				<LinkButton onClick={handlePathAdd} >
-					<Codicon name="add" />
-					<>Add Path Param</>
-				</LinkButton>
-			</AddButtonWrapper>
+			{!isNew &&
+				<AddButtonWrapper>
+					<LinkButton onClick={handlePathAdd} >
+						<Codicon name="add" />
+						<>Path Param</>
+					</LinkButton>
+				</AddButtonWrapper>
+			}
 		</>
 	);
 }
