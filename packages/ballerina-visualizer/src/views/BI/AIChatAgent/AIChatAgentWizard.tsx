@@ -163,6 +163,12 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             const newServiceArtifact = serviceSourceCodeResult.artifacts.find(artifact => artifact.isNew);
 
+            if (!newServiceArtifact) {
+                // Handle the error gracefully. You can show a message, log, or return early.
+                // For now, we simply return early.
+                console.error("No new service artifact found.");
+                return;
+            }
             rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
                 location: {
