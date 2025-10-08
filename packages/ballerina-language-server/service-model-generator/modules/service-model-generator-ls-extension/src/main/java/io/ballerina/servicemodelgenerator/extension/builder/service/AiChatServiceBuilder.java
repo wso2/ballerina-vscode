@@ -28,7 +28,7 @@ import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -115,7 +115,8 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     }
 
     private void addRequiredImports(Service service, ModulePartNode rootNode, List<TextEdit> edits) {
-        Set<String> importStmts = new HashSet<>();
+        Set<String> importStmts = new LinkedHashSet<>();
+
         if (!importExists(rootNode, BALLERINA, HTTP)) {
             importStmts.add(Utils.getImportStmt(BALLERINA, HTTP));
         }
@@ -147,8 +148,8 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     private static String getAgentChatFunction(String agentVarName, String orgName) {
         String methodCall = BALLERINA.equals(orgName)
-            ? String.format("self.%s.run(request.message, request.sessionId)", agentVarName)
-            : String.format("self.%s->run(request.message, request.sessionId)", agentVarName);
+                ? String.format("self.%s.run(request.message, request.sessionId)", agentVarName)
+                : String.format("self.%s->run(request.message, request.sessionId)", agentVarName);
         return String.format(
                 "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
                         "returns ai:ChatRespMessage|error {%s" +
