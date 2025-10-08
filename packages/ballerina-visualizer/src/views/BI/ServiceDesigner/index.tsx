@@ -79,86 +79,72 @@ const HeaderContainer = styled.div`
     justify-content: space-between;
 `;
 
-const ServiceMetadataContainer = styled.div`
-    padding: 15px;
-    border-bottom: 1px solid var(--vscode-editorIndentGuide-background);
+const ActionGroup = styled.div`
     display: flex;
-    gap: 20px;
-`;
-
-const ListenerSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 3;
-`;
-
-const ListenerHeader = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-`;
-
-const ListenerContent = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-top: 10px;
-`;
-
-const ListenerItem = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background-color: var(--vscode-editor-background);
-    transition: all 0.2s ease;
-    
-    &:hover .listener-icon {
-        border-color: var(--vscode-focusBorder);
-    }
-    
-    &:hover .listener-text {
-        color: var(--vscode-focusBorder);
-    }
-`;
-
-const ListenerIcon = styled.div`
-    width: 48px;
-    height: 48px;
-    background-color: var(--vscode-editor-background);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid var(--vscode-editorIndentGuide-background);
-    transition: border-color 0.2s ease;
-`;
-
-const PropertiesSection = styled.div`
-    display: flex;
-    flex-direction: column;
     gap: 12px;
-    flex: 2;
-    padding-left: 20px;
-    border-left: 1px solid var(--vscode-editorIndentGuide-background);
+    align-items: center;
 `;
 
-const PropertyItem = styled.div`
+const ServiceMetadataContainer = styled.div`
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 12px 16px;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 6px;
+    gap: 8px;
+    background: var(--vscode-editor-background);
 `;
 
-const PropertyLabel = styled.div`
+const MetadataRow = styled.div`
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 16px;
+    flex-wrap: wrap;
+`;
+
+const MetadataLabel = styled.span`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-weight: 500;
+    min-width: 60px;
+`;
+
+const ListenerBadge = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    background: var(--vscode-editorWidget-background, #f3f3f3);
+    color: var(--vscode-descriptionForeground, #888);
+    border-radius: 10px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.12s;
+
+    &:hover {
+        background: var(--vscode-editorWidget-border, #e0e0e0);
+        transform: none;
+    }
+`;
+
+const PropertyInline = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 4px;
+    font-size: 11px;
+`;
+
+const PropertyKey = styled.span`
+    color: var(--vscode-descriptionForeground);
+    font-weight: 500;
+`;
+
+const PropertyValue = styled.span`
+    color: var(--vscode-input-foreground);
+    font-family: var(--vscode-editor-font-family);
 `;
 
 const EmptyReadmeContainer = styled.div`
@@ -172,17 +158,6 @@ const EmptyReadmeContainer = styled.div`
 
 const Description = styled(Typography)`
     color: var(--vscode-descriptionForeground);
-`;
-
-const PropertyValue = styled.div`
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    background-color: var(--vscode-editor-background);
-    border-radius: 4px;
-    border: 1px solid var(--vscode-editorIndentGuide-background);
-    font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
 `;
 
 interface ServiceDesignerProps {
@@ -321,14 +296,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 title: "Add Handler",
                 description: "Select the handler to add",
                 value: ADD_HANDLER
-            });
-        }
-
-        if (service.moduleName === "http" && !service.properties.hasOwnProperty('serviceTypeName')) {
-            options.push({
-                title: "Add Resource",
-                description: "Add a new resource endpoint to the service",
-                value: ADD_HTTP_RESOURCE
             });
         }
 
@@ -651,45 +618,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         })
         .length;
 
-    const ListenerList = () => {
-        const listenerLabel = listeners.length > 1 ? "Listeners" : "Listener";
-        return (
-            <>
-                <ListenerHeader>
-                    <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                        {listenerLabel}
-                    </Typography>
-                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                        {listenerLabel} connected to the service
-                    </Typography>
-                </ListenerHeader>
-                <ListenerContent>
-                    {
-                        listeners.map((listener, index) => (
-                            <ListenerItem key={`${index}-listener`} onClick={() => handleOpenListener(listener)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <ListenerIcon className="listener-icon">
-                                    <Icon name="radio-tower" isCodicon sx={{ fontSize: 16 }} />
-                                </ListenerIcon>
-                                <Typography
-                                    variant="body2"
-                                    className="listener-text"
-                                    sx={{
-                                        transition: 'color 0.2s ease'
-                                    }}
-                                >
-                                    {listener}
-                                </Typography>
-                                <Icon name="kebab-vertical" isCodicon sx={{ fontSize: 14, marginLeft: 'auto' }} />
-                            </ListenerItem>
-                        ))
-                    }
-                </ListenerContent>
-            </>
-        );
-    }
-
     return (
         <View>
             <TopNavigationBar />
@@ -702,7 +630,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 serviceModel && (
                     <>
                         <TitleBar
-                            title={serviceModel.displayName || "Service Designer"}
+                            title={serviceModel.name}
                             subtitle={"Implement and configure your service"}
                             actions={
                                 <>
@@ -715,16 +643,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
                                                 </Button>
-                                                {/* <Button appearance="secondary" tooltip="Export OpenAPI Spec" onClick={handleExportOAS}>
-                                                    <Icon name="bi-export" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Export</ButtonText>
-                                                </Button> */}
-                                                {/* {
-                                                    !haveServiceTypeName && (
-                                                        <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
-                                                            <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
-                                                        </Button>
-                                                    )
-                                                } */}
                                             </>
                                         )
                                     }
@@ -742,33 +660,43 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                         />
 
                         <ServiceContainer>
-                            {/* Listing Listener and Service Configurations */}
-                            <ServiceMetadataContainer>
-                                <ListenerSection>
-                                    <ListenerList />
-                                </ListenerSection>
-                                {readonlyProperties.size > 0 && (
-                                    <PropertiesSection>
-                                        {
-                                            Array.from(readonlyProperties).map(prop => (
-                                                <PropertyItem key={prop.label}>
-                                                    <PropertyLabel>
-                                                        <Icon name={findIcon(prop.label)} isCodicon sx={{ fontSize: 14, color: 'var(--vscode-symbolIcon-propertyForeground)' }} />
-                                                        <Typography variant="body3" sx={{ fontWeight: 'medium', color: 'var(--vscode-foreground)' }}>
-                                                            {prop.label}
-                                                        </Typography>
-                                                    </PropertyLabel>
+                            {/* Service Metadata - Compact View */}
+                            {(listeners.length > 0 || readonlyProperties.size > 0) && (
+                                <ServiceMetadataContainer>
+                                    {listeners.length > 0 && (
+                                        <MetadataRow>
+                                            <MetadataLabel>Listeners:</MetadataLabel>
+                                            {listeners.map((listener, index) => (
+                                                <ListenerBadge 
+                                                    key={`${index}-listener`}
+                                                    onClick={() => handleOpenListener(listener)}
+                                                >
+                                                    <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
+                                                    {listener}
+                                                </ListenerBadge>
+                                            ))}
+                                        </MetadataRow>
+                                    )}
+                                    {readonlyProperties.size > 0 && (
+                                        <MetadataRow>
+                                            <MetadataLabel>Service Details:</MetadataLabel>
+                                            {Array.from(readonlyProperties).map(prop => (
+                                                <PropertyInline key={prop.label}>
+                                                    <Icon 
+                                                        name={findIcon(prop.label)} 
+                                                        isCodicon 
+                                                        sx={{ fontSize: 11, opacity: 0.7 }} 
+                                                    />
+                                                    <PropertyKey>{prop.label}:</PropertyKey>
                                                     <PropertyValue>
-                                                        <Typography variant="body3" sx={{ color: 'var(--vscode-editor-foreground)' }}>
-                                                            {Array.isArray(prop.value) ? prop.value.join(", ") : prop.value}
-                                                        </Typography>
+                                                        {Array.isArray(prop.value) ? prop.value.join(", ") : prop.value}
                                                     </PropertyValue>
-                                                </PropertyItem>
-                                            ))
-                                        }
-                                    </PropertiesSection>
-                                )}
-                            </ServiceMetadataContainer>
+                                                </PropertyInline>
+                                            ))}
+                                        </MetadataRow>
+                                    )}
+                                </ServiceMetadataContainer>
+                            )}
 
                             {/* Listing Resources in HTTP */}
                             {isHttpService && (
@@ -777,7 +705,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         title="Resources"
                                         subtitle={`${resourcesCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
                                     >
-                                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                        <ActionGroup>
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                             )}
@@ -786,7 +714,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
                                                 </Button>
                                             )}
-                                        </div>
+                                        </ActionGroup>
                                     </SectionHeader>
                                     <FunctionsContainer>
                                         {resources
