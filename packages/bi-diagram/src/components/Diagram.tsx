@@ -44,6 +44,7 @@ import Controls from "./Controls";
 import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
+import { PopupOverlay } from "./PopupOverlay";
 
 export interface DiagramProps {
     model: Flow;
@@ -89,6 +90,10 @@ export interface DiagramProps {
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
+    overlay?: {
+        visible: boolean;
+        onClickOverlay: () => void;
+    }
     expressionContext?: ExpressionContextProps;
 }
 
@@ -114,6 +119,7 @@ export function Diagram(props: DiagramProps) {
         removeBreakpoint,
         breakpointInfo,
         readOnly,
+        overlay,
         expressionContext,
     } = props;
 
@@ -340,6 +346,7 @@ export function Diagram(props: DiagramProps) {
             <Controls engine={diagramEngine} />
             {diagramEngine && diagramModel && (
                 <DiagramContextProvider value={context}>
+                    {overlay?.visible && <PopupOverlay onClose={overlay.onClickOverlay} />}
                     <DiagramCanvas>
                         <NavigationWrapperCanvasWidget
                             diagramEngine={diagramEngine}
