@@ -189,8 +189,15 @@ public class McpToolKitBuilder extends NodeBuilder {
         } else {
             // 1. Generate the MCP toolkit class in user code
             Property permittedToolsProperty = sourceBuilder.flowNode.properties().get(PERMITTED_TOOLS_PROPERTY);
-            List<String> permittedTools = ((List<?>) permittedToolsProperty.value()).stream()
-                    .filter(String.class::isInstance).map(String.class::cast).toList();
+            List<String> permittedTools;
+            if (permittedToolsProperty.value() instanceof List<?>) {
+                permittedTools = ((List<?>) permittedToolsProperty.value()).stream()
+                        .filter(String.class::isInstance).map(String.class::cast).toList();
+            } else if (permittedToolsProperty.value() instanceof String) {
+                permittedTools = List.of((String) permittedToolsProperty.value());
+            } else {
+                permittedTools = List.of();
+            }
             String toolKitName = String.valueOf(toolKitNameProperty.value());
 
             sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
