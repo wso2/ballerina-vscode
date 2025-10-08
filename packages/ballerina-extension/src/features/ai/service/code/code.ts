@@ -465,8 +465,8 @@ export async function repairCodeCore(
 }
 
 export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
-    const messages: ModelMessage[] = [...params.previousMessages];
-    const lastMessage = messages[messages.length - 1];
+    const allMessages: ModelMessage[] = [...params.previousMessages];
+    const lastMessage = allMessages[allMessages.length - 1];
     let isToolCallExistInLastMessage = false;
     let lastMessageToolCallInfo = {toolName: "", toolCallId: ""};
 
@@ -480,35 +480,42 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         }
     }
 
-    const allMessages: ModelMessage[] = [
-        ...params.previousMessages,
-        !isToolCallExistInLastMessage? {
-            role: "assistant",
-            content: [
-                {
-                    type: "text",
-                    text: params.assistantResponse
-                }
-            ]
-        }: {
+    const userRepairMessage: ModelMessage = {
+        role: "user",
+        content:
+            "Generated code returns the following compiler errors. Using the library details from the `LibraryProviderTool` results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+            "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
+            params.diagnostics.map((d) => d.message).join("\n"),
+    }
+
+    if (isToolCallExistInLastMessage) {
+        allMessages.push({
             role: "tool",
             content: [
                 {
                     type: "tool-result",
                     toolName: lastMessageToolCallInfo?.toolName as string || "PreviousAssistantMessageCall",
-                    result: params.assistantResponse,
+                    output: {
+                        type: "text",
+                        value: "Tool call executed successfully"
+                    },
                     toolCallId: lastMessageToolCallInfo?.toolCallId as string || "PreviousAssistantMessageCallId"
                 }
             ]
-        },
-        {
-            role: "user",
-            content:
-                "Generated code returns the following compiler errors. Using the library details from the LibraryProviderTool results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
-                "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
-                params.diagnostics.map((d) => d.message).join("\n"),
-        },
-    ];
+        });
+    }
+
+    allMessages.push({
+        role: "assistant",
+        content: [
+            {
+                type: "text",
+                text: params.assistantResponse
+            }
+        ]
+    });
+
+    allMessages.push(userRepairMessage);
 
     let updatedSourceFiles: SourceFiles[] = getProjectFromResponse(params.assistantResponse).sourceFiles;
     let updatedFileNames: string[] = [];

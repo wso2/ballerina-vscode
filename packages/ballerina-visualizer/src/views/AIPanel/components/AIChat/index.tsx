@@ -300,17 +300,19 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "tool_result") {
+            if (response.toolName == "LibraryProviderTool") {
             const libraryNames = response.libraryNames;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content = newMessages[newMessages.length - 1].content.replace(
-                        `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                        `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
-                    );
-                }
-                return newMessages;
-            });
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content = newMessages[newMessages.length - 1].content.replace(
+                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                            `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                        );
+                    }
+                    return newMessages;
+                });
+            }
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
