@@ -71,8 +71,8 @@
                 "isQueryExpression": false,
                 "isFunctionCall": false,
                 "elementAccessIndex": [
-                  0,
-                  4
+                  "0",
+                  "4"
                 ]
               }
             ]
@@ -90,7 +90,7 @@
                 "isQueryExpression": false,
                 "isFunctionCall": false,
                 "elementAccessIndex": [
-                  1
+                  "1"
                 ]
               }
             ]
@@ -108,7 +108,7 @@
                 "isQueryExpression": false,
                 "isFunctionCall": false,
                 "elementAccessIndex": [
-                  2
+                  "2"
                 ]
               }
             ]

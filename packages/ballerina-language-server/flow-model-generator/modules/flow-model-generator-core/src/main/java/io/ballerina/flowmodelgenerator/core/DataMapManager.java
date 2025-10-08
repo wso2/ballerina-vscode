@@ -636,9 +636,9 @@ public class DataMapManager {
         List<String> inputs = new ArrayList<>();
         expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument, dataMappingDocument);
-        List<Integer> elementAccessIndex = null;
+        List<String> elementAccessIndex = null;
         if (containsArrayAccess(expr)) {
-            elementAccessIndex = extractArrayIndices(expr, semanticModel);
+            elementAccessIndex = extractArrayIndices(expr);
         }
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
@@ -715,9 +715,9 @@ public class DataMapManager {
         return diagnosticMsgs;
     }
 
-    private List<Integer> extractArrayIndices(Node expr, SemanticModel semanticModel) {
-        List<Integer> indices = new ArrayList<>();
-        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices, semanticModel);
+    private List<String> extractArrayIndices(Node expr) {
+        List<String> indices = new ArrayList<>();
+        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices);
         expr.accept(visitor);
         return indices.isEmpty() ? null : indices;
     }
@@ -2389,7 +2389,7 @@ public class DataMapManager {
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                            List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
-                           Map<String, String> imports, LineRange functionRange, List<Integer> elementAccessIndex) {
+                           Map<String, String> imports, LineRange functionRange, List<String> elementAccessIndex) {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
@@ -2737,12 +2737,10 @@ public class DataMapManager {
     }
 
     private static class ArrayIndexExtractorVisitor extends NodeVisitor {
-        private final List<Integer> indices;
-        private final SemanticModel semanticModel;
+        private final List<String> indices;
 
-        ArrayIndexExtractorVisitor(List<Integer> indices, SemanticModel semanticModel) {
+        ArrayIndexExtractorVisitor(List<String> indices) {
             this.indices = indices;
-            this.semanticModel = semanticModel;
         }
 
         @Override
@@ -2751,43 +2749,13 @@ public class DataMapManager {
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
-                Integer indexValue = extractIndexValue(keyExpr);
-                indices.add(indexValue != null ? indexValue : -1);
+                String indexValue = extractIndexValue(keyExpr);
+                indices.add(indexValue);
             }
         }
 
-        private Integer extractIndexValue(ExpressionNode keyExpr) {
-            String indexStr = keyExpr.toSourceCode().trim();
-            try {
-                return Integer.parseInt(indexStr);
-            } catch (NumberFormatException e) {
-                Optional<Symbol> symbolOpt = semanticModel.symbol(keyExpr);
-                if (symbolOpt.isPresent()) {
-                    Symbol symbol = symbolOpt.get();
-                    if (symbol instanceof ConstantSymbol constSymbol) {
-                        return extractConstantValue(constSymbol.constValue());
-                    } else if (symbol instanceof VariableSymbol varSymbol) {
-                        return tryExtractFromVariableInitializer(varSymbol);
-                    }
-                }
-                return null;
-            }
-        }
-
-        private Integer tryExtractFromVariableInitializer(VariableSymbol varSymbol) {
-            return null;
-        }
-
-        private Integer extractConstantValue(Object constValue) {
-            Object value = constValue instanceof ConstantValue cv ? cv.value() : constValue;
-
-            return switch (value) {
-                case Integer i -> i;
-                case Long l -> l.intValue();
-                case Short s -> s.intValue();
-                case Byte b -> b.intValue();
-                case null, default -> null;
-            };
+        private String extractIndexValue(ExpressionNode keyExpr) {
+            return keyExpr.toSourceCode().trim();
         }
 
         @Override
