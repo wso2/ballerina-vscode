@@ -460,6 +460,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
                             <ServiceClassDesigner
+                                type={value?.type}
                                 fileName={value?.documentUri}
                                 position={value?.position}
                                 isGraphql={value?.isGraphql}
@@ -472,6 +473,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
                             <ServiceClassConfig
+                                type={value?.type}
                                 fileName={value.documentUri}
                                 position={value?.position}
                                 projectUri={value?.projectUri} />
