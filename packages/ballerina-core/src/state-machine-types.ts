@@ -22,7 +22,6 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { ModuleInfo } from "./interfaces/data-mapper";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
@@ -141,7 +140,14 @@ export interface VisualizerLocation {
     moduleName?: string;
     version?: string;
     dataMapperMetadata?: DataMapperMetadata;
-    artifactInfo?: ModuleInfo;
+    artifactInfo?: ArtifactInfo;
+}
+
+export interface ArtifactInfo {
+    org?: string;
+    packageName?: string;
+    moduleName?: string;
+    version?: string;
 }
 
 export interface ArtifactData {
@@ -276,11 +282,11 @@ export type AIMachineEventMap = {
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
     [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
-    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: { 
-        accessKeyId: string; 
-        secretAccessKey: string; 
-        region: string; 
-        sessionToken?: string; 
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+        sessionToken?: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
