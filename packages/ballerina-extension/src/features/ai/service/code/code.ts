@@ -482,10 +482,23 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     const userRepairMessage: ModelMessage = {
         role: "user",
-        content:
-            "Generated code returns the following compiler errors. Using the library details from the `LibraryProviderTool` results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
-            "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
-            params.diagnostics.map((d) => d.message).join("\n"),
+        content: `The generated code has the following compiler errors. Follow this systematic approach to fix all issues:
+
+        1. **Analyze All Errors**: First, carefully review all compiler errors listed below to understand the full scope of issues across all files.
+        2. **Identify Affected Files**: Determine which files contain errors by examining the error messages for file paths and locations.
+        3. **Gather File Contents**: For each file that needs changes:
+        - First, check if the file content exists in the conversation history
+        - If not found in history, use **str_replace_based_edit_tool** with the 'view' operation to read the current file content
+
+        4. **Verify Library Information**: Before making fixes, check the context and API documentation already provided in the conversation history. Only use the **LibraryProviderTool** if additional library information is needed that wasn't covered in previous tool responses.
+
+        5. **Fix Each File Systematically**: Use **str_replace_based_edit_tool** to make surgical, targeted edits for the determined files:
+        - Process one file at a time
+        - For each file, make ALL necessary corrections before moving to the next file
+        - Use precise **str_replace** operations that target only the erroneous sections
+        - Double-check all functions, types, and record field access for accuracy
+        - Do NOT regenerate entire code blocks; only replace the specific lines that need changes
+    **Compiler Errors:** ${params.diagnostics.map((d) => d.message).join("\n")}`,
     }
 
     if (isToolCallExistInLastMessage) {
