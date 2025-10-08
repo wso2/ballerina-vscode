@@ -2779,27 +2779,15 @@ public class DataMapManager {
         }
 
         private Integer extractConstantValue(Object constValue) {
-            if (constValue instanceof ConstantValue constantValue) {
-                Object value = constantValue.value();
-                if (value instanceof Long) {
-                    return ((Long) value).intValue();
-                } else if (value instanceof Integer) {
-                    return (Integer) value;
-                } else if (value instanceof Short) {
-                    return ((Short) value).intValue();
-                } else if (value instanceof Byte) {
-                    return ((Byte) value).intValue();
-                }
-            } else if (constValue instanceof Long) {
-                return ((Long) constValue).intValue();
-            } else if (constValue instanceof Integer) {
-                return (Integer) constValue;
-            } else if (constValue instanceof Short) {
-                return ((Short) constValue).intValue();
-            } else if (constValue instanceof Byte) {
-                return ((Byte) constValue).intValue();
-            }
-            return null;
+            Object value = constValue instanceof ConstantValue cv ? cv.value() : constValue;
+
+            return switch (value) {
+                case Integer i -> i;
+                case Long l -> l.intValue();
+                case Short s -> s.intValue();
+                case Byte b -> b.intValue();
+                case null, default -> null;
+            };
         }
 
         @Override
