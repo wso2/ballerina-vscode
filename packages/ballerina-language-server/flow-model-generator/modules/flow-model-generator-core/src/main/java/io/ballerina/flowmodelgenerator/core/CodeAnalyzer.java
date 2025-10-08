@@ -1527,7 +1527,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return NodeKind.NEW_CONNECTION;
         }
         if (classSymbol.nameEquals(MCP_TOOL_KIT) || isAiMcpBaseToolKit(classSymbol)) {
-            return NodeKind.MCP_TOOLKIT;
+            return NodeKind.MCP_TOOL_KIT;
         }
         if (isAiMemory(classSymbol)) {
             return NodeKind.MEMORY;
