@@ -51,19 +51,16 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
  */
 public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
+    private static final String AGENT_NAME_PROPERTY = "agentName";
+
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         return super.getModelTemplate(context).map(service -> {
             Map<String, Value> properties = service.getProperties();
             Value agentNameProperty = new Value.ValueBuilder()
                     .metadata("Agent Name", "The name of the agent variable")
-                    .enabled(true)
-                    .editable(true)
-                    .value("chatAgent")
-                    .valueType("string")
-                    .setPlaceholder("chatAgent")
                     .build();
-            properties.put("agentName", agentNameProperty);
+            properties.put(AGENT_NAME_PROPERTY, agentNameProperty);
             return service;
         });
     }
@@ -95,7 +92,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     }
 
     private String getAgentNameFromService(Service service) {
-        Value agentNameValue = service.getProperty("agentName");
+        Value agentNameValue = service.getProperty(AGENT_NAME_PROPERTY);
         return agentNameValue != null && agentNameValue.isEnabledWithValue()
                 ? agentNameValue.getValue()
                 : "chat";
@@ -139,10 +136,11 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     private static String getServiceInitFunction(String agentVarName, String modelVarName) {
         return String.format(
                 "    function init() returns error? { %s" +
-                "        self.%s = check new (%s" +
-                "            systemPrompt = {role: string ``, instructions: string ``}, model = %s, tools = []%s" +
-                "        );%s" +
-                "    }",
+                        "        self.%s = check new (%s" +
+                        "            systemPrompt = {role: string ``, instructions: string ``}, model = %s" +
+                        ", tools = []%s" +
+                        "        );%s" +
+                        "    }",
                 NEW_LINE, agentVarName, NEW_LINE, modelVarName, NEW_LINE, NEW_LINE
         );
     }
@@ -150,10 +148,10 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     private static String getAgentChatFunction(String agentVarName) {
         return String.format(
                 "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
-                "returns ai:ChatRespMessage|error {%s" +
-                "        string stringResult = check self.%s.run(request.message, request.sessionId);%s" +
-                "        return {message: stringResult};%s" +
-                "    }",
+                        "returns ai:ChatRespMessage|error {%s" +
+                        "        string stringResult = check self.%s.run(request.message, request.sessionId);%s" +
+                        "        return {message: stringResult};%s" +
+                        "    }",
                 NEW_LINE, agentVarName, NEW_LINE, NEW_LINE
         );
     }
