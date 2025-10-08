@@ -2064,6 +2064,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const toolType = tool.type ?? "";
             if (toolType.includes("MCP Server")) {
                 const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
+
+                // Delete the MCP client variable node
+                const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+                const mcpVariable = variableNodes.flowModel?.variables?.find(
+                    (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === tool.name
+                );
+
+                if (mcpVariable) {
+                    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+                        filePath: agentFilePath,
+                        flowNode: mcpVariable,
+                    });
+                }
+
                 const agentResponse = await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
