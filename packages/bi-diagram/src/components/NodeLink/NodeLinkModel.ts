@@ -195,15 +195,21 @@ export class NodeLinkModel extends DefaultLinkModel {
         let source = this.getFirstPoint().getPosition();
         let target = this.getLastPoint().getPosition();
 
+        // For branch links with labels
+        if (this.label && !this.alignBottom) {
+            // Calculate bend position
+            const bendY = source.y + this.linkBottomOffset;
+            // Position in the middle between bend and target
+            return {
+                x: target.x,
+                y: bendY + NODE_GAP_Y / 2,
+            };
+        }
+
         // is lines are straight?
         let tolerance = 10;
         let isStraight = Math.abs(source.y - target.y) <= tolerance || Math.abs(source.x - target.x) <= tolerance;
         if (isStraight) {
-            // with label
-            if (this.label) {
-                return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 + NODE_GAP_Y / 2 };
-            }
-            // without label
             return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 - 5 };
         }
 
