@@ -224,9 +224,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         {
                             previousMessages: allMessages,
                             assistantResponse: diagnosticFixResp,
-                            diagnostics: diagnostics,
+                            diagnostics: diagnostics
                         },
-                        libraryDescriptions
+                        libraryDescriptions,
+                        updatedSourceFiles
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
@@ -383,7 +384,7 @@ Important reminders:
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
-Once the explanation is finished, you must apply precise targeted edits to the existing source code using the **str_replace_based_edit_tool** tool.
+Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
@@ -456,7 +457,7 @@ export async function repairCodeCore(
     eventHandler: CopilotEventHandler
 ): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params, libraryDescriptions);
+    const resp = await repairCode(params, libraryDescriptions, []);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
@@ -464,7 +465,8 @@ export async function repairCodeCore(
     return resp;
 }
 
-export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
+export async function repairCode(params: RepairParams,
+        libraryDescriptions: string, sourceFiles: SourceFiles[] = []): Promise<RepairResponse> {
     const allMessages: ModelMessage[] = [...params.previousMessages];
     const lastMessage = allMessages[allMessages.length - 1];
     let isToolCallExistInLastMessage = false;
@@ -483,10 +485,10 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
     const userRepairMessage: ModelMessage = {
         role: "user",
         content:
-            "Generated code returns the following compiler errors. Using the library details from the `LibraryProviderTool` results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
-            "Do not create any new files. Just update the existing code to fix the errors. \n Errors: \n " +
+            "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+            "And also do not create any new files. Just update the existing code to fix the errors. \n Errors: \n " +
             params.diagnostics.map((d) => d.message).join("\n"),
-    }
+    };
 
     if (isToolCallExistInLastMessage) {
         allMessages.push({
@@ -517,7 +519,8 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     allMessages.push(userRepairMessage);
 
-    let updatedSourceFiles: SourceFiles[] = getProjectFromResponse(params.assistantResponse).sourceFiles;
+    let updatedSourceFiles: SourceFiles[] = sourceFiles.length == 0 ? 
+                                        getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
     let updatedFileNames: string[] = [];
 
     const tools = {
