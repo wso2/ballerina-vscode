@@ -21,8 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - **Editor** — Fixed expression-bar focus, flow-diagram race conditions, service-navigation sync, context-menu triggers, and connector list navigation.
 - **Data Mapper** — Fixed stale contexts, filter/map link rendering, ESC key handling, long-field type visibility, and query-view navigation.
 - **Service Class Designer** — Fixed diagnostics, HTTP resource parameter editing, MCP client updates, and MI helper-pane sizing.
-- **Test** — enabled targeted UI tests and added snapshot coverage for BI flow and component diagrams.
-
 
 ## [5.4.0] - 2025-09-19
 
@@ -415,8 +413,3 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 ## [2.0.0]
 
 - Initial release
-
-### References
-
-- [Keep a Changelog]: https://keepachangelog.com/en/1.1.0/
-- [Semantic Versioning]: https://semver.org/
