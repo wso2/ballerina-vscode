@@ -614,7 +614,7 @@
           "label": "Service Name",
           "description": "The name of the mcp service",
           "defaultValue": "",
-          "placeholder": "MCP Weather Service",
+          "placeholder": "MCP Service",
           "valueType": "EXPRESSION",
           "typeConstraint": "string",
           "typeMembers": [],
@@ -645,7 +645,7 @@
         },
         "basePath": {
           "label": "Base Path",
-          "description": "The base path of the GraphQL service",
+          "description": "The base path of the MCP service",
           "defaultValue": "/mcp",
           "placeholder": "/mcp",
           "valueType": "EXPRESSION",
