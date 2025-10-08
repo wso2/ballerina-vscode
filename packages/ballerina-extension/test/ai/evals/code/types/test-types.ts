@@ -30,6 +30,63 @@ export interface TestUseCase {
 }
 
 /**
+ * Normalized token usage record (using camelCase for consistency)
+ */
+export interface TokenUsageRecord {
+    readonly inputTokens: number;
+    readonly cacheCreationInputTokens: number;
+    readonly cacheReadInputTokens: number;
+    readonly outputTokens: number;
+}
+
+/**
+ * Enhanced repair tracking with iteration context
+ */
+export interface RepairUsageRecord extends TokenUsageRecord {
+    readonly iteration: number;
+}
+
+/**
+ * Complete usage tracking for a test case with cache analysis
+ */
+export interface UsageTracking {
+    readonly initial: TokenUsageRecord;
+    readonly repairs: readonly RepairUsageRecord[];
+    readonly overallCachePerformanceValidation: {
+        readonly initialGenerationCheck: "pass" | "warning";
+        readonly firstRepairCheck: "pass" | "fail" | "not_applicable";
+        readonly subsequentRepairsCheck: "pass" | "warning" | "not_applicable";
+        readonly issues: readonly string[];
+    };
+}
+
+/**
+ * Usage metrics for AI operations
+ */
+export interface UsageMetrics {
+    readonly usage?: UsageTracking;
+}
+
+/**
+ * Cache operation counts for a specific phase
+ */
+export interface CacheOperationCounts {
+    readonly hits: number;
+    readonly creation: number;
+}
+
+/**
+ * Aggregated cache usage summary across multiple use cases
+ */
+export interface AggregatedCacheUsageSummary {
+    readonly totalUseCases: number;
+    readonly initialGeneration: CacheOperationCounts;
+    readonly repairs: {
+        readonly [repairIteration: string]: CacheOperationCounts;
+    };
+}
+
+/**
  * Test event result containing all information captured during test execution
  */
 export interface TestEventResult {
@@ -44,6 +101,7 @@ export interface TestEventResult {
     readonly startTime?: number;
     readonly endTime?: number;
     readonly duration?: number;
+    readonly usageMetrics?: UsageMetrics;
 }
 
 /**

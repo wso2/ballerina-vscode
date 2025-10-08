@@ -18,5 +18,6 @@ export * from './constants';
 export * from './test-event-handler';
 export * from './test-validation';
 export * from './test-execution';
+export * from './cache-analysis';
 export * from './batch-processing';
 export * from './content-parser';

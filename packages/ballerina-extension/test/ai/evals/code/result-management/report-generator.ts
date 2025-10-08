@@ -41,10 +41,103 @@ export function generateComprehensiveReport(summary: Summary): void {
         logPerTestCaseAccuracy(summary.perTestCaseAccuracy);
     }
 
+    // Add cache usage metrics section
+    if (summary.aggregatedUsage) {
+        console.log(`\n🗃️ CACHE USAGE ANALYSIS: `);
+        console.log(`   Total Use Cases: ${summary.aggregatedUsage.totalUseCases}`);
+
+        // Initial generation stats
+        const initial = summary.aggregatedUsage.initialGeneration;
+        console.log(`   Initial: hits ${initial.hits}/${summary.aggregatedUsage.totalUseCases}, creation ${initial.creation}/${summary.aggregatedUsage.totalUseCases}`);
+
+        // Repair iteration stats
+        const repairKeys = Object.keys(summary.aggregatedUsage.repairs).sort((a, b) => {
+            const aNum = parseInt(a.replace('repair', ''));
+            const bNum = parseInt(b.replace('repair', ''));
+            return aNum - bNum;
+        });
+
+        repairKeys.forEach(repairKey => {
+            const repairStats = summary.aggregatedUsage.repairs[repairKey];
+            const repairNum = repairKey.replace('repair', '');
+
+            // Use the count field to get the actual number of use cases that reached this repair iteration
+            const totalWithThisRepair = repairStats.count;
+            if (totalWithThisRepair > 0) {
+                console.log(`   Repair ${repairNum}: hits ${repairStats.hits}/${totalWithThisRepair}, creation ${repairStats.creation}/${totalWithThisRepair}`);
+            }
+        });
+    }
+
+    // Add enhanced overall cache validation
+    if (summary.overallCacheValidation) {
+        console.log(`\n🎯 OVERALL CACHE PERFORMANCE VALIDATION:`);
+        const validation = summary.overallCacheValidation;
+
+        const overallIcon = validation.overallStatus === 'pass' ? '✅' : '❌';
+        console.log(`   ${overallIcon} Overall Status: ${validation.overallStatus.toUpperCase()}`);
+
+        const initialIcon = validation.initialCacheEfficiency === 'pass' ? '✅' : '❌';
+        console.log(`   ${initialIcon} Initial Cache Efficiency: ${validation.initialCacheEfficiency} (${validation.InitialGenCacheCreation} fresh creations)`);
+
+        if (validation.firstRepairAllReads !== 'not_applicable') {
+            const firstRepairIcon = validation.firstRepairAllReads === 'pass' ? '✅' : '❌';
+            console.log(`   ${firstRepairIcon} First Repair All Reads: ${validation.firstRepairAllReads}`);
+        }
+
+        if (validation.subsequentRepairsNoWrites !== 'not_applicable') {
+            const subsequentIcon = validation.subsequentRepairsNoWrites === 'pass' ? '✅' : '❌';
+            console.log(`   ${subsequentIcon} Subsequent Repairs No Writes: ${validation.subsequentRepairsNoWrites}`);
+        }
+
+        if (validation.validationIssues.length > 0) {
+            console.log(`\n   🚨 Validation Issues:`);
+            validation.validationIssues.forEach((issue, index) => {
+                console.log(`      ${index + 1}. ${issue}`);
+            });
+        }
+    }
+
     logSuccessfulCompilations(summary.results);
 
     if (summary.totalFailed > 0) {
         logFailedCompilations(summary.results);
+    }
+}
+
+/**
+ * Logs cache validation for an individual use case result
+ */
+function logIndividualCacheValidation(result: UsecaseResult): void {
+    const validation = result.usage?.overallCachePerformanceValidation;
+    if (!validation) {
+        return; // No validation data available
+    }
+
+    console.log(`      Cache Validation:`);
+
+    // Initial generation check
+    const initialIcon = validation.initialGenerationCheck === 'pass' ? '✅' : '⚠️';
+    console.log(`        Initial Generation: ${initialIcon} ${validation.initialGenerationCheck}`);
+
+    // First repair check (if applicable)
+    if (validation.firstRepairCheck !== 'not_applicable') {
+        const firstRepairIcon = validation.firstRepairCheck === 'pass' ? '✅' : (validation.firstRepairCheck === 'fail' ? '❌' : '⚠️');
+        console.log(`        First Repair: ${firstRepairIcon} ${validation.firstRepairCheck}`);
+    }
+
+    // Subsequent repairs check (if applicable)
+    if (validation.subsequentRepairsCheck !== 'not_applicable') {
+        const subsequentIcon = validation.subsequentRepairsCheck === 'pass' ? '✅' : '⚠️';
+        console.log(`        Subsequent Repairs: ${subsequentIcon} ${validation.subsequentRepairsCheck}`);
+    }
+
+    // Show issues if any
+    if (validation.issues && validation.issues.length > 0) {
+        console.log(`        Issues:`);
+        validation.issues.forEach((issue, index) => {
+            console.log(`          ${index + 1}. ${issue}`);
+        });
     }
 }
 
@@ -65,6 +158,7 @@ function logSuccessfulCompilations(results: readonly UsecaseResult[]): void {
         if (result.files.length > 0) {
             console.log(`      Files: ${result.files.map(f => f.fileName).join(', ')}`);
         }
+        logIndividualCacheValidation(result);
     });
 }
 
@@ -83,7 +177,7 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
             console.log(`      LLM Rating: ${result.evaluationResult.rating.toFixed(1)}/10`);
             console.log(`      LLM Reasoning: ${result.evaluationResult.reasoning.substring(0, 100)}${result.evaluationResult.reasoning.length > 100 ? '...' : ''}`);
         }
-        
+
         if (result.errorEvents && result.errorEvents.length > 0) {
             console.log(`      Key Errors:`);
             result.errorEvents.slice(0, 2).forEach((error, errorIndex) => {
@@ -93,7 +187,7 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
                 console.log(`        ... and ${result.errorEvents.length - 2} more errors`);
             }
         }
-        
+
         if (result.diagnostics.length > 0) {
             console.log(`      Key Diagnostics:`);
             result.diagnostics.slice(0, 3).forEach((diag, diagIndex) => {
@@ -103,8 +197,11 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
                 console.log(`        ... and ${result.diagnostics.length - 3} more`);
             }
         }
+
+        logIndividualCacheValidation(result);
     });
 }
+
 
 /**
  * Logs iteration-specific summaries
