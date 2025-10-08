@@ -115,10 +115,10 @@ function validateFilePath(filePath: string): PathValidation {
     }
 
     const allowedPatterns = [
-        /^[^\/]+\.bal$/,                          // **.bal (root level files)
-        /^modules\/[^\/]+\/[^\/]+\.bal$/,         // modules/<module-name>/**.bal
-        /^generated\/[^\/]+\.bal$/,               // generated/**.bal
-        /^tests\/[^\/]+\.bal$/                    // tests/**.bal
+        /^\/?[^\/]+\.bal$/,
+        /^\/?modules\/[^\/]+\/[^\/]+\.bal$/,
+        /^\/?generated\/[^\/]+\.bal$/,
+        /^\/?tests\/[^\/]+\.bal$/
     ];
 
     const isValidPath = allowedPatterns.some(pattern => pattern.test(filePath));
