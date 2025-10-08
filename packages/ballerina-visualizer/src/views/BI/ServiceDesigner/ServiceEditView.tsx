@@ -143,8 +143,8 @@ export function ServiceEditView(props: ServiceEditViewProps) {
 
     return (
         <View>
-            <TopNavigationBar />
-            <TitleBar title="Service" subtitle="Edit Service" />
+            {/* <TopNavigationBar />
+            <TitleBar title="Service" subtitle="Edit Service" /> */}
             <ViewContent padding>
                 {!serviceModel &&
                     <LoadingContainer>

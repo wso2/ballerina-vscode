@@ -340,13 +340,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleOpenListener = (value: string) => {
-        const listenerValue = projectListeners.find((listener) => listener.name === value);
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.BIListenerConfigView,
-                position: listenerValue.position,
-                documentUri: listenerValue.path,
+                view: MACHINE_VIEW.BIServiceConfigView,
+                position: position,
+                documentUri: filePath,
+                identifier: value,
             },
         });
     };
@@ -667,7 +667,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         <MetadataRow>
                                             <MetadataLabel>Listeners:</MetadataLabel>
                                             {listeners.map((listener, index) => (
-                                                <ListenerBadge 
+                                                <ListenerBadge
                                                     key={`${index}-listener`}
                                                     onClick={() => handleOpenListener(listener)}
                                                 >
@@ -682,10 +682,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             <MetadataLabel>Service Details:</MetadataLabel>
                                             {Array.from(readonlyProperties).map(prop => (
                                                 <PropertyInline key={prop.label}>
-                                                    <Icon 
-                                                        name={findIcon(prop.label)} 
-                                                        isCodicon 
-                                                        sx={{ fontSize: 11, opacity: 0.7 }} 
+                                                    <Icon
+                                                        name={findIcon(prop.label)}
+                                                        isCodicon
+                                                        sx={{ fontSize: 11, opacity: 0.7 }}
                                                     />
                                                     <PropertyKey>{prop.label}:</PropertyKey>
                                                     <PropertyValue>

@@ -78,6 +78,7 @@ import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
 import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
+import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 
 const globalStyles = css`
     *,
@@ -466,7 +467,7 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.BIServiceConfigView:
-                        setViewComponent(<ServiceEditView filePath={value.documentUri} position={value?.position} />);
+                        setViewComponent(<ServiceConfigureView filePath={value.documentUri} position={value?.position} listenerName={value?.identifier} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
