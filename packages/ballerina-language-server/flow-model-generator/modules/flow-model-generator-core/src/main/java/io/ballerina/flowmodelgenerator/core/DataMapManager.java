@@ -2695,6 +2695,11 @@ public class DataMapManager {
             String openBraceRemoved = source.replace("[", ".");
             String closedBraceRemoved = openBraceRemoved.replace("]", "");
             inputs.add(closedBraceRemoved);
+
+            SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
+            for (ExpressionNode keyExpr : keyExpressions) {
+                keyExpr.accept(this);
+            }
         }
 
         @Override
