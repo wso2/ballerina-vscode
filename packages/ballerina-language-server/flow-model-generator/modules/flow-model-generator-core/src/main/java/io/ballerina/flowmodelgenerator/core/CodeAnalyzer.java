@@ -186,6 +186,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
@@ -553,9 +554,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 boolean isMcpToolKit = nodeSymbol
                         .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
                         .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
-                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
-                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
-                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .filter(typeSymbol -> isMcpToolKitAiClass(typeSymbol) || isGeneratedMcpToolKit(typeSymbol))
                         .isPresent();
                 if (isMcpToolKit) {
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
@@ -657,6 +656,18 @@ public class CodeAnalyzer extends NodeVisitor {
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
 
         nodeBuilder.codedata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
+    }
+
+    private boolean isMcpToolKitAiClass(TypeSymbol typeSymbol) {
+        // Enables backward-compatible rendering of the MCP tool in the UI
+        return typeSymbol.getModule().isPresent() && (typeSymbol.nameEquals(MCP_TOOL_KIT)
+                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT));
+    }
+
+    private boolean isGeneratedMcpToolKit(TypeSymbol typeSymbol) {
+        return typeSymbol instanceof TypeReferenceTypeSymbol referenceTypeSymbol
+                && referenceTypeSymbol.typeDescriptor() instanceof ClassSymbol classSymbol
+                && isAiMcpBaseToolKit(classSymbol);
     }
 
     private boolean isClassField(ExpressionNode expr) {
@@ -1515,7 +1526,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             return NodeKind.NEW_CONNECTION;
         }
-        if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
+        if (classSymbol.nameEquals(MCP_TOOL_KIT) || isAiMcpBaseToolKit(classSymbol)) {
             return NodeKind.MCP_TOOLKIT;
         }
         if (isAiMemory(classSymbol)) {

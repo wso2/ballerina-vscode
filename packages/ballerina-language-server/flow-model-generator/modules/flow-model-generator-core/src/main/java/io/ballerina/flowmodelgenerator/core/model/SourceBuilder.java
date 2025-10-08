@@ -121,7 +121,7 @@ public class SourceBuilder {
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
-                case AGENT, MEMORY -> AGENTS_BAL;
+                case AGENT, MEMORY, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
@@ -686,6 +686,11 @@ public class SourceBuilder {
 
         public TokenBuilder name(String name) {
             sb.append(name);
+            return this;
+        }
+
+        public TokenBuilder source(String source) {
+            sb.append(source);
             return this;
         }
 

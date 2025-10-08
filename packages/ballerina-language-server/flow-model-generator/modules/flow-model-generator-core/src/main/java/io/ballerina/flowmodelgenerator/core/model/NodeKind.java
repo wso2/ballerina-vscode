@@ -95,5 +95,6 @@ public enum NodeKind {
     CHUNKERS,
     CHUNKER,
     MEMORY,
-    MEMORY_STORE
+    MEMORY_STORE,
+    MCP_TOOL_KIT
 }

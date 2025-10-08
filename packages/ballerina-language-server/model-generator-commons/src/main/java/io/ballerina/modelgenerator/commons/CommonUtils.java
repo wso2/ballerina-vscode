@@ -103,6 +103,7 @@ public class CommonUtils {
     private static final String CHUNKER_TYPE_NAME = "Chunker";
     private static final String MEMORY_TYPE_NAME = "Memory";
     private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
+    private static final String MCP_BASE_TOOL_KIT_TYPE_NAME = "McpBaseToolKit";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -1028,6 +1029,10 @@ public class CommonUtils {
     public static boolean isAiMemoryStore(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME);
+
+    public static boolean isAiMcpBaseToolKit(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, MCP_BASE_TOOL_KIT_TYPE_NAME);
     }
 
     private static ClassSymbol getClassSymbol(Symbol symbol) {
