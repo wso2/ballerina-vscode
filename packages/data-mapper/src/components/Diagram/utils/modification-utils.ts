@@ -23,7 +23,7 @@ import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { expandArrayFn, getTargetField, getValueType } from "./common-utils";
 import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
-import { getTypeName, isEnumMember } from "./type-utils";
+import { getImportTypeInfo, getTypeName, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
 
 export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
@@ -106,21 +106,31 @@ function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext
 
 	const params: FnParams[] = [{
 		name: inputField.name,
-		type: getTypeName(inputField).replace("record", "any"),
+		type: inputField.typeName || "any",
 		isOptional: inputField.optional,
 		isNullable: false,
 		kind: inputField.kind
 	}];
 
 	const returnType: FnReturnType = {
-		type: getTypeName(outputField).replace("record", "any"),
+		type: outputField.typeName || "any",
 		kind: outputField.kind
-	}
+	};
+
+	const typeInfo = [...getImportTypeInfo(inputField), ...getImportTypeInfo(outputField)];
+
+	const filteredTypeInfo = Array.from(
+		new Map(typeInfo.map(item => {
+			const { orgName, moduleName, name, version } = item;
+			return [`${orgName}:${moduleName}:${name}:${version}`, item];
+		})).values()
+	);
 
 	const metadata: FnMetadata = {
 		returnType: returnType,
-		parameters: params
-	}
+		parameters: params,
+		...(filteredTypeInfo.length && { importTypeInfo: filteredTypeInfo })
+	};
 
 	return {
 		mapping,
