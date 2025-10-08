@@ -208,8 +208,31 @@ export const testCasesForExistingProject = [
   }
 ];
 
+export const testCasesForExistingSemanticErrors = [
+  {
+    prompt: "Change the Kafka broker Url into port 8080",
+    projectPath: "simple_order_management_system_with_compile_errors"
+  },
+  {
+    prompt: "I need to store the customer address details inside the order record",
+    projectPath: "simple_order_management_system_with_compile_errors"
+  },
+  {
+    prompt: "I need to send an email for the customer when the order is created",
+    projectPath: "simple_order_management_system_with_compile_errors"
+  },
+  {
+    prompt: "Please change the database as MsSQL",
+    projectPath: "simple_order_management_system_with_compile_errors"
+  },
+  {
+    prompt: "Please add logs for the `getOrderById` function",
+    projectPath: "simple_order_management_system_with_compile_errors"
+  }
+];
+
 export let testCases = [];
 testCases.push(...initialTestCases);
 testCases.push(...textEditSpecializedTestCases);
-testCases.push(...testCasesForExistingProject); // Duplicate to increase total count for testing
-
+testCases.push(...testCasesForExistingProject); 
+testCases.push(...testCasesForExistingSemanticErrors);
