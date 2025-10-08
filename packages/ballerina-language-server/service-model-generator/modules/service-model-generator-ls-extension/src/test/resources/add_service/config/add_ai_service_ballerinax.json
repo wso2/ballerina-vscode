@@ -1,0 +1,90 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a ballerinax/ai service with default agent name",
+  "service": {
+    "id": "0",
+    "name": "AI Agent Service",
+    "type": "ai",
+    "moduleName": "ai",
+    "orgName": "ballerinax",
+    "version": "0.1.0",
+    "packageName": "ai",
+    "listenerProtocol": "ai",
+    "icon": "http://localhost:8080/icons/ai.png",
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": "The Listeners to be bound with the service"
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": "ai:Listener",
+        "value": "aiListener",
+        "values": [
+          "aiListener"
+        ],
+        "items": [
+          "aiListener"
+        ],
+        "imports": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "agentName": {
+        "metadata": {
+          "label": "Agent Name",
+          "description": "The name of the agent variable"
+        },
+        "codedata": {
+          "type": "PROPERTY"
+        },
+        "placeholder": "",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "",
+        "imports": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "functions": []
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/http;\n\n\nimport ballerinax/ai;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nservice on aiListener {\n    private final ai:Agent chatAgent;\n\n    function init() returns error? { \n        self.chatAgent = check new (\n            systemPrompt = {role: string ``, instructions: string ``}, model = _chatModel, tools = []\n        );\n    }\n\n    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n        string stringResult = check self.chatAgent->run(request.message, request.sessionId);\n        return {message: stringResult};\n    }\n}"
+      }
+    ]
+  }
+}
