@@ -187,7 +187,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
     const saveSource = async (port: InputOutputPortModel, value: string) => {
         const valueChanged = savedTextFieldValue.current !== value;
-        if (!port || !valueChanged) {
+        if (!port || !valueChanged || !value) {
             return;
         }
 
@@ -216,6 +216,12 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
             return;
         }
         await textFieldRef.current.saveExpression(textFieldValue);
+        resetExprBarFocus();
+    };
+
+    const handleCancel = () => {
+        setTextFieldValue('');
+        onCancel();
         resetExprBarFocus();
     };
 
@@ -255,7 +261,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     };
 
     useEffect(() => {
-        saveOnPortChange();
+            saveOnPortChange();
     }, [focusedPort, focusedFilter, lastFocusedPort]);
 
     const fieldTitle = useMemo(() => {
@@ -293,7 +299,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 onChange={handleChange}
                 onCompletionSelect={onCompletionSelect}
                 onSave={handleExpressionSave}
-                onCancel={onCancel}
+                onCancel={handleCancel}
                 onClose={onCancel}
                 onBlur={handleBlur}
                 useTransaction={useDisableOnChange}
