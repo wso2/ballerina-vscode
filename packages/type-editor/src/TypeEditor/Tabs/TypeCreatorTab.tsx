@@ -224,6 +224,12 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         } else {
             selectedKind = value as TypeKind;
         }
+
+        // If the selected kind is the same as current, do nothing
+        if (selectedKind === selectedTypeKind) {
+            return;
+        }
+
         setSelectedTypeKind(selectedKind);
 
         // Reset validation error state when changing type kinds
@@ -263,7 +269,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         if (isGraphql) {
             // For GraphQL mode, filter options based on current type
             if (initialTypeKind === "RECORD") {
-                return [TypeKind.RECORD, TypeKind.ENUM, TypeKind.UNION];
+                return [TypeKind.RECORD, TypeKind.ENUM];
             } else if (initialTypeKind === "CLASS") {
                 return [TypeKind.CLASS, TypeKind.ENUM, TypeKind.UNION];
             }
