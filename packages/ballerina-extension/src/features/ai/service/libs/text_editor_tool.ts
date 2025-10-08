@@ -237,7 +237,7 @@ function handleViewCommand(
 
     return {
         success: true,
-        message: `Viewing entire file ${filePath}).`,
+        message: `Viewing entire file ${filePath}).\n Content: ${content}`,
         content
     };
 }
@@ -268,7 +268,7 @@ function handleRangedView(
     
     return {
         success: true,
-        message: `Viewing lines ${start}-${actualEnd} of ${filePath}.`,
+        message: `Viewing lines ${start}-${actualEnd} of ${filePath}.\n Content: ${rangedContent}`,
         content: rangedContent
     };
 }
@@ -297,7 +297,7 @@ function handleCreateCommand(
             
             return {
                 success: true,
-                message: `Successfully created file '${filePath}'.).`
+                message: `Successfully created file '${filePath}' with ${fileText.split('\n').length} lines.`
             };
         }
 
@@ -579,7 +579,7 @@ export function handleTextEditorCommands(
         if (!pathValidation.valid) {
             return {
                 success: false,
-                message: `Invalid file path: ${pathValidation.error}`,
+                message: `Invalid file path: ${pathValidation.error}, Please provide a valid filepath within the workspace.`,
                 error: `Error: ${ErrorMessages.INVALID_PATH}`
             };
         }
