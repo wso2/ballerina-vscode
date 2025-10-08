@@ -114,6 +114,22 @@ function validateFilePath(filePath: string): PathValidation {
         };
     }
 
+    const allowedPatterns = [
+        /^[^\/]+\.bal$/,                          // **.bal (root level files)
+        /^modules\/[^\/]+\/[^\/]+\.bal$/,         // modules/<module-name>/**.bal
+        /^generated\/[^\/]+\.bal$/,               // generated/**.bal
+        /^tests\/[^\/]+\.bal$/                    // tests/**.bal
+    ];
+
+    const isValidPath = allowedPatterns.some(pattern => pattern.test(filePath));
+
+    if (!isValidPath) {
+        return {
+            valid: false,
+            error: 'Invalid filepath structure. Please include only the filename in the filepath.'
+        };
+    }
+
     return { valid: true };
 }
 

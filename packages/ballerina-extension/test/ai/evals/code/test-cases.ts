@@ -172,38 +172,43 @@ export const textEditSpecializedTestCases = [
 
 export const testCasesForExistingProject = [
   {
-    // Covers: 1 (Look into files), 3 (Create new file)
-    // This prompt requires the copilot to understand distributed tracing implementation across microservices,
-    // handle OpenTelemetry integration, and create new files for tracing configuration and correlation management.
     prompt: "How can I implement distributed tracing with OpenTelemetry across the order service saga, ensuring that trace contexts are properly propagated through Kafka events and database transactions while maintaining correlation IDs for debugging payment and fulfillment failures?",
     projectPath: "simple_order_management_system"
   },
   {
-    // Covers: 1 (Look into files), 2 (Delete/Replace file content)
-    // This prompt forces the copilot to replace synchronous processing with asynchronous batch processing,
-    // implementing circuit breaker patterns and retry mechanisms while restructuring the existing order flow.
     prompt: "I need to refactor the current synchronous order creation flow to support asynchronous batch processing with dead letter queues for failed orders, implementing circuit breaker patterns for the pricing service calls and adding retry mechanisms with exponential backoff for Kafka publishing failures.",
     projectPath: "simple_order_management_system"
   },
   {
-    // Covers: 1 (Look into files), 4 (Delete a specific part of code)
-    // This prompt tests the ability to add comprehensive audit capabilities while specifically removing
-    // the current simple logging and replacing it with sophisticated audit trail system.
     prompt: "Can you help me implement a comprehensive audit trail system that captures all order state transitions in a separate audit table, with event versioning for schema evolution and integration with a time-series database for real-time monitoring dashboards and alerting on order processing anomalies?",
     projectPath: "simple_order_management_system"
   },
   {
-    // Covers: 1 (Look into files), 3 (Create new file), 4 (Delete a specific part of code)
-    // This is a multi-faceted prompt that involves creating new files for gRPC integration and caching,
-    // while removing the existing mock pricing calculation and replacing it with proper service integration.
     prompt: "I want to replace the current mock pricing calculation with a proper integration to an external pricing microservice using gRPC, implementing request/response caching with Redis, connection pooling with health checks, and graceful degradation when the pricing service is unavailable.",
     projectPath: "simple_order_management_system"
   },
   {
-    // Covers: 1 (Look into files), 2 (Delete/Replace file content), 3 (Create new file)
-    // This prompt combines implementing saga pattern compensating transactions, creating new files for transaction management,
-    // and replacing the current simple event publishing with sophisticated saga orchestration and recovery mechanisms.
     prompt: "How do I implement proper compensating transactions for the order saga pattern, including automatic rollback mechanisms when payment fails, inventory reservation cancellation, and notification service integration with idempotent operations to handle duplicate events during saga recovery?",
+    projectPath: "simple_order_management_system"
+  },
+  {
+    prompt: "Add comprehensive API documentation with examples for all REST endpoints, including request/response schemas and error handling scenarios.",
+    projectPath: "simple_order_management_system"
+  },
+  {
+    prompt: "Change the database schema to store order lines in a separate order_lines table with a foreign key relationship instead of storing them as JSON in the orders table.",
+    projectPath: "simple_order_management_system"
+  },
+  {
+    prompt: "Fix the bug where the getOrderById function returns an empty response instead of a proper error when the database connection fails.",
+    projectPath: "simple_order_management_system"
+  },
+  {
+    prompt: "Add a new REST endpoint to cancel an existing order by updating its status to 'CANCELLED' and publishing a cancellation event to Kafka.",
+    projectPath: "simple_order_management_system"
+  },
+  {
+    prompt: "Add validation to ensure the order total amount is greater than zero before creating an order in the system.",
     projectPath: "simple_order_management_system"
   }
 ];
