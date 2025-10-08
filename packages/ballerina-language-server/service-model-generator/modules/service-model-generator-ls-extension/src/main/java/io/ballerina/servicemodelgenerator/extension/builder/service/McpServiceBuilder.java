@@ -56,7 +56,7 @@ public class McpServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 
-        ListenerDTO result = buildListenerDTO(context, properties, serviceInitModel, modulePartNode);
+        ListenerDTO result = buildListenerDTO(context);
 
         String serviceName = properties.get(SERVICE_NAME_PROPERTY).getValue();
         String version = properties.get(VERSION_PROPERTY).getValue();
