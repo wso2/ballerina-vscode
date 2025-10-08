@@ -76,7 +76,7 @@ export async function fetchDataMapperCodeData(
     varName: string
 ): Promise<CodeData> {
     // TODO: Remove this modification once the server supports code shrinking scenarios
-    const modifiedCodeData = { ...codedata, lineRange : { ...codedata.lineRange, endLine: codedata.lineRange.startLine } };
+    const modifiedCodeData = { ...codedata, lineRange: { ...codedata.lineRange, endLine: codedata.lineRange.startLine } };
     const response = await StateMachine
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
@@ -103,13 +103,13 @@ export async function fetchSubMappingCodeData(
  * @param updateSourceCodeRequest - The request containing text edits to apply.
  * @returns Updated artifacts after applying the last text edits.
  */
-    
-export async function updateSourceCodeIteratively(updateSourceCodeRequest: UpdateSourceCodeRequest){
+
+export async function updateSourceCodeIteratively(updateSourceCodeRequest: UpdateSourceCodeRequest) {
     const textEdits = updateSourceCodeRequest.textEdits;
     const filePaths = Object.keys(textEdits);
 
     if (filePaths.length == 1) {
-        return await updateSourceCode(updateSourceCodeRequest);
+        return await updateSourceCode(updateSourceCodeRequest, null, 'Data Mapper Update');
     }
 
     // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
@@ -120,7 +120,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
             if (filePath.endsWith("data_mappings.bal")) { return 1; }
             return 0;
         };
-        
+
         const aPriority = getPriority(a);
         const bPriority = getPriority(b);
         return bPriority - aPriority; // Sort descending (highest priority first)
@@ -132,7 +132,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
 
     let updatedArtifacts: ProjectStructureArtifactResponse[];
     for (const request of requests) {
-        updatedArtifacts = await updateSourceCode(request);
+        updatedArtifacts = await updateSourceCode(request, null, 'Data Mapper Update');
     }
 
     return updatedArtifacts;
@@ -156,7 +156,7 @@ export async function updateSource(
     try {
         // Update source code and get artifacts
         const updatedArtifacts = await updateSourceCodeIteratively({ textEdits });
-        
+
         // Find the artifact that contains our code changes
         const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, codedata.lineRange);
         if (!relevantArtifact) {
@@ -210,7 +210,7 @@ export async function updateSubMappingSource(
     name: string
 ): Promise<CodeData> {
     try {
-        await updateSourceCode({ textEdits });
+        await updateSourceCode({ textEdits }, null, 'Sub Mapping Update');
         return await fetchSubMappingCodeData(filePath, codedata, name);
     } catch (error) {
         console.error(`Failed to update source for sub mapping "${name}" in ${filePath}:`, error);
@@ -223,8 +223,8 @@ export async function updateSubMappingSource(
  * Recursively searches through artifact hierarchy to find the most specific match.
  */
 function findRelevantArtifact(
-    artifacts: ProjectStructureArtifactResponse[], 
-    filePath: string, 
+    artifacts: ProjectStructureArtifactResponse[],
+    filePath: string,
     lineRange: ELineRange
 ): ProjectStructureArtifactResponse | null {
     if (!artifacts || artifacts.length === 0) {
@@ -239,7 +239,7 @@ function findRelevantArtifact(
                 // Return the nested match if found, otherwise return the current artifact
                 return nestedMatch || currentArtifact;
             }
-            
+
             // No nested resources
             return currentArtifact;
         }
@@ -257,13 +257,13 @@ async function getFlowModelForArtifact(artifact: ProjectStructureArtifactRespons
             .langClient()
             .getFlowModel({
                 filePath,
-                startLine: { 
-                    line: artifact.position.startLine, 
-                    offset: artifact.position.startColumn 
+                startLine: {
+                    line: artifact.position.startLine,
+                    offset: artifact.position.startColumn
                 },
-                endLine: { 
-                    line: artifact.position.endLine, 
-                    offset: artifact.position.endColumn 
+                endLine: {
+                    line: artifact.position.endLine,
+                    offset: artifact.position.endColumn
                 }
             });
 
@@ -594,7 +594,7 @@ function processIORoot(root: IORoot, model: DMModel): IOType {
     const ioType = createBaseIOType(root);
 
     const typeSpecificProps = processTypeKind(root, root.name, model, new Set<string>());
-    
+
     return {
         ...ioType,
         ...typeSpecificProps
@@ -613,7 +613,8 @@ function createBaseIOType(root: IORoot): IOType {
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
-        ...(root.optional !== undefined && { optional: root.optional })
+        ...(root.optional !== undefined && { optional: root.optional }),
+        ...(root.typeInfo && { typeInfo: root.typeInfo })
     };
 
     if (isEnum && root.members) {
@@ -630,7 +631,7 @@ function createBaseIOType(root: IORoot): IOType {
 }
 
 /**
- * Processes array type fields and their members
+ * Processes array members
  */
 function processArray(
     parentId: string,
@@ -658,11 +659,12 @@ function processArray(
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused }),
-        ...(member.optional !== undefined && { optional: member.optional })
+        ...(member.optional !== undefined && { optional: member.optional }),
+        ...(member.typeInfo && { typeInfo: member.typeInfo })
     };
 
     const typeSpecificProps = processTypeKind(member, parentId, model, visitedRefs);
-    
+
     return {
         ...ioType,
         ...typeSpecificProps
@@ -692,11 +694,12 @@ function processUnion(
             displayName: unionMember.displayName,
             typeName: unionMember.typeName,
             kind: unionMember.kind,
-            ...(unionMember.optional !== undefined && { optional: unionMember.optional })
+            ...(unionMember.optional !== undefined && { optional: unionMember.optional }),
+            ...(unionMember.typeInfo && { typeInfo: unionMember.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(unionMember, parentFieldId, model, visitedRefs);
-        
+
         return {
             ...unionMemberType,
             ...typeSpecificProps
@@ -762,7 +765,8 @@ function processTypeFields(
             displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
-            ...(field.optional !== undefined && { optional: field.optional })
+            ...(field.optional !== undefined && { optional: field.optional }),
+            ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(field, fieldId, model, new Set(visitedRefs));

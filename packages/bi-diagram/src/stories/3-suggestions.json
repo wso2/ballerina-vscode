@@ -1,0 +1,223 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/test_24/functions.bal",
+    "nodes": [
+        {
+            "id": "33946",
+            "metadata": {
+                "label": "Start",
+                "data": {
+                    "kind": "Function",
+                    "label": "getName",
+                    "isServiceFunction": false,
+                    "return": "string?"
+                }
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 1,
+                        "offset": 35
+                    },
+                    "endLine": {
+                        "line": 5,
+                        "offset": 1
+                    }
+                },
+                "sourceCode": "# get randon name form this function each time\nfunction getName() returns string? {\n    do {string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n    } on fail error err {\n    }\n}"
+            },
+            "returning": false,
+            "flags": 0
+        },
+        {
+            "id": "33919",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 2,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 4,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "do {string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n    } on fail error err {\n    }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 2,
+                                "offset": 7
+                            },
+                            "endLine": {
+                                "line": 3,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n    }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "34045",
+                            "metadata": {
+                                "label": "Declare Variable",
+                                "description": "Assign a value to a variable"
+                            },
+                            "codedata": {
+                                "node": "VARIABLE",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 2,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 2,
+                                        "offset": 69
+                                    }
+                                },
+                                "sourceCode": "string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Initialize with value"
+                                    },
+                                    "valueType": "ACTION_OR_EXPRESSION",
+                                    "value": "[\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"]",
+                                    "optional": true,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Name",
+                                        "description": "Name of the variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "names",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 2,
+                                                "offset": 17
+                                            },
+                                            "endLine": {
+                                                "line": 2,
+                                                "offset": 22
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "valueType": "TYPE",
+                                    "value": "string[]",
+                                    "placeholder": "var",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {}
+                                }
+                            },
+                            "flags": 0,
+                            "suggested": true
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 3,
+                                "offset": 24
+                            },
+                            "endLine": {
+                                "line": 4,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n    }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "false",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "err ",
+                            "placeholder": "err",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "error",
+                            "placeholder": "error",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    },
+                    "children": [],
+                    "suggested": false
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": []
+}
