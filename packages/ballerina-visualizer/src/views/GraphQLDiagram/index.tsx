@@ -258,6 +258,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceClassDesigner,
+                type: type,
                 isGraphql: true,
                 position: {
                     startLine: type.codedata.lineRange?.startLine?.line,
