@@ -57,9 +57,15 @@ export function ResponseEditor(props: ParamProps) {
     const [newFields, setNewFields] = useState<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
-            console.log("Resource Return Types: ", res);
-            setResponseCodes(res.completions);
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: "HTTP_STATUS_CODE" }).then((res) => {
+            const mappedResponseCodes: ResponseCode[] = res.map((item: any) => ({
+                category: item.labelDetails?.description || "",
+                label: item.label || "",
+                type: item.detail || "",
+                statusCode: item.labelDetails?.detail || "",
+                hasBody: !["http:Response", "http:NoContent", "error"].includes(item.detail)
+            }));
+            setResponseCodes(mappedResponseCodes);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
             });

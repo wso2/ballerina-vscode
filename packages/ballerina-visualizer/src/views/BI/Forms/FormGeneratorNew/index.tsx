@@ -671,6 +671,7 @@ export function FormGeneratorNew(props: FormProps) {
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
+            typeHelperContext: (isGraphqlEditor ? (fieldKey === 'returnType' ? "GRAPHQL_FIELD_TYPE" : "GRAPHQL_INPUT_TYPE") : "HTTP_STATUS_CODE"),
         });
     }
 
