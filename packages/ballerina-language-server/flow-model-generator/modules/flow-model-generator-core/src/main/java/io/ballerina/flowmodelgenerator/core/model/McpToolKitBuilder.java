@@ -37,7 +37,6 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,6 +47,8 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MCP_TOOL_KIT;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CHECK_ERROR_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.GLOBAL_SCOPE;
+import static io.ballerina.flowmodelgenerator.core.model.Property.RESULT_DOC;
+import static io.ballerina.flowmodelgenerator.core.model.Property.RESULT_NAME;
 import static io.ballerina.flowmodelgenerator.core.model.Property.RESULT_TYPE_LABEL;
 import static io.ballerina.flowmodelgenerator.core.model.Property.SCOPE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.TYPE_KEY;
@@ -62,6 +63,7 @@ import static io.ballerina.modelgenerator.commons.ParameterData.Kind;
  * @since 1.3.1
  */
 public class McpToolKitBuilder extends NodeBuilder {
+
     private static final String TOOL_KIT_NAME_PROPERTY = "toolKitName";
     private static final String TOOL_KIT_NAME_PROPERTY_LABEL = "MCP Toolkit Name";
     private static final String TOOL_KIT_NAME_DESCRIPTION = "Name of the MCP toolkit";
@@ -92,9 +94,10 @@ public class McpToolKitBuilder extends NodeBuilder {
 
         // Update permittedTools type to MULTIPLE_SELECT
         ParameterData permittedTools = functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
-        properties().custom().codedata().kind("REQUIRED").stepOut()
+        properties().custom()
+                .codedata().kind("REQUIRED").stepOut()
                 .metadata().label(permittedTools.label()).description(permittedTools.description()).stepOut()
-                .typeConstraint(GLOBAL_SCOPE).value(new ArrayList<String>()).type(ValueType.MULTIPLE_SELECT)
+                .typeConstraint(GLOBAL_SCOPE).type(ValueType.MULTIPLE_SELECT).hidden()
                 .editable().stepOut().addProperty(permittedTools.name());
 
         metadata().label(functionData.packageName()).description(functionData.description())
@@ -162,8 +165,8 @@ public class McpToolKitBuilder extends NodeBuilder {
     }
 
     private void setReturnType(String returnType, TemplateContext context) {
-        properties().type(returnType, false, null, true, RESULT_TYPE_LABEL)
-                .data(returnType, context.getAllVisibleSymbolNames(), null, null);
+        properties().type(returnType, false, null, false, RESULT_TYPE_LABEL)
+                .data(returnType, context.getAllVisibleSymbolNames(), RESULT_NAME, RESULT_DOC);
     }
 
     @Override
@@ -273,7 +276,6 @@ public class McpToolKitBuilder extends NodeBuilder {
                 + "        return self.mcpClient->callTool(params);%n"
                 + "    }%n", toolName);
     }
-
 
     private Map<String, String> generatePermittedToolsMapping(List<String> permittedTools) {
         return permittedTools.stream().filter(tool -> tool != null && !tool.isBlank())
