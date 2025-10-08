@@ -112,7 +112,7 @@ export function ResourceResponse(props: ResourceParamProps) {
                     />
                 )
             })}
-            {!editModel && (
+            {!editModel && !readonly && (
                 <AddButtonWrapper>
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />

@@ -65,7 +65,7 @@ const OptionalConfigContent = styled.div`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, schemas, showPayload, isNewResource } = props;
+    const { parameters, readonly, onChange, schemas, showPayload, isNewResource = false } = props;
 
     const queryModel = schemas["query"] as ParameterModel;
     const headerModel = schemas["header"] as ParameterModel;
@@ -111,9 +111,10 @@ export function Parameters(props: ParametersProps) {
         setEditingIndex(index);
     };
 
-    const onAddParamClick = () => {
+    const onAddParamClick = (httpParamType: "QUERY" | "HEADER") => {
         queryModel.name.value = "";
         queryModel.type.value = "";
+        queryModel.httpParamType = httpParamType;
         setIsNew(true);
         setEditModel(queryModel);
         setEditingIndex(-1);
@@ -197,17 +198,19 @@ export function Parameters(props: ParametersProps) {
 
     return (
         <div>
-            {/* <---------------- Normal Parameters Start Query|Header ----------------> */}
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Parameters</Typography>
-            {normalParameters.map((param: ParameterModel, index) => (
-                <ParamItem
-                    key={index}
-                    param={param}
-                    onDelete={onDelete}
-                    onEditClick={onEdit}
-                />
-            ))}
-            {editModel && (editModel.httpParamType === "QUERY" || editModel.httpParamType === "Header") &&
+            {/* <---------------- Query Parameters Start ----------------> */}
+            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Query Parameters</Typography>
+            {normalParameters
+                .filter((param: ParameterModel) => param.httpParamType === "QUERY")
+                .map((param: ParameterModel, index) => (
+                    <ParamItem
+                        key={`query-${index}`}
+                        param={param}
+                        onDelete={onDelete}
+                        onEditClick={onEdit}
+                    />
+                ))}
+            {editModel && editModel.httpParamType === "QUERY" &&
                 <ParamEditor
                     param={editModel}
                     onChange={onChangeParam}
@@ -215,15 +218,45 @@ export function Parameters(props: ParametersProps) {
                     onCancel={onParamEditCancel}
                 />
             }
-
             <AddButtonWrapper >
-                <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddParamClick)}>
+                <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("QUERY"))}>
                     <Codicon name="add" />
-                    <>Add Parameter</>
+                    <>Query Parameter</>
                 </LinkButton>
             </AddButtonWrapper>
 
-            {/* <---------------- Normal Parameters End Query|Header ----------------> */}
+            {/* <---------------- Header Parameters Start ----------------> */}
+            {!isNewResource && (
+                <>
+                    <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Header Parameters</Typography>
+                    {normalParameters
+                        .filter((param: ParameterModel) => param.httpParamType === "HEADER")
+                        .map((param: ParameterModel, index) => (
+                            <ParamItem
+                                key={`header-${index}`}
+                                param={param}
+                                onDelete={onDelete}
+                                onEditClick={onEdit}
+                            />
+                        ))}
+                    {editModel && editModel.httpParamType === "HEADER" &&
+                        <ParamEditor
+                            param={editModel}
+                            onChange={onChangeParam}
+                            onSave={onSaveParam}
+                            onCancel={onParamEditCancel}
+                        />
+                    }
+                    <AddButtonWrapper >
+                        <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
+                            <Codicon name="add" />
+                            <>Header Parameter</>
+                        </LinkButton>
+                    </AddButtonWrapper>
+                </>
+            )}
+
+            {/* <---------------- Normal Parameters End Query|HEADER ----------------> */}
 
             {/* <-------------------- Payload Parameters Start --------------------> */}
             {showPayload && (
@@ -253,7 +286,7 @@ export function Parameters(props: ParametersProps) {
                 <AddButtonWrapper >
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddPayloadClick)}>
                         <Codicon name="add" />
-                        <>Add Payload</>
+                        <>Payload</>
                     </LinkButton>
                 </AddButtonWrapper>
             }
@@ -299,48 +332,50 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters End --------------------> */}
 
             {/* <-------------------- Advanced Parameters Checkbox Start --------------------> */}
-            <>
-                <OptionalConfigRow>
-                    Advanced Parameters
-                    <OptionalConfigButtonContainer>
-                        {!showOptionalConfigurations && (
-                            <LinkButton
-                                onClick={handleShowOptionalConfigurations}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                            >
-                                <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Expand
-                            </LinkButton>
-                        )}
-                        {showOptionalConfigurations && (
-                            <LinkButton
-                                onClick={handleHideOptionalConfigurations}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                            >
-                                <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapse
-                            </LinkButton>
-                        )}
-                    </OptionalConfigButtonContainer>
-                </OptionalConfigRow>
-                {showOptionalConfigurations && (
-                    <OptionalConfigContent>
-                        <CheckBoxGroup direction="vertical">
-                            {
-                                advancedAllParameters.map((param: ParameterModel, index) => (
-                                    <CheckBox
-                                        key={index}
-                                        label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
-                                        checked={param.enabled}
-                                        onChange={(checked) => onAdvancedChecked(param, checked)}
-                                    />
-                                ))
-                            }
-                        </CheckBoxGroup>
-                    </OptionalConfigContent>
-                )}
-                <Divider />
-            </>
+            {!isNewResource && (
+                <>
+                    <OptionalConfigRow>
+                        Advanced Parameters
+                        <OptionalConfigButtonContainer>
+                            {!showOptionalConfigurations && (
+                                <LinkButton
+                                    onClick={handleShowOptionalConfigurations}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                                >
+                                    <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                    Expand
+                                </LinkButton>
+                            )}
+                            {showOptionalConfigurations && (
+                                <LinkButton
+                                    onClick={handleHideOptionalConfigurations}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                                >
+                                    <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                    Collapse
+                                </LinkButton>
+                            )}
+                        </OptionalConfigButtonContainer>
+                    </OptionalConfigRow>
+                    {showOptionalConfigurations && (
+                        <OptionalConfigContent>
+                            <CheckBoxGroup direction="vertical">
+                                {
+                                    advancedAllParameters.map((param: ParameterModel, index) => (
+                                        <CheckBox
+                                            key={index}
+                                            label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
+                                            checked={param.enabled}
+                                            onChange={(checked) => onAdvancedChecked(param, checked)}
+                                        />
+                                    ))
+                                }
+                            </CheckBoxGroup>
+                        </OptionalConfigContent>
+                    )}
+                    <Divider />
+                </>
+            )}
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
         </div >

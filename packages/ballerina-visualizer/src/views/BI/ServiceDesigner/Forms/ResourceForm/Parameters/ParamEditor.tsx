@@ -51,7 +51,7 @@ export function ParamEditor(props: ParamProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const handleOnSelect = (value: string) => {
-        onChange({ ...param, httpParamType: value as "QUERY" | "Header" | "PAYLOAD" });
+        onChange({ ...param, httpParamType: value as "QUERY" | "HEADER" | "PAYLOAD" });
     };
 
     const handleReqFieldChange = () => {
@@ -175,17 +175,6 @@ export function ParamEditor(props: ParamProps) {
             <Divider />
             {param.httpParamType !== "PAYLOAD" && !isNewResource &&
                 <EditorContent>
-                    {param.httpParamType && (
-                        <Dropdown
-                            id="param-type-selector"
-                            sx={{ zIndex: 2, width: 172 }}
-                            isRequired
-                            items={options}
-                            label="Param Type"
-                            onValueChange={handleOnSelect}
-                            value={param.httpParamType}
-                        />
-                    )}
                     {param.httpParamType === "QUERY" && (
                         <VSCodeCheckbox checked={param.kind === "REQUIRED"} onChange={handleReqFieldChange} id="is-req-checkbox">
                             Is Required?

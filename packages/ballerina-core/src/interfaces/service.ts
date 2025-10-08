@@ -144,7 +144,7 @@ export interface PropertyModel {
     properties?: ConfigProperties;
     addNewButton?: boolean;
     typeMembers?: PropertyTypeMemberInfo[];
-    httpParamType?: "QUERY" | "Header" | "PAYLOAD";
+    httpParamType?: "QUERY" | "HEADER" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;
     hidden?: boolean;

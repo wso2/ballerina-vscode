@@ -26,7 +26,8 @@ import { HTTP_METHOD } from '../../utils';
 import { FunctionModel, LogIcon, ParameterModel, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { verbs } from './ResourcePath/ResourcePath';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
-import { ParametersNew } from './Parameters/ParametersNew';
+import { getColorByMethod } from '../../../../../utils/utils';
+import { Parameters } from './Parameters/Parameters';
 
 const AdvancedParamTitleWrapper = styled.div`
 	display: flex;
@@ -340,7 +341,7 @@ export function NewResource(props: NewResourceProps) {
 			</SidePanelBody>
 			{/* This is for adding a http resource */}
 			<PanelContainer
-				title={`${method} Resource Configuration`}
+				title={`New Resource Configuration`}
 				show={!!method}
 				onClose={closeMethod}
 				width={400}
@@ -348,12 +349,26 @@ export function NewResource(props: NewResourceProps) {
 				<>
 					{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 					<SidePanelBody>
+						<Typography
+							sx={{
+								marginBlockEnd: 10,
+								background: getColorByMethod(method.toUpperCase()),
+								color: "#fff",
+								padding: "6px 12px",
+								borderRadius: "6px",
+								display: "inline-block"
+							}}
+							variant="h4"
+						>
+							HTTP Method: <span style={{ fontWeight: 700 }}>{method}</span>
+						</Typography>
+						<Divider />
 						<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true}
 							onError={onResourcePathError} />
 						<Divider />
-						<ParametersNew isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
+						<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
 						<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-						<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+						<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 						<ActionButtons
 							primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
 							secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
