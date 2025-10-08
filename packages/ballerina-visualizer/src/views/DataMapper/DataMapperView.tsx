@@ -122,7 +122,7 @@ export function DataMapperView(props: DataMapperProps) {
 
         const triggerRefresh = model.triggerRefresh;
 
-        const hasInputsChanged =  triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'inputs');
+        const hasInputsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'inputs');
         const hasOutputChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'output');
         const hasSubMappingsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
         const hasRefsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'refs');
