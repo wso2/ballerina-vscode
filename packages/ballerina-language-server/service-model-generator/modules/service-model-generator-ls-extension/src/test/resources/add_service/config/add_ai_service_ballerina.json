@@ -70,7 +70,7 @@
             "character": 0
           }
         },
-        "newText": "\nimport ballerina/ai;\n\n\nimport ballerina/http;\n"
+        "newText": "\nimport ballerina/http;\n\n\nimport ballerina/ai;\n"
       },
       {
         "range": {
