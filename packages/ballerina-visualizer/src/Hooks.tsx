@@ -75,5 +75,5 @@ export const useDataMapperModel = (
         await refetch();
     };
 
-    return {model, isFetching, isError, refreshDMModel};
+    return { model, isFetching, isError, refreshDMModel };
 };
