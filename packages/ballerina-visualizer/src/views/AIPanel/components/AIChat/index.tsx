@@ -292,13 +292,15 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "tool_call") {
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
-                }
-                return newMessages;
-            });
+            if (response.toolName == "LibraryProviderTool") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                    }
+                    return newMessages;
+                });
+            }
         } else if (type === "tool_result") {
             if (response.toolName == "LibraryProviderTool") {
             const libraryNames = response.libraryNames;

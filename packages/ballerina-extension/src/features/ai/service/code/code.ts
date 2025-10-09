@@ -121,7 +121,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         maxOutputTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
-        stopWhen: stepCountIs(10),
+        stopWhen: stepCountIs(50),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
@@ -224,9 +224,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         {
                             previousMessages: allMessages,
                             assistantResponse: diagnosticFixResp,
-                            diagnostics: diagnostics,
+                            diagnostics: diagnostics
                         },
-                        libraryDescriptions
+                        libraryDescriptions,
+                        updatedSourceFiles
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
@@ -456,7 +457,7 @@ export async function repairCodeCore(
     eventHandler: CopilotEventHandler
 ): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params, libraryDescriptions);
+    const resp = await repairCode(params, libraryDescriptions, []);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
@@ -464,7 +465,8 @@ export async function repairCodeCore(
     return resp;
 }
 
-export async function repairCode(params: RepairParams, libraryDescriptions: string): Promise<RepairResponse> {
+export async function repairCode(params: RepairParams,
+        libraryDescriptions: string, sourceFiles: SourceFiles[] = []): Promise<RepairResponse> {
     const allMessages: ModelMessage[] = [...params.previousMessages];
     const lastMessage = allMessages[allMessages.length - 1];
     let isToolCallExistInLastMessage = false;
@@ -483,10 +485,10 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
     const userRepairMessage: ModelMessage = {
         role: "user",
         content:
-            "Generated code returns the following compiler errors. Using the library details from the `LibraryProviderTool` results in previous messages, first check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
-            "Fix the compiler errors using the `str_replace_based_edit_tool` tool to make surgical, targeted edits to the existing code. Use the tool's edit operations to precisely replace only the erroneous sections rather than regenerating entire code blocks.. \n Errors: \n " +
+            "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
+            "And also do not create any new files. Just update the existing code to fix the errors. \n Errors: \n " +
             params.diagnostics.map((d) => d.message).join("\n"),
-    }
+    };
 
     if (isToolCallExistInLastMessage) {
         allMessages.push({
@@ -517,7 +519,8 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
 
     allMessages.push(userRepairMessage);
 
-    let updatedSourceFiles: SourceFiles[] = getProjectFromResponse(params.assistantResponse).sourceFiles;
+    let updatedSourceFiles: SourceFiles[] = sourceFiles.length == 0 ? 
+                                        getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
     let updatedFileNames: string[] = [];
 
     const tools = {
@@ -537,6 +540,7 @@ export async function repairCode(params: RepairParams, libraryDescriptions: stri
         temperature: 0,
         tools,
         messages: allMessages,
+        stopWhen: stepCountIs(50),
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
