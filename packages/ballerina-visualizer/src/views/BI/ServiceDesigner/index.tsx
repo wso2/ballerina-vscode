@@ -212,7 +212,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         });
     }, [position]);
 
-    const fetchService = (targetPosition: NodePosition) => {
+    const fetchService = (targetPosition: NodePosition, addMore?: boolean) => {
         const lineRange: LineRange = {
             startLine: { line: targetPosition.startLine, offset: targetPosition.startColumn },
             endLine: { line: targetPosition.endLine, offset: targetPosition.endColumn },
@@ -223,7 +223,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 .getServiceModelFromCode({ filePath, codedata: { lineRange } })
                 .then((res) => {
                     console.log("Service Model: ", res.service);
-                    setShowForm(false);
+                    if (addMore) {
+                        handleNewResourceFunction();
+                    } else {
+                        setShowForm(false);
+                    }
                     setServiceModel(res.service);
                     setServiceMetaInfo(res.service);
                     setIsSaving(false);
@@ -465,11 +469,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 endColumn: targetPosition.endColumn,
             };
             await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
-            fetchService(targetPosition);
         }
     };
 
-    const handleResourceSubmit = async (value: FunctionModel) => {
+    const handleResourceSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
         setIsSaving(true);
         const lineRange: LineRange = {
             startLine: { line: position.startLine, offset: position.startColumn },
@@ -482,8 +485,18 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 .addResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.isNew && res.name === serviceIdentifier);
             if (serviceArtifact) {
-                fetchService(serviceArtifact.position);
-                await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+                if (openDiagram) {
+                    const accessor = value.accessor.value;
+                    const path = value.name.value;
+                    const resourceIdentifier = `${accessor}#${path}`.toLowerCase();
+                    const resource = serviceArtifact.resources.find(res => res.id === resourceIdentifier);
+                    if (resource) {
+                        await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: resource.path, position: resource.position } });
+                    }
+                } else {
+                    await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+                    fetchService(serviceArtifact.position, true);
+                }
                 setIsSaving(false);
                 return;
             }
@@ -499,7 +512,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 return;
             }
         }
-        setIsNew(false);
     };
 
     /**
@@ -839,7 +851,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     title={"Resource Configuration"}
                                     show={showForm}
                                     onClose={handleNewFunctionClose}
-                                    width={600}
+                                    width={400}
                                 >
                                     <ResourceForm
                                         model={functionModel}

@@ -35,7 +35,7 @@ const AdvancedParamTitleWrapper = styled.div`
 export interface ResourceFormProps {
 	model: FunctionModel;
 	isSaving: boolean;
-	onSave: (functionModel: FunctionModel) => void;
+	onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
 	onClose: () => void;
 	isNew?: boolean;
 }

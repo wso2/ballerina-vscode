@@ -38,10 +38,11 @@ export interface ParamProps {
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
     isNewResource?: boolean;
+    type?: "QUERY" | "HEADER" | "PAYLOAD";
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel, isNewResource } = props;
+    const { param, hideType = false, onChange, onSave, onCancel, isNewResource, type } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -91,19 +92,54 @@ export function ParamEditor(props: ParamProps) {
             valueTypeConstraint: ""
         });
 
-        // Add type field if not hidden
-        if (!hideType) {
-            fields.push({
-                key: `type`,
-                label: 'Type',
-                type: param.type.valueType,
-                optional: false,
-                editable: true,
-                documentation: '',
-                enabled: param.type?.enabled,
-                value: param.type.value,
-                valueTypeConstraint: ""
-            });
+        // // Add type field if not hidden
+        // if (!hideType) {
+        //     fields.push({
+        //         key: `type`,
+        //         label: 'Type',
+        //         type: param.type.valueType,
+        //         optional: false,
+        //         editable: true,
+        //         documentation: '',
+        //         enabled: param.type?.enabled,
+        //         value: param.type.value,
+        //         defaultValue: "json",
+        //         valueTypeConstraint: ""
+        //     });
+        // }
+
+        switch (type) {
+            case "QUERY":
+            case "HEADER":
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: "ENUM",
+                    advanced: true,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    defaultValue: "string",
+                    value: param.type.value,
+                    items: ["string", "int", "float", "decimal", "boolean"],
+                    valueTypeConstraint: ""
+                });
+                break;
+            case "PAYLOAD":
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: param.type.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.type?.enabled,
+                    value: param.type.value || "json",
+                    defaultValue: "json",
+                    valueTypeConstraint: ""
+                });
+                break;
         }
 
         // Add default value field if available
@@ -173,7 +209,7 @@ export function ParamEditor(props: ParamProps) {
             {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType === "PAYLOAD" ? "Payload" : "Parameter"} Configuration</Typography>}
             {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label} Configuration</Typography>}
             <Divider />
-            {param.httpParamType !== "PAYLOAD" && !isNewResource &&
+            {/* {param.httpParamType !== "PAYLOAD" && !isNewResource &&
                 <EditorContent>
                     {param.httpParamType === "QUERY" && (
                         <VSCodeCheckbox checked={param.kind === "REQUIRED"} onChange={handleReqFieldChange} id="is-req-checkbox">
@@ -181,7 +217,7 @@ export function ParamEditor(props: ParamProps) {
                         </VSCodeCheckbox>
                     )}
                 </EditorContent>
-            }
+            } */}
             <>
                 {filePath && targetLineRange &&
                     <FormGeneratorNew

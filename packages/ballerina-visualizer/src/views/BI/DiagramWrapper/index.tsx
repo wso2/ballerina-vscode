@@ -480,7 +480,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     title={"Resource Configuration"}
                     show={!!functionModel}
                     onClose={handleFunctionClose}
-                    width={600}
+                    width={400}
                 >
                     <ResourceForm
                         model={functionModel}
