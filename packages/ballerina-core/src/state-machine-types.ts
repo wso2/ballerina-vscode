@@ -187,7 +187,8 @@ export type ChatNotify =
     | ChatStop
     | ChatError
     | ToolCall
-    | ToolResult;
+    | ToolResult
+    | EvalsToolResult;
 
 export interface ChatStart {
     type: "start";
@@ -234,6 +235,12 @@ export interface ToolResult {
     type: "tool_result";
     toolName: string;
     libraryNames: string[];
+}
+
+export interface EvalsToolResult {
+    type: "evals_tool_result";
+    toolName: string;
+    output: any;
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

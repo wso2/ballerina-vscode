@@ -46,6 +46,8 @@ import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 import { handleTextEditorCommands } from "../libs/text_editor_tool";
 
+const SEARCH_LIBRARY_TOOL_NAME = 'LibraryProviderTool';
+
 function appendFinalMessages(
     history: ModelMessage[],
     finalMessages: ModelMessage[],
@@ -159,9 +161,9 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     toolResult = libraryNames;
                 } else if (toolName == "str_replace_based_edit_tool") {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                    break;
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
+                eventHandler({ type: "evals_tool_result", toolName, output: part.output });
                 break;
             }
             case "text-delta": {
@@ -209,7 +211,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
-                const MAX_REPAIR_ATTEMPTS = 3;
+                const MAX_REPAIR_ATTEMPTS = 1;
                 let repair_attempt = 0;
                 let diagnosticFixResp = finalResponse; //TODO: Check if we need this variable
                 while (
@@ -292,14 +294,11 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
 }
 
 function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): string {
-    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the API documentation provided by the LibraryProviderTool.
+    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your should ONLY answer Ballerina related queries.
 
-# Instructions
-- Analyze the user query to determine the required functionality.
-- Do not include libraries unless they are explicitly needed for the query.
 ${
     generationType === GenerationType.HEALTHCARE_GENERATION
-        ? "- For healthcare-related queries, ALWAYS include the following libraries in the LibraryProviderTool call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
+        ? "- For healthcare-related queries, ALWAYS include the following libraries in the ${SEARCH_LIBRARY_TOOL_NAME} call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
         : ""
 }`;
 
@@ -312,65 +311,50 @@ ${
 }
 
 function getSystemPromptSuffix(langlibs: Library[]) {
-    return `You will be provided with default langlibs which are already imported in the Ballerina code.
+    return `If the query requires code, Follow these steps to generate the Ballerina code:
+## Langlibs
+<AVAILABLE LANGLIBS>
+${JSON.stringify(langlibs, null, 2)}
+</AVAILABLE LANGLIBS>
 
-Langlibs
-<langlibs>
-${JSON.stringify(langlibs)}
-</langlibs>
+## Steps to generate Ballerina Code
 
-If the query doesn't require code examples, answer the code by utilizing the API documentation (Tool Output).
-
-If the query requires code, Follow these steps to generate the Ballerina code:
-
-1. Carefully analyze the provided API documentation (Tool Output):
-   - Identify the available libraries, clients, their functions, and their relevant types.
-
-2. Thoroughly read and understand the given query:
+1. Thoroughly read and understand the given query:
    - Identify the main requirements and objectives of the integration.
-   - Determine which libraries, functions, and their relevant records and types from the API documentation which are needed to achieve the query and ignore unused API docs.
-   - Note the libraries needed to achieve the query and plan the control flow of the application based on input and output parameters of each function of the connector according to the API documentation.
+   - Determine the trigger (main or service), connector usage, control flow, and expected outcomes for the query.
 
-3. Plan your code structure:
-   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
-   - Determine the necessary client initialization.
-   - Define Types needed for the query in the types.bal file.
-   - Outline the service OR main function for the query.
-   - Outline the required function usages as noted in Step 2.
-   - Based on the types of identified functions, plan the data flow. Transform data as necessary.
+2. Figure the necessary libraries and functions required:
+   - Determine which libraries are required to fulfill the query and use the ${SEARCH_LIBRARY_TOOL_NAME} tool to get the libraries.
+   - Plan the control flow of the application based on input and output parameters of each function of the connector according the received API documentation from the tool.
 
-4. Generate the Ballerina code:
-   - Start with the required import statements IN EACH FILE that uses external libraries or types.
-   - Each .bal file MUST include its own import statements for any external libraries, types, or clients it references.
-   - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-   - Initialize any necessary clients with the correct configuration at the module level (before any function or service declarations), resolving unions explicitly.
-   - Implement the main function OR service to address the query requirements.
-   - Use defined connectors based on the query by following the API documentation.
-   - Use only the functions, types, and clients specified in the API documentation.
-   - Use dot notation to access a normal function. Use -> to access a remote function or resource function.
-   - Ensure proper error handling and type checking.
-   - Do not invoke methods on json access expressions. Always use separate statements.
-   - Use langlibs ONLY IF REQUIRED.
+3. Write the Ballerina Code:
+    - Write the Ballerina code by strictly adhering to Ballerina Code Constraints mentioned below.
 
-5. Review and refine your code:
-   - Check that all query requirements are met.
-   - Verify that you're only using elements from the provided API documentation, with unions resolved to avoid compiler errors.
-   - Ensure the code follows Ballerina best practices and conventions, including type-safe handling of all return types and configurations.
+## Ballerina Code Constraints
 
-Provide a brief explanation of how your code addresses the query and then output your generated Ballerina code.
-
-Important reminders:
-- Only use the libraries, functions, types, services, and clients specified in the provided API documentation.
-- Always strictly respect the types given in the API Docs.
-- Do not introduce any additional libraries or functions not mentioned in the API docs.
-- Only use specified fields in records according to the API docs; this applies to array types of that record as well.
-- Ensure your code is syntactically correct and follows Ballerina conventions.
-- Do not use dynamic listener registrations.
-- Do not write code in a way that requires updating/assigning values of function parameters.
-- ALWAYS use two-word camel case identifiers (variable, function parameter, resource function parameter, and field names).
-- If the library name contains a dot, always use an alias in the import statement (e.g., import org/package.one as one;).
+### Library Usage and Importing libraries
+- Only use the libraries received from user query or the ${SEARCH_LIBRARY_TOOL_NAME} tool or langlibs.
+- Examine the library API documentation provided by the ${SEARCH_LIBRARY_TOOL_NAME} carefully. Strictly follow the type definitions, function signatures, and all the other details provided when writing the code.
+- Each .bal file must include its own import statements for any external library references.
+- Do not import default langlibs (lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map).
+- For packages with dots in names, use aliases: \`import org/package.one as one;\`
 - Treat generated connectors/clients inside the generated folder as submodules.
 - A submodule MUST BE imported before being used. The import statement should only contain the package name and submodule name. For package my_pkg, folder structure generated/fooApi, the import should be \`import my_pkg.fooApi;\`.
+- In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
+- For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
+
+### Code Structure
+- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
+- Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
+- Implement the main function OR service to address the query requirements.
+
+### Coding Rules
+- Use records as canonical representations of data structures. Always define records for data structures instead of using maps or json and navigate using the record fields.
+- Do not invoke methods on json access expressions. Always use separate statements.
+- Use dot notation to access a normal function. Use -> to access a remote function or resource function.
+- Do not use dynamic listener registrations.
+- Do not write code in a way that requires updating/assigning values of function parameters.
+- ALWAYS use two-word camel case all the identifiers (ex- variables, function parameter, resource function parameter, and field names).
 - If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
 - Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
 - When invoking resource functions from a client, use the correct paths with accessor and parameters (e.g., exampleClient->/path1/["param"]/path2.get(key="value")).
@@ -378,21 +362,19 @@ Important reminders:
 - Avoid long comments in the code. Use // for single line comments.
 - Always use named arguments when providing values to any parameter (e.g., .get(key="value")).
 - Mention types EXPLICITLY in variable declarations and foreach statements.
-- Do not modify the README.md file unless explicitly asked to be modified in the query.
-- Do not add/modify toml files (Config.toml/Ballerina.toml) unless asked.
-- In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
-- For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
+- To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-Begin your response with the explanation. The explanation should detail the control flow decided in step 2, along with the selected libraries and their functions.
+### File modifications
+- Do not modify the README.md file unless explicitly asked to be modified in the query.
+- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
+
+Begin your response with the explanation. The explanation should detail the control flow decided in step 1, along with the selected libraries and their functions.
 Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
 The complete source code will be provided in the <existing_code> section of the user prompt.
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
 Your goal is to modify only the relevant parts of the code to address the user's query. 
-Do not generate or modify any file types other than .bal. Politely decline if the query requests such cases.
-
-- DO NOT mention if libraries are not required for the user query or task.
-- Format responses using professional markdown with proper headings, lists, and styling
+Do not generate or modify any file types other than .bal. Politely decline if the query
 `;
 }
 
@@ -564,8 +546,9 @@ export function stringifyExistingCode(existingCode: SourceFiles[], op: Operation
             continue;
         }
 
-        existingCodeStr = existingCodeStr + "filepath : " + filePath + "\n";
-        existingCodeStr = existingCodeStr + file.content + "\n";
+        existingCodeStr += `<file filename="${filePath}">\n`;
+        existingCodeStr += `<content>\n${file.content}\n</content>\n`;
+        existingCodeStr += `</file>\n`;
     }
     return existingCodeStr;
 }

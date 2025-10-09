@@ -16,8 +16,8 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { UsecaseResult, Summary } from '../types';
-import { persistUsecaseResult, persistSummary } from './result-persistence';
+import { UsecaseResult, Summary, IterationSummary } from '../types';
+import { persistUsecaseResult, persistSummary, persistIterationSummary } from './result-persistence';
 import { PATHS } from '../utils/constants';
 
 /**
@@ -47,8 +47,8 @@ export class ResultManager {
     /**
      * Persists a single use case result
      */
-    async persistUsecaseResult(usecaseResult: UsecaseResult, index: number): Promise<void> {
-        await persistUsecaseResult(usecaseResult, index, this.resultsDir);
+    async persistUsecaseResult(usecaseResult: UsecaseResult, index: number, iteration?: number): Promise<void> {
+        await persistUsecaseResult(usecaseResult, index, this.resultsDir, iteration);
     }
 
     /**
@@ -56,6 +56,13 @@ export class ResultManager {
      */
     async persistSummary(summary: Summary): Promise<void> {
         await persistSummary(summary, this.resultsDir);
+    }
+
+    /**
+     * Persists an iteration summary
+     */
+    async persistIterationSummary(iterationSummary: IterationSummary): Promise<void> {
+        await persistIterationSummary(iterationSummary, this.resultsDir);
     }
 
     /**
