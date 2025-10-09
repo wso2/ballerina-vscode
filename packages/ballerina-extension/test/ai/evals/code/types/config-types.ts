@@ -19,4 +19,5 @@
  */
 export interface TestConfiguration {
     readonly maxConcurrency: number;
+    readonly iterations: number;
 }

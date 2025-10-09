@@ -37,10 +37,47 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     activateCopilotLoginCommand();
     resetBIAuth();
     
-    // Register a command in test environment to test the AI features
+    // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
         commands.registerCommand('ballerina.test.ai.generateCodeCore', async (params: GenerateCodeRequest, testEventHandler: CopilotEventHandler) => {
             await generateCodeCore(params, testEventHandler);
+        });
+
+        // Library integration test commands
+        const {
+            getAllLibraries,
+            getSelectedLibraries,
+            getRelevantLibrariesAndFunctions,
+            GenerationType
+        } = require('./service/libs/libs');
+        const {
+            selectRequiredFunctions,
+            getMaximizedSelectedLibs,
+            toMaximizedLibrariesFromLibJson
+        } = require('./service/libs/funcs');
+
+        commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
+            return await getAllLibraries(generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getSelectedLibraries', async (prompt: string, generationType: typeof GenerationType) => {
+            return await getSelectedLibraries(prompt, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getRelevantLibrariesAndFunctions', async (params: any, generationType: typeof GenerationType) => {
+            return await getRelevantLibrariesAndFunctions(params, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.selectRequiredFunctions', async (prompt: string, selectedLibNames: string[], generationType: typeof GenerationType) => {
+            return await selectRequiredFunctions(prompt, selectedLibNames, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getMaximizedSelectedLibs', async (libNames: string[], generationType: typeof GenerationType) => {
+            return await getMaximizedSelectedLibs(libNames, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.toMaximizedLibrariesFromLibJson', async (functionResponses: any[], originalLibraries: any[]) => {
+            return await toMaximizedLibrariesFromLibJson(functionResponses, originalLibraries);
         });
     }
 

@@ -50,6 +50,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
             case 'tool_result':
                 sendToolResultNotification(event.toolName,event.libraryNames);
                 break;
+            case 'evals_tool_result':
+                // Ignore evals-specific events in webview
+                break;
             case 'diagnostics':
                 sendDiagnosticMessageNotification(event.diagnostics);
                 break;
