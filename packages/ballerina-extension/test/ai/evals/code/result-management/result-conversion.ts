@@ -46,9 +46,9 @@ export function convertTestResultToUsecaseResult(testResult: TestCaseResult, ite
                 } as ToolCallEvent;
             } else if (event.type === 'tool_result') {
                 return {
-                    type: 'tool_result',
+                    type: "tool_result",
                     toolName: event.toolName,
-                    libraryNames: event.libraryNames || []
+                    toolOutput: event.toolOutput,
                 } as ToolResultEvent;
             } else {
                 // evals_tool_result
@@ -104,7 +104,7 @@ export function generateComprehensiveSummary(results: readonly UsecaseResult[], 
     const durations = results.filter(r => r.duration).map(r => r.duration!);
     const totalDuration = durations.reduce((sum, d) => sum + d, 0);
     const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
-    
+
     // Calculate average rating from evaluation results
     const totalRating = results.reduce((sum, r) => sum + (r.evaluationResult?.rating ?? 0), 0);
     const averageRating = totalUsecases > 0 ? totalRating / totalUsecases : 0;

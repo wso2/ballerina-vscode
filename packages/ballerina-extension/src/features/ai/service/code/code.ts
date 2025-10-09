@@ -127,38 +127,42 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
     let finalResponse: string = "";
-
+    let selectedLibraries: string[] = [];
     for await (const part of fullStream) {
         switch (part.type) {
             case "tool-call": {
                 const toolName = part.toolName;
                 console.log(`[Tool Call] Tool call started: ${toolName}`);
-                eventHandler({ type: "tool_call", toolName });
                 if (toolName == "LibraryProviderTool") {
+                    selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
+                    eventHandler({ type: "tool_call", toolName });
                     assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
                 }
                 break;
             }
             case "tool-result": {
                 const toolName = part.toolName;
-                let toolResult: string[] = [];
+                console.log(`[Tool Call] Tool call finished: ${toolName}`);
                 if (toolName == "LibraryProviderTool") {
-                                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
-                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
+                    const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
                     console.log(
                         "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
                         part.output as Library[]
                     );
-                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-                    assistantResponse = assistantResponse.replace(
-                        `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                        `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
-                    );
-                    toolResult = libraryNames;
-                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME].includes(toolName)) {
-                    console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                    if (fetchedLibraries.length === 0) {
+                        assistantResponse = assistantResponse.replace(
+                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                            `<toolcall>No relevant libraries found.</toolcall>`
+                        );
+                    } else {
+                        assistantResponse = assistantResponse.replace(
+                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                            `<toolcall>Fetched libraries: [${fetchedLibraries.join(", ")}]</toolcall>`
+                        );
+                    }
+                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
                 }
-                eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
                 eventHandler({ type: "evals_tool_result", toolName, output: part.output });
                 break;
             }
