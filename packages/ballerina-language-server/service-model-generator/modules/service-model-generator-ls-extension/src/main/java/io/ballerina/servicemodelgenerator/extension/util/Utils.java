@@ -83,12 +83,15 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -100,6 +103,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -132,6 +136,11 @@ public final class Utils {
     private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
     private static final String MODULE_PULLING_FAILED_MESSAGE = "Failed to pull the module: %s";
     private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
+
+    private static final String REPOSITORIES_DIR = "repositories";
+    private static final String CENTRAL_REPO = "central.ballerina.io";
+    private static final String BALA_DIR = "bala";
+    private static final List<String> DISTRIBUTION_MODULES = Arrays.asList("http", "graphql", "tcp");
 
     private Utils() {
     }
@@ -1157,6 +1166,21 @@ public final class Utils {
      */
     public static void resovleModule(String orgName, String packageName, String moduleName,
                                      LSClientLogger lsClientLogger) {
+        if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
+            return;
+        }
+
+        try {
+            Path balHomePath = RepoUtils.createAndGetHomeReposPath();
+            Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR,
+                    orgName, packageName));
+            if (Files.exists(packagePath)) {
+                return;
+            }
+        } catch (Exception e) {
+            // Ignore the exception and proceed to attempt module resolution
+        }
+
         CentralAPI centralApi = RemoteCentral.getInstance();
         String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
         ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);
