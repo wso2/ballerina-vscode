@@ -909,7 +909,6 @@ export type SearchQueryParams = {
     offset?: number;
     orgName?: string;
     includeAvailableFunctions?: string;
-    includeCurrentOrganizationInSearch?: boolean;
     filterByCurrentOrg?: boolean;
 }
 

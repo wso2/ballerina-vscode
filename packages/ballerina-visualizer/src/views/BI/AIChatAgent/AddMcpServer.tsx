@@ -198,7 +198,9 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
             });
         // Remove defaultValue from info if it exists
         removeDefaultValueFromInfo(mcpToolResponse.flowNode.properties);
-        setMcpToolResponse(mcpToolResponse.flowNode)
+        if (!editMode) {
+            setMcpToolResponse(mcpToolResponse.flowNode);
+        }
         console.log(">>> response getSourceCode with template ", { mcpToolResponse });
         console.log(">>> agent node ", { agentNode });
         const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();

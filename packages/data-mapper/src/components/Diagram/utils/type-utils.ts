@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { IOType, TypeInfo, TypeKind } from "@wso2/ballerina-core";
 import { InputNode } from "../Node/Input/InputNode";
 
 export function getTypeName(fieldType: IOType): string {
@@ -29,11 +29,18 @@ export function getTypeName(fieldType: IOType): string {
 
     let typeName = fieldType?.typeName || fieldType.kind;
     
-    if (fieldType.moduleInfo?.moduleName) {
-        typeName = `${fieldType.moduleInfo.moduleName}:${typeName}`;
-    }
-
 	return typeName;
+}
+
+export function getImportTypeInfo(fieldType: IOType): TypeInfo[] {
+    switch (fieldType.kind) {
+        case TypeKind.Array:
+            return getImportTypeInfo(fieldType.member);
+        case TypeKind.Union:
+            return fieldType.members.flatMap(member => getImportTypeInfo(member));
+        default:
+            return fieldType.typeInfo ? [fieldType.typeInfo] : [];
+    }
 }
 
 export function getDMTypeDim(fieldType: IOType) {

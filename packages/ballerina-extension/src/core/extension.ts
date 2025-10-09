@@ -48,7 +48,6 @@ import {
     SHOW_LIBRARY_CONFIG_VARIABLES,
     LANG_SERVER_PATH,
     USE_BALLERINA_CLI_LANG_SERVER,
-    INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH,
     SHOW_ADVANCED_AI_NODES
 }
     from "./preferences";
@@ -2329,10 +2328,6 @@ export class BallerinaExtension {
 
     public showLibraryConfigVariables(): boolean {
         return <boolean>workspace.getConfiguration().get(SHOW_LIBRARY_CONFIG_VARIABLES);
-    }
-
-    public getIncludeCurrentOrgComponents(): boolean {
-        return <boolean>workspace.getConfiguration().get(INCLUDE_CURRENT_ORGANIZATION_IN_SEARCH);
     }
 
     public getShowAdvancedAiNodes(): boolean {
