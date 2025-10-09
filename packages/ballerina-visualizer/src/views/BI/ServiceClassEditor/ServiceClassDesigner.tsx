@@ -92,14 +92,14 @@ const InfoSection = styled.div`
 `;
 
 interface ServiceClassDesignerProps {
-    type: Type;
-    onClose?: () => void;
-    projectUri: string;
     isGraphql?: boolean;
+    fileName: string;
+    position: NodePosition;
+    type: Type;
 }
 
 export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
-    const { onClose, type, projectUri, isGraphql } = props;
+    const { isGraphql, fileName, position, type } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel>();
     const [editingFunction, setEditingFunction] = useState<FunctionModel>(undefined);
@@ -111,7 +111,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
 
     useEffect(() => {
         getServiceClassModel();
-    }, [type]);
+    }, [position]);
 
     useEffect(() => {
         rpcClient.onProjectContentUpdated((state: boolean) => {
@@ -148,23 +148,29 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
     }, [serviceClassModel]);
 
     const getServiceClassModel = async () => {
-        if (!type) return;
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        if (!position || !fileName) return;
+
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
                 lineRange: {
-                    startLine: { line: type.codedata.lineRange.startLine.line, offset: type.codedata.lineRange.startLine.offset },
-                    endLine: { line: type.codedata.lineRange.endLine.line, offset: type.codedata.lineRange.endLine.offset }
+                    startLine: { line: position.startLine, offset: position.startColumn },
+                    endLine: { line: position.endLine, offset: position.endColumn }
                 }
             },
             context: "TYPE_DIAGRAM"
         }
 
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
-        const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModelResponse.model.codedata.lineRange.fileName);
-        setServiceClassModel(serviceClassModelResponse.model);
-        setServiceClassFilePath(serviceClassFilePath);
+        if (serviceClassModelResponse.model) {
+            const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(
+                serviceClassModelResponse.model.codedata.lineRange.fileName
+            );
+            console.log("Service Class Model: ", serviceClassModelResponse.model);
+            setServiceClassModel(serviceClassModelResponse.model);
+            setServiceClassFilePath(serviceClassFilePath);
+        }
     }
 
     const handleEditFunction = (func: FunctionModel) => {
@@ -180,14 +186,14 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: func?.codedata?.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
 
     const onFunctionImplement = async (func: FunctionModel) => {
         const lineRange: LineRange = func.codedata.lineRange;
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         const nodePosition: NodePosition = { startLine: lineRange.startLine.line, startColumn: lineRange.startLine.offset, endLine: lineRange.endLine.line, endColumn: lineRange.endLine.offset }
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
@@ -378,7 +384,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: variable?.codedata.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
@@ -420,13 +426,15 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endLine: lineRange.endLine.line,
             endColumn: lineRange.endLine.offset,
         };
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
         await rpcClient
             .getVisualizerRpcClient()
             .openView({
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     position: nodePosition,
+                    type: type,
+                    identifier: resource.name.value,
                     documentUri: currentFilePath
                 }
             });
@@ -437,13 +445,14 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceClassConfigView,
+                type: type,
                 position: {
-                    startLine: type.codedata.lineRange.startLine.line,
-                    startColumn: type.codedata.lineRange.startLine.offset,
-                    endLine: type.codedata.lineRange.endLine.line,
-                    endColumn: type.codedata.lineRange.endLine.offset
+                    startLine: serviceClassModel.codedata.lineRange.startLine.line,
+                    startColumn: serviceClassModel.codedata.lineRange.startLine.offset,
+                    endLine: serviceClassModel.codedata.lineRange.endLine.line,
+                    endColumn: serviceClassModel.codedata.lineRange.endLine.offset
                 },
-                documentUri: type.codedata.lineRange.fileName,
+                documentUri: serviceClassModel.codedata.lineRange.fileName,
             },
         });
     };
@@ -617,7 +626,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                         <VariableForm
                             model={editingVariable}
                             filePath={serviceClassFilePath}
-                            lineRange={serviceClassModel.codedata.lineRange}
+                            lineRange={editingVariable.codedata.lineRange}
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}

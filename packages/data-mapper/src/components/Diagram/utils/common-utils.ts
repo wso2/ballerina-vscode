@@ -18,7 +18,7 @@
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
 import { InputOutputPortModel, ValueType } from "../Port";
-import { getDMTypeDim, getTypeName } from "./type-utils";
+import { getDMTypeDim, getTypeName, isPrimitive } from "./type-utils";
 import { DataMapperLinkModel, MappingType } from "../Link";
 
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
@@ -107,9 +107,10 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             if (dimDelta > 0) return MappingType.ArrayToSingleton;
         }
 
-        if (sourceField.kind !== targetField.kind ||
+        if ((sourceField.kind !== targetField.kind ||
             sourceField.typeName !== targetField.typeName ||
-            sourceField.typeName === TypeKind.Record
+            sourceField.typeName === TypeKind.Record) &&
+            !(isPrimitive(sourceField.kind) && isPrimitive(targetField.kind))
         ) {
             return MappingType.Incompatible;
         }
