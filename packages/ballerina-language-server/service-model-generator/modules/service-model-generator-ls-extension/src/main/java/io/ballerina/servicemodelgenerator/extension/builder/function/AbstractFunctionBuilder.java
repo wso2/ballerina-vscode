@@ -177,6 +177,9 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         if (isInit) {
             functionModel.setKind(KIND_DEFAULT);
             functionModel.setAccessor(null);
+            functionModel.getName().setEditable(false);
+            functionModel.getReturnType().setEditable(false);
+            functionModel.getReturnType().setEnabled(false);
             if (context == SERVICE_DIAGRAM) {
                 functionModel.setSchema(null);
                 return functionModel;
@@ -276,8 +279,9 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         if (isRemote && !functionName.equals(newFunctionName)) {
             edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));
         }
+        boolean isDefault = functionKind.equals(KIND_DEFAULT);
 
-        if (!isRemote) {
+        if (!isRemote  && !isDefault) {
             if (!functionName.equals(context.function().getAccessor().getValue())) {
                 edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
             }

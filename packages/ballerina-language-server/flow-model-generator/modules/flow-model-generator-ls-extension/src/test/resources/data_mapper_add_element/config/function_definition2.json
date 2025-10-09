@@ -18,6 +18,7 @@
   },
   "propertyKey": "expression",
   "targetField": "transform1",
+  "outputId": "transform1",
   "output": {
     "function_definition1.bal": [
       {

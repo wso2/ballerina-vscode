@@ -34,7 +34,7 @@
         "fields": [],
         "name": "var1",
         "displayName": "var1",
-        "typeName": "Options",
+        "typeName": "redis:Options",
         "kind": "record",
         "category": "local-variable",
         "moduleInfo": {
@@ -43,14 +43,18 @@
           "moduleName": "redis",
           "version": "3.1.0"
         },
-        "ref": "1527622454"
+        "ref": "1527622454",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "redis"
+        }
       }
     ],
     "output": {
       "fields": [],
       "name": "var2",
       "displayName": "var2",
-      "typeName": "Options",
+      "typeName": "redis:Options",
       "kind": "record",
       "moduleInfo": {
         "org": "ballerinax",
@@ -58,7 +62,11 @@
         "moduleName": "redis",
         "version": "3.1.0"
       },
-      "ref": "1527622454"
+      "ref": "1527622454",
+      "typeInfo": {
+        "orgName": "ballerinax",
+        "moduleName": "redis"
+      }
     },
     "mappings": [],
     "refs": {
@@ -86,7 +94,7 @@
             "optional": false
           }
         ],
-        "typeName": "Options",
+        "typeName": "redis:Options",
         "kind": "record"
       }
     }

@@ -8,6 +8,7 @@ type UserInfo record {|
 type Student record {|
    string username;
    string password;
+   string 'record;
 |};
 
 const string CONST = "CONST";

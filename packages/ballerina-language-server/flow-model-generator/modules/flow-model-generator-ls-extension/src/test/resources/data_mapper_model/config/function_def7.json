@@ -1,0 +1,112 @@
+{
+  "source": "function_def3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def3.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 10,
+    "offset": 60
+  },
+  "propertyKey": "expression",
+  "targetField": "transform",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "u",
+        "displayName": "u",
+        "typeName": "User",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "1373151159"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "transform",
+      "displayName": "transform",
+      "typeName": "SecondaryPhones",
+      "kind": "record",
+      "ref": "-782972947"
+    },
+    "mappings": [
+      {
+        "output": "transform.code",
+        "inputs": [
+          "u.code"
+        ],
+        "expression": "u.code",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "transform.number",
+        "inputs": [
+          "u.number"
+        ],
+        "expression": "u.number\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-782972947": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "SecondaryPhones",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    }
+  }
+}

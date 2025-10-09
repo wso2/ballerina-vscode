@@ -16,22 +16,28 @@
  *  under the License.
  */
 
-package io.ballerina.servicemodelgenerator.extension.model.response;
+package io.ballerina.openapi.extension;
 
-import java.util.List;
+import org.ballerinalang.langserver.commons.registration.BallerinaClientCapability;
 
 /**
- * Represents a response type in the service model generator.
- * This record holds information about the category, label, type, and status code of the response.
+ * Client capabilities for the open API service.
  *
- * @param completions A list of type completions, each containing details about a specific type.
+ * @since 1.2.1
  */
-public record TypeResponse(List<TypeCompletion> completions) {
+public class OpenAPIClientCapabilities extends BallerinaClientCapability {
 
-    public record TypeCompletion(String category, String label, String type, String statusCode) {
+    private boolean generateOpenAPI;
 
-        public TypeCompletion(String category, String label, String type) {
-            this(category, label, type, null);
-        }
+    public OpenAPIClientCapabilities() {
+        super(OpenAPIServiceConstants.CAPABILITY_NAME);
+    }
+
+    public boolean isGenerateOpenAPI() {
+        return generateOpenAPI;
+    }
+
+    public void setGenerateOpenAPI(boolean generateOpenAPI) {
+        this.generateOpenAPI = generateOpenAPI;
     }
 }
