@@ -38,7 +38,7 @@ interface TextEditorResult {
 // ============================================================================
 
 const VALID_FILE_EXTENSIONS = [
-    '.bal', '.toml', '.md'
+    '.bal', '.toml', '.md', '.sql'
 ];
 
 const MAX_LINE_LENGTH = 2000;
@@ -512,7 +512,7 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
 
 // ============================================================================
 
-export const FILE_MULTI_EDIT_TOOL_NAME = "file_multi_edit";
+export const FILE_BATCH_EDIT_TOOL_NAME = "file_batch_edit";
 export const FILE_SINGLE_EDIT_TOOL_NAME = "file_edit";
 export const FILE_WRITE_TOOL_NAME = "file_write";
 export const FILE_READ_TOOL_NAME = "file_read";
@@ -554,7 +554,7 @@ export function createWriteTool(execute: WriteExecute) {
     Usage:
     - This tool will return an error if there is a file with non-empty content at the provided path.
     - ALWAYS prefer editing existing files in the codebase. NEVER write new files unless explicitly required.
-    - If this is an existing file, Use ${FILE_MULTI_EDIT_TOOL_NAME} or ${FILE_SINGLE_EDIT_TOOL_NAME} to modify it instead.
+    - If this is an existing file, Use ${FILE_BATCH_EDIT_TOOL_NAME} or ${FILE_SINGLE_EDIT_TOOL_NAME} to modify it instead.
     - NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
     - Only use emojis if the user explicitly requests it. Avoid writing emojis to files unless asked.`,
     inputSchema: z.object({
@@ -575,7 +575,9 @@ export function createEditTool(execute: EditExecute) {
     Usage:
     - You must read the chat history at least once before editing, as the user’s message contains the content of the each source file. This tool will error if you attempt an edit without reading the chat history. 
     - When editing text content of a file that you obtained from the chat history you read earlier, ensure you preserve the exact indentation (tabs/spaces) as it appears AFTER the line number prefix.
+    - If there are multiple edits to be made to the same file, prefer using the ${FILE_BATCH_EDIT_TOOL_NAME} tool instead of this one.
     - Do not create new files using this tool. Only edit existing files. If the file does not exist, Use ${FILE_WRITE_TOOL_NAME} to create new files.
+    - NEVER proactively edit documentation files (*.md) or README files. Only edit documentation files if explicitly requested by the User.
     - Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked.
     - The edit will FAIL if **old_string** is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use **replace_all** to change every instance of **old_string**. 
     - Use **replace_all** for replacing and renaming strings across the file. This parameter is useful if you want to rename a variable for instance.`,
@@ -590,7 +592,7 @@ export function createEditTool(execute: EditExecute) {
 }
 
 // 3. Multi Edit Tool
-export function createMultiEditTool(execute: MultiEditExecute) {
+export function createBatchEditTool(execute: MultiEditExecute) {
   return tool({
     description: `This is a tool for making multiple edits to a single file in one operation. It is built on top of the ${FILE_SINGLE_EDIT_TOOL_NAME} tool and allows you to perform multiple find-and-replace operations efficiently. Prefer this tool over the ${FILE_SINGLE_EDIT_TOOL_NAME} tool when you need to make multiple edits to the same file.
     Before using this tool:
@@ -608,6 +610,7 @@ export function createMultiEditTool(execute: MultiEditExecute) {
     - Each edit operates on the result of the previous edit
     - All edits must be valid for the operation to succeed - if any edit fails, none will be applied
     - This tool is ideal when you need to make several changes to different parts of the same file
+    - NEVER proactively edit documentation files (*.md) or README files. Only edit documentation files if explicitly requested by the User.
     CRITICAL REQUIREMENTS:
     1. All edits follow the same requirements as the ${FILE_SINGLE_EDIT_TOOL_NAME} tool
     2. The edits are atomic - either all succeed or none are applied

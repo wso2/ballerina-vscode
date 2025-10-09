@@ -43,7 +43,7 @@ import { getProjectFromResponse, getProjectSource, postProcess } from "../../../
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
-import { createEditExecute, createEditTool, createMultiEditExecute, createMultiEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_MULTI_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+import { createEditExecute, createEditTool, createMultiEditExecute, createBatchEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 
 const SEARCH_LIBRARY_TOOL_NAME = 'LibraryProviderTool';
 
@@ -110,7 +110,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_MULTI_EDIT_TOOL_NAME]: createMultiEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
@@ -155,7 +155,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
                     );
                     toolResult = libraryNames;
-                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_MULTI_EDIT_TOOL_NAME].includes(toolName)) {
+                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME].includes(toolName)) {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
@@ -207,7 +207,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 finalResponse = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
-                const MAX_REPAIR_ATTEMPTS = 1;
+                const MAX_REPAIR_ATTEMPTS = 3;
                 let repair_attempt = 0;
                 let diagnosticFixResp = finalResponse; //TODO: Check if we need this variable
                 while (
@@ -362,7 +362,7 @@ ${JSON.stringify(langlibs, null, 2)}
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
 ### File modifications
-- You must apply changes to the existing source code using the provided ${[FILE_MULTI_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+- You must apply changes to the existing source code using the provided ${[FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
@@ -503,7 +503,7 @@ export async function repairCode(params: RepairParams,
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_MULTI_EDIT_TOOL_NAME]: createMultiEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
