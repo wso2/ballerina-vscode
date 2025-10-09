@@ -328,7 +328,8 @@ ${JSON.stringify(langlibs, null, 2)}
    - Plan the control flow of the application based on input and output parameters of each function of the connector according the received API documentation from the tool.
 
 3. Write the Ballerina Code:
-    - Write the Ballerina code by strictly adhering to Ballerina Code Constraints mentioned below.
+    - First thoroughly read and understand the Ballerina code constraints.
+    - Then do the file modifications by strictly adhering to file modifications section mentioned in below.
 
 ## Ballerina Code Constraints
 
@@ -365,16 +366,13 @@ ${JSON.stringify(langlibs, null, 2)}
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
 ### File modifications
+- You must apply changes to the existing source code using the **str_replace_based_edit_tool** tool. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+- When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 
 Begin your response with the explanation. The explanation should detail the control flow decided in step 1, along with the selected libraries and their functions.
-Once the explanation is finished, you must apply surgical edits to the existing source code using the **str_replace_based_edit_tool** tool.
-The complete source code will be provided in the <existing_code> section of the user prompt.
-When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
-
-Your goal is to modify only the relevant parts of the code to address the user's query. 
-Do not generate or modify any file types other than .bal. Politely decline if the query
+Once the explanation is finished, make necessary file edits for the code that needs to generate.
 `;
 }
 
