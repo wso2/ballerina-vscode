@@ -20,29 +20,56 @@ import React, { useEffect, useState } from "react";
 import { LinePosition } from "../../utils/types";
 import { useDiagramContext } from "../DiagramContext";
 import styled from "@emotion/styled";
-import { NODE_PADDING, POPUP_BOX_WIDTH } from "../../resources/constants";
-import { PromptTextField, ThemeColors } from "@wso2/ui-toolkit";
+import { POPUP_BOX_WIDTH } from "../../resources/constants";
+import { TextArea, ThemeColors, Codicon, ProgressRing } from "@wso2/ui-toolkit";
+import { PopupOverlay } from "../PopupOverlay";
 
 export namespace PopupStyles {
     export const Container = styled.div`
+        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: flex-start;
         width: ${POPUP_BOX_WIDTH}px;
-        padding: ${NODE_PADDING / 2}px ${NODE_PADDING}px;
-        border-radius: 4px;
+        padding: 8px;
+        border-radius: 6px;
         background-color: ${ThemeColors.SURFACE};
         color: ${ThemeColors.ON_SURFACE};
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
     `;
 
-    export const Row = styled.div`
+    export const Header = styled.div`
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 4px;
+        align-items: center;
         width: 100%;
+    `;
+
+    export const Title = styled.div`
+        font-size: 14px;
+        font-family: "GilmerMedium";
+        margin-bottom: 2px;
+        margin-left: 2px;
+    `;
+
+    export const CloseButton = styled.div`
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        opacity: 0.7;
+        transition: opacity 0.2s, background-color 0.2s;
+
+        &:hover {
+            opacity: 1;
+            background-color: ${ThemeColors.ON_SURFACE}10;
+        }
     `;
 
     export const InfoText = styled.div`
@@ -50,6 +77,15 @@ export namespace PopupStyles {
         font-family: monospace;
         color: ${ThemeColors.ON_SURFACE};
         opacity: 0.7;
+    `;
+
+    export const SavingContainer = styled.div`
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: ${ThemeColors.ON_SURFACE};
+        opacity: 0.8;
     `;
 }
 
@@ -63,11 +99,16 @@ export function AddCommentPopup(props: AddCommentPopupProps) {
     const { onAddComment } = useDiagramContext();
 
     const [comment, setComment] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 onClose();
+            } else if (event.key === "Enter" && !event.shiftKey) {
+                // Enter to save, Shift+Enter for new line
+                event.preventDefault();
+                handleSaveComment();
             }
         };
 
@@ -78,29 +119,84 @@ export function AddCommentPopup(props: AddCommentPopupProps) {
         };
     }, [comment]);
 
-    const handleAddComment = () => {
-        if (!target) {
-            console.error(">>> AddCommentPopup: AddCommentPopup: target not found");
+    const handleSaveComment = () => {
+        setIsSaving(true);
+        if (!comment.trim()) {
+            setIsSaving(false);
             return;
         }
-        onAddComment(comment, { startLine: target, endLine: target });
+
+        if (!target) {
+            console.error(">>> AddCommentPopup: AddCommentPopup: target not found");
+            setIsSaving(false);
+            return;
+        }
+
+        onAddComment?.(comment, { startLine: target, endLine: target });
+        // No need to close - diagram will rerender and popup will disappear
     };
 
     const handleOnCommentChange = (value: string) => {
         setComment(value);
     };
 
+    const handleMouseDown = (e: React.MouseEvent) => {
+        // Prevent mouse events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        // Prevent mouse move events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+        // Prevent mouse up events from propagating to the canvas
+        e.stopPropagation();
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        // Prevent wheel events from propagating to the canvas
+        e.stopPropagation();
+    };
+
     return (
-        <PopupStyles.Container>
-             <PromptTextField
-                placeholder="Enter a comment here"
-                value={comment}
-                onTextChange={handleOnCommentChange}
-                onEnter={handleAddComment}
-                sx={{ width: "100%" }}
-            />
-            <PopupStyles.InfoText>Press Enter to add a comment. Press Esc to cancel.</PopupStyles.InfoText>
-        </PopupStyles.Container>
+        <>
+            <PopupOverlay onClose={onClose} />
+            <PopupStyles.Container
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onWheel={handleWheel}
+            >
+                <PopupStyles.Header>
+                    <PopupStyles.Title>Add Comment</PopupStyles.Title>
+                    <PopupStyles.CloseButton onClick={onClose} title="Close (Esc)">
+                        <Codicon name="close" />
+                    </PopupStyles.CloseButton>
+                </PopupStyles.Header>
+
+                <TextArea
+                    placeholder="Enter a comment here"
+                    value={comment}
+                    onTextChange={handleOnCommentChange}
+                    rows={4}
+                    resize="vertical"
+                    autoFocus
+                    disabled={isSaving}
+                    sx={{ width: "100%" }}
+                />
+
+                {!isSaving ? (
+                    <PopupStyles.InfoText>Press Enter to add a comment. Press Esc to cancel.</PopupStyles.InfoText>
+                ) : (
+                    <PopupStyles.SavingContainer>
+                        <ProgressRing sx={{ width: 14, height: 14 }} />
+                        <span>Saving comment...</span>
+                    </PopupStyles.SavingContainer>
+                )}
+            </PopupStyles.Container>
+        </>
     );
 }
 
