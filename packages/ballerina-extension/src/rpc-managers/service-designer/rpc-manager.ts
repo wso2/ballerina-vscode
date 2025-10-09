@@ -51,7 +51,8 @@ import {
     UpdatedArtifactsResponse,
     ServiceModelInitResponse,
     ServiceInitSourceRequest,
-    SourceEditResponse
+    SourceEditResponse,
+    VisibleTypesResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -391,13 +392,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         }
     }
 
-    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             params.filePath = StateMachine.context().projectUri;
             params.context = "HTTP_STATUS_CODE";
             try {
-                const res: ResourceReturnTypesResponse = await context.langClient.getResourceReturnTypes(params);
+                const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
             } catch (error) {
                 console.log(">>> error fetching resource return types", error);

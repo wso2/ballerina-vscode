@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse } from '@wso2/ballerina-core';
+import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
@@ -50,7 +50,7 @@ export function ResponseEditor(props: ParamProps) {
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string>('');
-    const [responseCodes, setResponseCodes] = useState<ResponseCode[]>([]);
+    const [responseCodes, setResponseCodes] = useState<VisibleTypesResponse>([]);
 
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
@@ -59,7 +59,7 @@ export function ResponseEditor(props: ParamProps) {
     useEffect(() => {
         rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
             console.log("Resource Return Types: ", res);
-            setResponseCodes(res.completions);
+            setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
             });
@@ -117,10 +117,10 @@ export function ResponseEditor(props: ParamProps) {
                 value: getTitleFromStatusCodeAndType(responseCodes, res.statusCode.value, res.type.value),
                 itemOptions: getCategorizedOptions(responseCodes),
                 onValueChange: (value: string) => {
-                    const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === value);
-                    res.statusCode.value = responseCodeData.statusCode;
-                    res.type.value = responseCodeData.type;
-                    if (NO_BODY_TYPES.includes(responseCodeData.type)) {
+                    const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === value);
+                    res.statusCode.value = responseCodeData.labelDetails.detail;
+                    res.type.value = responseCodeData.detail;
+                    if (NO_BODY_TYPES.includes(responseCodeData.detail)) {
                         updateNewFields(res, false);
                     } else {
                         updateNewFields(res, true);
@@ -166,7 +166,7 @@ export function ResponseEditor(props: ParamProps) {
         if (dataValues['name']) {
             return true;
         }
-        const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
+        const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === dataValues['statusCode']).labelDetails.detail;
         const defaultCode = getDefaultResponse(method);
 
         // Set optional false for the response name
@@ -200,7 +200,7 @@ export function ResponseEditor(props: ParamProps) {
         console.log("Add New Response: ", dataValues);
         if (isValidResponse(dataValues)) {
             // Set the values
-            const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
+            const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === dataValues['statusCode']).labelDetails.detail;
             response.statusCode.value = String(code);
             response.body.value = dataValues['body'];
             response.name.value = dataValues['name'];
@@ -235,23 +235,23 @@ export function ResponseEditor(props: ParamProps) {
     });
 
     // Helper to create a regular option
-    const createOption = (item: ResponseCode): OptionProps => ({
-        id: `${item.statusCode}-${item.type}`,
+    const createOption = (item: VisibleTypeItem): OptionProps => ({
+        id: `${item.labelDetails.detail}-${item.detail}`,
         content: (
             <span style={{ padding: "4px" }}>
-                {item.statusCode !== "Dynamic" ? `${item.statusCode} ` : "Dynamic"} - {item.label}
+                {item.labelDetails.detail !== "Dynamic" ? `${item.labelDetails.detail} ` : "Dynamic"} - {item.label}
             </span>
         ),
-        value: `${item.statusCode} - ${item.label}`,
+        value: `${item.labelDetails.detail} - ${item.label}`,
     });
 
     // Main function to categorize and flatten the list
-    function getCategorizedOptions(responseCodes: ResponseCode[]): OptionProps[] {
-        const dynamic = responseCodes.filter(i => i.type === "http:Response");
-        const error = responseCodes.filter(i => i.type === "error");
-        const userDefined = responseCodes.filter(i => i.category === "User Defined");
+    function getCategorizedOptions(responseCodes: VisibleTypesResponse): OptionProps[] {
+        const dynamic = responseCodes.filter(i => i.detail === "http:Response");
+        const error = responseCodes.filter(i => i.detail === "error");
+        const userDefined = responseCodes.filter(i => i.labelDetails.description === "User-Defined");
         const preBuilt = responseCodes.filter(i =>
-            ["1XX", "2XX", "3XX", "4XX", "5XX"].includes(i.category)
+            ["1XX", "2XX", "3XX", "4XX", "5XX"].includes(i.labelDetails.description)
         );
         let options: OptionProps[] = [];
 
@@ -259,25 +259,25 @@ export function ResponseEditor(props: ParamProps) {
             options.push(createHeaderOption("User Defined Responses", 0));
             options = options.concat(userDefined.map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "2XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "2XX").length > 0) {
             options.push(createHeaderOption("2XX - Success", userDefined.length > 0 ? 3 : 0));
-            options = options.concat(preBuilt.filter(i => i.category === "2XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "2XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "1XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "1XX").length > 0) {
             options.push(createHeaderOption("1XX - Informational"));
-            options = options.concat(preBuilt.filter(i => i.category === "1XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "1XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "3XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "3XX").length > 0) {
             options.push(createHeaderOption("3XX - Redirection"));
-            options = options.concat(preBuilt.filter(i => i.category === "3XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "3XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "4XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "4XX").length > 0) {
             options.push(createHeaderOption("4XX - Client Error"));
-            options = options.concat(preBuilt.filter(i => i.category === "4XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "4XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "5XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "5XX").length > 0) {
             options.push(createHeaderOption("5XX - Server Error"));
-            options = options.concat(preBuilt.filter(i => i.category === "5XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "5XX").map(createOption));
         }
         if (error.length) {
             options.push(createHeaderOption("Error Response"));

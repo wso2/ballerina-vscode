@@ -67,7 +67,7 @@ import {
     getServiceInitModel,
     ServiceInitSourceRequest,
     createServiceAndListener,
-    SourceEditResponse
+    VisibleTypesResponse
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -135,7 +135,7 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
         return this._messenger.sendRequest(getHttpResourceModel, HOST_EXTENSION, params);
     }
 
-    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return this._messenger.sendRequest(getResourceReturnTypes, HOST_EXTENSION, params);
     }
 
