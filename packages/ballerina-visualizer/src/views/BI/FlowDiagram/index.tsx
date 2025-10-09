@@ -101,7 +101,6 @@ export type FormSubmitOptions = {
     closeSidePanel?: boolean;
     updateLineRange?: boolean;
     postUpdateCallBack?: () => void;
-
 };
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
@@ -123,6 +122,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
+    const [projectOrg, setProjectOrg] = useState<string>("");
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -189,6 +189,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
+        });
+
+        rpcClient.getVisualizerLocation().then((location) => {
+            setProjectOrg(location.org);
         });
     }, [rpcClient]);
 
@@ -869,7 +873,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Get the updated component and update the location
         const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
         const currentType = (await rpcClient.getVisualizerLocation()).type;
-
+        const parentIdentifier = (await rpcClient.getVisualizerLocation()).parentIdentifier;
         // Find the correct artifact by currentIdentifier (id)
         let currentArtifact = artifacts.artifacts.at(0);
         for (const artifact of artifacts.artifacts) {
@@ -889,8 +893,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 currentArtifact = artifact;
             }
 
-            // Check if artifact has resources and find within those
-            if (artifact.resources && artifact.resources.length > 0) {
+            // Check if parent artifact is matched and has resources and find within those
+            if (parentIdentifier && artifact.name === parentIdentifier && artifact.resources && artifact.resources.length > 0) {
                 const resource = artifact.resources.find(
                     (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
                 );
@@ -2060,6 +2064,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const toolType = tool.type ?? "";
             if (toolType.includes("MCP Server")) {
                 const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
+
+                // Delete the MCP client variable node
+                const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+                const mcpVariable = variableNodes.flowModel?.variables?.find(
+                    (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === tool.name
+                );
+
+                if (mcpVariable) {
+                    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+                        filePath: agentFilePath,
+                        flowNode: mcpVariable,
+                    });
+                }
+
                 const agentResponse = await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
@@ -2110,6 +2128,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSidePanelView(targetPanel);
     };
 
+    const handleGetProjectPath = async (segments: string | string[]) => {
+        return rpcClient.getVisualizerRpcClient().joinProjectPath(segments);
+    };
+
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;
     const memoizedDiagramProps = useMemo(
         () => ({
@@ -2146,19 +2168,29 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAccept: onAcceptSuggestions,
                 onDiscard: onDiscardSuggestions,
             },
-            projectPath,
+            project: {
+                org: projectOrg,
+                path: projectPath,
+                getProjectPath: handleGetProjectPath,
+            },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
+            overlay: {
+                visible: selectedNodeId !== undefined,
+                onClickOverlay: handleOnCloseSidePanel,
+            },
         }),
         [
             flowModel,
             fetchingAiSuggestions,
+            projectOrg,
             projectPath,
             breakpointInfo,
             showProgressSpinner,
             showProgressIndicator,
             hasDraft,
             selectedNodeId,
+            rpcClient,
         ]
     );
 
