@@ -216,7 +216,7 @@ export interface NodeWidgetProps extends Omit<PromptNodeWidgetProps, "children">
 export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const { model, engine } = props;
     const {
-        projectPath,
+        project,
         goToSource,
         openView,
         onNodeSave,
@@ -270,13 +270,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         goToSource?.(model.node);
     };
 
-    const openDataMapper = () => {
+    const openDataMapper = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -284,13 +285,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             });
     };
 
-    const viewFunction = () => {
+    const viewFunction = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -475,7 +477,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
                     {!editable && (
-                        <NodeStyles.Icon>
+                        <NodeStyles.Icon title="Edit Prompt">
                             <Icon
                                 name="bi-edit"
                                 onClick={toggleEditable}
@@ -528,6 +530,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                 style={{ marginLeft: "-10px" }}
             >
                 {/* NP function model circle */}
+                <title>{"Configure Model Provider"}</title>
                 <g>
                     <NodeStyles.StyledCircle
                         cx="80"
