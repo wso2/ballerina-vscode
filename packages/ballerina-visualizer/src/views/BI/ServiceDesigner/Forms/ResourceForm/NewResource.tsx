@@ -18,7 +18,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator, ThemeColors, Button, Icon } from '@wso2/ui-toolkit';
+import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator, ThemeColors, Button, Icon, CheckBoxGroup, CheckBox, Tooltip } from '@wso2/ui-toolkit';
 import { ResourcePath } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
@@ -248,7 +248,7 @@ namespace S {
 export interface NewResourceProps {
 	model: FunctionModel;
 	isSaving: boolean;
-	onSave: (functionModel: FunctionModel) => void;
+	onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
 	onClose: () => void;
 }
 
@@ -257,6 +257,7 @@ export function NewResource(props: NewResourceProps) {
 
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
+	const [createMore, setCreateMore] = useState<boolean>(false);
 
 	const [method, setMethod] = useState<string>("");
 
@@ -313,7 +314,10 @@ export function NewResource(props: NewResourceProps) {
 
 	const handleSave = () => {
 		console.log("Saved Resource", functionModel);
-		onSave(functionModel);
+		if (createMore) {
+			closeMethod();
+		}
+		onSave(functionModel, !createMore);
 	}
 
 	return (
@@ -349,26 +353,18 @@ export function NewResource(props: NewResourceProps) {
 				<>
 					{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 					<SidePanelBody>
-						<Typography
-							sx={{
-								marginBlockEnd: 10,
-								background: getColorByMethod(method.toUpperCase()),
-								color: "#fff",
-								padding: "6px 12px",
-								borderRadius: "6px",
-								display: "inline-block"
-							}}
-							variant="h4"
-						>
-							HTTP Method: <span style={{ fontWeight: 700 }}>{method}</span>
-						</Typography>
-						<Divider />
 						<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true}
 							onError={onResourcePathError} />
 						<Divider />
 						<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
 						<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
 						<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+						<Divider sx={{ marginBottom: 30 }} />
+						<Tooltip content='Create more resources' containerSx={{ position: "fixed", width: "120px", marginLeft: 80 }}>
+							<CheckBoxGroup columns={2}>
+								<CheckBox label='Create More' checked={createMore} onChange={() => setCreateMore(!createMore)} />
+							</CheckBoxGroup>
+						</Tooltip>
 						<ActionButtons
 							primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
 							secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
@@ -376,7 +372,7 @@ export function NewResource(props: NewResourceProps) {
 						/>
 					</SidePanelBody>
 				</>
-			</PanelContainer>
+			</PanelContainer >
 		</>
 	);
 }

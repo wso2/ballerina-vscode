@@ -22,6 +22,24 @@ import styled from '@emotion/styled';
 import { PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
+import { getColorByMethod } from '../../../../../../utils/utils';
+
+
+const MethodBox = styled.div`
+    display: flex;
+    justify-content: center;
+    height: 25px;
+    min-width: 70px;
+    width: auto;
+    margin-left: 0px;
+    text-align: center;
+    padding: 3px 5px 3px 5px;
+    background-color: ${(p: any) => p.color};
+    color: #FFF;
+    align-items: center;
+    font-weight: bold;
+	margin-top: 20px;
+`;
 
 export const verbs = [
 	{
@@ -132,15 +150,15 @@ export function ResourcePath(props: ResourcePathProps) {
 	return (
 		<>
 			<PathContainer>
-				{!isNew && (
-					<div
-						style={{
-							width: 160,
-							marginTop: -1.3
-						}}
-					>
+				<div
+					style={{
+						width: 100,
+						marginRight: isNew ? 10 : 0
+					}}
+				>
+					{!isNew && (
 						<Dropdown
-							sx={{ width: 160 }}
+							sx={{ width: 100, background: getColorByMethod(method.value?.toUpperCase()), color: "#fff" }}
 							isRequired
 							errorMsg=""
 							id="drop-down"
@@ -149,8 +167,13 @@ export function ResourcePath(props: ResourcePathProps) {
 							onValueChange={handleMethodChange}
 							value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
 						/>
-					</div>
-				)}
+					)}
+					{isNew && (
+						<MethodBox color={getColorByMethod(method.value?.toUpperCase())}>
+							{method.value.toUpperCase()}
+						</MethodBox>
+					)}
+				</div>
 				<TextField
 					sx={{ marginLeft: isNew ? 0 : 15, flexGrow: 1 }}
 					autoFocus

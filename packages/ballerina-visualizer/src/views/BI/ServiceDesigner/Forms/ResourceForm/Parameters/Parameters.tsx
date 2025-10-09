@@ -50,6 +50,7 @@ const OptionalConfigRow = styled.div`
     align-items: center;
     width: 100%;
     margin-bottom: 8px;
+    margin-top: 12px;
 `;
 
 const OptionalConfigButtonContainer = styled.div`
@@ -216,6 +217,7 @@ export function Parameters(props: ParametersProps) {
                     onChange={onChangeParam}
                     onSave={onSaveParam}
                     onCancel={onParamEditCancel}
+                    type="QUERY"
                 />
             }
             <AddButtonWrapper >
@@ -228,7 +230,7 @@ export function Parameters(props: ParametersProps) {
             {/* <---------------- Header Parameters Start ----------------> */}
             {!isNewResource && (
                 <>
-                    <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Header Parameters</Typography>
+                    <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Headers</Typography>
                     {normalParameters
                         .filter((param: ParameterModel) => param.httpParamType === "HEADER")
                         .map((param: ParameterModel, index) => (
@@ -245,12 +247,13 @@ export function Parameters(props: ParametersProps) {
                             onChange={onChangeParam}
                             onSave={onSaveParam}
                             onCancel={onParamEditCancel}
+                            type="HEADER"
                         />
                     }
                     <AddButtonWrapper >
                         <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
                             <Codicon name="add" />
-                            <>Header Parameter</>
+                            <>Header</>
                         </LinkButton>
                     </AddButtonWrapper>
                 </>
@@ -279,6 +282,7 @@ export function Parameters(props: ParametersProps) {
                     onChange={onChangeParam}
                     onSave={onSaveParam}
                     onCancel={onParamEditCancel}
+                    type="PAYLOAD"
                 />
             }
 

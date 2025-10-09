@@ -148,7 +148,7 @@ export function ResponseEditor(props: ParamProps) {
     };
 
     useEffect(() => {
-        if (responseCodes.length > 0) {
+        if (responseCodes?.length > 0) {
             updateNewFields(response);
         }
     }, [response, responseCodes]);
