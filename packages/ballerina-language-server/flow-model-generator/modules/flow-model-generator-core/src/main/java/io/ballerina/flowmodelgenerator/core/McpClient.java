@@ -40,15 +40,16 @@ import java.util.Map;
 public class McpClient {
 
     public static String sendInitializeRequest(String serviceUrl) throws IOException {
-        URL url = new URL(serviceUrl);
         HttpURLConnection conn = null;
-
         try {
+            URL url = new URL(serviceUrl);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
             conn.setDoOutput(true);
+            conn.setConnectTimeout(10000); // 10 seconds
+            conn.setReadTimeout(10000); // 10 seconds
 
             String body = """
                     {
@@ -72,7 +73,9 @@ public class McpClient {
 
             int responseCode = conn.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP Error: " + responseCode + " - " + conn.getResponseMessage());
+                String errorMessage = readErrorStream(conn);
+                throw new IOException("HTTP " + responseCode + ": " +
+                    (errorMessage != null ? errorMessage : conn.getResponseMessage()));
             }
 
             Map<String, List<String>> headers = conn.getHeaderFields();
@@ -88,6 +91,14 @@ public class McpClient {
             }
 
             return sessionId;
+        } catch (java.net.MalformedURLException e) {
+            throw new IOException("Invalid URL: " + e.getMessage(), e);
+        } catch (java.net.UnknownHostException e) {
+            throw new IOException("Unknown host: " + e.getMessage(), e);
+        } catch (java.net.ConnectException e) {
+            throw new IOException("Connection refused: Unable to connect to " + serviceUrl, e);
+        } catch (java.net.SocketTimeoutException e) {
+            throw new IOException("Connection timeout: Server did not respond in time", e);
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -96,9 +107,9 @@ public class McpClient {
     }
 
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId) throws IOException {
-        URL url = new URL(serviceUrl);
         HttpURLConnection conn = null;
         try {
+            URL url = new URL(serviceUrl);
             conn = (HttpURLConnection) url.openConnection();
             // Configure request
             conn.setRequestMethod("POST");
@@ -106,6 +117,8 @@ public class McpClient {
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
             conn.setRequestProperty("User-Agent", "ballerina");
             conn.setRequestProperty("Connection", "keep-alive");
+            conn.setConnectTimeout(10000); // 10 seconds
+            conn.setReadTimeout(10000); // 10 seconds
 
             if (sessionId != null && !sessionId.trim().isEmpty()) {
                 conn.setRequestProperty("mcp-session-id", sessionId);
@@ -126,10 +139,20 @@ public class McpClient {
 
             int responseCode = conn.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP Error: " + responseCode + " - " + conn.getResponseMessage());
+                String errorMessage = readErrorStream(conn);
+                throw new IOException("HTTP " + responseCode + ": " +
+                    (errorMessage != null ? errorMessage : conn.getResponseMessage()));
             }
 
             return extractToolsArrayFromResponse(conn);
+        } catch (java.net.MalformedURLException e) {
+            throw new IOException("Invalid URL: " + e.getMessage(), e);
+        } catch (java.net.UnknownHostException e) {
+            throw new IOException("Unknown host: " + e.getMessage(), e);
+        } catch (java.net.ConnectException e) {
+            throw new IOException("Connection refused: Unable to connect to " + serviceUrl, e);
+        } catch (java.net.SocketTimeoutException e) {
+            throw new IOException("Connection timeout: Server did not respond in time", e);
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -170,5 +193,19 @@ public class McpClient {
             }
         }
         return new JsonArray();
+    }
+
+    private static String readErrorStream(HttpURLConnection conn) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+            StringBuilder errorResponse = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                errorResponse.append(line);
+            }
+            return errorResponse.toString();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
