@@ -1,0 +1,1501 @@
+{
+  "start": {
+    "line": 30,
+    "offset": 4
+  },
+  "end": {
+    "line": 40,
+    "offset": 5
+  },
+  "source": "queryAction.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "queryAction.bal",
+    "nodes": [
+      {
+        "id": "65229",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Remote Function",
+            "label": "onConsumerRecord",
+            "isServiceFunction": true,
+            "parameters": [
+              "kafka:Caller caller",
+              "kafka:BytesConsumerRecord[] records"
+            ],
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "queryAction.bal",
+            "startLine": {
+              "line": 30,
+              "offset": 110
+            },
+            "endLine": {
+              "line": 40,
+              "offset": 5
+            }
+          },
+          "sourceCode": "remote function onConsumerRecord(kafka:Caller caller, kafka:BytesConsumerRecord[] records) returns error? {\n        error? err = from Order 'order in check getOrdersFromRecords(records)\n            where 'order.status == SUCCESS\n            do {\n                log:printInfo(\"Sending successful order to \" + ORDERS_TOPIC + \" \" + 'order.toString());\n                check kafkaProducer->send({topic: ORDERS_TOPIC, value: 'order.toString().toBytes()});\n            };\n        if err is error {\n            log:printError(\"Unknown error occured\", err);\n        }\n    }"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "62913",
+        "metadata": {
+          "label": "Declare Variable",
+          "description": "Assign a value to a variable"
+        },
+        "codedata": {
+          "node": "VARIABLE",
+          "lineRange": {
+            "fileName": "queryAction.bal",
+            "startLine": {
+              "line": 31,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 36,
+              "offset": 14
+            }
+          },
+          "sourceCode": "error? err = from Order 'order in check getOrdersFromRecords(records)\n            where 'order.status == SUCCESS\n            do {\n                log:printInfo(\"Sending successful order to \" + ORDERS_TOPIC + \" \" + 'order.toString());\n                check kafkaProducer->send({topic: ORDERS_TOPIC, value: 'order.toString().toBytes()});\n            };"
+        },
+        "returning": false,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Initialize with value"
+            },
+            "valueType": "ACTION_OR_EXPRESSION",
+            "value": "from Order 'order in check getOrdersFromRecords(records)\n            where 'order.status == SUCCESS\n            do {\n                log:printInfo(\"Sending successful order to \" + ORDERS_TOPIC + \" \" + 'order.toString());\n                check kafkaProducer->send({topic: ORDERS_TOPIC, value: 'order.toString().toBytes()});\n            }",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "err",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "queryAction.bal",
+                "startLine": {
+                  "line": 31,
+                  "offset": 15
+                },
+                "endLine": {
+                  "line": 31,
+                  "offset": 18
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "()",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "68767",
+        "metadata": {
+          "label": "If",
+          "description": "Add conditional branch to the integration flow."
+        },
+        "codedata": {
+          "node": "IF",
+          "lineRange": {
+            "fileName": "queryAction.bal",
+            "startLine": {
+              "line": 37,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 39,
+              "offset": 9
+            }
+          },
+          "sourceCode": "if err is error {\n            log:printError(\"Unknown error occured\", err);\n        }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Then",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "CONDITIONAL",
+              "lineRange": {
+                "fileName": "queryAction.bal",
+                "startLine": {
+                  "line": 37,
+                  "offset": 24
+                },
+                "endLine": {
+                  "line": 39,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            log:printError(\"Unknown error occured\", err);\n        }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "condition": {
+                "metadata": {
+                  "label": "Condition",
+                  "description": "Boolean Condition"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
+                "value": "err is error ",
+                "placeholder": "true",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "69869",
+                "metadata": {
+                  "label": "printError",
+                  "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.13.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "log",
+                  "packageName": "log",
+                  "symbol": "printError",
+                  "version": "2.13.0",
+                  "lineRange": {
+                    "fileName": "queryAction.bal",
+                    "startLine": {
+                      "line": 38,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 38,
+                      "offset": 57
+                    }
+                  },
+                  "sourceCode": "log:printError(\"Unknown error occured\", err);"
+                },
+                "returning": false,
+                "properties": {
+                  "msg": {
+                    "metadata": {
+                      "label": "Msg",
+                      "description": "The message to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "string|log:PrintableRawTemplate",
+                    "value": "\"Unknown error occured\"",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "msg"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "PrintableRawTemplate",
+                        "packageInfo": "ballerina:log:2.12.0",
+                        "packageName": "log",
+                        "kind": "OBJECT_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "string",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": true
+                      }
+                    ]
+                  },
+                  "error": {
+                    "metadata": {
+                      "label": "Error",
+                      "description": "The error struct to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error|()",
+                    "value": "err",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "'error"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "()",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "error",
+                        "packageInfo": "ballerina:lang.annotations:0.0.0",
+                        "packageName": "lang.annotations",
+                        "kind": "ERROR_TYPE",
+                        "selected": true
+                      }
+                    ],
+                    "defaultValue": "()"
+                  },
+                  "stackTrace": {
+                    "metadata": {
+                      "label": "Stack Trace",
+                      "description": "The error stack trace to be logged"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "error:StackFrame[]|()",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "stackTrace"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "()",
+                        "packageInfo": "",
+                        "packageName": "",
+                        "kind": "BASIC_TYPE",
+                        "selected": false
+                      },
+                      {
+                        "type": "StackFrame",
+                        "packageInfo": "ballerina:lang.error:0.0.0",
+                        "packageName": "lang.error",
+                        "kind": "ARRAY_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "defaultValue": "()"
+                  },
+                  "additionalValues": {
+                    "metadata": {
+                      "label": "Additional Values",
+                      "description": "Capture key value pairs"
+                    },
+                    "valueType": "MAPPING_EXPRESSION_SET",
+                    "valueTypeConstraint": "log:Value",
+                    "value": [],
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "INCLUDED_RECORD_REST",
+                      "originalName": "Additional Values"
+                    },
+                    "typeMembers": []
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": [
+      {
+        "id": "44719",
+        "metadata": {
+          "label": "New Connection",
+          "description": "Represents a Kafka producer endpoint.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerinax",
+          "module": "kafka",
+          "object": "Producer",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "queryAction.bal",
+            "startLine": {
+              "line": 13,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 13,
+              "offset": 79
+            }
+          },
+          "sourceCode": "kafka:Producer kafkaProducer = check new (bootstrapServers = \"localhost:9092\");"
+        },
+        "returning": false,
+        "properties": {
+          "bootstrapServers": {
+            "metadata": {
+              "label": "Bootstrap Servers",
+              "description": "List of remote server endpoints of Kafka brokers"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string|string[]",
+            "value": "\"localhost:9092\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "bootstrapServers"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              },
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "ARRAY_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "acks": {
+            "metadata": {
+              "label": "Acks",
+              "description": "Number of acknowledgments  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:ProducerAcks",
+            "placeholder": "\"all\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "acks"
+            },
+            "typeMembers": [
+              {
+                "type": "ProducerAcks",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"all\""
+          },
+          "compressionType": {
+            "metadata": {
+              "label": "Compression Type",
+              "description": "Compression type to be used for messages  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:CompressionType",
+            "placeholder": "\"none\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "compressionType"
+            },
+            "typeMembers": [
+              {
+                "type": "CompressionType",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"none\""
+          },
+          "clientId": {
+            "metadata": {
+              "label": "Client Id",
+              "description": "Identifier to be used for server side logging  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "clientId"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "metricsRecordingLevel": {
+            "metadata": {
+              "label": "Metrics Recording Level",
+              "description": "Metrics recording level  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "metricsRecordingLevel"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "metricReporterClasses": {
+            "metadata": {
+              "label": "Metric Reporter Classes",
+              "description": "Metrics reporter classes  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "metricReporterClasses"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "partitionerClass": {
+            "metadata": {
+              "label": "Partitioner Class",
+              "description": "Partitioner class to be used to select the partition to which the message is sent  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "partitionerClass"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "interceptorClasses": {
+            "metadata": {
+              "label": "Interceptor Classes",
+              "description": "Interceptor classes to be used before sending the records  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "interceptorClasses"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "transactionalId": {
+            "metadata": {
+              "label": "Transactional Id",
+              "description": "Transactional ID to be used in transactional delivery  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "transactionalId"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "schemaRegistryUrl": {
+            "metadata": {
+              "label": "Schema Registry Url",
+              "description": "Avro schema registry URL. Use this field to specify the schema registry URL if the Avro  \nserializer is used  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "schemaRegistryUrl"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "avroSchema": {
+            "metadata": {
+              "label": "Avro Schema",
+              "description": "The schema used for key/value serialization (Deprecated) "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "avroSchema"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "keySchema": {
+            "metadata": {
+              "label": "Key Schema",
+              "description": "The schema used to serializate the key"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "keySchema"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "valueSchema": {
+            "metadata": {
+              "label": "Value Schema",
+              "description": "The schema used to serialize the value"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "valueSchema"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "schemaRegistryConfig": {
+            "metadata": {
+              "label": "Schema Registry Config",
+              "description": "Configurations to initialize a schema registry  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "map<anydata>",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "schemaRegistryConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "map<anydata>",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "MAP_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "{}"
+          },
+          "keySerializerType": {
+            "metadata": {
+              "label": "Key Serializer Type",
+              "description": "Key serialization type  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:SerializerType",
+            "placeholder": "\"SER_AVRO\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "keySerializerType"
+            },
+            "typeMembers": [
+              {
+                "type": "SerializerType",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"SER_AVRO\""
+          },
+          "valueSerializerType": {
+            "metadata": {
+              "label": "Value Serializer Type",
+              "description": "Value serialization type  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:SerializerType",
+            "placeholder": "\"SER_AVRO\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "valueSerializerType"
+            },
+            "typeMembers": [
+              {
+                "type": "SerializerType",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"SER_AVRO\""
+          },
+          "additionalProperties": {
+            "metadata": {
+              "label": "Additional Properties",
+              "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use  \nthis with caution since this can override any of the fields. It is not recomendded to use  \nthis field except in an extreme situation  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "map<string>",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "additionalProperties"
+            },
+            "typeMembers": [
+              {
+                "type": "map<string>",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "MAP_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "{}"
+          },
+          "bufferMemory": {
+            "metadata": {
+              "label": "Buffer Memory",
+              "description": "Total bytes of memory the producer can use to buffer records  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "bufferMemory"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "retryCount": {
+            "metadata": {
+              "label": "Retry Count",
+              "description": "Number of retries to resend a record  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryCount"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "batchSize": {
+            "metadata": {
+              "label": "Batch Size",
+              "description": "Maximum number of bytes to be batched together when sending the records. Records exceeding this limit will  \nnot be batched. Setting this to 0 will disable batching  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "batchSize"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "linger": {
+            "metadata": {
+              "label": "Linger",
+              "description": "Delay (in seconds) to allow other records to be batched before sending them to the Kafka server  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "linger"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "sendBuffer": {
+            "metadata": {
+              "label": "Send Buffer",
+              "description": "Size of the TCP send buffer (SO_SNDBUF)  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "sendBuffer"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "receiveBuffer": {
+            "metadata": {
+              "label": "Receive Buffer",
+              "description": "Size of the TCP receive buffer (SO_RCVBUF)  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "receiveBuffer"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "maxRequestSize": {
+            "metadata": {
+              "label": "Max Request Size",
+              "description": "The maximum size of a request in bytes  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxRequestSize"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "reconnectBackoffTime": {
+            "metadata": {
+              "label": "Reconnect Backoff Time",
+              "description": "Time (in seconds) to wait before attempting to reconnect  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "reconnectBackoffTime"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "reconnectBackoffMaxTime": {
+            "metadata": {
+              "label": "Reconnect Backoff Max Time",
+              "description": "Maximum amount of time in seconds to wait when reconnecting  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "reconnectBackoffMaxTime"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "retryBackoffTime": {
+            "metadata": {
+              "label": "Retry Backoff Time",
+              "description": "Time (in seconds) to wait before attempting to retry a failed request  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryBackoffTime"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "maxBlock": {
+            "metadata": {
+              "label": "Max Block",
+              "description": "Maximum block time (in seconds) during which the sending is blocked when the buffer is full  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxBlock"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "requestTimeout": {
+            "metadata": {
+              "label": "Request Timeout",
+              "description": "Wait time (in seconds) for the response of a request  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "requestTimeout"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "metadataMaxAge": {
+            "metadata": {
+              "label": "Metadata Max Age",
+              "description": "Maximum time (in seconds) to force a refresh of metadata  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "metadataMaxAge"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "metricsSampleWindow": {
+            "metadata": {
+              "label": "Metrics Sample Window",
+              "description": "Time (in seconds) window for a metrics sample to compute over  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "metricsSampleWindow"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "metricsNumSamples": {
+            "metadata": {
+              "label": "Metrics Num Samples",
+              "description": "Number of samples maintained to compute the metrics  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "metricsNumSamples"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "maxInFlightRequestsPerConnection": {
+            "metadata": {
+              "label": "Max In Flight Requests Per Connection",
+              "description": "Maximum number of unacknowledged requests on a single connection  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxInFlightRequestsPerConnection"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "connectionsMaxIdleTime": {
+            "metadata": {
+              "label": "Connections Max Idle Time",
+              "description": "Close the idle connections after this number of seconds  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connectionsMaxIdleTime"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "transactionTimeout": {
+            "metadata": {
+              "label": "Transaction Timeout",
+              "description": "Timeout (in seconds) for transaction status update from the producer  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "transactionTimeout"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "enableIdempotence": {
+            "metadata": {
+              "label": "Enable Idempotence",
+              "description": "Exactly one copy of each message is written to the stream when enabled  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "enableIdempotence"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "false"
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket",
+              "description": "Configurations related to SSL/TLS encryption  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:SecureSocket",
+            "placeholder": "{cert: {path: \"\", password: \"\"}}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "{cert: {path: \"\", password: \"\"}}"
+          },
+          "auth": {
+            "metadata": {
+              "label": "Auth",
+              "description": "Authentication-related configurations for the `kafka:Producer`  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:AuthenticationConfiguration",
+            "placeholder": "{username: \"\", password: \"\"}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "auth"
+            },
+            "typeMembers": [
+              {
+                "type": "AuthenticationConfiguration",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "{username: \"\", password: \"\"}"
+          },
+          "securityProtocol": {
+            "metadata": {
+              "label": "Security Protocol",
+              "description": "Type of the security protocol to use in the broker connection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "kafka:SecurityProtocol",
+            "placeholder": "\"PLAINTEXT\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "securityProtocol"
+            },
+            "typeMembers": [
+              {
+                "type": "SecurityProtocol",
+                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageName": "kafka",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"PLAINTEXT\""
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "kafkaProducer",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "queryAction.bal",
+                "startLine": {
+                  "line": 13,
+                  "offset": 15
+                },
+                "endLine": {
+                  "line": 13,
+                  "offset": 28
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "kafka:Producer",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      }
+    ]
+  }
+}
