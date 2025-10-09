@@ -31,6 +31,18 @@ export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
 
+/**
+ * Interface for the processed project information
+ */
+interface ProcessedProjectInfo {
+    sanitizedPackageName: string;
+    projectRoot: string;
+    finalOrgName: string;
+    finalVersion: string;
+    packageName: string;
+    integrationName: string;
+}
+
 const settingsJsonContent = `
 {
     "ballerina.isBI": true
@@ -86,15 +98,6 @@ generated/
 Config.toml
 `;
 
-export function openBIProject() {
-    window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Open Integration' })
-        .then(uri => {
-            if (uri && uri[0]) {
-                commands.executeCommand('vscode.openFolder', uri[0]);
-            }
-        });
-}
-
 export function createBIProject(name: string, isService: boolean) {
     window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Select Project Location' })
         .then(uri => {
@@ -147,23 +150,64 @@ export function getUsername(): string {
     return username;
 }
 
-function setupProjectInfo(projectRequest: ProjectRequest) {
+/**
+ * Generic function to resolve directory paths and create directories if needed
+ * Can be used for both project and workspace directory creation
+ * @param basePath - Base directory path
+ * @param directoryName - Name of the directory to create (optional)
+ * @param shouldCreateDirectory - Whether to create a new directory
+ * @returns The resolved directory path
+ */
+function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCreateDirectory: boolean = true): string {
+    const resolvedPath = directoryName 
+        ? path.join(basePath, directoryName)
+        : basePath;
+    
+    if (shouldCreateDirectory && !fs.existsSync(resolvedPath)) {
+        fs.mkdirSync(resolvedPath, { recursive: true });
+    }
+    
+    return resolvedPath;
+}
+
+/**
+ * Resolves the project root path and creates the directory if needed
+ * @param projectPath - Base project path
+ * @param sanitizedPackageName - Sanitized package name for directory creation
+ * @param createDirectory - Whether to create a new directory
+ * @returns The resolved project root path
+ */
+function resolveProjectPath(projectPath: string, sanitizedPackageName: string, createDirectory: boolean): string {
+    return resolveDirectoryPath(
+        projectPath, 
+        createDirectory ? sanitizedPackageName : undefined, 
+        createDirectory
+    );
+}
+
+/**
+ * Resolves the workspace root path and creates the directory
+ * @param basePath - Base path where workspace should be created
+ * @param workspaceName - Name of the workspace directory
+ * @returns The resolved workspace root path
+ */
+function resolveWorkspacePath(basePath: string, workspaceName: string): string {
+    return resolveDirectoryPath(basePath, workspaceName, true);
+}
+
+/**
+ * Orchestrates the setup of project information
+ * @param projectRequest - The project request containing all necessary information
+ * @returns Processed project information ready for use
+ */
+function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo {
     const sanitizedPackageName = sanitizeName(projectRequest.packageName);
-    
-    const projectRoot = projectRequest.createDirectory 
-        ? path.join(projectRequest.projectPath, sanitizedPackageName)
-        : projectRequest.projectPath;
-    
-    // Create project root directory if needed
-    if (projectRequest.createDirectory && !fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot, { recursive: true });
-    }
-
-    let finalOrgName = projectRequest.orgName;
-    if (!finalOrgName) {
-        finalOrgName = getUsername();
-    }
-
+    const projectRoot = resolveProjectPath(
+        projectRequest.projectPath, 
+        sanitizedPackageName, 
+        projectRequest.createDirectory
+    );
+    const finalOrgName = projectRequest.orgName || getUsername();
     const finalVersion = projectRequest.version || "0.1.0";
 
     return {
@@ -176,7 +220,28 @@ function setupProjectInfo(projectRequest: ProjectRequest) {
     };
 }
 
-export function createBIProjectPure(projectRequest: ProjectRequest) {
+export function createBIWorkspace(projectRequest: ProjectRequest): string {
+    const ballerinaTomlContent = `
+[workspace]
+packages = ["${projectRequest.packageName}"]
+
+`;
+
+    // Use the workspace-specific directory resolver
+    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+
+    // Create Ballerina.toml file
+    const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
+    writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
+
+    // Create Ballerina Package
+    createBIProjectPure({...projectRequest, projectPath: workspaceRoot, createDirectory: true});
+
+    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    return workspaceRoot;
+}
+
+export function createBIProjectPure(projectRequest: ProjectRequest): string {
     const projectInfo = setupProjectInfo(projectRequest);
     const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
 
@@ -193,8 +258,6 @@ title = "${integrationName}"
 sticky = true
 
 `;
-
-
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
@@ -247,6 +310,10 @@ sticky = true
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     console.log(`BI project created successfully at ${projectRoot}`);
+    return projectRoot;
+}
+
+export function openInVSCode(projectRoot: string) {
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
 }
 
