@@ -193,8 +193,6 @@ public class McpToolKitBuilder extends NodeBuilder {
             if (permittedToolsProperty.value() instanceof List<?>) {
                 permittedTools = ((List<?>) permittedToolsProperty.value()).stream()
                         .filter(String.class::isInstance).map(String.class::cast).toList();
-            } else if (permittedToolsProperty.value() instanceof String) {
-                permittedTools = List.of((String) permittedToolsProperty.value());
             } else {
                 permittedTools = List.of();
             }
@@ -241,7 +239,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     private String generateMcpToolKitClassSource(String className, List<String> permittedTools) {
         Map<String, String> toolMapping = generatePermittedToolsMapping(permittedTools);
         String permittedToolsMappingConstructorExp = toolMapping.entrySet().stream()
-                .map(e -> "                \"" + e.getKey() + "\" : self." + e.getValue())
+                .map(e -> "                " + e.getKey() + " : self." + e.getValue())
                 .collect(Collectors.joining(",\n"));
 
         String toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
