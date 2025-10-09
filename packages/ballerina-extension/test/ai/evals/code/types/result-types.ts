@@ -53,7 +53,7 @@ export interface ToolCallEvent {
 export interface ToolResultEvent {
     readonly type: "tool_result";
     readonly toolName: string;
-    readonly libraryNames: readonly string[];
+    readonly toolOutput: any;
 }
 
 /**

@@ -81,7 +81,17 @@ export function createTestEventHandler(useCase?: TestUseCase): {
                 console.log(`[${useCase?.id || 'unknown'}] Tool called: ${event.toolName}`);
                 break;
             case "tool_result":
-                console.log(`[${useCase?.id || 'unknown'}] Tool result from ${event.toolName}: ${event.libraryNames?.join(', ') || 'no libraries'}`);
+                if (event.toolName == "LibraryProviderTool") {
+                    console.log(
+                        `[${useCase?.id || "unknown"}] Tool result from ${event.toolName}: ${
+                            event.toolOutput?.join(", ") || "no libraries"
+                        }`
+                    );
+                }
+                else{
+                    console.log(`[${useCase?.id || "unknown"}] Tool result from ${event.toolName}:`);
+                    console.log(JSON.stringify(event.toolOutput, null, 2));
+                }
                 break;
             case "evals_tool_result":
                 console.log(`[${useCase?.id || 'unknown'}] [EVALS] Tool result from ${event.toolName}:`);

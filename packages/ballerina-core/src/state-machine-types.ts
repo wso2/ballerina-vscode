@@ -235,7 +235,7 @@ export interface ToolCall {
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
-    libraryNames: string[];
+    toolOutput: any;
 }
 
 export interface EvalsToolResult {

@@ -303,14 +303,25 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "tool_result") {
             if (response.toolName == "LibraryProviderTool") {
-            const libraryNames = response.libraryNames;
+                const libraryNames = response.toolOutput;
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content = newMessages[newMessages.length - 1].content.replace(
-                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                            `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
-                        );
+                        if (libraryNames.length === 0) {
+                            newMessages[newMessages.length - 1].content = newMessages[
+                                newMessages.length - 1
+                            ].content.replace(
+                                `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                                `<toolcall>No relevant libraries found.</toolcall>`
+                            );
+                        } else {
+                            newMessages[newMessages.length - 1].content = newMessages[
+                                newMessages.length - 1
+                            ].content.replace(
+                                `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                                `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                            );
+                        }
                     }
                     return newMessages;
                 });

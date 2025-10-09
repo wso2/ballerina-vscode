@@ -202,11 +202,11 @@ export function sendToolCallNotification(toolName: string): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, libraryNames: string[]): void {
+export function sendToolResultNotification(toolName: string, toolOutput: any): void {
     const msg: ToolResult = {
         type: "tool_result",
         toolName: toolName,
-        libraryNames: libraryNames
+        toolOutput: toolOutput,
     };
     sendAIPanelNotification(msg);
 }
