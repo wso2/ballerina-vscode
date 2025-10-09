@@ -168,7 +168,7 @@ import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
+import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
@@ -576,7 +576,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(params);
+        if (params.createAsWorkspace) {
+            const workspaceRoot = createBIWorkspace(params);
+            openInVSCode(workspaceRoot);
+        } else {
+            const projectRoot = createBIProjectPure(params);
+            openInVSCode(projectRoot);
+        }
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {

@@ -30,6 +30,8 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
         packageName: "",
         path: "",
         createDirectory: true,
+        createAsWorkspace: false,
+        workspaceName: "",
         orgName: "",
         version: "",
     });
@@ -44,6 +46,8 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
             packageName: formData.packageName,
             projectPath: formData.path,
             createDirectory: formData.createDirectory,
+            createAsWorkspace: formData.createAsWorkspace,
+            workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
         });
