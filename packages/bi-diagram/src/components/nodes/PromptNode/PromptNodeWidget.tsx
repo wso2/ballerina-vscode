@@ -477,7 +477,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
                     {!editable && (
-                        <NodeStyles.Icon>
+                        <NodeStyles.Icon title="Edit Prompt">
                             <Icon
                                 name="bi-edit"
                                 onClick={toggleEditable}
@@ -530,6 +530,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                 style={{ marginLeft: "-10px" }}
             >
                 {/* NP function model circle */}
+                <title>{"Configure Model Provider"}</title>
                 <g>
                     <NodeStyles.StyledCircle
                         cx="80"
