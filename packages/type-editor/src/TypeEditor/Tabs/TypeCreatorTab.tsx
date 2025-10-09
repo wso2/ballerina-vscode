@@ -224,12 +224,6 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         } else {
             selectedKind = value as TypeKind;
         }
-
-        // If the selected kind is the same as current, do nothing
-        if (selectedKind === selectedTypeKind) {
-            return;
-        }
-
         setSelectedTypeKind(selectedKind);
 
         // Reset validation error state when changing type kinds
