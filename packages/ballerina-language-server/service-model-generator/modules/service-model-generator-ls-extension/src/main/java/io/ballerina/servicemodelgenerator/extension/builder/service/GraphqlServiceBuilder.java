@@ -37,7 +37,7 @@ import java.util.Optional;
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
@@ -57,7 +57,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = serviceTypeWithoutPrefix(context.serviceType());
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
         Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
         if (service.isEmpty()) {
             return null;

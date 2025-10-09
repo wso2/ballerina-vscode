@@ -96,7 +96,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateServiceInfoNew;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
@@ -407,7 +407,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = serviceTypeWithoutPrefix(context.serviceType());
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
         Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
         if (service.isEmpty()) {
             return null;

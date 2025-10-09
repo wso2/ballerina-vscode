@@ -196,7 +196,7 @@
             "true": {
               "metadata": {
                 "label": "Action Nullable True",
-                "description": "The field returns a nullable value"
+                "description": "The field returns a stream of nullable values"
               },
               "valueType": "STRING",
               "value": "",
@@ -208,7 +208,7 @@
             "false": {
               "metadata": {
                 "label": "Action Nullable False",
-                "description": "The field returns a non-nullable value"
+                "description": "The field returns a stream of non-nullable values"
               },
               "valueType": "STRING",
               "value": "Mark type as nullable",

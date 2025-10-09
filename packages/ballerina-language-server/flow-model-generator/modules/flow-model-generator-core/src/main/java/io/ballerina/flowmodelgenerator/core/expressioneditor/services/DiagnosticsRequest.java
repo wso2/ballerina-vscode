@@ -54,7 +54,7 @@ public abstract class DiagnosticsRequest extends DebouncedExpressionEditorReques
             case LV_EXPRESSION -> new LvExpressionDiagnosticRequest(context);
             case ACTION_OR_EXPRESSION -> new ActionOrExpressionDiagnosticsRequest(context);
             case IDENTIFIER -> new IdentifierDiagnosticsRequest(context);
-            case TYPE -> new TypeDiagnosticRequest(context);
+            case TYPE, ACTION_TYPE -> new TypeDiagnosticRequest(context);
             default -> throw new IllegalArgumentException("Unsupported property type: " + property.valueType());
         };
     }
