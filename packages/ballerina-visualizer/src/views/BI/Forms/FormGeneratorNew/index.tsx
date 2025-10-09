@@ -478,7 +478,8 @@ export function FormGeneratorNew(props: FormProps) {
                 if (isGraphqlEditor) {
                     context = fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE : TypeHelperContext.GRAPHQL_INPUT_TYPE;
                 }
-                let visibleTypes = typesCache.current.get(fieldKey);
+                let typesCacheKey = fieldKey || 'default';
+                let visibleTypes = typesCache.current.get(typesCacheKey);
 
                 if (!visibleTypes) {
                     let types;
@@ -497,7 +498,7 @@ export function FormGeneratorNew(props: FormProps) {
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
                     visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
-                    typesCache.current.set(fieldKey, visibleTypes);
+                    typesCache.current.set(typesCacheKey, visibleTypes);
                 }
                 setTypes(visibleTypes);
 
