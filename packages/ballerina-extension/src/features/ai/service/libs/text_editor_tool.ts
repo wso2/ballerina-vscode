@@ -144,6 +144,10 @@ function updateOrCreateFile(
 }
 
 function countOccurrences(text: string, searchString: string): number {
+  if (searchString.trim().length === 0 && text.trim().length === 0) {
+        return 1;
+  }
+
   if (!searchString) { return 0; }
   
   let count = 0;
@@ -182,7 +186,7 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
-      console.log(`[FileWriteTool] Invalid file path: ${file_path}`);
+      console.error(`[FileWriteTool] Invalid file path: ${file_path}`);
       return {
         success: false,
         message: pathValidation.error!,
@@ -192,7 +196,7 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
 
     // Validate content is not empty
     if (!content || content.trim().length === 0) {
-      console.log(`[FileWriteTool] Empty content provided for file: ${file_path}`);
+      console.error(`[FileWriteTool] Empty content provided for file: ${file_path}`);
       return {
         success: false,
         message: 'Content cannot be empty when writing a file.',
@@ -203,7 +207,7 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
     // Check if file exists with non-empty content
     const existingContent = getFileContent(files, file_path);
     if (existingContent !== null && existingContent.trim().length > 0) {
-      console.log(`[FileWriteTool] File already exists with content: ${file_path}`);
+      console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
       return {
         success: false,
         message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
@@ -217,6 +221,11 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
     const lineCount = content.split('\n').length;
 
     insertIntoUpdateFileNames(updatedFileNames, file_path);
+
+    if (existingContent != undefined && existingContent != null && existingContent.trim().length === 0) {
+      console.warn(`[FileWriteTool] Warning: Created new file for empty file: ${file_path}`);
+    }
+
     console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines.`);
     return {
       success: true,
@@ -242,7 +251,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
-      console.log(`[FileEditTool] Invalid file path: ${file_path}`);
+      console.error(`[FileEditTool] Invalid file path: ${file_path}`);
       return {
         success: false,
         message: pathValidation.error!,
@@ -252,7 +261,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
 
     // Check if old_string and new_string are identical
     if (old_string === new_string) {
-      console.log(`[FileEditTool] old_string and new_string are identical for file: ${file_path}`);
+      console.error(`[FileEditTool] old_string and new_string are identical for file: ${file_path}`);
       return {
         success: false,
         message: 'old_string and new_string are identical. No changes to make.',
@@ -263,7 +272,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
     // Get file content
     const content = getFileContent(files, file_path);
     if (content === null) {
-      console.log(`[FileEditTool] File not found: ${file_path}`);
+      console.error(`[FileEditTool] File not found: ${file_path}`);
       return {
         success: false,
         message: `File '${file_path}' not found. Use file_write to create new files.`,
@@ -276,7 +285,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
 
     if (occurrenceCount === 0) {
       const preview = content.substring(0, PREVIEW_LENGTH);
-      console.log(`[FileEditTool] No occurrences of old_string found in file: ${file_path}`);
+      console.error(`[FileEditTool] No occurrences of old_string found in file: ${file_path}`);
       return {
         success: false,
         message: `String to replace was not found in '${file_path}'. Please verify the exact text to replace, including whitespace and indentation. \n File Preview: \n${preview + (content.length > PREVIEW_LENGTH ? '...' : '')}`,
@@ -286,7 +295,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
 
     // If not replace_all, ensure exactly one match
     if (!replace_all && occurrenceCount > 1) {
-      console.log(`[FileEditTool] Multiple occurrences (${occurrenceCount}) found for old_string in file: ${file_path}`);
+      console.error(`[FileEditTool] Multiple occurrences (${occurrenceCount}) found for old_string in file: ${file_path}`);
       return {
         success: false,
         message: `Found ${occurrenceCount} occurrences of the text in '${file_path}'. Either make old_string more specific to match exactly one occurrence, or set replace_all to true to replace all occurrences.`,
@@ -333,7 +342,7 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
-      console.log(`[FileMultiEditTool] Invalid file path: ${file_path}`);
+      console.error(`[FileMultiEditTool] Invalid file path: ${file_path}`);
       return {
         success: false,
         message: pathValidation.error!,
@@ -343,7 +352,7 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
 
     // Validate edits array
     if (!edits || edits.length === 0) {
-      console.log(`[FileMultiEditTool] No edits provided for file: ${file_path}`);
+      console.error(`[FileMultiEditTool] No edits provided for file: ${file_path}`);
       return {
         success: false,
         message: 'No edits provided. At least one edit is required.',
@@ -354,7 +363,7 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
     // Get file content
     let content = getFileContent(files, file_path);
     if (content === null) {
-      console.log(`[FileMultiEditTool] File not found: ${file_path}`);
+      console.error(`[FileMultiEditTool] File not found: ${file_path}`);
       return {
         success: false,
         message: `File '${file_path}' not found. Use file_write to create new files.`,
@@ -400,7 +409,7 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
 
     // If there were validation errors, return them without applying any edits
     if (validationErrors.length > 0) {
-      console.log(`[FileMultiEditTool] Validation errors:\n${validationErrors.join('\n')}`);
+      console.error(`[FileMultiEditTool] Validation errors:\n${validationErrors.join('\n')}`);
       return {
         success: false,
         message: `Multi-edit validation failed:\n${validationErrors.join('\n')}`,
@@ -434,7 +443,7 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
-      console.log(`[FileReadTool] Invalid file path: ${file_path}`);
+      console.error(`[FileReadTool] Invalid file path: ${file_path}`);
       return {
         success: false,
         message: pathValidation.error!,
@@ -445,7 +454,7 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
     // Get file content
     const content = getFileContent(files, file_path);
     if (content === null) {
-      console.log(`[FileReadTool] File not found: ${file_path}`);
+      console.error(`[FileReadTool] File not found: ${file_path}`);
       return {
         success: false,
         message: `File '${file_path}' not found.`,
@@ -470,7 +479,7 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
     if (offset !== undefined && limit !== undefined) {
       const validation = validateLineRange(offset, limit, totalLines);
       if (!validation.valid) {
-        console.log(`[FileReadTool] Invalid line range for file: ${file_path}, offset: ${offset}, limit: ${limit}`);
+        console.error(`[FileReadTool] Invalid line range for file: ${file_path}, offset: ${offset}, limit: ${limit}`);
         return {
           success: false,
           message: validation.error!,

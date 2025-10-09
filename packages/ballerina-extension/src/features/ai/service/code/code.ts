@@ -155,7 +155,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
                     );
                     toolResult = libraryNames;
-                } else if (toolName == "str_replace_based_edit_tool") {
+                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_MULTI_EDIT_TOOL_NAME].includes(toolName)) {
                     console.log(`[Tool Call] Tool call finished: ${toolName}`);
                 }
                 eventHandler({ type: "tool_result", toolName, libraryNames: toolResult });
@@ -362,7 +362,7 @@ ${JSON.stringify(langlibs, null, 2)}
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
 ### File modifications
-- You must apply changes to the existing source code using the **str_replace_based_edit_tool** tool. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+- You must apply changes to the existing source code using the provided ${[FILE_MULTI_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
@@ -462,7 +462,7 @@ export async function repairCode(params: RepairParams,
         role: "user",
         content:
             "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." + 
-            "And also do not create any new files. Just update the existing code to fix the errors. \n Errors: \n " +
+            "And also do not create any new files. Just carefully analyze the error descriptions and update the existing code to fix the errors. \n Errors: \n " +
             params.diagnostics.map((d) => d.message).join("\n"),
     };
 
