@@ -365,7 +365,6 @@ ${JSON.stringify(langlibs, null, 2)}
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
 ### File modifications
-- Prefer modifying existing bal files but you can create new bal files if necessary.
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 
@@ -375,7 +374,7 @@ The complete source code will be provided in the <existing_code> section of the 
 When making replacements inside an existing file, provide the **exact old string** and the **exact new string**, including all newlines, spaces, and indentation.
 
 Your goal is to modify only the relevant parts of the code to address the user's query. 
-Do not generate or modify any file types other than .bal. Politely decline if the query qq
+Do not generate or modify any file types other than .bal. Politely decline if the query
 `;
 }
 
