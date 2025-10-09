@@ -61,10 +61,10 @@
         "fields": [],
         "name": "user2",
         "displayName": "user2",
-        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
+        "typeName": "UserInfo",
         "kind": "record",
         "category": "configurable",
-        "ref": "-2113547997"
+        "ref": "-1155761164"
       }
     ],
     "output": {
@@ -139,26 +139,6 @@
           }
         ],
         "typeName": "UserInfo",
-        "kind": "record"
-      },
-      "-2113547997": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "wso2/new_connection1:0.1.0:UserInfo & readonly",
         "kind": "record"
       }
     }
