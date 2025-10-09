@@ -517,7 +517,8 @@ export function expandDMModel(
         mappings: model.mappings,
         query: model.query,
         source: "",
-        rootViewId
+        rootViewId,
+        triggerRefresh: model.triggerRefresh
     };
 }
 
@@ -613,7 +614,8 @@ function createBaseIOType(root: IORoot): IOType {
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
-        ...(root.optional !== undefined && { optional: root.optional })
+        ...(root.optional !== undefined && { optional: root.optional }),
+        ...(root.typeInfo && { typeInfo: root.typeInfo })
     };
 
     if (isEnum && root.members) {
@@ -630,7 +632,7 @@ function createBaseIOType(root: IORoot): IOType {
 }
 
 /**
- * Processes array type fields and their members
+ * Processes array members
  */
 function processArray(
     parentId: string,
@@ -658,7 +660,8 @@ function processArray(
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused }),
-        ...(member.optional !== undefined && { optional: member.optional })
+        ...(member.optional !== undefined && { optional: member.optional }),
+        ...(member.typeInfo && { typeInfo: member.typeInfo })
     };
 
     const typeSpecificProps = processTypeKind(member, parentId, model, visitedRefs);
@@ -692,7 +695,8 @@ function processUnion(
             displayName: unionMember.displayName,
             typeName: unionMember.typeName,
             kind: unionMember.kind,
-            ...(unionMember.optional !== undefined && { optional: unionMember.optional })
+            ...(unionMember.optional !== undefined && { optional: unionMember.optional }),
+            ...(unionMember.typeInfo && { typeInfo: unionMember.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(unionMember, parentFieldId, model, visitedRefs);
@@ -762,7 +766,8 @@ function processTypeFields(
             displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
-            ...(field.optional !== undefined && { optional: field.optional })
+            ...(field.optional !== undefined && { optional: field.optional }),
+            ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(field, fieldId, model, new Set(visitedRefs));
