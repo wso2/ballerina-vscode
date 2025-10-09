@@ -18,7 +18,6 @@ import { ModelMessage, generateText, streamText, stepCountIs, AssistantModelMess
 import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
-import { anthropic } from "@ai-sdk/anthropic";
 import {
     getRewrittenPrompt,
     populateHistory,
@@ -44,7 +43,7 @@ import { getProjectFromResponse, getProjectSource, postProcess } from "../../../
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
-import { handleTextEditorCommands } from "../libs/text_editor_tool";
+import { createEditExecute, createEditTool, createMultiEditExecute, createMultiEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_MULTI_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 
 const SEARCH_LIBRARY_TOOL_NAME = 'LibraryProviderTool';
 
@@ -109,13 +108,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
-            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
-                const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
-                    { command, path, old_str, new_str, file_text, insert_line, view_range });
-                return result.message;
-            }
-        })
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_MULTI_EDIT_TOOL_NAME]: createMultiEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
     const { fullStream, response } = streamText({
@@ -505,13 +501,10 @@ export async function repairCode(params: RepairParams,
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        str_replace_based_edit_tool: anthropic.tools.textEditor_20250728({
-            async execute({ command, path, old_str, new_str, file_text, insert_line, view_range }) {
-                const result = handleTextEditorCommands(updatedSourceFiles, updatedFileNames, 
-                    { command, path, old_str, new_str, file_text, insert_line, view_range });
-                return result.message; 
-            }
-        })
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_MULTI_EDIT_TOOL_NAME]: createMultiEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
     const { text } = await generateText({
