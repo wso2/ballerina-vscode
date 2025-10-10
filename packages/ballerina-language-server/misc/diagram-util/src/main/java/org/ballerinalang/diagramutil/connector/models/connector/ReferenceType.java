@@ -330,6 +330,10 @@ public class ReferenceType {
     }
 
     private static ModuleID getModuleID(Symbol symbol) {
+        if (symbol.kind() == SymbolKind.RECORD_FIELD) {
+            Symbol typeDescriptor = ((RecordFieldSymbol) symbol).typeDescriptor();
+            return getModuleID(typeDescriptor);
+        }
         return symbol.getModule().isPresent()
                 ? symbol.getModule().get().id()
                 : null;
