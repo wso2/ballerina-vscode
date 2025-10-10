@@ -1583,7 +1583,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(QueryActionNode queryActionNode) {
-        handleDefaultStatementNode(queryActionNode);
+        handleExpressionNode(queryActionNode);
     }
 
     @Override
