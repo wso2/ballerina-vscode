@@ -219,8 +219,12 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                     return response;
                 }
 
-                String sessionId = McpClient.sendInitializeRequest(serviceUrl);
-                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId);
+                // Get the access token from the request (if provided)
+                String accessToken = request.accessToken();
+
+                // Send initialize request with optional authentication
+                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken);
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken);
 
                 response.setTools(toolsJsonArray);
                 return response;

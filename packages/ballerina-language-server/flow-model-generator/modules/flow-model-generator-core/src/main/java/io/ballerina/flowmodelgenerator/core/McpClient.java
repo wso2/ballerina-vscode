@@ -40,6 +40,10 @@ import java.util.Map;
 public class McpClient {
 
     public static String sendInitializeRequest(String serviceUrl) throws IOException {
+        return sendInitializeRequest(serviceUrl, null);
+    }
+
+    public static String sendInitializeRequest(String serviceUrl, String accessToken) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = new URL(serviceUrl);
@@ -47,6 +51,12 @@ public class McpClient {
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
+
+            // Add OAuth bearer token if provided
+            if (accessToken != null && !accessToken.trim().isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            }
+
             conn.setDoOutput(true);
             conn.setConnectTimeout(10000); // 10 seconds
             conn.setReadTimeout(10000); // 10 seconds
@@ -107,6 +117,11 @@ public class McpClient {
     }
 
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId) throws IOException {
+        return sendToolsListRequest(serviceUrl, sessionId, null);
+    }
+
+    public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken)
+            throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = new URL(serviceUrl);
@@ -123,6 +138,12 @@ public class McpClient {
             if (sessionId != null && !sessionId.trim().isEmpty()) {
                 conn.setRequestProperty("mcp-session-id", sessionId);
             }
+
+            // Add OAuth bearer token if provided
+            if (accessToken != null && !accessToken.trim().isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            }
+
             conn.setDoOutput(true);
 
             String body = """
