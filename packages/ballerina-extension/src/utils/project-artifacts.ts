@@ -53,13 +53,24 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
     }
     // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
     const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
-    let projectName = workspace?.name;
-    // Get the project name from the ballerina.toml file
-    const commonRpcManager = new CommonRpcManager();
-    const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-    if (tomlValues && tomlValues.package.title) {
-        projectName = tomlValues.package.title;
+
+    let projectName = "";
+    if (workspace) {
+        projectName = workspace.name;
+
+        // Get the project name from the ballerina.toml file
+        const commonRpcManager = new CommonRpcManager();
+        const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
+        if (tomlValues && tomlValues.package.title) {
+            projectName = tomlValues.package.title;
+        }
+    } else {
+        // Project defined within a Ballerina workspace
+        projectName = path.basename(projectDir);
+
+        // TODO: Get the project name from the package Ballerina.toml file
     }
+
     result.projectName = projectName;
 
     if (isUpdate) {

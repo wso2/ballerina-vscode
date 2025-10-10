@@ -14,7 +14,7 @@ import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
@@ -717,31 +717,30 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
     }
 
     if (workspaceFolders.length > 1) {
-        return await handleMultipleWorkspaces(workspaceFolders);
+        return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    return await handleSingleWorkspace(workspaceFolders[0].uri);
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
-async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerina(folder.uri));
+async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]) {
+    const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
 
     if (balProjects.length > 1) {
-        const projectPaths = balProjects.map(folder => folder.uri.fsPath);
-        let selectedProject = await window.showQuickPick(projectPaths, {
-            placeHolder: 'Select a project to load the WSO2 Integrator'
+        // Show notification to guide users to use Ballerina workspaces instead of VSCode workspaces
+        window.showInformationMessage(
+            'Multiple Ballerina projects detected in VSCode workspace. Please use Ballerina workspaces for better project management and native support.',
+            'Learn More'
+        ).then(selection => {
+            if (selection === 'Learn More') {
+                // TODO: Add a guide on how to use Ballerina workspaces
+                // Open documentation or guide about Ballerina workspaces
+                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/organize-ballerina-code/'));
+            }
         });
-
-        if (!selectedProject) {
-            // Pick the first project if the user cancels the selection
-            selectedProject = projectPaths[0];
-        }
-
-        const isBI = checkIsBI(Uri.file(selectedProject));
-        const scope = isBI && fetchScope(Uri.file(selectedProject));
-        const { orgName, packageName } = getOrgPackageName(selectedProject);
-        setBIContext(isBI);
-        return { isBI, projectPath: selectedProject, scope, orgName, packageName };
+        
+        // Return empty result to indicate no project should be loaded
+        return { isBI: false, projectPath: '' };
     } else if (balProjects.length === 1) {
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
@@ -753,19 +752,45 @@ async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFold
     return { isBI: false, projectPath: '' };
 }
 
-async function handleSingleWorkspace(workspaceURI: any) {
-    const isBallerina = checkIsBallerina(workspaceURI);
-    const isBI = isBallerina && checkIsBI(workspaceURI);
-    const scope = fetchScope(workspaceURI);
-    const projectPath = isBallerina ? workspaceURI.fsPath : "";
-    const { orgName, packageName } = getOrgPackageName(projectPath);
+async function handleSingleWorkspaceFolder(workspaceURI: any) {
+    const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
 
-    setBIContext(isBI);
-    if (!isBI) {
-        console.error("No BI enabled workspace found");
+    if (isBallerinaWorkspace) {
+        const firstPackage = getFirstWorkspacePackageName(workspaceURI);
+
+        if (firstPackage) {
+            const packagePath = path.join(workspaceURI.fsPath, firstPackage);
+            const packageUri = Uri.file(packagePath);
+            
+            const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
+            const isBI = isBallerinaPackage && checkIsBI(packageUri);
+            const scope = fetchScope(packageUri);
+            const projectPath = isBallerinaPackage ? packagePath : "";
+            const { orgName, packageName } = getOrgPackageName(projectPath);
+
+            setBIContext(isBI);
+            if (!isBI) {
+                console.error("No BI enabled workspace found");
+            }
+    
+            return { isBI, projectPath, scope, orgName, packageName };
+        } else {
+            return { isBI: false, projectPath: '' };
+        }
+    } else {
+        const isBallerinaPackage = checkIsBallerinaPackage(workspaceURI);
+        const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
+        const scope = fetchScope(workspaceURI);
+        const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
+        const { orgName, packageName } = getOrgPackageName(projectPath);
+    
+        setBIContext(isBI);
+        if (!isBI) {
+            console.error("No BI enabled workspace found");
+        }
+    
+        return { isBI, projectPath, scope, orgName, packageName };
     }
-
-    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {
