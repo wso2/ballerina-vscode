@@ -43,7 +43,8 @@ import {
     DMModelRequest,
     ProcessTypeReferenceResponse,
     ProcessTypeReferenceRequest,
-    ExpandedDMModelResponse
+    ExpandedDMModelResponse,
+    ClearTypeCacheResponse
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -67,3 +68,4 @@ export const getAllDataMapperSource: RequestType<AllDataMapperSourceRequest, Dat
 export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };
 export const getExpandedDMFromDMModel: RequestType<DMModelRequest, ExpandedDMModelResponse> = { method: `${_preFix}/getExpandedDMFromDMModel` };
 export const getProcessTypeReference: RequestType<ProcessTypeReferenceRequest, ProcessTypeReferenceResponse> = { method: `${_preFix}/getProcessTypeReference` };
+export const clearTypeCache: RequestType<void, ClearTypeCacheResponse> = { method: `${_preFix}/clearTypeCache` };
