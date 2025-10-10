@@ -769,7 +769,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     <SectionHeader
                                         title="Event Handlers"
                                         subtitle="Define how the service responds to events"
-                                    />
+                                    >
+                                        <ActionGroup>
+                                            {unusedHandlers.length > 0 && (
+                                                <Button appearance="primary" tooltip="Add Handler" onClick={onSelectAddHandler}>
+                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Handler</ButtonText>
+                                                </Button>
+                                            )}
+                                        </ActionGroup>
+                                    </SectionHeader>
                                     <FunctionsContainer>
                                         {enabledHandlers.map((functionModel, index) => (
                                             <ResourceAccordion
