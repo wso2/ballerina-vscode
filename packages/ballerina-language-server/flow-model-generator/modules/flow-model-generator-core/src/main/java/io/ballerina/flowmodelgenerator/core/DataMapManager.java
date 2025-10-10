@@ -111,6 +111,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArra
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.NameUtil;
@@ -927,6 +928,7 @@ public class DataMapManager {
             case "array" -> handleArrayType(id, name, type, visitedTypes, references);
             case "enum" -> handleEnumType(id, name, typeName, type, visitedTypes, references);
             case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
+            case "tuple" -> handleTupleType(id, name, typeName, type, visitedTypes, references);
             default -> {
                 if (type.hashCode != null && !type.hashCode.isEmpty()) {
                     throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
@@ -1018,6 +1020,20 @@ public class DataMapManager {
 
         processDependentTypes(id, unionType.dependentTypes, visitedTypes, references);
         return unionPort;
+    }
+
+    private MappingPort handleTupleType(String id, String name, String typeName, RefType type,
+                                        Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        MappingTuplePort tuplePort = new MappingTuplePort(id, name, typeName, "tuple", type.key);
+        tuplePort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+
+        for (RefType member : ((RefTupleType) type).memberTypes) {
+            MappingPort memberPort = getRefMappingPort(id, name, member, visitedTypes, references);
+            tuplePort.members.add(memberPort);
+        }
+
+        processDependentTypes(id, type.dependentTypes, visitedTypes, references);
+        return tuplePort;
     }
 
     private MappingPort createSimpleMappingPort(String id, String name, String typeName, RefType type) {
@@ -2595,6 +2611,14 @@ public class DataMapManager {
         }
 
         MappingUnionPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+    }
+
+    private static class MappingTuplePort extends MappingPort {
+        List<MappingPort> members = new ArrayList<>();
+
+        MappingTuplePort(String name, String displayName, String typeName, String kind, String reference) {
             super(name, displayName, typeName, kind, reference);
         }
     }
