@@ -443,7 +443,7 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
 
 async function populateLocalConnectors(projectDir: string, response: ProjectStructureResponse) {
     const filePath = `${projectDir}/Ballerina.toml`;
-    const localConnectors = (await StateMachine.langClient().getOpenApiGeneratedModules({ projectPath: projectDir })).modules;
+    const localConnectors = (await StateMachine.langClient().getOpenApiGeneratedModules({ projectPath: projectDir })).modules || [];
     const mappedEntries: ProjectStructureArtifactResponse[] = localConnectors.map(moduleName => ({
         id: moduleName,
         name: moduleName,
