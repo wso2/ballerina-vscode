@@ -26,12 +26,13 @@ import { useDMSearchStore } from "../../../store/store";
 import { InputNode } from "../Node";
 import { getErrorKind } from "../utils/common-utils";
 import { OverlayLayerModel } from "../OverlayLayer/OverlayLayerModel";
+import { useEffect } from "react";
 
 export const useDiagramModel = (
     nodes: DataMapperNodeModel[],
     diagramModel: DiagramModel,
     onError:(kind: ErrorNodeKind) => void,
-    zoomLevel: number,
+    zoomLevel: number
 ): {
     updatedModel: DiagramModel<DiagramModelGenerics>;
     isFetching: boolean;
@@ -86,7 +87,7 @@ export const useDiagramModel = (
         data: updatedModel,
         isFetching,
         isError,
-        refetch,
+        refetch
     } = useQuery({
         queryKey: [
             'diagramModel',
@@ -102,6 +103,12 @@ export const useDiagramModel = (
         queryFn: genModel,
         networkMode: 'always',
     });
+
+    useEffect(() => {
+        if (model?.triggerRefresh) {
+            refetch();
+        }
+    }, [model, refetch]);
 
     return { updatedModel, isFetching, isError, refetch };
 };
