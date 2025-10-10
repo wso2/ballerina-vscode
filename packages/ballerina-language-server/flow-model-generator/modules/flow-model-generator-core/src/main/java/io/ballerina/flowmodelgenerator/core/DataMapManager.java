@@ -1084,8 +1084,8 @@ public class DataMapManager {
         }
 
         String arrayTypeName = memberTypeName + "[]";
-        if (isExternalType(type) && !isUnionMember) {
-            arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
+        if (isExternalType(type) && !isUnionMember && memberPort.typeInfo == null) {
+            arrayTypeName = type.moduleInfo.modulePrefix + ":" + memberTypeName + "[]";
         }
         return arrayTypeName;
     }
