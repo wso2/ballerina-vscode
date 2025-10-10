@@ -367,8 +367,8 @@ ${JSON.stringify(langlibs, null, 2)}
 - Do not modify the README.md file unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 
-Begin your response with the explanation. The explanation should detail the control flow decided in step 1, along with the selected libraries and their functions.
-Once the explanation is finished, make necessary file edits for the code that needs to generate.
+Begin your response with the very consise explanation. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
+Once the explanation is finished, make necessary File modifications.
 `;
 }
 
