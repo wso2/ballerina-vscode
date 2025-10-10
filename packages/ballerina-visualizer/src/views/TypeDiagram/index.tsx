@@ -288,6 +288,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
+                    type: type,
                     isGraphql: false,
                     position: {
                         startLine: type.codedata.lineRange?.startLine?.line,
@@ -298,6 +299,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     documentUri: type.codedata.lineRange?.fileName
                 },
             });
+            return;
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
