@@ -30,7 +30,7 @@ import {
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
-import { Button, Codicon, Icon, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, LinkButton, TextField, Typography, View } from "@wso2/ui-toolkit";
 import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
 import { TitleBar } from "../../../components/TitleBar";
@@ -202,6 +202,33 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [enabledHandlers, setEnabledHandlers] = useState<FunctionModel[]>([]);
     const [unusedHandlers, setUnusedHandlers] = useState<FunctionModel[]>([]);
 
+
+    const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
+
+
+    const handleCloseInitFunction = () => {
+        setInitFunction(undefined);
+    };
+
+    const handleInitFunctionSave = async (value: FunctionModel) => {
+        setIsSaving(true);
+        const lineRange: LineRange = {
+            startLine: { line: position.startLine, offset: position.startColumn },
+            endLine: { line: position.endLine, offset: position.endColumn },
+        };
+        const res = await rpcClient
+            .getServiceDesignerRpcClient()
+            .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+        const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+        if (serviceArtifact) {
+            fetchService(serviceArtifact.position);
+            await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+            setIsSaving(false);
+            setInitFunction(undefined);
+            return;
+        }
+    }
+
     useEffect(() => {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
             fetchService(position);
@@ -339,6 +366,12 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 if (services.length > 0) {
                     const selectedService = services.find((service) => service.name === serviceIdentifier);
                     setResources(selectedService.resources);
+
+                    // // Remove the init option from setDropdownOptions(options); if init function is here
+                    // if (selectedService.resources.find((func) => func.name === "init")) {
+                    //     const filtered = [...dropdownOptions].filter((option) => option.value !== ADD_INIT_FUNCTION);
+                    //     setDropdownOptions(filtered);
+                    // }
                 }
             });
     };
@@ -414,8 +447,16 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setShowFunctionConfigForm(true);
     };
 
-    const onSelectAddInitFunction = () => {
-        // TODO: Implement add init function functionality
+    const onSelectAddInitFunction = async () => {
+        setIsNew(false);
+        const lsResponse = await rpcClient.getServiceDesignerRpcClient().getFunctionModel({
+            type: 'object',
+            functionName: 'init'
+        });
+        if (lsResponse.function) {
+            setInitFunction(lsResponse.function);
+            console.log(`Adding init function`, lsResponse.function);
+        }
     };
 
     const handleAddDropdownOption = (option: string) => {
@@ -620,6 +661,12 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
 
+    const openInit = async (resource: ProjectStructureArtifactResponse) => {
+        await rpcClient
+            .getVisualizerRpcClient()
+            .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { position: resource.position, documentUri: resource.path } });
+    }
+
 
     const resourcesCount = resources
         .filter((resource) => {
@@ -707,6 +754,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             ))}
                                         </MetadataRow>
                                     )}
+
+                                    {resources?.
+                                        filter((func) => func.name === "init")
+                                        .map((functionModel, index) => (
+                                            <MetadataRow>
+                                                <MetadataLabel> Initialization Function:</MetadataLabel>
+                                                <Typography key={`${index}-value`} variant="body3">
+                                                    <LinkButton
+                                                        sx={{ fontSize: 12, padding: 8, gap: 4, justifyContent: "center" }}
+                                                        onClick={() => openInit(functionModel)}
+                                                    >
+                                                        {functionModel.name}
+                                                    </LinkButton>
+                                                </Typography>
+                                            </MetadataRow>
+                                        ))}
                                 </ServiceMetadataContainer>
                             )}
 
@@ -736,6 +799,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
                                                 return nameMatch || iconMatch;
                                             })
+                                            .filter((resource) => resource.name !== "init")
                                             .map((resource, index) => (
                                                 <ResourceAccordionV2
                                                     key={`${index}-${resource.name}`}
@@ -901,6 +965,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     />
                                 </PanelContainer>
                             )}
+
+
+                            {/* This is for adding a init function to the service */}
+                            <PanelContainer
+                                title={"Add Initialization Function"}
+                                show={!!initFunction}
+                                onClose={handleCloseInitFunction}
+                                onBack={handleCloseInitFunction}
+                                width={400}
+                            >
+                                <FunctionForm
+                                    model={initFunction}
+                                    onSave={handleInitFunctionSave}
+                                    onClose={handleCloseInitFunction}
+                                />
+                            </PanelContainer>
                         </ServiceContainer>
                     </>
                 )
