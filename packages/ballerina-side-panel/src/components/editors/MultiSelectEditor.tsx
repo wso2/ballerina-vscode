@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import { Button, Codicon, Dropdown, OptionProps, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -98,20 +98,30 @@ export function MultiSelectEditor(props: MultiSelectEditorProps) {
     const noOfSelectedValues = field.items.length === 0 ? 0 : (field.value === "" ? 1 : field.value.length);
     const [dropdownCount, setDropdownCount] = useState(noOfSelectedValues);
 
-    // Watch all the individual dropdown values, including the default value
-    const values = [...Array(dropdownCount)].map((_, index) => {
-        const value = watch(`${field.key}-${index}`);
-        if (value === NEW_OPTION) {
-            return;
+    useEffect(() => {
+        for (let index = 0; index < dropdownCount; index++) {
+            const currentValue = watch(`${field.key}-${index}`);
+            if (currentValue === undefined) {
+                const defaultValue = getValueForDropdown(field, index);
+                setValue(`${field.key}-${index}`, defaultValue);
+            }
         }
-        const itemValue = value || getValueForDropdown(field, index);
-        if (value === undefined) {
-            setValue(`${field.key}-${index}`, itemValue);
-        }
-        return itemValue;
-    }).filter(Boolean);
+    }, [dropdownCount, field.key, field, watch, setValue]);
 
-    // Update the main field with the array of values
+    // Watch all the individual dropdown values
+    const watchedValues = useMemo(() =>
+        [...Array(dropdownCount)].map((_, index) =>
+            watch(`${field.key}-${index}`)
+        ),
+        [dropdownCount, field.key, watch]
+    );
+
+    // Calculate values array without side effects
+    const values = useMemo(() => {
+        return watchedValues
+            .filter(value => value && value !== NEW_OPTION);
+    }, [watchedValues, NEW_OPTION]);
+
     useEffect(() => {
         setValue(field.key, values);
     }, [values, field.key, setValue]);
