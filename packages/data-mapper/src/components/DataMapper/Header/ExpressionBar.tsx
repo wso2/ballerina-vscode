@@ -225,7 +225,6 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         }
         await textFieldRef.current.saveExpression(textFieldValue);
         handleCancel();
-        // resetExprBarFocus();
     };
 
     const inputProps: InputProps = {
