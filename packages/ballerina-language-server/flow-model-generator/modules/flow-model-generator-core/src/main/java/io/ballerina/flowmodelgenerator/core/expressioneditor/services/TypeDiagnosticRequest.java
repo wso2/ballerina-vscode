@@ -85,8 +85,15 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
 
         // Check for undefined types
         Types types = semanticModel.get().types();
-        Optional<TypeSymbol> typeSymbol =
-                BallerinaCompilerApi.getInstance().getType(types, document.get(), inputExpression);
+        Optional<TypeSymbol> typeSymbol;
+        try {
+            typeSymbol = BallerinaCompilerApi.getInstance().getType(types, document.get(), inputExpression);
+        } catch (NullPointerException e) {
+            // TODO: Tracked with https://github.com/ballerina-platform/ballerina-lang/issues/44347
+            // Handle cases where the type descriptor doesn't have a parent context
+            // (e.g., anonymous record types like "record {}")
+            return diagnostics;
+        }
         if (typeSymbol.isEmpty()) {
             String message = String.format(UNDEFINED_TYPE, inputExpression);
             diagnostics.add(CommonUtils.createDiagnostic(message, context.getExpressionLineRange(),
