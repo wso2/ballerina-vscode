@@ -71,7 +71,7 @@ ${libraryDescriptions}
 Before calling this tool:
 - Review all library names and their descriptions.
 - Analyze the user query provided in the user message to identify the relevant Ballerina libraries which can be utilized to fulfill the query.
-- Select the minimal set of libraries that can fulfill the query based on their descriptions. 
+- Select the minimal set of libraries that can fulfill the query based on their descriptions.
 
 # Example
 **Query**: Write an integration to read GitHub issues, summarize them, and post the summary to a Slack channel.
@@ -80,7 +80,7 @@ Before calling this tool:
 
 Tool Response:
 Tool responds with the following information about the requested libraries:
-name, description, type definitions (records, objects, enums, type aliases), clients(if any), functions and services(if any).
+name, description, type definitions (records, objects, enums, type aliases), clients (if any), functions and services (if any).
 
 `,
         inputSchema: LibraryProviderToolSchema,

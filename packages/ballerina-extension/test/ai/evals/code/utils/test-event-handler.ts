@@ -16,14 +16,15 @@
 
 import { ChatNotify } from "@wso2/ballerina-core";
 export type CopilotEventHandler = (event: ChatNotify) => void;
-import { TestUseCase, TestEventResult } from '../types';
+import { TestUseCase, TestEventResult, RepairUsageRecord, UsageMetrics, TokenUsageRecord } from '../types';
+import { validateCacheUsage } from './cache-analysis';
 
 /**
  * Creates a test event handler that captures events for testing
  */
-export function createTestEventHandler(useCase?: TestUseCase): { 
-    handler: CopilotEventHandler; 
-    getResult: () => TestEventResult; 
+export function createTestEventHandler(useCase?: TestUseCase): {
+    handler: CopilotEventHandler;
+    getResult: () => TestEventResult;
 } {
     const events: ChatNotify[] = [];
     let fullContent = "";
@@ -34,7 +35,9 @@ export function createTestEventHandler(useCase?: TestUseCase): {
     const messages: unknown[] = [];
     let startTime: number | undefined;
     let endTime: number | undefined;
-
+    let initialUsage: TokenUsageRecord | null = null;
+    const repairUsages: RepairUsageRecord[] = [];
+    let repairCounter = 0;
     const handler: CopilotEventHandler = (event: ChatNotify): void => {
         events.push(event);
 
@@ -78,11 +81,37 @@ export function createTestEventHandler(useCase?: TestUseCase): {
                 console.log(`[${useCase?.id || 'unknown'}] Tool called: ${event.toolName}`);
                 break;
             case "tool_result":
-                console.log(`[${useCase?.id || 'unknown'}] Tool result from ${event.toolName}: ${event.libraryNames?.join(', ') || 'no libraries'}`);
+                if (event.toolName == "LibraryProviderTool") {
+                    console.log(
+                        `[${useCase?.id || "unknown"}] Tool result from ${event.toolName}: ${
+                            event.toolOutput?.join(", ") || "no libraries"
+                        }`
+                    );
+                }
+                else{
+                    console.log(`[${useCase?.id || "unknown"}] Tool result from ${event.toolName}:`);
+                    console.log(JSON.stringify(event.toolOutput, null, 2));
+                }
                 break;
             case "evals_tool_result":
                 console.log(`[${useCase?.id || 'unknown'}] [EVALS] Tool result from ${event.toolName}:`);
                 console.log(JSON.stringify(event.output, null, 2));
+                break;
+            case "usage_metrics":
+                console.log(`[${useCase?.id || 'unknown'}] Usage metrics received:`, {
+                    usage: event.usage,
+                    isRepair: event.isRepair
+                });
+                if (event.isRepair) {
+                    repairCounter++;
+                    const repairRecord: RepairUsageRecord = {
+                        ...event.usage,
+                        iteration: repairCounter
+                    };
+                    repairUsages.push(repairRecord);
+                } else {
+                    initialUsage = event.usage;
+                }
                 break;
             default:
                 console.warn(`[${useCase?.id || 'unknown'}] Unhandled event type: ${(event as unknown as { type: string }).type}`);
@@ -90,19 +119,37 @@ export function createTestEventHandler(useCase?: TestUseCase): {
         }
     };
 
-    const getResult = (): TestEventResult => ({
-        events,
-        fullContent,
-        hasStarted,
-        hasCompleted,
-        errorOccurred,
-        diagnostics,
-        messages,
-        useCase,
-        startTime,
-        endTime,
-        duration: startTime && endTime ? endTime - startTime : undefined,
-    });
+    const getResult = (): TestEventResult => {
+        let usageMetrics: UsageMetrics | undefined;
+
+        if (initialUsage || repairUsages.length > 0) {
+            // Calculate cache validation using raw token data
+            const validationResults = validateCacheUsage(initialUsage, repairUsages);
+
+            usageMetrics = {
+                usage: {
+                    initial: initialUsage,
+                    repairs: repairUsages,
+                    overallCachePerformanceValidation: validationResults
+                }
+            };
+        }
+
+        return {
+            events,
+            fullContent,
+            hasStarted,
+            hasCompleted,
+            errorOccurred,
+            diagnostics,
+            messages,
+            useCase,
+            startTime,
+            endTime,
+            duration: startTime && endTime ? endTime - startTime : undefined,
+            usageMetrics,
+        };
+    };
 
     return { handler, getResult };
 }

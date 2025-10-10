@@ -572,6 +572,19 @@ function addInternalRecord(
             }
 
             const typeDefResult = getTypeDefByName(link.recordName, allTypeDefs);
+
+            // Temporarily remove descriptions to reduce payload size
+            if (typeDefResult && "description" in typeDefResult) {
+                delete typeDefResult.description;
+            }
+            if (typeDefResult && typeDefResult.type === TYPE_RECORD) {
+                const recordDef = typeDefResult as RecordTypeDefinition;
+                for (const field of recordDef.fields) {
+                    if ("description" in field) {
+                        delete field.description;
+                    }
+                }
+            }
             if (typeDefResult) {
                 ownRecords.set(link.recordName, typeDefResult);
                 foundTypes.push(typeDefResult);
