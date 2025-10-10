@@ -70,6 +70,21 @@ const MethodPath = styled.span`
     margin-left: 10px;
 `;
 
+const MethodBox = styled.div`
+    display: flex;
+    justify-content: center;
+    height: 25px;
+    min-width: 70px;
+    width: auto;
+    margin-left: 0px;
+    text-align: center;
+    padding: 3px 5px 3px 5px;
+    background-color: #876036;
+    color: #FFF;
+    align-items: center;
+    font-weight: bold;
+`;
+
 const colors = {
     "GET": '#3d7eff',
     "PUT": '#fca130',
@@ -157,18 +172,21 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
         <AccordionContainer data-testid="service-design-view-resource">
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
+                    <MethodBox>
+                        handler
+                    </MethodBox>
                     <MethodPath>{functionModel.name.value}</MethodPath>
                 </MethodSection>
-                {functionModel.editable &&
+                {functionModel &&
                     <ButtonSection>
                         <>
                             {onEditResource! && (
-                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={handleEditResource} disabled={!functionModel.editable}>
+                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={() => { }}>
                                     <Icon name="editIcon" sx={{ marginTop: 3.5 }} />
                                 </Button>
                             )}
                             {onDeleteResource! && (
-                                <Button appearance="icon" tooltip="Delete FunctionModel" onClick={handleDeleteResource} disabled={!functionModel.editable}>
+                                <Button appearance="icon" tooltip="Delete FunctionModel" onClick={handleDeleteResource}>
                                     <Codicon name="trash" />
                                 </Button>
                             )}
