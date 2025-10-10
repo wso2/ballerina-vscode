@@ -53,7 +53,7 @@ export interface ToolCallEvent {
 export interface ToolResultEvent {
     readonly type: "tool_result";
     readonly toolName: string;
-    readonly libraryNames: readonly string[];
+    readonly toolOutput: any;
 }
 
 /**
@@ -85,7 +85,60 @@ export interface UsecaseResult {
     readonly toolEvents?: readonly ToolEvent[];
     readonly iteration?: number;
     readonly evaluationResult: LLMEvaluationResult;
+    readonly usage?: {
+        readonly initial: {
+            readonly inputTokens: number;
+            readonly cacheCreationInputTokens: number;
+            readonly cacheReadInputTokens: number;
+            readonly outputTokens: number;
+        };
+        readonly repairs: readonly {
+            readonly inputTokens: number;
+            readonly cacheCreationInputTokens: number;
+            readonly cacheReadInputTokens: number;
+            readonly outputTokens: number;
+            readonly iteration: number;
+        }[];
+        readonly overallCachePerformanceValidation?: {
+            readonly initialGenerationCheck: "pass" | "warning";
+            readonly firstRepairCheck: "pass" | "fail" | "not_applicable";
+            readonly subsequentRepairsCheck: "pass" | "warning" | "not_applicable";
+            readonly issues: readonly string[];
+        };
+    };
 }
+
+
+/**
+ * Aggregated usage metrics across all test cases
+ */
+export interface AggregatedUsageMetrics {
+    readonly totalUseCases: number;
+    readonly initialGeneration: { hits: number; creation: number };
+    readonly repairs: {
+        readonly [repairIteration: string]: {
+            count: number;
+            hits: number;
+            creation: number;
+        };
+    };
+}
+
+/**
+ * Overall cache validation results with performance analysis
+ */
+export interface OverallCacheValidation {
+    readonly initialCacheEfficiency: "pass" | "fail";
+    readonly firstRepairAllReads: "pass" | "fail" | "not_applicable";
+    readonly subsequentRepairsNoWrites: "pass" | "fail" | "not_applicable";
+    readonly overallStatus: "pass" | "fail";
+    readonly InitialGenCacheCreation: number;
+    readonly repairIterationCounts: {
+        readonly [repairIteration: string]: number;
+    };
+    readonly validationIssues: readonly string[];
+}
+
 
 /**
  * Per-test-case accuracy across iterations
@@ -130,6 +183,8 @@ export interface Summary {
     readonly iterationResults?: readonly IterationSummary[];
     readonly perTestCaseAccuracy?: readonly TestCaseAccuracy[];
     readonly evaluationSummary: number
+    readonly aggregatedUsage?: AggregatedUsageMetrics;
+    readonly overallCacheValidation?: OverallCacheValidation;
 }
 
 /**
@@ -141,6 +196,8 @@ export interface SummaryCompact {
     readonly totalFailed: number;
     readonly accuracy: number;
     readonly evaluationSummary: number
+    readonly aggregatedUsage?: AggregatedUsageMetrics;
+    readonly overallCacheValidation?: OverallCacheValidation;
 }
 
 /**
@@ -153,4 +210,11 @@ export interface UsecaseCompact {
     readonly iteration?: number;
     readonly toolEvents?: readonly ToolEvent[];
     readonly evaluationResult: LLMEvaluationResult;
+    readonly usage?: {
+        readonly totalTokens: number;
+        readonly cacheHits: number;
+        readonly cacheCreations: number;
+        readonly repairCount: number;
+        readonly cacheValidationStatus: "pass" | "warning" | "fail" | "unknown";
+    };
 }
