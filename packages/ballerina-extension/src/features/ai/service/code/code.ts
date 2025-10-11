@@ -267,6 +267,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
+                
                 eventHandler({ type: "stop", command: Command.Code });
                 break;
             }
@@ -384,11 +385,12 @@ ${JSON.stringify(langlibs, null, 2)}
 ### File modifications
 - You must apply changes to the existing source code using the provided ${[FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
-- Do not modify the README.md file unless explicitly asked to be modified in the query.
+- Do not modify documentation such as .md files unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
+- Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
-Begin your response with the very consise explanation. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
-Once the explanation is finished, make necessary File modifications.
+Begin your response with the very consice explanation. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
+Once the explanation is finished, make the necessary File modifications. Avoid any usage guides or explanations after the file modifications.
 `;
 }
 
