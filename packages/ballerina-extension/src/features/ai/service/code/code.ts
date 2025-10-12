@@ -144,7 +144,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         // TODO: temporary solution until this get refactored properly
                         // send this pattern <code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>
                         // to temprorily indicate the start of code generation in the webview
-                        eventHandler({ type: "content_block", content: "<code filename=\"temp.bal\" type=\"ai_map\">\n```ballerina\n// Code Generation\n```\n</code>" });
+                        eventHandler({ type: "content_block", content: "<code filename=\"temp.bal\">\n```ballerina\n// Code Generation\n```\n</code>" });
                     }
                 }
                 eventHandler({ type: "tool_call", toolName });
