@@ -23,19 +23,10 @@
       "returning": false,
       "properties": {
         "permittedTools": {
-          "metadata": {
-            "label": "Permitted Tools"
-          },
-          "valueType": "MULTIPLE_SELECT",
-          "valueTypeConstraint": "Global",
-          "value": [],
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false,
-          "codedata": {
-            "kind": "REQUIRED"
-          }
+          "hidden": true
         },
         "serverUrl": {
           "metadata": {
@@ -802,7 +793,10 @@
           "codedata": {}
         },
         "variable": {
-          "metadata": {},
+          "metadata": {
+            "label": "Result",
+            "description": "Name of the result variable"
+          },
           "valueType": "IDENTIFIER",
           "value": "aiMcpbasetoolkit",
           "optional": false,
