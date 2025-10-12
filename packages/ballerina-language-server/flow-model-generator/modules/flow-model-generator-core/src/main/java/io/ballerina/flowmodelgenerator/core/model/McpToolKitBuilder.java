@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.model;
 
+import com.google.gson.Gson;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
@@ -31,6 +32,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.Range;
@@ -74,6 +76,8 @@ public class McpToolKitBuilder extends NodeBuilder {
     private static final String INIT_METHOD_NAME = "init";
     private static final String MINIMUM_COMPATIBLE_AI_VERSION = "1.6.0";
     private static final String CONNECTIONS_BAL = "connections.bal";
+    public static final String MCP_CLASS_DEFINITION = "mcpClassDefinition";
+    private static final Gson gson = new Gson();
 
     @Override
     public void setConcreteConstData() {
@@ -92,13 +96,15 @@ public class McpToolKitBuilder extends NodeBuilder {
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MCP_TOOL_KIT)
                 .build();
 
-        // Update permittedTools type to MULTIPLE_SELECT
-        ParameterData permittedTools = functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
-        properties().custom()
-                .codedata().kind("REQUIRED").stepOut()
-                .metadata().label(permittedTools.label()).description(permittedTools.description()).stepOut()
-                .typeConstraint(GLOBAL_SCOPE).type(ValueType.MULTIPLE_SELECT).hidden()
-                .editable().stepOut().addProperty(permittedTools.name());
+        metadata().label(functionData.packageName()).description(functionData.description())
+                .icon(generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
+
+        codedata().org(functionData.org()).module(functionData.moduleName()).packageName(functionData.packageName())
+                .object(functionData.name()).version(functionData.version());
+
+        // Hide permittedTools property
+        functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
+        setPermittedToolsProperty(this, null);
 
         metadata().label(functionData.packageName()).description(functionData.description())
                 .icon(generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
@@ -108,13 +114,26 @@ public class McpToolKitBuilder extends NodeBuilder {
         setParameterProperties(functionData);
 
         if (hasCompatibleAiVersion(aiModuleVersion)) {
-            properties().custom()
-                    .metadata().label(TOOL_KIT_NAME_PROPERTY_LABEL).description(TOOL_KIT_NAME_DESCRIPTION).stepOut()
-                    .typeConstraint(GLOBAL_SCOPE).value(TOOL_KIT_DEFAULT_CLASS_NAME).type(ValueType.IDENTIFIER)
-                    .editable().stepOut().addProperty(TOOL_KIT_NAME_PROPERTY);
+            setToolKitNameProperty(this, TOOL_KIT_DEFAULT_CLASS_NAME);
             setReturnType(AI_MCP_BASE_TOOL_KIT_TYPE_WITH_PREFIX, context);
         } else {
             setReturnType(functionData.returnType(), context);
+        }
+    }
+
+    public static void setToolKitNameProperty(NodeBuilder nodeBuilder, String toolKitName) {
+        nodeBuilder.properties().custom()
+                .metadata().label(TOOL_KIT_NAME_PROPERTY_LABEL).description(TOOL_KIT_NAME_DESCRIPTION).stepOut()
+                .typeConstraint(GLOBAL_SCOPE).value(toolKitName).type(ValueType.IDENTIFIER)
+                .editable().stepOut().addProperty(TOOL_KIT_NAME_PROPERTY);
+    }
+
+    public static void setPermittedToolsProperty(NodeBuilder nodeBuilder, List<String> permittedTools) {
+        if (permittedTools != null) {
+            nodeBuilder.properties().custom().hidden().value(permittedTools).editable().stepOut()
+                    .addProperty(PERMITTED_TOOLS_PROPERTY);
+        } else {
+            nodeBuilder.properties().custom().hidden().editable().stepOut().addProperty(PERMITTED_TOOLS_PROPERTY);
         }
     }
 
@@ -165,19 +184,26 @@ public class McpToolKitBuilder extends NodeBuilder {
     }
 
     private void setReturnType(String returnType, TemplateContext context) {
-        properties().type(returnType, false, null, false, RESULT_TYPE_LABEL)
+        properties().type(returnType, false, null, true, RESULT_TYPE_LABEL)
                 .data(returnType, context.getAllVisibleSymbolNames(), RESULT_NAME, RESULT_DOC);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        // TODO: if it's an update find find the already generated MCP toolkit class and update that
 
-        Property toolKitNameProperty = getToolKitNameProperty(sourceBuilder.flowNode);
-        Path connectionsFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
-                .resolve(CONNECTIONS_BAL);
+        Path connectionsFilePath =
+                sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(CONNECTIONS_BAL);
         Range defaultRange = getDefaultLineRange(sourceBuilder, connectionsFilePath);
+
+        if ((sourceBuilder.flowNode.codedata().isNew() == null || !sourceBuilder.flowNode.codedata().isNew())) {
+            connectionsFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
+                    .resolve(sourceBuilder.flowNode.codedata().lineRange().fileName());
+            LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+            defaultRange = CommonUtils.toRange(lineRange);
+        }
+
         Set<String> ignoredProperties = Set.of(VARIABLE_KEY, TYPE_KEY, SCOPE_KEY, CHECK_ERROR_KEY);
+        Property toolKitNameProperty = getToolKitNameProperty(sourceBuilder.flowNode);
         if (toolKitNameProperty == null) {
             // Generate the following code
             // ```final ai:McpToolKit aiMcpToolkit = new ("http://...")```
@@ -201,7 +227,26 @@ public class McpToolKitBuilder extends NodeBuilder {
             sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
             sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
             String sourceCode = generateMcpToolKitClassSource(toolKitName, permittedTools);
-            sourceBuilder.token().source(sourceCode).skipFormatting().stepOut().textEdit();
+
+            // Check if class definition data exists in codedata
+            Map<String, Object> data = sourceBuilder.flowNode.codedata().data();
+            if (data != null && data.containsKey(MCP_CLASS_DEFINITION)) {
+                Object classDefinitionCodedata = data.get(MCP_CLASS_DEFINITION);
+                Codedata codedata = gson.fromJson(gson.toJsonTree(classDefinitionCodedata),
+                        Codedata.class);
+                LineRange lineRange = codedata.lineRange();
+
+                // Use the class definition location for the text edit
+                Path classFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
+                        .resolve(lineRange.fileName());
+                Range classRange = CommonUtils.toRange(lineRange);
+
+                sourceBuilder.token().source(sourceCode).skipFormatting().stepOut()
+                        .textEdit(SourceBuilder.SourceKind.STATEMENT, classFilePath, classRange);
+            } else {
+                // Use default agents.bal location
+                sourceBuilder.token().source(sourceCode).skipFormatting().stepOut().textEdit();
+            }
 
             // 2. Initialize an instance of that class
             sourceBuilder.flowNode.properties().remove(TOOL_KIT_NAME_PROPERTY);
