@@ -225,7 +225,7 @@ public class McpClient {
                 errorResponse.append(line);
             }
             return errorResponse.toString();
-        } catch (Exception e) {
+        } catch (IOException e) {
             return null;
         }
     }
