@@ -8,6 +8,6 @@ distribution = "2201.12.7"
 observabilityIncluded = true
 
 [[dependency]]
-org="ballerina"
-name="ai"
-version="1.5.4"
+org = "ballerina"
+name = "ai"
+version = "1.5.4"
