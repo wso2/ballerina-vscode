@@ -128,6 +128,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     let assistantResponse: string = "";
     let finalResponse: string = "";
     let selectedLibraries: string[] = [];
+    let codeGenStart = false;
     for await (const part of fullStream) {
         switch (part.type) {
             case "tool-call": {
@@ -135,9 +136,17 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 console.log(`[Tool Call] Tool call started: ${toolName}`);
                 if (toolName == "LibraryProviderTool") {
                     selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
-                    eventHandler({ type: "tool_call", toolName });
                     assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
                 }
+                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+                    if(!codeGenStart) {
+                        codeGenStart = true;
+                        // send this pattern <code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>
+                        // to temprorily indicate the start of code generation in the webview
+                        eventHandler({ type: "content_block", content: "<code filename=\"temp.bal\" type=\"ai_map\">\n```ballerina\n// Code Generation\n```\n</code>" });
+                    }
+                }
+                eventHandler({ type: "tool_call", toolName });
                 break;
             }
             case "tool-result": {
@@ -264,6 +273,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     assistantResponse += "\n\n" + diagnosticFixResp;
                 }
                 console.log("Final Diagnostics ", diagnostics);
+                codeGenStart = false;
                 eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
