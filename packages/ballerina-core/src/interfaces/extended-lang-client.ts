@@ -1754,8 +1754,7 @@ export interface AIToolResponse {
 
 export interface McpToolsRequest {
     serviceUrl?: string;
-    configs?: Record<string, string>;
-    filePath?: string;
+    accessToken?: string;
 }
 
 export interface McpToolsResponse {
@@ -1763,7 +1762,7 @@ export interface McpToolsResponse {
         name: string;
         description?: string;
     }>;
-    error?: string;
+    errorMsg?: string;
 }
 
 export interface AIGentToolsRequest {
