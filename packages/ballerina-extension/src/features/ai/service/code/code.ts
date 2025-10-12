@@ -84,7 +84,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(sourceFiles, params.operationType, GenerationType.CODE_GENERATION),
+            content: getSystemPromptPrefix(sourceFiles, params.operationType),
         },
         {
             role: "system",
@@ -321,14 +321,8 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType, generationType: GenerationType): string {
-    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your should ONLY answer Ballerina related queries.
-
-${
-    generationType === GenerationType.HEALTHCARE_GENERATION
-        ? "- For healthcare-related queries, ALWAYS include the following libraries in the ${SEARCH_LIBRARY_TOOL_NAME} call in addition to those selected based on the query: ballerinax/health.base, ballerinax/health.fhir.r4, ballerinax/health.fhir.r4.parser, ballerinax/health.fhir.r4utils, ballerinax/health.fhir.r4.international401, ballerinax/health.hl7v2commons, ballerinax/health.hl7v2."
-        : ""
-}`;
+function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType): string {
+    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your should ONLY answer Ballerina related queries.`;
 
     if (op === "CODE_FOR_USER_REQUIREMENT") {
         return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
