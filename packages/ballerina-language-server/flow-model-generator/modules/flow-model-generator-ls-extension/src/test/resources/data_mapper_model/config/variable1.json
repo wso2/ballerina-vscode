@@ -6,18 +6,18 @@
     "lineRange": {
       "fileName": "variable1.bal",
       "startLine": {
-        "line": 20,
+        "line": 22,
         "offset": 12
       },
       "endLine": {
-        "line": 20,
+        "line": 22,
         "offset": 33
       }
     },
     "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 20,
+    "line": 21,
     "offset": 12
   },
   "propertyKey": "expression",
@@ -72,6 +72,20 @@
             "displayName": "'record",
             "typeName": "string",
             "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "data",
+            "displayName": "data",
+            "typeName": "json",
+            "kind": "json",
+            "optional": false
+          },
+          {
+            "name": "info",
+            "displayName": "info",
+            "typeName": "any",
+            "kind": "any",
             "optional": false
           }
         ],

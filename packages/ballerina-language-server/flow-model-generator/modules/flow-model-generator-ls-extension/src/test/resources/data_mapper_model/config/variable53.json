@@ -1,0 +1,111 @@
+{
+  "source": "variable32.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable32.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 14,
+        "offset": 25
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 14,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "fields": [],
+            "name": "a",
+            "displayName": "a",
+            "typeName": "Student",
+            "kind": "record",
+            "ref": "545732303"
+          },
+          {
+            "fields": [],
+            "name": "a",
+            "displayName": "a",
+            "typeName": "Person",
+            "kind": "record",
+            "ref": "887620673"
+          }
+        ],
+        "name": "a",
+        "displayName": "a",
+        "typeName": "[Student, Person]",
+        "kind": "tuple",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "545732303"
+    },
+    "mappings": [],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "info1",
+            "displayName": "info1",
+            "typeName": "xml",
+            "kind": "xml",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}
