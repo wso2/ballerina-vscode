@@ -2420,7 +2420,11 @@ export class BallerinaExtension {
             if (error instanceof Error) {
                 debug(`[SYNC_ENV] Error name: ${error.name}`);
                 debug(`[SYNC_ENV] Error message: ${error.message}`);
-                debug(`[SYNC_ENV] Error stack: ${error.stack}`);
+                if (error.stack) {
+                    console.log("--- Stack Trace ---");
+                    debug(`${error.stack}`);
+                    console.log("-------------------");
+                }
             }
             // Don't throw the error, as this is not critical for basic functionality
         }
