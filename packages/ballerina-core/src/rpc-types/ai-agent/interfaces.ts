@@ -79,11 +79,8 @@ export interface AIAgentResponse {
 
 export interface McpToolUpdateRequest {
     agentFlowNode: FlowNode;
-    serviceUrl: string;
     selectedTools: string[];
-    formValues?: FlowNode; // Optional: form values from AddMcpServer
-    updatedNode?: FlowNode; // Optional: updated node for toolkit edits
-    mcpTools?: any[]; // Optional: list of MCP tools
+    updatedNode?: FlowNode;
 }
 
 export interface ToolParameters {
