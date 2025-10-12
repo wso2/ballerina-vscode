@@ -141,6 +141,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
                     if(!codeGenStart) {
                         codeGenStart = true;
+                        // TODO: temporary solution until this get refactored properly
                         // send this pattern <code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>
                         // to temprorily indicate the start of code generation in the webview
                         eventHandler({ type: "content_block", content: "<code filename=\"temp.bal\" type=\"ai_map\">\n```ballerina\n// Code Generation\n```\n</code>" });
