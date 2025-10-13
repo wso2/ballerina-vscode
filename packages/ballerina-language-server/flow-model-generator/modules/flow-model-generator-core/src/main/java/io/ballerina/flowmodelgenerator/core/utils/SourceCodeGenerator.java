@@ -225,9 +225,7 @@ public class SourceCodeGenerator {
 
     private String generateFieldMember(Member member, boolean withDefaultValue) {
         // Add the imports
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
+        addMemberImports(member);
 
         StringBuilder stringBuilder = new StringBuilder();
         String docs = generateDocs(member.docs(), "\t");
@@ -241,9 +239,7 @@ public class SourceCodeGenerator {
 
     private String generateAnnotatedFieldMember(Member member, boolean withDefaultValue) {
         // Add the imports
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
+        addMemberImports(member);
 
         // Docs
         String docs = generateDocs(member.docs(), "\t");
@@ -413,9 +409,7 @@ public class SourceCodeGenerator {
 
     private String generateTypeFromMember(Member member) {
         // Add the imports
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
+        addMemberImports(member);
 
         // Generate the type descriptor
         return generateTypeDescriptor(member.type());
@@ -429,10 +423,7 @@ public class SourceCodeGenerator {
 
     private String generateFunctionParameter(Member member, boolean withDefaultValue) {
         // Add the imports
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
-
+        addMemberImports(member);
 
         // Annotation and type descriptor
         List<TypeData.AnnotationAttachment> copyOfAnnotAttachments = getAnnotationAttachments(member);
@@ -492,9 +483,7 @@ public class SourceCodeGenerator {
 
     private String generateResourceFunction(Function function) {
         // Add the imports
-        if (Objects.nonNull(function.imports())) {
-            function.imports().forEach(this.imports::putIfAbsent);
-        }
+        addFunctionImports(function);
 
         String docs = generateDocs(function.description(), "\t");
 
@@ -547,5 +536,27 @@ public class SourceCodeGenerator {
     private boolean isReadonlyFlagOn(Map<String, Property> properties) {
         Property readonlyProperty = properties.get(Property.IS_READ_ONLY_KEY);
         return readonlyProperty != null && readonlyProperty.value().equals("true");
+    }
+
+    /**
+     * Helper method to add imports from a member to the imports map
+     *
+     * @param member The member whose imports need to be added
+     */
+    private void addMemberImports(Member member) {
+        if (Objects.nonNull(member.imports())) {
+            member.imports().forEach(this.imports::putIfAbsent);
+        }
+    }
+
+    /**
+     * Helper method to add imports from a function to the imports map
+     *
+     * @param function The function whose imports need to be added
+     */
+    private void addFunctionImports(Function function) {
+        if (Objects.nonNull(function.imports())) {
+            function.imports().forEach(this.imports::putIfAbsent);
+        }
     }
 }
