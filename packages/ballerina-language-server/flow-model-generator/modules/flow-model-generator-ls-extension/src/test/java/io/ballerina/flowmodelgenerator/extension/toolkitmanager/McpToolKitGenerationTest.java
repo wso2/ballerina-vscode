@@ -38,6 +38,7 @@ import java.util.Optional;
  * @since 1.3.1
  */
 public class McpToolKitGenerationTest extends AbstractLSTest {
+
     public static final String AGENTS_BAL_FILE_NAME = "agents.bal";
     public static final String CONNECTIONS_BAL_FILE_NAME = "connections.bal";
     public static final String TEXT_EDITS_RESPONSE_KEY_NAME = "textEdits";
@@ -46,8 +47,12 @@ public class McpToolKitGenerationTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-                {Path.of("mcp_toolkit_class_generation.json")},
-                {Path.of("mcp_toolkit_generation.json")}
+                {Path.of("mcp_toolkit_generation_with_class.json")},
+                {Path.of("mcp_toolkit_generation_without_class.json")},
+                {Path.of("mcp_toolkit_generation_edit.json")},
+                {Path.of("mcp_toolkit_generation_edit_without_class.json")},
+                {Path.of("mcp_toolkit_generation_empty_permitted_tools.json")},
+                {Path.of("mcp_toolkit_generation_with_special_tool_names.json")}
         };
     }
 
