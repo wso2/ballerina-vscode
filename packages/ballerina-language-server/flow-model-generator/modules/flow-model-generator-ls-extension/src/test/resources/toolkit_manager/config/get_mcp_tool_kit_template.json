@@ -22,12 +22,6 @@
       },
       "returning": false,
       "properties": {
-        "permittedTools": {
-          "optional": false,
-          "editable": true,
-          "advanced": false,
-          "hidden": true
-        },
         "serverUrl": {
           "metadata": {
             "label": "Server Url"
@@ -52,6 +46,17 @@
               "selected": false
             }
           ]
+        },
+        "permittedTools": {
+          "placeholder": "()",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": true,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "permittedTools"
+          }
         },
         "info": {
           "metadata": {

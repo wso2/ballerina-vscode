@@ -1,44 +1,40 @@
 {
   "source": "ai_with_version",
   "flowNode": {
-    "id": "31",
+    "id": "34878",
     "metadata": {
       "label": "ai",
-      "description": "",
+      "description": "Represents a toolkit for interacting with an MCP server, invoking tools via the MCP protocol.",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.4.png"
     },
     "codedata": {
       "node": "MCP_TOOL_KIT",
       "org": "ballerina",
       "module": "ai",
-      "packageName": "ai",
       "object": "McpToolKit",
-      "version": "1.5.4",
-      "isNew": true
+      "symbol": "init",
+      "lineRange": {
+        "fileName": "connections.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 158
+        }
+      },
+      "sourceCode": "final ai:McpToolKit aiMcptoolkit = check new (\"https://mcp.deepwiki.com/mcp\", permittedTools = [\"read_wiki_structure\", \"read_wiki_contents\", \"ask_question\"]);"
     },
     "returning": false,
     "properties": {
-      "permittedTools": {
-        "metadata": {
-          "label": "Permitted Tools"
-        },
-        "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "Global",
-        "value": [],
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "REQUIRED"
-        }
-      },
       "serverUrl": {
         "metadata": {
           "label": "Server Url"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
+        "value": "\"https://mcp.deepwiki.com/mcp\"",
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -54,9 +50,45 @@
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
+            "selected": true
+          }
+        ],
+        "modified": false
+      },
+      "permittedTools": {
+        "metadata": {
+          "label": "Permitted Tools"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string[]|()",
+        "value": "[\"ask_question\"]",
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "permittedTools"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "ARRAY_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
-        ]
+        ],
+        "defaultValue": "()",
+        "modified": false
       },
       "info": {
         "metadata": {
@@ -85,12 +117,14 @@
         "imports": {
           "mcp": "ballerina/mcp"
         },
-        "defaultValue": "{name: \"\", version: \"\"}"
+        "defaultValue": "{name: \"\", version: \"\"}",
+        "value": "{\n    name: \"MCP Server\",\n    version: \"1.0.0\"\n}",
+        "modified": true
       },
       "httpVersion": {
         "metadata": {
           "label": "HTTP Version",
-          "description": "The HTTP version understood by the client"
+          "description": "HTTP protocol version supported by the client"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpVersion",
@@ -106,7 +140,7 @@
         "typeMembers": [
           {
             "type": "HttpVersion",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
@@ -115,12 +149,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "\"2.0\""
+        "defaultValue": "\"2.0\"",
+        "value": "",
+        "modified": false
       },
       "http1Settings": {
         "metadata": {
           "label": "HTTP1 Settings",
-          "description": "Configurations related to HTTP/1.x protocol"
+          "description": "HTTP/1.x specific settings"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ClientHttp1Settings",
@@ -136,7 +172,7 @@
         "typeMembers": [
           {
             "type": "ClientHttp1Settings",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -145,12 +181,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "{}"
+        "defaultValue": "{}",
+        "value": "",
+        "modified": false
       },
       "http2Settings": {
         "metadata": {
           "label": "HTTP2 Settings",
-          "description": "Configurations related to HTTP/2 protocol"
+          "description": "HTTP/2 specific settings"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ClientHttp2Settings",
@@ -166,7 +204,7 @@
         "typeMembers": [
           {
             "type": "ClientHttp2Settings",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -175,12 +213,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "{}"
+        "defaultValue": "{}",
+        "value": "",
+        "modified": false
       },
       "timeout": {
         "metadata": {
           "label": "Timeout",
-          "description": "The maximum time to wait (in seconds) for a response before closing the connection"
+          "description": "Maximum time(in seconds) to wait for a response before the request times out"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "decimal",
@@ -202,12 +242,14 @@
             "selected": false
           }
         ],
-        "defaultValue": "0.0d"
+        "defaultValue": "0.0d",
+        "value": "",
+        "modified": false
       },
       "forwarded": {
         "metadata": {
           "label": "Forwarded",
-          "description": "The choice of setting `forwarded`/`x-forwarded` header"
+          "description": "The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -229,12 +271,14 @@
             "selected": false
           }
         ],
-        "defaultValue": "\"\""
+        "defaultValue": "\"\"",
+        "value": "",
+        "modified": false
       },
       "followRedirects": {
         "metadata": {
           "label": "Follow Redirects",
-          "description": "Configurations associated with Redirection"
+          "description": "HTTP redirect handling configurations (with 3xx status codes)"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:FollowRedirects|()",
@@ -250,7 +294,7 @@
         "typeMembers": [
           {
             "type": "FollowRedirects",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -266,12 +310,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "poolConfig": {
         "metadata": {
           "label": "Pool Config",
-          "description": "Configurations associated with request pooling"
+          "description": "Configurations associated with the request connection pool"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:PoolConfiguration|()",
@@ -287,7 +333,7 @@
         "typeMembers": [
           {
             "type": "PoolConfiguration",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -303,12 +349,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "cache": {
         "metadata": {
           "label": "Cache",
-          "description": "HTTP caching related configurations"
+          "description": "HTTP response caching related configurations"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:CacheConfig",
@@ -324,7 +372,7 @@
         "typeMembers": [
           {
             "type": "CacheConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -333,12 +381,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "{}"
+        "defaultValue": "{}",
+        "value": "",
+        "modified": false
       },
       "compression": {
         "metadata": {
           "label": "Compression",
-          "description": "Specifies the way of handling compression (`accept-encoding`) header"
+          "description": "Enable request/response compression (using `accept-encoding` header)"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:Compression",
@@ -354,7 +404,7 @@
         "typeMembers": [
           {
             "type": "Compression",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "BASIC_TYPE",
             "selected": false
@@ -363,12 +413,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "\"AUTO\""
+        "defaultValue": "\"AUTO\"",
+        "value": "",
+        "modified": false
       },
       "auth": {
         "metadata": {
           "label": "Auth",
-          "description": "Configurations related to client authentication"
+          "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig|()",
@@ -384,49 +436,49 @@
         "typeMembers": [
           {
             "type": "CredentialsConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "BearerTokenConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "JwtIssuerConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2ClientCredentialsGrantConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2PasswordGrantConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2RefreshTokenGrantConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
           },
           {
             "type": "OAuth2JwtBearerGrantConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -442,12 +494,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "circuitBreaker": {
         "metadata": {
           "label": "Circuit Breaker",
-          "description": "Configurations associated with the behaviour of the Circuit Breaker"
+          "description": "Circuit breaker configurations to prevent cascading failures"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:CircuitBreakerConfig|()",
@@ -463,7 +517,7 @@
         "typeMembers": [
           {
             "type": "CircuitBreakerConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -479,12 +533,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "retryConfig": {
         "metadata": {
           "label": "Retry Config",
-          "description": "Configurations associated with retrying"
+          "description": "Automatic retry settings for failed requests"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:RetryConfig|()",
@@ -500,7 +556,7 @@
         "typeMembers": [
           {
             "type": "RetryConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -516,12 +572,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "cookieConfig": {
         "metadata": {
           "label": "Cookie Config",
-          "description": "Configurations associated with cookies"
+          "description": "Cookie handling settings for session management"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:CookieConfig|()",
@@ -537,7 +595,7 @@
         "typeMembers": [
           {
             "type": "CookieConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -553,12 +611,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "responseLimits": {
         "metadata": {
           "label": "Response Limits",
-          "description": "Configurations associated with inbound response size limits"
+          "description": "Limits for response size and headers (to prevent memory issues)"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ResponseLimitConfigs",
@@ -574,7 +634,7 @@
         "typeMembers": [
           {
             "type": "ResponseLimitConfigs",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -583,12 +643,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "{}"
+        "defaultValue": "{}",
+        "value": "",
+        "modified": false
       },
       "proxy": {
         "metadata": {
           "label": "Proxy",
-          "description": "Proxy server related options"
+          "description": "Proxy server settings if requests need to go through a proxy"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ProxyConfig|()",
@@ -604,7 +666,7 @@
         "typeMembers": [
           {
             "type": "ProxyConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -620,12 +682,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "validation": {
         "metadata": {
           "label": "Validation",
-          "description": "Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default"
+          "description": "Enable automatic payload validation for request/response data against constraints"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
@@ -647,12 +711,14 @@
             "selected": false
           }
         ],
-        "defaultValue": "false"
+        "defaultValue": "false",
+        "value": "",
+        "modified": false
       },
       "socketConfig": {
         "metadata": {
           "label": "Socket Config",
-          "description": "Provides settings related to client socket configuration"
+          "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ClientSocketConfig",
@@ -668,7 +734,7 @@
         "typeMembers": [
           {
             "type": "ClientSocketConfig",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -677,12 +743,14 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "{}"
+        "defaultValue": "{}",
+        "value": "",
+        "modified": false
       },
       "laxDataBinding": {
         "metadata": {
           "label": "Lax Data Binding",
-          "description": "Enables or disables relaxed data binding on the client side. Disabled by default.\nWhen enabled, the JSON data will be projected to the Ballerina record type and\nduring the projection, nil values will be considered as optional fields and\nabsent fields will be considered for nilable types"
+          "description": "Enable relaxed data binding on the client side.\nWhen enabled:\n- `null` values in JSON are allowed to be mapped to optional fields\n- missing fields in JSON are allowed to be mapped as `null` values"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "boolean",
@@ -704,12 +772,14 @@
             "selected": false
           }
         ],
-        "defaultValue": "false"
+        "defaultValue": "false",
+        "value": "",
+        "modified": false
       },
       "secureSocket": {
         "metadata": {
           "label": "Secure Socket",
-          "description": "SSL/TLS-related options"
+          "description": "SSL/TLS security settings for HTTPS connections"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:ClientSecureSocket|()",
@@ -725,7 +795,7 @@
         "typeMembers": [
           {
             "type": "ClientSecureSocket",
-            "packageInfo": "ballerina:http:2.14.1",
+            "packageInfo": "ballerina:http:2.14.6",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
@@ -741,7 +811,9 @@
         "imports": {
           "http": "ballerina/http"
         },
-        "defaultValue": "()"
+        "defaultValue": "()",
+        "value": "",
+        "modified": false
       },
       "sessionId": {
         "metadata": {
@@ -768,52 +840,81 @@
             "selected": false
           }
         ],
-        "defaultValue": "\"\""
+        "defaultValue": "\"\"",
+        "value": "",
+        "modified": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "aiMcptoolkit",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "connections.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 20
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 32
+            }
+          }
+        },
+        "modified": false
       },
       "type": {
         "metadata": {
-          "label": "Result Type",
+          "label": "Variable Type",
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
         "value": "ai:McpToolKit",
         "placeholder": "var",
         "optional": false,
-        "editable": false,
-        "advanced": false,
-        "hidden": true,
-        "codedata": {}
-      },
-      "variable": {
-        "metadata": {},
-        "valueType": "IDENTIFIER",
-        "value": "aiMcptoolkit",
-        "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {},
+        "modified": false
       }
     },
-    "flags": 0
+    "flags": 1
   },
   "expectedResponse": {
     "textEdits": {
       "connections.bal": [
-        {
-          "range": {
-            "start": {
-              "line": 0,
-              "character": 0
-            },
-            "end": {
-              "line": 0,
-              "character": 0
-            }
-          },
-          "newText": ""
-        }
-      ],
-      "agents.bal": [
         {
           "range": {
             "start": {
@@ -856,15 +957,15 @@
         {
           "range": {
             "start": {
-              "line": 0,
+              "line": 3,
               "character": 0
             },
             "end": {
-              "line": 0,
-              "character": 0
+              "line": 3,
+              "character": 158
             }
           },
-          "newText": "final ai:McpToolKit aiMcptoolkit = check new ([], \"\");"
+          "newText": "final ai:McpToolKit aiMcptoolkit = check new (\"https://mcp.deepwiki.com/mcp\", [\"ask_question\"], {\n    name: \"MCP Server\",\n    version: \"1.0.0\"\n});"
         }
       ]
     }
