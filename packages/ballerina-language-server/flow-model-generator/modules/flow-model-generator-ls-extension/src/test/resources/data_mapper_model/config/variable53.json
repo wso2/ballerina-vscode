@@ -1,0 +1,102 @@
+{
+  "source": "variable48.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable48.bal",
+      "startLine": {
+        "line": 9,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 9,
+        "offset": 51
+      }
+    },
+    "sourceCode": "MyRecord var1 = {name: names[0][0][index]};"
+  },
+  "position": {
+    "line": 9,
+    "offset": 8
+  },
+  "targetField": "var1",
+  "model": {
+    "inputs": [
+      {
+        "name": "index",
+        "displayName": "index",
+        "typeName": "int",
+        "kind": "int",
+        "category": "constant"
+      },
+      {
+        "member": {
+          "member": {
+            "member": {
+              "name": "names",
+              "displayName": "<namesItemItemItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "names",
+            "displayName": "<namesItemItem>",
+            "typeName": "string[]",
+            "kind": "array"
+          },
+          "name": "names",
+          "displayName": "<namesItem>",
+          "typeName": "string[][]",
+          "kind": "array"
+        },
+        "name": "names",
+        "displayName": "names",
+        "typeName": "string[][][]",
+        "kind": "array",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "var1",
+      "displayName": "var1",
+      "typeName": "MyRecord",
+      "kind": "record",
+      "ref": "1307267849"
+    },
+    "mappings": [
+      {
+        "output": "var1.name",
+        "inputs": [
+          "names.0.0.index",
+          "index"
+        ],
+        "expression": "names[0][0][index]",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false,
+        "elementAccessIndex": [
+          "0",
+          "0",
+          "index"
+        ]
+      }
+    ],
+    "refs": {
+      "1307267849": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyRecord",
+        "kind": "record"
+      }
+    }
+  }
+}
