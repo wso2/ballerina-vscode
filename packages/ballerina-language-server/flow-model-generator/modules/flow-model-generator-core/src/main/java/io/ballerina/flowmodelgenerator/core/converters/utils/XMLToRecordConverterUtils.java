@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.converters.utils;
 
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -27,10 +28,22 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
+import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.Package;
+import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
+import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.directory.SingleFileProject;
+import io.ballerina.projects.util.ProjectUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -219,6 +232,104 @@ public final class XMLToRecordConverterUtils {
             return true;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    /**
+     * This method returns existing Types on a module/file(for single file projects).
+     *
+     * @param workspaceManager Workspace manager instance
+     * @param filePath         FilePath URI of the/a file in a singleFileProject or module
+     * @return {@link List<String>} List of already existing Types
+     */
+    public static List<String> getExistingTypeNames(WorkspaceManager workspaceManager, Path filePath) {
+        List<String> existingTypeNames = new ArrayList<>();
+        if (filePath == null) {
+            return existingTypeNames;
+        }
+
+        if (workspaceManager != null && workspaceManager.semanticModel(filePath).isPresent()) {
+            List<Symbol> moduleSymbols = workspaceManager.semanticModel(filePath).get().moduleSymbols();
+            moduleSymbols.forEach(symbol -> {
+                if (symbol.getName().isPresent()) {
+                    existingTypeNames.add(symbol.getName().get());
+                }
+            });
+            return existingTypeNames;
+        }
+
+        try {
+            Project project;
+            List<Symbol> moduleSymbols;
+            Path projectRoot = ProjectUtils.findProjectRoot(filePath);
+            if (projectRoot == null) {
+                // Since the project-root cannot be found, the provided file is considered as SingleFileProject.
+                project = SingleFileProject.load(filePath);
+                Package currentPackage = project.currentPackage();
+                moduleSymbols = PackageUtil.getCompilation(currentPackage)
+                        .getSemanticModel(currentPackage.getDefaultModule().moduleId())
+                        .moduleSymbols();
+                moduleSymbols.forEach(symbol -> {
+                    if (symbol.getName().isPresent()) {
+                        existingTypeNames.add(symbol.getName().get());
+                    }
+                });
+            } else {
+                project = BuildProject.load(projectRoot);
+                Package currentPackage = project.currentPackage();
+                moduleSymbols = PackageUtil.getCompilation(currentPackage)
+                        .getSemanticModel(currentPackage.getDefaultModule().moduleId())
+                        .moduleSymbols();
+                moduleSymbols.forEach(symbol -> {
+                    if (symbol.getName().isPresent()) {
+                        existingTypeNames.add(symbol.getName().get());
+                    }
+                });
+            }
+        } catch (ProjectException pe) {
+            return existingTypeNames;
+        }
+        return existingTypeNames;
+    }
+
+    /**
+     * This method returns an alternative fieldName if the given filedName is already exist.
+     *
+     * @param fieldName          Field name of the XML element
+     * @param existingFieldNames The list of already existing field names
+     * @param updatedFieldNames  The list of updated field names
+     * @return {@link String} Updated field name
+     */
+    public static String getAndUpdateFieldNames(String fieldName, List<String> existingFieldNames,
+                                                Map<String, String> updatedFieldNames) {
+        String updatedFieldName = getUpdatedFieldName(fieldName, existingFieldNames, updatedFieldNames);
+        if (!fieldName.equals(updatedFieldName)) {
+            updatedFieldNames.put(fieldName, updatedFieldName);
+            return updatedFieldName;
+        }
+        return fieldName;
+    }
+
+    private static String getUpdatedFieldName(String fieldName, List<String> existingFieldNames,
+                                              Map<String, String> updatedFieldNames) {
+        if (updatedFieldNames.containsKey(fieldName)) {
+            return updatedFieldNames.get(fieldName);
+        }
+        if (!existingFieldNames.contains(fieldName) && !updatedFieldNames.containsValue(fieldName)) {
+            return fieldName;
+        } else {
+            String[] fieldNameSplit = fieldName.split("_");
+            String numericSuffix = fieldNameSplit[fieldNameSplit.length - 1];
+
+            if (NumberUtils.isParsable(numericSuffix)) {
+                return getUpdatedFieldName(String.join("_",
+                                Arrays.copyOfRange(fieldNameSplit, 0, fieldNameSplit.length - 1)) + "_" +
+                                String.format("%02d", Integer.parseInt(numericSuffix) + 1),
+                        existingFieldNames, updatedFieldNames);
+            } else {
+                return getUpdatedFieldName(fieldName + "_01",
+                        existingFieldNames, updatedFieldNames);
+            }
         }
     }
 }
