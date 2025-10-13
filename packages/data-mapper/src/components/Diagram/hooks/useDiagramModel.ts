@@ -43,7 +43,7 @@ export const useDiagramModel = (
     const noOfNodes = nodes.length;
     const context = nodes.find(node => node.context)?.context;
     const { model } = context ?? {};
-    const mappings = model.mappings.map(mapping => mapping.expression).toString();
+    const mappings = model?.mappings.map(mapping => mapping.output + ':' + mapping.expression).toString();
     const subMappings = model?.subMappings?.map(mapping => mapping.id).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
