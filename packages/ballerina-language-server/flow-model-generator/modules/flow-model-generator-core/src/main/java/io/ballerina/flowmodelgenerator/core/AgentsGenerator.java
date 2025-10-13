@@ -576,8 +576,7 @@ public class AgentsGenerator {
                 if (property.isEmpty()) {
                     continue;
                 }
-                PropertyCodedata propCodedata = property.get()
-                        .codedata();
+                PropertyCodedata propCodedata = property.get().codedata();
                 if (propCodedata == null) {
                     continue;
                 }
