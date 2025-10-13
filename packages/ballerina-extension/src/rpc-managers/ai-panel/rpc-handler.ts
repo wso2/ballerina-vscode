@@ -14,38 +14,48 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatSummary,
-    AddToProjectRequest,
-    DeleteFromProjectRequest,
-    DeveloperDocument,
-    FetchDataRequest,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
-    GenerateTypesFromRecordRequest,
-    GetFromFileRequest,
-    GetModuleDirParams,
-    NotifyAIMappingsRequest,
-    PostProcessRequest,
-    ProjectSource,
-    RequirementSpecification,
-    SubmitFeedbackRequest,
-    TestGenerationRequest,
-    TestGenerationResponse,
+    abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
+    addCodeSegmentToWorkspace,
+    addFilesToProject,
+    AddFilesToProjectRequest,
+    addInlineCodeSegmentToWorkspace,
     addToProject,
+    AddToProjectRequest,
+    AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
+    CodeSegment,
+    createTempFileAndGenerateMetadata,
+    CreateTempFileRequest,
     createTestDirecoryIfNotExists,
+    DatamapperModelContext,
+    DataMapperModelResponse,
     deleteFromProject,
+    DeleteFromProjectRequest,
+    DeveloperDocument,
+    DocGenerationRequest,
     fetchData,
+    FetchDataRequest,
+    generateCode,
+    GenerateCodeRequest,
+    generateDataMapperModel,
+    generateFunctionTests,
+    generateHealthcareCode,
     generateMappings,
-    getAIMachineSnapshot,
+    generateOpenAPI,
+    GenerateOpenAPIRequest,
+    generateTestPlan,
+    GenerateTypesFromRecordRequest,
     getAccessToken,
     getActiveFile,
+    getAIMachineSnapshot,
     getBackendUrl,
     getContentFromFile,
     getDefaultPrompt,
@@ -53,12 +63,15 @@ import {
     getFileExists,
     getFromDocumentation,
     getFromFile,
+    GetFromFileRequest,
+    getGeneratedDocumentation,
     getGeneratedTests,
-    getMappingsFromRecord,
+    getLoginMethod,
     getModuleDirectory,
-    getProjectSource,
+    GetModuleDirParams,
     getProjectUuid,
     getRefreshedAccessToken,
+    getRelevantLibrariesAndFunctions,
     getResourceMethodAndPaths,
     getResourceSourceForMethodAndPath,
     getServiceNames,
@@ -71,14 +84,28 @@ import {
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
     markAlertShown,
+    MetadataWithAttachments,
     notifyAIMappings,
+    NotifyAIMappingsRequest,
+    openAIMappingChatWindow,
     postProcess,
+    PostProcessRequest,
+    ProjectSource,
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
+    RelevantLibrariesAndFunctionsRequest,
+    repairGeneratedCode,
+    RepairParams,
+    RequirementSpecification,
     showSignInAlert,
     stopAIMappings,
     submitFeedback,
+    SubmitFeedbackRequest,
+    TestGenerationRequest,
+    TestGenerationResponse,
+    TestGeneratorIntermediaryState,
+    TestPlanGenerationRequest,
     updateDevelopmentDocument,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
@@ -89,22 +116,28 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
     messenger.onRequest(getBackendUrl, () => rpcManger.getBackendUrl());
     messenger.onRequest(getProjectUuid, () => rpcManger.getProjectUuid());
+    messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
     messenger.onRequest(getAccessToken, () => rpcManger.getAccessToken());
     messenger.onRequest(getRefreshedAccessToken, () => rpcManger.getRefreshedAccessToken());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onRequest(fetchData, (args: FetchDataRequest) => rpcManger.fetchData(args));
-    messenger.onNotification(addToProject, (args: AddToProjectRequest) => rpcManger.addToProject(args));
+    messenger.onRequest(addToProject, (args: AddToProjectRequest) => rpcManger.addToProject(args));
     messenger.onRequest(getFromFile, (args: GetFromFileRequest) => rpcManger.getFromFile(args));
     messenger.onRequest(getFileExists, (args: GetFromFileRequest) => rpcManger.getFileExists(args));
     messenger.onNotification(deleteFromProject, (args: DeleteFromProjectRequest) => rpcManger.deleteFromProject(args));
-    messenger.onRequest(generateMappings, (args: GenerateMappingsRequest) => rpcManger.generateMappings(args));
     messenger.onRequest(notifyAIMappings, (args: NotifyAIMappingsRequest) => rpcManger.notifyAIMappings(args));
     messenger.onRequest(stopAIMappings, () => rpcManger.stopAIMappings());
-    messenger.onRequest(getProjectSource, (args: string) => rpcManger.getProjectSource(args));
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
+    messenger.onNotification(openAIMappingChatWindow, (args: DataMapperModelResponse) => rpcManger.openAIMappingChatWindow(args));
+    messenger.onRequest(generateDataMapperModel, (args: DatamapperModelContext) => rpcManger.generateDataMapperModel(args));
+    messenger.onRequest(getTypesFromRecord, (args: GenerateTypesFromRecordRequest) => rpcManger.getTypesFromRecord(args));
+    messenger.onRequest(createTempFileAndGenerateMetadata, (args: CreateTempFileRequest) => rpcManger.createTempFileAndGenerateMetadata(args));
+    messenger.onRequest(generateMappings, (args: MetadataWithAttachments) => rpcManger.generateMappings(args));
+    messenger.onRequest(addCodeSegmentToWorkspace, (args: CodeSegment) => rpcManger.addCodeSegmentToWorkspace(args));
+    messenger.onNotification(addInlineCodeSegmentToWorkspace, (args: CodeSegment) => rpcManger.addInlineCodeSegmentToWorkspace(args));
     messenger.onRequest(getGeneratedTests, (args: TestGenerationRequest) => rpcManger.getGeneratedTests(args));
     messenger.onRequest(getTestDiagnostics, (args: TestGenerationResponse) => rpcManger.getTestDiagnostics(args));
     messenger.onRequest(getServiceSourceForName, (args: string) => rpcManger.getServiceSourceForName(args));
@@ -112,8 +145,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getServiceNames, () => rpcManger.getServiceNames());
     messenger.onRequest(getResourceMethodAndPaths, () => rpcManger.getResourceMethodAndPaths());
     messenger.onNotification(abortTestGeneration, () => rpcManger.abortTestGeneration());
-    messenger.onRequest(getMappingsFromRecord, (args: GenerateMappingsFromRecordRequest) => rpcManger.getMappingsFromRecord(args));
-    messenger.onRequest(getTypesFromRecord, (args: GenerateTypesFromRecordRequest) => rpcManger.getTypesFromRecord(args));
     messenger.onNotification(applyDoOnFailBlocks, () => rpcManger.applyDoOnFailBlocks());
     messenger.onRequest(postProcess, (args: PostProcessRequest) => rpcManger.postProcess(args));
     messenger.onRequest(getActiveFile, () => rpcManger.getActiveFile());
@@ -135,4 +166,14 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getModuleDirectory, (args: GetModuleDirParams) => rpcManger.getModuleDirectory(args));
     messenger.onRequest(getContentFromFile, (args: GetFromFileRequest) => rpcManger.getContentFromFile(args));
     messenger.onRequest(submitFeedback, (args: SubmitFeedbackRequest) => rpcManger.submitFeedback(args));
+    messenger.onRequest(getRelevantLibrariesAndFunctions, (args: RelevantLibrariesAndFunctionsRequest) => rpcManger.getRelevantLibrariesAndFunctions(args));
+    messenger.onNotification(generateOpenAPI, (args: GenerateOpenAPIRequest) => rpcManger.generateOpenAPI(args));
+    messenger.onNotification(generateCode, (args: GenerateCodeRequest) => rpcManger.generateCode(args));
+    messenger.onNotification(repairGeneratedCode, (args: RepairParams) => rpcManger.repairGeneratedCode(args));
+    messenger.onNotification(generateTestPlan, (args: TestPlanGenerationRequest) => rpcManger.generateTestPlan(args));
+    messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
+    messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
+    messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
+    messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
+    messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
 }

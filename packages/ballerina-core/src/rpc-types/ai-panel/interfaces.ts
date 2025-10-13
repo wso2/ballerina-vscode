@@ -20,12 +20,13 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
+import { DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
     | { type: 'text'; text: string }
     | undefined;
 
@@ -86,12 +87,25 @@ export interface AddToProjectRequest {
     content: string;
     isTestCode: boolean;
 }
+
+export interface AddFilesToProjectRequest {
+    fileChanges: FileChanges[];
+}
+
+export interface FileChanges {
+    filePath: string;
+    content: string;
+}
+
 export interface GetFromFileRequest {
     filePath: string;
 }
+
 export interface DeleteFromProjectRequest {
     filePath: string;
 }
+
+// Data-mapper related interfaces
 export interface GenerateMappingsRequest {
     position: NodePosition;
     filePath: string;
@@ -110,26 +124,37 @@ export interface NotifyAIMappingsRequest {
     filePath: string;
 }
 
-export interface ParameterMetadata {
-    inputs: object;
-    output: object;
-    inputMetadata: object;
-    outputMetadata: object;
-    mapping_fields?: object;
+export interface CodeSegment {
+    segmentText: string;
+    filePath: string;
+    metadata?: ExtendedDataMapperMetadata;
+    textEdit?: DataMapperSourceResponse;
 }
 
-export interface RecordDefinitonObject {
-    recordFields: object;
-    recordFieldsMetadata: object;
+export interface DataMappingRecord {
+    type: string;
+    isArray: boolean;
+    filePath: string;
 }
 
-export interface MappingFileRecord {
-    mapping_fields: object;
+export interface GenerateTypesFromRecordRequest {
+    attachment?: Attachment[]
 }
 
-export interface ParameterDefinitions {
-    parameterMetadata: ParameterMetadata,
-    errorStatus: boolean
+export interface GenerateTypesFromRecordResponse {
+    typesCode: string;
+}
+
+export interface MappingParameters {
+    inputRecord: string[];
+    outputRecord: string,
+    functionName?: string;
+}
+
+export interface ImportInfo {
+    moduleName: string;
+    alias?: string;
+    recordName?: string;
 }
 
 // Test-generator related interfaces
@@ -139,7 +164,6 @@ export enum TestGenerationTarget {
 }
 
 export interface TestGenerationRequest {
-    backendUri: string;
     targetType: TestGenerationTarget;
     targetIdentifier: string;
     testPlan?: string;
@@ -152,45 +176,28 @@ export interface TestGenerationResponse {
     testConfig?: string;
 }
 
+export interface TestPlanGenerationRequest {
+    targetType: TestGenerationTarget;
+    targetSource: string;
+    target : string;
+}
+
 export interface TestGenerationMentions {
     mentions: string[];
 }
 
-export interface DataMappingRecord {
-    type: string;
-    isArray: boolean;
-    filePath: string;
+export interface TestGeneratorIntermediaryState {
+    // content: [string, Attachment[]];
+    resourceFunction: string;
+    testPlan: string;
 }
 
-export interface GenerateMappingsFromRecordRequest {
-    backendUri: string;
-    token: string;
-    inputRecordTypes: DataMappingRecord[];
-    outputRecordType: DataMappingRecord;
-    functionName: string;
-    imports: { moduleName: string; alias?: string }[];
-    inputNames?: string[];
-    attachment?: Attachment[]
+export interface DocumentationGeneratorIntermediaryState {
+    serviceName: string;
+    documentation: string;
+    projectSource: ProjectSource;
+    openApiSpec?: string;
 }
-
-export interface GenerateTypesFromRecordRequest {
-    backendUri: string;
-    token: string;
-    attachment?: Attachment[]
-}
-
-export interface GenerateMappingFromRecordResponse {
-    mappingCode: string;
-}
-export interface GenerateTypesFromRecordResponse {
-    typesCode: string;
-}
-export interface MappingParameters {
-    inputRecord: string[];
-    outputRecord: string,
-    functionName?: string;
-}
-
 
 export interface PostProcessRequest {
     assistant_response: string;
@@ -265,3 +272,94 @@ export interface FeedbackMessage {
     content: string;
     role : string;
 }
+
+export interface RelevantLibrariesAndFunctionsRequest {
+    query: string;
+}
+
+export interface RelevantLibrariesAndFunctionsResponse {
+    libraries: any[];
+}
+
+export interface ChatEntry {
+    actor: string;
+    message: string;
+    isCodeGeneration?: boolean;
+}
+
+export interface GenerateOpenAPIRequest {
+    query: string;
+    chatHistory: ChatEntry[];
+}
+
+export interface ChatEntry {
+    actor: string;
+    message: string;
+    isCodeGeneration?: boolean;
+}
+
+export interface FileAttatchment {
+    fileName: string;
+    content: string;
+}
+
+export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+export interface GenerateCodeRequest {
+    usecase: string;
+    chatHistory: ChatEntry[];
+    operationType: OperationType;
+    fileAttachmentContents: FileAttatchment[];
+}
+
+export interface SourceFiles {
+    filePath: string;
+    content: string;
+}
+
+export interface RepairParams {
+    previousMessages: any[];
+    assistantResponse: string;
+    diagnostics: DiagnosticEntry[];
+}
+
+export interface RepairResponse {
+    repairResponse: string;
+    diagnostics: DiagnosticEntry[];
+}
+
+export type LibraryMode = "CORE" | "HEALTHCARE";
+
+export interface CopilotAllLibrariesRequest {
+    mode: LibraryMode;
+}
+export interface MinifiedLibrary {
+    name: string;
+    description: string;
+}
+export interface CopilotCompactLibrariesResponse {
+    libraries: MinifiedLibrary[];
+}
+
+export interface CopilotFilterLibrariesRequest {
+    libNames: string[];
+    mode: LibraryMode;
+}
+
+export interface CopilotFilterLibrariesResponse {
+    libraries: any[];
+}
+
+// ==================================
+// Doc Generation Related Interfaces
+// ==================================
+export enum DocGenerationType {
+    User = "user",
+}
+
+export interface DocGenerationRequest {
+    type: DocGenerationType;
+    serviceName: string;
+}
+
+export const GENERATE_TEST_AGAINST_THE_REQUIREMENT = "Generate tests against the requirements";
+export const GENERATE_CODE_AGAINST_THE_REQUIREMENT = "Generate code based on the requirements";

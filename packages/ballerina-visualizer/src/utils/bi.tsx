@@ -25,7 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
-import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon } from "@wso2/bi-diagram";
+import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
     AvailableNode,
@@ -40,13 +40,11 @@ import {
     Trigger,
     FunctionField,
     SignatureHelpResponse,
-    TriggerNode,
     VisibleType,
     VisibleTypeItem,
     Item,
     FunctionKind,
     functionKinds,
-    TRIGGER_CHARACTERS,
     Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
@@ -55,6 +53,9 @@ import {
     Imports,
     ColorThemeKind,
     CompletionInsertText,
+    SubPanel,
+    SubPanelView,
+    NodeMetadata
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -74,14 +75,17 @@ import { DocSection } from "../components/ExpressionEditor";
 // @ts-ignore
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
+import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
 hljs.registerLanguage("ballerina", ballerina);
+
+export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
 function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
     // Check if node should be filtered based on function type
-    if (functionType === FUNCTION_TYPE.REGULAR && node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !node.metadata.data?.isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
         return undefined;
     }
 
@@ -118,11 +122,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
+    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
         items: items,
     };
 }
@@ -148,6 +153,69 @@ export function convertFunctionCategoriesToSidePanelCategories(
         functionCategory.description = "No functions defined. Click below to create a new function.";
     }
     return panelCategories;
+}
+
+export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
+                item.icon = <AIModelIcon type={iconType} codedata={codedata} />;
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertModelProviderCategoriesToSidePanelCategories(categories);
+}
+
+export function convertCategoriesToSidePanelCategoriesWithIcon(
+    categories: Category[],
+    iconFactory: (codedata: any) => React.ReactElement
+): PanelCategory[] {
+    const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
+    panelCategories.forEach((category) => {
+        category.items?.forEach((item) => {
+            if ((item as PanelNode).metadata?.codedata) {
+                const codedata = (item as PanelNode).metadata.codedata;
+                item.icon = iconFactory(codedata);
+            } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
+                const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
+                item.icon = iconFactory(codedata);
+            }
+        });
+    });
+    return panelCategories;
+}
+
+export function convertDataLoaderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
 }
 
 export function convertNodePropertiesToFormFields(
@@ -192,6 +260,7 @@ export function convertNodePropertyToFormField(
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
         valueType: property.valueType,
         items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
         valueTypeConstraint: property.valueTypeConstraint,
         lineRange: property?.codedata?.lineRange,
@@ -288,22 +357,44 @@ export function updateNodeProperties(
     return updatedNodeProperties;
 }
 
-export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string): string {
+function getConnectionDisplayName(connectionKind?: ConnectionKind): string {
+    if (!connectionKind) return 'Connection';
+    try {
+        const config = getConnectionKindConfig(connectionKind);
+        return config.displayName;
+    } catch {
+        return 'Connection';
+    }
+}
+
+export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, clientName?: string, connectionKind?: ConnectionKind): string {
     switch (view) {
         case SidePanelView.NODE_LIST:
             return ""; // Show switch instead of title
         case SidePanelView.NEW_AGENT:
             return "AI Agent";
-        case SidePanelView.AGENT_MODEL:
-            return "Configure LLM Model";
+        case SidePanelView.CONNECTION_CONFIG:
+            return `Configure ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_SELECT:
+            return `Select ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTION_CREATE:
+            return `Create ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
             return "Configure Tool";
         case SidePanelView.ADD_TOOL:
             return "Add Tool";
+        case SidePanelView.ADD_MCP_SERVER:
+            return "Add MCP Server";
+        case SidePanelView.EDIT_MCP_SERVER:
+            return "Edit MCP Server";
         case SidePanelView.NEW_TOOL:
-            return "Create New Tool";
+            return "Add New Tool";
+        case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+            return "Create Tool from Connection";
+        case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+            return "Create Tool from Function";
         case SidePanelView.AGENT_CONFIG:
             return "Configure Agent";
         case SidePanelView.FORM:
@@ -316,13 +407,11 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             ) {
                 return `${clientName || activeNode.properties.connection.value} → ${activeNode.metadata.label}`;
             } else if (activeNode.codedata?.node === "DATA_MAPPER_CALL") {
-                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                    activeNode.codedata.symbol
-                }`;
+                return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.codedata.symbol
+                    }`;
             }
-            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${
-                activeNode.metadata.label
-            }`;
+            return `${activeNode.codedata?.module ? activeNode.codedata?.module + " :" : ""} ${activeNode.metadata.label
+                }`;
         default:
             return "";
     }
@@ -366,25 +455,26 @@ export function removeDraftNodeFromDiagram(flowModel: Flow) {
     return newFlow;
 }
 
-export function enrichFormPropertiesWithValueConstraint(
+export function enrichFormTemplatePropertiesWithValues(
     formProperties: NodeProperties,
     formTemplateProperties: NodeProperties
 ) {
-    const enrichedFormProperties = cloneDeep(formProperties);
+    const enrichedFormTemplateProperties = cloneDeep(formTemplateProperties);
 
-    for (const key in formTemplateProperties) {
-        if (formTemplateProperties.hasOwnProperty(key)) {
-            const expression = formTemplateProperties[key as NodePropertyKey];
-            if (expression) {
-                const valConstraint = formTemplateProperties[key as NodePropertyKey]?.valueTypeConstraint;
-                if (valConstraint && enrichedFormProperties[key as NodePropertyKey]) {
-                    enrichedFormProperties[key as NodePropertyKey].valueTypeConstraint = valConstraint;
-                }
+    for (const key in formProperties) {
+        if (formProperties.hasOwnProperty(key)) {
+            const formProperty = formProperties[key as NodePropertyKey];
+            if (
+                formProperty &&
+                enrichedFormTemplateProperties[key as NodePropertyKey] != null
+            ) {
+                // Copy the value from formProperties to formTemplateProperties
+                enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
             }
         }
     }
 
-    return enrichedFormProperties;
+    return enrichedFormTemplateProperties;
 }
 
 function getEnrichedValue(kind: CompletionItemKind, value: string): CompletionInsertText {
@@ -410,6 +500,10 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
+    const labelDetails = {
+        description,
+        detail: completion.detail,
+    };
 
     return {
         tag,
@@ -419,7 +513,8 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
         kind,
         sortText,
         additionalTextEdits,
-        cursorOffset
+        cursorOffset,
+        labelDetails
     };
 }
 
@@ -479,128 +574,6 @@ export function convertTriggerServiceTypes(trigger: Trigger): Record<string, Fun
     return response;
 }
 
-export function convertTriggerListenerConfig(trigger: TriggerNode): FormField[] {
-    const formFields: FormField[] = [];
-    for (const key in trigger.listener.properties) {
-        const expression = trigger.listener.properties[key];
-        const formField: FormField = {
-            key: key,
-            label: key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase()),
-            type: expression.valueType,
-            documentation: "",
-            ...expression,
-        };
-        formFields.push(formField);
-    }
-    return formFields;
-}
-
-export function updateTriggerListenerConfig(formFields: FormField[], trigger: TriggerNode): TriggerNode {
-    formFields.forEach((field) => {
-        const value = field.value as string;
-        trigger.listener.properties[field.key].value = value;
-        if (value && value.length > 0) {
-            trigger.listener.properties[field.key].enabled = true;
-        }
-    });
-    return trigger;
-}
-
-export function convertTriggerServiceConfig(trigger: TriggerNode): FormField[] {
-    const formFields: FormField[] = [];
-    for (const key in trigger.properties) {
-        const expression = trigger.properties[key];
-        const formField: FormField = {
-            ...expression,
-            key: key,
-            label: key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase()),
-            type: expression.valueType,
-            groupNo: expression.metadata.groupNo,
-            groupName: expression.metadata.groupName,
-            value: checkArrayValue(expression.value),
-            documentation: "",
-        };
-        formFields.push(formField);
-    }
-    return formFields;
-}
-
-function checkArrayValue(fieldValue: string): string[] | string {
-    try {
-        const parsedValue = JSON.parse(fieldValue);
-        // Check if parsedValue is an array
-        if (Array.isArray(parsedValue)) {
-            return parsedValue; // Return the array if it's valid
-        }
-    } catch (error) {
-        // Do nothing.
-    }
-    return fieldValue;
-}
-
-export function updateTriggerServiceConfig(formFields: FormField[], trigger: TriggerNode): TriggerNode {
-    formFields.forEach((field) => {
-        const value = field.value as string;
-        trigger.properties[field.key].value = value;
-        if (value) {
-            trigger.properties[field.key].enabled = true;
-        }
-    });
-    return trigger;
-}
-
-export function convertTriggerFunctionsConfig(trigger: Trigger): Record<string, FunctionField> {
-    const response: Record<string, FunctionField> = {};
-
-    for (const service in trigger.serviceTypes) {
-        const functions = trigger.serviceTypes[service].functions;
-        for (const key in functions) {
-            const triggerFunction = functions[key];
-            const formFields: FormField[] = [];
-            if (functions.hasOwnProperty(key)) {
-                for (const param in triggerFunction.parameters) {
-                    const expression = triggerFunction.parameters[param];
-                    const formField: FormField = {
-                        key: expression.name,
-                        label: expression.name
-                            .replace(/([a-z])([A-Z])/g, "$1 $2")
-                            .replace(/^./, (str) => str.toUpperCase()),
-                        documentation: expression?.documentation,
-                        optional: expression?.optional,
-                        type: expression?.typeName,
-                        editable: true,
-                        enabled: true,
-                        value: expression.defaultTypeName,
-                        valueTypeConstraint: "",
-                    };
-                    formFields.push(formField);
-                }
-            }
-            const isRadio = !!triggerFunction.group;
-            if (isRadio) {
-                if (!response[triggerFunction.group.name]) {
-                    response[triggerFunction.group.name] = {
-                        radioValues: [],
-                        required: !triggerFunction.optional,
-                        functionType: { name: "" },
-                    };
-                }
-                // Always set the first function as default
-                response[triggerFunction.group.name].functionType.name = functions[0].name;
-                response[triggerFunction.group.name].radioValues.push(triggerFunction.name);
-            } else {
-                response[triggerFunction.name] = {
-                    checked: !triggerFunction.optional,
-                    required: !triggerFunction.optional,
-                    fields: formFields,
-                    functionType: triggerFunction,
-                };
-            }
-        }
-    }
-    return response;
-}
-
 /**
  * Custom rendering for <code> blocks with syntax highlighting
  */
@@ -654,7 +627,7 @@ export function injectHighlightTheme(theme: ColorThemeKind) {
             extractedTheme = "dark";
             break;
     }
-    
+
     const existingTheme = document.getElementById("hljs-theme");
     if (existingTheme) existingTheme.remove();
 
@@ -693,7 +666,7 @@ async function getDocumentation(fnDescription: string, argsDescription: string[]
                 </ReactMarkdown>
             </DocSection>
         ),
-        args: 
+        args:
             <>
                 {argsDescription.map((arg) => (
                     <DocSection key={arg}>
@@ -753,6 +726,7 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
         value: type.insertText,
         kind: convertCompletionItemKind(type.kind),
         insertText: type.insertText,
+        labelDetails: type.labelDetails,
     }));
 }
 
@@ -916,7 +890,7 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
 
     // Create existing parameter values
     const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
-        createParameterValue(index, paramValueKey, paramValue as ParameterValue)
+        createParameterValue(index, paramValueKey, paramValue as any) // TODO: Fix this any type with actual type
     );
 
     formField.paramManagerProps = {
@@ -984,7 +958,7 @@ export function getFlowNodeForNaturalFunction(node: FunctionNode): FlowNode {
  * @param expression
  * @returns { lineOffset: number, charOffset: number }
  */
-export function getInfoFromExpressionValue(
+export function calculateExpressionOffsets(
     expression: string,
     cursorPosition: number
 ): { lineOffset: number, charOffset: number } {
@@ -1030,7 +1004,7 @@ export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnos
 
 /**
  * Check if the type is supported by the data mapper
- * 
+ *
  * @param type - The type to check
  * @returns Whether the type is supported by the data mapper
  */
@@ -1046,3 +1020,16 @@ export const isDMSupportedType = (type: VisibleTypeItem) => {
 
     return true;
 };
+
+export function getSubPanelWidth(subPanel: SubPanel) {
+    if (!subPanel?.view) {
+        return undefined;
+    }
+    switch (subPanel.view) {
+        case SubPanelView.ADD_NEW_FORM:
+        case SubPanelView.HELPER_PANEL:
+            return 400;
+        default:
+            return undefined;
+    }
+}

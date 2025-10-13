@@ -23,6 +23,7 @@ export type Category = {
     description: string;
     icon?: JSX.Element;
     items: Item[];
+    isLoading?: boolean;
 };
 
 export type Node = {

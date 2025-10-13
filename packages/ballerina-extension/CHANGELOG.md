@@ -2,6 +2,82 @@
 
 All notable changes to the "Ballerina" extension will be documented in this file.
 
+## **5.4.0** (2025-09-19)
+
+### Major updates
+
+- **Improved Data Mapper** —  Improved performance for large, deeply nested records, more intuitive design, and a new expression editor for easier transformations
+- **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.
+- **GraphQL Upgrades** — Support advanced configurations at service and field level, including context and metadata handling.
+- **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.
+- **Editor & Language Server Enhancements** — Better editor usability, improved rendering, and expanded migration tool support.
+- **Migration Tooling Support** — Support importing Mule projects and TIBCO projects to create Ballerina integrations.
+- **New Expression & Type Helper Experience** — Enhanced UI for expression building with support for value suggestions, along with easier creation and usage of variables, configurable, and functions, making expression building more intuitive and efficient.
+
+### Added
+
+- **Data Mapper** — Support for enums/unions, constants, nested arrays, optional fields and transformation function mappings.  
+- **AI & Knowledge Base** — Document generation, chunking tools (Chunker, Dataloader), smarter agent creation with reusable model providers.  
+- **Connector Experience** — Local Connectors renamed to Custom Connectors, new tab-based UI, better multi-project switching, migration tool UI.  
+- **BI Extension** — Redesigned welcome page, new commands, type editor improvements, and migration tools support.  
+- **Type Diagram** — Optimized view for diagrams with high node count, added node deletion, and support for making types read-only via TypeEditor.  
+- **AWS Bedrock authentication support for BI Copilot**
+
+### Changed
+
+- **Mappings API** — Standardized field names (name, displayName), improved optionality handling.  
+- **AI & Authentication** — Now uses Devant login and integrates the Search API for template discovery.  
+- **Editor & Designer** — UI refinements, project names now sourced from ballerina.toml, and AI RAG nodes relocated to advanced settings.  
+- **UX Improvements** — Enhanced connector workflows, better record rendering, and more robust diagram/test coverage.  
+- **Collapsible Node-Palette** — Node palette groups are now collapsible and expandable for improved navigation.  
+
+### Fixed
+
+- **Data Mapper** — Fixed issues with array handling, default values, reserved keyword responses, label consistency, and mapping deletion.
+- **Flow Diagram & Editor** — Resolved readonly record rendering and improved service configuration synchronization.
+- **AI & Copilot** — Addressed stability issues, resolved missing dependencies, fixed race conditions, and improved notification handling.
+- **Platform Support** — Enhanced compatibility for Windows and WSL environments.
+- **UI/UX Polish** — Improved connector alignment, loader visuals, spacing, and debug logging.
+
+
+## **5.3.1** (2025-08-13)
+
+### Fixed
+
+-   Resolved issues affecting Inline Data Mapper functionality and flow diagram rendering
+
+
+## **5.3.0** (2025-07-29)
+
+### Major Updates
+
+-   **Enhanced Inline Data Mapper:** Redesigned for improved user experience with AI-driven mapping suggestions and a sub-mapping form.
+-   **AI Copilot & RAG Workflows:** Upgraded AI Copilot now uses ballerina/ai packages, with low-code support added for advanced RAG workflows.
+
+### Added
+
+-   **AI Capabilities:**
+    -   Support for Anthropic's Claude Sonnet v4 for code generation.
+    -   Added Vector Knowledge Base node for RAG workflows.
+    -   Configuration options for default AI model providers in the Flow Diagram.
+-   **Editor & IDE Features:**
+    -   New VSCode setting to manage the visibility of the Sequence Diagram.
+    -   Option to include the current organization in search results.
+
+### Changes
+
+-   **Data Mapper:** Improved search, label positioning, and performance. Now refreshes automatically when code changes.
+-   **AI & Copilot:** Streamlined flows for user-friendliness and enhanced agent capabilities with new packages.
+-   **UI/UX:** Refined diagram rendering and title components for a more responsive interface.
+
+### Fixed
+
+-   **Data Mapper:** Corrected rendering issues and various bugs in mapping generation and type resolution.
+-   **AI & Copilot:** Resolved re-rendering bugs and authentication flow issues.
+-   **Configuration:** Fixed issues with Config.toml management and fast-run command failures.
+-   **IDE Stability:** Addressed UI freezing, improved state management, and enhanced project handling in multi-root workspaces.
+
+
 ## **5.2.0** (2025-07-14)
 
 ### Major Features

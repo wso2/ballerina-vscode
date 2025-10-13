@@ -65,21 +65,36 @@ export interface DiagramContextState {
     onConnectionSelect?: (connectionName: string) => void;
     goToSource: (node: FlowNode) => void;
     openView: (filePath: string, position: NodePosition) => void;
+    draftNode?: {
+        override: boolean;
+        showSpinner?: boolean;
+        description?: string;
+    };
+    selectedNodeId?: string;
     agentNode: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
+        onAddMcpServer: (node: FlowNode) => void;
         onSelectTool: (tool: ToolData, node: FlowNode) => void;
+        onSelectMcpToolkit: (tool: ToolData, node: FlowNode) => void;
         onDeleteTool: (tool: ToolData, node: FlowNode) => void;
         goToTool: (tool: ToolData, node: FlowNode) => void;
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
+    };
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
     };
     suggestions?: {
         fetching: boolean;
         onAccept(): void;
         onDiscard(): void;
     };
-    projectPath?: string;
+    project?: {
+        org: string;
+        path: string;
+        getProjectPath?:(segments: string | string[]) => Promise<string>;
+    };
     readOnly?: boolean;
     lockCanvas?: boolean;
     setLockCanvas?: (lock: boolean) => void;
@@ -106,21 +121,36 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     addBreakpoint: () => {},
     removeBreakpoint: () => {},
     openView: () => {},
+    draftNode: {
+        override: true,
+        showSpinner: false,
+        description: "",
+    },
+    selectedNodeId: undefined,
     agentNode: {
         onModelSelect: () => {},
         onAddTool: () => {},
+        onAddMcpServer: () => {},
         onSelectTool: () => {},
+        onSelectMcpToolkit: () => {},
         onDeleteTool: () => {},
         goToTool: () => {},
         onSelectMemoryManager: () => {},
         onDeleteMemoryManager: () => {},
+    },
+    aiNodes: {
+        onModelSelect: () => {},
     },
     suggestions: {
         fetching: false,
         onAccept: () => {},
         onDiscard: () => {},
     },
-    projectPath: "",
+    project: {
+        org: "",
+        path: "",
+        getProjectPath: () => Promise.resolve(""),
+    },
     readOnly: false,
     lockCanvas: false,
     setLockCanvas: (lock: boolean) => {},

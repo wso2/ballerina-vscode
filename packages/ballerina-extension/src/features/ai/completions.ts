@@ -16,23 +16,27 @@
  * under the License.
  */
 
-import { ballerinaExtInstance } from "./../../core";
+import { extension } from "../../BalExtensionContext";
 import { commands, window } from "vscode";
 import {
     TM_EVENT_AUTH_COPILOT, CMP_AUTH_COPILOT, sendTelemetryEvent,
     sendTelemetryException
 } from "./../telemetry";
 import { PALETTE_COMMANDS } from "./../project/cmds/cmd-runner";
-import { loginGithubCopilot } from '../../utils/ai/auth';
+import { clearAuthCredentials, loginGithubCopilot } from '../../utils/ai/auth';
+import { RPCLayer } from "../../RPCLayer";
+// import { VisualizerWebview } from "../../views/visualizer/webview";
+import { AiPanelWebview } from "../../views/ai-panel/webview";
+import { ChatNotify, onChatNotify } from "@wso2/ballerina-core";
 
 export function activateCopilotLoginCommand() {
     commands.registerCommand(PALETTE_COMMANDS.LOGIN_COPILOT, async () => {
         try {
-            sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_AUTH_COPILOT, CMP_AUTH_COPILOT);
+            sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_AUTH_COPILOT, CMP_AUTH_COPILOT);
             await loginGithubCopilot();
         } catch (error) {
             if (error instanceof Error) {
-                sendTelemetryException(ballerinaExtInstance, error, CMP_AUTH_COPILOT);
+                sendTelemetryException(extension.ballerinaExtInstance, error, CMP_AUTH_COPILOT);
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unkown error occurred.");
@@ -43,8 +47,6 @@ export function activateCopilotLoginCommand() {
 
 export function resetBIAuth() {
     commands.registerCommand(PALETTE_COMMANDS.RESET_BI, async () => {
-        await ballerinaExtInstance.context.secrets.delete('GITHUB_TOKEN');
-        await ballerinaExtInstance.context.secrets.delete('GITHUB_COPILOT_TOKEN');
-        await ballerinaExtInstance.context.secrets.delete('LOGIN_ALERT_SHOWN');
+        await clearAuthCredentials();
     });
 }

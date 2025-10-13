@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import { PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { ViewColumn } from 'vscode';
 import { buildProjectArtifactsStructure } from '../../utils/project-artifacts';
 
@@ -46,9 +46,31 @@ export function activateSubscriptions() {
     // <------------- Shared Commands ------------>
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.SHOW_VISUALIZER, (path: string | vscode.Uri, position, resetHistory = false) => {
-            const documentPath = path ? (typeof path === "string" ? path : path.fsPath) : "";
+            // Check if position is a LineRange object (has 'start' and 'end' keys)
+            let nodePosition: NodePosition = position;
+            if (position && typeof position === "object" && "start" in position && "end" in position) {
+                // Convert LineRange to NodePosition
+                nodePosition = {
+                    startLine: position.start.line,
+                    startColumn: position.start.character,
+                    endLine: position.end.line,
+                    endColumn: position.end.character
+                };
+            }
+            let documentPath = "";
+            if (path) {
+                if (typeof path === "string") {
+                    if (path.startsWith("file:")) {
+                        documentPath = vscode.Uri.parse(path).fsPath;
+                    } else {
+                        documentPath = vscode.Uri.file(path).fsPath;
+                    }
+                } else if (path.fsPath) {
+                    documentPath = path.fsPath;
+                }
+            }
             if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
-                openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: position }, resetHistory);
+                openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
             } else {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BallerinaUpdateView }); // Redirect user to the ballerina update available page
             }

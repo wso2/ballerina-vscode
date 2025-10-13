@@ -26,6 +26,7 @@ export type Flow = {
     fileName: string;
     nodes: FlowNode[];
     connections?: FlowNode[];
+    variables?: FlowNode[];
 };
 
 export type Client = {
@@ -73,17 +74,29 @@ export type Metadata = {
     icon?: string;
     keywords?: string[];
     draft?: boolean; // for diagram draft nodes
-    data?: {
-        isDataMappedFunction?: boolean;
-        isAgentTool?: boolean;
-        isIsolatedFunction?: boolean;
-        tools?: ToolData[];
-        model?: ToolData;
-        memory?: MemoryData;
-        agent?: AgentData;
-        paramsToHide?: string[]; // List of properties keys to to hide from forms
-    };
+    data?: NodeMetadata | ParentMetadata;
     functionKind?: string;
+};
+
+export type NodeMetadata = {
+    isDataMappedFunction?: boolean;
+    isAgentTool?: boolean;
+    isIsolatedFunction?: boolean;
+    tools?: ToolData[];
+    model?: ToolData;
+    memory?: MemoryData;
+    agent?: AgentData;
+    paramsToHide?: string[]; // List of properties keys to to hide from forms
+    module?: string;
+    type?: string;
+};
+
+export type ParentMetadata = {
+    kind: string;
+    label: string;
+    accessor?: string;
+    parameters?: string[];
+    return?: string;
 };
 
 export type ToolData = {
@@ -125,6 +138,8 @@ export type Property = {
     advancedValue?: string;
     modified?: boolean;
     oldValue?: string;
+    defaultValue?: string;
+    itemOptions?: OptionProps[];
 };
 
 export type PropertyTypeMemberInfo = {
@@ -155,6 +170,7 @@ export type CodeData = {
     node?: NodeKind;
     org?: string;
     module?: string;
+    packageName?: string;
     object?: string;
     symbol?: string;
     lineRange?: ELineRange;
@@ -223,6 +239,7 @@ export enum DIRECTORY_MAP {
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
+    MODEL_PROVIDER = "MODEL_PROVIDER",
     NP_FUNCTION = "NP_FUNCTION",
     REMOTE = "REMOTE",
     RESOURCE = "RESOURCE",
@@ -294,6 +311,7 @@ export type NodePropertyKey =
     | "collection"
     | "comment"
     | "condition"
+    | "matchTarget"
     | "configValue"
     | "connection"
     | "defaultable"
@@ -302,10 +320,13 @@ export type NodePropertyKey =
     | "enableModelContext"
     | "expression"
     | "functionName"
+    | "functionNameDescription"
+    | "isIsolated"
     | "maxIter"
     | "memory"
     | "method"
     | "model"
+    | "modelProvider"
     | "msg"
     | "parameters"
     | "path"
@@ -320,8 +341,11 @@ export type NodePropertyKey =
     | "targetType"
     | "tools"
     | "type"
+    | "typeDescription"
     | "variable"
     | "verbose"
+    | "vectorStore"
+    | "embeddingModel"
     | "view";
 
 export type BranchKind = "block" | "worker";
@@ -364,6 +388,21 @@ export type NodeKind =
     | "LOCK"
     | "LV_EXPRESSION"
     | "MATCH"
+    | "METHOD_CALL"
+    | "MODEL_PROVIDER"
+    | "MODEL_PROVIDERS"
+    | "VARIABLE"
+    | "VECTOR_STORE"
+    | "VECTOR_STORES"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "VECTOR_KNOWLEDGE_BASE_CALL"
+    | "VECTOR_KNOWLEDGE_BASES"
+    | "EMBEDDING_PROVIDER"
+    | "EMBEDDING_PROVIDERS"
+    | "DATA_LOADER"
+    | "DATA_LOADERS"
+    | "CHUNKER"
+    | "CHUNKERS"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"
@@ -382,10 +421,10 @@ export type NodeKind =
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
-    | "VARIABLE"
     | "WAIT"
     | "WHILE"
-    | "WORKER";
+    | "WORKER"
+    | "VARIABLE";
 
 export type OverviewFlow = {
     entryPoints: EntryPoint[];
@@ -440,4 +479,11 @@ export type FormDiagnostics = {
 export type CompletionInsertText = {
     value: string;
     cursorOffset?: number;
+};
+
+export type OptionProps = {
+    id?: string;
+    content?: string;
+    value: any;
+    disabled?: boolean;
 };

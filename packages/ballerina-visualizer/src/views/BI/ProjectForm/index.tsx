@@ -16,18 +16,30 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
-import { Button, Icon, LocationSelector, TextField, Typography,Codicon,Tooltip } from "@wso2/ui-toolkit";
+import { useState } from "react";
+import {
+    Button,
+    Icon,
+    Typography,
+} from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { BodyText } from "../../styles";
 import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
+import { isFormValid } from "./utils";
 
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     margin: 80px 120px;
     max-width: 600px;
+`;
+
+const TitleContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
 `;
 
 const ButtonWrapper = styled.div`
@@ -47,76 +59,31 @@ const IconButton = styled.div`
     }
 `;
 
-const PreviewContainer = styled.div`
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    height: 28px;
-    gap: 8px;
-    background-color: var(--vscode-editor-background);
-    * {
-        cursor: default !important;
-    }
-`;
-
-const InputPreviewWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin: 20px 0;
-`;
-
-const PreviewText = styled(Typography)`
-    color: var(--vscode-sideBarTitle-foreground);
-    opacity: 0.5;
-    font-family: var(--vscode-editor-font-family, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
-    word-break: break-all;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-`;
-
-const PreviewIcon = styled(Codicon)`
-    display: flex;
-    align-items: center;
-`;
-
-const sanitizeProjectName = (name: string): string => {
-    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-};
-
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
-    const [selectedModule, setSelectedModule] = useState("Main");
-    const [name, setName] = useState("");
-    const [path, setPath] = useState("");
+    const [formData, setFormData] = useState<ProjectFormData>({
+        integrationName: "",
+        packageName: "",
+        path: "",
+        createDirectory: true,
+        orgName: "",
+        version: "",
+    });
 
-    const handleProjectName = (value: string) => {
-        setName(value);
+    const handleFormDataChange = (data: Partial<ProjectFormData>) => {
+        setFormData(prev => ({ ...prev, ...data }));
     };
 
     const handleCreateProject = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .createProject({ projectName: name, isService: selectedModule === "Service", projectPath: path });
+        rpcClient.getBIDiagramRpcClient().createProject({
+            projectName: formData.integrationName,
+            packageName: formData.packageName,
+            projectPath: formData.path,
+            createDirectory: formData.createDirectory,
+            orgName: formData.orgName || undefined,
+            version: formData.version || undefined,
+        });
     };
-
-    const handleProjecDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        setPath(projectDirectory.path);
-    };
-
-    useEffect(() => {
-        (async () => {
-            const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
-            setPath(currentDir.path);
-        })();
-
-    }, []);
 
     const gotToWelcome = () => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -129,39 +96,21 @@ export function ProjectForm() {
 
     return (
         <FormContainer>
-            <IconButton onClick={gotToWelcome}>
-                <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-            </IconButton>
-            <Typography variant="h2">Create Your Integration</Typography>
-            <BodyText>
-                Name your integration and select a location to start building.
-            </BodyText>
-            <InputPreviewWrapper>
-                <TextField
-                    onTextChange={handleProjectName}
-                    value={name}
-                    label="Integration Name"
-                    placeholder="Enter a integration name"
-                    autoFocus={true}
-                />
-                <PreviewContainer>
-                    <PreviewIcon name="project" iconSx={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                        <Tooltip content="A unique identifier for your intergration">
-                            <PreviewText variant="caption">
-                                {name ? sanitizeProjectName(name) : "integration_id"}
-                            </PreviewText>
-                        </Tooltip>
-                </PreviewContainer>
-            </InputPreviewWrapper>
-            <LocationSelector
-                label="Select Integration Path"
-                selectedFile={path}
-                btnText="Select Path"
-                onSelect={handleProjecDirSelection}
+            <TitleContainer>
+                <IconButton onClick={gotToWelcome}>
+                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                </IconButton>
+                <Typography variant="h2">Create Your Integration</Typography>
+            </TitleContainer>
+
+            <ProjectFormFields
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
             />
+
             <ButtonWrapper>
                 <Button
-                    disabled={name.length < 2 || path.length < 2}
+                    disabled={!isFormValid(formData)}
                     onClick={handleCreateProject}
                     appearance="primary"
                 >

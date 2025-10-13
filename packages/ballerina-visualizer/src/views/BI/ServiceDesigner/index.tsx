@@ -30,8 +30,9 @@ import {
     DIRECTORY_MAP,
     ProjectStructureArtifactResponse,
     PropertyModel,
+    ComponentInfo,
 } from "@wso2/ballerina-core";
-import { Button, Codicon, Icon, LinkButton, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, LinkButton, Typography, View, TextField } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ResourceAccordion } from "./components/ResourceAccordion";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
@@ -42,6 +43,7 @@ import { applyModifications, isPositionChanged } from "../../../utils/utils";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 import { LoadingRing } from "../../../components/Loader";
+import { ResourceAccordionV2 } from "./components/ResourceAccordionV2";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -80,6 +82,13 @@ const ButtonText = styled.span`
     width: 100%;
 `;
 
+const HeaderContainer = styled.div`
+    display: flex;
+    padding: 15px;
+    align-items: center;
+    justify-content: space-between;
+`;
+
 interface ServiceDesignerProps {
     filePath: string;
     position: NodePosition;
@@ -99,10 +108,17 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [projectListeners, setProjectListeners] = useState<ProjectStructureArtifactResponse[]>([]);
     const prevPosition = useRef(position);
 
+    const [resources, setResources] = useState<ProjectStructureArtifactResponse[]>([]);
+    const [searchValue, setSearchValue] = useState<string>("");
+
     useEffect(() => {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
             fetchService(position);
         }
+
+        rpcClient.onProjectContentUpdated(() => {
+            fetchService(position);
+        });
     }, [position]);
 
     const fetchService = (targetPosition: NodePosition) => {
@@ -135,6 +151,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);
+                }
+                const services = res.directoryMap[DIRECTORY_MAP.SERVICE];
+                if (services.length > 0) {
+                    const selectedService = services.find((service) => service.name === serviceIdentifier);
+                    setResources(selectedService.resources);
                 }
             });
     };
@@ -215,8 +236,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 endLine: model.codedata.lineRange.endLine.line,
                 endColumn: model.codedata.lineRange.endLine.offset,
             };
-            const deleteAction: STModification = removeStatement(targetPosition);
-            await applyModifications(rpcClient, [deleteAction]);
+            const component: ComponentInfo = {
+                name: model.name.value,
+                filePath: model.codedata.lineRange.fileName,
+                startLine: targetPosition.startLine,
+                startColumn: targetPosition.startColumn,
+                endLine: targetPosition.endLine,
+                endColumn: targetPosition.endColumn,
+            };
+            await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
             fetchService(targetPosition);
         }
     };
@@ -293,7 +321,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const handleServiceTryIt = () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listener = serviceModel.properties?.listener?.value?.trim();
-        const commands = ["ballerina.tryit", false, undefined, { basePath, listener }];
+        const commands = ["ballerina.tryIt", false, undefined, { basePath, listener }];
         rpcClient.getCommonRpcClient().executeCommand({ commands });
     }
 
@@ -340,6 +368,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             default:
                 return component.value;
         }
+    };
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(event.target.value);
     };
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
@@ -429,33 +461,58 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         </InfoSection>
                                     ))}
                         </InfoContainer>
+                        <HeaderContainer>
+                            <Typography
+                                key={"title"}
+                                variant="body2"
+                                sx={{ marginLeft: 10, marginBottom: 20, marginTop: 10 }}
+                            >
+                                Available {serviceModel.moduleName === "http" ? "Resources" : "Functions"}
+                            </Typography>
 
-                        <Typography
-                            key={"title"}
-                            variant="body2"
-                            sx={{ marginLeft: 10, marginBottom: 20, marginTop: 10 }}
-                        >
-                            Available {serviceModel.moduleName === "http" ? "Resources" : "Functions"}
-                        </Typography>
-                        <FunctionsContainer>
-                            {serviceModel.functions
-                                .filter(
-                                    (functionModel) =>
-                                        (serviceModel.moduleName === "http"
-                                            ? functionModel.kind === "RESOURCE"
-                                            : true) && functionModel.enabled
-                                )
-                                .map((functionModel, index) => (
-                                    <ResourceAccordion
-                                        key={`${index}-${functionModel.name.value}`}
-                                        functionModel={functionModel}
-                                        goToSource={() => { }}
-                                        onEditResource={handleFunctionEdit}
-                                        onDeleteResource={handleFunctionDelete}
-                                        onResourceImplement={handleOpenDiagram}
-                                    />
-                                ))}
-                        </FunctionsContainer>
+                            {serviceModel.moduleName === "http" && resources.length > 10 && (
+                                <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
+                            )}
+                        </HeaderContainer>
+                        {serviceModel.moduleName === "http" && (
+                            <FunctionsContainer>
+                                {resources
+                                    .filter((resource) => {
+                                        const search = searchValue.toLowerCase();
+                                        const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                        const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                        return nameMatch || iconMatch;
+                                    })
+                                    .map((resource, index) => (
+                                        <ResourceAccordionV2
+                                            key={`${index}-${resource.name}`}
+                                            resource={resource}
+                                            readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                            onEditResource={handleFunctionEdit}
+                                            onDeleteResource={handleFunctionDelete}
+                                            onResourceImplement={handleOpenDiagram}
+                                        />
+                                    ))}
+                            </FunctionsContainer>
+                        )}
+                        {serviceModel.moduleName !== "http" && (
+                            <FunctionsContainer>
+                                {serviceModel.functions
+                                    .filter(
+                                        (functionModel) => functionModel.kind === "REMOTE" && functionModel.enabled
+                                    )
+                                    .map((functionModel, index) => (
+                                        <ResourceAccordion
+                                            key={`${index}-${functionModel.name.value}`}
+                                            functionModel={functionModel}
+                                            goToSource={() => { }}
+                                            onEditResource={handleFunctionEdit}
+                                            onDeleteResource={handleFunctionDelete}
+                                            onResourceImplement={handleOpenDiagram}
+                                        />
+                                    ))}
+                            </FunctionsContainer>
+                        )}
                     </>
                 )}
                 {functionModel && functionModel.kind === "RESOURCE" && (

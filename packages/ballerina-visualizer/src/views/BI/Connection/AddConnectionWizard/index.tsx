@@ -20,11 +20,13 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
+    DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
     LinePosition,
     LineRange,
     MACHINE_VIEW,
+    ParentPopupData,
     RunExternalCommandResponse,
     SubPanel,
     SubPanelView,
@@ -35,7 +37,7 @@ import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField, FormField, FormValues, PanelContainer } from "@wso2/ballerina-side-panel";
 import { Icon, Overlay, ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { InlineDataMapper } from "../../../InlineDataMapper";
+import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -47,24 +49,46 @@ const Container = styled.div`
     justify-content: center;
 `;
 
+const PopupContainer = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    z-index: 2000;
+    background-color: ${ThemeColors.SURFACE_BRIGHT};
+    border-radius: 20px;
+    overflow: hidden;
+`;
+
 const StatusCard = styled.div`
-    margin: 16px 16px 0 16px;
-    padding: 16px;
-    border-radius: 8px;
-    background: ${ThemeColors.SURFACE_DIM_2};
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     gap: 16px;
 
     & > svg {
-        font-size: 24px;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
         color: ${ThemeColors.ON_SURFACE};
     }
 `;
 
+const StatusContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 40px;
+`;
+
 const StatusText = styled(Typography)`
-    color: ${ThemeColors.ON_SURFACE};
+    margin-top: 16px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: 14px;
+    text-align: center;
 `;
 
 enum WizardStep {
@@ -74,9 +98,9 @@ enum WizardStep {
 }
 
 enum PullingStatus {
+    FETCHING = "fetching",
     PULLING = "pulling",
     SUCCESS = "success",
-    EXISTS = "exists",
     ERROR = "error",
 }
 
@@ -89,15 +113,17 @@ enum SavingFormStatus {
 interface AddConnectionWizardProps {
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
-    onClose?: () => void;
+    onClose?: (parent?: ParentPopupData) => void;
+    isPopupScreen?: boolean;
+    openCustomConnectorView?: boolean;
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose } = props;
+    const { fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
-    const [pullingStatus, setPullingStatus] = useState<PullingStatus>(undefined);
+    const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus>(undefined);
     const selectedConnectorRef = useRef<AvailableNode>();
     const selectedNodeRef = useRef<FlowNode>();
@@ -138,14 +164,48 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             return;
         }
         selectedConnectorRef.current = connector;
-        setFetchingInfo(true);
+        setCurrentStep(WizardStep.CONNECTION_CONFIG);
 
         try {
-            const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            let didTimeout = false;
+
+            // Set status to FETCHING before starting
+            setPullingStatus(PullingStatus.FETCHING);
+            selectedNodeRef.current = undefined;
+
+            // Start a timer for 3 seconds
+            const timeoutPromise = new Promise<void>((resolve) => {
+                timer = setTimeout(() => {
+                    didTimeout = true;
+                    setPullingStatus(PullingStatus.PULLING);
+                    resolve();
+                }, 3000);
+            });
+
+            // Start the request
+            const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: target || null,
                 filePath: fileName,
                 id: connector.codedata,
             });
+
+            // Wait for either the timer or the request to finish
+            const response = await Promise.race([
+                nodeTemplatePromise.then((res) => {
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                    return res;
+                }),
+                timeoutPromise.then(() => nodeTemplatePromise),
+            ]);
+
+            if (didTimeout) {
+                // If it timed out, set status to SUCCESS
+                setPullingStatus(PullingStatus.SUCCESS);
+            }
 
             console.log(">>> FlowNode template", response);
             selectedNodeRef.current = response.flowNode;
@@ -157,12 +217,14 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 handleOnFormSubmit(response.flowNode);
                 return;
             }
-
-            // get node properties
-            setCurrentStep(WizardStep.CONNECTION_CONFIG);
-            // Start pulling connector after transitioning to config step
+        } catch (error) {
+            console.error(">>> Error selecting connector", error);
+            setPullingStatus(PullingStatus.ERROR);
         } finally {
-            setFetchingInfo(false);
+            // After few seconds, set status to undefined
+            setTimeout(() => {
+                setPullingStatus(undefined);
+            }, 2000);
         }
     };
 
@@ -209,7 +271,10 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         // clear memory
                         selectedNodeRef.current = undefined;
                         setSavingFormStatus(SavingFormStatus.SUCCESS);
-                        onClose ? onClose() : gotoHome();
+                        const newConnection = response.artifacts.find((artifact) => artifact.isNew);
+                        onClose
+                            ? onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION })
+                            : gotoHome();
                     } else {
                         console.error(">>> Error updating source code", response);
                         setSavingFormStatus(SavingFormStatus.ERROR);
@@ -220,20 +285,22 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     const handleOnGenerateSubmit = async (data: FormValues) => {
         // Note: Project path is empty as the value is overridden in the rpc client
-        const response = await rpcClient
-            .getBIDiagramRpcClient()
-            .generateOpenApiClient({ openApiContractPath: data["openApiSpecPath"], projectPath: "", module: data["module"] });
+        const response = await rpcClient.getBIDiagramRpcClient().generateOpenApiClient({
+            openApiContractPath: data["openApiSpecPath"],
+            projectPath: "",
+            module: data["module"],
+        });
         if (response.errorMessage) {
             setGenConnectorFields((prevFields) =>
                 prevFields.map((field) =>
                     field.key === "module"
                         ? {
-                            ...field,
-                            diagnostics: [
-                                ...field.diagnostics,
-                                { message: response.errorMessage, severity: "ERROR" },
-                            ],
-                        }
+                              ...field,
+                              diagnostics: [
+                                  ...field.diagnostics,
+                                  { message: response.errorMessage, severity: "ERROR" },
+                              ],
+                          }
                         : field
                 )
             );
@@ -244,7 +311,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
     };
 
     const handleOnBack = () => {
-        setCurrentStep(WizardStep.CONNECTOR_LIST);
+        isPopupScreen ? onClose() : setCurrentStep(WizardStep.CONNECTOR_LIST);
     };
 
     const handleSubPanel = (subPanel: SubPanel) => {
@@ -257,14 +324,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={handleSubPanel}
-                        updateFormField={updateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView
@@ -296,87 +355,113 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
     return (
         <Container>
-            <>
+            {!isPopupScreen ? (
                 <ConnectorView
                     key={connectorsViewKey}
                     fileName={fileName}
                     targetLinePosition={target}
                     onSelectConnector={handleOnSelectConnector}
                     onAddGeneratedConnector={handleOnAddGeneratedConnector}
-                    fetchingInfo={fetchingInfo}
                     onClose={onClose}
+                    openCustomConnectorView={openCustomConnectorView}
                 />
-                {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
-                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
-                )}
-            </>
-            {!fetchingInfo && currentStep === WizardStep.CONNECTION_CONFIG && (
+            ) : (
+                currentStep === WizardStep.CONNECTOR_LIST && (
+                    <>
+                        <Overlay
+                            sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5`, zIndex: 1999 }}
+                        />
+                        <PopupContainer>
+                            <ConnectorView
+                                key={connectorsViewKey}
+                                fileName={fileName}
+                                targetLinePosition={target}
+                                onSelectConnector={handleOnSelectConnector}
+                                onAddGeneratedConnector={handleOnAddGeneratedConnector}
+                                onClose={onClose}
+                                isPopupView={true}
+                            />
+                        </PopupContainer>
+                    </>
+                )
+            )}
+            {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
+                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
+            )}
+            {currentStep === WizardStep.CONNECTION_CONFIG && (
                 <PanelContainer
                     show={true}
                     title={`Configure the ${selectedConnectorRef.current?.metadata.label || ""} Connector`}
                     onClose={onClose ? onClose : handleOnBack}
                     width={400}
-                    subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+                    subPanelWidth={400}
                     subPanel={findSubPanelComponent(subPanel)}
                     onBack={handleOnBack}
                 >
                     <>
-                        {pullingStatus === PullingStatus.PULLING && (
-                            <StatusCard>
-                                <DownloadIcon color={ThemeColors.ON_SURFACE} />
-                                <StatusText variant="body2">
-                                    Please wait while the connector package is being pulled...
-                                </StatusText>
-                            </StatusCard>
+                        {pullingStatus && (
+                            <StatusContainer>
+                                {pullingStatus === PullingStatus.FETCHING && (
+                                    <RelativeLoader message="Loading connector package..." />
+                                )}
+                                {pullingStatus === PullingStatus.PULLING && (
+                                    <StatusCard>
+                                        <DownloadIcon color={ThemeColors.ON_SURFACE} />
+                                        <StatusText variant="body2">
+                                            Please wait while the connector package is being pulled...
+                                        </StatusText>
+                                    </StatusCard>
+                                )}
+                                {pullingStatus === PullingStatus.SUCCESS && (
+                                    <StatusCard>
+                                        <Icon
+                                            name="bi-success"
+                                            sx={{
+                                                color: ThemeColors.PRIMARY,
+                                                fontSize: "28px",
+                                                width: "28px",
+                                                height: "28px",
+                                            }}
+                                        />
+                                        <StatusText variant="body2">Connector package pulled successfully.</StatusText>
+                                    </StatusCard>
+                                )}
+                                {pullingStatus === PullingStatus.ERROR && (
+                                    <StatusCard>
+                                        <Icon
+                                            name="bi-error"
+                                            sx={{
+                                                color: ThemeColors.ERROR,
+                                                fontSize: "28px",
+                                                width: "28px",
+                                                height: "28px",
+                                            }}
+                                        />
+                                        <StatusText variant="body2">
+                                            Failed to pull the connector package. Please try again.
+                                        </StatusText>
+                                    </StatusCard>
+                                )}
+                            </StatusContainer>
                         )}
-                        {pullingStatus === PullingStatus.EXISTS && (
-                            <StatusCard>
-                                <Icon name="bi-success" sx={{ color: ThemeColors.ON_SURFACE, fontSize: "18px" }} />
-                                <StatusText variant="body2">
-                                    Connector module already pulled. Please continue with the configuration.
-                                </StatusText>
-                            </StatusCard>
-                        )}
-                        {pullingStatus === PullingStatus.SUCCESS && (
-                            <StatusCard>
-                                <Icon name="bi-success" sx={{ color: ThemeColors.PRIMARY, fontSize: "18px" }} />
-                                <StatusText variant="body2">Connector module pulled successfully.</StatusText>
-                            </StatusCard>
-                        )}
-                        {pullingStatus === PullingStatus.ERROR && (
-                            <StatusCard>
-                                <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "18px" }} />
-                                <StatusText variant="body2">
-                                    Failed to pull the connector module. Please try again.
-                                </StatusText>
-                            </StatusCard>
-                        )}
-
-                        <BodyText style={{ padding: "20px 16px 0 16px" }}>
-                            Provide the necessary configuration details for the selected connector to complete the
-                            setup.
-                        </BodyText>
-                        <ConnectionConfigView
-                            fileName={fileName}
-                            submitText={savingFormStatus === SavingFormStatus.SAVING ? "Creating..." : "Create"}
-                            isSaving={savingFormStatus === SavingFormStatus.SAVING}
-                            selectedNode={selectedNodeRef.current}
-                            onSubmit={handleOnFormSubmit}
-                            updatedExpressionField={updatedExpressionField}
-                            resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                            openSubPanel={handleSubPanel}
-                            isPullingConnector={
-                                pullingStatus === PullingStatus.PULLING || savingFormStatus === SavingFormStatus.SAVING
-                            }
-                        />
-                        {savingFormStatus === SavingFormStatus.SAVING && (
-                            <BodyText style={{ padding: "20px 20px 0 20px" }}>Saving connection ...</BodyText>
-                        )}
-                        {savingFormStatus === SavingFormStatus.SUCCESS && (
-                            <BodyText style={{ padding: "20px 20px 0 20px" }}>Connection saved successfully.</BodyText>
-                        )}
-                        {savingFormStatus === SavingFormStatus.ERROR && (
-                            <BodyText style={{ padding: "20px 20px 0 20px" }}>Error saving connection.</BodyText>
+                        {!pullingStatus && selectedNodeRef.current && (
+                            <>
+                                <BodyText style={{ padding: "20px 16px 0 16px" }}>
+                                    Provide the necessary configuration details for the selected connector to complete
+                                    the setup.
+                                </BodyText>
+                                <ConnectionConfigView
+                                    fileName={fileName}
+                                    submitText={savingFormStatus === SavingFormStatus.SAVING ? "Creating..." : "Create"}
+                                    isSaving={savingFormStatus === SavingFormStatus.SAVING}
+                                    selectedNode={selectedNodeRef.current}
+                                    onSubmit={handleOnFormSubmit}
+                                    updatedExpressionField={updatedExpressionField}
+                                    resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                    openSubPanel={handleSubPanel}
+                                    isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
+                                />
+                            </>
                         )}
                     </>
                 </PanelContainer>
@@ -419,26 +504,3 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 }
 
 export default AddConnectionWizard;
-
-// TODO: remove this logic once module pull supported from LS
-export function isConnectorDependOnDriver(connectorModule: string): boolean {
-    const dbConnectors = ["mysql", "mssql", "postgresql", "oracledb", "cdata.connect", "snowflake"];
-    if (dbConnectors.includes(connectorModule)) {
-        return true;
-    }
-    return false;
-}
-
-// run command message handler
-export function handleRunCommandResponse(response: RunExternalCommandResponse): PullingStatus {
-    if (response.message.includes("Package already exists")) {
-        return PullingStatus.EXISTS;
-    }
-    if (response.message.includes("pulled from central successfully")) {
-        return PullingStatus.SUCCESS;
-    }
-    if (!response.error) {
-        return PullingStatus.SUCCESS;
-    }
-    return PullingStatus.ERROR;
-}

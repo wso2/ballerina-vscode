@@ -75,6 +75,35 @@ const PostLoginSection = styled.div`
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 16px;
+`;
+
+const Divider = styled.div`
+    display: flex;
+    align-items: center;
+    color: var(--vscode-widget-border);
+    font-size: 12px;
+    width: 100%;
+    &::before,
+    &::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid var(--vscode-widget-border);
+        margin: 0 8px;
+    }
+`;
+
+const TextButton = styled.button`
+    background: none;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    margin-top: -6px;
+    &:hover {
+        text-decoration: underline;
+    }
 `;
 
 const LegalNotice: React.FC = () => {
@@ -106,6 +135,14 @@ const LoginPanel: React.FC = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.LOGIN);
     };
 
+    const handleAnthropicKeyClick = () => {
+        rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_API_KEY);
+    };
+
+    const handleAwsBedrockClick = () => {
+        rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_AWS_BEDROCK);
+    };
+
     return (
         <PanelWrapper>
             <TopSpacer />
@@ -132,6 +169,9 @@ const LoginPanel: React.FC = () => {
             <FooterContent>
                 <LegalNotice />
                 <StyledButton onClick={handleCopilotLogin}>Login to BI Copilot</StyledButton>
+                <Divider>or</Divider>
+                <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>
+                <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
             </FooterContent>
         </PanelWrapper>
     );

@@ -44,7 +44,7 @@ const fadeInZoomIn = keyframes`
 `;
 
 export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) => {
-    const { onAddNode, onAddNodePrompt, onAddComment, setLockCanvas } = useDiagramContext();
+    const { onAddNode, onAddNodePrompt, onAddComment, setLockCanvas, readOnly } = useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isCommentButtonHovered, setIsCommentButtonHovered] = useState(false);
@@ -62,7 +62,11 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
     const showAddButton = link.showAddButton && !link.disabled;
     const shouldHighlight =
         showAddButton && (isHovered || link.showButtonAlways || isPromptBoxOpen || isCommentBoxOpen);
-    const linkColor = link.disabled ? ThemeColors.OUTLINE_VARIANT : isHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY;
+    const linkColor = link.disabled
+        ? ThemeColors.OUTLINE_VARIANT
+        : isHovered && !readOnly
+        ? ThemeColors.SECONDARY
+        : ThemeColors.PRIMARY;
 
     const addButtonPosition = link.getAddButtonPosition();
 
@@ -140,7 +144,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
             {link.label && (
                 <foreignObject
                     x={addButtonPosition.x - NODE_WIDTH / 2}
-                    y={addButtonPosition.y - 12}
+                    y={addButtonPosition.y - 10}
                     width={NODE_WIDTH}
                     height={24}
                 >
@@ -183,7 +187,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                     </div>
                 </foreignObject>
             )}
-            {showAddButton && onAddNode && (
+            {showAddButton && onAddNode && !readOnly && (
                 <foreignObject x={addButtonPosition.x - 35} y={addButtonPosition.y - 10} width="70" height="20">
                     <div
                         css={css`

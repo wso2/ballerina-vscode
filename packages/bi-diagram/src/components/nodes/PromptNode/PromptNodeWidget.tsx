@@ -21,7 +21,11 @@ import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import {
     DRAFT_NODE_BORDER_WIDTH,
+    LABEL_HEIGHT,
+    LABEL_WIDTH,
     NODE_BORDER_WIDTH,
+    NODE_GAP_X,
+    NODE_HEIGHT,
     NODE_PADDING,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
@@ -30,10 +34,11 @@ import { Button, CompletionItem, FormExpressionEditor, FormExpressionEditorRef, 
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { PromptNodeModel } from "./PromptNodeModel";
-import { ELineRange, ExpressionProperty } from "@wso2/ballerina-core";
+import { ELineRange, ExpressionProperty, NodeMetadata } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getRawTemplate, nodeHasError } from "../../../utils/node";
+import { nodeHasError } from "../../../utils/node";
 import { cloneDeep } from "lodash";
+import { getLlmModelIcons } from "../../ConnectorIcon";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -41,6 +46,7 @@ export namespace NodeStyles {
         hovered: boolean;
         hasError: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -57,7 +63,13 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
     `;
 
@@ -177,6 +189,13 @@ export namespace NodeStyles {
         align-items: center;
         gap: 8px;
     `;
+
+    export const StyledCircle = styled.circle`
+        cursor: pointer;
+        &:hover {
+            stroke: ${ThemeColors.SECONDARY};
+        }
+    `;
 }
 
 const FETCH_COMPLETIONS_STATE = {
@@ -192,17 +211,21 @@ export interface PromptNodeWidgetProps {
     engine: DiagramEngine;
 }
 
-export interface NodeWidgetProps extends Omit<PromptNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<PromptNodeWidgetProps, "children"> { }
 
 export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const { model, engine } = props;
     const {
-        projectPath,
+        project,
         goToSource,
         openView,
         onNodeSave,
-        expressionContext
+        expressionContext,
+        aiNodes,
+        selectedNodeId,
     } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
     const {
         completions,
         triggerCharacters,
@@ -225,6 +248,8 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const fetchingStateRef = useRef<FetchCompletionsState>(FETCH_COMPLETIONS_STATE.IDLE);
     const invalidateCacheRef = useRef<boolean>(false);
     const field: ExpressionProperty = useMemo(() => model.node.properties['prompt'], [model]);
+    const nodeMetadata = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata);
+    const nodeModelType = nodeMetadata?.type === "ModelProvider" ? nodeMetadata?.module : nodeMetadata?.type;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (event.metaKey) {
@@ -245,13 +270,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         goToSource?.(model.node);
     };
 
-    const openDataMapper = () => {
+    const openDataMapper = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -259,13 +285,14 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             });
     };
 
-    const viewFunction = () => {
+    const viewFunction = async () => {
         if (!model.node.properties?.view?.value) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
-            openView(projectPath + "/" + fileName, {
+            openView(filePath, {
                 startLine: startLine.line,
                 startColumn: startLine.offset,
                 endLine: endLine.line,
@@ -408,85 +435,171 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         }
     }
 
+    const onModelEditClick = () => {
+        aiNodes?.onModelSelect(model.node);
+    };
+
+
     return (
-        <NodeStyles.Node
-            hovered={isHovered}
-            disabled={model.node.suggested}
-            hasError={hasError}
-            isActiveBreakpoint={isActiveBreakpoint}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {hasBreakpoint && (
-                <div
-                    style={{
-                        position: "absolute",
-                        left: -5,
-                        width: 15,
-                        height: 15,
-                        borderRadius: "50%",
-                        backgroundColor: "red",
-                    }}
-                />
-            )}
-            <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
-            <NodeStyles.Row>
-                <NodeStyles.Icon onClick={handleOnClick}>
-                    <NodeIcon type={model.node.codedata.node} size={24} />
-                </NodeStyles.Icon>
-                <NodeStyles.Row>
-                    <NodeStyles.Header onClick={handleOnClick}>
-                        <NodeStyles.Title>Prompt</NodeStyles.Title>
-                    </NodeStyles.Header>
-                    <NodeStyles.ActionButtonGroup>
-                        {hasError && <DiagnosticsPopUp node={model.node} />}
-                    </NodeStyles.ActionButtonGroup>
-                </NodeStyles.Row>
-                {!editable && (
-                    <NodeStyles.Icon>
-                        <Icon
-                            name="bi-edit"
-                            onClick={toggleEditable}
-                            sx={{
-                                fontSize: 20,
-                                width: 20,
-                                height: 20
-                            }}
-                        />
-                    </NodeStyles.Icon>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+            <NodeStyles.Node
+                hovered={isHovered}
+                disabled={model.node.suggested}
+                hasError={hasError}
+                isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                {hasBreakpoint && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            left: -5,
+                            width: 15,
+                            height: 15,
+                            borderRadius: "50%",
+                            backgroundColor: "red",
+                        }}
+                    />
                 )}
-            </NodeStyles.Row>
-            <NodeStyles.Body>
-                <FormExpressionEditor
-                    ref={exprRef}
-                    anchorRef={anchorRef}
-                    completions={completions}
-                    value={bodyTextTemplate}
-                    placeholder="Enter your prompt here..."
-                    onChange={handleChange}
-                    onCompletionSelect={handleCompletionSelect}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    onCancel={onCancel}
-                    growRange={{ start: 12, offset: 0 }}
-                    disabled={!editable}
-                    resize="disabled"
-                    sx={{ paddingInline: '0' }}
-                    completionSx={{ width: '331px' }}
-                />
-            </NodeStyles.Body>
-            {editable && (
-                <NodeStyles.ButtonGroup>
-                    <Button appearance="secondary" onClick={toggleEditable}>
-                        Cancel
-                    </Button>
-                    <Button appearance="primary" onClick={handleSave}>
-                        Save
-                    </Button>
-                </NodeStyles.ButtonGroup>
-            )}
-            <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
-        </NodeStyles.Node>
+                <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
+                <NodeStyles.Row>
+                    <NodeStyles.Icon onClick={handleOnClick}>
+                        <NodeIcon type={model.node.codedata.node} size={24} />
+                    </NodeStyles.Icon>
+                    <NodeStyles.Row>
+                        <NodeStyles.Header onClick={handleOnClick}>
+                            <NodeStyles.Title>Prompt</NodeStyles.Title>
+                        </NodeStyles.Header>
+                        <NodeStyles.ActionButtonGroup>
+                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                        </NodeStyles.ActionButtonGroup>
+                    </NodeStyles.Row>
+                    {!editable && (
+                        <NodeStyles.Icon title="Edit Prompt">
+                            <Icon
+                                name="bi-edit"
+                                onClick={toggleEditable}
+                                sx={{
+                                    fontSize: 20,
+                                    width: 20,
+                                    height: 20
+                                }}
+                            />
+                        </NodeStyles.Icon>
+                    )}
+                </NodeStyles.Row>
+                <NodeStyles.Body>
+                    <FormExpressionEditor
+                        ref={exprRef}
+                        anchorRef={anchorRef}
+                        completions={completions}
+                        value={bodyTextTemplate}
+                        placeholder="Enter your prompt here..."
+                        onChange={handleChange}
+                        onCompletionSelect={handleCompletionSelect}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                        onCancel={onCancel}
+                        growRange={{ start: 12, offset: 0 }}
+                        disabled={!editable}
+                        resize="disabled"
+                        sx={{ paddingInline: '0' }}
+                        completionSx={{ width: '331px' }}
+                    />
+                </NodeStyles.Body>
+
+                {editable && (
+                    <NodeStyles.ButtonGroup>
+                        <Button appearance="secondary" onClick={toggleEditable}>
+                            Cancel
+                        </Button>
+                        <Button appearance="primary" onClick={handleSave}>
+                            Save
+                        </Button>
+                    </NodeStyles.ButtonGroup>
+                )}
+                <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
+            </NodeStyles.Node>
+
+            <svg
+                width={NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH + 10}
+                height={PROMPT_NODE_HEIGHT}
+                viewBox={`0 0 300 ${PROMPT_NODE_HEIGHT}`}
+                style={{ marginLeft: "-10px" }}
+            >
+                {/* NP function model circle */}
+                <title>{"Configure Model Provider"}</title>
+                <g>
+                    <NodeStyles.StyledCircle
+                        cx="80"
+                        cy="24"
+                        r="22"
+                        fill={ThemeColors.SURFACE_DIM}
+                        stroke={ThemeColors.OUTLINE_VARIANT}
+                        strokeWidth={1.5}
+                        strokeDasharray={model.node.suggested ? "5 5" : "none"}
+                        opacity={model.node.suggested ? 0.7 : 1}
+                        onClick={onModelEditClick}
+                    />
+                    <foreignObject
+                        x="68"
+                        y="12"
+                        width="44"
+                        height="44"
+                        fill={ThemeColors.ON_SURFACE}
+                        style={{ pointerEvents: "none" }}
+                    >
+                        {getLlmModelIcons(nodeModelType)}
+                    </foreignObject>
+                    <line
+                        x1="0"
+                        y1="25"
+                        x2="57"
+                        y2="25"
+                        style={{
+                            stroke: ThemeColors.ON_SURFACE,
+                            strokeWidth: 1.5,
+                            markerEnd: `url(#${model.node.id}-arrow-head)`,
+                            markerStart: `url(#${model.node.id}-diamond-start)`,
+                        }}
+                    />
+                </g>
+
+                <defs>
+                    <marker
+                        id={`${model.node.id}-arrow-head`}
+                        markerWidth="4"
+                        markerHeight="4"
+                        refX="3"
+                        refY="2"
+                        viewBox="0 0 4 4"
+                        orient="auto"
+                    >
+                        <polygon points="0,4 0,0 4,2" fill={ThemeColors.ON_SURFACE}></polygon>
+                    </marker>
+                    <marker
+                        id={`${model.node.id}-diamond-start`}
+                        markerWidth="8"
+                        markerHeight="8"
+                        refX="4.5"
+                        refY="4"
+                        viewBox="0 0 8 8"
+                        orient="auto"
+                    >
+                        <circle
+                            cx="4"
+                            cy="4"
+                            r="3"
+                            fill={ThemeColors.SURFACE_DIM}
+                            stroke={ThemeColors.ON_SURFACE}
+                            strokeWidth="1"
+                        />
+                    </marker>
+                </defs>
+            </svg>
+        </div>
     );
 }
 

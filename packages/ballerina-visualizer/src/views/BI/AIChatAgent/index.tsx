@@ -167,7 +167,7 @@ export function AIAgentDesigner(props: AIAgentDesignerProps) {
     const handleServiceTryIt = () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim() ?? "";
         const listener = serviceModel.properties?.listener?.value?.trim();
-        const commands = ["ballerina.tryit", false, undefined, { basePath, listener }];
+        const commands = ["ballerina.tryIt", false, undefined, { basePath, listener }];
         rpcClient.getCommonRpcClient().executeCommand({ commands });
     };
 

@@ -24,6 +24,7 @@ import styled from '@emotion/styled';
 import { Transition } from '@headlessui/react';
 import {
     ARROW_HEIGHT,
+    BI_HELPER_PANE_WIDTH,
     CompletionItemKind,
     Position
 } from '@wso2/ui-toolkit';
@@ -41,6 +42,10 @@ export type TypeHelperItem = {
     type: CompletionItemKind;
     codedata?: CodeData;
     kind?: FunctionKind;
+    labelDetails?: {
+        description: string;
+        detail: string;
+    };
 };
 
 export type TypeHelperCategory = {
@@ -108,7 +113,7 @@ type StyleBase = {
 namespace S {
     export const Container = styled.div<StyleBase>`
         position: absolute;
-        z-index: 2001;
+        z-index: 40001;
         filter: drop-shadow(0 3px 8px rgb(0 0 0 / 0.2));
 
         *,
@@ -194,8 +199,16 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
 
     const updatePosition = throttle(() => {
         if (typeFieldRef.current) {
+            const rect = typeFieldRef.current.getBoundingClientRect();
+            let left = 0;
+            if (rect.width < BI_HELPER_PANE_WIDTH && window.innerWidth - rect.left < BI_HELPER_PANE_WIDTH) {
+                left = rect.right - BI_HELPER_PANE_WIDTH - 2; // 2px for alignment correction padding
+            }
+            else {
+                left = rect.left;
+            }
             setPosition({
-                helperPane: getHelperPanePosition(typeFieldRef, positionOffset),
+                helperPane: {top: rect.bottom, left: left},
                 arrow: getArrowPosition(typeFieldRef, position.helperPane)
             });
         }
@@ -243,9 +256,9 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
                                 open={open}
                                 typeBrowserRef={typeBrowserRef}
                                 onClose={onClose}
+                                exprRef={undefined}
                                 {...rest}
                             />
-                            <S.Arrow sx={position.arrow} />
                         </Transition>
                     </S.Container>,
                     document.body

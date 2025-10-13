@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions } from 'vscode';
-import { ballerinaExtInstance, BallerinaExtension } from './core';
+import { ExtensionContext, commands, window, Location, Uri, TextEditor, extensions, workspace } from 'vscode';
+import { BallerinaExtension } from './core';
 import { activate as activateBBE } from './views/bbe';
 import {
     activate as activateTelemetryListener, CMP_EXTENSION_CORE, sendTelemetryEvent,
@@ -94,7 +94,7 @@ function onBeforeInit(langClient: ExtendedLangClient) {
         }
         fillClientCapabilities(capabilities: ExtendedClientCapabilities): void {
             capabilities.experimental = capabilities.experimental || { introspection: false, showTextDocument: false };
-            capabilities.experimental.experimentalLanguageFeatures = ballerinaExtInstance.enabledExperimentalFeatures();
+            capabilities.experimental.experimentalLanguageFeatures = extension.ballerinaExtInstance.enabledExperimentalFeatures();
         }
         initialize(_capabilities: ServerCapabilities, _documentSelector: DocumentSelector | undefined): void {
         }
@@ -112,18 +112,31 @@ export async function activate(context: ExtensionContext) {
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
     // Then return the ballerina extension context
-    return { ballerinaExtInstance, projectPath: StateMachine.context().projectUri };
+    return { ballerinaExtInstance: extension.ballerinaExtInstance, projectPath: StateMachine.context().projectUri };
 }
 
 export async function activateBallerina(): Promise<BallerinaExtension> {
+    const ballerinaExtInstance = new BallerinaExtension();
+    extension.ballerinaExtInstance = ballerinaExtInstance;
     debug('Active the Ballerina VS Code extension.');
-    sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    try {
+        debug('Sending telemetry event.');
+        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_EXTENSION_ACTIVATE, CMP_EXTENSION_CORE);
+    } catch (error) {
+        debug('Error sending telemetry event.');
+    }
+    debug('Setting context.');
     ballerinaExtInstance.setContext(extension.context);
+    await updateCodeServerConfig();
     // Enable URI handlers
+    debug('Activating URI handlers.');
     activateUriHandlers(ballerinaExtInstance);
     // Activate Subscription Commands
+    debug('Activating subscription commands.');
     activateSubscriptions();
+    debug('Starting ballerina extension initialization.');
     await ballerinaExtInstance.init(onBeforeInit).then(() => {
+        debug('Ballerina extension activated successfully.');
         // <------------ CORE FUNCTIONS ----------->
         // Activate Library Browser
         activateLibraryBrowser(ballerinaExtInstance);
@@ -185,6 +198,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         });
         isPluginStartup = false;
     }).catch((e) => {
+        debug('Failed to activate Ballerina extension.');
         log("Failed to activate Ballerina extension. " + (e.message ? e.message : e));
         const cmds: any[] = ballerinaExtInstance.extension.packageJSON.contributes.commands;
 
@@ -237,11 +251,20 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
     return ballerinaExtInstance;
 }
 
+async function updateCodeServerConfig() {
+    if (!('CLOUD_STS_TOKEN' in process.env)) {
+        return;
+    }
+    log("Code server environment detected");
+    const config = workspace.getConfiguration('ballerina');
+    await config.update('enableRunFast', true);
+}
+
 export function deactivate(): Thenable<void> | undefined {
     debug('Deactive the Ballerina VS Code extension.');
     if (!langClient) {
         return;
     }
-    ballerinaExtInstance.telemetryReporter.dispose();
+    extension.ballerinaExtInstance.telemetryReporter.dispose();
     return langClient.stop();
 }

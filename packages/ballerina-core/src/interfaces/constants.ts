@@ -16,16 +16,16 @@
  * under the License.
  */
 
-export enum SHARED_COMMANDS {
-    FORCE_UPDATE_PROJECT_ARTIFACTS = 'ballerina.force.update.artifacts',
-    SHOW_VISUALIZER = 'ballerina.show.visualizer',
-    GET_STATE_CONTEXT = 'ballerina.get.stateContext',
-    OPEN_BI_WELCOME = 'ballerina.open.bi.welcome',
-    OPEN_BI_NEW_PROJECT = 'ballerina.open.bi.new',
-    OPEN_SERVICE_FORM = 'ballerina.open.service.form',
-    OPEN_AI_PANEL = 'ballerina.open.ai.panel',
-    CLOSE_AI_PANEL = 'ballerina.close.ai.panel',
-    OPEN_AGENT_CHAT = 'ballerina.open.agent.chat'
+export const SHARED_COMMANDS = {
+    FORCE_UPDATE_PROJECT_ARTIFACTS: 'ballerina.force.update.artifacts',
+    SHOW_VISUALIZER: 'ballerina.showVisualizer',
+    GET_STATE_CONTEXT: 'ballerina.get.stateContext',
+    OPEN_BI_WELCOME: 'ballerina.open.bi.welcome',
+    OPEN_BI_NEW_PROJECT: 'ballerina.open.bi.new',
+    OPEN_SERVICE_FORM: 'ballerina.open.service.form',
+    OPEN_AI_PANEL: 'ballerina.open.ai.panel',
+    CLOSE_AI_PANEL: 'ballerina.close.ai.panel',
+    OPEN_AGENT_CHAT: 'ballerina.open.agent.chat'
 }
 
 export const BI_COMMANDS = {
@@ -35,6 +35,7 @@ export const BI_COMMANDS = {
     FOCUS_PROJECT_EXPLORER: 'BI.project-explorer.focus',
     PROJECT_EXPLORER: 'BI.project-explorer',
     ADD_CONNECTIONS: 'BI.project-explorer.add-connection',
+    ADD_CUSTOM_CONNECTOR: 'BI.project-explorer.add-custom-connector',
     DELETE_COMPONENT: 'BI.project-explorer.delete',
     ADD_ENTRY_POINT: 'BI.project-explorer.add-entry-point',
     ADD_TYPE: 'BI.project-explorer.add-type',
@@ -42,6 +43,7 @@ export const BI_COMMANDS = {
     ADD_FUNCTION: 'BI.project-explorer.add-function',
     OPEN_TYPE_DIAGRAM: 'BI.view.typeDiagram',
     ADD_CONFIGURATION: 'BI.project-explorer.add-configuration',
+    VIEW_CONFIGURATION: 'BI.project-explorer.view-configuration',
     ADD_PROJECT: 'BI.project-explorer.add',
     SHOW_OVERVIEW: 'BI.project-explorer.overview',
     SWITCH_PROJECT: 'BI.project-explorer.switch-project',
@@ -50,4 +52,5 @@ export const BI_COMMANDS = {
     BI_ADD_TEST_FUNCTION: 'BI.test.add.function',
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
+    TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
 };

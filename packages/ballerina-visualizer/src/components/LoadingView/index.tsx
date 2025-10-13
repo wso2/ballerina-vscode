@@ -20,13 +20,17 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { ProgressRing, ThemeColors } from '@wso2/ui-toolkit';
 
-const LoadingContainer = styled.div<{ fullHeight?: boolean }>`
+interface LoadingContainerProps {
+    fullHeight?: boolean;
+}
+
+const LoadingContainer = styled.div<LoadingContainerProps>`
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: ${props => props.fullHeight ? '100vh' : '100%'};
+    height: ${(props: LoadingContainerProps) => props.fullHeight ? '100vh' : '100%'};
     min-height: 200px;
 `;
 

@@ -25,10 +25,10 @@ import { Position, Range, TestController, Uri, TestItem, commands } from "vscode
 
 let groups: string[] = [];
 
-export async function discoverTestFunctionsInProject(ballerinaExtInstance: BallerinaExtension, 
+export async function discoverTestFunctionsInProject(ballerinaExtInstance: BallerinaExtension,
     testController: TestController) {
     groups.push(testController.id);
-    const filePath : string = path.join(StateMachine.context().projectUri);
+    const filePath: string = path.join(StateMachine.context().projectUri);
     const request: TestsDiscoveryRequest = {
         filePath
     };
@@ -55,7 +55,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
         for (const [group, testFunctions] of entries) {
             // Create a test item for the group
             const groupId = `group:${group}`;
-            let groupItem : TestItem = testController.items.get(groupId);
+            let groupItem: TestItem = testController.items.get(groupId);
 
             if (!groupItem) {
                 // If the group doesn't exist, create it
@@ -65,16 +65,16 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             }
 
             // Ensure testFunctions is iterable (convert to an array if necessary)
-            const testFunctionsArray = Array.isArray(testFunctions) 
-            ? testFunctions // If it's already an array, use it directly
-            : Object.values(testFunctions); // If it's an object, convert to an array
+            const testFunctionsArray = Array.isArray(testFunctions)
+                ? testFunctions // If it's already an array, use it directly
+                : Object.values(testFunctions); // If it's an object, convert to an array
 
             // Iterate over the test functions in the group
             for (const tf of testFunctionsArray) {
-                const testFunc : FunctionTreeNode = tf as FunctionTreeNode;
+                const testFunc: FunctionTreeNode = tf as FunctionTreeNode;
                 // Generate a unique ID for the test item using the function name
                 const fileName: string = testFunc.lineRange.fileName;
-                const fileUri = Uri.file(path.join(projectDir, fileName)); 
+                const fileUri = Uri.file(path.join(projectDir, fileName));
                 const testId = `test:${path.basename(fileUri.path)}:${testFunc.functionName}`;
 
                 // Create a test item for the test function
@@ -95,12 +95,12 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
                 groupItem.children.add(testItem);
             }
         }
-    } 
+    }
 }
 
 
-export async function handleFileChange(ballerinaExtInstance: BallerinaExtension, 
-    uri: Uri, testController: TestController) {    
+export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
+    uri: Uri, testController: TestController) {
     const request: TestsDiscoveryRequest = {
         filePath: uri.path
     };

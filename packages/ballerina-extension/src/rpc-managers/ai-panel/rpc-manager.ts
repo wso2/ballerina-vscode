@@ -22,42 +22,60 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
+    AllDataMapperSourceRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
+    CodeSegment,
     Command,
+    CreateTempFileRequest,
+    DMModel,
+    DataMapperModelResponse,
+    DatamapperModelContext,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
+    DocGenerationRequest,
+    ExpandedDMModel,
+    ExtendedDataMapperMetadata,
     FetchDataRequest,
     FetchDataResponse,
-    GenerateMappingFromRecordResponse,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
+    GenerateCodeRequest,
     GenerateMappingsResponse,
+    GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
     GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
     LLMDiagnostics,
+    LinePosition,
+    LoginMethod,
+    MappingElement,
+    MetadataWithAttachments,
     NotifyAIMappingsRequest,
+    OperationType,
     PostProcessRequest,
     PostProcessResponse,
     ProjectDiagnostics,
     ProjectModule,
     ProjectSource,
+    RelevantLibrariesAndFunctionsRequest,
+    RelevantLibrariesAndFunctionsResponse,
+    RepairParams,
     RequirementSpecification,
-    STModification,
     SourceFile,
     SubmitFeedbackRequest,
     SyntaxTree,
     TemplateId,
     TestGenerationMentions,
     TestGenerationRequest,
-    TestGenerationResponse
+    TestGenerationResponse,
+    TestGeneratorIntermediaryState,
+    TestPlanGenerationRequest,
+    TextEdit
 } from "@wso2/ballerina-core";
-import { STKindChecker, STNode } from "@wso2/syntax-tree";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -65,20 +83,31 @@ import path from "path";
 import { parse } from 'toml';
 import { Uri, commands, window, workspace } from 'vscode';
 
-import { writeFileSync } from "fs";
+import { FunctionDefinition, ModulePart, STKindChecker, STNode } from "@wso2/syntax-tree";
 import { isNumber } from "lodash";
 import { URI } from "vscode-uri";
+import { NOT_SUPPORTED } from "../../../src/core/extended-language-client";
+import { fetchWithAuth } from "../../../src/features/ai/service/connection";
+import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
-import { NOT_SUPPORTED } from "../../core";
-import { generateDataMapping, generateTypeCreation } from "../../features/ai/dataMapping";
+import { createTempDataMappingFile, generateTypeCreation } from "../../features/ai/dataMapping";
+import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
+import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
+import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
+import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
+import { Library } from "../../features/ai/service/libs/libs_types";
+import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
+import { generateTestPlan } from "../../features/ai/service/test/test_plan";
 import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
-import { BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
+import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { getAccessToken, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
-import { modifyFileContent, writeBallerinaFileDidOpen } from "../../utils/modification";
-import { PARSING_ERROR, UNKNOWN_ERROR } from "../../views/ai-panel/errorCodes";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
+import { modifyFileContent, writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
+import { updateSourceCode } from "../../utils/source-utils";
+import { expandDMModel, refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -87,22 +116,18 @@ import {
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { cleanDiagnosticMessages, handleStop, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { updateSourceCode } from "../../utils/source-utils";
-
-export let hasStopped: boolean = false;
+import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../../src/features/ai/constants";
 
 export class AiPanelRpcManager implements AIPanelAPI {
-
-    private testGenAbortController: AbortController | null = null;
 
     // ==================================
     // General Functions
     // ==================================
     async getBackendUrl(): Promise<string> {
         return new Promise(async (resolve) => {
-            resolve(BACKEND_URL);
+            resolve(OLD_BACKEND_URL);
         });
     }
 
@@ -128,10 +153,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
+    async getLoginMethod(): Promise<LoginMethod> {
+        return new Promise(async (resolve) => {
+            const loginMethod = await getLoginMethod();
+            resolve(loginMethod);
+        });
+    }
+
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = getAccessToken();
+                const accessToken = await getAccessToken();
                 if (!accessToken) {
                     reject(new Error("Access Token is undefined"));
                     return;
@@ -170,7 +202,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async addToProject(req: AddToProjectRequest): Promise<void> {
+    async addToProject(req: AddToProjectRequest): Promise<boolean> {
 
         const workspaceFolders = workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -192,8 +224,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
             fs.mkdirSync(directory, { recursive: true });
         }
 
-        writeBallerinaFileDidOpen(balFilePath, req.content);
+        await writeBallerinaFileDidOpen(balFilePath, req.content);
         updateView();
+        const datamapperMetadata = StateMachine.context().dataMapperMetadata;
+        await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
+        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -261,58 +296,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return false;
     }
 
-    async generateMappings(params: GenerateMappingsRequest): Promise<GenerateMappingsResponse> {
-        let { filePath, position } = params;
-
-        const fileUri = Uri.file(filePath).toString();
-        hasStopped = false;
-
-        const fnSTByRange = await StateMachine.langClient().getSTByRange(
-            {
-                lineRange: {
-                    start: {
-                        line: position.startLine,
-                        character: position.startColumn
-                    },
-                    end: {
-                        line: position.endLine,
-                        character: position.endColumn
-                    }
-                },
-                documentIdentifier: {
-                    uri: fileUri
-                }
-            }
-        );
-
-        if (fnSTByRange === NOT_SUPPORTED) {
-            return { error: UNKNOWN_ERROR };
-        }
-
-        const {
-            parseSuccess: fnSTByRangeParseSuccess,
-            syntaxTree: fnSTByRangeSyntaxTree,
-            source: oldSource
-        } = fnSTByRange as SyntaxTree;
-        const fnSt = fnSTByRangeSyntaxTree as STNode;
-
-        if (!fnSTByRangeParseSuccess || !STKindChecker.isFunctionDefinition(fnSt)) {
-            return { error: PARSING_ERROR };
-        }
-
-        const functionName = fnSt.functionName?.value || "";
-
-        commands.executeCommand("ballerina.close.ai.panel");
-        commands.executeCommand("ballerina.open.ai.panel", {
-            type: 'command-template',
-            command: Command.DataMap,
-            templateId: TemplateId.MappingsForFunction,
-            params: {
-                functionName: functionName
-            }
-        });
-    }
-
     async notifyAIMappings(params: NotifyAIMappingsRequest): Promise<boolean> {
         const { newFnPosition, prevFnSource, filePath } = params;
         const fileUri = Uri.file(filePath).toString();
@@ -333,7 +316,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             });
 
             const { source } = res as SyntaxTree;
-            modifyFileContent({ filePath, content: source });
+            await modifyFileContent({ filePath, content: source });
             updateView();
         }
 
@@ -341,46 +324,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async stopAIMappings(): Promise<GenerateMappingsResponse> {
-        hasStopped = true;
         handleStop();
         return { userAborted: true };
     }
 
-    async getProjectSource(requestType: string): Promise<ProjectSource> {
-        // Fetch the Ballerina project source
-        const project: BallerinaProject = await getCurrentProjectSource(requestType);
-
-        // Initialize the ProjectSource object
-        const projectSource: ProjectSource = {
-            sourceFiles: [],
-            projectModules: [],
-            projectName: project.projectName,
-        };
-
-        // Iterate through root-level sources
-        for (const [filePath, content] of Object.entries(project.sources)) {
-            projectSource.sourceFiles.push({ filePath, content });
-        }
-
-        // Iterate through module sources
-        if (project.modules) {
-            for (const module of project.modules) {
-                const projectModule: ProjectModule = {
-                    moduleName: module.moduleName,
-                    sourceFiles: [],
-                    isGenerated: module.isGenerated
-                };
-                for (const [fileName, content] of Object.entries(module.sources)) {
-                    // const filePath = `modules/${module.moduleName}/${fileName}`;
-                    // projectSource.sourceFiles.push({ filePath, content });
-                    projectModule.sourceFiles.push({ filePath: fileName, content });
-                }
-                projectSource.projectModules.push(projectModule);
-            }
-        }
-
-        return projectSource;
-    }
 
     async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
         const environment = await setupProjectEnvironment(project);
@@ -434,11 +381,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             try {
                 const projectRoot = await getBallerinaProjectRoot();
 
-                if (this.testGenAbortController) {
-                    this.testGenAbortController.abort();
-                }
-                this.testGenAbortController = new AbortController();
-                const generatedTests = await generateTest(projectRoot, params, this.testGenAbortController);
+                const generatedTests = await generateTest(projectRoot, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -511,44 +454,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async abortTestGeneration(): Promise<void> {
-        if (this.testGenAbortController) {
-            this.testGenAbortController.abort();
-            this.testGenAbortController = null;
-        }
-    }
-
-    async getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
-        const projectRoot = await getBallerinaProjectRoot();
-        return await generateDataMapping(projectRoot, params);
+        AIPanelAbortController.getInstance().abort();
     }
 
     async getTypesFromRecord(params: GenerateTypesFromRecordRequest): Promise<GenerateTypesFromRecordResponse> {
-        const projectRoot = await getBallerinaProjectRoot();
-        return await generateTypeCreation(projectRoot, params);
+        return await generateTypeCreation(params);
     }
 
     async postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
-        let assist_resp = req.assistant_response;
-        assist_resp = assist_resp.replace(/import ballerinax\/client\.config/g, "import ballerinax/'client.config");
-        const project: ProjectSource = getProjectFromResponse(assist_resp);
-        const environment = await setupProjectEnvironment(project);
-        if (!environment) {
-            return { assistant_response: assist_resp, diagnostics: { diagnostics: [] } };
-        }
-
-        const { langClient, tempDir } = environment;
-        // check project diagnostics
-        let remainingDiags: Diagnostics[] = await attemptRepairProject(langClient, tempDir);
-
-        const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
-        const newAssistantResponse = getModifiedAssistantResponse(assist_resp, tempDir, project);
-        await closeAllBallerinaFiles(tempDir);
-        return {
-            assistant_response: newAssistantResponse,
-            diagnostics: {
-                diagnostics: filteredDiags
-            }
-        };
+        return await postProcess(req);
     }
 
     async applyDoOnFailBlocks(): Promise<void> {
@@ -581,7 +495,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits });
+            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
         }
     }
 
@@ -761,7 +675,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getContentFromFile(content: GetFromFileRequest): Promise<string> {
         return new Promise(async (resolve) => {
             const projectFsPath = URI.parse(content.filePath).fsPath;
-            const fileContent = fs.promises.readFile(projectFsPath, 'utf-8');
+            const fileContent = await fs.promises.readFile(projectFsPath, 'utf-8');
             resolve(fileContent);
         });
     }
@@ -776,14 +690,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     diagnostics: cleanDiagnosticMessages(content.diagnostics)
                 };
 
-                const response = await fetchData(`${BACKEND_URL}/feedback`, {
+                const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 if (response.ok) {
                     resolve(true);
                 } else {
@@ -795,6 +709,335 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 resolve(false);
             }
         });
+    }
+
+    async getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest): Promise<RelevantLibrariesAndFunctionsResponse> {
+        const selectedLibs: string[] = await getSelectedLibraries(params.query, GenerationType.CODE_GENERATION);
+        const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, selectedLibs, GenerationType.CODE_GENERATION);
+        return {
+            libraries: relevantTrimmedFuncs
+        };
+    }
+
+    async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
+        await generateOpenAPISpec(params);
+    }
+
+    async generateCode(params: GenerateCodeRequest): Promise<void> {
+        await generateCode(params);
+    }
+
+    async repairGeneratedCode(params: RepairParams): Promise<void> {
+        await triggerGeneratedCodeRepair(params);
+    }
+
+    async generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
+        await generateTestPlan(params);
+    }
+
+    async generateFunctionTests(params: TestGeneratorIntermediaryState): Promise<void> {
+        await generateFunctionTests(params);
+    }
+
+    async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
+        await generateHealthcareCode(params);
+    }
+
+    async abortAIGeneration(): Promise<void> {
+        AIPanelAbortController.getInstance().abort();
+    }
+
+    async createTempFileAndGenerateMetadata(params: CreateTempFileRequest): Promise<ExtendedDataMapperMetadata> {
+        const projectRoot = await getBallerinaProjectRoot();
+        const filePath = await createTempDataMappingFile(
+            projectRoot,
+            params.inputs,
+            params.output,
+            params.functionName,
+            params.inputNames,
+            params.imports
+        );
+
+        // Get the complete syntax tree
+        const fileUri = Uri.file(filePath).toString();
+        const st = (await StateMachine.langClient().getSyntaxTree({
+            documentIdentifier: {
+                uri: fileUri,
+            },
+        })) as SyntaxTree;
+
+        let funcDefinitionNode: FunctionDefinition = null;
+        const modulePart = st.syntaxTree as ModulePart;
+
+        // Find the function definition by name
+        modulePart.members.forEach((member) => {
+            if (STKindChecker.isFunctionDefinition(member)) {
+                const funcDef = member as FunctionDefinition;
+                if (funcDef.functionName?.value === params.functionName) {
+                    funcDefinitionNode = funcDef;
+                }
+            }
+        });
+
+        if (!funcDefinitionNode) {
+            throw new Error(`Function ${params.functionName} not found in the generated file`);
+        }
+
+        // Create dataMapperMetadata with the found positions
+        const dataMapperMetadata = {
+            name: params.functionName,
+            codeData: {
+                lineRange: {
+                    fileName: filePath,
+                    startLine: {
+                        line: funcDefinitionNode.position.startLine,
+                        offset: funcDefinitionNode.position.startColumn,
+                    },
+                    endLine: {
+                        line: funcDefinitionNode.position.endLine,
+                        offset: funcDefinitionNode.position.endColumn,
+                    },
+                },
+            },
+        };
+
+        const dataMapperModel = await this.generateDataMapperModel({
+            documentUri: filePath,
+            identifier: params.functionName,
+            dataMapperMetadata: dataMapperMetadata
+        });
+
+        return {
+            mappingsModel: dataMapperModel.mappingsModel as ExpandedDMModel,
+            name: params.functionName,
+            codeData: dataMapperMetadata.codeData
+        };
+    }
+
+    async generateDataMapperModel(params: DatamapperModelContext): Promise<DataMapperModelResponse> {
+        try {
+            let filePath: string;
+            let identifier: string;
+            let dataMapperMetadata: any;
+
+            if (params && params.documentUri && params.identifier) {
+                filePath = params.documentUri;
+                identifier = params.identifier;
+                dataMapperMetadata = params.dataMapperMetadata;
+            } else {
+                const context = StateMachine.context();
+                filePath = context.documentUri;
+                identifier = context.identifier || context.dataMapperMetadata.name;
+                dataMapperMetadata = context.dataMapperMetadata;
+            }
+
+            let position: LinePosition = {
+                line: dataMapperMetadata.codeData.lineRange.startLine.line,
+                offset: dataMapperMetadata.codeData.lineRange.startLine.offset
+            };
+
+            if (!dataMapperMetadata.codeData.hasOwnProperty('node') ||
+                dataMapperMetadata.codeData.node !== "VARIABLE") {
+                const fileUri = Uri.file(filePath).toString();
+                const fnSTByRange = await StateMachine.langClient().getSTByRange({
+                    lineRange: {
+                        start: {
+                            line: dataMapperMetadata.codeData.lineRange.startLine.line,
+                            character: dataMapperMetadata.codeData.lineRange.startLine.offset
+                        },
+                        end: {
+                            line: dataMapperMetadata.codeData.lineRange.endLine.line,
+                            character: dataMapperMetadata.codeData.lineRange.endLine.offset
+                        }
+                    },
+                    documentIdentifier: { uri: fileUri }
+                });
+
+                if (fnSTByRange === NOT_SUPPORTED) {
+                    throw new Error("Syntax tree retrieval not supported");
+                }
+
+                const fnSt = (fnSTByRange as SyntaxTree).syntaxTree as STNode;
+
+                if (STKindChecker.isFunctionDefinition(fnSt) &&
+                    STKindChecker.isExpressionFunctionBody(fnSt.functionBody)) {
+                    position = {
+                        line: fnSt.functionBody.expression.position.startLine,
+                        offset: fnSt.functionBody.expression.position.startColumn
+                    };
+                }
+            }
+
+            let dataMapperModel = await StateMachine
+                .langClient()
+                .getDataMapperMappings({
+                    filePath,
+                    codedata: dataMapperMetadata.codeData,
+                    targetField: identifier,
+                    position: position
+                }) as DataMapperModelResponse;
+
+            return {
+                mappingsModel: expandDMModel(
+                    dataMapperModel.mappingsModel as DMModel,
+                    identifier
+                )
+            };
+        } catch (error) {
+            console.error("Failed to generate data mapper model:", error);
+            throw error;
+        }
+    }
+
+    async addCodeSegmentToWorkspace(params: CodeSegment): Promise<boolean> {
+        try {
+            let filePath = params.filePath && params.filePath.trim() !== ''
+                ? params.filePath
+                : StateMachine.context().documentUri;
+            const datamapperMetadata = params.metadata
+                ? params.metadata
+                : StateMachine.context().dataMapperMetadata;
+
+            let allTextEdits: { [key: string]: TextEdit[] };
+
+            if (params.textEdit && params.textEdit.textEdits) {
+                allTextEdits = params.textEdit.textEdits;
+            } else {
+                const textEdit: TextEdit = {
+                    newText: params.segmentText,
+                    range: {
+                        start: {
+                            line: datamapperMetadata.codeData.lineRange.startLine.line,
+                            character: datamapperMetadata.codeData.lineRange.startLine.offset
+                        },
+                        end: {
+                            line: datamapperMetadata.codeData.lineRange.endLine.line,
+                            character: datamapperMetadata.codeData.lineRange.endLine.offset
+                        }
+                    }
+                };
+                allTextEdits = {
+                    [filePath]: [textEdit]
+                };
+            }
+            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Creation');
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add code segment to the workspace", error);
+            throw error;
+        }
+    }
+
+    async openAIMappingChatWindow(params: DataMapperModelResponse): Promise<void> {
+        try {
+            const context = StateMachine.context();
+            const { identifier, dataMapperMetadata } = context;
+
+            commands.executeCommand(CLOSE_AI_PANEL_COMMAND);
+            commands.executeCommand(OPEN_AI_PANEL_COMMAND, {
+                type: 'command-template',
+                command: Command.DataMap,
+                templateId: identifier ? TemplateId.MappingsForFunction : TemplateId.InlineMappings,
+                ...(identifier && { params: { functionName: identifier } }),
+                metadata: {
+                    ...dataMapperMetadata,
+                    mappingsModel: params.mappingsModel as ExpandedDMModel
+                }
+            });
+        } catch (error) {
+            console.error("Failed to open AI chat window for mapping:", error);
+            throw error;
+        }
+    }
+
+    async generateMappings(params: MetadataWithAttachments): Promise<AllDataMapperSourceRequest> {
+        try {
+            const filePath = params.useTemporaryFile
+                ? params.metadata.codeData.lineRange.fileName
+                : StateMachine.context().documentUri;
+
+            const file = params.attachments && params.attachments.length > 0
+                ? params.attachments[0]
+                : undefined;
+
+            const mappingElement = await processMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
+
+            const allMappingsRequest: AllDataMapperSourceRequest = {
+                filePath,
+                codedata: params.metadata.codeData,
+                varName: params.metadata.name,
+                position: {
+                    line: params.metadata.codeData.lineRange.startLine.line,
+                    offset: params.metadata.codeData.lineRange.startLine.offset
+                },
+                mappings: (mappingElement as MappingElement).mappings
+            };
+
+            return allMappingsRequest;
+        } catch (error) {
+            console.error("Failed to generate mappings:", error);
+            throw error;
+        }
+    }
+
+    async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
+        try {
+            let filePath = StateMachine.context().documentUri;
+            const datamapperMetadata = StateMachine.context().dataMapperMetadata;
+            const textEdit: TextEdit = {
+                newText: params.segmentText,
+                range: {
+                    start: {
+                        line: datamapperMetadata.codeData.lineRange.startLine.line,
+                        character: datamapperMetadata.codeData.lineRange.startLine.offset
+                    },
+                    end: {
+                        line: datamapperMetadata.codeData.lineRange.endLine.line,
+                        character: datamapperMetadata.codeData.lineRange.endLine.offset
+                    }
+                }
+            };
+            const allTextEdits: { [key: string]: TextEdit[] } = {
+                [filePath]: [textEdit]
+            };
+
+            await updateAndRefreshDataMapper(
+                allTextEdits,
+                filePath,
+                datamapperMetadata.codeData,
+                datamapperMetadata.name,
+                datamapperMetadata.name
+            );
+        } catch (error) {
+            console.error(">>> Failed to add inline code segment to the workspace", error);
+            throw error;
+        }
+    }
+
+    async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+        await generateDocumentationForService(params);
+    }
+
+    async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        try {
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                throw new Error("No workspaces found.");
+            }
+
+            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            if (!fs.existsSync(ballerinaProjectFile)) {
+                throw new Error("Not a Ballerina project.");
+            }
+            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            updateView();
+            return true;
+        } catch (error) {
+            console.error(">>> Failed to add files to the project", error);
+            return false; //silently fail for timeout issues.
+        }
     }
 }
 
@@ -854,7 +1097,7 @@ async function setupProjectEnvironment(project: ProjectSource): Promise<{ langCl
         // Update lastUpdatedBalFile if it's a .bal file
         if (sourceFile.filePath.endsWith('.bal')) {
             const tempFilePath = path.join(tempDir, sourceFile.filePath);
-            writeBallerinaFileDidOpen(tempFilePath, sourceFile.content);
+            writeBallerinaFileDidOpenTemp(tempFilePath, sourceFile.content);
         }
     }
 
@@ -917,7 +1160,7 @@ enum CodeGenerationType {
     CODE_GENERATION = "CODE_GENERATION"
 }
 
-async function getCurrentProjectSource(requestType: string): Promise<BallerinaProject> {
+async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
     const projectRoot = await getBallerinaProjectRoot();
 
     if (!projectRoot) {
@@ -953,7 +1196,7 @@ async function getCurrentProjectSource(requestType: string): Promise<BallerinaPr
         }
     }
 
-    if (requestType != CodeGenerationType.CODE_GENERATION) {
+    if (requestType != "CODE_GENERATION") {
         const naturalProgrammingDirectory = projectRoot + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
@@ -1007,7 +1250,7 @@ async function populateModules(modulesDir: string, project: BallerinaProject) {
     }
 }
 
-async function getBallerinaProjectRoot(): Promise<string | null> {
+export async function getBallerinaProjectRoot(): Promise<string | null> {
 
     const workspaceFolders = workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -1022,4 +1265,65 @@ async function getBallerinaProjectRoot(): Promise<string | null> {
         return workspaceFolderPath;
     }
     return null;
+}
+
+
+export async function postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
+    let assist_resp = req.assistant_response;
+    assist_resp = assist_resp.replace(/import ballerinax\/client\.config/g, "import ballerinax/'client.config");
+    const project: ProjectSource = getProjectFromResponse(assist_resp);
+    const environment = await setupProjectEnvironment(project);
+    if (!environment) {
+        return { assistant_response: assist_resp, diagnostics: { diagnostics: [] } };
+    }
+
+    const { langClient, tempDir } = environment;
+    // check project diagnostics
+    let remainingDiags: Diagnostics[] = await attemptRepairProject(langClient, tempDir);
+
+    const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
+    const newAssistantResponse = getModifiedAssistantResponse(assist_resp, tempDir, project);
+    await closeAllBallerinaFiles(tempDir);
+    return {
+        assistant_response: newAssistantResponse,
+        diagnostics: {
+            diagnostics: filteredDiags
+        }
+    };
+}
+
+export async function getProjectSource(requestType: OperationType): Promise<ProjectSource> {
+    // Fetch the Ballerina project source
+    const project: BallerinaProject = await getCurrentProjectSource(requestType);
+
+    // Initialize the ProjectSource object
+    const projectSource: ProjectSource = {
+        sourceFiles: [],
+        projectModules: [],
+        projectName: project.projectName,
+    };
+
+    // Iterate through root-level sources
+    for (const [filePath, content] of Object.entries(project.sources)) {
+        projectSource.sourceFiles.push({ filePath, content });
+    }
+
+    // Iterate through module sources
+    if (project.modules) {
+        for (const module of project.modules) {
+            const projectModule: ProjectModule = {
+                moduleName: module.moduleName,
+                sourceFiles: [],
+                isGenerated: module.isGenerated
+            };
+            for (const [fileName, content] of Object.entries(module.sources)) {
+                // const filePath = `modules/${module.moduleName}/${fileName}`;
+                // projectSource.sourceFiles.push({ filePath, content });
+                projectModule.sourceFiles.push({ filePath: fileName, content });
+            }
+            projectSource.projectModules.push(projectModule);
+        }
+    }
+
+    return projectSource;
 }

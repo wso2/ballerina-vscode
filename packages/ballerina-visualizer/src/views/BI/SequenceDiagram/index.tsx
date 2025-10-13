@@ -50,20 +50,25 @@ const MessageContainer = styled.div({
 });
 
 interface BISequenceDiagramProps {
-    syntaxTree: STNode; // INFO: this is used to make the diagram rerender when code changes
     onUpdate: () => void;
     onReady: () => void;
 }
 
 export function BISequenceDiagram(props: BISequenceDiagramProps) {
-    const { syntaxTree, onUpdate, onReady } = props;
+    const { onUpdate, onReady } = props;
 
     const { rpcClient } = useRpcContext();
     const [flowModel, setModel] = useState<SqFlow>(undefined);
 
     useEffect(() => {
         getSequenceModel();
-    }, [syntaxTree]);
+    }, []);
+
+    useEffect(() => {
+        rpcClient.onProjectContentUpdated((content) => {
+            getSequenceModel();
+        });
+    }, []);
 
     const getSequenceModel = () => {
         onUpdate();

@@ -39,6 +39,8 @@ import {
     LangClientAPI,
     PartialST,
     PartialSTParams,
+    ProjectDiagnosticsRequest,
+    ProjectDiagnosticsResponse,
     RenameRequest,
     RenameResponse,
     STModifyParams,
@@ -65,6 +67,7 @@ import {
     getDiagnostics,
     getExecutorPositions,
     getPackageComponentModels,
+    getProjectDiagnostics,
     getST,
     getSTByRange,
     getSTForExpression,
@@ -118,6 +121,10 @@ export class LangClientRpcClient implements LangClientAPI {
 
     getDiagnostics(params: SyntaxTreeParams): Promise<DiagnosticsResponse> {
         return this._messenger.sendRequest(getDiagnostics, HOST_EXTENSION, params);
+    }
+
+    getProjectDiagnostics(params: ProjectDiagnosticsRequest): Promise<ProjectDiagnosticsResponse> {
+        return this._messenger.sendRequest(getProjectDiagnostics, HOST_EXTENSION, params);
     }
 
     codeAction(params: CodeActionRequest): Promise<CodeActionResponse> {

@@ -30,8 +30,7 @@ import {
     resetDiagramZoomAndPosition,
 } from "../utils/diagram";
 import { DiagramCanvas } from "./DiagramCanvas";
-import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
-import { traverseFlow } from "../utils/ast";
+import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData, DraftNodeConfig } from "../utils/types";
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
@@ -42,9 +41,10 @@ import { InitVisitor } from "../visitors/InitVisitor";
 import { LinkTargetVisitor } from "../visitors/LinkTargetVisitor";
 import { NodeTypes } from "../resources/constants";
 import Controls from "./Controls";
-import { CurrentBreakpointsResponse as BreakpointInfo } from "@wso2/ballerina-core";
+import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
+import { PopupOverlay } from "./PopupOverlay";
 
 export interface DiagramProps {
     model: Flow;
@@ -59,15 +59,23 @@ export interface DiagramProps {
     onConnectionSelect?: (connectionName: string) => void;
     goToSource?: (node: FlowNode) => void;
     openView?: (filePath: string, position: NodePosition) => void;
+    draftNode?: DraftNodeConfig;
+    selectedNodeId?: string;
     // agent node callbacks
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
         onAddTool: (node: FlowNode) => void;
+        onAddMcpServer: (node: FlowNode) => void;
         onSelectTool: (tool: ToolData, node: FlowNode) => void;
+        onSelectMcpToolkit: (tool: ToolData, node: FlowNode) => void;
         onDeleteTool: (tool: ToolData, node: FlowNode) => void;
         goToTool: (tool: ToolData, node: FlowNode) => void;
         onSelectMemoryManager: (node: FlowNode) => void;
         onDeleteMemoryManager: (node: FlowNode) => void;
+    };
+    // ai nodes callbacks
+    aiNodes?: {
+        onModelSelect: (node: FlowNode) => void;
     };
     // ai suggestions callbacks
     suggestions?: {
@@ -75,9 +83,17 @@ export interface DiagramProps {
         onAccept(): void;
         onDiscard(): void;
     };
-    projectPath?: string;
+    project?: {
+        org: string;
+        path: string;
+        getProjectPath?:(segments: string | string[]) => Promise<string>;
+    };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
+    overlay?: {
+        visible: boolean;
+        onClickOverlay: () => void;
+    }
     expressionContext?: ExpressionContextProps;
 }
 
@@ -93,14 +109,18 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect,
         goToSource,
         openView,
+        draftNode,
+        selectedNodeId,
         agentNode,
+        aiNodes,
         suggestions,
-        projectPath,
+        project,
         addBreakpoint,
         removeBreakpoint,
         breakpointInfo,
         readOnly,
-        expressionContext
+        overlay,
+        expressionContext,
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
@@ -126,7 +146,17 @@ export function Diagram(props: DiagramProps) {
     const getDiagramData = () => {
         let flowModel = cloneDeep(model);
 
-        const initVisitor = new InitVisitor(flowModel, expandedErrorHandler);
+        // Check if active breakpoint is within onFailure nodes and update expandedErrorHandler before running visitors
+        let currentExpandedErrorHandler = expandedErrorHandler;
+        if (breakpointInfo?.activeBreakpoint) {
+            const errorHandlerToExpand = getErrorHandlerIdForActiveBreakpoint(flowModel, breakpointInfo);
+            if (errorHandlerToExpand && expandedErrorHandler !== errorHandlerToExpand) {
+                currentExpandedErrorHandler = errorHandlerToExpand;
+                setExpandedErrorHandler(errorHandlerToExpand);
+            }
+        }
+
+        const initVisitor = new InitVisitor(flowModel, currentExpandedErrorHandler);
         traverseFlow(flowModel, initVisitor);
         const sizingVisitor = new SizingVisitor();
         traverseFlow(flowModel, sizingVisitor);
@@ -145,8 +175,77 @@ export function Diagram(props: DiagramProps) {
 
         const addTargetVisitor = new LinkTargetVisitor(model, nodes);
         traverseFlow(flowModel, addTargetVisitor);
-        console.log(">>> getDiagramData", { flowModel, nodes, links });
         return { nodes, links };
+    };
+
+    // Helper function to find error handlers with active breakpoints in onFailure branches
+    const getErrorHandlerIdForActiveBreakpoint = (flow: Flow, breakpointInfo: BreakpointInfo): string | undefined => {
+        if (!breakpointInfo.activeBreakpoint) {
+            return undefined;
+        }
+
+        let errorHandlerIdToExpand: string | undefined;
+        const activeBreakpoint = breakpointInfo.activeBreakpoint;
+
+        const checkNode = (node: FlowNode): void => {
+            if (node.codedata?.node === "ERROR_HANDLER") {
+                // Find the onFailure branch
+                const onFailureBranch = node.branches?.find((branch) => branch.codedata?.node === "ON_FAILURE");
+                if (onFailureBranch) {
+                    // Check if any child nodes in the onFailure branch match the active breakpoint
+                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(
+                        onFailureBranch,
+                        activeBreakpoint
+                    );
+                    if (hasActiveBreakpointInOnFailure) {
+                        errorHandlerIdToExpand = node.id;
+                        return;
+                    }
+                }
+            }
+
+            // Recursively check child nodes
+            if (node.branches) {
+                for (const branch of node.branches) {
+                    if (branch.children) {
+                        for (const child of branch.children) {
+                            checkNode(child);
+                            if (errorHandlerIdToExpand) return;
+                        }
+                    }
+                }
+            }
+        };
+
+        const checkForActiveBreakpointInBranch = (branch: any, activeBreakpoint: any): boolean => {
+            if (branch.children) {
+                for (const child of branch.children) {
+                    // Check if this node matches the active breakpoint
+                    if (child.codedata?.lineRange?.startLine?.line === activeBreakpoint.line) {
+                        return true;
+                    }
+                    // Recursively check nested branches
+                    if (child.branches) {
+                        for (const nestedBranch of child.branches) {
+                            if (checkForActiveBreakpointInBranch(nestedBranch, activeBreakpoint)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        // Start checking from the root nodes
+        if (flow.nodes) {
+            for (const child of flow.nodes) {
+                checkNode(child);
+                if (errorHandlerIdToExpand) break;
+            }
+        }
+
+        return errorHandlerIdToExpand;
     };
 
     const drawDiagram = (nodes: NodeModel[], links: NodeLinkModel[]) => {
@@ -194,10 +293,6 @@ export function Diagram(props: DiagramProps) {
         setShowComponentPanel(true);
     };
 
-    const toggleDiagramFlow = () => {
-        setShowErrorFlow(!showErrorFlow);
-    };
-
     const toggleErrorHandlerExpansion = (nodeId: string) => {
         setExpandedErrorHandler((prev) => (prev === nodeId ? undefined : nodeId));
     };
@@ -223,11 +318,14 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect: onConnectionSelect,
         goToSource: goToSource,
         openView: openView,
+        draftNode: draftNode,
+        selectedNodeId: selectedNodeId,
         agentNode: agentNode,
+        aiNodes: aiNodes,
         suggestions: suggestions,
-        projectPath: projectPath,
+        project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
-        expressionContext: expressionContext
+        expressionContext: expressionContext,
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {
@@ -248,6 +346,7 @@ export function Diagram(props: DiagramProps) {
             <Controls engine={diagramEngine} />
             {diagramEngine && diagramModel && (
                 <DiagramContextProvider value={context}>
+                    {overlay?.visible && <PopupOverlay onClose={overlay.onClickOverlay} />}
                     <DiagramCanvas>
                         <NavigationWrapperCanvasWidget
                             diagramEngine={diagramEngine}

@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { LineRange, Type } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
+import { EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
 import { filterOperators, filterTypes, getImportedTypes, getTypeBrowserTypes, getTypes } from './utils';
 import { useMutation } from '@tanstack/react-query';
@@ -46,10 +46,14 @@ type FormTypeEditorProps = {
     isGraphql?: boolean;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
+    getNewTypeCreateForm: () => void;
+    onSaveType: (type: Type) => void
+    refetchTypes: boolean;
+    isPopupTypeForm: boolean;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, onTypeCreate } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -85,17 +89,27 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
         }
     }, [rpcClient]);
 
+    const prevRefetchRef = useRef(false);
+
+    useEffect(() => {
+        if (refetchTypes && !prevRefetchRef.current) {
+            fetchedInitialTypes.current = false; 
+            handleSearchTypeHelper('', true); 
+        }
+        prevRefetchRef.current = refetchTypes;
+    }, [refetchTypes]);
+
     const debouncedSearchTypeHelper = useCallback(
         debounce((searchText: string, isType: boolean) => {
-            if (isType && !fetchedInitialTypes.current) {
+            if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
                 if (rpcClient) {
                     rpcClient
                         .getBIDiagramRpcClient()
                         .getVisibleTypes({
                             filePath: filePath,
                             position: {
-                                line: targetLineRange.startLine.line,
-                                offset: targetLineRange.startLine.offset
+                                line: targetLineRange?.startLine.line,
+                                offset: targetLineRange?.startLine.offset
                             },
                         })
                         .then((types) => {
@@ -155,7 +169,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                 setLoading(false);
             }
         }, 150),
-        [basicTypes, filePath, targetLineRange]
+        [basicTypes, filePath, targetLineRange, refetchTypes]
     );
 
     const handleSearchTypeHelper = useCallback(
@@ -180,7 +194,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                             limit: 60
                         },
                         searchKind: 'TYPE'
-                        })
+                    })
                     .then((response) => {
                         setFilteredTypeBrowserTypes(getTypeBrowserTypes(response.categories));
                     })
@@ -201,7 +215,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     );
 
     const { mutateAsync: addFunction, isPending: isAddingType } = useMutation({
-        mutationFn: (item: TypeHelperItem) => 
+        mutationFn: (item: TypeHelperItem) =>
             rpcClient.getBIDiagramRpcClient().addFunction({
                 filePath: filePath,
                 codedata: item.codedata,
@@ -215,7 +229,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     };
 
     const handleTypeCreate = (typeName?: string) => {
-        onTypeCreate(typeName || 'MyType');
+        getNewTypeCreateForm();
     };
 
     return (
@@ -224,9 +238,11 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                 <TypeEditor
                     type={type}
                     rpcClient={rpcClient}
+                    isPopupTypeForm={isPopupTypeForm}
                     onTypeChange={onTypeChange}
                     newType={newType}
                     newTypeValue={newTypeValue}
+                    onSaveType={onSaveType}
                     isGraphql={isGraphql}
                     typeHelper={{
                         loading,

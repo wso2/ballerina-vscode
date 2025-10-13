@@ -18,8 +18,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-    ProjectDiagnostics,
-    ProjectSource,
     ProjectStructureResponse,
     EVENT_TYPE,
     MACHINE_VIEW,
@@ -42,6 +40,7 @@ import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
+import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -253,10 +252,14 @@ const DeployButton = styled.div`
     flex-direction: column;
 `;
 
-const DeploymentOptionContainer = styled.div<{ isExpanded: boolean }>`
+interface DeploymentOptionContainerProps {
+    isExpanded: boolean;
+}
+
+const DeploymentOptionContainer = styled.div<DeploymentOptionContainerProps>`
     cursor: pointer;
-    border: ${props => props.isExpanded ? '1px solid var(--vscode-welcomePage-tileBorder)' : 'none'};
-    background: ${props => props.isExpanded ? 'var(--vscode-welcomePage-tileBackground)' : 'transparent'};
+    border: ${(props: DeploymentOptionContainerProps) => props.isExpanded ? '1px solid var(--vscode-welcomePage-tileBorder)' : 'none'};
+    background: ${(props: DeploymentOptionContainerProps) => props.isExpanded ? 'var(--vscode-welcomePage-tileBackground)' : 'transparent'};
     border-radius: 6px;
     display: flex;
     overflow: hidden;
@@ -281,11 +284,15 @@ const DeploymentHeader = styled.div`
     }
 `;
 
-const DeploymentBody = styled.div<{ isExpanded: boolean }>`
-    max-height: ${props => props.isExpanded ? '200px' : '0'};
+interface DeploymentBodyProps {
+    isExpanded: boolean;
+}
+
+const DeploymentBody = styled.div<DeploymentBodyProps>`
+    max-height: ${(props: DeploymentBodyProps) => props.isExpanded ? '200px' : '0'};
     overflow: hidden;
     transition: max-height 0.3s ease-in-out;
-    margin-top: ${props => props.isExpanded ? '8px' : '0'};
+    margin-top: ${(props: DeploymentBodyProps) => props.isExpanded ? '8px' : '0'};
 `;
 
 interface DeploymentOptionProps {
@@ -329,10 +336,17 @@ function DeploymentOption({
             onClick={onToggle}
         >
             <DeploymentHeader>
-                <Codicon
-                    name={'circle-outline'}
-                    sx={{ color: isExpanded ? 'var(--vscode-textLink-foreground)' : 'inherit' }}
-                />
+                {isExpanded ? (
+                    <Codicon
+                        name={'triangle-down'}
+                        sx={{ color: 'var(--vscode-textLink-foreground)'}}
+                    />
+                ) : (
+                    <Codicon
+                        name={'triangle-right'}
+                        sx={{ color: 'inherit' }}
+                    />
+                )}
                 <h3>{title}</h3>
             </DeploymentHeader>
             <DeploymentBody isExpanded={isExpanded}>
@@ -498,13 +512,8 @@ export function Overview(props: ComponentDiagramProps) {
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const [isCodeGenerating, setIsCodeGenerating] = React.useState<boolean>(false);
     const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
 
-    const [responseText, setResponseText] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [loadingMessage, setLoadingMessage] = useState("");
-    const backendRootUri = useRef("");
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
         queryKey: ["devant-metadata", props.projectPath],
@@ -545,16 +554,6 @@ export function Overview(props: ComponentDiagramProps) {
                 setEnableICP(res.enabled);
             });
 
-        // setResponseText("");
-
-        // Fetching the backend root URI
-        rpcClient
-            .getAiPanelRpcClient()
-            .getBackendUrl()
-            .then((res) => {
-                backendRootUri.current = res;
-            });
-
         rpcClient
             .getBIDiagramRpcClient()
             .getReadmeContent()
@@ -575,23 +574,6 @@ export function Overview(props: ComponentDiagramProps) {
             setShowAlert(status);
         });
     }, []);
-
-    useEffect(() => {
-        console.log(">>> ai responseText", { responseText });
-        if (!responseText) {
-            return;
-        }
-        const segments = splitContent(responseText);
-        console.log(">>> ai code", { segments });
-
-        segments.forEach((segment) => {
-            if (segment.isCode) {
-                let code = segment.text;
-                let file = segment.fileName;
-                rpcClient.getAiPanelRpcClient().addToProject({ content: code, filePath: file, isTestCode: false });
-            }
-        });
-    }, [responseText]);
 
     const deployableIntegrationTypes = useMemo(() => {
         if (!projectStructure) {
@@ -628,118 +610,6 @@ export function Overview(props: ComponentDiagramProps) {
             (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
             (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
         );
-    }
-
-    async function fetchAiResponse(isQuestion: boolean = false) {
-        if (readmeContent === "" && !isQuestion) {
-            return;
-        }
-
-        setIsLoading(true);
-        setLoadingMessage("Reading...");
-        let assistant_response = "";
-        const controller = new AbortController();
-        const signal = controller.signal;
-        const url = backendRootUri.current;
-        const response = await fetch(url + "/code", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ usecase: readmeContent, chatHistory: [] }),
-            signal: signal,
-        });
-        if (!response.ok) {
-            setIsLoading(false);
-            throw new Error("Failed to fetch response");
-        }
-
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let functions: any;
-        let buffer = "";
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                setIsLoading(false);
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-                const chunk = buffer.slice(0, boundary + 2);
-                buffer = buffer.slice(boundary + 2);
-
-                try {
-                    const event = parseSSEEvent(chunk);
-                    if (event.event == "libraries") {
-                        setLoadingMessage("Looking for libraries...");
-                    } else if (event.event == "functions") {
-                        functions = event.body;
-                        setLoadingMessage("Fetching functions...");
-                    } else if (event.event == "content_block_delta") {
-                        let textDelta = event.body.text;
-                        assistant_response += textDelta;
-                        console.log(">>> Text Delta: " + textDelta);
-                        setLoadingMessage("Generating components...");
-                    } else if (event.event == "message_stop") {
-                        console.log(">>> Streaming stop: ", { responseText, assistant_response });
-                        setLoadingMessage("Verifying components...");
-                        console.log(assistant_response);
-                        const newSourceFiles: ProjectSource = getProjectFromResponse(assistant_response);
-                        // Check diagnostics
-                        const diags: ProjectDiagnostics = await rpcClient
-                            .getAiPanelRpcClient()
-                            .getShadowDiagnostics(newSourceFiles);
-                        if (diags.diagnostics.length > 0) {
-                            console.log("Diagnostics : ");
-                            console.log(diags.diagnostics);
-                            const diagReq = {
-                                response: assistant_response,
-                                diagnostics: diags.diagnostics,
-                            };
-                            const startTime = performance.now();
-                            const response = await fetch(url + "/code/repair", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    usecase: readmeContent,
-                                    diagnosticRequest: diagReq,
-                                    functions: functions,
-                                }),
-                                signal: signal,
-                            });
-                            if (!response.ok) {
-                                console.log("repair error");
-                                setIsLoading(false);
-                            } else {
-                                const jsonBody = await response.json();
-                                const repairResponse = jsonBody.repairResponse;
-                                // replace original response with new code blocks
-                                const fixedResponse = replaceCodeBlocks(assistant_response, repairResponse);
-                                const endTime = performance.now();
-                                const executionTime = endTime - startTime;
-                                console.log(`Repair call time: ${executionTime} milliseconds`);
-                                assistant_response = fixedResponse;
-                            }
-                        }
-                        setResponseText(assistant_response);
-                        setIsLoading(false);
-                    } else if (event.event == "error") {
-                        console.log(">>> Streaming Error: " + event.body);
-                        setIsLoading(false);
-                    }
-                } catch (error) {
-                    console.error("Failed to parse SSE event:", error);
-                }
-
-                boundary = buffer.indexOf("\n\n");
-            }
-        }
     }
 
     if (!projectStructure) {
@@ -859,6 +729,7 @@ export function Overview(props: ComponentDiagramProps) {
                     <ProjectSubtitle>Integration</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>
+                    <UndoRedoGroup key={Date.now()} />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
                     </Button>

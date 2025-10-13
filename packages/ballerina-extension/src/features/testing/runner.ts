@@ -23,7 +23,7 @@
 
 import { log } from "console";
 import fileUriToPath from "file-uri-to-path";
-import { ballerinaExtInstance, LANGUAGE } from "../../core";
+import { LANGUAGE } from "../../core";
 import { DEBUG_REQUEST, DEBUG_CONFIG, constructDebugConfig } from "../debugger";
 import { Uri, WorkspaceFolder, workspace, DebugConfiguration, debug, window, CancellationToken, TestItem, TestMessage, TestRunProfileKind, TestRunRequest } from "vscode";
 import child_process from 'child_process';
@@ -33,6 +33,7 @@ import path from 'path';
 import { BALLERINA_COMMANDS } from "../project";
 import { discoverTests, gatherTestItems } from "./discover";
 import { testController, projectRoot } from "./activator";
+import { extension } from "../../BalExtensionContext";
 
 enum EXEC_ARG {
     TESTS = '--tests',
@@ -70,7 +71,7 @@ export function runHandler(request: TestRunRequest, cancellation: CancellationTo
             let testsJson: JSON | undefined = undefined;
             try {
                 // execute test
-                const executor = ballerinaExtInstance.getBallerinaCmd();
+                const executor = extension.ballerinaExtInstance.getBallerinaCmd();
                 const commandText = `${executor} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
                 await runCommand(commandText, projectRoot);
 

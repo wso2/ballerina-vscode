@@ -15,17 +15,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
+import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse, VisualizerLocation } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
-import { injectAgent, injectAgentCode, injectImportIfMissing } from "./source-utils";
-import { tmpdir } from "os";
+import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
+import { injectAgentCode } from "./source-utils";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
+import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 
 export async function buildProjectArtifactsStructure(projectDir: string, langClient: ExtendedLangClient, isUpdate: boolean = false): Promise<ProjectStructureResponse> {
     const result: ProjectStructureResponse = {
@@ -50,6 +51,17 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
         traverseComponents(designArtifacts.artifacts, result);
         await populateLocalConnectors(projectDir, result);
     }
+    // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
+    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
+    let projectName = workspace?.name;
+    // Get the project name from the ballerina.toml file
+    const commonRpcManager = new CommonRpcManager();
+    const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
+    if (tomlValues && tomlValues.package.title) {
+        projectName = tomlValues.package.title;
+    }
+    result.projectName = projectName;
+
     if (isUpdate) {
         StateMachine.updateProjectStructure({ ...result });
     }
@@ -59,23 +71,24 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    if (publishedArtifacts && currentProjectStructure) {
-        const tmpUri = URI.file(tmpdir());
-        const publishedArtifactsUri = URI.parse(publishedArtifacts.uri);
-        if (publishedArtifactsUri.path.toLowerCase().includes(tmpUri.path.toLowerCase())) {
-            // Skip the temp dirs
-            return;
-        }
+    const projectUri = URI.file(StateMachine.context().projectUri);
+    const isWithinProject = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(projectUri.fsPath.toLowerCase());
+    if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
-        if (entryLocations.length > 0) {
-            const notificationHandler = ArtifactNotificationHandler.getInstance();
-            // Publish a notification to the artifact handler
-            notificationHandler.publish(ArtifactsUpdated.method, {
-                data: entryLocations,
-                timestamp: Date.now()
-            });
-        }
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Publish a notification to the artifact handler
+        notificationHandler.publish(ArtifactsUpdated.method, {
+            data: entryLocations,
+            timestamp: Date.now()
+        });
         StateMachine.updateProjectStructure({ ...currentProjectStructure }); // Update the project structure and refresh the tree
+    } else {
+        const notificationHandler = ArtifactNotificationHandler.getInstance();
+        // Publish a notification to the artifact handler
+        notificationHandler.publish(ArtifactsUpdated.method, {
+            data: [],
+            timestamp: Date.now()
+        });
     }
 }
 
@@ -109,7 +122,7 @@ async function getComponents(artifacts: Record<string, BaseArtifact>, artifactTy
 }
 
 async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: string) {
-    const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -152,6 +165,14 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
                 entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
             }
             break;
+        case DIRECTORY_MAP.TYPE:
+            if (artifact.children && Object.keys(artifact.children).length > 0) {
+                const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
+                const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
+                const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
+                entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
+            }
+            break;
         case DIRECTORY_MAP.LISTENER:
             // Do things related to listener
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
@@ -181,17 +202,14 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This is a hack to inject the AI agent code into the chat service function
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
-    // Inject the import if missing
-    const importStatement = `import ballerinax/ai`;
-    await injectImportIfMissing(importStatement, path.join(StateMachine.context().projectUri, `agents.bal`));
+    // Fetch the organization name for importing the AI package
+    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
 
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
 
-    // Inject the agent code
-    await injectAgent(agentName, StateMachine.context().projectUri);
     // Retrieve the service model
-    const targetFile = Utils.joinPath(URI.parse(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
     const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
         filePath: targetFile,
         codedata: {
@@ -208,11 +226,11 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
     const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
     ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition);
+    await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
     const functionPosition: NodePosition = {
         startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
         startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
-        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 3,
+        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 2,
         endColumn: updatedService.service.functions[0].codedata.lineRange.endLine.offset
     };
     return {
@@ -275,6 +293,8 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.CONFIGURABLE, icon: "config" };
         case ARTIFACT_TYPE.NaturalFunctions:
             return { mapKey: DIRECTORY_MAP.NP_FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Variables:
+            return { mapKey: DIRECTORY_MAP.VARIABLE, icon: "variable" };
         default:
             console.warn(`Unhandled artifact category key: ${artifactCategoryKey}`);
             return null;
