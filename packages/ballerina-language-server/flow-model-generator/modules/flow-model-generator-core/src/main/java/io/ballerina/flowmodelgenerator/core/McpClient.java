@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -39,14 +40,10 @@ import java.util.Map;
  */
 public class McpClient {
 
-    public static String sendInitializeRequest(String serviceUrl) throws IOException {
-        return sendInitializeRequest(serviceUrl, null);
-    }
-
     public static String sendInitializeRequest(String serviceUrl, String accessToken) throws IOException {
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(serviceUrl);
+            URL url = URI.create(serviceUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
@@ -85,7 +82,7 @@ public class McpClient {
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 String errorMessage = readErrorStream(conn);
                 throw new IOException("HTTP " + responseCode + ": " +
-                    (errorMessage != null ? errorMessage : conn.getResponseMessage()));
+                        (errorMessage != null ? errorMessage : conn.getResponseMessage()));
             }
 
             Map<String, List<String>> headers = conn.getHeaderFields();
@@ -116,15 +113,11 @@ public class McpClient {
         }
     }
 
-    public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId) throws IOException {
-        return sendToolsListRequest(serviceUrl, sessionId, null);
-    }
-
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken)
             throws IOException {
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(serviceUrl);
+            URL url = URI.create(serviceUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
             // Configure request
             conn.setRequestMethod("POST");
@@ -162,7 +155,7 @@ public class McpClient {
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 String errorMessage = readErrorStream(conn);
                 throw new IOException("HTTP " + responseCode + ": " +
-                    (errorMessage != null ? errorMessage : conn.getResponseMessage()));
+                        (errorMessage != null ? errorMessage : conn.getResponseMessage()));
             }
 
             return extractToolsArrayFromResponse(conn);
