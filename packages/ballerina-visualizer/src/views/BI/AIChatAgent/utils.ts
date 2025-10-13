@@ -492,3 +492,39 @@ const parseToolsString = (toolsStr: string): string[] => {
     // Split by comma and trim each element
     return inner.split(",").map((tool) => tool.trim());
 };
+
+/**
+ * Extracts access token from auth value string.
+ * Expected format: {token: "..."}
+ */
+export const extractAccessToken = (authValue: string): string => {
+    if (!authValue) return "";
+
+    try {
+        const tokenMatch = authValue.match(/token:\s*"([^"]*)"/);
+        return tokenMatch?.[1] ?? "";
+    } catch (error) {
+        console.error("Failed to parse auth token:", error);
+        return "";
+    }
+};
+
+/**
+ * Safely parses permitted tools from various input formats.
+ * Handles arrays, JSON strings, and returns empty array for invalid input.
+ */
+export const parsePermittedTools = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    if (typeof value === 'string' && value) {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            console.error("Failed to parse permittedTools as JSON");
+            return [];
+        }
+    }
+    return [];
+};

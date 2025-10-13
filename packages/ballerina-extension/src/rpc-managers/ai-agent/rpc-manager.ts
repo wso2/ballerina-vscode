@@ -419,10 +419,15 @@ export class AiAgentRpcManager implements AIAgentAPI {
         let mcpEdits: { [filePath: string]: any[] } = {};
         if (params.updatedNode) {
             if (params.selectedTools.length === 0) {
-                params.updatedNode.properties["permittedTools"].value = `()`;
+                params.updatedNode.properties["permittedTools"].value = `[]`;
             } else {
                 if ("permittedTools" in params.updatedNode.properties) {
-                    params.updatedNode.properties["permittedTools"].value = params.selectedTools.map(tool => `"${tool}"`);
+                    const permittedToolsValue = params.updatedNode.properties["permittedTools"].value;
+                    if (typeof permittedToolsValue === "string" && permittedToolsValue.startsWith("[")) {
+                        params.updatedNode.properties["permittedTools"].value = `[${params.selectedTools.map(tool => `"${tool}"`).join(", ")}]`;
+                    } else {
+                        params.updatedNode.properties["permittedTools"].value = params.selectedTools.map(tool => `"${tool}"`);
+                    }
                 }
             }
 
