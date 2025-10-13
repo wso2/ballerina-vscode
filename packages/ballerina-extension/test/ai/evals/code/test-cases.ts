@@ -97,6 +97,29 @@ export const initialTestCases = [
   },
 ];
 
+export const httpTestCases = [
+  {
+    prompt: "Expose a POST /orders service that accepts a JSON order with items and customerId. Validate the payload and call an external Inventory API GET /inventory/items/{sku}?warehouse={code}&expand=pricing to check stock, passing Authorization: Bearer <token> and X-Request-ID from the incoming request. If all items are in stock, create a shipment via Shipping API POST /shipping/shipments?priority={level} and include Idempotency-Key and X-Correlation-ID headers. If Shipping returns 409, retry once with the same Idempotency-Key. Return 201 with the combined order+shipment JSON; otherwise return 422 detailing which SKUs failed.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Provide a webhook endpoint POST /crm/events that receives ‘customer.updated’ events. For each event, fetch the latest profile from CRM via GET /crm/customers/{customerId}?include=addresses,subscriptions with Authorization: Bearer <token>. Use the ETag from that GET to update our user store via PUT /users/{customerId} including If-Match: <etag>. If the PUT returns 412, re-fetch and retry once. If the customer unsubscribed, also call Marketing API DELETE /lists/{listId}/members?email={email} with X-Correlation-ID. Return 200 only after all downstream calls complete; otherwise 207 with per-step results.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Expose POST /documents/{projectId}/upload that accepts multipart/form-data with file and meta fields. After storing the file, send it to OCR via external POST /v1/ocr?lang=en&enhance=true with headers API-Key: <key>, X-Signature: <hmac>, and a JSON body referencing our file URL. OCR returns 202 with a jobId—poll GET /v1/ocr/jobs/{jobId}?wait=false every 5s (max 6 tries) until status=done or failed. On success, PATCH our Project API /projects/{projectId}/docs/{docId} with extractedText and set status=‘processed’. If polling times out, return 202 with a callback URL GET /documents/{projectId}/status/{docId}.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Implement GET /search that aggregates two providers: CatalogA GET /v1/catalog/search?q={query}&limit={n}&page={p} and CatalogB GET /v2/items?query={query}&sort={sort}&price_min={min}&price_max={max}. Forward client header X-Client-Version, set Accept: application/json, and support optional If-Modified-Since from the caller; pass conditional headers through to providers (use If-Modified-Since / If-None-Match when available). Merge results, de-duplicate by itemId, and return a normalized JSON schema. If any provider returns 429, back off (exponential) up to 2 retries and include a warnings array with provider names and retry counts.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Create a scheduled automation (every weekday 08:00) that calls Calendar API GET /calendar/{userId}/events?from={ISO}&to={ISO}&includeCancelled=false with Authorization: Bearer <token>. Summarize upcoming events and post to a team chat webhook via POST /hooks/{teamId}?channel={channel}&notify=true with Content-Type: application/json and X-Correlation-ID. If an event has location ‘TBD’, update it via PUT /calendar/{userId}/events/{eventId} with a placeholder location and header Prefer: return=minimal. Also clean old reminders using DELETE /reminders/{reminderId}?hard=false. Return a run report (counts per action) as the HTTP response of a local GET /health/last-run.",
+    projectPath: "bi_init"
+  },
+]
+
 export const textEditSpecializedTestCases = [
   {
     // Covers: 1 (Look into files), 3 (Create new file)
@@ -238,6 +261,7 @@ export const testCasesForExistingSemanticErrors = [
 
 export let testCases = [];
 testCases.push(...initialTestCases);
+testCases.push(...httpTestCases);
 testCases.push(...textEditSpecializedTestCases);
 testCases.push(...testCasesForExistingProject); 
 testCases.push(...testCasesForExistingSemanticErrors);
