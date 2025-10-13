@@ -15,8 +15,8 @@
 // under the License.
 
 import { Command } from "@wso2/ballerina-core";
-import { generateText, CoreMessage } from "ai";
-import { getAnthropicClient, getProviderCacheControl } from "../connection";
+import { generateText, ModelMessage } from "ai";
+import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../connection";
 import { 
     getServiceTestGenerationSystemPrompt, 
     getServiceTestDiagnosticsSystemPrompt, 
@@ -93,7 +93,7 @@ type TestGenerationResponse = {
 
 async function getStreamedTestResponse(request: TestGenerationRequest1): Promise<string> {
     const systemPrompt = createTestGenerationSystemPrompt(request);
-    let messages: CoreMessage[] = [];
+    let messages: ModelMessage[] = [];
     
     if (request.targetType === "service") {
         messages = createServiceTestGenMessages(request);
@@ -117,8 +117,8 @@ async function getStreamedTestResponse(request: TestGenerationRequest1): Promise
     });
 
     const { text } = await generateText({
-        model: await getAnthropicClient("claude-sonnet-4-20250514"),
-        maxTokens: 16384,
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        maxOutputTokens: 16384,
         temperature: 0,
         system: systemPrompt,
         messages: messages,
