@@ -102,16 +102,16 @@ public class McpToolKitBuilder extends NodeBuilder {
         codedata().org(functionData.org()).module(functionData.moduleName()).packageName(functionData.packageName())
                 .object(functionData.name()).version(functionData.version());
 
-        // Hide permittedTools property
-        functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
-        setPermittedToolsProperty(this, null);
-
         metadata().label(functionData.packageName()).description(functionData.description())
                 .icon(generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
         codedata().org(functionData.org()).module(functionData.moduleName()).packageName(functionData.packageName())
                 .object(functionData.name()).version(functionData.version());
 
         setParameterProperties(functionData);
+
+        // Hide permittedTools property
+        functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
+        setPermittedToolsProperty(this, null);
 
         if (hasCompatibleAiVersion(aiModuleVersion)) {
             setToolKitNameProperty(this, TOOL_KIT_DEFAULT_CLASS_NAME);
@@ -130,10 +130,15 @@ public class McpToolKitBuilder extends NodeBuilder {
 
     public static void setPermittedToolsProperty(NodeBuilder nodeBuilder, List<String> permittedTools) {
         if (permittedTools != null) {
-            nodeBuilder.properties().custom().hidden().value(permittedTools).editable().stepOut()
+            nodeBuilder.properties().custom()
+                    .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(PERMITTED_TOOLS_PROPERTY).stepOut()
+                    .placeholder("()").hidden().value(permittedTools).editable().stepOut()
                     .addProperty(PERMITTED_TOOLS_PROPERTY);
         } else {
-            nodeBuilder.properties().custom().hidden().editable().stepOut().addProperty(PERMITTED_TOOLS_PROPERTY);
+            nodeBuilder.properties().custom()
+                    .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(PERMITTED_TOOLS_PROPERTY).stepOut()
+                    .placeholder("()").hidden().editable().stepOut()
+                    .addProperty(PERMITTED_TOOLS_PROPERTY);
         }
     }
 
@@ -202,16 +207,18 @@ public class McpToolKitBuilder extends NodeBuilder {
             defaultRange = CommonUtils.toRange(lineRange);
         }
 
-        Set<String> ignoredProperties = Set.of(VARIABLE_KEY, TYPE_KEY, SCOPE_KEY, CHECK_ERROR_KEY);
+        Set<String> ignoredProperties =
+                new java.util.HashSet<>(Set.of(VARIABLE_KEY, TYPE_KEY, SCOPE_KEY, CHECK_ERROR_KEY));
         Property toolKitNameProperty = getToolKitNameProperty(sourceBuilder.flowNode);
         if (toolKitNameProperty == null) {
             // Generate the following code
             // ```final ai:McpToolKit aiMcpToolkit = new ("http://...")```
+            ignoredProperties.add(TOOL_KIT_NAME_PROPERTY);
             sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable()
                     .token().keyword(SyntaxKind.CHECK_KEYWORD).keyword(SyntaxKind.NEW_KEYWORD).stepOut()
                     .functionParameters(sourceBuilder.flowNode, ignoredProperties)
-                    .acceptImport().textEdit();
-
+                    .acceptImport().textEdit(SourceBuilder.SourceKind.STATEMENT, connectionsFilePath, defaultRange);
+            return sourceBuilder.build();
         } else {
             // 1. Generate the MCP toolkit class in user code
             Property permittedToolsProperty = sourceBuilder.flowNode.properties().get(PERMITTED_TOOLS_PROPERTY);
