@@ -539,7 +539,7 @@ public class SourceCodeGenerator {
     }
 
     /**
-     * Helper method to add imports from a member to the imports map
+     * Helper method to add imports from a member to the imports map.
      *
      * @param member The member whose imports need to be added
      */
@@ -550,7 +550,7 @@ public class SourceCodeGenerator {
     }
 
     /**
-     * Helper method to add imports from a function to the imports map
+     * Helper method to add imports from a function to the imports map.
      *
      * @param function The function whose imports need to be added
      */
