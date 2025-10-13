@@ -338,7 +338,7 @@ public final class HttpUtil {
             HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
             dynamicStatusRes.setEditable(true);
             dynamicStatusRes.setEnabled(hasHttpResponse.get());
-            dynamicStatusRes.setHttpResponseType(true);
+            dynamicStatusRes.setEnabled(true);
             responses.add(dynamicStatusRes);
         }
 
@@ -384,40 +384,58 @@ public final class HttpUtil {
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         if (typeName.contains("}")) {
-            return HttpResponse.getAnonResponse(statusCode, "record {|...|}");
+            HttpResponse.Builder builder = new HttpResponse.Builder()
+                    .statusCode(statusCode, true)
+                    .type("record {|...|}", true);
+            return builder.build();
         }
         boolean addEditButton = typeName.startsWith(currentModuleName + ":");
         if (typeName.startsWith("http:")) {
             String type = HTTP_CODES_DES.get(statusCode);
             if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
-                return new HttpResponse(statusCode, typeName, true);
+                HttpResponse.Builder builder = new HttpResponse.Builder()
+                        .statusCode(statusCode, true)
+                        .type(typeName, true)
+                        .body("", true)
+                        .name("", true)
+                        .headers("", true)
+                        .mediaType("", true);
+                return builder.build();
             }
         }
-        List<Object> headers = new ArrayList<>();
-        String body = addHeadersAndGetBodyType(statusCodeResponseType, currentModuleName, headers);
-        return new HttpResponse(statusCode, typeName, body, headers, addEditButton);
-    }
 
-    private static String addHeadersAndGetBodyType(TypeSymbol typeSymbol, String currentModuleName,
-                                                   List<Object> headers) {
-        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
-        if (rawType.typeKind() != TypeDescKind.RECORD) {
-            return "anydata";
-        }
-        RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) rawType;
-        Map<String, RecordFieldSymbol> fieldSymbolMap = recordTypeSymbol.fieldDescriptors();
-        TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
-        if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
-            headersRecordType.fieldDescriptors().forEach((name, field) -> {
+        List<Object> headers = new ArrayList<>();
+        String body = "anydata";
+        String mediaType = "";
+        TypeSymbol rawType = CommonUtils.getRawType(statusCodeResponseType);
+        if (rawType.typeKind() == TypeDescKind.RECORD) {
+            Map<String, RecordFieldSymbol> fieldSymbolMap = ((RecordTypeSymbol) rawType).fieldDescriptors();
+            TypeSymbol headersFieldType = CommonUtils.getRawType(fieldSymbolMap.get("headers").typeDescriptor());
+            if (headersFieldType instanceof RecordTypeSymbol headersRecordType) {
+                headersRecordType.fieldDescriptors().forEach((name, field) -> {
                     headers.add(Map.of("name", name, "type",
                             getTypeName(field.typeDescriptor(), currentModuleName),
                             "optional", field.isOptional()));
-            });
+                });
+            }
+            if (fieldSymbolMap.containsKey("body")) {
+                body = getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
+            }
+            if (fieldSymbolMap.containsKey("mediaType")) {
+                TypeSymbol mediaTypeSymbol = fieldSymbolMap.get("mediaType").typeDescriptor();
+                if (!mediaTypeSymbol.getName().orElse("").equals("string")) {
+                    mediaType = mediaTypeSymbol.getName().orElse("");
+                }
+            }
         }
-        if (fieldSymbolMap.containsKey("body")) {
-            return getTypeName(fieldSymbolMap.get("body").typeDescriptor(), currentModuleName);
-        }
-        return "anydata";
+        HttpResponse.Builder builder = new HttpResponse.Builder()
+                .statusCode(statusCode, false)
+                .type(typeName, false)
+                .body(body, false)
+                .headers(headers, false)
+                .name("", false)
+                .mediaType(mediaType, false);
+        return builder.build();
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {

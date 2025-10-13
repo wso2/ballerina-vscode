@@ -1,12 +1,5 @@
 {
-  "metadata": {
-    "label": "Get Path",
-    "description": "The path resource"
-  },
   "kind": "RESOURCE",
-  "enabled": true,
-  "optional": false,
-  "editable": true,
   "accessor": {
     "metadata": {
       "label": "Resource Accessor",
@@ -296,65 +289,61 @@
     "responses": [
       {
         "statusCode": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "enabled": true,
           "editable": true,
           "value": "200",
           "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "",
           "isType": false,
+          "placeholder": "",
           "optional": false,
           "advanced": false,
-          "addNewButton": false
+          "items": []
         },
         "body": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "enabled": true,
           "editable": true,
           "value": "json",
           "valueType": "TYPE",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false
         },
-        "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
+        "mediaType": {
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "IDENTIFIER",
+          "valueType": "TYPE",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "valueType": "OPTIONAL_IDENTIFIER",
+          "isType": false,
+          "optional": true,
+          "advanced": true,
           "addNewButton": false
         },
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "enabled": true,
           "editable": true,
-          "value": "json",
+          "value": "",
           "valueType": "TYPE",
           "isType": false,
-          "optional": false,
-          "advanced": false,
+          "optional": true,
+          "advanced": true,
           "addNewButton": false
         },
         "headers": {
           "metadata": {
-            "label": "",
-            "description": ""
+            "label": "Headers",
+            "description": "Add mandatory or optional headers to the response"
           },
           "enabled": true,
           "editable": true,
@@ -362,20 +351,19 @@
           "valueType": "HEADER_SET",
           "isType": false,
           "optional": true,
-          "advanced": false,
+          "advanced": true,
           "addNewButton": false
         },
         "enabled": true,
-        "editable": true,
-        "advanced": true
+        "editable": true
       }
     ],
     "schema": {
       "statusCodeResponse": {
         "statusCode": {
           "metadata": {
-            "label": "Status Code Type",
-            "description": "Select the http status code type"
+            "label": "Status Code",
+            "description": "HTTP status code for the response"
           },
           "enabled": true,
           "editable": true,
@@ -386,23 +374,26 @@
           "placeholder": "",
           "optional": false,
           "advanced": false,
-          "items": [
-            "200",
-            "201",
-            "202",
-            "204",
-            "400",
-            "401",
-            "403",
-            "404",
-            "405",
-            "500"
-          ]
+          "items": []
         },
         "body": {
           "metadata": {
-            "label": "Message Body Type",
-            "description": "Format of the response body"
+            "label": "Response Body Schema",
+            "description": "The data type or schema of the response body"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "valueType": "TYPE",
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "mediaType": {
+          "metadata": {
+            "label": "Media Type",
+            "description": "Value for the Content-Type header in the response"
           },
           "enabled": true,
           "editable": true,
@@ -415,13 +406,13 @@
         },
         "name": {
           "metadata": {
-            "label": "Wrapped Type Name",
-            "description": "Name to reference the response type"
+            "label": "Response Definition Name",
+            "description": "Define a name for the response definition"
           },
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "IDENTIFIER",
+          "valueType": "OPTIONAL_IDENTIFIER",
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -453,17 +444,15 @@
           "isType": false,
           "optional": true,
           "advanced": true,
-          "addNewButton": false,
-          "isHttpResponseType": true
-        }
+          "addNewButton": false
+        },
+        "enabled": true,
+        "editable": true,
+        "advanced": false
       }
     }
   },
-  "codedata": {
-    "orgName": "ballerina",
-    "moduleName": "http"
-  },
-  "properties": {
+  "annotations": {
     "annotResourceConfig": {
       "metadata": {
         "label": "Resource Configuration",
@@ -497,5 +486,12 @@
         }
       ]
     }
-  }
+  },
+  "codedata": {
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http"
+  },
+  "enabled": true,
+  "editable": true
 }
