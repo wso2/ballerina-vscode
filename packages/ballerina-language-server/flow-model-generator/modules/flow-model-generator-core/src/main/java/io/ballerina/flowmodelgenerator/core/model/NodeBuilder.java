@@ -178,8 +178,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
 
     public NodeBuilder setTemplateData(TemplateContext context) {
         setConcreteTemplateData(context);
-        Boolean isNewValue = (context != null && context.codedata() != null) ? context.codedata().isNew() : null;
-        codedata().isNew(isNewValue != null ? isNewValue : true);
+        codedata().isNew();
         return this;
     }
 
