@@ -64,7 +64,9 @@ interface TypeEditorProps {
 export function TypeEditor(props: TypeEditorProps) {
     const { isGraphql, newType, isPopupTypeForm } = props;
 
-    let initialTypeKind = props.type?.codedata?.node ?? "RECORD" as TypeNodeKind;
+    const [initialTypeKind] = useState<TypeNodeKind>(() =>
+        (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
+    );
     const [isSaving, setIsSaving] = useState(false);
 
     const type: Type = (() => {
