@@ -41,7 +41,6 @@ import {
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
-    BISourceCodeResponse,
     BreakpointRequest,
     BuildMode,
     ClassFieldModifierRequest,
@@ -49,6 +48,8 @@ import {
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
@@ -122,13 +123,20 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteType,
     deployProject,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
     getAllImports,
+    getAvailableChunkers,
+    getAvailableDataLoaders,
+    getAvailableEmbeddingProviders,
+    getAvailableModelProviders,
     getAvailableNodes,
+    getAvailableVectorKnowledgeBases,
+    getAvailableVectorStores,
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
     getConfigVariables,
@@ -179,6 +187,10 @@ import {
     updateTypes,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    verifyTypeDelete,
+    ConfigVariableRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -208,6 +220,30 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this._messenger.sendRequest(getAvailableNodes, HOST_EXTENSION, params);
+    }
+
+    getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableModelProviders, HOST_EXTENSION, params);
+    }
+
+    getAvailableVectorStores(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableVectorStores, HOST_EXTENSION, params);
+    }
+
+    getAvailableEmbeddingProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableEmbeddingProviders, HOST_EXTENSION, params);
+    }
+
+    getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableVectorKnowledgeBases, HOST_EXTENSION, params);
+    }
+
+    getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableDataLoaders, HOST_EXTENSION, params);
+    }
+
+    getAvailableChunkers(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableChunkers, HOST_EXTENSION, params);
     }
 
     getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
@@ -262,10 +298,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(updateConfigVariables, HOST_EXTENSION, params);
     }
 
-    getConfigVariablesV2(): Promise<ConfigVariableResponse> {
-        return this._messenger.sendRequest(getConfigVariablesV2, HOST_EXTENSION);
+    getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
+        return this._messenger.sendRequest(getConfigVariablesV2, HOST_EXTENSION, params);
     }
-    
+
     updateConfigVariablesV2(params: UpdateConfigVariableRequestV2): Promise<UpdateConfigVariableResponseV2> {
         return this._messenger.sendRequest(updateConfigVariablesV2, HOST_EXTENSION, params);
     }
@@ -370,6 +406,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(updateTypes, HOST_EXTENSION, params);
     }
 
+    deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
+        return this._messenger.sendRequest(deleteType, HOST_EXTENSION, params);
+    }
+
     getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
         return this._messenger.sendRequest(getTypeFromJson, HOST_EXTENSION, params);
     }
@@ -386,7 +426,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(addClassField, HOST_EXTENSION, params);
     }
 
-    updateServiceClass(params: ServiceClassSourceRequest): Promise<SourceEditResponse> {
+    updateServiceClass(params: ServiceClassSourceRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(updateServiceClass, HOST_EXTENSION, params);
     }
 
@@ -452,5 +492,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deleteOpenApiGeneratedModules(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return this._messenger.sendRequest(deleteOpenApiGeneratedModules, HOST_EXTENSION, params);
+    }
+
+    verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
+        return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
     }
 }

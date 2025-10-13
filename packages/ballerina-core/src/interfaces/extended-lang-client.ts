@@ -28,8 +28,10 @@ import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wiza
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
-import { IDMModel, Mapping } from "./inline-data-mapper";
-import { SCOPE } from "../state-machine-types";
+import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
+import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
+import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
     textDocument: TextDocumentItem;
@@ -279,41 +281,225 @@ export interface TypeWithIdentifier {
     type: TypeField;
 }
 
-export interface InlineDataMapperModelRequest {
+export interface InitialIDMSourceRequest {
     filePath: string;
     flowNode: FlowNode;
-    propertyKey: string;
-    position: LinePosition;
 }
 
-export interface InlineDataMapperSourceRequest extends InlineDataMapperModelRequest {
+export interface InitialIDMSourceResponse {
+    textEdits: {
+        [key: string]: TextEdit[];
+    };
+    codedata?: CodeData;
+}
+
+export interface DataMapperModelRequest {
+    filePath: string;
+    codedata: CodeData;
+    position: LinePosition;
+    targetField?: string;
+}
+
+export interface DataMapperBase {
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField?: string;
+    position?: LinePosition;
+}
+
+export interface DataMapperSourceRequest extends DataMapperBase {
+    mapping: Mapping;
+    subMappingName?: string;
+}
+
+export interface AllDataMapperSourceRequest extends DataMapperBase {
     mappings: Mapping[];
+}
+
+export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
+    mappingsModel: ExpandedDMModel;
+}
+
+export interface MetadataWithAttachments {
+    metadata: ExtendedDataMapperMetadata;
+    attachments?: Attachment[];
+    useTemporaryFile?: boolean;
 }
 
 export interface VisualizableFieldsRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
+    codedata: CodeData;
 }
 
-export interface InlineDataMapperModelResponse {
-    mappingsModel: IDMModel;
+export interface DataMapperModelResponse {
+    mappingsModel: ExpandedDMModel | DMModel;
 }
 
-export interface InlineDataMapperSourceResponse {
-    source: string;
+export interface DataMapperSourceResponse {
+    textEdits?: {
+        [key: string]: TextEdit[];
+    };
+    error?: string;
+    userAborted?: boolean;
+}
+
+export interface CreateTempFileRequest {
+    inputs: DataMappingRecord[];
+    output: DataMappingRecord;
+    functionName: string;
+    inputNames: string[];
+    imports: ImportInfo[];
+}
+
+export interface DatamapperModelContext {
+    documentUri?: string;
+    identifier?: string;
+    dataMapperMetadata?: any;
+}
+
+export interface ExpandModelOptions {
+    processInputs?: boolean;
+    processOutput?: boolean;
+    processSubMappings?: boolean;
+    previousModel?: ExpandedDMModel;
+}
+
+export interface DMModelRequest {
+    model: DMModel;
+    rootViewId: string;
+    options?: ExpandModelOptions;
+}
+
+export interface ExpandedDMModelResponse {
+    expandedModel: ExpandedDMModel;
+    success: boolean;
+    error?: string;
+}
+export interface ProcessTypeReferenceRequest {
+    ref: string;
+    fieldId: string;
+    model: DMModel;
+}
+
+export interface ProcessTypeReferenceResponse {
+    result: Partial<IOType>;
+    success: boolean;
+    error?: string;
 }
 
 export interface VisualizableFieldsResponse {
-    visualizableProperties: string[];
+    visualizableProperties: VisualizableField;
 }
 
 export interface AddArrayElementRequest {
     filePath: string;
-    flowNode: FlowNode;
-    position: LinePosition;
-    propertyKey: string;
+    codedata: CodeData;
+    varName?: string;
+    outputId: string;
     targetField: string;
+    propertyKey?: string;
+    subMappingName?: string;
+}
+
+export interface ConvertToQueryRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    clauseType: ResultClauseType;
+    varName?: string;
+    targetField: string;
+    propertyKey?: string;
+    subMappingName?: string;
+}
+
+export interface AddClausesRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    clause: IntermediateClause;
+    varName?: string;
+    targetField: string;
+    propertyKey?: string;
+    subMappingName?: string;
+}
+
+export interface DeleteClauseRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    varName?: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
+export interface AddSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    flowNode: FlowNode;
+    varName?: string;
+    targetField: string;
+}
+
+export interface DeleteMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    varName?: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
+export interface DeleteSubMappingRequest {
+    filePath: string;
+    codedata: CodeData;
+    index: number;
+    varName?: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
+export interface MapWithFnRequest {
+    filePath: string;
+    codedata: CodeData;
+    mapping: Mapping;
+    functionMetadata: FnMetadata;
+    varName?: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
+export interface ClearTypeCacheResponse {
+    success: boolean;
+}
+
+export interface GetDataMapperCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    name: string;
+}
+
+export interface GetSubMappingCodedataRequest {
+    filePath: string;
+    codedata: CodeData;
+    view: string;
+}
+
+export interface GetDataMapperCodedataResponse {
+    codedata: CodeData;
+}
+
+export interface PropertyRequest {
+    filePath: string;
+    codedata: CodeData;
+    propertyKey: string,
+    targetField: string;
+    fieldId: string;
+}
+
+export interface PropertyResponse {
+    property: Property;
 }
 
 export interface GraphqlDesignServiceParams {
@@ -725,15 +911,31 @@ export type SearchQueryParams = {
     q?: string;
     limit?: number;
     offset?: number;
+    orgName?: string;
     includeAvailableFunctions?: string;
+    filterByCurrentOrg?: boolean;
 }
 
-export type SearchKind = 'FUNCTION' | 'CONNECTOR' | 'TYPE' | "NP_FUNCTION";
+export type SearchKind =
+    | "FUNCTION"
+    | "CONNECTOR"
+    | "TYPE"
+    | "NP_FUNCTION"
+    | "MODEL_PROVIDER"
+    | "VECTOR_STORE"
+    | "EMBEDDING_PROVIDER"
+    | "VECTOR_KNOWLEDGE_BASE"
+    | "DATA_LOADER"
+    | "CHUNKER"
+    | "AGENT"
+    | "MEMORY_MANAGER"
+    | "AGENT_TOOL"
+    | "CLASS_INIT";
 
 export type BISearchRequest = {
-    position: LineRange;
+    position?: LineRange;
     filePath: string;
-    queryMap: SearchQueryParams;
+    queryMap?: SearchQueryParams;
     searchKind: SearchKind;
 }
 
@@ -825,6 +1027,7 @@ export type DeleteConfigVariableResponseV2 = {
 
 export interface GetConfigVariableNodeTemplateRequest {
     isNew: boolean;
+    isEnvVariable?: boolean;
 }
 
 export interface OpenConfigTomlRequest {
@@ -1020,6 +1223,22 @@ export interface RenameIdentifierRequest {
     newName: string;
 }
 
+export interface ImportIntegrationRequest {
+    packageName: string;
+    orgName: string;
+    sourcePath: string;
+    parameters?: Record<string, any>;
+}
+
+export interface ImportIntegrationResponse {
+    error: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
+    jsonReport: string;
+}
+
 // <-------- Trigger Related ------->
 export interface TriggerModelsRequest {
     organization?: string;
@@ -1210,6 +1429,7 @@ export interface Member {
     defaultValue?: string;
     optional?: boolean;
     imports?: Imports;
+    readonly?: boolean;
 }
 
 export interface GetGraphqlTypeRequest {
@@ -1246,6 +1466,30 @@ export interface UpdateTypesResponse {
     textEdits: {
         [filePath: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface DeleteTypeRequest {
+    filePath: string;
+    lineRange: LineRange;
+}
+
+export interface DeleteTypeResponse {
+    textEdits: {
+        [filePath: string]: TextEdit[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface VerifyTypeDeleteRequest {
+    filePath: string;
+    startPosition: LinePosition;
+}
+
+export interface VerifyTypeDeleteResponse {
+    canDelete: boolean;
     errorMsg?: string;
     stacktrace?: string;
 }
@@ -1400,6 +1644,16 @@ export interface ResourceReturnTypesResponse {
 
 // <-------- Service Designer Related ------->
 
+export interface FunctionFromSourceRequest {
+    filePath: string;
+    codedata: CodeData;
+}
+
+export interface FunctionFromSourceResponse {
+    function: FunctionModel;
+    errorMsg?: string;
+    stacktrace?: string;
+}
 
 export interface FunctionNodeRequest {
     projectPath?: string;
@@ -1412,8 +1666,17 @@ export interface FunctionNodeResponse {
 
 // <-------- AI Agent Related ------->
 
+export interface AiModuleOrgRequest {
+    projectPath: string;
+}
+
+export interface AiModuleOrgResponse {
+    orgName: string;
+}
+
 export interface AINodesRequest {
     filePath: string;
+    orgName: string;
 }
 export interface AINodesResponse {
     agents?: CodeData[];
@@ -1421,6 +1684,7 @@ export interface AINodesResponse {
 }
 export interface MemoryManagersRequest {
     filePath: string;
+    orgName: string;
 }
 export interface MemoryManagersResponse {
     memoryManagers?: CodeData[];
@@ -1433,13 +1697,49 @@ export interface AIModelsResponse {
 export interface AIModelsRequest {
     agent: any;
     filePath?: string;
+    orgName: string;
 }
 
 export interface AIToolsRequest {
     filePath: string;
+    serviceUrl?: string;
+    configs?: Record<string, string>;
 }
+
 export interface AIToolsResponse {
     tools: string[];
+}
+
+export interface AIToolRequest {
+    toolName: string;
+    projectPath: string;
+}
+
+export interface AIToolResponse {
+    name: string;
+    source: string;
+    toolParameters: Property;
+    connection: string;
+    description: string;
+    toolDescription: string;
+    diagram: FunctionNode;
+    output: {
+        [key: string]: TextEdit[];
+    };
+}
+
+export interface McpToolsRequest {
+    serviceUrl?: string;
+    configs?: Record<string, string>;
+    filePath?: string;
+}
+
+export interface McpToolsResponse {
+    tools: Array<{
+        name: string;
+        description?: string;
+    }>;
+    error?: string;
 }
 
 export interface AIGentToolsRequest {
@@ -1448,6 +1748,7 @@ export interface AIGentToolsRequest {
     toolName: string;
     description: string;
     connection: string;
+    toolParameters?: ToolParameters;
 }
 
 export interface AIGentToolsResponse {
@@ -1542,7 +1843,8 @@ export enum ARTIFACT_TYPE {
     Types = "Types",
     NaturalFunctions = "Natural Functions",
     DataMappers = "Data Mappers",
-    Configurations = "Configurations"
+    Configurations = "Configurations",
+    Variables = "Variables"
 }
 
 export interface Artifacts {
@@ -1616,6 +1918,7 @@ export interface BIInterface extends BaseLangClientInterface {
 
     // Function APIs
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
+    getFunctionFromSource: (params: FunctionFromSourceRequest) => Promise<FunctionFromSourceResponse>;
 
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
@@ -1631,6 +1934,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getAllModels: (params: AIModelsRequest) => Promise<AINodesResponse>;
     getModels: (params: AIModelsRequest) => Promise<AIModelsResponse>;
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
+    getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
 }
 

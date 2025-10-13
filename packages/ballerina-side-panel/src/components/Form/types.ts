@@ -17,7 +17,7 @@
  */
 
 import { RefObject } from "react";
-import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports } from "@wso2/ballerina-core";
+import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports, ConfigProperties } from "@wso2/ballerina-core";
 import { ParamConfig } from "../ParamManager/ParamManager";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, HelperPaneOrigin, OptionProps } from "@wso2/ui-toolkit";
 
@@ -55,6 +55,9 @@ export type FormField = {
     metadata?: Metadata;
     codedata?: { [key: string]: any };
     imports?: { [key: string]: string };
+    actionLabel?: string | JSX.Element;
+    properties?: ConfigProperties;
+    actionCallback?: () => void;
     onValueChange?: (value: string) => void;
 };
 
@@ -147,6 +150,7 @@ type FormTypeConditionalProps = {
         changeTypeHelperState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         onTypeCreate: () => void,
+        exprRef?: RefObject<FormExpressionEditorRef>,
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;
@@ -170,7 +174,8 @@ type FormHelperPaneConditionalProps = {
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
-        isAssignIdentifier?: boolean
+        isAssignIdentifier?: boolean,
+        valueTypeConstraint?: string | string[]
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;

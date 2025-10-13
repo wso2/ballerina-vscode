@@ -35,6 +35,7 @@ import {
     RunExternalCommandResponse,
     ShowErrorMessageRequest,
     SyntaxTree,
+    TomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
@@ -43,11 +44,13 @@ import {
 import child_process from 'child_process';
 import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
-import { ballerinaExtInstance } from "../../core";
+import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { goToSource } from "../../utils";
-import { askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
-import path from 'path';
+import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
+import { parse } from 'toml';
+import * as fs from 'fs';
+import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -186,8 +189,21 @@ export class CommonRpcManager implements CommonRPCAPI {
         });
     }
 
+    async selectFileOrFolderPath(): Promise<FileOrDirResponse> {
+        return new Promise(async (resolve) => {
+            const selectedFileOrFolder = await askFileOrFolderPath();
+            if (!selectedFileOrFolder || selectedFileOrFolder.length === 0) {
+                window.showErrorMessage('A file or folder must be selected');
+                resolve({ path: "" });
+            } else {
+                const fileOrFolderPath = selectedFileOrFolder[0].fsPath;
+                resolve({ path: fileOrFolderPath });
+            }
+        });
+    }
+
     async experimentalEnabled(): Promise<boolean> {
-        return ballerinaExtInstance.enabledExperimentalFeatures();
+        return extension.ballerinaExtInstance.enabledExperimentalFeatures();
     }
 
     async runBackgroundTerminalCommand(params: RunExternalCommandRequest): Promise<RunExternalCommandResponse> {
@@ -227,6 +243,35 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async isNPSupported(): Promise<boolean> {
-        return ballerinaExtInstance.isNPSupported;
+        return extension.ballerinaExtInstance.isNPSupported;
+    }
+
+    async getBallerinaProjectRoot(): Promise<string | null> {
+        const workspaceFolders = workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error("No workspaces found.");
+        }
+        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+        // Check if workspaceFolderPath is a Ballerina project
+        // Assuming a Ballerina project must contain a 'Ballerina.toml' file
+        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        if (fs.existsSync(ballerinaProjectFile)) {
+            return workspaceFolderPath;
+        }
+        return null;
+    }
+
+    async getCurrentProjectTomlValues(): Promise<TomlValues> {
+        const projectRoot = await this.getBallerinaProjectRoot();
+        const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
+        if (fs.existsSync(ballerinaTomlPath)) {
+            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+            try {
+                return parse(tomlContent);
+            } catch (error) {
+                console.error("Failed to load Ballerina.toml content", error);
+                return;
+            }
+        }
     }
 }

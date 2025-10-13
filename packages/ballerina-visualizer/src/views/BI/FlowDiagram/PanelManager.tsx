@@ -16,21 +16,32 @@
  * under the License.
  */
 
-import { PanelContainer, NodeList, ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { FlowNode, LineRange, SubPanel, SubPanelView, FUNCTION_TYPE, ToolData } from "@wso2/ballerina-core";
-import { InlineDataMapper } from "../../InlineDataMapper";
+import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
+import {
+    FlowNode,
+    LineRange,
+    SubPanel,
+    SubPanelView,
+    FUNCTION_TYPE,
+    ToolData,
+    NodeMetadata,
+    DataMapperDisplayMode,
+} from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
-import { getContainerTitle } from "../../../utils/bi";
-import { ModelConfig } from "../AIChatAgent/ModelConfig";
+import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
 import { ToolConfig } from "../AIChatAgent/ToolConfig";
 import { AgentConfig } from "../AIChatAgent/AgentConfig";
 import { NewAgent } from "../AIChatAgent/NewAgent";
 import { AddTool } from "../AIChatAgent/AddTool";
-import { useEffect, useState } from "react";
-import { NewTool } from "../AIChatAgent/NewTool";
+import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
+import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
 import styled from "@emotion/styled";
 import { MemoryManagerConfig } from "../AIChatAgent/MemoryManagerConfig";
+import { FormSubmitOptions } from ".";
+import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
+import { RelativeLoader } from "../../../components/RelativeLoader";
+import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 
 const Container = styled.div`
     display: flex;
@@ -44,11 +55,28 @@ export enum SidePanelView {
     FUNCTION_LIST = "FUNCTION_LIST",
     DATA_MAPPER_LIST = "DATA_MAPPER_LIST",
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
+    MODEL_PROVIDERS = "MODEL_PROVIDERS",
+    MODEL_PROVIDER_LIST = "MODEL_PROVIDER_LIST",
+    VECTOR_STORES = "VECTOR_STORES",
+    VECTOR_STORE_LIST = "VECTOR_STORE_LIST",
+    EMBEDDING_PROVIDERS = "EMBEDDING_PROVIDERS",
+    EMBEDDING_PROVIDER_LIST = "EMBEDDING_PROVIDER_LIST",
+    DATA_LOADERS = "DATA_LOADERS",
+    DATA_LOADER_LIST = "DATA_LOADER_LIST",
+    CHUNKERS = "CHUNKERS",
+    CHUNKER_LIST = "CHUNKER_LIST",
+    VECTOR_KNOWLEDGE_BASE_LIST = "VECTOR_KNOWLEDGE_BASE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
+    NEW_TOOL_FROM_CONNECTION = "NEW_TOOL_FROM_CONNECTION",
+    NEW_TOOL_FROM_FUNCTION = "NEW_TOOL_FROM_FUNCTION",
+    ADD_MCP_SERVER = "ADD_MCP_SERVER",
+    EDIT_MCP_SERVER = "EDIT_MCP_SERVER",
     AGENT_TOOL = "AGENT_TOOL",
-    AGENT_MODEL = "AGENT_MODEL",
+    CONNECTION_CONFIG = "CONNECTION_CONFIG",
+    CONNECTION_SELECT = "CONNECTION_SELECT",
+    CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
 }
@@ -69,6 +97,11 @@ interface PanelManagerProps {
     editForm?: boolean;
     updatedExpressionField?: ExpressionFormField;
     showProgressIndicator?: boolean;
+    canGoBack?: boolean;
+    selectedMcpToolkitName?: string;
+    selectedConnectionKind?: ConnectionKind;
+    showProgressSpinner?: boolean;
+    progressMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -78,19 +111,37 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, isDataMapperFormUpdate?: boolean) => void;
+    onAddModelProvider?: () => void;
+    onAddVectorStore?: () => void;
+    onAddEmbeddingProvider?: () => void;
+    onAddVectorKnowledgeBase?: () => void;
+    onAddDataLoader?: () => void;
+    onAddChunker?: () => void;
+    onSubmitForm: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
     onResetUpdatedExpressionField: () => void;
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onEditAgent?: () => void;
+    onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
+    setSidePanelView: (view: SidePanelView) => void;
 
     // AI Agent handlers
     onSelectTool?: (tool: ToolData, node: FlowNode) => void;
+    onSelectMcpToolkit?: (tool: ToolData, node: FlowNode) => void;
     onDeleteTool?: (tool: ToolData, node: FlowNode) => void;
     onAddTool?: (node: FlowNode) => void;
+    onAddMcpServer?: (node: FlowNode) => void;
+    onSelectNewConnection?: (nodeId: string, metadata?: any) => void;
+    onUpdateNodeWithConnection?: (selectedNode: FlowNode) => void;
 }
 
 export function PanelManager(props: PanelManagerProps) {
@@ -110,6 +161,12 @@ export function PanelManager(props: PanelManagerProps) {
         editForm,
         updatedExpressionField,
         showProgressIndicator,
+        canGoBack,
+        selectedMcpToolkitName,
+        selectedConnectionKind,
+        showProgressSpinner = false,
+        progressMessage = "Loading...",
+        setSidePanelView,
         onClose,
         onBack,
         onSelectNode,
@@ -117,6 +174,12 @@ export function PanelManager(props: PanelManagerProps) {
         onAddFunction,
         onAddNPFunction,
         onAddDataMapper,
+        onAddModelProvider,
+        onAddVectorStore,
+        onAddEmbeddingProvider,
+        onAddVectorKnowledgeBase,
+        onAddDataLoader,
+        onAddChunker,
         onSubmitForm,
         onDiscardSuggestions,
         onSubPanel,
@@ -124,31 +187,46 @@ export function PanelManager(props: PanelManagerProps) {
         onResetUpdatedExpressionField,
         onSearchFunction,
         onSearchNpFunction,
+        onSearchVectorStore,
+        onSearchEmbeddingProvider,
+        onSearchVectorKnowledgeBase,
+        onSearchDataLoader,
+        onSearchChunker,
+        onSelectNewConnection,
+        onUpdateNodeWithConnection,
+        onNavigateToPanel,
     } = props;
 
-    const [panelView, setPanelView] = useState<SidePanelView>(sidePanelView);
-    useEffect(() => {
-        setPanelView(sidePanelView);
-    }, [sidePanelView]);
-
     const handleOnAddTool = () => {
-        setPanelView(SidePanelView.NEW_TOOL);
+        setSidePanelView(SidePanelView.NEW_TOOL);
+    };
+
+    const handleOnAddMcpServer = () => {
+        setSidePanelView(SidePanelView.ADD_MCP_SERVER);
+    };
+
+    const handleOnEditMcpServer = () => {
+        setSidePanelView(SidePanelView.EDIT_MCP_SERVER);
     };
 
     const handleOnBackToAddTool = () => {
-        setPanelView(SidePanelView.ADD_TOOL);
+        setSidePanelView(SidePanelView.ADD_TOOL);
+    };
+
+    const handleOnUseConnection = () => {
+        setSidePanelView(SidePanelView.NEW_TOOL_FROM_CONNECTION);
+    };
+
+    const handleOnUseFunction = () => {
+        setSidePanelView(SidePanelView.NEW_TOOL_FROM_FUNCTION);
+    };
+
+    const handleOnUseMcpServer = () => {
+        setSidePanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
-            case SubPanelView.INLINE_DATA_MAPPER:
-                return (
-                    <InlineDataMapper
-                        onClosePanel={onSubPanel}
-                        updateFormField={onUpdateExpressionField}
-                        {...subPanel.props?.inlineDataMapper}
-                    />
-                );
             case SubPanelView.HELPER_PANEL:
                 return (
                     <HelperView
@@ -166,7 +244,7 @@ export function PanelManager(props: PanelManagerProps) {
     };
 
     const renderPanelContent = () => {
-        switch (panelView) {
+        switch (sidePanelView) {
             case SidePanelView.NODE_LIST:
                 return (
                     <NodeList
@@ -188,19 +266,73 @@ export function PanelManager(props: PanelManagerProps) {
                 );
 
             case SidePanelView.ADD_TOOL:
-                return <AddTool agentCallNode={selectedNode} onAddNewTool={handleOnAddTool} onSave={onClose} />;
+                return (
+                    <AddTool
+                        agentCallNode={selectedNode}
+                        onUseConnection={handleOnUseConnection}
+                        onUseFunction={handleOnUseFunction}
+                        onUseMcpServer={handleOnUseMcpServer}
+                        onSave={onClose}
+                    />
+                );
+
+            case SidePanelView.ADD_MCP_SERVER:
+                return (
+                    <AddMcpServer
+                        agentCallNode={selectedNode}
+                        name={selectedMcpToolkitName}
+                        onAddMcpServer={onClose}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
+
+            case SidePanelView.EDIT_MCP_SERVER:
+                return (
+                    <AddMcpServer
+                        editMode={true}
+                        name={selectedClientName}
+                        agentCallNode={selectedNode}
+                        onAddMcpServer={handleOnEditMcpServer}
+                        onSave={onClose}
+                    />
+                );
 
             case SidePanelView.NEW_TOOL:
-                return <NewTool agentCallNode={selectedNode} onSave={onClose} onBack={handleOnBackToAddTool} />;
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.ALL}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.CONNECTION}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.FUNCTION}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                    />
+                );
 
             case SidePanelView.AGENT_TOOL:
-                const selectedTool = selectedNode?.metadata.data.tools?.find(
+                const selectedTool = (selectedNode?.metadata.data as NodeMetadata).tools?.find(
                     (tool) => tool.name === selectedClientName
                 );
                 return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
-
-            case SidePanelView.AGENT_MODEL:
-                return <ModelConfig agentCallNode={selectedNode} onSave={onClose} />;
 
             case SidePanelView.AGENT_CONFIG:
                 return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
@@ -218,7 +350,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 
@@ -231,7 +363,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 
@@ -246,7 +378,187 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
-                        onBack={onBack}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.MODEL_PROVIDER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddModelProvider}
+                        addButtonLabel={"Add Model Provider"}
+                        onClose={onClose}
+                        title={"Model Providers"}
+                        searchPlaceholder={"Search model providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.MODEL_PROVIDERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Model Providers"}
+                        searchPlaceholder={"Search model providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_STORE_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddVectorStore}
+                        addButtonLabel={"Add Vector Store"}
+                        onClose={onClose}
+                        title={"Vector Stores"}
+                        searchPlaceholder={"Search vector stores"}
+                        onSearchTextChange={(searchText) => onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_STORES:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Vector Stores"}
+                        searchPlaceholder={"Search vector stores"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.EMBEDDING_PROVIDER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddEmbeddingProvider}
+                        addButtonLabel={"Add Embedding Provider"}
+                        onClose={onClose}
+                        title={"Embedding Providers"}
+                        searchPlaceholder={"Search embedding providers"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchEmbeddingProvider?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.EMBEDDING_PROVIDERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Embedding Providers"}
+                        searchPlaceholder={"Search embedding providers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddVectorKnowledgeBase}
+                        addButtonLabel={"Add Vector Knowledge Base"}
+                        onClose={onClose}
+                        title={"Vector Knowledge Bases"}
+                        searchPlaceholder={"Search vector knowledge bases"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.DATA_LOADER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddDataLoader}
+                        addButtonLabel={"Add Data Loader"}
+                        onClose={onClose}
+                        title={"Data Loaders"}
+                        searchPlaceholder={"Search data loaders"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchDataLoader?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.DATA_LOADERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Data Loaders"}
+                        searchPlaceholder={"Search data loaders"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.CHUNKER_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddChunker}
+                        addButtonLabel={"Add Chunker"}
+                        onClose={onClose}
+                        title={"Chunkers"}
+                        searchPlaceholder={"Search chunkers"}
+                        onSearchTextChange={(searchText) =>
+                            onSearchChunker?.(searchText, FUNCTION_TYPE.REGULAR)
+                        }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.CHUNKERS:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Chunkers"}
+                        searchPlaceholder={"Search chunkers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.CONNECTION_CONFIG:
+                return (
+                    <ConnectionConfig
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={selectedNode}
+                        onSave={onUpdateNodeWithConnection}
+                        onNavigateToSelectionList={() => onNavigateToPanel?.(SidePanelView.CONNECTION_SELECT)}
+                    />
+                );
+
+            case SidePanelView.CONNECTION_SELECT:
+                return <ConnectionSelectionList connectionKind={selectedConnectionKind} onSelect={onSelectNewConnection} />;
+
+            case SidePanelView.CONNECTION_CREATE:
+                return (
+                    <ConnectionCreator
+                        connectionKind={selectedConnectionKind}
+                        nodeFormTemplate={nodeFormTemplate}
+                        selectedNode={selectedNode}
+                        onSave={onUpdateNodeWithConnection}
                     />
                 );
 
@@ -267,6 +579,9 @@ export function PanelManager(props: PanelManagerProps) {
                         openSubPanel={onSubPanel}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={onResetUpdatedExpressionField}
+                        //TODO: this should be merged with onSubmit prop
+                        handleOnFormSubmit={onSubmitForm}
+                        navigateToPanel={onNavigateToPanel}
                     />
                 );
 
@@ -275,25 +590,42 @@ export function PanelManager(props: PanelManagerProps) {
         }
     };
 
-    const onBackCallback =
-        panelView === SidePanelView.NEW_TOOL
-            ? handleOnBackToAddTool
-            : panelView === SidePanelView.NEW_AGENT
-            ? onBack
-            : panelView === SidePanelView.FORM && !showEditForm
-            ? onBack
-            : undefined;
+    const onBackCallback = (() => {
+        switch (sidePanelView) {
+            case SidePanelView.NEW_TOOL:
+            case SidePanelView.NEW_TOOL_FROM_CONNECTION:
+            case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+            case SidePanelView.ADD_MCP_SERVER:
+                return handleOnBackToAddTool;
+            case SidePanelView.CONNECTION_SELECT:
+            case SidePanelView.CONNECTION_CREATE:
+            case SidePanelView.NEW_AGENT:
+                return onBack;
+            case SidePanelView.FORM:
+                return !showEditForm ? onBack : undefined;
+            default:
+                return undefined;
+        }
+    })();
 
     return (
         <PanelContainer
-            title={getContainerTitle(panelView, selectedNode, selectedClientName)}
+            title={getContainerTitle(sidePanelView, selectedNode, selectedClientName, selectedConnectionKind)}
             show={showSidePanel}
             onClose={onClose}
             onBack={onBackCallback}
-            subPanelWidth={subPanel?.view === SubPanelView.INLINE_DATA_MAPPER ? 800 : 400}
+            subPanelWidth={getSubPanelWidth(subPanel)}
             subPanel={findSubPanelComponent(subPanel)}
         >
-            <Container onClick={onDiscardSuggestions}>{renderPanelContent()}</Container>
+            <Container onClick={onDiscardSuggestions}>
+                {showProgressSpinner ? (
+                    <LoaderContainer>
+                        <RelativeLoader message={progressMessage} />
+                    </LoaderContainer>
+                ) : (
+                    renderPanelContent()
+                )}
+            </Container>
         </PanelContainer>
     );
 }

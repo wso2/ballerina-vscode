@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { CodeData, FlowNode } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../../utils/bi";
@@ -26,7 +26,7 @@ import ConfigForm from "./ConfigForm";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { getAgentFilePath } from "./utils";
+import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
 
 const Container = styled.div`
     padding: 16px;
@@ -68,9 +68,9 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
+    const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
     const moduleConnectionNodes = useRef<FlowNode[]>([]);
-    const selectedMemoryManagerFlowNode = useRef<FlowNode>();
 
     useEffect(() => {
         initPanel();
@@ -85,6 +85,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const initPanel = async () => {
         setLoading(true);
         agentFilePath.current = await getAgentFilePath(rpcClient);
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch all memory managers
         const memoryManagers = await fetchMemoryManagers();
         // fetch selected agent memory manager
@@ -100,16 +101,21 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             return;
         }
         try {
-            const memoryManagers = await rpcClient
-                .getAIAgentRpcClient()
-                .getAllMemoryManagers({ filePath: agentFilePath.current });
-            console.log(">>> all memory managers", memoryManagers);
-            if (memoryManagers.memoryManagers) {
-                setMemoryManagersCodeData(memoryManagers.memoryManagers);
-                return memoryManagers.memoryManagers;
-            } else {
-                console.error("Memory managers not found", memoryManagers);
+            const memoryManagerSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: agentFilePath.current,
+                queryMap: { orgName: aiModuleOrg.current },
+                searchKind: "MEMORY_MANAGER"
+            });
+
+            if (!memoryManagerSearchResponse?.categories?.[0]?.items) {
+                console.error("No memory managers found in search response");
+                return [];
             }
+
+            const memoryManagers = memoryManagerSearchResponse.categories[0].items.map((item: any) => item.codedata);
+            console.log(">>> all memory managers", memoryManagers);
+            setMemoryManagersCodeData(memoryManagers);
+            return memoryManagers;
         } catch (error) {
             console.error("Error fetching memory managers", error);
         }
@@ -123,32 +129,32 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("No module connections found");
             return;
         }
-        
+
         moduleConnectionNodes.current = moduleNodes.flowModel.connections;
-        
+
         // get agent name
         const agentName = agentCallNode.properties.connection.value;
         if (!agentName) {
             console.error("Agent name not found in agent call node");
             return;
         }
-        
+
         // get agent node
-        const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);        
+        const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);
         if (!agentNode) {
             console.error("Agent node not found", agentCallNode);
             return;
         }
-        
+
         agentNodeRef.current = agentNode;
-        
+
         // get memory manager name
         const memoryManagerName = (agentNode.properties?.memory?.value as string) || ""; // "new ai:MessageWindowChatMemory(33)"
         if (!memoryManagerName) {
             console.log("No memory manager associated with this agent");
             return;
         }
-        
+
         // get memory manager from available ones
         const memoryManagerCodeData = memoryManagers.find((memory) => {
             // Extract the memory manager type from the expression like "new ai:MessageWindowChatMemory(33)"
@@ -161,10 +167,11 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("Memory manager not found in available memory managers");
             return;
         }
-        
+
         setSelectedMemoryManagerCodeData(memoryManagerCodeData);
-        
+
         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+            rpcClient,
             memoryManagerCodeData,
             agentFilePath.current
         );
@@ -172,7 +179,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             console.error("Failed to get node template for memory manager");
             return;
         }
-        
+
         // set properties size value
         const sizeValue = memoryManagerName.split("(")[1]?.split(")")[0]?.trim();
         if (sizeValue) {
@@ -190,7 +197,8 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     // fetch selected memory manager code data - node template
     const fetchMemoryManagerNodeTemplate = async (memoryManagerCodeData: CodeData) => {
         setLoading(true);
-         const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+        const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
+            rpcClient,
             memoryManagerCodeData,
             agentFilePath.current
         );
@@ -200,21 +208,11 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         }
         // set properties variable
         selectedMemoryManagerNodeTemplate.properties.variable.hidden = true;
-        
+
         setSelectedMemoryManager(selectedMemoryManagerNodeTemplate);
         const memoryManagerFields = convertConfig(selectedMemoryManagerNodeTemplate.properties);
         setSelectedMemoryManagerFields(memoryManagerFields);
         setLoading(false);
-    };
-
-    const getNodeTemplate = async (codeData: CodeData, filePath: string) => {
-        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-            position: { line: 0, offset: 0 },
-            filePath: filePath,
-            id: codeData,
-        });
-        console.log(">>> get node template response", response);
-        return response?.flowNode;
     };
 
     const handleOnSave = async (data: FormField[], rawData: FormValues) => {
@@ -306,7 +304,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                         }}
                         value={
                             selectedMemoryManagerCodeData?.object ||
-                            (agentCallNode?.metadata?.data?.memory?.type as string) ||
+                            ((agentCallNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
                             memoryManagerDropdownPlaceholder
                         }
                         containerSx={{ width: "100%" }}
@@ -320,10 +318,12 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             )}
             {!loading && selectedMemoryManagerFields?.length > 0 && agentNodeRef.current?.codedata?.lineRange && (
                 <ConfigForm
+                    fileName={agentFilePath.current}
                     formFields={selectedMemoryManagerFields}
                     targetLineRange={agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={savingForm}
+                    isSaving={savingForm}
                 />
             )}
         </Container>

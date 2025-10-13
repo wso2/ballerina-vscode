@@ -25,6 +25,7 @@ export enum Command {
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
+    Doc = '/doc'
 }
 
 export enum TemplateId {
@@ -42,6 +43,7 @@ export enum TemplateId {
     // Command.DataMap
     MappingsForRecords = 'mappings-for-records',
     MappingsForFunction = 'mappings-for-function',
+    InlineMappings = 'inline-mappings',
 
     // Command.TypeCreator
     TypesForAttached = 'types-for-attached',
@@ -51,4 +53,7 @@ export enum TemplateId {
     GenerateCodeFromRequirements = 'generate-code-from-requirements',
     GenerateTestFromRequirements = 'generate-test-from-requirements',
     GenerateCodeFromFollowingRequirements = 'generate-code-from-following-requirements',
+
+    // Command.Doc
+    GenerateUserDoc = 'generate-user-doc'
 }

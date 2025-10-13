@@ -16,10 +16,11 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import { isEqual } from "lodash";
 import { Branch, Flow, FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
-
+        
 export class AddNodeVisitor implements BaseVisitor {
     private skipChildrenVisit = false;
     private flow: Flow;
@@ -41,7 +42,6 @@ export class AddNodeVisitor implements BaseVisitor {
         // check flow nodes if one of them is target node, then add new node after the target node
         this.flow.nodes.forEach((flowNode) => {
             if (this.topNode && flowNode.id === this.topNode.id) {
-                console.log(">>> add new node", { target: flowNode, new: this.newNode });
                 const index = this.flow.nodes.indexOf(flowNode);
                 this.flow.nodes.splice(index + 1, 0, this.newNode);
                 this.skipChildrenVisit = true;
@@ -63,7 +63,6 @@ export class AddNodeVisitor implements BaseVisitor {
             } else {
                 branch.children.forEach((child) => {
                     if (this.topNode && child.id === this.topNode.id) {
-                        console.log(">>> do-error add new node", { target: child, new: this.newNode });
                         const index = branch.children.indexOf(child);
                         branch.children.splice(index + 1, 0, this.newNode);
                         this.skipChildrenVisit = true;
@@ -81,14 +80,12 @@ export class AddNodeVisitor implements BaseVisitor {
         // check branches and if one of branches has target node, then add new node after the target node
         node.branches.forEach((branch) => {
             if (this.topBranch && isEqual(branch.codedata, this.topBranch.codedata)) {
-                console.log(">>> if add new node to first", { target: branch, new: this.newNode });
                 // add new node to branch first children
                 branch.children.unshift(this.newNode);
                 this.skipChildrenVisit = true;
             } else {
                 branch.children.forEach((child) => {
                     if (this.topNode && child.id === this.topNode.id) {
-                        console.log(">>> if add new node to end", { target: child, new: this.newNode });
                         const index = branch.children.indexOf(child);
                         branch.children.splice(index + 1, 0, this.newNode);
                         this.skipChildrenVisit = true;

@@ -16,8 +16,9 @@
  * under the License.
  */
 
+import { BaseVisitor } from "@wso2/ballerina-core";
+
 import { FlowNode } from "../utils/types";
-import { BaseVisitor } from "./BaseVisitor";
 
 export class RemoveEmptyNodesVisitor implements BaseVisitor {
     private skipChildrenVisit = false;

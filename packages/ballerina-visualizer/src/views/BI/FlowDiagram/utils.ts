@@ -68,37 +68,6 @@ export const transformCategories = (categories: Category[]): Category[] => {
     // remove agents from categories
     filteredCategories = filteredCategories.filter((category) => category.metadata.label !== "Agents");
 
-    // find statement category
-    const statementCategory = filteredCategories.find((category) => category.metadata.label === "Statement");
-    // find AGENT_CALL from statement category
-    const agentCallNode = statementCategory?.items?.find(
-        (item) => (item as AvailableNode).codedata?.node === "AGENT_CALL"
-    ) as AvailableNode;
-    if (agentCallNode?.codedata) {
-        // HACK: update agent call node until LS update with the new agent node
-        agentCallNode.codedata.object = "Agent";
-        agentCallNode.codedata.parentSymbol = "";
-    } else {
-        // TODO: this should remove once LS update with the new agent node
-        // add new item
-        statementCategory.items.push({
-            codedata: {
-                module: "ai",
-                node: "AGENT_CALL",
-                object: "Agent",
-                org: "ballerinax",
-                parentSymbol: "",
-                symbol: "run",
-                version: "1.0.0",
-            },
-            enabled: true,
-            metadata: {
-                label: "Agent",
-                description: "Add an AI Agent to the flow",
-            },
-        });
-    }
-
     return filteredCategories;
 };
 
@@ -115,4 +84,37 @@ export const findFunctionByName = (components: BallerinaProjectComponents, funct
         }
     }
     return null;
+};
+
+export const getNodeTemplateForConnection = async (
+    nodeId: string,
+    metadata: any,
+    targetRef: any,
+    modelFileName: string | undefined,
+    rpcClient: any
+) => {
+    const { node } = metadata as { node: AvailableNode };
+
+    const response = await rpcClient
+        .getBIDiagramRpcClient()
+        .getNodeTemplate({
+            position: targetRef?.startLine || { line: 0, offset: 0 },
+            filePath: modelFileName,
+            id: node.codedata,
+        });
+
+    const flowNode = response.flowNode;
+    flowNode.metadata = node.metadata;
+
+    let connectionKind: string;
+    switch (nodeId) {
+        case "MODEL_PROVIDER":
+        case "CLASS_INIT":
+            connectionKind = 'MODEL_PROVIDER';
+            break;
+        default:
+            connectionKind = nodeId;
+    }
+
+    return { flowNode, connectionKind };
 };

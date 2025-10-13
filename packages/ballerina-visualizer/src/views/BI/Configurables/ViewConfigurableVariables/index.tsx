@@ -55,20 +55,6 @@ const Description = styled(Typography)`
     color: var(--vscode-descriptionForeground);
 `;
 
-const ButtonWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;
-    font-size: 10px;
-    width: auto;
-    margin-left: 15px;
-`;
-
-const ConfigValueField = styled.div`
-    display: flex;
-`;
-
 const TitleBoxShadow = styled.div`
     box-shadow: var(--vscode-scrollbar-shadow) 0 6px 6px -6px inset;
     height: 3px;
@@ -88,23 +74,13 @@ const SearchContainer = styled.div`
     gap: 40px;
 `;
 
-const ConfigNameTitle = styled.div`
-    font-size: 13px;
-    font-weight: 700;
-    height: 20px;
-    color: var(--vscode-settings-headerForeground);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-`;
-
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 
 export interface ConfigProps {
     fileName: string;
     org: string;
     package: string;
+    addNew?: boolean;
 }
 
 interface CategoryWithModules {
@@ -136,7 +112,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const { rpcClient } = useRpcContext();
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(false);
+    const [isAddConfigVariableFormOpen, setAddConfigVariableFormOpen] = useState<boolean>(props?.addNew || false);
     const [searchValue, setSearchValue] = React.useState<string>('');
     const [categoriesWithModules, setCategoriesWithModules] = useState<CategoryWithModules[]>([]);
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
@@ -296,7 +272,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
         await rpcClient
             .getBIDiagramRpcClient()
-            .getConfigVariablesV2()
+            .getConfigVariablesV2({
+                projectPath: ''
+            })
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;

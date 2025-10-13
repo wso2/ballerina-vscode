@@ -16,13 +16,13 @@
  * under the License.
  */
 
-import { HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
+import { FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
 
 import { RefObject, useRef } from 'react';
 
 import { debounce } from 'lodash';
 import { useCallback, useState } from 'react';
-import { LineRange } from '@wso2/ballerina-core';
+import { CodeData, LineRange } from '@wso2/ballerina-core';
 import {
     TypeHelperCategory,
     TypeHelperComponent,
@@ -51,6 +51,7 @@ type TypeHelperProps = {
     valueTypeConstraint: string;
     typeBrowserRef: RefObject<HTMLDivElement>;
     filePath: string;
+    exprRef: RefObject<FormExpressionEditorRef>;
     targetLineRange: LineRange;
     currentType: string;
     currentCursorPosition: number;
@@ -58,7 +59,7 @@ type TypeHelperProps = {
     typeHelperState: boolean;
     onChange: (newType: string, newCursorPosition: number) => void;
     changeTypeHelperState: (isOpen: boolean) => void;
-    updateImports: (key: string, imports: {[key: string]: string}) => void;
+    updateImports: (key: string, imports: {[key: string]: string}, codedata?: CodeData) => void;
     onTypeCreate: (typeName: string) => void;
     onCloseCompletions?: () => void;
 };
@@ -78,7 +79,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         typeBrowserRef,
         updateImports,
         onTypeCreate,
-        onCloseCompletions
+        onCloseCompletions,
+        exprRef
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -229,7 +231,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
             const importStatement = {
                 [response.prefix]: response.moduleId
             };
-            updateImports(fieldKey, importStatement);
+            updateImports(fieldKey, importStatement, item.codedata);
             return response.template;
         }
 
@@ -267,6 +269,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 onClose={handleTypeHelperClose}
                 onTypeCreate={handleTypeCreate}
                 onCloseCompletions={onCloseCompletions}
+                exprRef={exprRef}
             />
             {isAddingType && createPortal(
                 <>

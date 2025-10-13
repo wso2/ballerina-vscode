@@ -22,7 +22,7 @@ import { ThemeColors, Codicon } from "@wso2/ui-toolkit";
 import { NodeKind } from "@wso2/ballerina-core";
 
 import { FormField } from "./types";
-import { hasRequiredParameters, hasOptionalParameters, hasReturnType, isPrioritizedField } from "./utils";
+import { hasRequiredParameters, hasOptionalParameters, hasReturnType, isPrioritizedField, isDefaultModelProvider } from "./utils";
 
 namespace S {
     export const FormInfoDescription = styled.div`
@@ -70,13 +70,16 @@ export const FormDescription: React.FC<FormDescriptionProps> = ({
         const hasRequired = hasRequiredParameters(formFields, selectedNode);
         const hasOptional = hasOptionalParameters(formFields);
         const hasReturn = hasReturnType(formFields);
+        const isDefaultProvider = isDefaultModelProvider(formFields);
         const hasAnyParams = formFields.filter(field => 
             !isPrioritizedField(field) &&
             field.type !== "VIEW" && 
             !field.hidden
         ).length > 0;
 
-        if (!hasRequired && hasOptional) {
+        if (isDefaultProvider) {
+            return "This model provider does not require any fields to be configured.";
+        } else if (!hasRequired && hasOptional) {
             // Rule 1: No Required Params, but Optional Params Exist
             return "This operation has no required parameters. Optional settings can be configured below.";
         } else if (!hasAnyParams && hasReturn) {

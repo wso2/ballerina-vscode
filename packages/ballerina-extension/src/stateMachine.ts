@@ -1,11 +1,11 @@
 
-import { ballerinaExtInstance, ExtendedLangClient } from './core';
+import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, UndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
-import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
@@ -14,17 +14,18 @@ import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName } from './utils';
+import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
     isBISupported: boolean;
     errorCode: string | null;
+    dependenciesResolved?: boolean;
 }
 
 export let history: History;
-export let undoRedoManager: UndoRedoManager;
+export let undoRedoManager: IUndoRedoManager;
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -36,7 +37,8 @@ const stateMachine = createMachine<MachineContext>(
             langClient: null,
             errorCode: null,
             isBISupported: false,
-            view: MACHINE_VIEW.Overview
+            view: MACHINE_VIEW.Overview,
+            dependenciesResolved: false
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -48,7 +50,10 @@ const stateMachine = createMachine<MachineContext>(
                         projectStructure: (context, event) => event.payload,
                     }),
                     () => {
-                        commands.executeCommand("BI.project-explorer.refresh");
+                        // Use queueMicrotask to ensure context is updated before command execution
+                        queueMicrotask(() => {
+                            commands.executeCommand("BI.project-explorer.refresh");
+                        });
                     }
                 ]
             },
@@ -58,26 +63,67 @@ const stateMachine = createMachine<MachineContext>(
                         documentUri: (context, event) => event.viewLocation.documentUri ? event.viewLocation.documentUri : context.documentUri,
                         position: (context, event) => event.viewLocation.position ? event.viewLocation.position : context.position,
                         identifier: (context, event) => event.viewLocation.identifier ? event.viewLocation.identifier : context.identifier,
+                        addType: (context, event) => event.viewLocation?.addType !== undefined ? event.viewLocation.addType : context?.addType,
                     })
                 ]
+            },
+            SWITCH_PROJECT: {
+                target: "switch_project"
             }
         },
         states: {
+            switch_project: {
+                invoke: {
+                    src: checkForProjects,
+                    onDone: [
+                        {
+                            target: "viewActive.viewReady",
+                            actions: [
+                                assign({
+                                    isBI: (context, event) => event.data.isBI,
+                                    projectUri: (context, event) => event.data.projectPath,
+                                    scope: (context, event) => event.data.scope,
+                                    org: (context, event) => event.data.orgName,
+                                    package: (context, event) => event.data.packageName,
+                                }),
+                                async (context, event) => {
+                                    await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
+                                    notifyCurrentWebview();
+                                }
+                            ]
+                        }
+                    ],
+                }
+            },
             initialize: {
                 invoke: {
                     src: checkForProjects,
-                    onDone: {
-                        target: "renderInitialView",
-                        actions: assign({
-                            isBI: (context, event) => event.data.isBI,
-                            projectUri: (context, event) => event.data.projectPath,
-                            scope: (context, event) => event.data.scope,
-                            org: (context, event) => event.data.orgName,
-                            package: (context, event) => event.data.packageName,
-                        })
-                    },
+                    onDone: [
+                        {
+                            target: "renderInitialView",
+                            cond: (context, event) => event.data && event.data.isBI,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        },
+                        {
+                            target: "activateLS",
+                            cond: (context, event) => event.data && event.data.isBI === false,
+                            actions: assign({
+                                isBI: (context, event) => event.data.isBI,
+                                projectUri: (context, event) => event.data.projectPath,
+                                scope: (context, event) => event.data.scope,
+                                org: (context, event) => event.data.orgName,
+                                package: (context, event) => event.data.packageName,
+                            })
+                        }
+                    ],
                     onError: {
-                        target: "renderInitialView"
+                        target: "activateLS"
                     }
                 }
             },
@@ -103,7 +149,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while activating Language Server.");
+                        }
                     }
                 }
             },
@@ -117,7 +166,10 @@ const stateMachine = createMachine<MachineContext>(
                         })
                     },
                     onError: {
-                        target: "lsError"
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while fetching project structure.");
+                        }
                     }
                 }
             },
@@ -139,7 +191,9 @@ const stateMachine = createMachine<MachineContext>(
                             type: (context, event) => event.viewLocation?.type,
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
-                            addType: (context, event) => event.viewLocation?.addType
+                            addType: (context, event) => event.viewLocation?.addType,
+                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
+                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                         })
                     }
                 }
@@ -150,9 +204,26 @@ const stateMachine = createMachine<MachineContext>(
                     viewInit: {
                         invoke: {
                             src: 'openWebView',
+                            onDone: [
+                                {
+                                    target: "resolveMissingDependencies",
+                                    cond: (context) => !context.dependenciesResolved
+                                },
+                                {
+                                    target: "webViewLoading"
+                                }
+                            ]
+                        }
+                    },
+                    resolveMissingDependencies: {
+                        invoke: {
+                            src: 'resolveMissingDependencies',
                             onDone: {
-                                target: "webViewLoading"
-                            },
+                                target: "webViewLoading",
+                                actions: assign({
+                                    dependenciesResolved: true
+                                })
+                            }
                         }
                     },
                     webViewLoading: {
@@ -171,9 +242,11 @@ const stateMachine = createMachine<MachineContext>(
                                 actions: assign({
                                     view: (context, event) => event.data.view,
                                     identifier: (context, event) => event.data.identifier,
+                                    parentIdentifier: (context, event) => event.data.parentIdentifier,
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
-                                    focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView
+                                    focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
+                                    dataMapperMetadata: (context, event) => event.data.dataMapperMetadata
                                 })
                             }
                         }
@@ -191,7 +264,9 @@ const stateMachine = createMachine<MachineContext>(
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
-                                    addType: (context, event) => event.viewLocation?.addType
+                                    addType: (context, event) => event.viewLocation?.addType,
+                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
                             VIEW_UPDATE: {
@@ -204,7 +279,8 @@ const stateMachine = createMachine<MachineContext>(
                                     serviceType: (context, event) => event.viewLocation.serviceType,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
-                                    addType: (context, event) => event.viewLocation?.addType
+                                    addType: (context, event) => event.viewLocation?.addType,
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                                 })
                             },
                             FILE_EDIT: {
@@ -267,7 +343,7 @@ const stateMachine = createMachine<MachineContext>(
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
             return new Promise((resolve, reject) => {
                 if (!VisualizerWebview.currentPanel) {
-                    ballerinaExtInstance.setContext(extension.context);
+                    extension.ballerinaExtInstance.setContext(extension.context);
                     VisualizerWebview.currentPanel = new VisualizerWebview();
                     RPCLayer._messenger.onNotification(webviewReady, () => {
                         history = new History();
@@ -289,6 +365,85 @@ const stateMachine = createMachine<MachineContext>(
                 }
             });
         },
+        resolveMissingDependencies: (context, event) => {
+            return new Promise(async (resolve, reject) => {
+                if (context?.projectUri) {
+                    const diagnostics: ProjectDiagnosticsResponse = await StateMachine.langClient().getProjectDiagnostics({
+                        projectRootIdentifier: {
+                            uri: Uri.file(context.projectUri).toString(),
+                        }
+                    });
+
+                    // Check if there are any "cannot resolve module" diagnostics
+                    const hasMissingModuleDiagnostics = diagnostics.errorDiagnosticMap &&
+                        Object.values(diagnostics.errorDiagnosticMap).some(fileDiagnostics =>
+                            fileDiagnostics.some(diagnostic =>
+                                diagnostic.message.includes('cannot resolve module')
+                            )
+                        );
+
+                    // Only proceed with build if there are missing module diagnostics
+                    if (!hasMissingModuleDiagnostics) {
+                        resolve(true);
+                        return;
+                    }
+
+                    const taskDefinition: TaskDefinition = {
+                        type: 'shell',
+                        task: 'run'
+                    };
+
+                    let buildCommand = 'bal build';
+
+                    const config = workspace.getConfiguration('ballerina');
+                    const ballerinaHome = config.get<string>('home');
+                    if (ballerinaHome) {
+                        buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
+                    }
+
+                    const execution = new ShellExecution(buildCommand);
+
+                    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+                        resolve(true);
+                        return;
+                    }
+
+
+                    const task = new Task(
+                        taskDefinition,
+                        workspace.workspaceFolders![0],
+                        'Ballerina Build',
+                        'ballerina',
+                        execution
+                    );
+
+                    try {
+                        const taskExecution = await tasks.executeTask(task);
+
+                        // Wait for task completion
+                        await new Promise<void>((taskResolve) => {
+                            // Listen for task completion
+                            const disposable = tasks.onDidEndTask((taskEndEvent) => {
+                                if (taskEndEvent.execution === taskExecution) {
+                                    console.log('Build task completed');
+
+                                    // Close the terminal pane on completion
+                                    commands.executeCommand('workbench.action.closePanel');
+
+                                    disposable.dispose();
+                                    taskResolve();
+                                }
+                            });
+                        });
+
+                    } catch (error) {
+                        window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
+                    }
+                }
+
+                resolve(true);
+            });
+        },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
                 if (!context.view && context.langClient) {
@@ -308,7 +463,8 @@ const stateMachine = createMachine<MachineContext>(
                             identifier: context.identifier,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
-                            addType: context?.addType
+                            addType: context?.addType,
+                            dataMapperMetadata: context?.dataMapperMetadata
                         }
                     });
                     return resolve();
@@ -326,7 +482,7 @@ const stateMachine = createMachine<MachineContext>(
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
                 }
 
-                if (selectedEntry && selectedEntry.location.view === MACHINE_VIEW.ERDiagram) {
+                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
                     return resolve(selectedEntry.location);
                 }
 
@@ -341,6 +497,7 @@ const stateMachine = createMachine<MachineContext>(
 
                 const { documentUri, position } = location;
 
+                // TODO: Refactor this to remove the full ST request
                 const node = documentUri && await StateMachine.langClient().getSyntaxTree({
                     documentIdentifier: {
                         uri: Uri.file(documentUri).toString()
@@ -420,7 +577,6 @@ const stateMachine = createMachine<MachineContext>(
                             });
                         }
                     }
-                    undoRedoManager.updateContent(documentUri, node?.syntaxTree?.source);
                 }
                 const lastView = getLastHistory().location;
                 return resolve(lastView);
@@ -472,19 +628,81 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
-export function updateView(refreshTreeView?: boolean) {
+export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
         history.pop(); // Remove the last entry
         lastView = getLastHistory(); // Get the new last entry
     }
-    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? lastView.location : { view: "Overview" } });
+
+    let newLocation: VisualizerLocation = lastView?.location;
+    if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
+        newLocation = { ...lastView.location };
+        const currentIdentifier = lastView.location?.identifier;
+        let currentArtifact: ProjectStructureArtifactResponse;
+        let targetedArtifactType = lastView.location?.artifactType;
+
+        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE) {
+            // If the artifact type is resource, we need to target the service
+            targetedArtifactType = DIRECTORY_MAP.SERVICE;
+        }
+
+        // These changes will be revisited in the revamp
+        StateMachine.context().projectStructure.directoryMap[targetedArtifactType].forEach((artifact) => {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                currentArtifact = artifact;
+            }
+            // Check if artifact has resources and find within those
+            if (artifact.resources && artifact.resources.length > 0) {
+                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+                if (resource) {
+                    currentArtifact = resource;
+                }
+            }
+        });
+
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        newLocation = { ...lastView.location, position: newPosition };
+
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+        });
+    }
+
+
+    stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
+        buildProjectArtifactsStructure(projectUri || StateMachine.context().projectUri, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }
+
+export function updateDataMapperView(codedata?: CodeData, variableName?: string): void {
+    const dataMapperMetadata = {
+        codeData: codedata,
+        name: variableName
+    };
+
+    if (StateMachinePopup.isActive()) {
+        // Update popup context when data mapper is in popup view
+        const popupLocation = StateMachinePopup.context();
+        popupLocation.dataMapperMetadata = dataMapperMetadata;
+
+        StateMachinePopup.sendEvent(EVENT_TYPE.VIEW_UPDATE, popupLocation);
+    } else {
+        // Update main view history when data mapper is in main view
+        const lastView = getLastHistory();
+        if (lastView && lastView.location) {
+            lastView.location.dataMapperMetadata = dataMapperMetadata;
+            stateService.send({ type: EVENT_TYPE.VIEW_UPDATE, viewLocation: lastView.location });
+        }
+    }
+
+    notifyCurrentWebview();
+}
+
 
 function getLastHistory() {
     const historyStack = history?.get();
@@ -547,7 +765,7 @@ async function handleSingleWorkspace(workspaceURI: any) {
         console.error("No BI enabled workspace found");
     }
 
-    return { isBI, projectPath, scope, orgName, packageName  };
+    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {

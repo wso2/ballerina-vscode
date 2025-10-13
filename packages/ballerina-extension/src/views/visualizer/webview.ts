@@ -23,8 +23,11 @@ import { RPCLayer } from "../../RPCLayer";
 import { debounce } from "lodash";
 import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } from "../../utils/webview-utils";
 import { extension } from "../../BalExtensionContext";
-import { StateMachine, updateView } from "../../stateMachine";
+import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
+import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
+import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -47,18 +50,50 @@ export class VisualizerWebview {
             }
         }, 500);
 
+        const debouncedRefreshDataMapper = debounce(async () => {
+            const stateMachineContext = StateMachine.context();
+            const { documentUri, dataMapperMetadata: { codeData, name } } = stateMachineContext;
+            await refreshDataMapper(documentUri, codeData, name);
+        }, 500);
+
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            const state = StateMachine.state();
-            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
             // Save the document only if it is not already opened in a visible editor or the webview is active
             const isOpened = vscode.window.visibleTextEditors.some(editor => editor.document.uri.toString() === document.document.uri.toString());
             if (!isOpened || this._panel?.active) {
                 await document.document.save();
             }
-            if (this._panel?.active && machineReady && document && document.document.languageId === LANGUAGE.BALLERINA) {
+
+            // Check the file is changed in the project.
+            const projectUri = StateMachine.context().projectUri;
+            const documentUri = document.document.uri.toString();
+            const isDocumentUnderProject = documentUri.includes(projectUri);
+            // Reset visualizer the undo-redo stack if user did changes in the editor
+            if (isOpened && isDocumentUnderProject) {
+                undoRedoManager.reset();
+            }
+
+            const state = StateMachine.state();
+            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
+            if (document?.contentChanges.length === 0 || !machineReady) { return; }
+
+            const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
+            const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
+                document.document.fileName.endsWith("Config.toml") &&
+                vscode.window.visibleTextEditors.some(editor =>
+                    editor.document.fileName === document.document.fileName
+                );
+            const dataMapperModified = balFileModified &&
+                (
+                    StateMachine.context().view === MACHINE_VIEW.InlineDataMapper ||
+                    StateMachine.context().view === MACHINE_VIEW.DataMapper
+                ) &&
+                document.document.fileName === StateMachine.context().documentUri;
+
+            if (dataMapperModified) {
+                debouncedRefreshDataMapper();
+            } else if ((this._panel?.active || AiPanelWebview.currentPanel?.getWebview()?.active) && balFileModified) {
                 sendUpdateNotificationToWebview();
-            } else if (machineReady && document?.document && document.document.languageId === LANGUAGE.TOML && document.document.fileName.endsWith("Config.toml") &&
-                vscode.window.visibleTextEditors.some(editor => editor.document.fileName === document.document.fileName)) {
+            } else if (configTomlModified) {
                 sendUpdateNotificationToWebview(true);
             }
         }, extension.context);
@@ -142,13 +177,13 @@ export class VisualizerWebview {
                 padding-top: 30vh;
             }
             .loader {
-                width: 32px;
+                width: 36px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 4px solid var(--vscode-button-background);
+                border: 6px solid var(--vscode-button-background);
                 animation:
-                    l20-1 0.8s infinite linear alternate,
-                    l20-2 1.6s infinite linear;
+                    l20-1 0.5s infinite linear alternate,
+                    l20-2 1s infinite linear;
             }
             @keyframes l20-1{
                 0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}

@@ -17,7 +17,7 @@
  */
 
 import { UpdatedArtifactsResponse } from "../../interfaces/bi";
-import { ListenerModelRequest, ListenerModelResponse, ServiceModelRequest, ServiceModelResponse, ServiceModelFromCodeRequest, ServiceModelFromCodeResponse, HttpResourceModelRequest, HttpResourceModelResponse, FunctionSourceCodeRequest, ListenerSourceCodeRequest, ListenersRequest, ListenersResponse, ServiceSourceCodeRequest, ListenerModelFromCodeRequest, ListenerModelFromCodeResponse, TriggerModelsRequest, TriggerModelsResponse, FunctionModelRequest, FunctionModelResponse, ResourceReturnTypesRequest, ResourceReturnTypesResponse } from "../../interfaces/extended-lang-client";
+import { ListenerModelRequest, ListenerModelResponse, ServiceModelRequest, ServiceModelResponse, ServiceModelFromCodeRequest, ServiceModelFromCodeResponse, HttpResourceModelRequest, HttpResourceModelResponse, FunctionSourceCodeRequest, ListenerSourceCodeRequest, ListenersRequest, ListenersResponse, ServiceSourceCodeRequest, ListenerModelFromCodeRequest, ListenerModelFromCodeResponse, TriggerModelsRequest, TriggerModelsResponse, FunctionModelRequest, FunctionModelResponse, ResourceReturnTypesRequest, ResourceReturnTypesResponse, FunctionFromSourceRequest, FunctionFromSourceResponse } from "../../interfaces/extended-lang-client";
 import {
     ExportOASRequest,
     ExportOASResponse,
@@ -33,6 +33,7 @@ export interface ServiceDesignerAPI {
     getListenerModelFromCode: (params: ListenerModelFromCodeRequest) => Promise<ListenerModelFromCodeResponse>;
     getServiceModel: (params: ServiceModelRequest) => Promise<ServiceModelResponse>;
     getFunctionModel: (params: FunctionModelRequest) => Promise<FunctionModelResponse>;
+    getFunctionFromSource: (params: FunctionFromSourceRequest) => Promise<FunctionFromSourceResponse>;
     addServiceSourceCode: (params: ServiceSourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     updateServiceSourceCode: (params: ServiceSourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     getServiceModelFromCode: (params: ServiceModelFromCodeRequest) => Promise<ServiceModelFromCodeResponse>;

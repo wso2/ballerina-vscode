@@ -40,18 +40,20 @@ import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 
 export namespace NodeStyles {
-    export const Node = styled.div`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         flex-direction: row;
         align-items: flex-start;
-        cursor: pointer;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export type NodeStyleProp = {
         disabled: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint: boolean;
+        isSelected?: boolean;
     };
     export const Box = styled.div<NodeStyleProp>`
         display: flex;
@@ -65,11 +67,18 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
         color: ${ThemeColors.ON_SURFACE};
+        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Header = styled.div<{}>`
@@ -201,15 +210,20 @@ export interface NodeWidgetProps extends Omit<ApiCallNodeWidgetProps, "children"
 
 export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
+    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [isCircleHovered, setIsCircleHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
+    // show dash line if the node is a class call
+    const isClassCall = model.node.codedata.node === "VECTOR_KNOWLEDGE_BASE_CALL";
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -217,7 +231,14 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
         }
     }, [model.node.suggested]);
 
+    useEffect(() => {
+        model.setSelected(isSelected);
+    }, [isSelected]);
+
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             onGoToSource();
         } else {
@@ -232,6 +253,9 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     };
 
     const onConnectionClick = () => {
+        if (readOnly) {
+            return;
+        }
         onConnectionSelect && onConnectionSelect(model.node.properties?.connection?.value as string);
         setAnchorEl(null);
     };
@@ -247,11 +271,20 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setAnchorEl(event.currentTarget);
+    };
+
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setAnchorEl(menuButtonElement || event.currentTarget);
     };
 
     const handleOnMenuClose = () => {
         setAnchorEl(null);
+        setIsBoxHovered(false);
     };
 
     const onAddBreakpoint = () => {
@@ -278,15 +311,21 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const nodeTitle = getNodeTitle(model.node);
     const hasError = nodeHasError(model.node);
 
+    const arrowColor =
+        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+
     return (
-        <NodeStyles.Node>
+        <NodeStyles.Node readOnly={readOnly}>
             <NodeStyles.Box
                 disabled={disabled}
                 hovered={isBoxHovered}
                 hasError={hasError}
+                readOnly={readOnly}
                 isActiveBreakpoint={isActiveBreakpoint}
+                isSelected={isSelected}
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
+                onContextMenu={!readOnly ? handleOnContextMenu : undefined}
             >
                 {hasBreakpoint && (
                     <div
@@ -308,15 +347,20 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     <NodeStyles.Row>
                         <NodeStyles.Header onClick={handleOnClick}>
                             <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
-                            <NodeStyles.Description>{model.node.properties.variable?.value as ReactNode}</NodeStyles.Description>
+                            <NodeStyles.Description>
+                                {model.node.properties.variable?.value as ReactNode}
+                            </NodeStyles.Description>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
                             {hasError && <DiagnosticsPopUp node={model.node} />}
-                            {!readOnly && (
-                                <NodeStyles.MenuButton appearance="icon" onClick={handleOnMenuClick}>
-                                    <MoreVertIcon />
-                                </NodeStyles.MenuButton>
-                            )}
+                            <NodeStyles.MenuButton
+                                ref={setMenuButtonElement}
+                                buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                appearance="icon"
+                                onClick={handleOnMenuClick}
+                            >
+                                <MoreVertIcon />
+                            </NodeStyles.MenuButton>
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
                     {/* <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
@@ -353,7 +397,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 height={NODE_HEIGHT + LABEL_HEIGHT}
                 viewBox="0 0 130 70"
                 onClick={onConnectionClick}
-                onMouseEnter={() => setIsCircleHovered(true)}
+                onMouseEnter={() => !readOnly && setIsCircleHovered(true)}
                 onMouseLeave={() => setIsCircleHovered(false)}
             >
                 <circle
@@ -361,7 +405,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     cy="24"
                     r="22"
                     fill={ThemeColors.SURFACE_DIM}
-                    stroke={isCircleHovered && !disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT}
+                    stroke={isCircleHovered && !disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT}
                     strokeWidth={1.5}
                     strokeDasharray={disabled ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}
@@ -376,10 +420,20 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 >
                     {(model.node.properties.connection.value as string)?.length > 16
                         ? `${(model.node.properties.connection.value as string).slice(0, 16)}...`
-                        : model.node.properties.connection.value as ReactNode}
+                        : (model.node.properties.connection.value as ReactNode)}
                 </text>
                 <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
-                    <ConnectorIcon url={model.node.metadata.icon} style={{ width: 24, height: 24, fontSize: 24 }} />
+                    <ConnectorIcon
+                        url={model.node.metadata.icon}
+                        style={{
+                            width: 24,
+                            height: 24,
+                            fontSize: 24,
+                            cursor: readOnly ? "default" : "pointer",
+                            pointerEvents: readOnly ? "none" : "auto",
+                        }}
+                        codedata={model.node?.codedata}
+                    />
                 </foreignObject>
                 <line
                     x1="0"
@@ -387,9 +441,10 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     x2="57"
                     y2="25"
                     style={{
-                        stroke: disabled ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE,
+                        stroke: arrowColor,
                         strokeWidth: 1.5,
-                        markerEnd: `url(#${model.node.id}-arrow-head)`,
+                        strokeDasharray: isClassCall ? "5 5" : "none",
+                        markerEnd: isClassCall ? "none" : `url(#${model.node.id}-arrow-head)`,
                     }}
                 />
                 <defs>
@@ -402,10 +457,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                         orient="auto"
                         id={`${model.node.id}-arrow-head`}
                     >
-                        <polygon
-                            points="0,4 0,0 4,2"
-                            fill={disabled ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.HIGHLIGHT : ThemeColors.ON_SURFACE}
-                        ></polygon>
+                        <polygon points="0,4 0,0 4,2" fill={arrowColor}></polygon>
                     </marker>
                 </defs>
             </svg>

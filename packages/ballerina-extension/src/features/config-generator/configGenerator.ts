@@ -16,18 +16,19 @@
  * under the License.
  */
 
-import { window, Uri, commands, workspace } from "vscode";
-import { existsSync, openSync, readFileSync, writeFile } from "fs";
-import { BAL_TOML, BAL_CONFIG_FILE, PALETTE_COMMANDS, clearTerminal } from "../project";
-import { BallerinaExtension, ballerinaExtInstance, ExtendedLangClient } from "../../core";
+import { window, Uri, commands } from "vscode";
+import { existsSync, readFileSync, writeFile } from "fs";
+import { BAL_CONFIG_FILE, PALETTE_COMMANDS, clearTerminal } from "../project";
+import { BallerinaExtension, ExtendedLangClient } from "../../core";
+import { extension } from "../../BalExtensionContext";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
-import { parseTomlToConfig, typeOfComment } from "./utils";
+import { typeOfComment } from "./utils";
 import { ConfigProperty, ConfigTypes, Constants, Property } from "./model";
 import { BallerinaProject, ConfigVariableResponse, EVENT_TYPE, MACHINE_VIEW, PackageConfigSchema, ProjectDiagnosticsResponse, SyntaxTree } from "@wso2/ballerina-core";
 import { TextDocumentEdit } from "vscode-languageserver-types";
 import { modifyFileContent } from "../../utils/modification";
 import { fileURLToPath } from "url";
-import { startDebugging } from "../editor-support/codelens-provider";
+import { startDebugging } from "../editor-support/activator";
 import { openView } from "../../stateMachine";
 import * as path from "path";
 
@@ -212,6 +213,7 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
 
 async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, filePath: string, isBi?: boolean) {
     if (ballerinaExtInstance.enabledRunFast() || isBi) {
+        filePath = (await getCurrentBallerinaProject(filePath)).path;
         const projectHasErrors = await cleanAndValidateProject(ballerinaExtInstance.langClient, filePath);
         if (projectHasErrors) {
             window.showErrorMessage("Project contains errors. Please fix them and try again.");
@@ -227,7 +229,7 @@ async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, fileP
 export async function cleanAndValidateProject(langClient: ExtendedLangClient, path: string): Promise<boolean> {
     try {
         // Get initial project diagnostics
-        const projectPath = ballerinaExtInstance?.getDocumentContext()?.getCurrentProject()?.path || path;
+        const projectPath = (await getCurrentBallerinaProject(path)).path;
         let response: ProjectDiagnosticsResponse = await langClient.getProjectDiagnostics({
             projectRootIdentifier: {
                 uri: Uri.file(projectPath).toString()

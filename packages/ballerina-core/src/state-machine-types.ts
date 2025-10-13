@@ -18,9 +18,11 @@
 
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
+import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
-import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -28,7 +30,7 @@ export type MachineStateValue =
     | 'lsReady'
     | 'viewActive'
     | 'disabled'
-    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' };
+    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' } | { viewActive: 'resolveMissingDependencies' };
 
 export type PopupMachineStateValue = 'initialize' | 'ready' | {
     open: 'active';
@@ -45,6 +47,7 @@ export enum EVENT_TYPE {
     FILE_EDIT = "FILE_EDIT",
     EDIT_DONE = "EDIT_DONE",
     CLOSE_VIEW = "CLOSE_VIEW",
+    VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
 }
 
@@ -66,16 +69,20 @@ export enum MACHINE_VIEW {
     ServiceDesigner = "Service Designer",
     ERDiagram = "ER Diagram",
     DataMapper = "Data Mapper",
+    InlineDataMapper = "Inline Data Mapper",
     GraphQLDiagram = "GraphQL Diagram",
     TypeDiagram = "Type Diagram",
     SetupView = "Setup View",
     BIDiagram = "BI Diagram",
     BIWelcome = "BI Welcome",
     BIProjectForm = "BI Project SKIP",
+    BIImportIntegration = "BI Import Integration SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
+    AddConfigVariables = "Add Config Variables",
     EditConnectionWizard = "Edit Connection Wizard",
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
@@ -88,7 +95,8 @@ export enum MACHINE_VIEW {
     BIServiceClassConfigView = "Service Class Config View",
     BIDataMapperForm = "Add Data Mapper SKIP",
     AIAgentDesigner = "AI Agent Designer",
-    AIChatAgentWizard = "AI Chat Agent Wizard"
+    AIChatAgentWizard = "AI Chat Agent Wizard",
+    ResolveMissingDependencies = "Resolve Missing Dependencies"
 }
 
 export interface MachineEvent {
@@ -113,6 +121,8 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectUri?: string;
     identifier?: string;
+    parentIdentifier?: string;
+    artifactType?: DIRECTORY_MAP;
     position?: NodePosition;
     syntaxTree?: STNode;
     isBI?: boolean;
@@ -121,11 +131,13 @@ export interface VisualizerLocation {
     type?: Type;
     addType?: boolean;
     isGraphql?: boolean;
+    rootDiagramId?: string;
     metadata?: VisualizerMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface ArtifactData {
@@ -141,6 +153,11 @@ export interface VisualizerMetadata {
     target?: LinePosition;
 }
 
+export interface DataMapperMetadata {
+    name: string;
+    codeData: CodeData;
+}
+
 export interface PopupVisualizerLocation extends VisualizerLocation {
     recentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
@@ -149,6 +166,7 @@ export interface PopupVisualizerLocation extends VisualizerLocation {
 export interface ParentPopupData {
     recentIdentifier: string;
     artifactType: DIRECTORY_MAP;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface DownloadProgress {
@@ -160,8 +178,56 @@ export interface DownloadProgress {
     step?: number;
 }
 
+export type ChatNotify =
+    | ChatStart
+    | IntermidaryState
+    | ChatContent
+    | CodeDiagnostics
+    | CodeMessages
+    | ChatStop
+    | ChatError;
+
+export interface ChatStart {
+    type: "start";
+}
+
+export interface IntermidaryState {
+    type: "intermediary_state";
+    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
+}
+
+//TODO: Maybe rename content_block to content_append?
+export interface ChatContent {
+    type: "content_block" | "content_replace";
+    content: string;
+}
+
+export interface CodeDiagnostics {
+    type: "diagnostics";
+    diagnostics: DiagnosticEntry[];
+}
+
+//TODO: I'm not sure about messages, maybe revisit later.
+export interface CodeMessages {
+    type: "messages";
+    messages: any[];
+}
+
+export interface ChatStop {
+    type: "stop";
+    command: Command | undefined;
+}
+
+export interface ChatError {
+    type: "error";
+    content: string;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
+export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
+export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
@@ -181,42 +247,93 @@ export const breakpointChanged: NotificationType<boolean> = { method: 'breakpoin
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | 'Authenticating'      // (waiting for SSO login result after redirect)
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
 export enum AIMachineEventType {
     CHECK_AUTH = 'CHECK_AUTH',
     LOGIN = 'LOGIN',
+    AUTH_WITH_API_KEY = 'AUTH_WITH_API_KEY',
+    SUBMIT_API_KEY = 'SUBMIT_API_KEY',
+    AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
+    SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
-    LOGIN_SUCCESS = 'LOGIN_SUCCESS',
+    COMPLETE_AUTH = 'COMPLETE_AUTH',
     CANCEL_LOGIN = 'CANCEL_LOGIN',
     RETRY = 'RETRY',
     DISPOSE = 'DISPOSE',
 }
 
-export type AIMachineEventValue =
-    | { type: AIMachineEventType.CHECK_AUTH }
-    | { type: AIMachineEventType.LOGIN }
-    | { type: AIMachineEventType.LOGOUT }
-    | { type: AIMachineEventType.SILENT_LOGOUT }
-    | { type: AIMachineEventType.LOGIN_SUCCESS }
-    | { type: AIMachineEventType.CANCEL_LOGIN }
-    | { type: AIMachineEventType.RETRY }
-    | { type: AIMachineEventType.DISPOSE };
+export type AIMachineEventMap = {
+    [AIMachineEventType.CHECK_AUTH]: undefined;
+    [AIMachineEventType.LOGIN]: undefined;
+    [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
+    [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
+    [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: { 
+        accessKeyId: string; 
+        secretAccessKey: string; 
+        region: string; 
+        sessionToken?: string; 
+    };
+    [AIMachineEventType.LOGOUT]: undefined;
+    [AIMachineEventType.SILENT_LOGOUT]: undefined;
+    [AIMachineEventType.COMPLETE_AUTH]: undefined;
+    [AIMachineEventType.CANCEL_LOGIN]: undefined;
+    [AIMachineEventType.RETRY]: undefined;
+    [AIMachineEventType.DISPOSE]: undefined;
+};
 
-interface AIUsageTokens {
-    maxUsage: number;
-    remainingTokens: number;
+export type AIMachineSendableEvent =
+    | { [K in keyof AIMachineEventMap]: AIMachineEventMap[K] extends undefined
+        ? { type: K }
+        : { type: K; payload: AIMachineEventMap[K] }
+    }[keyof AIMachineEventMap];
+
+export enum LoginMethod {
+    BI_INTEL = 'biIntel',
+    ANTHROPIC_KEY = 'anthropic_key',
+    AWS_BEDROCK = 'aws_bedrock'
 }
 
-export interface AIUserToken {
+interface BIIntelSecrets {
     accessToken: string;
-    usageTokens?: AIUsageTokens;
+    refreshToken: string;
+}
+
+interface AnthropicKeySecrets {
+    apiKey: string;
+}
+
+interface AwsBedrockSecrets {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}
+
+export type AuthCredentials =
+    | {
+        loginMethod: LoginMethod.BI_INTEL;
+        secrets: BIIntelSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.ANTHROPIC_KEY;
+        secrets: AnthropicKeySecrets;
+    }
+    | {
+        loginMethod: LoginMethod.AWS_BEDROCK;
+        secrets: AwsBedrockSecrets;
+    };
+
+export interface AIUserToken {
+    token: string; // For BI Intel, this is the access token and for Anthropic, this is the API key
 }
 
 export interface AIMachineContext {
+    loginMethod?: LoginMethod;
     userToken?: AIUserToken;
     errorMessage?: string;
 }
@@ -229,5 +346,5 @@ export enum ColorThemeKind {
 }
 
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
-export const sendAIStateEvent: RequestType<AIMachineEventType, void> = { method: 'sendAIStateEvent' };
+export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };

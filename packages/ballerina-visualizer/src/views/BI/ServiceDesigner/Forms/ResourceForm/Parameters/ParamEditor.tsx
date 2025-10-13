@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 import { Divider, Dropdown, Typography } from '@wso2/ui-toolkit';
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, ParameterModel } from '@wso2/ballerina-core';
+import { LineRange, ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -68,7 +68,9 @@ export function ParamEditor(props: ParamProps) {
     };
 
     useEffect(() => {
-        rpcClient.getVisualizerLocation().then(res => { setFilePath(Utils.joinPath(URI.file(res.projectUri), 'main.bal').fsPath) });
+        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
+            setFilePath(filePath);
+        });
         updateFormFields();
     }, []);
 
@@ -108,13 +110,13 @@ export function ParamEditor(props: ParamProps) {
             fields.push({
                 key: `defaultValue`,
                 label: 'Default Value',
-                type: param.defaultValue.valueType,
+                type: (param.defaultValue as PropertyModel).valueType,
                 optional: true,
                 advanced: true,
                 editable: true,
                 documentation: '',
-                enabled: enableDefault || param.defaultValue?.enabled,
-                value: param.defaultValue?.value,
+                enabled: enableDefault || (param.defaultValue as PropertyModel)?.enabled,
+                value: (param.defaultValue as PropertyModel)?.value,
                 valueTypeConstraint: ""
             });
         }
@@ -127,7 +129,7 @@ export function ParamEditor(props: ParamProps) {
 
     const onParameterSubmit = (dataValues: any, formImports: FormImports) => {
         console.log('Param values', dataValues);
-        onSave({
+        const updatedParam = {
             ...param,
             type: {
                 ...param.type,
@@ -136,11 +138,19 @@ export function ParamEditor(props: ParamProps) {
             },
             name: { ...param.name, value: dataValues['name'] ?? param.name.value },
             defaultValue: {
-                ...param.defaultValue,
-                value: dataValues['defaultValue'] ?? param.defaultValue?.value,
-                enabled: dataValues['defaultValue'] && true
+                ...(param.defaultValue as PropertyModel),
+                value: dataValues['defaultValue'] ?? (param.defaultValue as PropertyModel)?.value,
+                enabled: !!dataValues['defaultValue']
             }
-        });
+        };
+        
+        // Update the parent component's state first
+        onChange(updatedParam);
+        
+        // Then call onSave if provided
+        if (onSave) {
+            onSave(updatedParam);
+        }
     };
 
     useEffect(() => {

@@ -18,13 +18,13 @@
 
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
-import { URI, Utils } from "vscode-uri";
-import { MACHINE_VIEW, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import { FunctionForm } from "./views/BI";
+import { DataMapper } from "./views/DataMapper";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;
@@ -45,7 +45,7 @@ const TopBar = styled.div`
 
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
-    onClose: () => void;
+    onClose: (parent?: ParentPopupData) => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
@@ -74,6 +74,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 fileName={location.documentUri || location.projectUri}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
+                                isPopupScreen={true}
                             />
                         );
                     });
@@ -94,8 +95,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BIFunctionForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'functions.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(<FunctionForm
                             projectPath={location.projectUri}
                             filePath={defaultFunctionsFile}
@@ -106,8 +107,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BIDataMapperForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'data_mappings.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('data_mappings.bal');
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectUri}
@@ -121,8 +122,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     break;
                 case MACHINE_VIEW.BINPFunctionForm:
                     setIsFullScreen(true);
-                    rpcClient.getVisualizerLocation().then((location) => {
-                        const defaultFunctionsFile = Utils.joinPath(URI.file(location.projectUri), 'functions.bal').fsPath;
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectUri}
@@ -134,6 +135,17 @@ const PopupPanel = (props: PopupPanelProps) => {
                             />
                         );
                     });
+                    break;
+                case MACHINE_VIEW.InlineDataMapper:
+                    setIsFullScreen(true);
+                    setViewComponent(
+                        <DataMapper
+                            filePath={machineState.documentUri}
+                            codedata={machineState?.dataMapperMetadata?.codeData}
+                            name={machineState?.dataMapperMetadata?.name}
+                            onClose={onClose}
+                        />
+                    );
                     break;
                 default:
                     setViewComponent(null);

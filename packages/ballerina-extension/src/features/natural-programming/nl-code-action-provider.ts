@@ -18,7 +18,7 @@
 
 import * as vscode from 'vscode';
 import { CustomDiagnostic } from './custom-diagnostics';
-import {DRIFT_DIAGNOSTIC_ID, COMMAND_SHOW_TEXT} from "./constants";
+import { DRIFT_DIAGNOSTIC_ID, COMMAND_SHOW_TEXT } from "./constants";
 import { result } from 'lodash';
 
 const UPDATE_CODE_ACTION_CONTENT = "Update code to match docs";
@@ -37,7 +37,7 @@ export class NLCodeActionProvider implements vscode.CodeActionProvider {
             if (diagnostic instanceof CustomDiagnostic) {
                 const customDiagnostic = diagnostic as CustomDiagnostic;
 
-                if (customDiagnostic.data.id == DRIFT_DIAGNOSTIC_ID){
+                if (customDiagnostic.data.id == DRIFT_DIAGNOSTIC_ID) {
                     const implementationChangeSolution = customDiagnostic.data.implementationChangeSolution;
                     const docChangeSolution = customDiagnostic.data.docChangeSolution;
 
@@ -70,22 +70,3 @@ export class NLCodeActionProvider implements vscode.CodeActionProvider {
         return actions;
     }
 }
-
-export const showTextOptions = vscode.commands.registerCommand(COMMAND_SHOW_TEXT, async (document: vscode.TextDocument, 
-                                    diagnostic: CustomDiagnostic, newText: string, range: vscode.Range) => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        vscode.window.showErrorMessage("No active editor found.");
-        return;
-    }
-
-    const textToReplace = document.getText(range);
-
-    // Create a Git conflict-like view with "|||||||", "HEAD" and "======="
-    const conflictText = `<<<<<<< HEAD\n${textToReplace}\n=======\n${newText}\n>>>>>>>\n`;
-
-    const edit = new vscode.WorkspaceEdit();
-    edit.replace(document.uri, range, conflictText);
-    await vscode.workspace.applyEdit(edit);
-    vscode.window.showInformationMessage('Changes added');
-});

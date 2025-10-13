@@ -22,7 +22,7 @@ import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debu
 import { testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem } from './discover';
-import { ballerinaExtInstance } from '../../core';
+import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
@@ -58,7 +58,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
         run.started(test);
 
         let command: string;
-        const executor = ballerinaExtInstance.getBallerinaCmd();
+        const executor = extension.ballerinaExtInstance.getBallerinaCmd();
         if (isTestGroupItem(test)) {
             let testCaseNames: string[] = [];
             let testItems : TestItem[] = [];

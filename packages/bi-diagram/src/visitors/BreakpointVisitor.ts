@@ -16,8 +16,7 @@
  * under the License.
  */
 
-import { FlowNode, CurrentBreakpointsResponse as BreakpointInfo } from "@wso2/ballerina-core";
-import { BaseVisitor } from "./BaseVisitor";
+import { FlowNode, CurrentBreakpointsResponse as BreakpointInfo, BaseVisitor } from "@wso2/ballerina-core";
 
 
 export class BreakpointVisitor implements BaseVisitor {
@@ -87,6 +86,10 @@ export class BreakpointVisitor implements BaseVisitor {
     }
 
     beginVisitResourceActionCall?(node: FlowNode, parent?: FlowNode): void {
+        this.setBreakpointData(node);
+    }
+
+    beginVisitVectorKnowledgeBaseCall?(node: FlowNode, parent?: FlowNode): void {
         this.setBreakpointData(node);
     }
 
