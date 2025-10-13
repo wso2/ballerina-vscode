@@ -293,7 +293,7 @@ public final class XMLToRecordConverterUtils {
     }
 
     /**
-     * This method returns an alternative fieldName if the given filedName is already exist.
+     * This method returns an alternative fieldName if the given filedName already exists.
      *
      * @param fieldName          Field name of the XML element
      * @param existingFieldNames The list of already existing field names
