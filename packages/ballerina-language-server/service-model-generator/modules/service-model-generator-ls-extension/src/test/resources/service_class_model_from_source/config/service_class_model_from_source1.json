@@ -6,7 +6,7 @@
     "offset": 0
   },
   "end": {
-    "line": 37,
+    "line": 40,
     "offset": 0
   },
   "context": "GRAPHQL_DIAGRAM",
@@ -14,6 +14,22 @@
     "id": "0",
     "name": "Book",
     "type": "service",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "value": "This is a sample Ballerina service class definition",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "name": {
         "metadata": {
@@ -24,11 +40,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 0,
+              "line": 1,
               "offset": 21
             },
             "endLine": {
-              "line": 0,
+              "line": 1,
               "offset": 25
             }
           }
@@ -51,7 +67,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 37,
+          "line": 40,
           "offset": 1
         }
       }
@@ -86,6 +102,17 @@
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the field"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
@@ -196,6 +223,17 @@
               "optional": true,
               "advanced": false
             },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the argument"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
             "enabled": true,
             "editable": false,
             "optional": false,
@@ -209,8 +247,42 @@
             "label": "Field Type",
             "description": "The type of the field"
           },
-          "valueType": "TYPE",
+          "valueType": "ACTION_TYPE",
           "value": "string|error?",
+          "properties": {
+            "nullableAction": {
+              "properties": {
+                "true": {
+                  "metadata": {
+                    "label": "Action Nullable True",
+                    "description": "The field returns a nullable value"
+                  },
+                  "valueType": "STRING",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "false": {
+                  "metadata": {
+                    "label": "Action Nullable False",
+                    "description": "The field returns a non-nullable value"
+                  },
+                  "valueType": "STRING",
+                  "value": "Mark type as nullable",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          },
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -224,11 +296,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 14,
+              "line": 15,
               "offset": 4
             },
             "endLine": {
-              "line": 28,
+              "line": 29,
               "offset": 5
             }
           },

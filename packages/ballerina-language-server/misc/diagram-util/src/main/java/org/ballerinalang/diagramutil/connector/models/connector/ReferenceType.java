@@ -147,6 +147,7 @@ public class ReferenceType {
             Map<String, RecordFieldSymbol> fieldDescriptors = recordTypeSymbol.fieldDescriptors();
             fieldDescriptors.forEach((fieldName, fieldSymbol) -> {
                 TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
+                fieldName = fieldSymbol.getName().orElse(fieldName);
                 String fieldTypeName = fieldTypeSymbol.getName().orElse("");
                 ModuleID fieldModuleId = getModuleID(fieldSymbol);
                 if (fieldModuleId == null) {

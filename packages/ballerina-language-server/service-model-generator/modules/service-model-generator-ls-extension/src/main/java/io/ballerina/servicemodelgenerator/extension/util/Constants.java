@@ -92,6 +92,7 @@ public class Constants {
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
+    public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
 
@@ -101,6 +102,7 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
+    public static final String VARIABLE_NAME_KEY = "variableNameKey";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
@@ -131,16 +133,22 @@ public class Constants {
             "The name of the argument");
     public static final MetaData ARGUMENT_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the argument");
+    public static final MetaData ARGUMENT_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the argument");
     public static final MetaData PARAMETER_TYPE_METADATA = new MetaData("Parameter Type",
             "The type of the parameter");
     public static final MetaData PARAMETER_NAME_METADATA = new MetaData("Parameter Name",
             "The name of the parameter");
     public static final MetaData PARAMETER_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the parameter");
+    public static final MetaData PARAMETER_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the parameter");
     public static final MetaData FIELD_TYPE_METADATA = new MetaData("Field Type",
             "The type of the field");
     public static final MetaData FIELD_NAME_METADATA = new MetaData("Field Name",
             "The name of the field");
+    public static final MetaData FIELD_DOCUMENTAION_METADATA = new MetaData("Description",
+            "The description of the field");
     public static final MetaData FIELD_DEFAULT_VALUE_METADATA = new MetaData("Initial Value",
             "The initial value of the filed");
     public static final MetaData FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
@@ -153,9 +161,17 @@ public class Constants {
             "The resource path");
     public static final MetaData RESOURCE_FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
             "The return type of the resource");
+    public static final MetaData RESOURCE_FUNCTION_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the resource");
+    public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
+            "description of the object");
 
     // organization names
     public static final String BALLERINA = "ballerina";
+
+    // types
+    public static final String USER_DEFINED_TYPE = "User-Defined";
+    public static final String ERROR_TYPE = "Error Types";
 
     // annotation attachment points
     public static final String OBJECT_METHOD = "OBJECT_METHOD";
@@ -172,6 +188,14 @@ public class Constants {
     public static final String GRAPHQL_CONTEXT_KEY = "paramContext";
     public static final String GRAPHQL_FIELD_KEY = "paramField";
     public static final String VALUE_FIELD = "value";
+
+    // Type API contexts
+    public static final String GRAPHQL_FIELD_TYPE = "GRAPHQL_FIELD_TYPE";
+    public static final String GRAPHQL_INPUT_TYPE = "GRAPHQL_INPUT_TYPE";
+
+    // GraphQL types
+    public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
+    public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
 
     private Constants() {
     }

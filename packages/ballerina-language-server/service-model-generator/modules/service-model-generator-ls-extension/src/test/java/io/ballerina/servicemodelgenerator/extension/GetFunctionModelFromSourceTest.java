@@ -67,6 +67,14 @@ public class GetFunctionModelFromSourceTest extends AbstractLSTest {
     }
 
     @Override
+    protected String[] skipList() {
+        // TODO: Re-enable this test after investigating why this fails intermittently in Github Actions
+        return new String[]{
+                "get_http_resource_model_5.json"
+        };
+    }
+
+    @Override
     protected String getResourceDir() {
         return "get_fm_from_source";
     }

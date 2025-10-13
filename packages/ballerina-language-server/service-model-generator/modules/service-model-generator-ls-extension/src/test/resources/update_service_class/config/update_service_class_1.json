@@ -5,22 +5,36 @@
     "id": "0",
     "name": "Book",
     "type": "service",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "value": "This is a sample service class.\nThe service class definition goes here.",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "name": {
         "metadata": {
           "label": "Class Name",
           "description": "The name of the class definition"
         },
-        "enabled": true,
-        "editable": true,
-        "value": "UpdatedBook",
+        "placeholder": "",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "string",
-        "isType": false,
-        "placeholder": "",
+        "value": "UpdatedBook",
+        "enabled": true,
+        "editable": true,
         "optional": false,
-        "advanced": false,
-        "addNewButton": false
+        "advanced": false
       }
     },
     "codedata": {
@@ -34,10 +48,7 @@
           "line": 37,
           "offset": 1
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "functions": [
       {
@@ -54,26 +65,22 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "enabled": true,
-          "editable": false,
-          "value": "init",
+          "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "",
+          "value": "init",
+          "enabled": true,
+          "editable": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "parameters": [
           {
@@ -82,28 +89,24 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
+              "valueType": "TYPE",
+              "value": "string",
               "enabled": true,
               "editable": true,
-              "value": "string",
-              "valueType": "TYPE",
-              "isType": true,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
+              "valueType": "IDENTIFIER",
+              "value": "name",
               "enabled": true,
               "editable": true,
-              "value": "name",
-              "valueType": "IDENTIFIER",
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
@@ -112,15 +115,14 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "enabled": true,
             "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -132,10 +134,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "name": {
               "metadata": {
@@ -144,10 +144,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
@@ -156,34 +154,33 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "enabled": false,
             "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
+          "hasError": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "valueType": "TYPE",
+          "value": "error?",
           "enabled": true,
           "editable": false,
-          "value": "error?",
-          "valueType": "TYPE",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
         "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "update_service_class.bal",
@@ -195,10 +192,7 @@
               "line": 12,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -213,30 +207,26 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
+          "valueType": "IDENTIFIER",
+          "value": "get",
           "enabled": true,
           "editable": true,
-          "value": "get",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "author/[int id]",
+          "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "",
+          "value": "author/[int id]",
+          "enabled": true,
+          "editable": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "parameters": [],
         "schema": {
@@ -248,10 +238,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "name": {
               "metadata": {
@@ -260,10 +248,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
@@ -272,34 +258,33 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "enabled": false,
             "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
+          "hasError": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
           },
+          "valueType": "TYPE",
+          "value": "string|error?",
           "enabled": true,
           "editable": false,
-          "value": "string|error?",
-          "valueType": "TYPE",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
         "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "update_service_class.bal",
@@ -311,10 +296,7 @@
               "line": 28,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       },
       {
@@ -331,26 +313,22 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "enabled": true,
-          "editable": true,
-          "value": "addAuthor",
+          "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "isType": false,
-          "placeholder": "",
+          "value": "addAuthor",
+          "enabled": true,
+          "editable": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "parameters": [
           {
@@ -359,28 +337,24 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
+              "valueType": "TYPE",
+              "value": "Author",
               "enabled": true,
               "editable": true,
-              "value": "Author",
-              "valueType": "TYPE",
-              "isType": true,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "name": {
               "metadata": {
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
+              "valueType": "IDENTIFIER",
+              "value": "author",
               "enabled": true,
               "editable": true,
-              "value": "author",
-              "valueType": "IDENTIFIER",
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
@@ -389,15 +363,14 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "enabled": true,
             "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         ],
         "schema": {
@@ -409,10 +382,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "name": {
               "metadata": {
@@ -421,10 +392,8 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "defaultValue": {
               "metadata": {
@@ -433,32 +402,31 @@
               },
               "enabled": false,
               "editable": true,
-              "isType": false,
               "optional": false,
-              "advanced": false,
-              "addNewButton": false
+              "advanced": false
             },
             "enabled": false,
             "editable": false,
             "optional": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
           }
         },
         "returnType": {
+          "hasError": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
           },
           "enabled": false,
           "editable": false,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "optional": false,
         "editable": true,
+        "canAddParameters": false,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
@@ -470,10 +438,7 @@
               "line": 36,
               "offset": 5
             }
-          },
-          "inListenerInit": false,
-          "isBasePath": false,
-          "inDisplayAnnotation": false
+          }
         }
       }
     ],
@@ -486,28 +451,24 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
+          "valueType": "TYPE",
+          "value": "string",
           "enabled": true,
           "editable": true,
-          "value": "string",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
+          "valueType": "IDENTIFIER",
+          "value": "id",
           "enabled": true,
           "editable": true,
-          "value": "id",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -516,15 +477,14 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       },
       {
         "isPrivate": true,
@@ -534,28 +494,24 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
+          "valueType": "TYPE",
+          "value": "string",
           "enabled": true,
           "editable": true,
-          "value": "string",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
+          "valueType": "IDENTIFIER",
+          "value": "name",
           "enabled": true,
           "editable": true,
-          "value": "name",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -564,15 +520,14 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       },
       {
         "isPrivate": true,
@@ -582,47 +537,42 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
+          "valueType": "TYPE",
+          "value": "Author[]",
           "enabled": true,
           "editable": true,
-          "value": "Author[]",
-          "valueType": "TYPE",
-          "isType": true,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
+          "valueType": "IDENTIFIER",
+          "value": "authors",
           "enabled": true,
           "editable": true,
-          "value": "authors",
-          "valueType": "IDENTIFIER",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
             "label": "Default Value",
             "description": "The default value of the parameter"
           },
+          "valueType": "EXPRESSION",
+          "value": "[]",
           "enabled": true,
           "editable": true,
-          "value": "[]",
-          "valueType": "EXPRESSION",
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": true,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       }
     ]
   },
@@ -640,6 +590,19 @@
           }
         },
         "newText": "UpdatedBook"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "# This is a sample service class.\n# The service class definition goes here.\n"
       }
     ]
   }

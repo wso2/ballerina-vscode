@@ -265,7 +265,8 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         FIXED_PROPERTY,
         RAW_TEMPLATE,
         REPEATABLE_PROPERTY,
-        ACTION_PATH
+        ACTION_PATH,
+        ACTION_TYPE
     }
 
     public static ValueType valueTypeFrom(String s) {

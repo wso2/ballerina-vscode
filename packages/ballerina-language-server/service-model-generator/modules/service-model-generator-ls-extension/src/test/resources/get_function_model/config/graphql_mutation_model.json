@@ -32,6 +32,17 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the field"
+      },
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
       {
         "metadata": {
@@ -140,6 +151,17 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the argument"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -153,8 +175,42 @@
         "label": "Field Type",
         "description": "The type of the field"
       },
-      "valueType": "TYPE",
+      "valueType": "ACTION_TYPE",
       "value": "",
+      "properties": {
+        "nullableAction": {
+          "properties": {
+            "true": {
+              "metadata": {
+                "label": "Action Nullable True",
+                "description": "The field returns a nullable value"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "false": {
+              "metadata": {
+                "label": "Action Nullable False",
+                "description": "The field returns a non-nullable value"
+              },
+              "valueType": "STRING",
+              "value": "Mark type as nullable",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          },
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
       "enabled": true,
       "editable": true,
       "optional": false,
