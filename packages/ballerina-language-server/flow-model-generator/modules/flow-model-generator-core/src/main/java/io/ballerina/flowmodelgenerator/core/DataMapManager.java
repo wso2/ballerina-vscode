@@ -635,12 +635,32 @@ public class DataMapManager {
         List<String> inputs = new ArrayList<>();
         expr.accept(new GenInputsVisitor(inputs, enumPorts));
         LineRange customFunctionRange = getCustomFunctionRange(expr, functionDocument, dataMappingDocument);
+        List<String> elementAccessIndex = null;
+        if (containsArrayAccess(expr)) {
+            elementAccessIndex = extractArrayIndices(expr);
+        }
         Mapping mapping = new Mapping(name, inputs, expr.toSourceCode(),
                 getDiagnostics(expr.lineRange(), semanticModel), new ArrayList<>(),
                 expr.kind() == SyntaxKind.QUERY_EXPRESSION,
                 expr.kind() == SyntaxKind.FUNCTION_CALL,
-                customFunctionRange);
+                null,
+                customFunctionRange,
+                elementAccessIndex);
         elements.add(mapping);
+    }
+
+    private boolean containsArrayAccess(Node node) {
+        if (node.kind() == SyntaxKind.INDEXED_EXPRESSION) {
+            return true;
+        }
+        if (node instanceof NonTerminalNode nonTerminalNode) {
+            for (Node child : nonTerminalNode.children()) {
+                if (containsArrayAccess(child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private LineRange getCustomFunctionRange(Node expr, Document functionDocument, Document dataMappingDocument) {
@@ -692,6 +712,13 @@ public class DataMapManager {
             diagnosticMsgs.add(diagnostic.message());
         }
         return diagnosticMsgs;
+    }
+
+    private List<String> extractArrayIndices(Node expr) {
+        List<String> indices = new ArrayList<>();
+        ArrayIndexExtractorVisitor visitor = new ArrayIndexExtractorVisitor(indices);
+        expr.accept(visitor);
+        return indices.isEmpty() ? null : indices;
     }
 
     private List<MappingPort> getInputPorts(SemanticModel semanticModel, Document document, LinePosition position,
@@ -2361,25 +2388,25 @@ public class DataMapManager {
 
     private record Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                            List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
-                           Map<String, String> imports, LineRange functionRange) {
+                           Map<String, String> imports, LineRange functionRange, List<String> elementAccessIndex) {
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements) {
             this(output, inputs, expression, diagnostics, elements, null,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         private Mapping(String output, List<String> inputs, String expression, List<String> diagnostics,
                         List<MappingElements> elements, Boolean isQueryExpression, Boolean isFunctionCall,
                         LineRange customFunctionRange) {
             this(output, inputs, expression, diagnostics, elements, isQueryExpression, isFunctionCall, null,
-                    customFunctionRange);
+                    customFunctionRange, null);
         }
     }
 
@@ -2664,7 +2691,14 @@ public class DataMapManager {
         @Override
         public void visit(IndexedExpressionNode node) {
             String source = node.toSourceCode().trim();
-            inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
+            String openBraceRemoved = source.replace("[", ".");
+            String closedBraceRemoved = openBraceRemoved.replace("]", "");
+            inputs.add(closedBraceRemoved);
+
+            SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
+            for (ExpressionNode keyExpr : keyExpressions) {
+                keyExpr.accept(this);
+            }
         }
 
         @Override
@@ -2703,6 +2737,49 @@ public class DataMapManager {
         @Override
         public void visit(OptionalFieldAccessExpressionNode node) {
             inputs.add(node.toSourceCode().trim().replace("?", ""));
+        }
+    }
+
+    private static class ArrayIndexExtractorVisitor extends NodeVisitor {
+        private final List<String> indices;
+
+        ArrayIndexExtractorVisitor(List<String> indices) {
+            this.indices = indices;
+        }
+
+        @Override
+        public void visit(IndexedExpressionNode node) {
+            node.containerExpression().accept(this);
+
+            SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
+            for (ExpressionNode keyExpr : keyExpressions) {
+                String indexValue = extractIndexValue(keyExpr);
+                indices.add(indexValue);
+            }
+        }
+
+        private String extractIndexValue(ExpressionNode keyExpr) {
+            return keyExpr.toSourceCode().trim();
+        }
+
+        @Override
+        public void visit(FieldAccessExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(OptionalFieldAccessExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(BracedExpressionNode node) {
+            node.expression().accept(this);
+        }
+
+        @Override
+        public void visit(CheckExpressionNode node) {
+            node.expression().accept(this);
         }
     }
 }
