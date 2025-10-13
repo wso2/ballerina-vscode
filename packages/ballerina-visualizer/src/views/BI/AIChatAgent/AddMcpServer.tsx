@@ -16,7 +16,7 @@ import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./McpToolsSelection";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { findAgentNodeFromAgentCallNode, getAgentFilePath } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, parsePermittedTools } from "./utils";
 
 interface Tool {
     name: string;
@@ -114,59 +114,54 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         if (!cleanUrl) {
             return [];
         }
+
+        // Reset state
         setAvailableMcpTools([]);
         setSelectedMcpTools(new Set());
         setLoadingMcpTools(true);
         setMcpToolsError("");
 
-        // Extract token from auth value if it's in the format {token: "..."}
-        let accessToken = "";
-        if (authValue) {
-            try {
-                const tokenMatch = authValue.match(/token:\s*"([^"]*)"/);
-                if (tokenMatch && tokenMatch[1]) {
-                    accessToken = tokenMatch[1];
-                }
-            } catch (error) {
-                console.error("Failed to parse auth token:", error);
-            }
-        }
+        const accessToken = extractAccessToken(authValue);
 
         try {
             const response = await rpcClient.getAIAgentRpcClient().getMcpTools({
                 serviceUrl: cleanUrl,
-                accessToken: accessToken
+                accessToken
             });
 
             if (response.errorMsg) {
-                console.error(`Failed to fetch tools from MCP server: ${response.errorMsg}`);
+                const errorMessage = `Failed to fetch tools from MCP server: ${response.errorMsg}`;
+                console.error(errorMessage);
                 setMcpToolsError(response.errorMsg);
-                throw new Error(response.errorMsg);
-            }
-
-            if (response.tools && Array.isArray(response.tools)) {
-                setAvailableMcpTools(response.tools);
-                const shouldRestoreTools = editMode && url === mcpToolKitNodeRef.current?.properties?.serverUrl?.value;
-                const permittedTools = shouldRestoreTools
-                    ? (mcpToolKitNodeRef.current?.properties?.permittedTools?.value || [])
-                    : [];
-                setSelectedMcpTools(new Set(permittedTools as string[]));
-                setLoadingMcpTools(false);
-                return response.tools;
-            } else {
-                setAvailableMcpTools([]);
-                setSelectedMcpTools(new Set());
                 setLoadingMcpTools(false);
                 return [];
             }
+
+            if (!response.tools || !Array.isArray(response.tools)) {
+                setLoadingMcpTools(false);
+                return [];
+            }
+
+            setAvailableMcpTools(response.tools);
+
+            // Restore previously selected tools if in edit mode and URL matches
+            const shouldRestoreTools = editMode && url === mcpToolKitNodeRef.current?.properties?.serverUrl?.value;
+            if (shouldRestoreTools) {
+                const permittedToolsValue = mcpToolKitNodeRef.current?.properties?.permittedTools?.value;
+                const permittedTools = parsePermittedTools(permittedToolsValue);
+                setSelectedMcpTools(new Set(permittedTools));
+            }
+
+            setLoadingMcpTools(false);
+            return response.tools;
         } catch (error) {
             console.error(`Failed to fetch tools from MCP server: ${error || 'Unknown error'}`);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             setMcpToolsError(errorMessage);
             setLoadingMcpTools(false);
-            throw error;
+            return [];
         }
-    }, [rpcClient]);
+    }, [editMode, rpcClient]);
 
     useEffect(() => {
         initPanel();
