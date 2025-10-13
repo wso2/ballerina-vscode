@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
@@ -128,8 +129,7 @@ public class TypeTransformer {
         TypeData.TypeDataBuilder typeDataBuilder = new TypeData.TypeDataBuilder();
         String typeName = getTypeName(classSymbol);
         List<Qualifier> qualifiers = classSymbol.qualifiers();
-        String networkQualifier = qualifiers.contains(Qualifier.SERVICE) ?
-                "service" : (qualifiers.contains(Qualifier.CLIENT) ? "client" : "");
+        String networkQualifier = getNetworkQualifier(qualifiers);
         typeDataBuilder
                 .name(typeName)
                 .metadata()
@@ -180,8 +180,7 @@ public class TypeTransformer {
         typeDataBuilder.codedata().node(NodeKind.OBJECT);
 
         List<Qualifier> qualifiers = objectTypeSymbol.qualifiers();
-        String networkQualifier = qualifiers.contains(Qualifier.SERVICE) ?
-                "service" : (qualifiers.contains(Qualifier.CLIENT) ? "client" : "");
+        String networkQualifier = getNetworkQualifier(qualifiers);
         typeDataBuilder.properties()
                 .isIsolated(qualifiers.contains(Qualifier.ISOLATED), true, true, false)
                 .networkQualifier(networkQualifier, true, true, false);
@@ -329,12 +328,24 @@ public class TypeTransformer {
         recordTypeSymbol.fieldDescriptors().forEach((fieldName, fieldSymbol) -> {
             TypeData.TypeDataBuilder memberTypeDataBuilder = new TypeData.TypeDataBuilder();
             Object transformedFieldType = transform(fieldSymbol.typeDescriptor(), memberTypeDataBuilder);
+
+            boolean isGraphqlId = false;
+            List<AnnotationAttachmentSymbol> annotAttachments = fieldSymbol.annotAttachments();
+            for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
+                if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                    isGraphqlId = true;
+                    insertGraphqlImport(memberBuilder);
+                    break;
+                }
+            }
+
             Member member = memberBuilder
                     .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
                     .optional(fieldSymbol.isOptional())
                     .readonly(fieldSymbol.qualifiers().contains(Qualifier.READONLY))
+                    .isGraphqlId(isGraphqlId)
                     .refs(getTypeRefs(transformedFieldType, fieldSymbol.typeDescriptor()))
                     .docs(getDocumentString(fieldSymbol))
                     .defaultValue(getDefaultValueOfField(typeDataBuilder.name(), fieldName).orElse(null))
@@ -344,6 +355,16 @@ public class TypeTransformer {
         typeDataBuilder.members(fieldMembers);
 
         return typeDataBuilder.build();
+    }
+
+    private static void insertGraphqlImport(Member.MemberBuilder memberBuilder) {
+        // TODO: Annotations from other imported modules are not supported yet
+        memberBuilder.imports(
+                Map.of(
+                        TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                        TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
+                )
+        );
     }
 
     public Object transform(UnionTypeSymbol unionTypeSymbol, TypeData.TypeDataBuilder typeDataBuilder) {
@@ -603,6 +624,23 @@ public class TypeTransformer {
 
         FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
 
+        // return type annotation
+        functionTypeSymbol.returnTypeAnnotations().ifPresent(returnTypeAnnots -> {
+            for (AnnotationAttachmentSymbol annotAttachment : returnTypeAnnots.annotAttachments()) {
+                if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                    // TODO: Annotations from other imported modules are not supported yet
+                    functionBuilder.imports(
+                            Map.of(
+                                    TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
+                            )
+                    );
+                    functionBuilder.isGraphqlId(true);
+                    break;
+                }
+            }
+        });
+
         // return type
         functionTypeSymbol.returnTypeDescriptor().ifPresent(returnType -> {
             Object transformed = transform(returnType, new TypeData.TypeDataBuilder());
@@ -615,10 +653,23 @@ public class TypeTransformer {
         functionTypeSymbol.params().ifPresent(params -> {
             List<Member> parameters = params.stream().map(param -> {
                 Object transformedParamType = transform(param.typeDescriptor(), new TypeData.TypeDataBuilder());
+
+                boolean isGraphqlId = false;
+                List<AnnotationAttachmentSymbol> annotAttachments = param.annotAttachments();
+                for (AnnotationAttachmentSymbol annotAttachment : annotAttachments) {
+                    if (TypeUtils.isGraphqlIdAnnotation(annotAttachment)) {
+                        isGraphqlId = true;
+                        // TODO: Annotations from other imported modules are not supported yet
+                        insertGraphqlImport(memberBuilder);
+                        break;
+                    }
+                }
+
                 return memberBuilder
                         .name(param.getName().orElse(null))
                         .kind(Member.MemberKind.FIELD)
                         .type(transformedParamType)
+                        .isGraphqlId(isGraphqlId)
                         .refs(getTypeRefs(transformedParamType, param.typeDescriptor()))
                         .build();
             }).toList();
@@ -730,5 +781,11 @@ public class TypeTransformer {
         // If a non-readonly type is found, we treat it as a first-class non-intersection type with readonly flag on
         typeDataBuilder.properties().isReadOnly(true, true, true, false);
         return transform(nonReadonlyTypeSymbol, typeDataBuilder);
+    }
+
+    private String getNetworkQualifier(List<Qualifier> qualifiers) {
+        return qualifiers.contains(Qualifier.SERVICE)
+                ? Qualifier.SERVICE.getValue()
+                : (qualifiers.contains(Qualifier.CLIENT) ? Qualifier.CLIENT.getValue() : "");
     }
 }

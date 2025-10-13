@@ -1,30 +1,15 @@
 {
-  "filePath": "test_pack2/records.bal",
-  "position": {
-    "line": 54,
-    "offset": 5
-  },
-  "description": "Get a record type with readonly fields",
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a new record type",
   "type": {
-    "name": "User1",
+    "name": "Person",
     "editable": true,
     "metadata": {
-      "label": "User1",
-      "description": "Record with readonly field"
+      "label": "Person",
+      "description": ""
     },
     "codedata": {
-      "node": "RECORD",
-      "lineRange": {
-        "fileName": "records.bal",
-        "startLine": {
-          "line": 54,
-          "offset": 5
-        },
-        "endLine": {
-          "line": 54,
-          "offset": 10
-        }
-      }
+      "node": "RECORD"
     },
     "properties": {
       "name": {
@@ -33,7 +18,7 @@
           "description": "Unique name to identify the type"
         },
         "valueType": "IDENTIFIER",
-        "value": "User1",
+        "value": "Person",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -57,7 +42,7 @@
           "description": "Detailed description about the type"
         },
         "valueType": "STRING",
-        "value": "Record with readonly field",
+        "value": "",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -92,26 +77,58 @@
       {
         "kind": "FIELD",
         "refs": [],
-        "type": "int",
-        "name": "uuid",
+        "type": "string",
+        "name": "name",
         "optional": false,
-        "readonly": true,
-        "isGraphqlId": false,
+        "readonly": false,
+        "isGraphqlId": true,
+        "imports": {
+          "graphql": "ballerina/graphql:2.9.0"
+        },
         "docs": ""
       },
       {
         "kind": "FIELD",
         "refs": [],
-        "type": "string",
-        "name": "name",
+        "type": "int",
+        "name": "age",
         "optional": false,
-        "readonly": true,
+        "readonly": false,
         "isGraphqlId": false,
         "docs": ""
       }
     ],
     "includes": [],
-    "allowAdditionalFields": false
+    "allowAdditionalFields": true
   },
-  "refs": []
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/graphql;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\ntype Person record {\n\t@graphql:ID\n\tstring name;\n\tint age;\n};"
+      }
+    ]
+  }
 }

@@ -530,7 +530,7 @@ public class TypesManager {
                 typeData.restMember(),
                 typeData.includes(),
                 typeData.functions(),
-                typeData.annotations(),
+                typeData.annotationAttachments(),
                 typeData.allowAdditionalFields()
         );
     }
