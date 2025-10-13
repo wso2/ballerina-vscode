@@ -228,36 +228,34 @@ export function Parameters(props: ParametersProps) {
             </AddButtonWrapper>
 
             {/* <---------------- Header Parameters Start ----------------> */}
-            {!isNewResource && (
-                <>
-                    <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Headers</Typography>
-                    {normalParameters
-                        .filter((param: ParameterModel) => param.httpParamType === "HEADER")
-                        .map((param: ParameterModel, index) => (
-                            <ParamItem
-                                key={`header-${index}`}
-                                param={param}
-                                onDelete={onDelete}
-                                onEditClick={onEdit}
-                            />
-                        ))}
-                    {editModel && editModel.httpParamType === "HEADER" &&
-                        <ParamEditor
-                            param={editModel}
-                            onChange={onChangeParam}
-                            onSave={onSaveParam}
-                            onCancel={onParamEditCancel}
-                            type="HEADER"
+            <>
+                <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Headers</Typography>
+                {normalParameters
+                    .filter((param: ParameterModel) => param.httpParamType === "HEADER")
+                    .map((param: ParameterModel, index) => (
+                        <ParamItem
+                            key={`header-${index}`}
+                            param={param}
+                            onDelete={onDelete}
+                            onEditClick={onEdit}
                         />
-                    }
-                    <AddButtonWrapper >
-                        <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
-                            <Codicon name="add" />
-                            <>Header</>
-                        </LinkButton>
-                    </AddButtonWrapper>
-                </>
-            )}
+                    ))}
+                {editModel && editModel.httpParamType === "HEADER" &&
+                    <ParamEditor
+                        param={editModel}
+                        onChange={onChangeParam}
+                        onSave={onSaveParam}
+                        onCancel={onParamEditCancel}
+                        type="HEADER"
+                    />
+                }
+                <AddButtonWrapper >
+                    <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
+                        <Codicon name="add" />
+                        <>Header</>
+                    </LinkButton>
+                </AddButtonWrapper>
+            </>
 
             {/* <---------------- Normal Parameters End Query|HEADER ----------------> */}
 

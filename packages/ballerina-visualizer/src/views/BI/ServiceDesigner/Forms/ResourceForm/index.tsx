@@ -18,19 +18,68 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator } from '@wso2/ui-toolkit';
-import { ResourcePath } from './ResourcePath/ResourcePath';
+import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator, ThemeColors, Button, Icon, Tooltip, CheckBoxGroup, CheckBox } from '@wso2/ui-toolkit';
+import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
 import { HTTP_METHOD } from '../../utils';
 import { FunctionModel, ParameterModel, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
-import { NewResource } from './NewResource';
+import { PanelContainer } from '@wso2/ballerina-side-panel';
 
-const AdvancedParamTitleWrapper = styled.div`
-	display: flex;
-	flex-direction: row;
-`;
+namespace S {
+	export const Grid = styled.div<{ columns: number }>`
+        display: grid;
+        grid-template-columns: repeat(${({ columns }: { columns: number }) => columns}, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+        margin-top: 8px;
+        margin-bottom: 12px;
+    `;
+	export const Component = styled.div<{ enabled?: boolean }>`
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        border-radius: 5px;
+        height: 36px;
+        cursor: ${({ enabled }: { enabled?: boolean }) => (enabled ? "pointer" : "not-allowed")};
+        font-size: 14px;
+        min-width: 160px;
+        max-width: 100%;
+        ${({ enabled }: { enabled?: boolean }) => !enabled && "opacity: 0.5;"}
+        &:hover {
+            ${({ enabled }: { enabled?: boolean }) =>
+			enabled &&
+			`
+                background-color: ${ThemeColors.PRIMARY_CONTAINER};
+                border: 1px solid ${ThemeColors.HIGHLIGHT};
+            `}
+        }
+    `;
+	export const ComponentTitle = styled.div`
+        white-space: nowrap;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        word-break: break-word;
+    `;
+	export const IconContainer = styled.div`
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        & svg {
+            height: 16px;
+            width: 16px;
+        }
+    `;
+}
 
 export interface ResourceFormProps {
 	model: FunctionModel;
@@ -46,9 +95,25 @@ export function ResourceForm(props: ResourceFormProps) {
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
 
+	const [createMore, setCreateMore] = useState<boolean>(false);
+	const [method, setMethod] = useState<string>("");
+
 	useEffect(() => {
 		console.log("Function Model", model);
 	}, []);
+
+	const closeMethod = () => {
+		setMethod("");
+	}
+
+	const setResourceMethod = (method: string) => {
+		setMethod(method);
+		const updatedFunctionModel = {
+			...functionModel,
+			accessor: { ...functionModel.accessor, value: method }
+		};
+		setFunctionModel(updatedFunctionModel);
+	}
 
 	const onPathChange = (method: PropertyModel, path: PropertyModel) => {
 		const updatedFunctionModel = {
@@ -85,7 +150,10 @@ export function ResourceForm(props: ResourceFormProps) {
 
 	const handleSave = () => {
 		console.log("Saved Resource", functionModel);
-		onSave(functionModel);
+		if (createMore) {
+			closeMethod();
+		}
+		onSave(functionModel, !createMore);
 	}
 
 	const editForm = () => {
@@ -112,7 +180,57 @@ export function ResourceForm(props: ResourceFormProps) {
 	const newForm = () => {
 		return (
 			<>
-				<NewResource model={functionModel} isSaving={isSaving} onSave={onSave} onClose={onClose} />
+				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
+				<SidePanelBody>
+					{/* Render HTTP Methods as components using S.Component and S.Grid */}
+					<div style={{ marginBottom: "16px" }}>
+						<div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "8px" }}>HTTP Methods</div>
+						<S.Grid columns={2}>
+							{verbs.map((method: PropertyModel, idx: number) => (
+								<S.Component
+									key={method.value || idx}
+									enabled={true}
+									onClick={() => setResourceMethod(method.value)}
+								>
+									<S.IconContainer>{<Icon name='globe' isCodicon={true} />}</S.IconContainer>
+									<S.ComponentTitle>
+										{method.value}
+									</S.ComponentTitle>
+								</S.Component>
+							))}
+						</S.Grid>
+					</div>
+				</SidePanelBody>
+				{/* This is for adding a http resource */}
+				<PanelContainer
+					title={`New Resource Configuration`}
+					show={!!method}
+					onClose={closeMethod}
+					width={400}
+				>
+					<>
+						{isSaving && <ProgressIndicator id="resource-loading-bar" />}
+						<SidePanelBody>
+							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
+								onError={onResourcePathError} />
+							<Divider />
+							<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
+							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
+							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+							<Divider sx={{ marginBottom: 30 }} />
+							<Tooltip content='Create more resources' containerSx={{ position: "fixed", width: "120px", marginLeft: 80 }}>
+								<CheckBoxGroup columns={2}>
+									<CheckBox label='Create More' checked={createMore} onChange={() => setCreateMore(!createMore)} />
+								</CheckBoxGroup>
+							</Tooltip>
+							<ActionButtons
+								primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
+								secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
+								sx={{ justifyContent: "flex-end" }}
+							/>
+						</SidePanelBody>
+					</>
+				</PanelContainer >
 			</>
 		)
 	}
