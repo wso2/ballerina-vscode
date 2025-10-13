@@ -116,7 +116,7 @@ public class AgentCallBuilder extends CallBuilder {
                     ? propertyValues.get(key)
                     : null;
             boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
-            FlowNodeUtil.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
+            AiUtils.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
         });
     }
 
@@ -126,8 +126,8 @@ public class AgentCallBuilder extends CallBuilder {
         String instructionsValue = (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
                 propertyValues.get(INSTRUCTIONS) : "";
 
-        FlowNodeUtil.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
-        FlowNodeUtil.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
+        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
+        AiUtils.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
                 INSTRUCTIONS_PLACEHOLDER, instructionsValue);
     }
 
@@ -169,7 +169,7 @@ public class AgentCallBuilder extends CallBuilder {
         }
 
         NodeBuilder.TemplateContext modelProviderContext =
-                FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+                AiUtils.createDefaultTemplateContext(sourceBuilder,
                         AiUtils.getDefaultModelProviderCodedata(agentCallNode.codedata().org()));
         FlowNode modelProviderNode = NodeBuilder.getNodeFromKind(
                         Objects.equals(agentCallNode.codedata().org(), BALLERINA) ? NodeKind.MODEL_PROVIDER :
@@ -196,7 +196,7 @@ public class AgentCallBuilder extends CallBuilder {
         return agentCallNode.getProperty(Property.CONNECTION_KEY)
                 .filter(connection -> connection.value() != null && !connection.value().toString().isEmpty())
                 .map(connection -> extractAgentCodedata(sourceBuilder, agentCallNode, projectRoot))
-                .orElse(FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+                .orElse(AiUtils.createDefaultTemplateContext(sourceBuilder,
                         AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org())));
     }
 
@@ -205,7 +205,7 @@ public class AgentCallBuilder extends CallBuilder {
         Object agentCodedataObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_CODEDATA);
 
         if (agentCodedataObj == null) {
-            return FlowNodeUtil.createDefaultTemplateContext(sourceBuilder,
+            return AiUtils.createDefaultTemplateContext(sourceBuilder,
                     AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org()));
         }
 
@@ -225,10 +225,10 @@ public class AgentCallBuilder extends CallBuilder {
         updateAgentNodeProperties(agentNode, agentCallNode);
 
         if (modelProviderNode != null) {
-            FlowNodeUtil.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
+            AiUtils.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
         } else {
-            FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL);
-            FlowNodeUtil.copyPropertyValue(agentNode, agentCallNode, Property.VARIABLE_KEY, Property.CONNECTION_KEY);
+            AiUtils.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL);
+            AiUtils.copyPropertyValue(agentNode, agentCallNode, Property.VARIABLE_KEY, Property.CONNECTION_KEY);
         }
 
         return agentNode;
@@ -292,7 +292,7 @@ public class AgentCallBuilder extends CallBuilder {
         if (agentNode.properties() == null) {
             return;
         }
-        FlowNodeUtil.copyCommonProperties(agentNode, agentCallNode);
+        AiUtils.copyCommonProperties(agentNode, agentCallNode);
         updateSystemPromptProperty(agentNode, agentCallNode);
     }
 
@@ -311,7 +311,7 @@ public class AgentCallBuilder extends CallBuilder {
         String systemPromptValue =
                 "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";
 
-        Property updatedProperty = FlowNodeUtil.createUpdatedProperty(systemPrompt, systemPromptValue);
+        Property updatedProperty = AiUtils.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
     }
 }
