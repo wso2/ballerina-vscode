@@ -97,8 +97,7 @@ export const useDiagramModel = (
             inputSearch,
             outputSearch,
             mappings,
-            subMappings,
-            // model
+            subMappings
         ],
         queryFn: genModel,
         networkMode: 'always',
