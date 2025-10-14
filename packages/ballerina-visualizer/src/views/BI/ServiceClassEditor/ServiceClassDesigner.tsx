@@ -607,7 +607,6 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             model={editingFunction}
                             filePath={serviceClassFilePath}
                             lineRange={serviceClassModel.codedata.lineRange}
-                            isGraphqlView={isGraphql}
                             isSaving={isSaving}
                             isServiceClass={true}
                             onClose={handleCloseFunctionForm}
@@ -630,7 +629,6 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}
-                            isGraphqlEditor={false}
                         />
                     </PanelContainer>
                 )}
