@@ -106,18 +106,24 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     
                 if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
                     try {
-                        const types = (isGraphql)
-                            ? await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                        let types;
+                        if (isGraphql) {
+                            const context = type?.codedata?.node === "CLASS"
+                                ? TypeHelperContext.GRAPHQL_FIELD_TYPE
+                                : TypeHelperContext.GRAPHQL_INPUT_TYPE;
+                            types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                                 filePath: filePath,
-                                context: TypeHelperContext.GRAPHQL_INPUT_TYPE,
-                            })
-                            : await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                                context: context,
+                            });
+                        } else {
+                            types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                                 filePath: filePath,
                                 position: {
                                     line: targetLineRange.startLine.line,
                                     offset: targetLineRange.startLine.offset
                                 },
                             });
+                        }
                         const basicTypes = getTypes(types);
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
