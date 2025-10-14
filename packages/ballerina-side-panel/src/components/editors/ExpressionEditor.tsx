@@ -178,7 +178,7 @@ export namespace S {
     `;
 
     export const DefaultValue = styled.span`
-        color: var(--vscode-textPreformat-foreground);
+        color: var(--vscode-input-placeholderForeground);
         font-family: var(--vscode-editor-font-family);
         font-size: 12px;
     `;
