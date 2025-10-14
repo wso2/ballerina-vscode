@@ -308,7 +308,7 @@ public class McpToolKitBuilder extends NodeBuilder {
             Map<String, String> toolMapping = generatePermittedToolsMapping(permittedTools);
             String permittedToolsMappingConstructorExp = toolMapping.entrySet().stream()
                     .map(e -> "                " + e.getKey() + " : self." + e.getValue())
-                    .collect(Collectors.joining(",\n"));
+                    .collect(Collectors.joining(",%n"));
 
             initBody = String.format(
                     """
@@ -328,7 +328,7 @@ public class McpToolKitBuilder extends NodeBuilder {
 
             // Generate individual tool methods
             toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
-                    .collect(Collectors.joining("\n"));
+                    .collect(Collectors.joining("%n"));
         }
 
         return String.format(
