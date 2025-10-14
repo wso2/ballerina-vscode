@@ -338,42 +338,38 @@ public class AgentCallBuilder extends CallBuilder {
     }
 
     private FlowNode findExistingAgentNode(TemplateContext agentTemplateContext) {
-        try {
-            // Get the document from the workspace manager
-            Path filePath = agentTemplateContext.filePath();
-            Document document = agentTemplateContext.workspaceManager().document(filePath)
-                    .orElseThrow(() -> new IllegalStateException("Document not found for path: " + filePath));
+        // Get the document from the workspace manager
+        Path filePath = agentTemplateContext.filePath();
+        Document document = agentTemplateContext.workspaceManager().document(filePath)
+                .orElseThrow(() -> new IllegalStateException("Document not found for path: " + filePath));
 
-            // Get the syntax tree and semantic model
-            SyntaxTree syntaxTree = document.syntaxTree();
-            TextDocument textDocument = syntaxTree.textDocument();
-            SemanticModel semanticModel = agentTemplateContext.workspaceManager()
-                    .semanticModel(filePath)
-                    .orElseThrow(() -> new IllegalStateException("Semantic model not found for path: " + filePath));
+        // Get the syntax tree and semantic model
+        SyntaxTree syntaxTree = document.syntaxTree();
+        TextDocument textDocument = syntaxTree.textDocument();
+        SemanticModel semanticModel = agentTemplateContext.workspaceManager()
+                .semanticModel(filePath)
+                .orElseThrow(() -> new IllegalStateException("Semantic model not found for path: " + filePath));
 
-            // Get the syntax node at the lineRange from the codedata
-            Codedata codedata = agentTemplateContext.codedata();
-            TextRange textRange = CommonUtils.toTextRange(textDocument, codedata.lineRange());
-            NonTerminalNode syntaxNode = ((ModulePartNode) syntaxTree.rootNode()).findNode(textRange, true);
+        // Get the syntax node at the lineRange from the codedata
+        Codedata codedata = agentTemplateContext.codedata();
+        TextRange textRange = CommonUtils.toTextRange(textDocument, codedata.lineRange());
+        NonTerminalNode syntaxNode = ((ModulePartNode) syntaxTree.rootNode()).findNode(textRange, true);
 
-            // Use CodeAnalyzer to analyze the syntax node and generate FlowNode
-            Project project = document.module().project();
-            CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE,
-                    Map.of(), Map.of(), textDocument,
-                    ModuleInfo.from(document.module().descriptor()), false,
-                    agentTemplateContext.workspaceManager());
-            syntaxNode.accept(codeAnalyzer);
+        // Use CodeAnalyzer to analyze the syntax node and generate FlowNode
+        Project project = document.module().project();
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE,
+                Map.of(), Map.of(), textDocument,
+                ModuleInfo.from(document.module().descriptor()), false,
+                agentTemplateContext.workspaceManager());
+        syntaxNode.accept(codeAnalyzer);
 
-            // Get the generated flow nodes and return the first one (should be the agent node)
-            List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
-            if (flowNodes.isEmpty()) {
-                throw new IllegalStateException(
-                        "No flow node found for the existing agent at line range: " + codedata.lineRange());
-            }
-
-            return flowNodes.getFirst();
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to find existing agent node from semantic model", e);
+        // Get the generated flow nodes and return the first one (should be the agent node)
+        List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
+        if (flowNodes.isEmpty()) {
+            throw new IllegalStateException(
+                    "No flow node found for the existing agent at line range: " + codedata.lineRange());
         }
+
+        return flowNodes.getFirst();
     }
 }
