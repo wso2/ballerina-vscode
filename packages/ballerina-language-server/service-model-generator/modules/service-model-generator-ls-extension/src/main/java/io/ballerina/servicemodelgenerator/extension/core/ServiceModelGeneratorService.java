@@ -110,7 +110,6 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -122,15 +121,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAUL
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.filterTriggers;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -600,7 +595,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(node instanceof ServiceDeclarationNode || node instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(HTTP,
+                Codedata codedata = request.function().getCodedata();
+                String moduleName = (codedata != null && codedata.getModuleName() != null) ? codedata.getModuleName() :
+                        DEFAULT;
+                Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
                         request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
                 return new CommonSourceResponse(textEdits);
             } catch (Exception e) {

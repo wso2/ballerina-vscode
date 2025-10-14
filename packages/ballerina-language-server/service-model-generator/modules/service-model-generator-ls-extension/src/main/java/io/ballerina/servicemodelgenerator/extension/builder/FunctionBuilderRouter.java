@@ -70,7 +70,8 @@ public class FunctionBuilderRouter {
                                                           SemanticModel semanticModel, Document document,
                                                           NonTerminalNode node) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        AddModelContext context = new AddModelContext(null, function, semanticModel, null, null, filePath, document, node);
+        AddModelContext context = new AddModelContext(null, function, semanticModel, null, null,
+                filePath, document, node);
         return functionBuilder.addModel(context);
     }
 

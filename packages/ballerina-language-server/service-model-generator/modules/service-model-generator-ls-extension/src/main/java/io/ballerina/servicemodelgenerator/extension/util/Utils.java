@@ -65,7 +65,6 @@ import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
-import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -1162,18 +1161,12 @@ public final class Utils {
         if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
             return;
         }
-
-        try {
-            Path balHomePath = RepoUtils.createAndGetHomeReposPath();
-            Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR,
-                    orgName, packageName));
-            if (Files.exists(packagePath)) {
-                return;
-            }
-        } catch (Exception e) {
-            // Ignore the exception and proceed to attempt module resolution
+        Path balHomePath = RepoUtils.createAndGetHomeReposPath();
+        Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR,
+                orgName, packageName));
+        if (Files.exists(packagePath)) {
+            return;
         }
-
         CentralAPI centralApi = RemoteCentral.getInstance();
         String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
         ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);

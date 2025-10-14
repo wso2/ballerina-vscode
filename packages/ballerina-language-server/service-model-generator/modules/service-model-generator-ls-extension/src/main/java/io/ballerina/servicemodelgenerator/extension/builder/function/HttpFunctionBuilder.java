@@ -54,7 +54,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
-import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;

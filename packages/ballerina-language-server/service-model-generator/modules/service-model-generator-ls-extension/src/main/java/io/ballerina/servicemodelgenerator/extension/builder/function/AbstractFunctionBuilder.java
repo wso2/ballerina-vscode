@@ -76,7 +76,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.CLASS;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
