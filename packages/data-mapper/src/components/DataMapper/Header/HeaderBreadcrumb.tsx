@@ -22,7 +22,6 @@ import { Breadcrumbs, Codicon } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import { View } from "../Views/DataMapperView";
 import { extractLastPartFromLabel } from './utils';
-import { ComponentDisplayType } from '@wso2/ballerina-core';
 
 const useStyles = () => {
     const baseStyle = {
