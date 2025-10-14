@@ -16,7 +16,7 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import { useState } from "react";
+import React, { useState } from "react";
 import { DiagramEngine } from '@projectstorm/react-diagrams-core';
 import { Button, Codicon, ProgressRing } from '@wso2/ui-toolkit';
 import classnames from 'classnames';
