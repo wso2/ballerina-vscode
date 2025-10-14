@@ -104,6 +104,7 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -116,6 +117,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
@@ -921,10 +923,7 @@ public final class Utils {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-
-        FunctionSignatureContext sigContext = addContext.equals(FunctionAddContext.HTTP_SERVICE_ADD) ?
-                FunctionSignatureContext.HTTP_RESOURCE_ADD : signatureContext;
-        String functionSignature = generateFunctionSignatureSource(function, statusCodeResponses, sigContext, imports);
+        String functionSignature = generateFunctionSignatureSource(function, imports);
         builder.append(functionSignature);
 
         FunctionReturnType returnType = function.getReturnType();
@@ -955,40 +954,18 @@ public final class Utils {
         return builder.toString();
     }
 
-    public static String generateFunctionSignatureSource(Function function, List<String> statusCodeResponses,
-                                                         FunctionSignatureContext context,
-                                                         Map<String, String> imports) {
+    public static String generateFunctionSignatureSource(Function function, Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
-        builder.append("(");
-        builder.append(generateFunctionParamListSource(function.getParameters(), imports));
-        builder.append(")");
+        builder.append(OPEN_PAREN)
+                .append(generateFunctionParamListSource(function.getParameters(), imports))
+                .append(CLOSE_PAREN);
 
         FunctionReturnType returnType = function.getReturnType();
-        boolean addError = context.equals(FunctionSignatureContext.HTTP_RESOURCE_ADD);
         if (Objects.nonNull(returnType)) {
             if (returnType.isEnabledWithValue()) {
-                builder.append(" returns ");
-                String returnTypeStr = getValueString(returnType);
-                if (addError && !returnTypeStr.contains("error")) {
-                    returnTypeStr = "error|" + returnTypeStr;
-                }
-                builder.append(returnTypeStr);
+                builder.append(" returns ").append(getValueString(returnType));
                 if (Objects.nonNull(returnType.getImports())) {
                     imports.putAll(returnType.getImports());
-                }
-            } else if (returnType.isEnabled() && Objects.nonNull(returnType.getResponses()) &&
-                    !returnType.getResponses().isEmpty()) {
-                List<String> responses = new ArrayList<>(returnType.getResponses().stream()
-                        .filter(HttpResponse::isEnabled)
-                        .map(response -> HttpUtil.getStatusCodeResponse(response, statusCodeResponses, imports))
-                        .filter(Objects::nonNull)
-                        .toList());
-                if (!responses.isEmpty()) {
-                    if (addError && !statusCodeResponses.contains("error") && !responses.contains("error")) {
-                        responses.addFirst("error");
-                    }
-                    builder.append(" returns ");
-                    builder.append(String.join("|", responses));
                 }
             }
         }
@@ -996,7 +973,8 @@ public final class Utils {
         return builder.toString();
     }
 
-    private static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
+
+    static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
         // sort params list where required params come first
         parameters.sort(new Parameter.RequiredParamSorter());
 
@@ -1100,12 +1078,27 @@ public final class Utils {
     }
 
     public static String generateTypeIdentifier(SemanticModel semanticModel, Document document,
-                                                    LinePosition linePosition, String prefix) {
-        Set<String> names = semanticModel.visibleSymbols(document, linePosition).parallelStream()
+                                                LinePosition linePosition, String prefix) {
+        Set<String> names = getVisibleSymbols(semanticModel, document, linePosition);
+        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static String generateTypeIdentifier(Set<String> names, String prefix) {
+        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static Set<String> getVisibleSymbols(SemanticModel semanticModel, Document document,
+                                                LinePosition linePosition) {
+        return semanticModel.visibleSymbols(document, linePosition).parallelStream()
                 .filter(s -> s.getName().isPresent())
                 .map(s -> s.getName().get())
                 .collect(Collectors.toSet());
-        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static Set<String> getVisibleSymbols(SemanticModel semanticModel, Document document) {
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        LinePosition linePosition = rootNode.lineRange().endLine();
+        return getVisibleSymbols(semanticModel, document, linePosition);
     }
 
     public static String upperCaseFirstLetter(String value) {

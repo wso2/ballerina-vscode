@@ -33,6 +33,8 @@ public class Constants {
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
+    public static final String OPEN_PAREN = "(";
+    public static final String CLOSE_PAREN = ")";
     public static final String NEW_LINE = System.lineSeparator();
     public static final String TWO_NEW_LINES = NEW_LINE + NEW_LINE;
     public static final String NEW_LINE_WITH_TAB = NEW_LINE + TAB;

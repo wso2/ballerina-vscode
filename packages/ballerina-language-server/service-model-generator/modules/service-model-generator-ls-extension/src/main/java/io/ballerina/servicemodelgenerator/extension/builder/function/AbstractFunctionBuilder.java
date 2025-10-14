@@ -334,8 +334,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
 
         LineRange signatureRange = context.functionNode().functionSignature().lineRange();
         List<String> newStatusCodeTypesDef = new ArrayList<>();
-        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
-                FUNCTION_UPDATE, imports);
+        String functionSignature = generateFunctionSignatureSource(context.function(), imports);
         List<String> importStmts = new ArrayList<>();
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         imports.values().forEach(moduleId -> {
