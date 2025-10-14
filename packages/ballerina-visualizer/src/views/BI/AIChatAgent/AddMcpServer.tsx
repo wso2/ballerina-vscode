@@ -48,14 +48,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [agentFileEndLineRange, setAgentFileEndLineRange] = useState<LineRange | undefined>(undefined);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
     const agentNodeRef = useRef<FlowNode>(null);
 
-    const projectPathRef = useRef<string>("");
     const agentFilePathRef = useRef<string>("");
+    const agentFileEndLineRangeRef = useRef<LineRange | null>(null);
     const formRef = useRef<any>(null);
 
     const fetchAgentNode = async (connections: FlowNode[]) => {
@@ -66,8 +65,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const response = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: projectPathRef.current,
+                position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
+                filePath: agentFilePathRef.current,
                 id: {
                     node: "MCP_TOOL_KIT",
                 }
@@ -91,9 +90,9 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const initPanel = useCallback(async () => {
         setIsLoading(true);
 
-        const visualizerLocation = await rpcClient.getVisualizerLocation();
-        projectPathRef.current = visualizerLocation.projectUri;
         agentFilePathRef.current = await getAgentFilePath(rpcClient);
+        const endLineRange = await getEndOfFileLineRange("agents.bal", rpcClient);
+        agentFileEndLineRangeRef.current = endLineRange;
 
         const moduleNodes = await fetchModuleNodes();
         await fetchAgentNode(moduleNodes.flowModel.connections);
@@ -105,8 +104,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             setupEditMode(moduleNodes.flowModel.variables);
         } else {
             mcpToolKitNodeRef.current = template;
-            const endLineRange = await getEndOfFileLineRange(agentFilePathRef.current, rpcClient);
-            setAgentFileEndLineRange(endLineRange);
         }
 
         setIsLoading(false);
@@ -261,8 +258,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             {mcpToolKitNodeTemplateRef && (
                 <FormGenerator
                     ref={formRef}
-                    fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFilePathRef.current}
-                    targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRange}
+                    fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFileEndLineRangeRef.current?.fileName}
+                    targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRangeRef.current}
                     nodeFormTemplate={mcpToolKitNodeTemplateRef.current}
                     submitText={"Save"}
                     node={mcpToolKitNodeRef.current}
