@@ -1500,7 +1500,7 @@ public class CodeAnalyzer extends NodeVisitor {
             if (classDefinitionData != null) {
                 nodeBuilder.codedata().data(McpToolKitBuilder.MCP_CLASS_DEFINITION, classDefinitionData);
                 McpToolKitBuilder.setToolKitNameProperty(nodeBuilder, name);
-                List<String> permittedTools = getPermittedToolsFromClass(classSymbol);
+                String permittedTools = getPermittedToolsFromClass(classSymbol);
                 McpToolKitBuilder.setPermittedToolsProperty(nodeBuilder, permittedTools);
             }
         }
@@ -2591,10 +2591,10 @@ public class CodeAnalyzer extends NodeVisitor {
      * @param classSymbol The class symbol representing the MCP toolkit class
      * @return A list of permitted tool names, or an empty list if not found
      */
-    private List<String> getPermittedToolsFromClass(ClassSymbol classSymbol) {
+    private String getPermittedToolsFromClass(ClassSymbol classSymbol) {
         Optional<Location> optLocation = classSymbol.getLocation();
         if (optLocation.isEmpty()) {
-            return List.of();
+            return "()";
         }
 
         Location location = optLocation.get();
@@ -2602,7 +2602,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 CommonUtils.getDocument(project, location).syntaxTree());
 
         if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
-            return List.of();
+            return "()";
         }
 
         // Find the init method in the class
@@ -2656,11 +2656,13 @@ public class CodeAnalyzer extends NodeVisitor {
                         toolNames.add(fieldName);
                     }
                 }
-                return toolNames;
+                // Convert list to JSON array string format
+                return toolNames.stream()
+                        .map(name -> "\"" + name + "\"")
+                        .collect(Collectors.joining(", ", "[", "]"));
             }
         }
-
-        return List.of();
+        return "()";
     }
 
     // Check whether a type symbol is subType of `RawTemplate`

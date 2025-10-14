@@ -39,6 +39,7 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -128,7 +129,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                 .editable().stepOut().addProperty(TOOL_KIT_NAME_PROPERTY);
     }
 
-    public static void setPermittedToolsProperty(NodeBuilder nodeBuilder, List<String> permittedTools) {
+    public static void setPermittedToolsProperty(NodeBuilder nodeBuilder, String permittedTools) {
         if (permittedTools != null) {
             nodeBuilder.properties().custom()
                     .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(PERMITTED_TOOLS_PROPERTY).stepOut()
@@ -208,7 +209,7 @@ public class McpToolKitBuilder extends NodeBuilder {
         }
 
         Set<String> ignoredProperties =
-                new java.util.HashSet<>(Set.of(VARIABLE_KEY, TYPE_KEY, SCOPE_KEY, CHECK_ERROR_KEY));
+                new HashSet<>(Set.of(VARIABLE_KEY, TYPE_KEY, SCOPE_KEY, CHECK_ERROR_KEY));
         Property toolKitNameProperty = getToolKitNameProperty(sourceBuilder.flowNode);
         if (toolKitNameProperty == null) {
             // Generate the following code
@@ -222,13 +223,9 @@ public class McpToolKitBuilder extends NodeBuilder {
         } else {
             // 1. Generate the MCP toolkit class in user code
             Property permittedToolsProperty = sourceBuilder.flowNode.properties().get(PERMITTED_TOOLS_PROPERTY);
-            List<String> permittedTools;
-            if (permittedToolsProperty.value() instanceof List<?>) {
-                permittedTools = ((List<?>) permittedToolsProperty.value()).stream()
-                        .filter(String.class::isInstance).map(String.class::cast).toList();
-            } else {
-                permittedTools = List.of();
-            }
+            String permittedTools = permittedToolsProperty.value() instanceof String
+                    ? (String) permittedToolsProperty.value()
+                    : "()";
             String toolKitName = String.valueOf(toolKitNameProperty.value());
 
             sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
@@ -288,54 +285,92 @@ public class McpToolKitBuilder extends NodeBuilder {
         }
     }
 
-    private String generateMcpToolKitClassSource(String className, List<String> permittedTools) {
-        Map<String, String> toolMapping = generatePermittedToolsMapping(permittedTools);
-        String permittedToolsMappingConstructorExp = toolMapping.entrySet().stream()
-                .map(e -> "                " + e.getKey() + " : self." + e.getValue())
-                .collect(Collectors.joining(",\n"));
+    private String generateMcpToolKitClassSource(String className, String permittedTools) {
+        String initBody;
+        String toolFunctions;
 
-        String toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
-                .collect(Collectors.joining("\n"));
+        if (permittedTools.equals("()") || permittedTools.isBlank()) {
+            // Generate init body using self.callTool as function reference
+            initBody = """
+                            do {
+                                self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);
+                                self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info,\
+                     self.callTool).cloneReadOnly();
+                            } on fail error e {
+                                return error ai:Error("Failed to initialize MCP toolkit", e);
+                            }\
+                    """;
+
+            // Generate callTool method
+            toolFunctions = getToolMethodSignature("callTool");
+        } else {
+            // Generate init body with permitted tools mapping
+            Map<String, String> toolMapping = generatePermittedToolsMapping(permittedTools);
+            String permittedToolsMappingConstructorExp = toolMapping.entrySet().stream()
+                    .map(e -> "                " + e.getKey() + " : self." + e.getValue())
+                    .collect(Collectors.joining(",\n"));
+
+            initBody = String.format(
+                    """
+                                    final map<ai:FunctionTool> permittedTools = {
+                            %s
+                                    };\
+                            
+                                    do {
+                                        self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);
+                                        self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info,\
+                             permittedTools).cloneReadOnly();
+                                    } on fail error e {
+                                        return error ai:Error("Failed to initialize MCP toolkit", e);
+                                    }""",
+                    permittedToolsMappingConstructorExp
+            );
+
+            // Generate individual tool methods
+            toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
+                    .collect(Collectors.joining("\n"));
+        }
 
         return String.format(
-                "isolated class %s {%n" +
-                        "    *ai:McpBaseToolKit;%n" +
-                        "    private final mcp:StreamableHttpClient mcpClient;%n" +
-                        "    private final readonly & ai:ToolConfig[] tools;%n" +
-                        "%n" +
-                        "    public isolated function init(string serverUrl," +
-                        " mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},%n" +
-                        "        *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {%n" +
-                        "        final map<ai:FunctionTool> permittedTools = {%n" +
-                        "%s%n" +
-                        "        };" +
-                        "%n" +
-                        "        do {%n" +
-                        "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);%n" +
-                        "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info," +
-                        " permittedTools).cloneReadOnly();%n" +
-                        "        } on fail error e {%n" +
-                        "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);%n" +
-                        "        }%n" +
-                        "    }%n" +
-                        "%n" +
-                        "    public isolated function getTools() returns ai:ToolConfig[] => self.tools;%n" +
-                        "%n" +
-                        "%s" +
-                        "}%n",
-                className, permittedToolsMappingConstructorExp, toolFunctions
+                """
+                        isolated class %s {
+                            *ai:McpBaseToolKit;
+                            private final mcp:StreamableHttpClient mcpClient;
+                            private final readonly & ai:ToolConfig[] tools;
+                        
+                            public isolated function init(string serverUrl,\
+                         mcp:Implementation info = {name: "MCP", version: "1.0.0"},
+                                    *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {
+                        %s
+                            }
+                        
+                            public isolated function getTools() returns ai:ToolConfig[] => self.tools;
+                        
+                        %s\
+                        }
+                        """,
+                className, initBody, toolFunctions
         );
     }
 
     private String getToolMethodSignature(String toolName) {
-        return String.format("    @ai:AgentTool%n"
-                + "    public isolated function %s(mcp:CallToolParams params) returns mcp:CallToolResult|error {%n"
-                + "        return self.mcpClient->callTool(params);%n"
-                + "    }%n", toolName);
+        return String.format("""
+                    @ai:AgentTool
+                    public isolated function %s(mcp:CallToolParams params) returns mcp:CallToolResult|error {
+                        return self.mcpClient->callTool(params);
+                    }
+                """, toolName);
     }
 
-    private Map<String, String> generatePermittedToolsMapping(List<String> permittedTools) {
-        return permittedTools.stream().filter(tool -> tool != null && !tool.isBlank())
+    private Map<String, String> generatePermittedToolsMapping(String permittedTools) {
+        if (permittedTools == null || permittedTools.isBlank() || permittedTools.equals("()")) {
+            return Map.of();
+        }
+        String cleanedTools = permittedTools.trim()
+                .replaceAll("^\\[|]$", "");
+        return java.util.Arrays.stream(cleanedTools.split(","))
+                .map(String::trim)
+                .filter(tool -> !tool.isEmpty())
                 .collect(Collectors.toMap(name -> name, this::toMethodName));
     }
 
