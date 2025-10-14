@@ -35,7 +35,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, onChange, valueTypeC
         [valueTypeConstraint]
     );
 
-    const handleTextClick = () => {
+    const handlePrimaryModeClick = () => {
         onChange(defaultMode);
     };
 
@@ -46,7 +46,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, onChange, valueTypeC
     return (
         <SwitchWrapper>
             <Slider checked={isChecked}>
-                <Label active={!isChecked} onClick={handleTextClick}>Text</Label>
+                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{defaultMode}</Label>
                 <Label active={isChecked} onClick={handleExpressionClick}>Expression</Label>
             </Slider>
         </SwitchWrapper>
