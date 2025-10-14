@@ -254,6 +254,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
         // Check if workspaceFolderPath is a Ballerina project
         // Assuming a Ballerina project must contain a 'Ballerina.toml' file
+        // TODO: This logic needs to be updated for multi-package workspaces
         const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
         if (fs.existsSync(ballerinaProjectFile)) {
             return workspaceFolderPath;

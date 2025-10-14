@@ -460,10 +460,17 @@ const stateMachine = createMachine<MachineContext>(
             return new Promise(async (resolve, reject) => {
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({ location: { view: MACHINE_VIEW.Overview, documentUri: context.documentUri } });
+                        history.push({
+                            location: {
+                                view: MACHINE_VIEW.Overview,
+                                documentUri: context.documentUri,
+                                package: context.package
+                            }
+                        });
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectUri);
+                    view.location.package = context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -473,6 +480,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            package: context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
