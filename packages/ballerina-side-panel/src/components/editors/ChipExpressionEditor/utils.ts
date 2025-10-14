@@ -19,7 +19,7 @@
 import { INPUT_MODE_MAP, InputMode } from "./types";
 
 export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): InputMode => {
-    if (!valueTypeConstraint) return InputMode.EXP;
+    if (!valueTypeConstraint) return;
     let types: string[];
     if (typeof valueTypeConstraint === 'string') {
         if (valueTypeConstraint.includes('|')) {
@@ -36,7 +36,7 @@ export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): I
             return INPUT_MODE_MAP[types[i]];
         }
     }
-    return InputMode.EXP;
+    return;
 };
 
 export const getDefaultExpressionMode = (valueTypeConstraint: string | string[]): InputMode => {

@@ -44,6 +44,7 @@ import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
 import { InputMode } from './ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './ChipExpressionEditor/utils';
+import { ExpressionField } from './ExpressionField';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -284,24 +285,6 @@ export namespace S {
     `;
 }
 
-const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
-    return (
-        <Tooltip content="Add Expression" containerSx={{ cursor: 'default' }}>
-            <S.Ribbon onClick={onClick}>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24">
-                    <path
-                        fill="currentColor"
-                        d="M12.42 5.29c-1.1-.1-2.07.71-2.17 1.82L10 10h2.82v2h-3l-.44 5.07A4.001 4.001 0 0 1 2 18.83l1.5-1.5c.33 1.05 1.46 1.64 2.5 1.3c.78-.24 1.33-.93 1.4-1.74L7.82 12h-3v-2H8l.27-3.07a4.01 4.01 0 0 1 4.33-3.65c1.26.11 2.4.81 3.06 1.89l-1.5 1.5c-.25-.77-.93-1.31-1.74-1.38M22 13.65l-1.41-1.41l-2.83 2.83l-2.83-2.83l-1.43 1.41l2.85 2.85l-2.85 2.81l1.43 1.41l2.83-2.83l2.83 2.83L22 19.31l-2.83-2.81z" />
-                </svg>
-            </S.Ribbon>
-        </Tooltip>
-    );
-};
-
 export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditorProps) => {
     const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
 
@@ -353,7 +336,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(InputMode.TEXT);
+    const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
 
 
@@ -399,6 +382,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     useEffect(() => {
         const newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        if (!newInputMode) {
+            setInputMode(InputMode.EXP);
+            return;
+        }
         setInputMode(newInputMode);
     }, [field?.valueTypeConstraint]);
 
@@ -421,6 +408,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const handleChangeHelperPaneState = (isOpen: boolean) => {
         setIsHelperPaneOpen(isOpen);
     };
+
+    const handleSave = async (value: string) => {
+        let valueToBeSaved = value;
+        if (inputMode === InputMode.TEXT) {
+            valueToBeSaved = `\"${value}\"`;
+        }
+        onSave?.(valueToBeSaved);
+    }
 
     const toggleHelperPaneState = () => {
         if (!isHelperPaneOpen) {
@@ -498,7 +493,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         {sanitizeType(field.valueTypeConstraint as string)}
                                     </S.Type>
                                 )}
-                                {field.valueTypeConstraint && (focused || isExpressionEditorHovered) && (
+                                {(focused || isExpressionEditorHovered) 
+                                && getInputModeFromTypes(field.valueTypeConstraint)
+                                && (
                                     <ModeSwitcher
                                         value={inputMode}
                                         onChange={handleModeChange}
@@ -515,16 +512,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     rules={{ required: required ?? (!field.optional && !field.placeholder) }}
                     render={({ field: { name, value, onChange }, fieldState: { error } }) => (
                         <div>
-                            <FormExpressionEditor
-                                key={key}
-                                ref={exprRef}
-                                anchorRef={anchorRef}
+                            <ExpressionField
+                                inputMode={inputMode}
                                 name={name}
-                                completions={inputMode === InputMode.EXP ? completions : []}
-                                value={sanitizedExpression ? sanitizedExpression(value) : value}
+                                value={value}
+                                completions={completions}
                                 autoFocus={autoFocus}
-                                startAdornment={inputMode === InputMode.EXP ? <EditorRibbon onClick={toggleHelperPaneState} /> : <></>}
+                                sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}
+                                placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
                                     if (updatedValue === value) {
                                         return;
@@ -568,20 +564,19 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     handleFocus();
                                 }}
                                 onBlur={handleBlur}
-                                onSave={onSave}
+                                onSave={handleSave}
                                 onCancel={onCancel}
                                 onRemove={onRemove}
-                                enableExIcon={false}
                                 isHelperPaneOpen={isHelperPaneOpen}
                                 changeHelperPaneState={handleChangeHelperPaneState}
-                                helperPaneOrigin="vertical"
-                                getHelperPane={inputMode === InputMode.EXP ? handleGetHelperPane : undefined}
+                                getHelperPane={handleGetHelperPane}
                                 helperPaneHeight={helperPaneHeight}
                                 helperPaneWidth={recordTypeField ? 400 : undefined}
                                 growRange={growRange}
-                                sx={{ paddingInline: '0' }}
-                                placeholder={placeholder}
                                 helperPaneZIndex={helperPaneZIndex}
+                                exprRef={exprRef}
+                                anchorRef={anchorRef}
+                                onToggleHelperPane={toggleHelperPaneState}
                             />
                             {error && <ErrorBanner errorMsg={error.message.toString()} />}
                         </div>

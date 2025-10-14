@@ -22,6 +22,6 @@ export enum InputMode {
 }
 
 export const INPUT_MODE_MAP = {
-  string: "TEXT",
+  string: InputMode.TEXT,
   //later add more when needed
 };
