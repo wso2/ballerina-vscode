@@ -268,13 +268,8 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
 
         if (!newTypeDefinitions.isEmpty()) {
-            String newTypeDefinition = String.join(NEW_LINE, newTypeDefinitions);
+            String newTypeDefinition = String.join(TWO_NEW_LINES, newTypeDefinitions);
             edits.add(new TextEdit(Utils.toRange(serviceDeclarationNode.lineRange().endLine()), newTypeDefinition));
-        }
-        if (!newTypeDefinitions.isEmpty()) {
-            String statusCodeResEdits = String.join(TWO_NEW_LINES, newTypeDefinitions);
-            edits.add(new TextEdit(Utils.toRange(serviceDeclarationNode.closeBraceToken().lineRange().endLine()),
-                    NEW_LINE + statusCodeResEdits));
         }
         return Map.of(context.filePath(), edits);
     }

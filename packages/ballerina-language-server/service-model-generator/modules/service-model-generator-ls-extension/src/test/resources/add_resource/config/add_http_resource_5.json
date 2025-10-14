@@ -95,7 +95,8 @@
         "enabled": false,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       },
       {
         "metadata": {
@@ -134,7 +135,8 @@
         "enabled": false,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       },
       {
         "metadata": {
@@ -173,7 +175,8 @@
         "enabled": false,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       }
     ],
     "schema": {
@@ -229,7 +232,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY"
+        "httpParamType": "QUERY",
+        "hidden": false
       },
       "header": {
         "metadata": {
@@ -283,7 +287,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header"
+        "httpParamType": "Header",
+        "hidden": false
       },
       "payload": {
         "metadata": {
@@ -323,7 +328,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD"
+        "httpParamType": "PAYLOAD",
+        "hidden": false
       }
     },
     "returnType": {
@@ -391,8 +397,7 @@
           },
           "enabled": true,
           "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       ],
       "schema": {
@@ -467,8 +472,7 @@
           },
           "enabled": true,
           "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       },
       "hasError": false,
@@ -504,34 +508,34 @@
     },
     "properties": {
       "annotResourceConfig": {
-          "metadata": {
-            "label": "Resource Configuration",
-            "description": "Define advanced configurations like resource level media types, security, etc."
-          },
-          "codedata": {
-            "type": "ANNOTATION_ATTACHMENT",
-            "originalName": "ResourceConfig",
-            "orgName": "ballerina",
-            "moduleName": "http"
-          },
-          "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpResourceConfig",
-          "value": "{}",
-          "typeMembers": [
-            {
-              "type": "HttpResourceConfig",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
-              "selected": true
-            }
-          ],
-          "imports": {},
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": true
-        }
+        "metadata": {
+          "label": "Resource Configuration",
+          "description": "Define advanced configurations like resource level media types, security, etc."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "http"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpResourceConfig",
+        "value": "{}",
+        "typeMembers": [
+          {
+            "type": "HttpResourceConfig",
+            "packageInfo": "ballerina:http:2.14.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {},
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
     }
   },
   "output": {
@@ -539,12 +543,12 @@
       {
         "range": {
           "start": {
-            "line": 12,
-            "character": 0
+            "line": 10,
+            "character": 5
           },
           "end": {
-            "line": 12,
-            "character": 0
+            "line": 10,
+            "character": 5
           }
         },
         "newText": "\n\t@http:ResourceConfig{}\n\tresource function get customHttpOK() returns error|MyCustomHttpOK {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
@@ -560,7 +564,7 @@
             "character": 1
           }
         },
-        "newText": "\npublic type MyCustomHttpOK record {|\n\t*http:Ok;|};"
+        "newText": "public type MyCustomHttpOK record {|\n\t*http:Ok;|};"
       }
     ]
   }

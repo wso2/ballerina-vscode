@@ -99,7 +99,8 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       },
       {
         "metadata": {
@@ -140,7 +141,8 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       },
       {
         "metadata": {
@@ -181,7 +183,8 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": true,
+        "hidden": false
       }
     ],
     "schema": {
@@ -240,7 +243,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY"
+        "httpParamType": "QUERY",
+        "hidden": false
       },
       "header": {
         "metadata": {
@@ -297,7 +301,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header"
+        "httpParamType": "Header",
+        "hidden": false
       },
       "payload": {
         "metadata": {
@@ -339,19 +344,16 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD"
+        "httpParamType": "PAYLOAD",
+        "hidden": false
       }
     },
     "returnType": {
       "responses": [
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "Dynamic",
+            "valueType": "SINGLE_SELECT",
+            "value": "200",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -359,69 +361,56 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "TYPE",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "IDENTIFIER",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "http:Response",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
-          "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
+          "name": {
+            "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "valueType": "TYPE",
+            "value": {
+              "valueType": "TYPE",
+              "value": "http:Response",
+              "imports": {},
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
             "advanced": false
           },
           "enabled": true,
           "editable": true,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         },
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
+            "valueType": "SINGLE_SELECT",
             "value": "500",
             "imports": {},
             "enabled": true,
@@ -430,11 +419,16 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
             "value": "",
             "imports": {},
             "enabled": true,
@@ -443,48 +437,35 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
             "value": "error",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
+            "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "enabled": true,
-          "editable": true,
-          "advanced": false,
-          "isHttpResponseType": false
+          "editable": false,
+          "advanced": false
         }
       ],
       "schema": {
@@ -563,8 +544,7 @@
           },
           "enabled": true,
           "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       },
       "hasError": false,
@@ -596,46 +576,38 @@
           "line": 8,
           "offset": 5
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
     "properties": {
       "annotResourceConfig": {
-          "metadata": {
-            "label": "Resource Configuration",
-            "description": "Define advanced configurations like resource level media types, security, etc."
-          },
-          "enabled": true,
-          "editable": true,
-          "value": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpResourceConfig",
-          "isType": false,
-          "placeholder": "{}",
-          "optional": true,
-          "advanced": true,
-          "codedata": {
-            "inListenerInit": false,
-            "isBasePath": false,
-            "inDisplayAnnotation": false,
-            "type": "ANNOTATION_ATTACHMENT",
-            "originalName": "ResourceConfig",
-            "orgName": "ballerina",
-            "moduleName": "http"
-          },
-          "addNewButton": false,
-          "typeMembers": [
-            {
-              "type": "HttpResourceConfig",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
-              "selected": true
-            }
-          ],
-          "imports": {}
-        }
+        "metadata": {
+          "label": "Resource Configuration",
+          "description": "Define advanced configurations like resource level media types, security, etc."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "http"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpResourceConfig",
+        "value": "{}",
+        "typeMembers": [
+          {
+            "type": "HttpResourceConfig",
+            "packageInfo": "ballerina:http:2.14.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "imports": {},
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
     }
   },
   "output": {
@@ -643,12 +615,12 @@
       {
         "range": {
           "start": {
-            "line": 12,
-            "character": 0
+            "line": 10,
+            "character": 5
           },
           "end": {
-            "line": 12,
-            "character": 0
+            "line": 10,
+            "character": 5
           }
         },
         "newText": "\n\t@http:ResourceConfig{}\n\tresource function get response(http:Request request, http:Caller caller, http:Headers headers) returns http:Response|error {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
