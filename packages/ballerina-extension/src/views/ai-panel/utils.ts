@@ -24,8 +24,9 @@ import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
-import { DEVANT_API_KEY, DEVANT_STS_TOKEN } from '../../features/ai/utils';
+import { DEVANT_API_KEY, DEVANT_STS_TOKEN_CONFIG } from '../../features/ai/utils';
 import { getBedrockRegionalPrefix } from '../../features/ai/service/connection';
+import { getDevantStsToken } from '../../features/devant/activator';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -133,9 +134,10 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
 };
 
 export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefined> => {
+    const devantStsToken = DEVANT_STS_TOKEN_CONFIG || await getDevantStsToken();
     // Check if both required devant environment variables are present and non-empty
-    if (!DEVANT_API_KEY || !DEVANT_STS_TOKEN ||
-        DEVANT_API_KEY.trim() === '' || DEVANT_STS_TOKEN.trim() === '') {
+    if (!DEVANT_API_KEY || !devantStsToken ||
+        DEVANT_API_KEY.trim() === '' || devantStsToken.trim() === '') {
         return undefined;
     }
 
@@ -144,7 +146,7 @@ export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefi
         loginMethod: LoginMethod.DEVANT_ENV,
         secrets: {
             apiKey: DEVANT_API_KEY,
-            stsToken: DEVANT_STS_TOKEN
+            stsToken: devantStsToken
         }
     };
 };
