@@ -243,6 +243,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
         "bal-shell-service*",
         "org.eclipse.lsp4j*",
         "diagram-util*",
+		"openapi-ls-extension*",
         "sqlite-jdbc*"
     ];
 

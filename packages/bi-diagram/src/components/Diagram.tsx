@@ -30,7 +30,7 @@ import {
     resetDiagramZoomAndPosition,
 } from "../utils/diagram";
 import { DiagramCanvas } from "./DiagramCanvas";
-import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
+import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData, DraftNodeConfig } from "../utils/types";
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
@@ -44,6 +44,7 @@ import Controls from "./Controls";
 import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
+import { PopupOverlay } from "./PopupOverlay";
 
 export interface DiagramProps {
     model: Flow;
@@ -58,6 +59,8 @@ export interface DiagramProps {
     onConnectionSelect?: (connectionName: string) => void;
     goToSource?: (node: FlowNode) => void;
     openView?: (filePath: string, position: NodePosition) => void;
+    draftNode?: DraftNodeConfig;
+    selectedNodeId?: string;
     // agent node callbacks
     agentNode?: {
         onModelSelect: (node: FlowNode) => void;
@@ -80,9 +83,17 @@ export interface DiagramProps {
         onAccept(): void;
         onDiscard(): void;
     };
-    projectPath?: string;
+    project?: {
+        org: string;
+        path: string;
+        getProjectPath?:(segments: string | string[]) => Promise<string>;
+    };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
+    overlay?: {
+        visible: boolean;
+        onClickOverlay: () => void;
+    }
     expressionContext?: ExpressionContextProps;
 }
 
@@ -98,15 +109,18 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect,
         goToSource,
         openView,
+        draftNode,
+        selectedNodeId,
         agentNode,
         aiNodes,
         suggestions,
-        projectPath,
+        project,
         addBreakpoint,
         removeBreakpoint,
         breakpointInfo,
         readOnly,
-        expressionContext
+        overlay,
+        expressionContext,
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
@@ -179,7 +193,10 @@ export function Diagram(props: DiagramProps) {
                 const onFailureBranch = node.branches?.find((branch) => branch.codedata?.node === "ON_FAILURE");
                 if (onFailureBranch) {
                     // Check if any child nodes in the onFailure branch match the active breakpoint
-                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(onFailureBranch, activeBreakpoint);
+                    const hasActiveBreakpointInOnFailure = checkForActiveBreakpointInBranch(
+                        onFailureBranch,
+                        activeBreakpoint
+                    );
                     if (hasActiveBreakpointInOnFailure) {
                         errorHandlerIdToExpand = node.id;
                         return;
@@ -276,10 +293,6 @@ export function Diagram(props: DiagramProps) {
         setShowComponentPanel(true);
     };
 
-    const toggleDiagramFlow = () => {
-        setShowErrorFlow(!showErrorFlow);
-    };
-
     const toggleErrorHandlerExpansion = (nodeId: string) => {
         setExpandedErrorHandler((prev) => (prev === nodeId ? undefined : nodeId));
     };
@@ -305,12 +318,14 @@ export function Diagram(props: DiagramProps) {
         onConnectionSelect: onConnectionSelect,
         goToSource: goToSource,
         openView: openView,
+        draftNode: draftNode,
+        selectedNodeId: selectedNodeId,
         agentNode: agentNode,
         aiNodes: aiNodes,
         suggestions: suggestions,
-        projectPath: projectPath,
+        project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
-        expressionContext: expressionContext
+        expressionContext: expressionContext,
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {
@@ -331,6 +346,7 @@ export function Diagram(props: DiagramProps) {
             <Controls engine={diagramEngine} />
             {diagramEngine && diagramModel && (
                 <DiagramContextProvider value={context}>
+                    {overlay?.visible && <PopupOverlay onClose={overlay.onClickOverlay} />}
                     <DiagramCanvas>
                         <NavigationWrapperCanvasWidget
                             diagramEngine={diagramEngine}
