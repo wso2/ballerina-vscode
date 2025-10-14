@@ -630,7 +630,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}
-                            isGraphqlEditor={isGraphql}
+                            isGraphqlEditor={false}
                         />
                     </PanelContainer>
                 )}
