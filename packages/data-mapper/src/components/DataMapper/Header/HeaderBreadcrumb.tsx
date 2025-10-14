@@ -22,12 +22,15 @@ import { Breadcrumbs, Codicon } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import { View } from "../Views/DataMapperView";
 import { extractLastPartFromLabel } from './utils';
+import { ComponentDisplayType } from '@wso2/ballerina-core';
 
 const useStyles = () => {
     const baseStyle = {
         color: "inherit",
         fontFamily: "var(--vscode-editor-font-family)",
-        fontSize: "13px"
+        fontSize: "13px",
+        display: "flex",
+        gap: "4px"
     };
 
     return {
@@ -44,6 +47,30 @@ const useStyles = () => {
         })
     };
 };
+
+interface LinkContentProps {
+    label: string;
+    isRootView?: boolean;
+    isSubMapping?: boolean;
+}
+
+function LinkContent(props: LinkContentProps) {
+    const { label, isRootView, isSubMapping } = props;
+    return (
+        isRootView ? (
+            <>{label}</>
+        ) : (
+            <>
+                {isSubMapping ? (
+                    <Codicon name="list-unordered" tooltip="SubMapping" />
+                ) : (
+                    <Codicon name="list-selection" tooltip="Query" />
+                )}
+                {label}
+            </>
+        )
+    );
+}
 
 export interface HeaderBreadcrumbProps {
     views: View[];
@@ -64,7 +91,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
 
             const selectedLink = (
                 <div className={classes.active}>
-                    {isRootView ? label : `${label}:${isFocusedOnSubMappingRoot ? "SubMapping" : "Query"}`}
+                    <LinkContent label={label} isRootView={isRootView} isSubMapping={isFocusedOnSubMappingRoot} />
                 </div>
             );
 
@@ -80,7 +107,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
                             className={classes.link}
                             data-testid={`dm-header-breadcrumb-${index}`}
                         >
-                            {isRootView ? label : `${label}:${view.subMappingInfo ? "SubMapping" : "Query"}`}
+                            <LinkContent label={label} isRootView={isRootView} isSubMapping={!!view.subMappingInfo} />
                         </a>
                     );
                 })
