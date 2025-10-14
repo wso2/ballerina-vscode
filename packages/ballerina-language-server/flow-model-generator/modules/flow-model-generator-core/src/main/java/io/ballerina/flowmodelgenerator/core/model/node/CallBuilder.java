@@ -102,7 +102,6 @@ public abstract class CallBuilder extends NodeBuilder {
                 .symbol(codedata.symbol())
                 .lineRange(codedata.lineRange())
                 .sourceCode(codedata.sourceCode())
-                .isNew(codedata.isNew())
                 .inferredReturnType(functionData.inferredReturnType() ? functionData.returnType() : null);
 
         if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.AGENT &&
