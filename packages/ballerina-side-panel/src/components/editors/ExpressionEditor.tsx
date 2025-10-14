@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Control, Controller, FieldValues, UseFormWatch } from 'react-hook-form';
+import { Control, Controller, FieldValues, UseFormWatch, UseFormSetValue } from 'react-hook-form';
 import styled from '@emotion/styled';
 import {
     Button,
@@ -43,8 +43,9 @@ import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
 import { InputMode } from './ChipExpressionEditor/types';
-import { getInputModeFromTypes } from './ChipExpressionEditor/utils';
+import { getDefaultExpressionMode, getInputModeFromTypes } from './ChipExpressionEditor/utils';
 import { ExpressionField } from './ExpressionField';
+import WarningPopup from '../WarningPopup';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -73,6 +74,7 @@ type ExpressionEditorProps = ContextAwareExpressionEditorProps &
     FormExpressionEditorProps & {
         control: Control<FieldValues, any>;
         watch: UseFormWatch<any>;
+        setValue: UseFormSetValue<FieldValues>;
         targetLineRange?: LineRange;
         fileName: string;
     };
@@ -128,13 +130,13 @@ export namespace S {
     export const Type = styled.div<{ isVisible: boolean }>(({ isVisible }) => ({
         color: ThemeColors.PRIMARY,
         fontFamily: 'monospace',
-        fontSize: '12px',
+        fontSize: '10px',
         border: `1px solid ${ThemeColors.PRIMARY}`,
         borderRadius: '999px',
-        padding: '2px 8px',
+        padding: '1px 6px',
         display: 'inline-block',
         userSelect: 'none',
-        maxWidth: '148px',
+        maxWidth: '120px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
@@ -310,6 +312,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         required,
         showHeader = true,
         watch,
+        setValue,
         fieldKey,
         completions,
         triggerCharacters,
@@ -338,12 +341,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const [focused, setFocused] = useState<boolean>(false);
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
+    const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
 
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
     const { targetLineRange: contextTargetLineRange, fileName: contextFileName } = useFormContext();
     const effectiveTargetLineRange = targetLineRange ?? contextTargetLineRange;
     const effectiveFileName = fileName ?? contextFileName;
+
+    const initialFieldValue = useRef(field.value);
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
@@ -381,12 +387,22 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }, [fieldValue, targetLineRange]);
 
     useEffect(() => {
-        const newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
         }
-        setInputMode(newInputMode);
+        if (newInputMode === InputMode.TEXT
+            && typeof initialFieldValue.current === 'string'
+            && !(initialFieldValue.current.trim().startsWith("\"") 
+                    && initialFieldValue.current.trim().endsWith("\"")
+                )
+        ) {
+            setInputMode(InputMode.EXP)
+        }
+        else {
+            setInputMode(newInputMode);
+        }
     }, [field?.valueTypeConstraint]);
 
     const handleFocus = async () => {
@@ -450,7 +466,32 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     };
 
     const handleModeChange = (value: InputMode) => {
+        const currentValue = watch(key);
+        if (
+            inputMode === InputMode.EXP 
+            && value === InputMode.TEXT
+            && (!currentValue.trim().startsWith("\"") || !currentValue.trim().endsWith("\""))
+        ) {
+            setShowModeSwitchWarning(true);
+            return;
+        }
+        if (inputMode === InputMode.TEXT && value === InputMode.EXP) {
+            if (currentValue && typeof currentValue === 'string' &&
+                !currentValue.startsWith('"') && !currentValue.endsWith('"')) {
+                setValue(key, `"${currentValue}"`);
+            }
+        }
         setInputMode(value);
+    };
+
+    const handleModeSwitchWarningContinue = () => {
+        const defaultMode = getDefaultExpressionMode(field.valueTypeConstraint);
+        setInputMode(defaultMode);
+        setShowModeSwitchWarning(false);
+    };
+
+    const handleModeSwitchWarningCancel = () => {
+        setShowModeSwitchWarning(false);
     };
 
     const defaultValueText = field.defaultValue ?
@@ -480,6 +521,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.LabelContainer>
                                         <S.Label>{field.label}</S.Label>
                                         {(required ?? !field.optional) && <RequiredFormInput />}
+                                        {field.valueTypeConstraint && (
+                                            <S.Type style={{marginLeft: '5px'}} isVisible={focused} title={field.valueTypeConstraint as string}>
+                                                {sanitizeType(field.valueTypeConstraint as string)}
+                                            </S.Type>
+                                        )}
                                     </S.LabelContainer>
                                 </S.HeaderContainer>
                                 <S.EditorMdContainer>
@@ -488,20 +534,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 </S.EditorMdContainer>
                             </div>
                             <S.FieldInfoSection>
-                                {field.valueTypeConstraint && (
-                                    <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>
-                                        {sanitizeType(field.valueTypeConstraint as string)}
-                                    </S.Type>
-                                )}
-                                {(focused || isExpressionEditorHovered) 
-                                && getInputModeFromTypes(field.valueTypeConstraint)
-                                && (
-                                    <ModeSwitcher
-                                        value={inputMode}
-                                        onChange={handleModeChange}
-                                        valueTypeConstraint={field.valueTypeConstraint}
-                                    />
-                                )}
+                                {(focused || isExpressionEditorHovered)
+                                    && getInputModeFromTypes(field.valueTypeConstraint)
+                                    && (
+                                        <ModeSwitcher
+                                            value={inputMode}
+                                            onChange={handleModeChange}
+                                            valueTypeConstraint={field.valueTypeConstraint}
+                                        />
+                                    )}
                             </S.FieldInfoSection>
                         </div>
                     </S.Header>
@@ -583,6 +624,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     )}
                 />
             </S.Container>
+            {showModeSwitchWarning && (
+                <WarningPopup
+                    isOpen={showModeSwitchWarning}
+                    onContinue={handleModeSwitchWarningContinue}
+                    onCancel={handleModeSwitchWarningCancel}
+                />
+            )}
         </FieldProvider>
     );
 };
