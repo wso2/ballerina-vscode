@@ -83,7 +83,8 @@
         "type": "\"RED\"",
         "name": "RED",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       },
       {
         "kind": "NAME",
@@ -91,7 +92,8 @@
         "type": "\"YELLOW\"",
         "name": "YELLOW",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       },
       {
         "kind": "NAME",
@@ -99,7 +101,8 @@
         "type": "\"GREEN\"",
         "name": "GREEN",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false

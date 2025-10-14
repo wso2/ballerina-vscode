@@ -1,28 +1,28 @@
 {
-  "filePath": "test_pack1/service.bal",
+  "filePath": "test_pack2/graphql_class.bal",
   "position": {
-    "line": 2,
-    "offset": 0
+    "line": 57,
+    "offset": 14
   },
-  "description": "Get service data",
+  "description": "Get a record type data",
   "type": {
-    "name": "/graphql",
+    "name": "UndergraduateStudent2",
     "editable": true,
     "metadata": {
-      "label": "/graphql",
-      "description": "This is a simple GraphQL service that\nincludes a query field."
+      "label": "UndergraduateStudent2",
+      "description": ""
     },
     "codedata": {
-      "node": "SERVICE_DECLARATION",
+      "node": "CLASS",
       "lineRange": {
-        "fileName": "service.bal",
+        "fileName": "graphql_class.bal",
         "startLine": {
-          "line": 4,
-          "offset": 0
+          "line": 57,
+          "offset": 14
         },
         "endLine": {
-          "line": 12,
-          "offset": 1
+          "line": 57,
+          "offset": 35
         }
       }
     },
@@ -33,7 +33,7 @@
           "description": "Unique name to identify the type"
         },
         "valueType": "IDENTIFIER",
-        "value": "/graphql",
+        "value": "UndergraduateStudent2",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -45,22 +45,12 @@
           "description": "Qualifiers of the type"
         },
         "valueType": "MULTIPLE_SELECT",
-        "value": [],
+        "value": [
+          "service"
+        ],
         "optional": true,
         "editable": true,
         "advanced": true,
-        "hidden": false
-      },
-      "isReadOnly": {
-        "metadata": {
-          "label": "readonly",
-          "description": "Is this readonly"
-        },
-        "valueType": "FLAG",
-        "value": "false",
-        "optional": true,
-        "editable": true,
-        "advanced": false,
         "hidden": false
       },
       "isArray": {
@@ -86,14 +76,78 @@
         "editable": false,
         "advanced": false,
         "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isDistinct": {
+        "metadata": {
+          "label": "distinct",
+          "description": "Is this distinct"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isIsolated": {
+        "metadata": {
+          "label": "isolated",
+          "description": "Is this isolated"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "networkQualifier": {
+        "metadata": {
+          "label": "Network Qualifier",
+          "description": "Network qualifier"
+        },
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "service",
+          "client"
+        ],
+        "value": "service",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
       }
     },
     "members": [],
+    "includes": [],
     "functions": [
       {
         "accessor": "get",
         "qualifiers": [
-          "ISOLATED",
           "RESOURCE"
         ],
         "parameters": [
@@ -101,15 +155,27 @@
             "kind": "FIELD",
             "refs": [],
             "type": "string",
-            "name": "name",
+            "name": "username",
+            "optional": false,
+            "readonly": false,
+            "isGraphqlId": true,
+            "imports": {
+              "graphql": "ballerina/graphql"
+            }
+          },
+          {
+            "kind": "FIELD",
+            "refs": [],
+            "type": "string",
+            "name": "lastName",
             "optional": false,
             "readonly": false,
             "isGraphqlId": false
           }
         ],
         "kind": "RESOURCE",
-        "name": "hello",
-        "description": "Returns a greeting message that includes provided name.",
+        "name": "name",
+        "description": "",
         "returnType": "string",
         "isGraphqlId": false,
         "refs": [],
@@ -144,7 +210,7 @@
               "description": "Is this isolated"
             },
             "valueType": "FLAG",
-            "value": "true",
+            "value": "false",
             "optional": true,
             "editable": true,
             "advanced": false,
