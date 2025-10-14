@@ -45,17 +45,17 @@ import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 import { createEditExecute, createEditTool, createMultiEditExecute, createBatchEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 
-const SEARCH_LIBRARY_TOOL_NAME = 'LibraryProviderTool';
+const SEARCH_LIBRARY_TOOL_NAME = "LibraryProviderTool";
 
 function appendFinalMessages(
     history: ModelMessage[],
     finalMessages: ModelMessage[],
     cacheOptions: ProviderCacheOptions
 ): void {
-    for (let i = 0; i < finalMessages.length - 1; i++) {
+    for (let i = 0; i < finalMessages.length; i++) {
         const message = finalMessages[i];
         if (message.role === "assistant" || message.role === "tool") {
-            if (i === finalMessages.length - 2) {
+            if (i === finalMessages.length - 1) {
                 message.providerOptions = cacheOptions;
             }
             history.push(message);
@@ -129,6 +129,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     let finalResponse: string = "";
     let selectedLibraries: string[] = [];
     let codeGenStart = false;
+    const tempCodeSegment = '<code filename="temp.bal">\n```ballerina\n// Code Generation\n```\n</code>';
     for await (const part of fullStream) {
         switch (part.type) {
             case "tool-call": {
@@ -144,7 +145,8 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         // TODO: temporary solution until this get refactored properly
                         // send this pattern <code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>
                         // to temprorily indicate the start of code generation in the webview
-                        eventHandler({ type: "content_block", content: "<code filename=\"temp.bal\">\n```ballerina\n// Code Generation\n```\n</code>" });
+                        assistantResponse += `\n${tempCodeSegment}`;
+                        eventHandler({ type: "content_block", content: `\n${tempCodeSegment}` });
                     }
                 }
                 eventHandler({ type: "tool_call", toolName });
@@ -202,21 +204,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     break;
                 }
 
-                const { messages: finalMessages } = await response;
-                appendFinalMessages(allMessages, finalMessages, cacheOptions);
-
-                const lastAssistantMessage = finalMessages
-                    .slice()
-                    .reverse()
-                    .find((msg) => msg.role === "assistant");
-                finalResponse = lastAssistantMessage
-                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || finalResponse
-                    : finalResponse;
-
-                finalResponse = updateFinalResponseWithCodeBlocks(finalResponse, updatedSourceFiles, updatedFileNames);
-                const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: finalResponse
-                });
                 const finalProviderMetadata = await providerMetadata;
                 // Emit usage metrics event for test tracking
                 if (finalProviderMetadata?.anthropic?.usage) {
@@ -229,16 +216,23 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                             cacheCreationInputTokens: anthropicUsage.cache_creation_input_tokens || 0,
                             cacheReadInputTokens: anthropicUsage.cache_read_input_tokens || 0,
                             outputTokens: anthropicUsage.output_tokens || 0,
-                        }
+                        },
                     });
                 }
 
-                finalResponse = postProcessedResp.assistant_response;
+                const { messages: finalMessages } = await response;
+                appendFinalMessages(allMessages, finalMessages, cacheOptions);
+                let codeSegment = getCodeBlocks(updatedSourceFiles, updatedFileNames);
+                const postProcessedResp: PostProcessResponse = await postProcess({
+                    assistant_response: codeSegment,
+                });
+
+                codeSegment = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
                 const MAX_REPAIR_ATTEMPTS = 3;
                 let repair_attempt = 0;
-                let diagnosticFixResp = finalResponse; //TODO: Check if we need this variable
+                let diagnosticFixResp = codeSegment; //TODO: Check if we need this variable
                 while (
                     hasCodeBlocks(diagnosticFixResp) &&
                     diagnostics.length > 0 &&
@@ -251,7 +245,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                         {
                             previousMessages: allMessages,
                             assistantResponse: diagnosticFixResp,
-                            diagnostics: diagnostics
+                            diagnostics: diagnostics,
                         },
                         libraryDescriptions,
                         updatedSourceFiles,
@@ -262,23 +256,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     repair_attempt++;
                 }
 
-                // Replace the final response segment in assistant response
-                const lastAssistantMessageContent = lastAssistantMessage
-                    ? (lastAssistantMessage.content as any[]).find((c) => c.type === "text")?.text || ""
-                    : "";
+                // Update the final assistant response with the final code blocks
+                assistantResponse = assistantResponse.replace(tempCodeSegment, diagnosticFixResp);
 
-                if (lastAssistantMessageContent && assistantResponse.includes(lastAssistantMessageContent)) {
-                    assistantResponse = assistantResponse.replace(lastAssistantMessageContent, diagnosticFixResp);
-                } else {
-                    // Fallback: append the final response if replacement fails
-                    assistantResponse += "\n\n" + diagnosticFixResp;
-                }
                 console.log("Final Diagnostics ", diagnostics);
                 codeGenStart = false;
                 eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
-                
                 eventHandler({ type: "stop", command: Command.Code });
                 break;
             }
@@ -286,15 +271,14 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     }
 }
 
-function updateFinalResponseWithCodeBlocks(finalResponse: string, updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
+function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]) {
     const codeBlocks: string[] = [];
 
     for (const fileName of updatedFileNames) {
-        const sourceFile = updatedSourceFiles.find(sf => sf.filePath === fileName);
+        const sourceFile = updatedSourceFiles.find((sf) => sf.filePath === fileName);
 
         if (sourceFile) {
-            const formattedBlock =
-`<code filename="${sourceFile.filePath}">
+            const formattedBlock = `<code filename="${sourceFile.filePath}">
 \`\`\`ballerina
 ${sourceFile.content}
 \`\`\`
@@ -303,11 +287,7 @@ ${sourceFile.content}
         }
     }
 
-    if (codeBlocks.length > 0) {
-        return finalResponse + '\n\n' + codeBlocks.join('\n\n');
-    }
-
-    return finalResponse;
+    return codeBlocks.join("\n\n");
 }
 
 // Main public function that uses the default event handler
@@ -468,62 +448,29 @@ export async function repairCodeCore(
     return resp;
 }
 
-export async function repairCode(params: RepairParams,
-    libraryDescriptions: string, sourceFiles: SourceFiles[] = [], eventHandler?: CopilotEventHandler): Promise<RepairResponse> {
-    const allMessages: ModelMessage[] = [...params.previousMessages];
-    const lastMessage = allMessages[allMessages.length - 1];
-    let isToolCallExistInLastMessage = false;
-    let lastMessageToolCallInfo = {toolName: "", toolCallId: ""};
+export async function repairCode(
+    params: RepairParams,
+    libraryDescriptions: string,
+    sourceFiles: SourceFiles[] = [],
+    eventHandler?: CopilotEventHandler
+): Promise<RepairResponse> {
+    const allMessages: ModelMessage[] = [
+        ...params.previousMessages,
+        {
+            role: "assistant",
+            content: params.assistantResponse,
+        },
+        {
+            role: "user",
+            content:
+                "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." +
+                "And also do not create any new files. Just carefully analyze the error descriptions and update the existing code to fix the errors. \n Errors: \n " +
+                params.diagnostics.map((d) => d.message).join("\n"),
+        },
+    ];
 
-    const lastMessageIsAssistantCall = lastMessage?.role === 'assistant';
-    if (lastMessageIsAssistantCall) {
-        const assistantMessage: AssistantModelMessage = lastMessage as AssistantModelMessage;
-        if (Array.isArray(assistantMessage.content)) {
-            const lastToolCall = assistantMessage.content.filter(c => c.type === 'tool-call');
-            isToolCallExistInLastMessage = lastToolCall.length > 0;
-            lastMessageToolCallInfo = lastToolCall[0];
-        }
-    }
-
-    const userRepairMessage: ModelMessage = {
-        role: "user",
-        content:
-            "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." +
-            "And also do not create any new files. Just carefully analyze the error descriptions and update the existing code to fix the errors. \n Errors: \n " +
-            params.diagnostics.map((d) => d.message).join("\n"),
-    };
-
-    if (isToolCallExistInLastMessage) {
-        allMessages.push({
-            role: "tool",
-            content: [
-                {
-                    type: "tool-result",
-                    toolName: lastMessageToolCallInfo?.toolName as string || "PreviousAssistantMessageCall",
-                    output: {
-                        type: "text",
-                        value: "Tool call executed successfully"
-                    },
-                    toolCallId: lastMessageToolCallInfo?.toolCallId as string || "PreviousAssistantMessageCallId"
-                }
-            ]
-        });
-    }
-
-    allMessages.push({
-        role: "assistant",
-        content: [
-            {
-                type: "text",
-                text: params.assistantResponse
-            }
-        ]
-    });
-
-    allMessages.push(userRepairMessage);
-
-    let updatedSourceFiles: SourceFiles[] = sourceFiles.length == 0 ?
-                                        getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
+    let updatedSourceFiles: SourceFiles[] =
+        sourceFiles.length == 0 ? getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
     let updatedFileNames: string[] = [];
 
     const tools = {
@@ -558,11 +505,11 @@ export async function repairCode(params: RepairParams,
             },
         });
     }
-    const responseText = updateFinalResponseWithCodeBlocks(text, updatedSourceFiles, updatedFileNames);
+    const updatedCodeBlocks = getCodeBlocks(updatedSourceFiles, updatedFileNames);
     // replace original response with new code blocks
-    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, responseText);
+    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, updatedCodeBlocks);
     const postProcessResp: PostProcessResponse = await postProcess({
-        assistant_response: diagnosticFixResp
+        assistant_response: diagnosticFixResp,
     });
     diagnosticFixResp = postProcessResp.assistant_response;
     console.log("After auto repair, Diagnostics : ", postProcessResp.diagnostics.diagnostics);
