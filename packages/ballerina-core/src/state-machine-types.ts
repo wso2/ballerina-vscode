@@ -120,6 +120,7 @@ export interface VisualizerLocation {
     view?: MACHINE_VIEW | null;
     documentUri?: string;
     projectUri?: string;
+    workspacePath?: string;
     identifier?: string;
     parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
