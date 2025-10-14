@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -125,6 +125,11 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             rpcClient.getVisualizerRpcClient().goSelected(index);
         }
     };
+
+    const isBallerinaWorkspace = useMemo(() => {
+        return rpcClient.getCommonRpcClient().isBallerinaWorkspace();
+    }, []);
+
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
     const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
     const existingLabels = new Set<string>();
@@ -150,9 +155,9 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                         name="wide-chevron" 
                                         iconSx={{
                                             color: "var(--vscode-foreground)",
-                                            fontSize: crumb.location?.workspacePath ? "20px" : "15px",
-                                            opacity: 0.5 }
-                                        } 
+                                            fontSize: isBallerinaWorkspace ? "20px" : "15px",
+                                            opacity: 0.5 
+                                        }} 
                                         sx={{ alignSelf: "center" }}
                                     />
                                 )}
@@ -163,7 +168,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     >
                                         {shortName}
                                     </BreadcrumbText>
-                                    {crumb.location?.workspacePath && crumb.location.package && (
+                                    {isBallerinaWorkspace && crumb.location.package && (
                                         <PackageName>{crumb.location.package}</PackageName>
                                     )}
                                 </BreadcrumbItem>
