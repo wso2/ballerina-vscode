@@ -74,6 +74,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     private static final String TOOL_KIT_DEFAULT_CLASS_NAME = "McpToolKit";
     private static final String PERMITTED_TOOLS_PROPERTY = "permittedTools";
     private static final String AI_MCP_TOOL_KIT_CLASS = "McpToolKit";
+    private static final String AI_MCP_BASE_TOOL_KIT_TYPE_WITH_PREFIX = "ai:McpBaseToolKit";
     private static final String INIT_METHOD_NAME = "init";
     private static final String MINIMUM_COMPATIBLE_AI_VERSION = "1.6.0";
     private static final String CONNECTIONS_BAL = "connections.bal";
@@ -118,7 +119,7 @@ public class McpToolKitBuilder extends NodeBuilder {
             String uniqueToolKitName =
                     NameUtil.getValidatedSymbolName(context.getAllVisibleSymbolNames(), TOOL_KIT_DEFAULT_CLASS_NAME);
             setToolKitNameProperty(this, uniqueToolKitName);
-            setReturnType(uniqueToolKitName, context);
+            setReturnType(AI_MCP_BASE_TOOL_KIT_TYPE_WITH_PREFIX, context);
         } else {
             setReturnType(functionData.returnType(), context);
         }
