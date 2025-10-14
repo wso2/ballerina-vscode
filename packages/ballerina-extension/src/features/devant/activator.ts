@@ -145,4 +145,19 @@ function isGitRepo(dir: string): boolean {
     return false;
 }
 
-
+// TODO: 
+// need to move all platform ext api calls to separate client.
+// after that, delete this function
+export const getDevantStsToken = async (): Promise<string> => {
+    try {
+        const platformExt = extensions.getExtension("wso2.wso2-platform");
+        if (!platformExt) {
+            return "";
+        }
+        const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+        const stsToken = await platformExtAPI.getStsToken();
+        return stsToken;
+    } catch (err) {
+        return "";
+    }
+};

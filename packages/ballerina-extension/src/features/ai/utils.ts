@@ -30,14 +30,15 @@ import { BallerinaProject } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
-export const BACKEND_URL: string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
-export const AUTH_ORG: string = config.get('authOrg') || process.env.BALLERINA_AUTH_ORG;
-export const AUTH_CLIENT_ID: string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
+const isDevantDev = process.env.CLOUD_ENV === "dev";
+export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_DEFAULT_COPLIOT_ROOT_URL;
+export const AUTH_ORG: string = config.get('authOrg') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_ORG : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_ORG;
+export const AUTH_CLIENT_ID: string = config.get('authClientID') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_CLIENT_ID;
+export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_REDIRECT_URL;
 
-export const DEVANT_API_KEY: string = config.get('devantApiKey') || process.env.BI_INTELLIGENCE_COPILOT_TOKEN;
-export const DEVANT_API_KEY_FOR_ASK: string = config.get('devantApiKeyForAsk') || process.env.ASK_COPILOT_TOKEN;
-export const DEVANT_STS_TOKEN: string = config.get('cloudStsToken') || process.env.CLOUD_STS_TOKEN;
+export const DEVANT_API_KEY: string = config.get('devantApiKey') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_CODE_API_KEY : process.env.BALLERINA_DEFAULT_COPLIOT_CODE_API_KEY;
+export const DEVANT_API_KEY_FOR_ASK: string = config.get('devantApiKeyForAsk') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ASK_API_KEY : process.env.BALLERINA_DEFAULT_COPLIOT_ASK_API_KEY;
+export const DEVANT_STS_TOKEN_CONFIG: string = config.get('cloudStsToken');
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
 export const OLD_BACKEND_URL: string = BACKEND_URL + "/v2.0";
