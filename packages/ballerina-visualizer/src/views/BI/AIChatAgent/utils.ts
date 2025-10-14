@@ -478,19 +478,30 @@ export const updateFlowNodePropertyValuesWithKeys = (flowNode: FlowNode) => {
     }
 };
 
-const parseToolsString = (toolsStr: string): string[] => {
+export const parseToolsString = (toolsStr: string, removeQuotes: boolean = false): string[] => {
     // Remove brackets and split by comma
     const trimmed = toolsStr.trim();
     if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
         return [];
     }
-    const inner = trimmed.substring(1, trimmed.length - 1);
+    const inner = trimmed.substring(1, trimmed.length - 1).trim();
     // Handle empty array case
-    if (!inner.trim()) {
+    if (!inner) {
         return [];
     }
-    // Split by comma and trim each element
-    return inner.split(",").map((tool) => tool.trim());
+    // Split by comma and process each element
+    return inner.split(",").map((tool) => {
+        const trimmedTool = tool.trim();
+        // Remove surrounding single or double quotes if requested
+        if (
+            removeQuotes &&
+            ((trimmedTool.startsWith('"') && trimmedTool.endsWith('"')) ||
+                (trimmedTool.startsWith("'") && trimmedTool.endsWith("'")))
+        ) {
+            return trimmedTool.substring(1, trimmedTool.length - 1);
+        }
+        return trimmedTool;
+    });
 };
 
 /**
@@ -507,24 +518,4 @@ export const extractAccessToken = (authValue: string): string => {
         console.error("Failed to parse auth token:", error);
         return "";
     }
-};
-
-/**
- * Safely parses permitted tools from various input formats.
- * Handles arrays, JSON strings, and returns empty array for invalid input.
- */
-export const parsePermittedTools = (value: unknown): string[] => {
-    if (Array.isArray(value)) {
-        return value;
-    }
-    if (typeof value === 'string' && value) {
-        try {
-            const parsed = JSON.parse(value);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            console.error("Failed to parse permittedTools as JSON");
-            return [];
-        }
-    }
-    return [];
 };
