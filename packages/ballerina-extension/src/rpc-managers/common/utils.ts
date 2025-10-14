@@ -20,6 +20,7 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import * as os from 'os';
 import { TextEdit } from "@wso2/ballerina-core";
+import { StateMachine } from "../../stateMachine";
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
@@ -77,7 +78,7 @@ export async function askFilePath() {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: Uri.file(os.homedir()),
+        defaultUri: Uri.file(StateMachine.context().projectUri  ?? os.homedir()),
         filters: {
             'Files': ['yaml', 'json', 'yml']
         },

@@ -173,6 +173,8 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
+import * as toml from "@iarna/toml";
+
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -1826,14 +1828,20 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const projectPath = StateMachine.context().projectUri;
+            let openApiContractPath = params.openApiContractPath;
+            if (params.openApiContractPath.startsWith(projectPath)) {
+                openApiContractPath = path.relative(projectPath, params.openApiContractPath);
+            }
             const request: OpenAPIClientGenerationRequest = {
-                openApiContractPath: params.openApiContractPath,
+                openApiContractPath,    // even when i pass the relative path, the absolute path is returned by LS?
                 projectPath: projectPath,
                 module: params.module
             };
-            StateMachine.langClient().openApiGenerateClient(request).then((res) => {
+            try {
+                const res = await StateMachine.langClient().openApiGenerateClient(request);
+
                 if (!res.source || !res.source.textEditsMap) {
                     console.error("textEditsMap is undefined or null");
                     reject(new Error("textEditsMap is undefined or null"));
@@ -1847,15 +1855,26 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
 
                 // Convert the plain object back to a Map
-                const textEditsMap = new Map(Object.entries(res.source.textEditsMap));
-                textEditsMap.forEach(async (value, key) => {
-                    await this.applyTextEdits(key, value);
-                });
+                const edits = Object.entries(res.source.textEditsMap);
+                await Promise.all(edits.map(([key, value])=>this.applyTextEdits(key, value)));
+                // await this.applyTextEdits(key, [{newText:`connectionRef = "abcde"\n`,range:{start:{character:0,line: value[0]?.range.end.line + 1},end:{character:0,line: value[0]?.range.end.line + 1}}}]);
+
+                const balTomlPath = path.join(StateMachine.context().projectUri, "Ballerina.toml");
+                if(fs.existsSync(balTomlPath)){
+                    const fileContent = fs.readFileSync(balTomlPath, "utf-8");
+                    const parsedToml: any = toml.parse(fileContent);
+                    const matchingItem = parsedToml?.tool.openapi.find(item=>item.id === params.module);
+                    if (matchingItem) {
+                        matchingItem.connectionRef1 = "cdef";
+                    }
+                    const updatedTomlContent = toml.stringify(parsedToml);
+                    fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+                }
                 resolve({});
-            }).catch((error) => {
+            } catch(error){
                 console.log(">>> error generating openapi client", error);
                 reject(error);
-            });
+            }
         });
     }
 
