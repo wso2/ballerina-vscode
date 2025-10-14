@@ -34,6 +34,7 @@ interface McpToolsSelectionProps {
     onToolSelectionChange: (toolName: string, isSelected: boolean) => void;
     onSelectAll: () => void;
     serviceUrl?: string;
+    showValidationError?: boolean;
 }
 
 interface ToolsListProps {
@@ -63,6 +64,7 @@ const ToolsHeader = styled.div`
 const ToolsTitle = styled.div`
     font-size: 14px;
     font-family: GilmerBold;
+    margin-bottom: 2px;
     color: ${ThemeColors.ON_SURFACE};
 `;
 const ToolCheckboxContainer = styled.div<{ maxHeight?: string }>`
@@ -86,6 +88,14 @@ const ErrorMessage = styled.div`
     color: ${ThemeColors.ERROR};
     font-size: 12px;
     padding: 0 0 12px 12px;
+`;
+const WarningMessage = styled.div`
+    color: ${ThemeColors.HIGHLIGHT};
+    font-size: 12px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 `;
 const LoadingMessage = styled.div`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
@@ -222,7 +232,7 @@ const ToolItem: React.FC<{ tool: McpTool }> = ({ tool }) => {
 
     return (
         <div>
-            <div style={{ fontWeight: 'bold' }}>{tool.name}</div>
+            <ToolsTitle>{tool.name}</ToolsTitle>
             {tool.description && (
                 <div>
                     <ToolDescription ref={descriptionRef} expanded={expanded}>
@@ -298,7 +308,8 @@ const ToolsSelectionModal: React.FC<{
     loading: boolean;
     onToolSelectionChange: (toolName: string, isSelected: boolean) => void;
     onSelectAll: () => void;
-}> = ({ isOpen, onClose, tools, selectedTools, loading, onToolSelectionChange, onSelectAll }) => {
+    showValidationError?: boolean;
+}> = ({ isOpen, onClose, tools, selectedTools, loading, onToolSelectionChange, onSelectAll, showValidationError = false }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     if (!isOpen) return null;
@@ -326,9 +337,15 @@ const ToolsSelectionModal: React.FC<{
                     />
                 </SearchContainer>
                 <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '14px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                        {selectedTools.size} of {tools.length} selected
-                    </div>
+                    {showValidationError && selectedTools.size === 0 ? (
+                        <div style={{ fontSize: '14px', color: ThemeColors.HIGHLIGHT }}>
+                            Select at least one tool to continue
+                        </div>
+                    ) : (
+                        <div style={{ fontSize: '14px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                            {selectedTools.size} of {tools.length} selected
+                        </div>
+                    )}
                     {tools.length > 0 && (
                         <Button
                             onClick={onSelectAll}
@@ -361,7 +378,8 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     error,
     onToolSelectionChange,
     onSelectAll,
-    serviceUrl
+    serviceUrl,
+    showValidationError = false
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -406,9 +424,15 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                 )}
                 {!loading && tools.length > 0 && (
                     <>
-                        <InfoMessage>
-                            {selectedTools.size} of {tools.length} selected
-                        </InfoMessage>
+                        {showValidationError && selectedTools.size === 0 ? (
+                            <WarningMessage style={{ marginBottom: "6px" }}>
+                                Select at least one tool to continue
+                            </WarningMessage>
+                        ) : (
+                            <InfoMessage style={{ marginBottom: "6px" }}>
+                                {selectedTools.size} of {tools.length} selected
+                            </InfoMessage>
+                        )}
                         <ToolsList
                             tools={tools}
                             selectedTools={selectedTools}
@@ -437,6 +461,7 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                 loading={loading}
                 onToolSelectionChange={onToolSelectionChange}
                 onSelectAll={onSelectAll}
+                showValidationError={showValidationError}
             />
         </>
     );

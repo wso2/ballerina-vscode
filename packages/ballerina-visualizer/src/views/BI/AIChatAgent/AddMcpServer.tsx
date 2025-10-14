@@ -7,7 +7,7 @@
  * You may not alter or remove any copyright or other notice from copies of this content.
  */
 
-import { FlowNode } from "@wso2/ballerina-core";
+import { FlowNode, } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +16,7 @@ import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./McpToolsSelection";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, parsePermittedTools } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, parseToolsString } from "./utils";
 
 interface Tool {
     name: string;
@@ -148,7 +148,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             const shouldRestoreTools = editMode && url === mcpToolKitNodeRef.current?.properties?.serverUrl?.value;
             if (shouldRestoreTools) {
                 const permittedToolsValue = mcpToolKitNodeRef.current?.properties?.permittedTools?.value;
-                const permittedTools = parsePermittedTools(permittedToolsValue);
+                const permittedTools = parseToolsString(permittedToolsValue as string, true);
                 setSelectedMcpTools(new Set(permittedTools));
             }
 
@@ -224,6 +224,10 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         }
     };
 
+    const isSaveDisabled = useMemo(() => {
+        return availableMcpTools.length > 0 && selectedMcpTools.size === 0;
+    }, [availableMcpTools.length, selectedMcpTools.size]);
+
     const injectedComponents = useMemo(() => {
         return [{
             component: (
@@ -236,11 +240,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     onToolSelectionChange={handleToolSelectionChange}
                     onSelectAll={handleSelectAllTools}
                     serviceUrl={serverUrl}
+                    showValidationError={isSaveDisabled}
                 />
             ),
             index: 2
         }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled]);
 
     return (
         <Container>
@@ -256,7 +261,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFilePathRef.current}
                     targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentCallNode.codedata?.lineRange}
                     nodeFormTemplate={mcpToolKitNodeTemplateRef.current}
-                    submitText={"Save Tool"}
+                    submitText={"Save"}
                     node={mcpToolKitNodeRef.current}
                     onSubmit={handleSave}
                     onChange={(fieldKey, value) => {
@@ -268,6 +273,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         }
                     }}
                     showProgressIndicator={isSaving}
+                    disableSaveButton={isSaveDisabled}
                     injectedComponents={injectedComponents}
                 />
             )}
