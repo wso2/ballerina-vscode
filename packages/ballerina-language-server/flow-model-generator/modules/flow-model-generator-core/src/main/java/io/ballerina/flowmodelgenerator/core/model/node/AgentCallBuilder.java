@@ -235,7 +235,8 @@ public class AgentCallBuilder extends CallBuilder {
         FlowNode agentNode;
 
         // Check if we should retrieve an existing agent node or create a new one
-        if (agentTemplateContext.codedata() != null && !agentTemplateContext.codedata().isNew()) {
+        if (agentTemplateContext.codedata() != null && agentTemplateContext.codedata().isNew() != null
+                && !agentTemplateContext.codedata().isNew()) {
             // Retrieve existing agent node from the semantic model using the lineRange
             agentNode = findExistingAgentNode(agentTemplateContext);
         } else {
