@@ -26,7 +26,6 @@ import {
     FormExpressionEditor,
     FormExpressionEditorRef,
     HelperPaneHeight,
-    Icon,
     RequiredFormInput,
     ThemeColors,
     Tooltip
@@ -42,6 +41,9 @@ import {
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
+import ModeSwitcher from '../ModeSwitcher';
+import { InputMode } from './ChipExpressionEditor/types';
+import { getInputModeFromTypes } from './ChipExpressionEditor/utils';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -180,6 +182,13 @@ export namespace S {
         font-size: 12px;
     `;
 
+    export const FieldInfoSection = styled.div({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '5px'
+    });
+
     export const EditorMdContainer = styled.div`
         width: 100%;
         font-size: 13px;
@@ -279,12 +288,15 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     return (
         <Tooltip content="Add Expression" containerSx={{ cursor: 'default' }}>
             <S.Ribbon onClick={onClick}>
-                <Icon name="bi-expression" sx={{
-                    color: ThemeColors.ON_PRIMARY,
-                    fontSize: '12px',
-                    width: '12px',
-                    height: '12px'
-                }} />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24">
+                    <path
+                        fill="currentColor"
+                        d="M12.42 5.29c-1.1-.1-2.07.71-2.17 1.82L10 10h2.82v2h-3l-.44 5.07A4.001 4.001 0 0 1 2 18.83l1.5-1.5c.33 1.05 1.46 1.64 2.5 1.3c.78-.24 1.33-.93 1.4-1.74L7.82 12h-3v-2H8l.27-3.07a4.01 4.01 0 0 1 4.33-3.65c1.26.11 2.4.81 3.06 1.89l-1.5 1.5c-.25-.77-.93-1.31-1.74-1.38M22 13.65l-1.41-1.41l-2.83 2.83l-2.83-2.83l-1.43 1.41l2.85 2.85l-2.85 2.81l1.43 1.41l2.83-2.83l2.83 2.83L22 19.31l-2.83-2.81z" />
+                </svg>
             </S.Ribbon>
         </Tooltip>
     );
@@ -341,6 +353,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
+    const [inputMode, setInputMode] = useState<InputMode>(InputMode.TEXT);
+    const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
+
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
     const { targetLineRange: contextTargetLineRange, fileName: contextFileName } = useFormContext();
@@ -365,6 +380,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (!targetLineRange) return;
         // Fetch initial diagnostics
         if (getExpressionEditorDiagnostics && fieldValue !== undefined
+            && inputMode === InputMode.EXP
             && (previousDiagnosticsFetchContext.current.fetchedInitialDiagnostics === false
                 || previousDiagnosticsFetchContext.current.diagnosticsFetchedTargetLineRange !== targetLineRange
             )) {
@@ -381,9 +397,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     }, [fieldValue, targetLineRange]);
 
+    useEffect(() => {
+        const newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        setInputMode(newInputMode);
+    }, [field?.valueTypeConstraint]);
+
     const handleFocus = async () => {
         setFocused(true);
-
         // Trigger actions on focus
         await onFocus?.();
         handleOnFieldFocus?.(key);
@@ -434,6 +454,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
+    const handleModeChange = (value: InputMode) => {
+        setInputMode(value);
+    };
+
     const defaultValueText = field.defaultValue ?
         <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
 
@@ -443,30 +467,46 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
-
     return (
-        <FieldProvider 
-        initialField={props.field} 
-        triggerCharacters={props.triggerCharacters}
+        <FieldProvider
+            initialField={props.field}
+            triggerCharacters={props.triggerCharacters}
         >
-            <S.Container id={id}>
+            <S.Container
+                id={id}
+                onMouseEnter={() => setIsExpressionEditorHovered(true)}
+                onMouseLeave={() => setIsExpressionEditorHovered(false)}
+            >
                 {showHeader && (
                     <S.Header>
-                        <S.HeaderContainer>
-                            <S.LabelContainer>
-                                <S.Label>{field.label}</S.Label>
-                                {(required ?? !field.optional) && <RequiredFormInput />}
-                            </S.LabelContainer>
-                            {field.valueTypeConstraint && (
-                                <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>
-                                    {sanitizeType(field.valueTypeConstraint as string)}
-                                </S.Type>
-                            )}
-                        </S.HeaderContainer>
-                        <S.EditorMdContainer>
-                            {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                            {defaultValueText}
-                        </S.EditorMdContainer>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
+                            <div>
+                                <S.HeaderContainer>
+                                    <S.LabelContainer>
+                                        <S.Label>{field.label}</S.Label>
+                                        {(required ?? !field.optional) && <RequiredFormInput />}
+                                    </S.LabelContainer>
+                                </S.HeaderContainer>
+                                <S.EditorMdContainer>
+                                    {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
+                                    {defaultValueText}
+                                </S.EditorMdContainer>
+                            </div>
+                            <S.FieldInfoSection>
+                                {field.valueTypeConstraint && (
+                                    <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>
+                                        {sanitizeType(field.valueTypeConstraint as string)}
+                                    </S.Type>
+                                )}
+                                {field.valueTypeConstraint && (focused || isExpressionEditorHovered) && (
+                                    <ModeSwitcher
+                                        value={inputMode}
+                                        onChange={handleModeChange}
+                                        valueTypeConstraint={field.valueTypeConstraint}
+                                    />
+                                )}
+                            </S.FieldInfoSection>
+                        </div>
                     </S.Header>
                 )}
                 <Controller
@@ -480,20 +520,20 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 ref={exprRef}
                                 anchorRef={anchorRef}
                                 name={name}
-                                completions={completions}
+                                completions={inputMode === InputMode.EXP ? completions : []}
                                 value={sanitizedExpression ? sanitizedExpression(value) : value}
                                 autoFocus={autoFocus}
-                                startAdornment={<EditorRibbon onClick={toggleHelperPaneState} />}
+                                startAdornment={inputMode === InputMode.EXP ? <EditorRibbon onClick={toggleHelperPaneState} /> : <></>}
                                 ariaLabel={field.label}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
                                     if (updatedValue === value) {
                                         return;
                                     }
 
-                                const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
-                                onChange(rawValue);
+                                    const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                    onChange(rawValue);
 
-                                    if (getExpressionEditorDiagnostics) {
+                                    if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
                                         getExpressionEditorDiagnostics(
                                             (required ?? !field.optional) || rawValue !== '',
                                             rawValue,
@@ -535,7 +575,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 isHelperPaneOpen={isHelperPaneOpen}
                                 changeHelperPaneState={handleChangeHelperPaneState}
                                 helperPaneOrigin="vertical"
-                                getHelperPane={handleGetHelperPane}
+                                getHelperPane={inputMode === InputMode.EXP ? handleGetHelperPane : undefined}
                                 helperPaneHeight={helperPaneHeight}
                                 helperPaneWidth={recordTypeField ? 400 : undefined}
                                 growRange={growRange}
