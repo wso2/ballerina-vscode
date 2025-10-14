@@ -83,13 +83,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.escapeIdentifier;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.extractTypeDescriptorNodes;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.extractUnionTypeDescNode;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.getAndUpdateFieldNames;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.getExistingTypeNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractTypeDescriptorNodes;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractUnionTypeDescNode;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getAndUpdateFieldNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getExistingTypeNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.sortTypeDescriptorNodes;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.getPrimitiveTypeName;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.sortTypeDescriptorNodes;
 
 /**
  * APIs for conversion from XML to Ballerina records.
