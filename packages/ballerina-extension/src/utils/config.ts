@@ -166,6 +166,41 @@ export function checkIsBallerinaWorkspace(uri: Uri): boolean {
     }
 }
 
+export function getWorkspacePackageNames(uri: Uri) {
+    const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
+    
+    try {
+        // Read the file content
+        const tomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
+        
+        // Regular expression to match the entire packages array in [workspace] section
+        // This matches: packages = ["package1", "package2", ...]
+        const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
+        const match = tomlContent.match(packagesRegex);
+        
+        if (!match || !match[1]) {
+            return null;
+        }
+        
+        // Extract all package names from the array content
+        const arrayContent = match[1];
+        const packageNameRegex = /"([^"]+)"/g;
+        const packageNames: string[] = [];
+        let packageMatch;
+        
+        while ((packageMatch = packageNameRegex.exec(arrayContent)) !== null) {
+            packageNames.push(packageMatch[1]);
+        }
+        
+        return packageNames.length > 0 ? packageNames : null;
+    } catch (error) {
+        // If there's an error reading the file, return null
+        console.error(`Error reading workspace Ballerina.toml: ${error}`);
+        return null;
+    }
+}
+
+
 export function getFirstWorkspacePackageName(uri: Uri): string | null {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
     

@@ -14,8 +14,17 @@ import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, getWorkspacePackageNames, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+
+export interface ProjectMetadata {
+    readonly isBI: boolean;
+    readonly projectPath: string;
+    readonly workspacePath?: string;
+    readonly scope?: SCOPE;
+    readonly orgName?: string;
+    readonly packageName?: string;
+}
 
 interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
@@ -82,6 +91,7 @@ const stateMachine = createMachine<MachineContext>(
                                 assign({
                                     isBI: (context, event) => event.data.isBI,
                                     projectUri: (context, event) => event.data.projectPath,
+                                    workspacePath: (context, event) => event.data.workspacePath,
                                     scope: (context, event) => event.data.scope,
                                     org: (context, event) => event.data.orgName,
                                     package: (context, event) => event.data.packageName,
@@ -105,6 +115,7 @@ const stateMachine = createMachine<MachineContext>(
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
                                 projectUri: (context, event) => event.data.projectPath,
+                                workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
                                 package: (context, event) => event.data.packageName,
@@ -116,6 +127,7 @@ const stateMachine = createMachine<MachineContext>(
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
                                 projectUri: (context, event) => event.data.projectPath,
+                                workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
                                 package: (context, event) => event.data.packageName,
@@ -321,8 +333,8 @@ const stateMachine = createMachine<MachineContext>(
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
-                    // If the project uri is not set, we don't need to build the project structure
-                    if (context.projectUri) {
+                    // If the project uri or workspace path is not set, we don't need to build the project structure
+                    if (context.projectUri || context.workspacePath) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -709,7 +721,7 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string, scope?: SCOPE }> {
+async function checkForProjects(): Promise<ProjectMetadata> {
     const workspaceFolders = workspace.workspaceFolders;
 
     if (!workspaceFolders) {
@@ -723,7 +735,7 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
     return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
-async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]) {
+async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
     const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
 
     if (balProjects.length > 1) {
@@ -752,14 +764,24 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
     return { isBI: false, projectPath: '' };
 }
 
-async function handleSingleWorkspaceFolder(workspaceURI: any) {
+async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
     const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
-        const firstPackage = getFirstWorkspacePackageName(workspaceURI);
+        // TODO: Provide a quick pick to select the package to load the WSO2 Integrator
+        // if the user selects a package, then load the WSO2 Integrator for that package
+        // if the user cancels the selection, then load the WSO2 Integrator for the first package
+        const packages = getWorkspacePackageNames(workspaceURI);
+        const userSelectedPackage = await window.showQuickPick(packages, {
+            title: 'Select Package for WSO2 Integrator: BI',
+            placeHolder: 'Choose a package from your workspace to load in BI mode',
+            ignoreFocusOut: true
+        });
 
-        if (firstPackage) {
-            const packagePath = path.join(workspaceURI.fsPath, firstPackage);
+        const targetPackage = userSelectedPackage || getFirstWorkspacePackageName(workspaceURI);
+
+        if (targetPackage) {
+            const packagePath = path.join(workspaceURI.fsPath, targetPackage);
             const packageUri = Uri.file(packagePath);
             
             const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
@@ -773,7 +795,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: any) {
                 console.error("No BI enabled workspace found");
             }
     
-            return { isBI, projectPath, scope, orgName, packageName };
+            return { isBI, projectPath, workspacePath: workspaceURI.fsPath, scope, orgName, packageName };
         } else {
             return { isBI: false, projectPath: '' };
         }
