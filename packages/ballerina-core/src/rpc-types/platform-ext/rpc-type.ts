@@ -1,0 +1,29 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { ComponentKind, ConnectionDetailed, ContextItemEnriched, CreateComponentConnectionReq, CreateLocalConnectionsConfigReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { RequestType } from "vscode-messenger-common";
+
+const _preFix = "platform-ext";
+export const isLoggedIn: RequestType<void, boolean> = { method: `${_preFix}/isLoggedIn` };
+export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };
+export const getSelectedContext: RequestType<void, ContextItemEnriched | null> = { method: `${_preFix}/getSelectedContext` };
+export const getDirectoryComponents: RequestType<string,  ComponentKind[]> = { method: `${_preFix}/getDirectoryComponents` };
+export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
+export const createComponentConnection: RequestType<CreateComponentConnectionReq,  ConnectionDetailed> = { method: `${_preFix}/createComponentConnection` };
+export const createConnectionConfig: RequestType<CreateLocalConnectionsConfigReq,  string> = { method: `${_preFix}/createConnectionConfig` };
