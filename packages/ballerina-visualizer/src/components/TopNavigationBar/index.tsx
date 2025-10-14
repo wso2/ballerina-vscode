@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { HistoryEntry, MACHINE_VIEW } from "@wso2/ballerina-core";
 
 const NavContainer = styled.div`
     display: flex;
@@ -60,7 +60,14 @@ const IconButton = styled.div`
     }
 `;
 
-const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
+const BreadcrumbItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+`;
+
+const BreadcrumbText = styled.span<{ clickable?: boolean }>`
     ${({ clickable }: { clickable?: boolean }) =>
         clickable &&
         `
@@ -71,6 +78,18 @@ const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
     `}
 `;
 
+const PackageName = styled.div`
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 2px 4px;
+    font-size: 10px;
+    border-radius: 4px;
+`;
+
 interface TopNavigationBarProps {
     onBack?: () => void;
     onHome?: () => void;
@@ -79,7 +98,7 @@ interface TopNavigationBarProps {
 export function TopNavigationBar(props: TopNavigationBarProps) {
     const { onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
 
     useEffect(() => {
         rpcClient
@@ -126,12 +145,27 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                         existingLabels.add(shortName);
                         return (
                             <React.Fragment key={index}>
-                                {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                <BreadcrumbItem
-                                    clickable={index < history.length - 1}
-                                    onClick={() => index < history.length - 1 && handleCrumbClick(index)}
-                                >
-                                    {shortName}
+                                {index > 0 && (
+                                    <Icon 
+                                        name="wide-chevron" 
+                                        iconSx={{
+                                            color: "var(--vscode-foreground)",
+                                            fontSize: crumb.location?.workspacePath ? "20px" : "15px",
+                                            opacity: 0.5 }
+                                        } 
+                                        sx={{ alignSelf: "center" }}
+                                    />
+                                )}
+                                <BreadcrumbItem>
+                                    <BreadcrumbText
+                                        clickable={index < history.length - 1}
+                                        onClick={() => index < history.length - 1 && handleCrumbClick(index)}
+                                    >
+                                        {shortName}
+                                    </BreadcrumbText>
+                                    {crumb.location?.workspacePath && crumb.location.package && (
+                                        <PackageName>{crumb.location.package}</PackageName>
+                                    )}
                                 </BreadcrumbItem>
                             </React.Fragment>
                         );
