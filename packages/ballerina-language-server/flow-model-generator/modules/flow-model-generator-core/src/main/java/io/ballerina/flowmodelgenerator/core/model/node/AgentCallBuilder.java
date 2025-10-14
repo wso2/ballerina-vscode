@@ -111,9 +111,6 @@ public class AgentCallBuilder extends CallBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        if (context == null || context.codedata() == null) {
-            throw new IllegalArgumentException("Context or codedata cannot be null");
-        }
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
