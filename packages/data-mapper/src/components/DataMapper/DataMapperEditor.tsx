@@ -126,6 +126,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         name,
         applyModifications,
         onClose,
+        onRefresh,
+        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -280,6 +282,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
         useDMExpressionBarStore.getState().resetExpressionBarStore();
+        useDMQueryClausesPanelStore.getState().resetQueryClausesPanelStore();
     }
 
     const handleOnClose = () => {
@@ -330,6 +333,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
                         onBack={handleOnBack}
+                        onRefresh={onRefresh}
+                        onReset={onReset}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                         undoRedoGroup={undoRedoGroup}
