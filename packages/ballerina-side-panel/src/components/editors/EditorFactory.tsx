@@ -44,6 +44,7 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
+import { ActionTypeEditor } from "./ActionTypeEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -139,7 +140,19 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
-    } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
+    } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
+        return (
+            <ActionTypeEditor
+                field={field}
+                openRecordEditor={openRecordEditor}
+                handleOnFieldFocus={handleOnFieldFocus}
+                autoFocus={autoFocus}
+                handleOnTypeChange={handleOnTypeChange}
+                handleNewTypeSelected={handleNewTypeSelected}
+
+            />
+        );
+    }  else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor

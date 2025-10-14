@@ -162,9 +162,13 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
 export interface DataMapperQueryClausesPanelState {
     isQueryClausesPanelOpen: boolean;
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => void;
+    resetQueryClausesPanelStore: () => void;
 }
 
 export const useDMQueryClausesPanelStore = create<DataMapperQueryClausesPanelState>((set) => ({
     isQueryClausesPanelOpen: false,
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => set({ isQueryClausesPanelOpen }),
+    resetQueryClausesPanelStore: () => set({
+        isQueryClausesPanelOpen: false
+    })
 }));

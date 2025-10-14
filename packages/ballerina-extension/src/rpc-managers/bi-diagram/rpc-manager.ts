@@ -143,6 +143,7 @@ import {
     AvailableNode,
     Item,
     Category,
+    NodePosition,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -172,6 +173,7 @@ import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure 
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
+import { getView } from "../../utils/state-machine-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -222,10 +224,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .then(async (model) => {
                     console.log(">>> bi source code from ls", model);
                     if (params?.isConnector) {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits });
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits }, null, this.getSourceDescription(params));
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits }, this.getArtifactDataFromNodeKind(params.flowNode.codedata.node));
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits }, this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), this.getSourceDescription(params));
                         resolve({ artifacts });
                     }
                 })
@@ -236,6 +238,23 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     });
                 });
         });
+    }
+
+    private capitalizeFirstLetter(name: string): string {
+        return name
+            .replace(/_/g, ' ')
+            .toLowerCase()
+            .replace(/^\w/, c => c.toUpperCase());
+    }
+
+    private getSourceDescription(params: BISourceCodeRequest): string {
+        let artifactType = this.capitalizeFirstLetter(params.flowNode.codedata.node);
+        if (params.isConnector) {
+            artifactType = `${this.capitalizeFirstLetter(params.flowNode.codedata.module)} Connection`;
+        }
+        const action = params.flowNode.codedata.isNew ? 'Creation' : 'Update';
+        const identifier = params.flowNode?.properties?.variable?.value;
+        return `${artifactType} ${action}${identifier ? ` - ${identifier}` : ''}`;
     }
 
     private getArtifactDataFromNodeKind(nodeKind: NodeKind): ArtifactData {
@@ -319,7 +338,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         // List of node types/labels to hide when advanced AI nodes are disabled
         const hiddenNodeTypes = [
             'CHUNKERS',
-            'VECTOR_STORES', 
+            'VECTOR_STORES',
             'EMBEDDING_PROVIDERS'
         ];
 
@@ -332,12 +351,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         const filterItems = (items: Item[]): Item[] => {
             if (!items) { return items; }
-            
+
             return items.filter(item => {
                 if ((item as AvailableNode).codedata?.node && hiddenNodeTypes.includes((item as AvailableNode).codedata.node)) {
                     return false;
                 }
-                
+
                 if (item.metadata?.label && hiddenNodeLabels.includes(item.metadata.label)) {
                     return false;
                 }
@@ -345,7 +364,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 if ((item as Category).items) {
                     (item as Category).items = filterItems((item as Category).items);
                 }
-                
+
                 return true;
             });
         };
@@ -753,7 +772,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .deleteFlowNode(params)
                 .then(async (model) => {
                     console.log(">>> bi delete node from ls", model);
-                    const artifacts = await updateSourceCode({ textEdits: model.textEdits });
+                    const artifacts = await updateSourceCode({ textEdits: model.textEdits }, null, 'Flow Node Deletion - ' + params.flowNode.metadata.label);
                     resolve({ artifacts });
                 })
                 .catch((error) => {
@@ -825,28 +844,28 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
 
             const response = await StateMachine.langClient().updateConfigVariables(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE });
+            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Update');
             resolve(response);
         });
     }
 
-async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
-    return new Promise(async (resolve) => {
-        const projectPath = path.join(StateMachine.context().projectUri);
-        const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
+    async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
+        return new Promise(async (resolve) => {
+            const projectPath = path.join(StateMachine.context().projectUri);
+            const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
 
-        // if params includeLibraries is not set, then use settings
-        const includeLibraries = params?.includeLibraries !== undefined
-            ? params.includeLibraries
-            : showLibraryConfigVariables !== false;
+            // if params includeLibraries is not set, then use settings 
+            const includeLibraries = params?.includeLibraries !== undefined
+                ? params.includeLibraries
+                : showLibraryConfigVariables !== false;
 
-        const variables = await StateMachine.langClient().getConfigVariablesV2({
-            projectPath: projectPath,
-            includeLibraries
-        }) as ConfigVariableResponse;
-        resolve(variables);
-    });
-}
+            const variables = await StateMachine.langClient().getConfigVariablesV2({
+                projectPath: projectPath,
+                includeLibraries
+            }) as ConfigVariableResponse;
+            resolve(variables);
+        });
+    }
 
     async updateConfigVariablesV2(params: UpdateConfigVariableRequestV2): Promise<UpdateConfigVariableResponseV2> {
         return new Promise(async (resolve) => {
@@ -856,7 +875,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                 writeBallerinaFileDidOpen(params.configFilePath, "\n");
             }
             const response = await StateMachine.langClient().updateConfigVariablesV2(req) as UpdateConfigVariableResponseV2;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE });
+            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Update');
             resolve(response);
         });
     }
@@ -869,7 +888,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                 writeBallerinaFileDidOpen(params.configFilePath, "\n");
             }
             const response = await StateMachine.langClient().deleteConfigVariableV2(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE });
+            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Deletion');
             resolve(response);
         });
     }
@@ -1180,6 +1199,18 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
         const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectUri);
 
+        const position: NodePosition = {
+            startLine: params.component?.startLine,
+            startColumn: params.component?.startColumn,
+            endColumn: params.component?.endColumn,
+            endLine: params.component?.endLine
+        };
+        // Check if the filepath is only the filename or the full path if not concatenate the project uri
+        let filePath = params.component?.filePath;
+        if (!filePath.includes(StateMachine.context().projectUri)) {
+            filePath = path.join(StateMachine.context().projectUri, filePath);
+        }
+        const componentView = await getView(filePath, position, StateMachine.context().projectUri);
         // Helper function to perform the actual delete operation
         const performDelete = async (): Promise<any> => {
             return new Promise((resolve, reject) => {
@@ -1187,7 +1218,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                     .deleteByComponentInfo(params)
                     .then(async (model) => {
                         console.log(">>> bi delete node from ls by componentInfo", model);
-                        await updateSourceCode({ textEdits: model.textEdits });
+                        await updateSourceCode({ textEdits: model.textEdits }, null, `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`);
                         resolve(model);
                     })
                     .catch((error) => {
@@ -1434,7 +1465,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                 .updateType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> update type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits });
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update');
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching types from ls", error);
@@ -1546,7 +1577,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
                 .createGraphqlClassType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> create graphql class type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits });
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Graphql Class Type Creation');
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching class type from ls", error);
@@ -1570,7 +1601,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateClassField(params);
-                await updateSourceCode({ textEdits: res.textEdits });
+                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Update');
                 resolve(res);
             } catch (error) {
                 console.log(error);
@@ -1578,12 +1609,12 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         });
     }
 
-    async updateServiceClass(params: ServiceClassSourceRequest): Promise<SourceEditResponse> {
+    async updateServiceClass(params: ServiceClassSourceRequest): Promise<UpdatedArtifactsResponse> {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateServiceClass(params);
-                await updateSourceCode({ textEdits: res.textEdits });
-                resolve(res);
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Service Class Update');
+                resolve({ artifacts });
             } catch (error) {
                 console.log(error);
             }
@@ -1594,7 +1625,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().addClassField(params);
-                await updateSourceCode({ textEdits: res.textEdits });
+                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Creation');
                 resolve(res);
             } catch (error) {
                 console.log(error);
@@ -1605,9 +1636,6 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
     async renameIdentifier(params: RenameIdentifierRequest): Promise<void> {
         const projectUri = StateMachine.context().projectUri;
         const filePath = path.join(projectUri, params.fileName);
-        // StateMachine.setTempData({
-        //     identifier: params.newName
-        // });
         const fileUri = Uri.file(filePath).toString();
         const request: RenameRequest = {
             textDocument: {
@@ -1616,72 +1644,10 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
             position: params.position,
             newName: params.newName
         };
-
         try {
             const workspaceEdit = await StateMachine.langClient().rename(request);
-
             if (workspaceEdit && 'changes' in workspaceEdit && workspaceEdit.changes) {
-                // TODO: Check if this is the correct way to do this
-                const modificationRequests: Record<string, { filePath: string; modifications: STModification[] }> = {};
-
-                for (const [key, value] of Object.entries(workspaceEdit.changes)) {
-                    const fileUri = key;
-                    const edits = value;
-
-                    if (edits && edits.length > 0) {
-                        const modificationList: STModification[] = [];
-
-                        for (const edit of edits) {
-                            const stModification: STModification = {
-                                startLine: edit.range.start.line,
-                                startColumn: edit.range.start.character,
-                                endLine: edit.range.end.line,
-                                endColumn: edit.range.end.character,
-                                type: "INSERT",
-                                isImport: false,
-                                config: {
-                                    STATEMENT: edit.newText,
-                                },
-                            };
-                            modificationList.push(stModification);
-                        }
-
-                        modificationList.sort((a, b) => a.startLine - b.startLine);
-
-                        if (modificationRequests[fileUri]) {
-                            modificationRequests[fileUri].modifications.push(...modificationList);
-                        } else {
-                            modificationRequests[fileUri] = { filePath: Uri.parse(fileUri).fsPath, modifications: modificationList };
-                        }
-                    }
-                }
-
-                try {
-                    for (const [fileUriString, request] of Object.entries(modificationRequests)) {
-                        const { parseSuccess, source, syntaxTree } = (await StateMachine.langClient().stModify({
-                            documentIdentifier: { uri: fileUriString },
-                            astModifications: request.modifications,
-                        })) as SyntaxTree;
-
-                        if (parseSuccess) {
-                            const fileUri = Uri.file(request.filePath);
-                            const workspaceEdit = new vscode.WorkspaceEdit();
-                            workspaceEdit.replace(
-                                fileUri,
-                                new vscode.Range(
-                                    new vscode.Position(0, 0),
-                                    new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-                                ),
-                                source
-                            );
-
-                            await workspace.applyEdit(workspaceEdit);
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    }
-                } catch (error) {
-                    console.log(">>> error updating source", error);
-                }
+                await updateSourceCode({ textEdits: workspaceEdit.changes }, null, 'Rename for ' + params.newName);
             }
         } catch (error) {
             console.error('Error in renameIdentifier:', error);
@@ -1707,10 +1673,6 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
 
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return new Promise((resolve, reject) => {
-            params.queryMap = {
-                ...params.queryMap,
-                includeCurrentOrganizationInSearch: extension.ballerinaExtInstance.getIncludeCurrentOrgComponents(),
-            };
             StateMachine.langClient().search(params).then((res) => {
                 resolve(res);
             }).catch((error) => {
@@ -1830,7 +1792,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
             ).then(async (updateTypesresponse: UpdateTypesResponse) => {
                 console.log(">>> update type response", updateTypesresponse);
                 if (updateTypesresponse.textEdits) {
-                    await updateSourceCode({ textEdits: updateTypesresponse.textEdits });
+                    await updateSourceCode({ textEdits: updateTypesresponse.textEdits }, null, 'Type Update');
                     resolve(updateTypesresponse);
                 } else {
                     console.log(">>> error updating types", updateTypesresponse?.errorMsg);
@@ -1971,7 +1933,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
             StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
                 .then(async (deleteTypeResponse: DeleteTypeResponse) => {
                     if (deleteTypeResponse.textEdits) {
-                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits });
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits }, null, 'Type Deletion');
                         resolve(deleteTypeResponse);
                     } else {
                         reject(deleteTypeResponse.errorMsg);
@@ -1992,7 +1954,7 @@ async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariabl
         };
         return new Promise((resolve, reject) => {
             StateMachine.langClient().verifyTypeDelete(request)
-                .then((response) => {                    
+                .then((response) => {
                     resolve(response);
                 })
                 .catch((error) => {

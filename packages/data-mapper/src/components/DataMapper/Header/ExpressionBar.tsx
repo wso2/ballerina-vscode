@@ -89,7 +89,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const [textFieldValue, setTextFieldValue] = useState<string>('');
     const [placeholder, setPlaceholder] = useState<string>();
 
-    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort } =
+    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort, resetExprBarFocus } =
         useDMExpressionBarStore(
             useShallow((state) => ({
                 focusedPort: state.focusedPort,
@@ -187,7 +187,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
     const saveSource = async (port: InputOutputPortModel, value: string) => {
         const valueChanged = savedTextFieldValue.current !== value;
-        if (!port || !valueChanged) {
+        if (!port || !valueChanged || !value) {
             return;
         }
 
@@ -216,6 +216,13 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
             return;
         }
         await textFieldRef.current.saveExpression(textFieldValue);
+        resetExprBarFocus();
+    };
+
+    const handleCancel = () => {
+        setTextFieldValue('');
+        onCancel();
+        resetExprBarFocus();
     };
 
     const inputProps: InputProps = {
@@ -254,7 +261,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     };
 
     useEffect(() => {
-        saveOnPortChange();
+            saveOnPortChange();
     }, [focusedPort, focusedFilter, lastFocusedPort]);
 
     const fieldTitle = useMemo(() => {
@@ -292,7 +299,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 onChange={handleChange}
                 onCompletionSelect={onCompletionSelect}
                 onSave={handleExpressionSave}
-                onCancel={onCancel}
+                onCancel={handleCancel}
                 onClose={onCancel}
                 onBlur={handleBlur}
                 useTransaction={useDisableOnChange}
