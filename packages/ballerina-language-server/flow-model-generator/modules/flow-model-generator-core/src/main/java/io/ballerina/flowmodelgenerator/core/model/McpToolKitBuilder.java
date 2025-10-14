@@ -80,6 +80,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     private static final String CONNECTIONS_BAL = "connections.bal";
     public static final String MCP_CLASS_DEFINITION = "mcpClassDefinition";
     private static final Gson gson = new Gson();
+    private static final String NEW_LINE = System.lineSeparator();
 
     @Override
     public void setConcreteConstData() {
@@ -294,15 +295,13 @@ public class McpToolKitBuilder extends NodeBuilder {
 
         if (permittedTools.equals("()") || permittedTools.isBlank()) {
             // Generate init body using self.callTool as function reference
-            initBody = """
-                            do {
-                                self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);
-                                self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info,\
-                     self.callTool).cloneReadOnly();
-                            } on fail error e {
-                                return error ai:Error("Failed to initialize MCP toolkit", e);
-                            }\
-                    """;
+            initBody = "        do {" + NEW_LINE +
+                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info," +
+                    " self.callTool).cloneReadOnly();" + NEW_LINE +
+                    "        } on fail error e {" + NEW_LINE +
+                    "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                    "        }";
 
             // Generate callTool method
             toolFunctions = getToolMethodSignature("callTool");
@@ -313,56 +312,43 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .map(e -> "                " + e.getKey() + " : self." + e.getValue())
                     .collect(Collectors.joining("," + System.lineSeparator()));
 
-            initBody = String.format(
-                    """
-                                    final map<ai:FunctionTool> permittedTools = {
-                            %s
-                                    };\
-                            
-                                    do {
-                                        self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);
-                                        self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info,\
-                             permittedTools).cloneReadOnly();
-                                    } on fail error e {
-                                        return error ai:Error("Failed to initialize MCP toolkit", e);
-                                    }""",
-                    permittedToolsMappingConstructorExp
-            );
+            initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
+                    permittedToolsMappingConstructorExp + NEW_LINE +
+                    "        };" + NEW_LINE + NEW_LINE +
+                    "        do {" + NEW_LINE +
+                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info," +
+                    " permittedTools).cloneReadOnly();" + NEW_LINE +
+                    "        } on fail error e {" + NEW_LINE +
+                    "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                    "        }";
 
             // Generate individual tool methods
             toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
                     .collect(Collectors.joining(System.lineSeparator()));
         }
 
-        return String.format(
-                """
-                        isolated class %s {
-                            *ai:McpBaseToolKit;
-                            private final mcp:StreamableHttpClient mcpClient;
-                            private final readonly & ai:ToolConfig[] tools;
-                        
-                            public isolated function init(string serverUrl,\
-                         mcp:Implementation info = {name: "MCP", version: "1.0.0"},
-                                    *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {
-                        %s
-                            }
-                        
-                            public isolated function getTools() returns ai:ToolConfig[] => self.tools;
-                        
-                        %s\
-                        }
-                        """,
-                className, initBody, toolFunctions
-        );
+        return "isolated class " + className + " {" + NEW_LINE +
+                "    *ai:McpBaseToolKit;" + NEW_LINE +
+                "    private final mcp:StreamableHttpClient mcpClient;" + NEW_LINE +
+                "    private final readonly & ai:ToolConfig[] tools;" + NEW_LINE + NEW_LINE +
+                "    public isolated function init(string serverUrl," +
+                " mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"}," + NEW_LINE +
+                "            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {" + NEW_LINE +
+                initBody +
+                NEW_LINE + "    }" + NEW_LINE + NEW_LINE +
+                "    public isolated function getTools() returns ai:ToolConfig[] => self.tools;" + NEW_LINE +
+                NEW_LINE +
+                toolFunctions +
+                "}" + NEW_LINE;
     }
 
     private String getToolMethodSignature(String toolName) {
-        return String.format("""
-                    @ai:AgentTool
-                    public isolated function %s(mcp:CallToolParams params) returns mcp:CallToolResult|error {
-                        return self.mcpClient->callTool(params);
-                    }
-                """, toolName);
+        return "    @ai:AgentTool" + NEW_LINE +
+                "    public isolated function " + toolName + "(mcp:CallToolParams params)" +
+                " returns mcp:CallToolResult|error {" + NEW_LINE +
+                "        return self.mcpClient->callTool(params);" + NEW_LINE +
+                "    }" + NEW_LINE;
     }
 
     private Map<String, String> generatePermittedToolsMapping(String permittedTools) {
