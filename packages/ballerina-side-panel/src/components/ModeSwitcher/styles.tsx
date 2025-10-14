@@ -17,6 +17,7 @@
  */
 
 import styled from "@emotion/styled";
+import { ThemeColors } from '@wso2/ui-toolkit';
 
 interface LabelProps {
   active: boolean;
@@ -28,7 +29,7 @@ export const Label = styled.span<LabelProps>`
   font-size: 10px;
   z-index: 1;
   transition: all 0.2s ease;
-  color: ${props => props.active ? '#ffffff' : '#888888'};
+  color: ${props => props.active ? ThemeColors.ON_SURFACE : ThemeColors.ON_SURFACE_VARIANT};
   font-weight: ${props => props.active ? '600' : '500'};
   text-shadow: ${props => props.active ? '0 1px 2px rgba(0, 0, 0, 0.5)' : 'none'};
   top: 50%;
@@ -52,8 +53,8 @@ export const Slider = styled.div<{ checked: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #2d2d30;
-  color: #cccccc;
+  background-color: ${ThemeColors.SURFACE_DIM};
+  color: ${ThemeColors.ON_SURFACE};
   font-weight: 500;
   border-radius: 2px;
   display: flex;
@@ -61,12 +62,8 @@ export const Slider = styled.div<{ checked: boolean }>`
   align-items: center;
   padding: 2px;
   transition: all 0.2s ease;
-  border: 1px solid #3e3e42;
+  border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-
-  &:hover {
-    background-color: #333337;
-  }
 
   &:before {
     content: "";
@@ -76,14 +73,21 @@ export const Slider = styled.div<{ checked: boolean }>`
     left: ${props => props.checked ? 'calc(30% + 4px)' : '2px'};
     top: 2px;
     border-radius: 1px;
-    background: #505050;
+    background: ${ThemeColors.SURFACE_CONTAINER};
     transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
     z-index: 0;
-    border: 1px solid #5a5a5a;
+    border: 1px solid ${ThemeColors.OUTLINE};
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
   &:active:before {
-    background: #4a4a4a;
+    background: ${ThemeColors.SURFACE_DIM};
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(1px);
   }
 `;
 
