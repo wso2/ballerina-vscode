@@ -275,4 +275,9 @@ export class CommonRpcManager implements CommonRPCAPI {
             }
         }
     }
+
+    async isBallerinaWorkspace(): Promise<boolean> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }
