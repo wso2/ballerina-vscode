@@ -499,14 +499,12 @@ public final class HttpUtil {
 
     private static HttpResponse getHttpResponse(TypeSymbol statusCodeResponseType, String defaultStatusCode,
                                                 SemanticModel semanticModel, String currentModuleName) {
-        String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
-        if (typeName.contains("}")) {
-            HttpResponse.Builder builder = new HttpResponse.Builder()
-                    .statusCode(statusCode, true)
-                    .type("record {|...|}", true);
-            return builder.build();
+        String signature = statusCodeResponseType.signature().trim();
+        if (signature.startsWith("record {") && signature.endsWith("}")) {
+           return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, null);
         }
+        String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         if (typeName.startsWith("http:")) {
             String type = HTTP_CODES_DES.get(statusCode);
             if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
@@ -521,6 +519,13 @@ public final class HttpUtil {
             }
         }
 
+        return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, typeName);
+    }
+
+    private static HttpResponse buildHttpResponseFromTypeSymbol(TypeSymbol statusCodeResponseType,
+                                                                String currentModuleName,
+                                                                String statusCode,
+                                                                String typeName) {
         List<Object> headers = new ArrayList<>();
         String body = "anydata";
         String mediaType = "";

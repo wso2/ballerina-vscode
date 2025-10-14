@@ -40,6 +40,7 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -73,6 +74,7 @@ import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
@@ -80,6 +82,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOUR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.generateHttpResourceDefinition;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParameterType;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
@@ -105,16 +108,28 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
-        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
-        boolean isResource = functionDefinitionNode.qualifierList().stream()
-                .anyMatch(qualifier -> qualifier.text().equals(RESOURCE));
+        FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) context.node();
+        boolean isResource = funcDefNode.qualifierList().stream().anyMatch(q -> q.text().equals(RESOURCE));
         if (isResource) {
-            return getEnrichedResourceModel(functionDefinitionNode, context.semanticModel());
+            Function functionModel = getEnrichedResourceModel(funcDefNode, context.semanticModel());
+            setResourceEditability(context, functionModel);
+            return functionModel;
         }
-        Function functionModel = getObjectFunctionFromSource(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM,
-                functionDefinitionNode);
+        Function functionModel = getObjectFunctionFromSource(SERVICE_DIAGRAM, funcDefNode);
         functionModel.setEditable(true);
         return functionModel;
+    }
+
+    private static void setResourceEditability(ModelFromSourceContext context, Function functionModel) {
+        if (context.node().parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
+            Optional<TypeDescriptorNode> typeDescriptorNode = serviceDeclarationNode.typeDescriptor();
+            if (typeDescriptorNode.isPresent()) {
+                String serviceType = typeDescriptorNode.toString().trim();
+                if (!HTTP_SERVICE_TYPE.equals(serviceType)) {
+                    functionModel.setEditable(false);
+                }
+            }
+        }
     }
 
     @Override
