@@ -82,9 +82,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "mcp": "ballerina/mcp"
-          },
           "defaultValue": "{name: \"\", version: \"\"}"
         },
         "httpVersion": {
@@ -112,9 +109,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "\"2.0\""
         },
         "http1Settings": {
@@ -142,9 +136,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "{}"
         },
         "http2Settings": {
@@ -172,9 +163,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "{}"
         },
         "timeout": {
@@ -263,9 +251,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "poolConfig": {
@@ -300,9 +285,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "cache": {
@@ -330,9 +312,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "{}"
         },
         "compression": {
@@ -360,9 +339,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "\"AUTO\""
         },
         "auth": {
@@ -439,9 +415,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "circuitBreaker": {
@@ -476,9 +449,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "retryConfig": {
@@ -513,9 +483,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "cookieConfig": {
@@ -550,9 +517,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "responseLimits": {
@@ -580,9 +544,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "{}"
         },
         "proxy": {
@@ -617,9 +578,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "validation": {
@@ -674,9 +632,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "{}"
         },
         "laxDataBinding": {
@@ -738,9 +693,6 @@
               "selected": false
             }
           ],
-          "imports": {
-            "http": "ballerina/http"
-          },
           "defaultValue": "()"
         },
         "sessionId": {
