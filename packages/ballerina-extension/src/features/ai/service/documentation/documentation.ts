@@ -15,7 +15,7 @@
 // under the License.
 
 import { Command, ProjectSource } from "@wso2/ballerina-core";
-import { streamText, CoreMessage } from "ai";
+import { streamText, ModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     getDocumentationGenerationSystemPrompt,
@@ -37,9 +37,9 @@ export async function generateDocumentationCore(
     eventHandler: CopilotEventHandler
 ): Promise<void> {
     const systemPrompt = getDocumentationGenerationSystemPrompt();
-    const userMessages: CoreMessage[] = createDocumentationGenMessages(params);
+    const userMessages: ModelMessage[] = createDocumentationGenMessages(params);
 
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
         {
             role: "system",
             content: systemPrompt,
@@ -49,7 +49,7 @@ export async function generateDocumentationCore(
 
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 16384,
+        maxOutputTokens: 16384,
         temperature: 0,
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -61,7 +61,7 @@ export async function generateDocumentationCore(
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = part.text;
                 assistantResponse += textPart;
                 eventHandler({ type: "content_block", content: textPart });
                 break;

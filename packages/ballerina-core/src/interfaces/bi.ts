@@ -328,6 +328,7 @@ export type NodePropertyKey =
     | "model"
     | "modelProvider"
     | "msg"
+    | "name"
     | "parameters"
     | "path"
     | "patterns"
