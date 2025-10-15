@@ -30,9 +30,8 @@ import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { useQuery } from "@tanstack/react-query";
 import { ICreateComponentCmdParams, MarketplaceItem, CommandIds as PlatformExtCommandIds, ICmdParamsBase as PlatformExtICmdParamsBase } from "@wso2/wso2-platform-core";
 import { VSCodeLink, VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import { MarketplaceItemDetails } from "./MarketplaceItemDetails";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
-import { DevantConnectorList } from "./DevantConnectorList";
+import { DevantConnectorList } from "../DevantConnections/DevantConnectorList";
 
 const ViewWrapper = styled.div<{ isHalfView?: boolean }>`
     display: flex;
@@ -100,6 +99,7 @@ interface ConnectorViewProps {
     fileName: string;
     targetLinePosition: LinePosition;
     onSelectConnector: (connector: AvailableNode) => void;
+    onSelectDevantConnector: (item: MarketplaceItem) => void;
     onAddGeneratedConnector: () => void;
     onClose?: () => void;
     hideTitle?: boolean;
@@ -114,6 +114,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         fileName,
         targetLinePosition,
         onSelectConnector,
+        onSelectDevantConnector,
         onAddGeneratedConnector,
         onClose,
         hideTitle,
@@ -363,7 +364,7 @@ export function ConnectorView(props: ConnectorViewProps) {
                         {(() => {
                             switch (selectedConnectorCategory) {
                                 case "DevantConnectors":
-                                    return <DevantConnectorList search={searchText} />;
+                                    return <DevantConnectorList search={searchText} onSelectDevantConnector={onSelectDevantConnector}/>;
                                 default:
                                     return <>
                                             {selectedConnectorCategory === "CurrentOrg" && (

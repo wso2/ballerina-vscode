@@ -19,15 +19,17 @@
 import React, { FC, useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ProgressRing, ThemeColors, Typography, Overlay } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyTinyInfo } from "../../../styles";
 import { useQuery } from "@tanstack/react-query";
-import { ICreateComponentCmdParams, MarketplaceItem, CommandIds as PlatformExtCommandIds, ICmdParamsBase as PlatformExtICmdParamsBase } from "@wso2/wso2-platform-core";
+import {
+    ICreateComponentCmdParams,
+    MarketplaceItem,
+    CommandIds as PlatformExtCommandIds,
+    ICmdParamsBase as PlatformExtICmdParamsBase,
+} from "@wso2/wso2-platform-core";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import { MarketplaceItemDetails } from "./MarketplaceItemDetails";
-import { PanelContainer } from "@wso2/ballerina-side-panel";
-import { CreateConnection } from "./CreateConnection";
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
     display: grid;
@@ -37,11 +39,13 @@ const GridContainer = styled.div<{ isHalfView?: boolean }>`
     width: 100%;
 `;
 
-export const DevantConnectorList: FC<{ search: string; hideTitle?: boolean }> = ({ search, hideTitle }) => {
+export const DevantConnectorList: FC<{
+    search: string;
+    hideTitle?: boolean;
+    onSelectDevantConnector: (item: MarketplaceItem) => void;
+}> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
-    const [selectedItem, setSelectedItem] = useState<MarketplaceItem>();
-    const [showCreateForm, setShowCreateForm] = useState(false);
 
     const { data: projectPath } = useQuery({
         queryKey: ["projectPath"],
@@ -163,44 +167,6 @@ export const DevantConnectorList: FC<{ search: string; hideTitle?: boolean }> = 
 
     return (
         <>
-            {selectedItem && (
-                <>
-                    <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
-                    <PanelContainer
-                        show={true}
-                        title={`Create connection for ${selectedItem?.name}`}
-                        onClose={() => {
-                            setSelectedItem(undefined);
-                            setShowCreateForm(false);
-                        }}
-                        width={600}
-                        subPanelWidth={600}
-                        onBack={showCreateForm ? ()=>setShowCreateForm(false): undefined}
-                    >
-                        {showCreateForm ? <>
-                            <CreateConnection 
-                                allItems={[]}   // todo update
-                                component={directoryComponent}
-                                item={selectedItem}
-                                onCreate={()=>{
-                                    setSelectedItem(undefined);
-                                    setShowCreateForm(false);
-                                }}
-                                directoryFsPath={projectPath?.projectUri}
-                                org={selected.org}
-                                project={selected.project}
-                            />
-                        </> :  <MarketplaceItemDetails
-                            onCreateClick={() => setShowCreateForm(true)}
-                            org={selected?.org}
-                            directoryFsPath={projectPath?.projectUri}
-                            item={selectedItem}
-                        />}
-                       
-                    </PanelContainer>
-                </>
-            )}
-
             <VSCodePanels style={{ height: "100%" }}>
                 <VSCodePanelTab id={`tab-internal-services`} key={`tab-internal-services`}>
                     Internal Services
@@ -220,7 +186,6 @@ export const DevantConnectorList: FC<{ search: string; hideTitle?: boolean }> = 
                                 <ProgressRing />
                             </div>
                         )}
-                        {/** Use the same empty view in connectors section */}
                         {marketplaceResp?.data?.length === 0 && (
                             <BodyTinyInfo>
                                 There are no internal API services available to connect to in your Devant project.
@@ -235,7 +200,7 @@ export const DevantConnectorList: FC<{ search: string; hideTitle?: boolean }> = 
                                         title={item.name}
                                         description={item.description}
                                         icon={<Codicon name="package" />}
-                                        onClick={() => setSelectedItem(item)}
+                                        onClick={() => onSelectDevantConnector(item)}
                                     />
                                 );
                             })}

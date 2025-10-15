@@ -16,14 +16,16 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionDetailed, ContextItemEnriched, CreateComponentConnectionReq, CreateLocalConnectionsConfigReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ComponentKind, ConnectionDetailed, ContextItemEnriched, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { RequestType } from "vscode-messenger-common";
+import { CreateDevantConnectionReq } from "./interfaces";
 
 const _preFix = "platform-ext";
+// BI ext handlers
+export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  ConnectionDetailed> = { method: `${_preFix}/createDevantComponentConnection` };
+// Platform ext proxies
 export const isLoggedIn: RequestType<void, boolean> = { method: `${_preFix}/isLoggedIn` };
 export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };
 export const getSelectedContext: RequestType<void, ContextItemEnriched | null> = { method: `${_preFix}/getSelectedContext` };
 export const getDirectoryComponents: RequestType<string,  ComponentKind[]> = { method: `${_preFix}/getDirectoryComponents` };
 export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
-export const createComponentConnection: RequestType<CreateComponentConnectionReq,  ConnectionDetailed> = { method: `${_preFix}/createComponentConnection` };
-export const createConnectionConfig: RequestType<CreateLocalConnectionsConfigReq,  string> = { method: `${_preFix}/createConnectionConfig` };

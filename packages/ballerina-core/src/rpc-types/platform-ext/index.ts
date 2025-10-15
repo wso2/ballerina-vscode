@@ -16,16 +16,18 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionDetailed, CreateComponentConnectionReq, CreateLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
+import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp } from "@wso2/wso2-platform-core"
+import { CreateDevantConnectionReq } from "./interfaces";
 export * from "./rpc-type"
 
 // TODO: check if we can directly use the wso2-extension api interface
 export interface PlatformExtAPI {
+    // BI ext handlers
+    createDevantComponentConnection: (params: CreateDevantConnectionReq) => Promise<string>
+    // Platform ext proxies
     isLoggedIn: () => Promise<boolean>;
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
     getSelectedContext: () => Promise<ContextItemEnriched | null>;
     getDirectoryComponents: (fsPath: string) => Promise<ComponentKind[]>;
     getMarketplaceIdl: (params: GetMarketplaceIdlReq) => Promise<MarketplaceIdlResp>;
-    createComponentConnection: (params: CreateComponentConnectionReq) => Promise<ConnectionDetailed>;
-    createConnectionConfig: (params: CreateLocalConnectionsConfigReq) => Promise<string>
 }

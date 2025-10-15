@@ -173,7 +173,6 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
-import * as toml from "@iarna/toml";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1704,6 +1703,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return { mentions: recordNames };
     }
 
+    // todo: move all platform ext related handlers to platform ext rpc handler
     async getDevantMetadata(): Promise<DevantMetadata | undefined> {
         let hasContextYaml = false;
         let isLoggedIn = false;
@@ -1857,19 +1857,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Convert the plain object back to a Map
                 const edits = Object.entries(res.source.textEditsMap);
                 await Promise.all(edits.map(([key, value])=>this.applyTextEdits(key, value)));
-                // await this.applyTextEdits(key, [{newText:`connectionRef = "abcde"\n`,range:{start:{character:0,line: value[0]?.range.end.line + 1},end:{character:0,line: value[0]?.range.end.line + 1}}}]);
-
-                const balTomlPath = path.join(StateMachine.context().projectUri, "Ballerina.toml");
-                if(fs.existsSync(balTomlPath)){
-                    const fileContent = fs.readFileSync(balTomlPath, "utf-8");
-                    const parsedToml: any = toml.parse(fileContent);
-                    const matchingItem = parsedToml?.tool.openapi.find(item=>item.id === params.module);
-                    if (matchingItem) {
-                        matchingItem.connectionRef1 = "cdef";
-                    }
-                    const updatedTomlContent = toml.stringify(parsedToml);
-                    fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
-                }
                 resolve({});
             } catch(error){
                 console.log(">>> error generating openapi client", error);
