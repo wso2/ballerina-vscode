@@ -24,12 +24,7 @@
         },
         "valueType": "MULTIPLE_SELECT",
         "valueTypeConstraint": "Global",
-        "value": [
-          "tool-with-dash",
-          "tool with spaces",
-          "init",
-          "getTools"
-        ],
+        "value": "[\"tool-with-dash\", \"tool with spaces\", \"init\", \"getTools\"]",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -132,7 +127,7 @@
               "character": 1
             }
           },
-          "newText": "\nisolated class SpecialToolsKit {\n    *ai:McpBaseToolKit;\n    private final mcp:StreamableHttpClient mcpClient;\n    private final readonly & ai:ToolConfig[] tools;\n\n    public isolated function init(string serverUrl, mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},\n            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {\n        do {\n            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);\n            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, self.callTool).cloneReadOnly();\n        } on fail error e {\n            return error ai:Error(\"Failed to initialize MCP toolkit\", e);\n        }\n    }\n\n    public isolated function getTools() returns ai:ToolConfig[] => self.tools;\n\n    @ai:AgentTool\n    public isolated function callTool(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n}\n"
+          "newText": "\nisolated class SpecialToolsKit {\n    *ai:McpBaseToolKit;\n    private final mcp:StreamableHttpClient mcpClient;\n    private final readonly & ai:ToolConfig[] tools;\n\n    public isolated function init(string serverUrl, mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},\n            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {\n        final map<ai:FunctionTool> permittedTools = {\n                \"init\" : self.__init_,\n                \"getTools\" : self.__gettools_,\n                \"tool-with-dash\" : self.__tool_with_dash_,\n                \"tool with spaces\" : self.__toolWithSpaces_\n        };\n\n        do {\n            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);\n            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, permittedTools).cloneReadOnly();\n        } on fail error e {\n            return error ai:Error(\"Failed to initialize MCP toolkit\", e);\n        }\n    }\n\n    public isolated function getTools() returns ai:ToolConfig[] => self.tools;\n\n    @ai:AgentTool\n    public isolated function __init_(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function __gettools_(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function __tool_with_dash_(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function __toolWithSpaces_(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n}\n"
         }
       ]
     }
