@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.4.0",
+    "version": "5.4.1",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -965,21 +965,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f180"
+                    "fontCharacter": "\\f182"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f5"
+                    "fontCharacter": "\\f1f7"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17b"
+                    "fontCharacter": "\\f17d"
                 }
             },
             "distro-source-view": {
@@ -993,7 +993,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1d0"
+                    "fontCharacter": "\\f1d2"
                 }
             },
             "distro-cached-rounded": {
@@ -1134,8 +1134,8 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^2.2.12",
-        "@ai-sdk/anthropic": "^1.2.12",
+        "@ai-sdk/amazon-bedrock": "^3.0.25",
+        "@ai-sdk/anthropic": "^2.0.20",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^2.22.0",
@@ -1144,7 +1144,7 @@
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^4.3.16",
+        "ai": "^5.0.56",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
@@ -1172,7 +1172,7 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "zod": "^3.25.74"
+        "zod": "^4.1.8"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
