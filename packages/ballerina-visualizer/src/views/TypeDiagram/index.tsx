@@ -289,8 +289,14 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
                     type: type,
-                    projectUri: projectUri,
-                    isGraphql: false
+                    isGraphql: false,
+                    position: {
+                        startLine: type.codedata.lineRange?.startLine?.line,
+                        startColumn: type.codedata.lineRange?.startLine?.offset,
+                        endLine: type.codedata.lineRange?.endLine?.line,
+                        endColumn: type.codedata.lineRange?.endLine?.offset,
+                    },
+                    documentUri: type.codedata.lineRange?.fileName
                 },
             });
         }

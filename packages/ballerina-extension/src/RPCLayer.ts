@@ -111,9 +111,8 @@ export class RPCLayer {
             // Get the notification handler instance
             const notificationHandler = ArtifactNotificationHandler.getInstance();
             // Subscribe to notifications
-            const artifactUpdateUnsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, (payload) => {
+            notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, (payload) => {
                 RPCLayer._messenger.sendNotification(onArtifactUpdatedNotification, { type: 'webview', webviewType: VisualizerWebview.viewType }, payload.data);
-                artifactUpdateUnsubscribe();
             });
         });
     }
@@ -127,6 +126,7 @@ async function getContext(): Promise<VisualizerLocation> {
             documentUri: context.documentUri,
             view: context.view,
             identifier: context.identifier,
+            parentIdentifier: context.parentIdentifier,
             position: context.position,
             syntaxTree: context.syntaxTree,
             isBI: context.isBI,

@@ -243,14 +243,12 @@ namespace S {
             font-family: var(--vscode-font-family);
         }
 
-        code {
-            // hide code blocks
+        pre {
             display: none;
         }
 
-        pre {
-            // hide code blocks
-            display: none;
+        code {
+            display: inline;
         }
 
         ul,
@@ -357,7 +355,7 @@ export interface FormProps {
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
 }
 
-export const Form = forwardRef((props: FormProps, ref) => {
+export const Form = forwardRef((props: FormProps) => {
     const {
         infoLabel,
         formFields,
@@ -375,9 +373,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
         expressionEditor,
         targetLineRange,
         fileName,
-        updatedExpressionField,
-        resetUpdatedExpressionField,
-        mergeFormDataWithFlowNode,
         handleVisualizableFields,
         visualizableField,
         recordTypeFields,
@@ -444,7 +439,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     defaultValues[field.key] = field.value ?? "";
                 }
                 if (field.key === "variable") {
-                    defaultValues[field.key] = formValues[field.key] ?? "";
+                    defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                 }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
@@ -495,10 +490,10 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     // Expose a method to trigger the save
-    useImperativeHandle(ref, () => ({
-        triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
-        resetForm: (values) => reset(values),
-    }));
+    // useImperativeHandle(ref, () => ({
+    //     triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+    //     resetForm: (values) => reset(values),
+    // }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
         openRecordEditor?.(open, getValues(), typeField, newType);
@@ -531,7 +526,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
         openSubPanel(updatedSubPanel);
     };
 
-    const handleOnTypeChange = (value?: string) => {
+    const handleOnTypeChange = () => {
         getVisualiableFields();
     };
 
