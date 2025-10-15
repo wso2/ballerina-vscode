@@ -40,6 +40,9 @@ import java.util.Map;
  */
 public class McpClient {
 
+    private static final Integer CONNECTION_TIMEOUT_MS = 10000; // 10 seconds
+    private static final Integer READ_TIMEOUT_MS = 10000; // 10 seconds
+
     public static String sendInitializeRequest(String serviceUrl, String accessToken) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -55,8 +58,8 @@ public class McpClient {
             }
 
             conn.setDoOutput(true);
-            conn.setConnectTimeout(10000); // 10 seconds
-            conn.setReadTimeout(10000); // 10 seconds
+            conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
 
             String body = """
                     {
@@ -133,8 +136,8 @@ public class McpClient {
             }
 
             conn.setDoOutput(true);
-            conn.setConnectTimeout(10000); // 10 seconds
-            conn.setReadTimeout(10000); // 10 seconds
+            conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
 
             // Note: This is a notification (no "id" field)
             String body = """
@@ -189,8 +192,8 @@ public class McpClient {
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
             conn.setRequestProperty("User-Agent", "ballerina");
             conn.setRequestProperty("Connection", "keep-alive");
-            conn.setConnectTimeout(10000); // 10 seconds
-            conn.setReadTimeout(10000); // 10 seconds
+            conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
 
             if (sessionId != null && !sessionId.trim().isEmpty()) {
                 conn.setRequestProperty("mcp-session-id", sessionId);
