@@ -31,7 +31,6 @@ export const Label = styled.span<LabelProps>`
   transition: all 0.2s ease;
   color: ${props => props.active ? ThemeColors.ON_SURFACE : ThemeColors.ON_SURFACE_VARIANT};
   font-weight: ${props => props.active ? '600' : '500'};
-  text-shadow: ${props => props.active ? '0 1px 2px rgba(0, 0, 0, 0.5)' : 'none'};
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
@@ -53,7 +52,7 @@ export const Slider = styled.div<{ checked: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${ThemeColors.SURFACE_DIM};
+  background-color: ${ThemeColors.SURFACE_CONTAINER};
   color: ${ThemeColors.ON_SURFACE};
   font-weight: 500;
   border-radius: 2px;
@@ -63,7 +62,6 @@ export const Slider = styled.div<{ checked: boolean }>`
   padding: 2px;
   transition: all 0.2s ease;
   border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 
   &:before {
     content: "";
@@ -73,7 +71,7 @@ export const Slider = styled.div<{ checked: boolean }>`
     left: ${props => props.checked ? 'calc(30% + 4px)' : '2px'};
     top: 2px;
     border-radius: 1px;
-    background: ${ThemeColors.SURFACE_CONTAINER};
+    background: ${ThemeColors.SURFACE_DIM};
     transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
     z-index: 0;
     border: 1px solid ${ThemeColors.OUTLINE};

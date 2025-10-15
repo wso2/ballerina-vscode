@@ -19,7 +19,7 @@
 import React from 'react';
 import Modal from './modal';
 import { ButtonContainer, StyledButton } from './styles';
-import { ThemeColors } from '@wso2/ui-toolkit';
+import { Button, ThemeColors } from '@wso2/ui-toolkit';
 
 interface WarningPopupProps {
     isOpen: boolean;
@@ -32,14 +32,16 @@ const WarningPopup: React.FC<WarningPopupProps> = ({ isOpen, onContinue, onCance
         <Modal isOpen={isOpen} onClose={onCancel} maxWidth='90%'>
             <p>If you continue, you will lose all structured information. Do you want to continue?</p>
             <ButtonContainer>
-                <StyledButton 
-                style={{backgroundColor: ThemeColors.PRIMARY}}
-                onClick={onContinue}>
+                <Button 
+                    appearance='primary'
+                    onClick={onContinue}>
                     Continue
-                </StyledButton>
-                <StyledButton onClick={onCancel}>
+                </Button>
+                <Button 
+                    appearance='secondary'
+                    onClick={onCancel}>
                     Cancel
-                </StyledButton>
+                </Button>
             </ButtonContainer>
         </Modal>
     );
