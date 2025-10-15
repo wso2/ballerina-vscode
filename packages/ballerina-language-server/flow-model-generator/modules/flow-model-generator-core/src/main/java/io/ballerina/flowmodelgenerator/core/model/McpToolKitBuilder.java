@@ -385,6 +385,9 @@ public class McpToolKitBuilder extends NodeBuilder {
 
         // Otherwise, generate a method name from the input
         String[] parts = toolName.split("\\s+");
+        if (parts.length == 0) {
+            throw new IllegalArgumentException("Tool name contains only whitespace");
+        }
         StringBuilder sb = new StringBuilder(parts[0].toLowerCase(Locale.UK));
         for (int i = 1; i < parts.length; i++) {
             String part = parts[i];
