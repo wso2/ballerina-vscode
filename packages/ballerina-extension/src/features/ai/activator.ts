@@ -32,11 +32,11 @@ import { AIMachineEventType } from '@wso2/ballerina-core';
 export let langClient: ExtendedLangClient;
 
 export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension) {
-    
+
     langClient = <ExtendedLangClient>ballerinaExternalInstance.langClient;
     activateCopilotLoginCommand();
     resetBIAuth();
-    
+
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
         commands.registerCommand('ballerina.test.ai.generateCodeCore', async (params: GenerateCodeRequest, testEventHandler: CopilotEventHandler) => {
@@ -103,5 +103,5 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                 }
             }
         }
-    });   
+    });
 }
