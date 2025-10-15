@@ -55,6 +55,7 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
+import { UndoRedoGroup } from "../../components/UndoRedoGroup";
 
 // Types for model comparison
 interface ModelSignature {
@@ -82,7 +83,7 @@ export function DataMapperView(props: DataMapperProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
-    const [isUpdatingSource ,setIsUpdatingSource] = useState<boolean>(false);
+    const [isUpdatingSource, setIsUpdatingSource] = useState<boolean>(false);
 
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
@@ -91,16 +92,17 @@ export function DataMapperView(props: DataMapperProps) {
     const {
         model,
         isFetching,
-        isError
+        isError,
+        refreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
-    
+
     useEffect(() => {
-        const positionChanged = 
-            prevPositionRef.current?.line !== position?.line || 
+        const positionChanged =
+            prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
-        
+
         setViewState(prevState => ({
             viewId: positionChanged ? name : prevState.viewId || name,
             codedata: codedata,
@@ -108,7 +110,7 @@ export function DataMapperView(props: DataMapperProps) {
             // This ensures that changing the position resets the sub-mapping context.
             subMappingName: !positionChanged && prevState.subMappingName
         }));
-        
+
         prevPositionRef.current = position;
     }, [name, codedata, position]);
 
@@ -118,10 +120,12 @@ export function DataMapperView(props: DataMapperProps) {
         const currentSignature = JSON.stringify(getModelSignature(model));
         const prevSignature = prevSignatureRef.current;
 
-        const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
-        const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
-        const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
+        const triggerRefresh = model.triggerRefresh;
+
+        const hasInputsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'inputs');
+        const hasOutputChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'output');
+        const hasSubMappingsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
+        const hasRefsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
         const isExpandedModel = !('refs' in model);
@@ -188,21 +192,6 @@ export function DataMapperView(props: DataMapperProps) {
         [modelState]
     );
 
-
-    const onDMClose = () => {
-        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
-    }
-
-    const onEdit = () => {
-        const context: VisualizerLocation = {
-            view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.name,
-            documentUri: filePath,
-        };
-
-        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
-    }
-
     const updateExpression = async (outputId: string, expression: string, viewId: string, name: string) => {
         try {
             const resp = await rpcClient
@@ -237,7 +226,8 @@ export function DataMapperView(props: DataMapperProps) {
                 filePath,
                 codedata: viewState.codedata,
                 varName: name,
-                targetField: outputId,
+                outputId: outputId,
+                targetField: viewId,
                 propertyKey: "expression", // TODO: Remove this once the API is updated
                 subMappingName: viewState.subMappingName
             };
@@ -535,6 +525,42 @@ export function DataMapperView(props: DataMapperProps) {
         parentField.isDeepNested = false;
     }
 
+
+
+    const onDMClose = () => {
+        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
+    }
+
+    const onDMRefresh = async () => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .clearTypeCache();
+            console.log(">>> [Data Mapper] clearTypeCache response:", resp);
+        } catch (error) {
+            console.error(error);
+        }
+        await refreshDMModel();
+    };
+
+    const onDMReset = async () => {
+        await deleteMapping(
+            { output: name, expression: undefined },
+            name
+        );
+    };
+
+    const onEdit = () => {
+        const context: VisualizerLocation = {
+            view: MACHINE_VIEW.BIDataMapperForm,
+            identifier: modelState.model.output.name,
+            documentUri: filePath,
+        };
+
+        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
+    }
+
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -570,11 +596,12 @@ export function DataMapperView(props: DataMapperProps) {
                     fieldId: outputId,
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
                 let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                     filePath,
                     context: {
                         expression: value,
-                        startLine: updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine,
+                        startLine: startLine,
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
@@ -626,6 +653,10 @@ export function DataMapperView(props: DataMapperProps) {
         setFilteredCompletions([]);
     }
 
+    const undoRedoGroup = () => {
+        return <UndoRedoGroup key={Date.now()} />;
+    }
+
     return (
         <>
             {isFetching && (
@@ -645,6 +676,8 @@ export function DataMapperView(props: DataMapperProps) {
                             modelState={modelState}
                             name={name}
                             onClose={onDMClose}
+                            onRefresh={onDMRefresh}
+                            onReset={onDMReset}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}
@@ -660,6 +693,7 @@ export function DataMapperView(props: DataMapperProps) {
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
+                            undoRedoGroup={undoRedoGroup}
                             expressionBar={{
                                 completions: filteredCompletions,
                                 isUpdatingSource,

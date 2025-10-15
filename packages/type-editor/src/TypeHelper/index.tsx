@@ -24,6 +24,7 @@ import styled from '@emotion/styled';
 import { Transition } from '@headlessui/react';
 import {
     ARROW_HEIGHT,
+    BI_HELPER_PANE_WIDTH,
     CompletionItemKind,
     Position
 } from '@wso2/ui-toolkit';
@@ -200,8 +201,8 @@ export const TypeHelper = forwardRef<HTMLDivElement, TypeHelperProps>((props, re
         if (typeFieldRef.current) {
             const rect = typeFieldRef.current.getBoundingClientRect();
             let left = 0;
-            if (rect.width < 350 && window.innerWidth - rect.left < 350) {
-                left = rect.left - (rect.left + 350 - window.innerWidth);
+            if (rect.width < BI_HELPER_PANE_WIDTH && window.innerWidth - rect.left < BI_HELPER_PANE_WIDTH) {
+                left = rect.right - BI_HELPER_PANE_WIDTH - 2; // 2px for alignment correction padding
             }
             else {
                 left = rect.left;

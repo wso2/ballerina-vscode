@@ -18,9 +18,11 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    AddToUndoStackRequest,
     ColorThemeKind,
     HistoryEntry,
     OpenViewRequest,
+    UndoRedoStateResponse,
     UpdateUndoRedoMangerRequest,
     VisualizerAPI,
     addToHistory,
@@ -34,7 +36,7 @@ import {
     openView,
     redo,
     undo,
-    updateUndoRedoManager
+    undoRedoState
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -70,24 +72,24 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(goSelected, HOST_EXTENSION, index);
     }
 
-    undo(): Promise<string> {
-        return this._messenger.sendRequest(undo, HOST_EXTENSION);
+    undo(count: number): Promise<string> {
+        return this._messenger.sendRequest(undo, HOST_EXTENSION, count);
     }
 
-    redo(): Promise<string> {
-        return this._messenger.sendRequest(redo, HOST_EXTENSION);
+    redo(count: number): Promise<string> {
+        return this._messenger.sendRequest(redo, HOST_EXTENSION, count);
     }
 
-    addToUndoStack(source: string): void {
-        return this._messenger.sendNotification(addToUndoStack, HOST_EXTENSION, source);
+    addToUndoStack(params: AddToUndoStackRequest): void {
+        return this._messenger.sendNotification(addToUndoStack, HOST_EXTENSION, params);
+    }
+
+    undoRedoState(): Promise<UndoRedoStateResponse> {
+        return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
     }
 
     joinProjectPath(segments: string | string[]): Promise<string> {
         return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, segments);
-    }
-
-    updateUndoRedoManager(params: UpdateUndoRedoMangerRequest): void {
-        return this._messenger.sendNotification(updateUndoRedoManager, HOST_EXTENSION, params);
     }
 
     getThemeKind(): Promise<ColorThemeKind> {
