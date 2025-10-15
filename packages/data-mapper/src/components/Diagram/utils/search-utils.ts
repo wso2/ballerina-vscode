@@ -135,16 +135,16 @@ export function getFilteredMappings(
     return mappings.flatMap(mapping => {
 
 		const filteredInputs = mapping.inputs.filter(input => {
-			const inputField = input.split(".").pop();
+			const inputField = input.toLowerCase();
 			return inputSearch === "" || 
-				inputField.toLowerCase().includes(inputSearch.toLowerCase());
+				inputField.includes(inputSearch.toLowerCase());
 		});
 
-        const outputField = mapping.output.split(".").pop();
+        const outputField = mapping.output.toLowerCase();
         const matchedWithOutputSearch = outputSearch === "" ||
 			isElement ||
-            outputField.toLowerCase().includes(outputSearch.toLowerCase());
-        
+            outputField.includes(outputSearch.toLowerCase());
+
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 
             getFilteredMappings(element.mappings, inputSearch, outputSearch, matchedWithOutputSearch)

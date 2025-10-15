@@ -19,7 +19,7 @@
 import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, TruncatedLabel } from '@wso2/ui-toolkit';
+import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
 import { IOType, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -99,16 +99,16 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabel style={{ marginRight: "auto" }}>
+		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
 			{valueLabel && (
-				<span className={classes.valueLabelHeader}>
+				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-				</span>
+				</TruncatedLabel>
 			)}
-			<span className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+			<TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
 				{typeName || ''}
-			</span>
-		</TruncatedLabel>
+			</TruncatedLabel>
+		</TruncatedLabelGroup>
 	);
 
 	const onRightClick = (event: React.MouseEvent) => {

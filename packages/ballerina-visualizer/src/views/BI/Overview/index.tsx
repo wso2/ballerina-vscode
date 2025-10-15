@@ -40,6 +40,7 @@ import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
+import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -490,7 +491,7 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
         <div>
             <Title variant="h3">Integration Control Plane</Title>
             <p>
-                {"Moniter the deployment runtime using WSO2 Integration Control Plane."}
+                {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
             <CheckBox
@@ -728,6 +729,7 @@ export function Overview(props: ComponentDiagramProps) {
                     <ProjectSubtitle>Integration</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>
+                    <UndoRedoGroup key={Date.now()} />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
                     </Button>

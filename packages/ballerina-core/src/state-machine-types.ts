@@ -121,6 +121,7 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectUri?: string;
     identifier?: string;
+    parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
     position?: NodePosition;
     syntaxTree?: STNode;
@@ -184,7 +185,11 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
-    | ChatError;
+    | ChatError
+    | ToolCall
+    | ToolResult
+    | EvalsToolResult
+    | UsageMetricsEvent;
 
 export interface ChatStart {
     type: "start";
@@ -222,6 +227,34 @@ export interface ChatError {
     content: string;
 }
 
+export interface ToolCall {
+    type: "tool_call";
+    toolName: string;
+}
+
+export interface ToolResult {
+    type: "tool_result";
+    toolName: string;
+    toolOutput: any;
+}
+
+export interface EvalsToolResult {
+    type: "evals_tool_result";
+    toolName: string;
+    output: any;
+}
+
+export interface UsageMetricsEvent {
+    type: "usage_metrics";
+    isRepair?: boolean;
+    usage: {
+        inputTokens: number;
+        cacheCreationInputTokens: number;
+        cacheReadInputTokens: number;
+        outputTokens: number;
+    };
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
@@ -242,7 +275,7 @@ export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation>
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
 
-// ------------------> AI Related state types <----------------------- 
+// ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
@@ -271,11 +304,11 @@ export type AIMachineEventMap = {
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
     [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
-    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: { 
-        accessKeyId: string; 
-        secretAccessKey: string; 
-        region: string; 
-        sessionToken?: string; 
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+        sessionToken?: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;

@@ -126,6 +126,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         name,
         applyModifications,
         onClose,
+        onRefresh,
+        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -139,7 +141,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
-        enrichChildFields
+        enrichChildFields,
+        undoRedoGroup
     } = props;
     const {
         model,
@@ -197,16 +200,18 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }, [views]);
 
     useEffect(() => {
-        generateNodes(model);
-
         const prevRootViewId = views[0].label;
         const newRootViewId = model.rootViewId;
 
         if (prevRootViewId !== newRootViewId) {
-            resetView({
+            const view = {
                 label: model.rootViewId,
                 targetField: name
-            });
+            };
+            generateNodes(model, [view]);
+            resetView(view);
+        } else {
+            generateNodes(model, views);
         }
     }, [model]);
 
@@ -217,7 +222,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         }
     }, []);
 
-    const generateNodes = (model: ExpandedDMModel) => {
+    const generateNodes = (model: ExpandedDMModel, views: View[]) => {
         try {
             const context = new DataMapperContext(
                 model, 
@@ -277,6 +282,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
         useDMExpressionBarStore.getState().resetExpressionBarStore();
+        useDMQueryClausesPanelStore.getState().resetQueryClausesPanelStore();
     }
 
     const handleOnClose = () => {
@@ -327,8 +333,11 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
                         onBack={handleOnBack}
+                        onRefresh={onRefresh}
+                        onReset={onReset}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
+                        undoRedoGroup={undoRedoGroup}
                     />
                 )}
                 {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
