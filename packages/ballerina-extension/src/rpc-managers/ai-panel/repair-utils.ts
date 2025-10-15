@@ -105,6 +105,7 @@ export async function isModuleNotFoundDiagsExist(diagnosticsResult: Diagnostics[
             });
             projectModified = true;
         } else {
+            console.log("Module resolving failed for uri: " + uri + " with response: " + JSON.stringify(response) + "\n" + uniqueDiagnosticMap + "\n");
             throw Error("Module resolving failed");
         }
     }
@@ -165,6 +166,10 @@ export async function addMissingImports(diagnosticsResult: Diagnostics[], langCl
 
         // Update file content
         const { source } = syntaxTree as SyntaxTree;
+        if (!source) {
+            // Handle the case where source is undefined, when compiler issue occurs
+            return false;
+        }
         const absolutePath = fileURLToPath(fielUri);
         writeBallerinaFileDidOpenTemp(absolutePath, source);
         if (astModifications.length > 0) {
@@ -213,6 +218,10 @@ export async function removeUnusedImports(diagnosticsResult: Diagnostics[], lang
 
             // Update file content
             const { source } = syntaxTree as SyntaxTree;
+            if (!source) {
+                // Handle the case where source is undefined, when compiler issue occurs
+                return false;
+            }
             const absolutePath = fileURLToPath(fielUri);
             writeBallerinaFileDidOpenTemp(absolutePath, source);
             projectModified = true;

@@ -16,9 +16,8 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, PropertyTypeMemberInfo, RecordTypeField, TypeField } from "@wso2/ballerina-core";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RecordTypeField } from "@wso2/ballerina-core";
+import { RefObject} from "react";
 import ExpandableList from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
 import { ValueCreationOption } from "..";
@@ -33,78 +32,8 @@ type CreateValuePageProps = {
     valueCreationOptions?: ValueCreationOption[];
 }
 
-const passPackageInfoIfExists = (recordTypeMember: PropertyTypeMemberInfo) => {
-    let org = "";
-    let module = "";
-    let version = "";
-    if (recordTypeMember?.packageInfo) {
-        const parts = recordTypeMember?.packageInfo.split(':');
-        if (parts.length === 3) {
-            [org, module, version] = parts;
-        }
-    }
-    return { org, module, version }
-}
-
-const getPropertyMember = (field: RecordTypeField) => {
-    return field?.recordTypeMembers.at(0);
-}
-
 export const CreateValue = (props: CreateValuePageProps) => {
     const { fileName, currentValue, onChange, selectedType, recordTypeField, valueCreationOptions } = props;
-    const [recordModel, setRecordModel] = useState<TypeField[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-    const { rpcClient } = useRpcContext();
-    const propertyMember = getPropertyMember(recordTypeField)
-
-    const sourceCode = useRef<string>(currentValue);
-
-    const getRecordConfigRequest = async () => {
-        if (recordTypeField) {
-            const packageInfo = passPackageInfoIfExists(recordTypeField?.recordTypeMembers.at(0))
-            return {
-                filePath: fileName,
-                codedata: {
-                    org: packageInfo.org,
-                    module: packageInfo.module,
-                    version: packageInfo.version,
-                    packageName: propertyMember?.packageName,
-                },
-                typeConstraint: propertyMember?.type,
-            }
-        }
-        else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            return {
-                filePath: fileName,
-                codedata: {
-                    org: tomValues.package.org,
-                    module: tomValues.package.name,
-                    version: tomValues.package.version,
-                    packageName: propertyMember?.packageName,
-                },
-                typeConstraint: propertyMember?.type || Array.isArray(selectedType) ? selectedType[0] : selectedType,
-            }
-        }
-    }
-
-    const fetchRecordModel = async () => {
-        const request = await getRecordConfigRequest();
-        const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
-        if (typeFieldResponse.recordConfig) {
-            const recordConfig: TypeField = {
-                name: propertyMember?.type,
-                ...typeFieldResponse.recordConfig
-            }
-
-            setRecordModel([recordConfig]);
-        }
-    }
-
-    useEffect(() => {
-        fetchRecordModel()
-    }, []);
 
     return (
         (recordTypeField) ?
