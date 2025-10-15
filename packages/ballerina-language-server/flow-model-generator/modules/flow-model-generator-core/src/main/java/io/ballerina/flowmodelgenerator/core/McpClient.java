@@ -113,6 +113,72 @@ public class McpClient {
         }
     }
 
+    public static void sendInitializedNotification(String serviceUrl, String sessionId, String accessToken)
+            throws IOException {
+        HttpURLConnection conn = null;
+        try {
+            URL url = URI.create(serviceUrl).toURL();
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json, text/event-stream");
+
+            if (sessionId != null && !sessionId.trim().isEmpty()) {
+                conn.setRequestProperty("mcp-session-id", sessionId);
+            }
+
+            // Add OAuth bearer token if provided
+            if (accessToken != null && !accessToken.trim().isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            }
+
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(10000); // 10 seconds
+            conn.setReadTimeout(10000); // 10 seconds
+
+            // Note: This is a notification (no "id" field)
+            String body = """
+                    {
+                      "jsonrpc":"2.0",
+                      "method":"notifications/initialized"
+                    }
+                    """;
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(body.getBytes(StandardCharsets.UTF_8));
+            }
+
+            // Notifications don't expect a meaningful response, just check it didn't fail
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 400) {
+                String errorMessage = readErrorStream(conn);
+                throw new IOException("HTTP " + responseCode + ": " +
+                        (errorMessage != null ? errorMessage : conn.getResponseMessage()));
+            }
+
+            // Consume any response body to properly close the connection
+            try {
+                if (conn.getInputStream() != null) {
+                    conn.getInputStream().close();
+                }
+            } catch (IOException ignored) {
+                // Response body might be empty, which is fine for a notification
+            }
+        } catch (java.net.MalformedURLException e) {
+            throw new IOException("Invalid URL: " + e.getMessage(), e);
+        } catch (java.net.UnknownHostException e) {
+            throw new IOException("Unknown host: " + e.getMessage(), e);
+        } catch (java.net.ConnectException e) {
+            throw new IOException("Connection refused: Unable to connect to " + serviceUrl, e);
+        } catch (java.net.SocketTimeoutException e) {
+            throw new IOException("Connection timeout: Server did not respond in time", e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken)
             throws IOException {
         HttpURLConnection conn = null;

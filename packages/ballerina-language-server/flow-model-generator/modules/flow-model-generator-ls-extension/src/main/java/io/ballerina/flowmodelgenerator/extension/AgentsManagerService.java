@@ -224,6 +224,11 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
 
                 // Send initialize request with optional authentication
                 String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken);
+
+                // Send initialized notification to complete the handshake
+                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken);
+
+                // Now we can send operational requests
                 JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken);
 
                 response.setTools(toolsJsonArray);
@@ -239,7 +244,9 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 response.setError(new RuntimeException("Network error: " + e.getMessage(), e));
                 return response;
             } catch (Exception e) {
-                response.setError(new RuntimeException("Failed to get MCP tools: " + e.getMessage(), e));
+                String errorMsg = e.getMessage() != null ? e.getMessage() :
+                    e.getClass().getSimpleName() + " (no error message)";
+                response.setError(new RuntimeException("Failed to get MCP tools: " + errorMsg, e));
                 return response;
             }
         });
