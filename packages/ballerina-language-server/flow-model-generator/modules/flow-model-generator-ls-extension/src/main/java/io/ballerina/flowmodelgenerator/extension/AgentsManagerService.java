@@ -63,7 +63,6 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
-
     private WorkspaceManager workspaceManager;
 
     @Override
