@@ -158,9 +158,7 @@ public class McpClient {
 
             // Consume any response body to properly close the connection
             try {
-                if (conn.getInputStream() != null) {
-                    conn.getInputStream().close();
-                }
+                conn.getInputStream().close();
             } catch (IOException ignored) {
                 // Response body might be empty, which is fine for a notification
             }
