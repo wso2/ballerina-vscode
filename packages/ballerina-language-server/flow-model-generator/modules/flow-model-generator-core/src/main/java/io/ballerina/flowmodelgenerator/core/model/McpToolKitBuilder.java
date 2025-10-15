@@ -377,8 +377,7 @@ public class McpToolKitBuilder extends NodeBuilder {
 
         // If it's already a valid identifier and not a reserved word, return as-is
         Set<String> predefinedMembers = Set.of("init", "getTools", "mcpClient", "tools");
-        if (Character.isJavaIdentifierStart(toolName.charAt(0))
-                && toolName.chars().allMatch(Character::isJavaIdentifierPart) &&
+        if (SyntaxInfo.isIdentifier(toolName) &&
                 !SyntaxInfo.isKeyword(toolName) && !predefinedMembers.contains(toolName)) {
             return toolName;
         }
