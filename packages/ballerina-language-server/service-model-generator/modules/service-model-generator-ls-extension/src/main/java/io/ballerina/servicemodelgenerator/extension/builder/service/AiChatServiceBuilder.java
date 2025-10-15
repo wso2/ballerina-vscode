@@ -52,6 +52,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     private static final String AGENT_NAME_PROPERTY = "agentName";
+    private static final String AGENT = "Agent";
+    private static final String MODEL = "Model";
 
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
@@ -72,8 +74,8 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         Service service = context.service();
 
         String agentName = getAgentNameFromService(service);
-        String agentVarName = agentName + "Agent";
-        String modelVarName = "_" + agentName + "Model";
+        String agentVarName = agentName + AGENT;
+        String modelVarName = agentName + MODEL;
 
         addDefaultListenerEdit(context, edits);
 
