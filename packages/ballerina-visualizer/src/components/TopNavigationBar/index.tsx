@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { HistoryEntry, MACHINE_VIEW } from "@wso2/ballerina-core";
 
@@ -78,16 +78,24 @@ const BreadcrumbText = styled.span<{ clickable?: boolean }>`
     `}
 `;
 
-const PackageName = styled.div`
+const PackageContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
     color: var(--vscode-foreground);
     background-color: var(--vscode-editor-inactiveSelectionBackground);
-    max-width: 100px;
+    max-width: 120px;
+    overflow: hidden;
+    padding: 3px 4px;
+    font-size: 10px;
+    border-radius: 5px;
+    line-height: 1;
+`;
+
+const PackageName = styled.span`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 2px 4px;
-    font-size: 10px;
-    border-radius: 4px;
 `;
 
 interface TopNavigationBarProps {
@@ -169,7 +177,14 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                         {shortName}
                                     </BreadcrumbText>
                                     {isBallerinaWorkspace && crumb.location.package && (
-                                        <PackageName>{crumb.location.package}</PackageName>
+                                        <PackageContainer>
+                                            <Codicon 
+                                                name="project" 
+                                                sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }} 
+                                            />
+                                            <PackageName>{crumb.location.package}</PackageName>
+                                        </PackageContainer>
                                     )}
                                 </BreadcrumbItem>
                             </React.Fragment>
