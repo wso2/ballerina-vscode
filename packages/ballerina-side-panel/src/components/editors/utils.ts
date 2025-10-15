@@ -81,3 +81,10 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
 
     return `${fieldKey}.advanceProperties.${advancePropKey}`;
 }
+
+export const getValueForTextModeEditor = (value: string) => {
+     if (value) {
+        return value.replace(/"/g, "");
+    }
+    return value;
+}
