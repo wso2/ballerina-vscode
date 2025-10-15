@@ -15,10 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PlatformExtAPI } from "@wso2/ballerina-core";
-import { extensions } from "vscode";
-import { ComponentKind, ConnectionDetailed, ContextItemEnriched, ContextStoreState, CreateComponentConnectionReq, CreateLocalConnectionsConfigReq, GetMarketplaceIdlReq, GetMarketplaceListReq, IWso2PlatformExtensionAPI, MarketplaceIdlResp, MarketplaceListResp } from "@wso2/wso2-platform-core";
+import {  PlatformExtAPI } from "@wso2/ballerina-core";
+import { extensions, window } from "vscode";
+import * as fs from "fs";
+import * as path from "path";
+import { ComponentDisplayType, ComponentKind, ContextItemEnriched, GetMarketplaceIdlReq, GetMarketplaceListReq, getTypeForDisplayType, IWso2PlatformExtensionAPI, MarketplaceIdlResp, MarketplaceListResp } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
+import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
+import * as toml from "@iarna/toml";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     private async getPlatformExt() {
@@ -78,21 +83,73 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-     async createComponentConnection(params: CreateComponentConnectionReq): Promise<ConnectionDetailed> {
+    async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<string> {
         try {
             const platformExt = await this.getPlatformExt();
-            return platformExt.createComponentConnection(params);
-        } catch (err) {
-            log(`Failed to invoke createComponentConnection: ${err}`);
-        }
-    }
 
-    async createConnectionConfig(params: CreateLocalConnectionsConfigReq): Promise<string> {
-        try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.createConnectionConfig(params);
+            const createdConnection = await platformExt.createComponentConnection({
+                componentId: params.component.metadata?.id,
+            	name: params.params.name,
+            	orgId: params.org.id?.toString(),
+            	orgUuid: params.org.uuid,
+            	projectId: params.project.id,
+            	serviceSchemaId: params.params.schemaId,
+            	serviceId: params.marketplaceItem.serviceId,
+            	serviceVisibility: params.params.visibility!,
+            	componentType: getTypeForDisplayType(params.component?.spec?.type),
+            	componentPath: params.componentDir,
+            	generateCreds: params.component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
+            });
+
+            await platformExt.createConnectionConfig({
+                componentDir: params.componentDir,
+                marketplaceItem: params.marketplaceItem,
+                name: params.params.name,
+                visibility: params.params.visibility
+            });
+
+            const serviceIdl = await platformExt.getMarketplaceIdl({
+                orgId: params.org.id?.toString(),
+                serviceId: params.marketplaceItem.serviceId
+            });
+
+            const choreoDir = path.join(params.componentDir, '.choreo');
+            if (!fs.existsSync(choreoDir)) {
+                fs.mkdirSync(choreoDir, { recursive: true });
+            }
+
+            const moduleName = params.params.name.replace(/[_\-\s]/g, "");
+            const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
+
+            if(serviceIdl?.idlType === "OpenAPI" && serviceIdl.content){
+                fs.writeFileSync(filePath, serviceIdl.content, 'utf8');
+            } else {
+                window.showErrorMessage("Client creation for connection is only supported for REST APIs with valid openAPI spec");
+                return "";
+            }
+
+            const diagram = new BiDiagramRpcManager();
+            await diagram.generateOpenApiClient({
+                module: moduleName,
+                openApiContractPath: filePath,
+                projectPath: params.componentDir
+            });
+
+            const balTomlPath = path.join(params.componentDir, "Ballerina.toml");
+            if(fs.existsSync(balTomlPath)){
+                const fileContent = fs.readFileSync(balTomlPath, "utf-8");
+                const parsedToml: any = toml.parse(fileContent);
+                const matchingItem = parsedToml?.tool.openapi.find(item=>item.id === moduleName);
+                if (matchingItem) {
+                    matchingItem.devantConnection = params.params?.name;
+                }
+                const updatedTomlContent = toml.stringify(parsedToml);
+                fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+            }
+
+            return "";
         } catch (err) {
-            log(`Failed to invoke createConnectionConfig: ${err}`);
+            log(`Failed to invoke createDevantComponentConnection: ${err}`);
         }
     }
 }

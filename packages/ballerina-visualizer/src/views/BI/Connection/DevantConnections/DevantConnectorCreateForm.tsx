@@ -18,19 +18,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    ComponentDisplayType,
     type ComponentKind,
-    type ConnectionDetailed,
     type ConnectionListItem,
-    type CreateComponentConnectionReq,
-    type DeploymentTrack,
     type MarketplaceItem,
     type MarketplaceItemSchema,
     type Organization,
     type Project,
     ServiceInfoVisibilityEnum,
     capitalizeFirstLetter,
-    getTypeForDisplayType,
 } from "@wso2/wso2-platform-core";
 import React, { useEffect, useState, type FC } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -40,11 +35,10 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 interface Props {
     item: MarketplaceItem;
-    allItems: ConnectionListItem[];
     component: ComponentKind;
     org: Organization;
     project: Project;
-    onCreate: (createdItem: ConnectionDetailed) => void;
+    onCreate: () => void;
     directoryFsPath: string;
 }
 
@@ -114,16 +108,10 @@ interface CreateConnectionForm {
     schemaId?: string;
 }
 
-export const CreateConnection: FC<Props> = ({
-    item,
-    component,
-    org,
-    project,
-    directoryFsPath,
-    allItems = [],
-    onCreate,
-}) => {
+export const DevantConnectorCreateForm: FC<Props> = ({ item, component, org, project, directoryFsPath, onCreate }) => {
     const { rpcClient } = useRpcContext();
+
+    const allItems: ConnectionListItem[] = []; // todo: need to fetch existing connection names
 
     const visibilities = getPossibleVisibilities(item, project);
 
@@ -147,34 +135,19 @@ export const CreateConnection: FC<Props> = ({
     }, [schemas]);
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
-        mutationFn: async (data: CreateConnectionForm) => {
-            const req: CreateComponentConnectionReq = {
-            	componentId: component.metadata?.id,
-            	name: data.name!,
-            	orgId: org.id?.toString(),
-            	orgUuid: org.uuid,
-            	projectId: project.id,
-            	serviceSchemaId: data.schemaId!,
-            	serviceId: item.serviceId,
-            	serviceVisibility: data.visibility!,
-            	componentType: getTypeForDisplayType(component?.spec?.type),
-            	componentPath: directoryFsPath,
-            	generateCreds: component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
-            };
-            const created = await rpcClient.getPlatformRpcClient().createComponentConnection(req);
-            if (created) {
-            	await rpcClient.getPlatformRpcClient().createConnectionConfig({
-            		componentDir: directoryFsPath,
-            		marketplaceItem: item,
-            		name: data.name!,
-            		visibility: data.visibility!,
-            	});
-            	onCreate(created);
-            }
-        },
+        mutationFn: (data: CreateConnectionForm) =>
+            rpcClient.getPlatformRpcClient().createDevantComponentConnection({
+                component,
+                org,
+                marketplaceItem: item,
+                project,
+                componentDir: directoryFsPath,
+                params: { name: data.name, schemaId: data.schemaId, visibility: data.visibility },
+            }),
+        onSuccess: () => onCreate(),
     });
 
-	const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
+    const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
     return (
         <FormStyles.Container>
@@ -186,15 +159,15 @@ export const CreateConnection: FC<Props> = ({
                     placeholder="connection-name"
                     sx={{ width: "100%" }}
                     {...form.register("name", {
-						validate:(value)=>{
-							if (!value || value.trim().length === 0) {
-								return "Required";
-							} else if (allItems.some((item) => item.name === value)) {
-								return "Name already exists";
-							}
-						}
+                        validate: (value) => {
+                            if (!value || value.trim().length === 0) {
+                                return "Required";
+                            } else if (allItems.some((item) => item.name === value)) {
+                                return "Name already exists";
+                            }
+                        },
                     })}
-					errorMsg={form.formState.errors.name?.message}
+                    errorMsg={form.formState.errors.name?.message}
                 />
             </FormStyles.Row>
             <FormStyles.Row>
@@ -207,16 +180,15 @@ export const CreateConnection: FC<Props> = ({
                         content: capitalizeFirstLetter(item.toLowerCase()),
                     }))}
                     {...form.register("visibility", {
-                        validate:(value)=>{
-							if (!value) {
-								return "Required";
-							}
-						}
+                        validate: (value) => {
+                            if (!value) {
+                                return "Required";
+                            }
+                        },
                     })}
-					
                     required
                     disabled={visibilities?.length === 0}
-					errorMsg={form.formState.errors.visibility?.message}
+                    errorMsg={form.formState.errors.visibility?.message}
                 />
             </FormStyles.Row>
             <FormStyles.Row>
@@ -226,21 +198,19 @@ export const CreateConnection: FC<Props> = ({
                     containerSx={{ width: "100%" }}
                     items={schemas.map((item) => ({ value: item.id, content: item.name }))}
                     {...form.register("schemaId", {
-                        validate:(value)=>{
-							if (!value) {
-								return "Required";
-							}
-						}
+                        validate: (value) => {
+                            if (!value) {
+                                return "Required";
+                            }
+                        },
                     })}
                     required
                     disabled={schemas?.length === 0}
-					errorMsg={form.formState.errors.schemaId?.message}
+                    errorMsg={form.formState.errors.schemaId?.message}
                 />
             </FormStyles.Row>
             <FormStyles.Footer>
-                <Button
-				onClick={form.handleSubmit(onSubmit)} 
-				disabled={isCreatingConnection}>
+                <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
                     {isCreatingConnection ? "Creating..." : "Create"}
                 </Button>
             </FormStyles.Footer>

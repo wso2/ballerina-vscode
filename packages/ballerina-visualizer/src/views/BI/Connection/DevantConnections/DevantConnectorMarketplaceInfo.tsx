@@ -127,14 +127,7 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const MarketplaceItemDetails: FC<Props> = ({ item, org, onCreateClick, directoryFsPath }) => {
-    let visibility = "Project";
-    if (item?.visibility.includes("PUBLIC")) {
-        visibility = "Public";
-    } else if (item?.visibility.includes("ORGANIZATION")) {
-        visibility = "Organization";
-    }
-
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCreateClick, directoryFsPath }) => {
     const { rpcClient } = useRpcContext();
 
     const {
