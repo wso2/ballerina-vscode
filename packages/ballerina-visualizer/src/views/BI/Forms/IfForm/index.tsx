@@ -372,6 +372,7 @@ export function IfForm(props: IfFormProps) {
                                 control={control}
                                 field={field}
                                 watch={watch}
+                                setValue={setValue}
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}
                                 fileName={fileName}
