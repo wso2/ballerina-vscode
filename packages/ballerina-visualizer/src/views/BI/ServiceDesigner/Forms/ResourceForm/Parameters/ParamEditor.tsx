@@ -207,8 +207,8 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType === "PAYLOAD" ? "Payload" : "Parameter"} Configuration</Typography>}
-            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label} Configuration</Typography>}
+            {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType.charAt(0).toUpperCase() + param.httpParamType.slice(1).toLowerCase()} {param.httpParamType === "QUERY" && "Parameter"}</Typography>}
+            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label}</Typography>}
             <Divider />
             {/* {param.httpParamType !== "PAYLOAD" && !isNewResource &&
                 <EditorContent>

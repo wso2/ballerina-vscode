@@ -211,8 +211,7 @@ export function ResourceForm(props: ResourceFormProps) {
 					<>
 						{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 						<SidePanelBody>
-							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-								onError={onResourcePathError} />
+							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} />
 							<Divider />
 							<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
