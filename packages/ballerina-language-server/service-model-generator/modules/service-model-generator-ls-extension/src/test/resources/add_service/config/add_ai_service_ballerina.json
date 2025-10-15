@@ -83,7 +83,7 @@
             "character": 0
           }
         },
-        "newText": "\nservice on aiListener {\n    private final ai:Agent supportAgent;\n\n    function init() returns error? { \n        self.supportAgent = check new (\n            systemPrompt = {role: string ``, instructions: string ``}, model = _supportModel, tools = []\n        );\n    }\n\n    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n        string stringResult = check self.supportAgent.run(request.message, request.sessionId);\n        return {message: stringResult};\n    }\n}"
+        "newText": "\nservice on aiListener {\n    private final ai:Agent supportAgent;\n\n    function init() returns error? { \n        self.supportAgent = check new (\n            systemPrompt = {role: string ``, instructions: string ``}, model = supportModel, tools = []\n        );\n    }\n\n    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n        string stringResult = check self.supportAgent.run(request.message, request.sessionId);\n        return {message: stringResult};\n    }\n}"
       }
     ]
   }

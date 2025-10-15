@@ -94,7 +94,7 @@
             "label": "Agent Name",
             "description": "The name of the agent variable"
           },
-          "enabled": false,
+          "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
