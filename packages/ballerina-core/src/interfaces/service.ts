@@ -152,7 +152,7 @@ export interface PropertyModel {
 }
 
 export interface ParameterModel extends PropertyModel {
-    kind?: "REQUIRED" | "OPTIONAL",
+    kind?: "REQUIRED" | "OPTIONAL" | "DATA_BINDING";
     type?: PropertyModel;
     name?: PropertyModel;
     headerName?: PropertyModel;

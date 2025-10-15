@@ -45,6 +45,7 @@ import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 import { McpToolForm } from "./Forms/McpToolForm";
 import { removeForwardSlashes } from "./utils";
+import { RemoteForm } from "./Forms/RemoteForm";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -1126,7 +1127,23 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             )}
 
                             {/* This is for editing a remote or resource function */}
-                            {functionModel && !isHttpService && !isMcpService && (
+                            {functionModel && !isHttpService && !isMcpService && functionModel.kind === "REMOTE" && (
+                                <PanelContainer
+                                    title={"Function Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={400}
+                                >
+                                    <RemoteForm
+                                        model={functionModel}
+                                        onSave={handleFunctionSubmit}
+                                        onClose={handleNewFunctionClose}
+                                    />
+                                </PanelContainer>
+                            )}
+
+                            {/* This is for editing a remote or resource function */}
+                            {functionModel && !isHttpService && !isMcpService && functionModel.kind !== "REMOTE" && (
                                 <PanelContainer
                                     title={"Function Configuration"}
                                     show={showForm}

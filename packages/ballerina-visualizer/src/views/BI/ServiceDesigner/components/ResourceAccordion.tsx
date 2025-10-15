@@ -182,7 +182,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                     <ButtonSection>
                         <>
                             {onEditResource! && (
-                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={() => { }}>
+                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={handleEditResource}>
                                     <Icon name="editIcon" sx={{ marginTop: 3.5 }} />
                                 </Button>
                             )}
