@@ -495,7 +495,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits });
+            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
         }
     }
 
@@ -920,7 +920,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                     [filePath]: [textEdit]
                 };
             }
-            await updateSourceCode({ textEdits: allTextEdits });
+            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Creation');
             return true;
         } catch (error) {
             console.error(">>> Failed to add code segment to the workspace", error);
@@ -982,7 +982,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
         try {
-            let filePath =  StateMachine.context().documentUri;
+            let filePath = StateMachine.context().documentUri;
             const datamapperMetadata = StateMachine.context().dataMapperMetadata;
             const textEdit: TextEdit = {
                 newText: params.segmentText,
@@ -1044,8 +1044,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
 function getModifiedAssistantResponse(originalAssistantResponse: string, tempDir: string, project: ProjectSource): string {
     const newSourceFiles = [];
     for (const sourceFile of project.sourceFiles) {
-        const newContent = path.join(tempDir, sourceFile.filePath);
-        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContent, 'utf-8') });
+        const newContentPath = path.join(tempDir, sourceFile.filePath);
+        if (!fs.existsSync(newContentPath) && !(sourceFile.filePath.endsWith('.bal'))) {
+            newSourceFiles.push({ filePath: sourceFile.filePath, content: sourceFile.content });
+            continue;
+        }
+        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContentPath, 'utf-8') });
     }
 
     // Build a map from filenames to their new content

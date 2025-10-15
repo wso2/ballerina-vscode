@@ -139,7 +139,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
-        enrichChildFields
+        enrichChildFields,
+        undoRedoGroup
     } = props;
     const {
         model,
@@ -197,16 +198,18 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }, [views]);
 
     useEffect(() => {
-        generateNodes(model);
-
         const prevRootViewId = views[0].label;
         const newRootViewId = model.rootViewId;
 
         if (prevRootViewId !== newRootViewId) {
-            resetView({
+            const view = {
                 label: model.rootViewId,
                 targetField: name
-            });
+            };
+            generateNodes(model, [view]);
+            resetView(view);
+        } else {
+            generateNodes(model, views);
         }
     }, [model]);
 
@@ -217,7 +220,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         }
     }, []);
 
-    const generateNodes = (model: ExpandedDMModel) => {
+    const generateNodes = (model: ExpandedDMModel, views: View[]) => {
         try {
             const context = new DataMapperContext(
                 model, 
@@ -329,6 +332,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         onBack={handleOnBack}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
+                        undoRedoGroup={undoRedoGroup}
                     />
                 )}
                 {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}

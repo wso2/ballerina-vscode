@@ -84,7 +84,7 @@ export const TypeBrowser = (props: TypeBrowserProps) => {
                         titleSx={{ fontFamily: 'GilmerMedium' }}
                         {...(category.items?.length > 0 &&
                             category.subCategory?.length === 0 && {
-                                columns: 4
+                                columns: 3
                             })}
                     >
                         {category.items?.map((item) => (
@@ -99,7 +99,7 @@ export const TypeBrowser = (props: TypeBrowserProps) => {
                             <HelperPane.LibraryBrowserSubSection
                                 key={subCategory.category}
                                 title={subCategory.category}
-                                columns={4}
+                                columns={3}
                             >
                                 {subCategory.items?.map((item) => (
                                     <HelperPane.CompletionItem
