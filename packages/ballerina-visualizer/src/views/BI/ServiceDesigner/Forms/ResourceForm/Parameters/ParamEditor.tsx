@@ -38,7 +38,7 @@ export interface ParamProps {
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
     isNewResource?: boolean;
-    type?: "QUERY" | "HEADER" | "PAYLOAD";
+    type?: "QUERY" | "HEADER" | "PAYLOAD" | "PATH";
 }
 
 export function ParamEditor(props: ParamProps) {
@@ -111,6 +111,7 @@ export function ParamEditor(props: ParamProps) {
         switch (type) {
             case "QUERY":
             case "HEADER":
+            case "PATH":
                 fields.push({
                     key: `type`,
                     label: 'Type',
