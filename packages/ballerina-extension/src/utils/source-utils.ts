@@ -171,7 +171,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     clearTimeout(timeoutId);
                     resolve(payload.data);
                     StateMachine.setReadyMode();
-                    notifyCurrentWebview();
+                    checkAndNotifyWebview(payload.data);
                     unsubscribe();
                 });
 
@@ -201,6 +201,20 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
         undoRedoManager.cancelBatchOperation();
         console.log(">>> error updating source", error);
         throw error;
+    }
+}
+
+
+//** 
+// Notify webview unless a new TYPE artifact is created outside the type diagram view
+// */
+function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[]) {
+    const newArtifact = response.find(artifact => artifact.isNew);
+    const stateContext = StateMachine.context().view;
+    if (newArtifact.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
+        return;
+    } else {
+        notifyCurrentWebview();
     }
 }
 
