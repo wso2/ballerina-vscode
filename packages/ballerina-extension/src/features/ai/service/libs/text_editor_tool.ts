@@ -663,4 +663,3 @@ function insertIntoUpdateFileNames(updatedFileNames: string[], file_path: string
       updatedFileNames.push(file_path);
     }
 }
-

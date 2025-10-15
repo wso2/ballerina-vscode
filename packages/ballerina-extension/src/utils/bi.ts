@@ -149,11 +149,11 @@ export function getUsername(): string {
 
 function setupProjectInfo(projectRequest: ProjectRequest) {
     const sanitizedPackageName = sanitizeName(projectRequest.packageName);
-    
-    const projectRoot = projectRequest.createDirectory 
+
+    const projectRoot = projectRequest.createDirectory
         ? path.join(projectRequest.projectPath, sanitizedPackageName)
         : projectRequest.projectPath;
-    
+
     // Create project root directory if needed
     if (projectRequest.createDirectory && !fs.existsSync(projectRoot)) {
         fs.mkdirSync(projectRoot, { recursive: true });
@@ -216,7 +216,11 @@ sticky = true
     const mainBal = path.join(projectRoot, 'main.bal');
     writeBallerinaFileDidOpen(mainBal, EMPTY);
 
-    // Create main.bal file
+    // Create automation.bal file
+    const automationBal = path.join(projectRoot, 'automation.bal');
+    writeBallerinaFileDidOpen(automationBal, EMPTY);
+
+    // Create agents.bal file
     const agentsBal = path.join(projectRoot, 'agents.bal');
     writeBallerinaFileDidOpen(agentsBal, EMPTY);
 
@@ -265,7 +269,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
             content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
         }
-        
+
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 

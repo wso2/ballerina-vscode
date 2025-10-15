@@ -522,6 +522,7 @@ export function MatchForm(props: MatchFormProps) {
                     {...expressionEditor}
                     control={control}
                     field={targetField}
+                    setValue={setValue}
                     watch={watch}
                     openSubPanel={openSubPanel}
                     targetLineRange={targetLineRange}
@@ -550,6 +551,7 @@ export function MatchForm(props: MatchFormProps) {
                                 {...expressionEditor}
                                 control={control}
                                 field={field}
+                                setValue={setValue}
                                 watch={watch}
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}
