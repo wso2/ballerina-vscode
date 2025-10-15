@@ -59,6 +59,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
             Map<String, Value> properties = service.getProperties();
             Value agentNameProperty = new Value.ValueBuilder()
                     .metadata("Agent Name", "The name of the agent variable")
+                    .enabled(true)
                     .build();
             properties.put(AGENT_NAME_PROPERTY, agentNameProperty);
             return service;
