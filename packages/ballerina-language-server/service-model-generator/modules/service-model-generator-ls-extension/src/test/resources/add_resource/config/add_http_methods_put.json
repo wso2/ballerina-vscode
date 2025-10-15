@@ -1,6 +1,6 @@
 {
   "filePath": "http_service.bal",
-  "description": "Add a simple HTTP resource to the service",
+  "description": "Add HTTP resource to the service - http_methods_put",
   "codedata": {
     "lineRange": {
       "fileName": "http_service.bal.bal",
@@ -15,10 +15,6 @@
     }
   },
   "function": {
-    "metadata": {
-      "label": "Get Path",
-      "description": "The path resource"
-    },
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -26,9 +22,9 @@
         "description": "The resource accessor"
       },
       "placeholder": "GET",
-      "valueType": "IDENTIFIER",
+      "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
-      "value": "get",
+      "value": "put",
       "items": [
         "GET",
         "POST",
@@ -36,9 +32,9 @@
         "DELETE",
         "PATCH",
         "OPTIONS",
-        "HEAD"
+        "HEAD",
+        "DEFAULT"
       ],
-      "imports": {},
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -52,10 +48,9 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "allUnion",
-      "imports": {},
+      "value": "users/[string id]",
       "enabled": true,
-      "editable": false,
+      "editable": true,
       "optional": false,
       "advanced": false
     },
@@ -67,30 +62,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Request",
-          "value": "",
-          "imports": {},
+          "value": "http:Request",
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -109,30 +94,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Caller",
-          "value": "",
-          "imports": {},
+          "value": "http:Caller",
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
-          "placeholder": "request",
+          "placeholder": "caller",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -151,30 +126,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Headers",
-          "value": "",
-          "imports": {},
+          "value": "http:Headers",
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
-          "placeholder": "request",
+          "placeholder": "headers",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -185,6 +150,79 @@
         "optional": true,
         "advanced": true,
         "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "payload",
+          "description": "payload"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "json",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "payload",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "Payload",
+        "hidden": false,
+        "properties": {
+          "annotPayload": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Payload",
+              "moduleName": "http"
+            },
+            "value": "",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
       }
     ],
     "schema": {
@@ -195,30 +233,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
-          "imports": {},
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -230,10 +258,9 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "STRING",
+          "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -253,33 +280,23 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
-          "imports": {},
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "name",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -291,10 +308,19 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -311,30 +337,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -344,7 +360,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
+        "httpParamType": "Payload",
         "hidden": false
       }
     },
@@ -352,11 +368,7 @@
       "responses": [
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
+            "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
             "enabled": true,
@@ -365,12 +377,17 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "",
+            "value": "json",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "application/json",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -378,258 +395,93 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "http:Ok",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
+            "valueType": "HEADER_SET",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "enabled": true,
-          "editable": false,
-          "advanced": false
-        },
-        {
-          "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "200",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "TYPE",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "IDENTIFIER",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "TYPE",
-            "value": "HttpOk",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "enabled": true,
-          "editable": false,
-          "advanced": false
-        },
-        {
-          "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "200",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "string",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "CustomHttpOk",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "http:Ok",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "enabled": true,
-          "editable": false,
-          "advanced": false
-        },
-        {
-          "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION",
-            "value": "200",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "TYPE",
-            "value": "international401:Patient",
-            "imports": {
-              "international401": "ballerinax/health.fhir.r4.international401:2.2.0"
-            },
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "IDENTIFIER",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "TYPE",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
-            "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "enabled": true,
           "editable": true,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "valueType": "SINGLE_SELECT",
+            "value": "404",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "valueType": "TYPE",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "valueType": "IDENTIFIER",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "valueType": "TYPE",
+            "value": "http:NotFound",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
           "advanced": false
         }
       ],
@@ -638,77 +490,80 @@
           "statusCode": {
             "metadata": {
               "label": "Status Code",
-              "description": "Response status code"
+              "description": "HTTP status code for the response"
             },
             "placeholder": "",
             "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "http:StatusCode",
+            "valueTypeConstraint": "",
             "value": "",
-            "items": [
-              "200",
-              "201",
-              "202",
-              "204",
-              "400",
-              "401",
-              "403",
-              "404",
-              "405",
-              "500"
-            ],
-            "imports": {},
-            "enabled": false,
-            "editable": false,
+            "items": [],
+            "enabled": true,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
           "body": {
             "metadata": {
-              "label": "Body type",
-              "description": "Type of the response body field"
+              "label": "Response Body Schema",
+              "description": "The data type or schema of the response body"
             },
-            "placeholder": "",
             "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
             "value": "",
-            "imports": {},
-            "enabled": false,
-            "editable": false,
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "metadata": {
+              "label": "Media Type",
+              "description": "Value for the Content-Type header in the response"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
             "optional": true,
             "advanced": true
           },
           "name": {
             "metadata": {
-              "label": "Name of the Response Status Code Type",
-              "description": "Type name of the status code response"
+              "label": "Response Definition Name",
+              "description": "Define a name for the response definition"
             },
-            "placeholder": "",
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "anydata",
+            "valueType": "OPTIONAL_IDENTIFIER",
             "value": "",
-            "imports": {},
-            "enabled": false,
-            "editable": false,
-            "optional": false,
+            "enabled": true,
+            "editable": true,
+            "optional": true,
             "advanced": true
           },
           "type": {
             "metadata": {
               "label": "Response Type",
-              "description": "The response type"
+              "description": "Select a response type"
             },
-            "placeholder": "",
             "valueType": "TYPE",
-            "valueTypeConstraint": "anydata|http:StatusCodeResponse",
             "value": "",
-            "imports": {},
-            "enabled": false,
-            "editable": false,
+            "enabled": true,
+            "editable": true,
             "optional": true,
-            "advanced": false
+            "advanced": true
+          },
+          "headers": {
+            "metadata": {
+              "label": "Headers",
+              "description": "Add mandatory or optional headers to the response"
+            },
+            "valueType": "HEADER_SET",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       },
@@ -720,7 +575,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "",
+      "value": "json|http:NotFound",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -729,16 +584,16 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false,
+    "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "basic_http_methods.bal",
         "startLine": {
-          "line": 26,
+          "line": 25,
           "offset": 4
         },
         "endLine": {
-          "line": 29,
+          "line": 27,
           "offset": 5
         }
       }
@@ -758,16 +613,14 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpResourceConfig",
-        "value": "{}",
         "typeMembers": [
           {
             "type": "HttpResourceConfig",
             "packageInfo": "ballerina:http:2.14.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -780,19 +633,6 @@
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "\nimport ballerinax/health.fhir.r4.international401;\n"
-      },
-      {
-        "range": {
-          "start": {
             "line": 10,
             "character": 5
           },
@@ -801,20 +641,7 @@
             "character": 5
           }
         },
-        "newText": "\n\t@http:ResourceConfig{}\n\tresource function get allUnion() returns error|http:Ok|HttpOk|CustomHttpOk|international401:Patient {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 12,
-            "character": 1
-          },
-          "end": {
-            "line": 12,
-            "character": 1
-          }
-        },
-        "newText": "public type CustomHttpOk record {|\n\t*http:Ok;\tstring body;\n|};"
+        "newText": "\n\tresource function put users/[string id](@http:Payload json payload) returns error|json|http:NotFound {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
       }
     ]
   }

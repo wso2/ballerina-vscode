@@ -570,7 +570,7 @@ public final class Utils {
      * We can pass a skip list to skip certain annotations.
      *
      * @param parameterModel Parameter model we need to add the annotations as properties
-     * @param annotations Annotations of the parameter
+     * @param annotations    Annotations of the parameter
      * @param skipList       List of annotations to skip
      */
     public static void addParamAnnotationAsProperties(Parameter parameterModel,
@@ -736,28 +736,34 @@ public final class Utils {
     }
 
     public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {
-        Map<String, Value> properties = function.getProperties().entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(ANNOT_PREFIX))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return getAnnotationEdits(function.getProperties(), imports);
+    }
 
-        List<String> annots = new ArrayList<>();
-        if (properties.isEmpty()) {
-            return annots;
+    public static List<String> getAnnotationEdits(Map<String, Value> properties, Map<String, String> imports) {
+        return properties.values().stream()
+                .filter(Utils::isAnnotationProperty)
+                .peek(value -> {
+                    if (value.getImports() != null) {
+                        imports.putAll(value.getImports());
+                    }
+                })
+                .map(value -> "@%s%s".formatted(getAnnotationReference(value.getCodedata()), value.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private static String getAnnotationReference(Codedata codedata) {
+        String ref = "";
+        if (Objects.nonNull(codedata.getModuleName()) && !codedata.getModuleName().isEmpty()) {
+            ref = getProtocol(codedata.getModuleName()) + COLON;
         }
-        for (Map.Entry<String, Value> property : properties.entrySet()) {
-            Value value = property.getValue();
-            if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
-                    value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                Codedata codedata = value.getCodedata();
-                String ref = getProtocol(codedata.getModuleName()) + ":" + codedata.getOriginalName();
-                String annotTemplate = "@%s%s".formatted(ref, value.getValue());
-                annots.add(annotTemplate);
-                if (Objects.nonNull(value.getImports())) {
-                    imports.putAll(value.getImports());
-                }
-            }
-        }
-        return annots;
+        ref += codedata.getOriginalName();
+        return ref;
+    }
+
+    private static boolean isAnnotationProperty(Value value) {
+        return Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
+                value.getCodedata().getType().equals(CD_TYPE_ANNOTATION_ATTACHMENT)
+                && (value.isEnabledWithValue() || !value.isEnabled() && !value.isEditable());
     }
 
     public static String getDocumentationEdits(Service service) {
@@ -1096,9 +1102,6 @@ public final class Utils {
                     }
                     paramDef = String.format("%s %s", getValueString(paramType), getValueString(param.getName()));
                 }
-                if (Objects.nonNull(param.getHttpParamType()) && param.getHttpParamType().equals("Header")) {
-                    paramDef = String.format("@http:%s %s", param.getHttpParamType(), paramDef);
-                }
                 params.add(paramDef);
             }
         });
@@ -1155,7 +1158,7 @@ public final class Utils {
                 ((request.organization() == null || request.organization().equals(triggerProperty.orgName())) &&
                         (request.packageName() == null || request.packageName().equals(triggerProperty.packageName()))
                         && (request.keyWord() == null || triggerProperty.keywords().stream()
-                                .anyMatch(keyword -> keyword.equalsIgnoreCase(request.keyWord()))) &&
+                        .anyMatch(keyword -> keyword.equalsIgnoreCase(request.keyWord()))) &&
                         (request.query() == null || triggerProperty.keywords().stream()
                                 .anyMatch(keyword -> keyword.contains(request.query()))));
     }

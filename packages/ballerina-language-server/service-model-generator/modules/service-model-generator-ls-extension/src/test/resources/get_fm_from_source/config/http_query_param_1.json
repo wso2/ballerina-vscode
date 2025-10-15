@@ -207,7 +207,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
+        "httpParamType": "Query",
         "hidden": false
       },
       {
@@ -266,7 +266,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
+        "httpParamType": "Query",
         "hidden": false
       },
       {
@@ -326,7 +326,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
+        "httpParamType": "Query",
         "hidden": false
       }
     ],

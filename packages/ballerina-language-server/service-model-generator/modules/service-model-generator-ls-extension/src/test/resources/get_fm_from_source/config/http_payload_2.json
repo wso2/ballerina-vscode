@@ -207,7 +207,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
+        "httpParamType": "Payload",
         "hidden": false
       }
     ],
@@ -441,15 +441,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "error",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "error",
             "imports": {},
             "enabled": true,
             "editable": true,

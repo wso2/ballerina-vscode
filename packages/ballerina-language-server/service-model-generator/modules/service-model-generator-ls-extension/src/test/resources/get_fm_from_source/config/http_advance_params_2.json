@@ -382,15 +382,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "error",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "error",
             "imports": {},
             "enabled": true,
             "editable": true,

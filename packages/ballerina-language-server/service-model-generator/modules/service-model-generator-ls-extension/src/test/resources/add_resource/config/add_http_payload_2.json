@@ -1,20 +1,20 @@
 {
-  "filePath": "http_service/advance_parameters.bal",
-  "description": "",
+  "filePath": "http_service.bal",
+  "description": "Add HTTP resource to the service - http_payload_2",
   "codedata": {
     "lineRange": {
-      "fileName": "advance_parameters.bal",
+      "fileName": "http_service.bal.bal",
       "startLine": {
-        "line": 6,
-        "offset": 4
+        "line": 5,
+        "offset": 0
       },
       "endLine": {
-        "line": 9,
-        "offset": 5
+        "line": 12,
+        "offset": 0
       }
     }
   },
-  "response": {
+  "function": {
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "request",
+      "value": "register",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -75,13 +75,13 @@
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "req",
+          "value": "",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": true,
+        "enabled": false,
         "editable": true,
         "optional": true,
         "advanced": true,
@@ -149,6 +149,65 @@
         "editable": true,
         "optional": true,
         "advanced": true,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "user",
+          "description": "user"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "User",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "user",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "Payload",
         "hidden": false
       }
     ],
@@ -505,13 +564,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "advance_parameters.bal",
+        "fileName": "request_payload.bal",
         "startLine": {
-          "line": 6,
+          "line": 16,
           "offset": 4
         },
         "endLine": {
-          "line": 9,
+          "line": 18,
           "offset": 5
         }
       }
@@ -545,5 +604,22 @@
         "advanced": true
       }
     }
+  },
+  "output": {
+    "http_service.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 5
+          },
+          "end": {
+            "line": 10,
+            "character": 5
+          }
+        },
+        "newText": "\n\tresource function post register(@http:Payload User user) returns json|error {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+      }
+    ]
   }
 }

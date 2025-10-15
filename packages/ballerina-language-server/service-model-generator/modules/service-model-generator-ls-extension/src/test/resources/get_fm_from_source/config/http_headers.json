@@ -216,7 +216,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "header",
+        "httpParamType": "Header",
         "hidden": false,
         "properties": {
           "annotHeader": {
@@ -298,7 +298,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "header",
+        "httpParamType": "Header",
         "hidden": false,
         "properties": {
           "annotHeader": {
@@ -380,7 +380,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "header",
+        "httpParamType": "Header",
         "hidden": false,
         "properties": {
           "annotHeader": {

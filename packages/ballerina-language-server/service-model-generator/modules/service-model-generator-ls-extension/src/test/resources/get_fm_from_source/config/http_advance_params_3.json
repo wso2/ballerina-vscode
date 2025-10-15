@@ -382,15 +382,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "http:HeaderNotFoundError",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "http:HeaderNotFoundError",
             "imports": {},
             "enabled": true,
             "editable": true,

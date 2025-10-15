@@ -75,7 +75,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_P
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionParamListSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
@@ -325,7 +324,7 @@ public final class HttpUtil {
                         .editable(true)
                         .build();
                 parameter.setHeaderName(headerNameProperty);
-                return Optional.of(annotationReference.toLowerCase(Locale.ROOT));
+                return Optional.of(annotationReference);
             }
         }
         return Optional.empty();
@@ -513,7 +512,7 @@ public final class HttpUtil {
                                                        boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
-                .append(generateFunctionParamListSource(function.getParameters(), imports))
+                .append(generateParams(function.getParameters(), imports))
                 .append(CLOSE_PAREN);
 
         int defaultStatusCode = function.getAccessor().getValue().trim().equalsIgnoreCase("post") ? 201 : 200;
@@ -539,6 +538,70 @@ public final class HttpUtil {
         }
         builder.append(SPACE);
         return builder.toString();
+    }
+
+    private static String generateParams(List<Parameter> parameters, Map<String, String> imports) {
+        // Sort params list where required params come first
+        parameters.sort(new Parameter.RequiredParamSorter());
+
+        List<String> params = new ArrayList<>();
+        for (Parameter param : parameters) {
+            if (!param.isEnabled()) {
+                continue;
+            }
+
+            StringBuilder paramDef = new StringBuilder();
+            Value paramType = param.getType();
+
+            // Add imports if present
+            if (paramType != null && paramType.getImports() != null) {
+                imports.putAll(paramType.getImports());
+            }
+
+            Map<String, Value> properties = param.getProperties();
+
+            // Add HTTP annotation if applicable
+            String httpParamType = param.getHttpParamType();
+            if (httpParamType != null) {
+                if (httpParamType.equals(HTTP_HEADER_PARAM_ANNOTATION)) {
+                    paramDef.append("@http:").append(httpParamType);
+                    Value headerName = param.getHeaderName();
+                    if (headerName != null && headerName.isEnabledWithValue()
+                            && !headerName.getValue().equals(param.getName().getValue())) {
+                        paramDef.append(" {name: ").append(headerName.getValue()).append("}");
+                    }
+                } else {
+                    Value queryAnnot = properties.get("annotQuery");
+                    Value payloadAnnot = properties.get("annotPayload");
+                    if (Objects.nonNull(queryAnnot)) {
+                        paramDef.append("@http:").append(httpParamType).append(queryAnnot.getValue());
+                    } else if (Objects.nonNull(payloadAnnot)) {
+                        paramDef.append("@http:").append(httpParamType).append(payloadAnnot.getValue());
+                    } else {
+                        paramDef.append("@http:").append(httpParamType);
+                    }
+                }
+                paramDef.append(SPACE);
+            }
+
+            // Build parameter definition
+            paramDef.append(getValueString(paramType)).append(" ").append(getValueString(param.getName()));
+
+            // Add default value if present
+            Value defaultValue = param.getDefaultValue();
+            if (hasEnabledValue(defaultValue)) {
+                paramDef.append(" = ").append(getValueString(defaultValue));
+            }
+
+            params.add(paramDef.toString());
+        }
+
+        return String.join(", ", params);
+    }
+
+    private static boolean hasEnabledValue(Value value) {
+        return value != null && value.isEnabled() &&
+                value.getValue() != null && !value.getValue().isEmpty();
     }
 
     private static HttpResponse getHttpResponse(TypeSymbol statusCodeResponseType, String defaultStatusCode,
@@ -702,14 +765,11 @@ public final class HttpUtil {
 
         if (createNewType) {
             String statusCode = response.getStatusCode().getValue();
+            if (statusCode.equals("500") && body.equals("error")) {
+                return "error";
+            }
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
-
-            String prefix = "Custom" + statusCodeRes;
-            String identifier = Utils.generateTypeIdentifier(visibleSymbols, prefix);
-            visibleSymbols.add(identifier);
-            response.getName().setValue(identifier);
-            newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
-            return identifier;
+            return getRecordTypeDescriptor(statusCodeRes, response, imports);
         }
 
         if (Objects.nonNull(body) && !body.isEmpty()) {
@@ -748,7 +808,12 @@ public final class HttpUtil {
     private static String getNewResponseTypeStr(String statusCodeTypeName, HttpResponse response,
                                                 Map<String, String> imports) {
         String name = response.getName().getValue();
-        String template = "public type %s record {|%n\t*http:%s;".formatted(name, statusCodeTypeName);
+        return "public type " + name + " " + getRecordTypeDescriptor(statusCodeTypeName, response, imports);
+    }
+
+    private static String getRecordTypeDescriptor(String statusCodeTypeName, HttpResponse response,
+                                                  Map<String, String> imports) {
+        String template = "record {|%n\t*http:%s;".formatted(statusCodeTypeName);
 
         Value body = response.getBody();
         if (Objects.nonNull(body) && body.isEnabledWithValue()) {

@@ -24,7 +24,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -177,10 +176,7 @@ public class Parameter {
     }
 
     public String getHttpParamType() {
-        if (Objects.isNull(httpParamType)) {
-            return null;
-        }
-        return httpParamType.charAt(0) + httpParamType.substring(1).toLowerCase(Locale.ROOT);
+        return httpParamType;
     }
 
     public void setHttpParamType(String httpParamType) {
@@ -404,6 +400,9 @@ public class Parameter {
         }
 
         public Builder addProperty(String key, Value value) {
+            if (this.properties == null) {
+                this.properties = new LinkedHashMap<>();
+            }
             this.properties.put(key, value);
             return this;
         }

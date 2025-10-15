@@ -207,7 +207,7 @@
         "editable": false,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
+        "httpParamType": "Query",
         "hidden": false
       }
     ],

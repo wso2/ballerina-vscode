@@ -65,7 +65,7 @@ public class HttpResponse {
         this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
         this.body = createOptionalValue(type, VALUE_TYPE_TYPE, true);
         this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
-        this.type = createOptionalValue(body, VALUE_TYPE_TYPE, true);
+        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, true);
         this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
     }
 

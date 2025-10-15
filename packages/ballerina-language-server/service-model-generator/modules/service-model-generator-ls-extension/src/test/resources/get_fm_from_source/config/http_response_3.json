@@ -323,15 +323,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "http:Response",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "http:Response",
             "imports": {},
             "enabled": true,
             "editable": true,

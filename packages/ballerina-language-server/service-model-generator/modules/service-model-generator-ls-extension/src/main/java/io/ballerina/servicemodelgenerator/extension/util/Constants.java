@@ -103,8 +103,6 @@ public class Constants {
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
     public static final String VALUE_TYPE_STRING = "STRING";
-    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
-    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
 
     public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
     public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";

@@ -70,6 +70,7 @@ import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PAYLOAD_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_INCLUDED_RECORD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -202,14 +203,14 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     if (paramSymbol.isPresent() && paramSymbol.get() instanceof ParameterSymbol parameterSymbol) {
                         TypeSymbol paramType = parameterSymbol.typeDescriptor();
                         if (paramType.subtypeOf(mapTypeSymbol)) {
-                            parameterModel.setHttpParamType(Constants.HTTP_PARAM_TYPE_PAYLOAD);
+                            parameterModel.setHttpParamType(HTTP_PAYLOAD_PARAM_ANNOTATION);
                             parameterModel.setEditable(true);
                             parameterModels.add(parameterModel);
                             return;
                         }
                     }
 
-                    parameterModel.setHttpParamType(Constants.HTTP_PARAM_TYPE_QUERY);
+                    parameterModel.setHttpParamType(Constants.HTTP_QUERY_PARAM_ANNOTATION);
                     parameterModel.setEditable(true);
                 }
             }

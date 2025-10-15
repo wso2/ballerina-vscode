@@ -1,6 +1,6 @@
 {
   "filePath": "http_service.bal",
-  "description": "Add a simple HTTP resource to the service",
+  "description": "Add HTTP resource to the service - http_advance_params_2",
   "codedata": {
     "lineRange": {
       "fileName": "http_service.bal.bal",
@@ -15,10 +15,6 @@
     }
   },
   "function": {
-    "metadata": {
-      "label": "Get Path",
-      "description": "The path resource"
-    },
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -28,7 +24,7 @@
       "placeholder": "GET",
       "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
-      "value": "GET",
+      "value": "get",
       "items": [
         "GET",
         "POST",
@@ -36,9 +32,9 @@
         "DELETE",
         "PATCH",
         "OPTIONS",
-        "HEAD"
+        "HEAD",
+        "DEFAULT"
       ],
-      "imports": {},
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -52,8 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "testPath",
-      "imports": {},
+      "value": "caller",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -67,30 +62,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Request",
           "value": "http:Request",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -109,36 +94,26 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Caller",
           "value": "http:Caller",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "caller",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "",
-          "imports": {},
+          "value": "caller",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": false,
+        "enabled": true,
         "editable": true,
         "optional": true,
         "advanced": true,
@@ -151,30 +126,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "http:Headers",
           "value": "http:Headers",
-          "imports": {},
           "enabled": true,
           "editable": false,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "headers",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -184,66 +149,6 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
-      },
-      {
-        "metadata": {
-          "label": "Query",
-          "description": "The Query Parameter"
-        },
-        "kind": "REQUIRED",
-        "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
-          "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
-          "value": "international401:Patient",
-          "imports": {
-            "international401": "ballerinax/health.fhir.r4.international401:2.2.0"
-          },
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
-          "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "value": "param1",
-          "imports": {},
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "defaultValue": {
-          "metadata": {
-            "label": "Default Value",
-            "description": "The default value"
-          },
-          "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
-          "value": "",
-          "imports": {},
-          "enabled": false,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "httpParamType": "QUERY",
         "hidden": false
       }
     ],
@@ -255,30 +160,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
-          "imports": {},
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -293,7 +188,6 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -313,33 +207,23 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
-          "imports": {},
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "name",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -351,10 +235,19 @@
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -371,30 +264,20 @@
         },
         "kind": "REQUIRED",
         "type": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "name": {
-          "metadata": {
-            "label": "",
-            "description": ""
-          },
           "placeholder": "",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
           "value": "",
-          "imports": {},
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -412,10 +295,6 @@
       "responses": [
         {
           "statusCode": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "SINGLE_SELECT",
             "value": "200",
             "imports": {},
@@ -425,12 +304,17 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "json",
+            "value": "()",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "application/json",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -438,72 +322,40 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "type": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
             "valueType": "TYPE",
-            "value": "json",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "headers": {
-            "metadata": {
-              "label": "",
-              "description": ""
-            },
-            "valueType": "EXPRESSION_SET",
             "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
             "advanced": false
           },
           "enabled": true,
           "editable": true,
-          "advanced": true
-        }
-      ],
-      "schema": {
-        "statusCodeResponse": {
+          "advanced": false
+        },
+        {
           "statusCode": {
-            "metadata": {
-              "label": "Status Code",
-              "description": "The status code"
-            },
-            "placeholder": "200",
             "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "http:StatusCode",
-            "value": "",
-            "items": [
-              "200",
-              "201",
-              "202",
-              "204",
-              "400",
-              "401",
-              "403",
-              "404",
-              "405",
-              "500"
-            ],
+            "value": "500",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -511,12 +363,8 @@
             "advanced": false
           },
           "body": {
-            "metadata": {
-              "label": "Body",
-              "description": "Response Body"
-            },
             "valueType": "TYPE",
-            "value": "",
+            "value": "error",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -524,10 +372,6 @@
             "advanced": false
           },
           "name": {
-            "metadata": {
-              "label": "Name of the response",
-              "description": "Create a new response type"
-            },
             "valueType": "IDENTIFIER",
             "value": "",
             "imports": {},
@@ -535,6 +379,82 @@
             "editable": true,
             "optional": true,
             "advanced": false
+          },
+          "type": {
+            "valueType": "TYPE",
+            "value": "error",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        }
+      ],
+      "schema": {
+        "statusCodeResponse": {
+          "statusCode": {
+            "metadata": {
+              "label": "Status Code",
+              "description": "HTTP status code for the response"
+            },
+            "placeholder": "",
+            "valueType": "SINGLE_SELECT",
+            "valueTypeConstraint": "",
+            "value": "",
+            "items": [],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "Response Body Schema",
+              "description": "The data type or schema of the response body"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "metadata": {
+              "label": "Media Type",
+              "description": "Value for the Content-Type header in the response"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "name": {
+            "metadata": {
+              "label": "Response Definition Name",
+              "description": "Define a name for the response definition"
+            },
+            "valueType": "OPTIONAL_IDENTIFIER",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           },
           "type": {
             "metadata": {
@@ -543,36 +463,25 @@
             },
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          "headers": {
-            "metadata": {
-              "label": "Header types",
-              "description": "Response header types"
-            },
-            "valueType": "MULTIPLE_SELECT",
-            "value": "",
-            "items": [
-              "",
-              "string",
-              "int",
-              "boolean",
-              "string[]",
-              "int[]",
-              "boolean[]"
-            ],
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
-            "advanced": false
+            "advanced": true
+          },
+          "headers": {
+            "metadata": {
+              "label": "Headers",
+              "description": "Add mandatory or optional headers to the response"
+            },
+            "valueType": "HEADER_SET",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       },
@@ -584,7 +493,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "",
+      "value": "error?",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -593,7 +502,20 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "advance_parameters.bal",
+        "startLine": {
+          "line": 12,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 22,
+          "offset": 5
+        }
+      }
+    },
     "properties": {
       "annotResourceConfig": {
         "metadata": {
@@ -609,16 +531,14 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpResourceConfig",
-        "value": "{}",
         "typeMembers": [
           {
             "type": "HttpResourceConfig",
             "packageInfo": "ballerina:http:2.14.0",
             "kind": "RECORD_TYPE",
-            "selected": true
+            "selected": false
           }
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -631,19 +551,6 @@
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "\nimport ballerinax/health.fhir.r4.international401;\n"
-      },
-      {
-        "range": {
-          "start": {
             "line": 10,
             "character": 5
           },
@@ -652,7 +559,7 @@
             "character": 5
           }
         },
-        "newText": "\n\t@http:ResourceConfig{}\n\tresource function get testPath(international401:Patient param1) returns error|json {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+        "newText": "\n\tresource function get caller(http:Caller caller) returns ()|error {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
       }
     ]
   }

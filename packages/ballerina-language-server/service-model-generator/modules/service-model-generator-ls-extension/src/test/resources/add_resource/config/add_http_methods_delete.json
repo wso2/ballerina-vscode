@@ -1,20 +1,20 @@
 {
-  "filePath": "http_service/advance_parameters.bal",
-  "description": "",
+  "filePath": "http_service.bal",
+  "description": "Add HTTP resource to the service - http_methods_delete",
   "codedata": {
     "lineRange": {
-      "fileName": "advance_parameters.bal",
+      "fileName": "http_service.bal.bal",
       "startLine": {
-        "line": 6,
-        "offset": 4
+        "line": 5,
+        "offset": 0
       },
       "endLine": {
-        "line": 9,
-        "offset": 5
+        "line": 12,
+        "offset": 0
       }
     }
   },
-  "response": {
+  "function": {
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -24,7 +24,7 @@
       "placeholder": "GET",
       "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
-      "value": "post",
+      "value": "delete",
       "items": [
         "GET",
         "POST",
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "request",
+      "value": "users/[string id]",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -75,13 +75,13 @@
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "req",
+          "value": "",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": true,
+        "enabled": false,
         "editable": true,
         "optional": true,
         "advanced": true,
@@ -296,7 +296,7 @@
         {
           "statusCode": {
             "valueType": "SINGLE_SELECT",
-            "value": "201",
+            "value": "204",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -305,7 +305,7 @@
           },
           "body": {
             "valueType": "TYPE",
-            "value": "json",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -314,7 +314,7 @@
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "application/json",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -332,7 +332,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": "",
+            "value": "http:NoContent",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -349,13 +349,13 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": true,
+          "editable": false,
           "advanced": false
         },
         {
           "statusCode": {
             "valueType": "SINGLE_SELECT",
-            "value": "500",
+            "value": "404",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -364,11 +364,20 @@
           },
           "body": {
             "valueType": "TYPE",
-            "value": "error",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
             "advanced": false
           },
           "name": {
@@ -382,7 +391,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": "error",
+            "value": "http:NotFound",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -399,7 +408,7 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": true,
+          "editable": false,
           "advanced": false
         }
       ],
@@ -493,7 +502,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "json|error",
+      "value": "http:NoContent|http:NotFound",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -505,13 +514,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "advance_parameters.bal",
+        "fileName": "basic_http_methods.bal",
         "startLine": {
-          "line": 6,
+          "line": 35,
           "offset": 4
         },
         "endLine": {
-          "line": 9,
+          "line": 37,
           "offset": 5
         }
       }
@@ -545,5 +554,22 @@
         "advanced": true
       }
     }
+  },
+  "output": {
+    "http_service.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 5
+          },
+          "end": {
+            "line": 10,
+            "character": 5
+          }
+        },
+        "newText": "\n\tresource function delete users/[string id]() returns error|http:NoContent|http:NotFound {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+      }
+    ]
   }
 }

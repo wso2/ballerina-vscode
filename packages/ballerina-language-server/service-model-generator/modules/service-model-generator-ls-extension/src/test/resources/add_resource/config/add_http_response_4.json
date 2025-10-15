@@ -1,20 +1,20 @@
 {
-  "filePath": "http_service/advance_parameters.bal",
-  "description": "",
+  "filePath": "http_service.bal",
+  "description": "Add HTTP resource to the service - http_response_4",
   "codedata": {
     "lineRange": {
-      "fileName": "advance_parameters.bal",
+      "fileName": "http_service.bal.bal",
       "startLine": {
-        "line": 6,
-        "offset": 4
+        "line": 5,
+        "offset": 0
       },
       "endLine": {
-        "line": 9,
-        "offset": 5
+        "line": 12,
+        "offset": 0
       }
     }
   },
-  "response": {
+  "function": {
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -24,7 +24,7 @@
       "placeholder": "GET",
       "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
-      "value": "post",
+      "value": "get",
       "items": [
         "GET",
         "POST",
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "request",
+      "value": "ok",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -75,13 +75,13 @@
           "placeholder": "request",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "req",
+          "value": "",
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
-        "enabled": true,
+        "enabled": false,
         "editable": true,
         "optional": true,
         "advanced": true,
@@ -296,34 +296,34 @@
         {
           "statusCode": {
             "valueType": "SINGLE_SELECT",
-            "value": "201",
+            "value": "200",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
             "valueType": "TYPE",
-            "value": "json",
+            "value": "int",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "application/json",
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
             "valueType": "IDENTIFIER",
-            "value": "",
+            "value": "HttpOK",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -335,45 +335,54 @@
             "value": "",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
             "valueType": "HEADER_SET",
-            "value": "",
+            "value": [],
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": true,
             "advanced": false
           },
           "enabled": true,
-          "editable": true,
+          "editable": false,
           "advanced": false
         },
         {
           "statusCode": {
             "valueType": "SINGLE_SELECT",
-            "value": "500",
+            "value": "201",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
             "valueType": "TYPE",
-            "value": "error",
+            "value": "string",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "\"application/text\"",
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": false,
             "advanced": false
           },
           "name": {
             "valueType": "IDENTIFIER",
-            "value": "",
+            "value": "HttpCreated",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -382,24 +391,89 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": "error",
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": true,
+            "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
             "valueType": "HEADER_SET",
-            "value": "",
+            "value": [],
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "valueType": "SINGLE_SELECT",
+            "value": "202",
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "valueType": "TYPE",
+            "value": "string",
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "\"application/text\"",
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "valueType": "IDENTIFIER",
+            "value": "HttpAccepted",
             "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": false
           },
+          "type": {
+            "valueType": "TYPE",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": [
+              {
+                "optional": false,
+                "type": "string",
+                "name": "x\\-path"
+              }
+            ],
+            "imports": {},
+            "enabled": true,
+            "editable": false,
+            "optional": true,
+            "advanced": false
+          },
           "enabled": true,
-          "editable": true,
+          "editable": false,
           "advanced": false
         }
       ],
@@ -493,7 +567,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "json|error",
+      "value": "HttpOK|HttpCreated|HttpAccepted",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -505,13 +579,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "advance_parameters.bal",
+        "fileName": "response_types.bal",
         "startLine": {
-          "line": 6,
+          "line": 24,
           "offset": 4
         },
         "endLine": {
-          "line": 9,
+          "line": 26,
           "offset": 5
         }
       }
@@ -545,5 +619,35 @@
         "advanced": true
       }
     }
+  },
+  "output": {
+    "http_service.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 5
+          },
+          "end": {
+            "line": 10,
+            "character": 5
+          }
+        },
+        "newText": "\n\tresource function get ok() returns error|HttpOK|HttpCreated|HttpAccepted {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 1
+          },
+          "end": {
+            "line": 12,
+            "character": 1
+          }
+        },
+        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"application/text\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"application/text\" mediaType = \"\"application/text\"\";\n|};"
+      }
+    ]
   }
 }
