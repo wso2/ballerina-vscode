@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Codicon, Dropdown, LinkButton, TextField } from '@wso2/ui-toolkit';
+import { Codicon, Dropdown, LinkButton, TextField, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
@@ -25,6 +25,13 @@ import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
 import { ParamEditor } from '../Parameters/ParamEditor';
 
+
+const MethodLabel = styled.label`
+    display: flex;
+	margin-bottom: 5px;
+    font-size: var(--vscode-editor-font-size);
+	width: 100px;
+`;
 
 const MethodBox = styled.div`
     display: flex;
@@ -39,7 +46,6 @@ const MethodBox = styled.div`
     color: #FFF;
     align-items: center;
     font-weight: bold;
-	margin-top: 20px;
 `;
 
 export const verbs = [
@@ -147,8 +153,8 @@ export function ResourcePath(props: ResourcePathProps) {
 		// Create a new parameter model for path parameter
 		const newPathParam: ParameterModel = {
 			name: {
-				value: '',
-				valueType: 'EXPRESSION',
+				value: 'param',
+				valueType: 'IDENTIFIER',
 				placeholder: 'param',
 				enabled: true
 			},
@@ -219,9 +225,12 @@ export function ResourcePath(props: ResourcePathProps) {
 						/>
 					)}
 					{isNew && (
-						<MethodBox color={getColorByMethod(method.value?.toUpperCase())}>
-							{method.value.toUpperCase()}
-						</MethodBox>
+						<>
+							<MethodLabel>HTTP Method</MethodLabel>
+							<MethodBox color={getColorByMethod(method.value?.toUpperCase())}>
+								{method.value.toUpperCase()}
+							</MethodBox>
+						</>
 					)}
 				</div>
 				<TextField
@@ -241,26 +250,24 @@ export function ResourcePath(props: ResourcePathProps) {
 					onFocus={(e) => e.target.select()}
 				/>
 			</PathContainer>
-			{!isNew &&
-				<>
-					{showParamEditor && editModel ? (
-						<ParamEditor
-							param={editModel}
-							onChange={onChangeParam}
-							onSave={onSaveParam}
-							onCancel={onParamEditCancel}
-							type="PATH"
-						/>
-					) : (
-						<AddButtonWrapper>
-							<LinkButton onClick={handlePathAdd} >
-								<Codicon name="add" />
-								<>Path Param</>
-							</LinkButton>
-						</AddButtonWrapper>
-					)}
-				</>
-			}
+			<>
+				{showParamEditor && editModel ? (
+					<ParamEditor
+						param={editModel}
+						onChange={onChangeParam}
+						onSave={onSaveParam}
+						onCancel={onParamEditCancel}
+						type="PATH"
+					/>
+				) : (
+					<AddButtonWrapper>
+						<LinkButton onClick={handlePathAdd} >
+							<Codicon name="add" />
+							<>Path Param</>
+						</LinkButton>
+					</AddButtonWrapper>
+				)}
+			</>
 		</>
 	);
 }
