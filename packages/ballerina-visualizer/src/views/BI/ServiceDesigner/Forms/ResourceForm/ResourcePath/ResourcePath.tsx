@@ -19,10 +19,11 @@
 import React, { useEffect, useState } from 'react';
 import { Codicon, Dropdown, LinkButton, TextField } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { PropertyModel } from '@wso2/ballerina-core';
+import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
+import { ParamEditor } from '../Parameters/ParamEditor';
 
 
 const MethodBox = styled.div`
@@ -98,6 +99,8 @@ export function ResourcePath(props: ResourcePathProps) {
 
 	const [inputValue, setInputValue] = useState('');
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
+	const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
+	const [showParamEditor, setShowParamEditor] = useState<boolean>(false);
 
 	useEffect(() => {
 		const resourePathStr = path.value ? path.value : "";
@@ -141,9 +144,56 @@ export function ResourcePath(props: ResourcePathProps) {
 	}
 
 	const handlePathAdd = () => {
-		const value = !path.value || path.value == '' ? '[string param]' : `${path.value}/[string param]`;
+		// Create a new parameter model for path parameter
+		const newPathParam: ParameterModel = {
+			name: {
+				value: '',
+				valueType: 'EXPRESSION',
+				placeholder: 'param',
+				enabled: true
+			},
+			type: {
+				value: 'string',
+				valueType: 'EXPRESSION',
+				placeholder: 'string',
+				enabled: true
+			},
+			kind: 'REQUIRED',
+			enabled: true,
+			metadata: {
+				label: 'Path Parameter',
+				description: 'Path parameter configuration'
+			}
+		};
+		setEditModel(newPathParam);
+		setShowParamEditor(true);
+	};
+
+	const onChangeParam = (param: ParameterModel) => {
+		setEditModel(param);
+	};
+
+	const onSaveParam = (param: ParameterModel) => {
+		// Extract the parameter name and type from the saved param
+		const paramName = param.name.value || 'param';
+		const paramType = param.type.value || 'string';
+
+		// Build the path parameter string: [type paramName]
+		const pathParamStr = `[${paramType} ${paramName}]`;
+
+		// Append to existing path
+		const value = !path.value || path.value === '' ? pathParamStr : `${path.value}/${pathParamStr}`;
 		setInputValue(value);
 		onChange(method, { ...path, value });
+
+		// Close the editor
+		setShowParamEditor(false);
+		setEditModel(undefined);
+	};
+
+	const onParamEditCancel = () => {
+		setShowParamEditor(false);
+		setEditModel(undefined);
 	};
 
 
@@ -192,12 +242,24 @@ export function ResourcePath(props: ResourcePathProps) {
 				/>
 			</PathContainer>
 			{!isNew &&
-				<AddButtonWrapper>
-					<LinkButton onClick={handlePathAdd} >
-						<Codicon name="add" />
-						<>Path Param</>
-					</LinkButton>
-				</AddButtonWrapper>
+				<>
+					{showParamEditor && editModel ? (
+						<ParamEditor
+							param={editModel}
+							onChange={onChangeParam}
+							onSave={onSaveParam}
+							onCancel={onParamEditCancel}
+							type="PATH"
+						/>
+					) : (
+						<AddButtonWrapper>
+							<LinkButton onClick={handlePathAdd} >
+								<Codicon name="add" />
+								<>Path Param</>
+							</LinkButton>
+						</AddButtonWrapper>
+					)}
+				</>
 			}
 		</>
 	);
