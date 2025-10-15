@@ -67,8 +67,9 @@ export function OperationForm(props: OperationFormProps) {
             const typeField = paramFields.find(field => field.key === 'type');
             const nameField = paramFields.find(field => field.key === 'variable');
             const defaultField = paramFields.find(field => field.key === 'defaultable');
+            const documentationField = paramFields.find(field => field.key === 'documentation');
 
-            paramList.push({
+            const parameterModel: ParameterModel = {
                 kind: 'REQUIRED',
                 enabled: typeField?.enabled ?? true,
                 editable: typeField?.editable ?? true,
@@ -105,28 +106,64 @@ export function OperationForm(props: OperationFormProps) {
                     enabled: defaultField?.enabled,
                     editable: defaultField?.editable
                 }
-            });
+            };
+
+            // Add documentation field if it exists in form values and schema
+            if (param.formValues['documentation'] !== undefined && documentationField) {
+                (parameterModel as any).documentation = {
+                    value: param.formValues['documentation'],
+                    valueType: documentationField?.valueType || 'string',
+                    optional: documentationField?.optional,
+                    advanced: documentationField?.advanced,
+                    enabled: documentationField?.enabled,
+                    editable: documentationField?.editable
+                };
+            }
+
+            paramList.push(parameterModel);
         });
         return paramList;
     }
 
     // Initialize form fields
     useEffect(() => {
-        const initialFields: FormField[] = [
-            {
-                key: 'name',
-                label: model.name.metadata?.label || 'Operation Name',
-                type: 'IDENTIFIER',
-                optional: model.name.optional,
-                editable: model.name.editable,
-                advanced: model.name.advanced,
-                enabled: model.name.enabled,
-                documentation: model.name.metadata?.description || '',
-                value: model.name.value,
-                valueType: model.name.valueType,
-                valueTypeConstraint: model.name.valueTypeConstraint || '',
-                lineRange: model?.name?.codedata?.lineRange
-            },
+        const initialFields: FormField[] = [];
+
+        // Add name field first
+        initialFields.push({
+            key: 'name',
+            label: model.name.metadata?.label || 'Operation Name',
+            type: 'IDENTIFIER',
+            optional: model.name.optional,
+            editable: model.name.editable,
+            advanced: model.name.advanced,
+            enabled: model.name.enabled,
+            documentation: model.name.metadata?.description || '',
+            value: model.name.value,
+            valueType: model.name.valueType,
+            valueTypeConstraint: model.name?.valueTypeConstraint,
+            lineRange: model?.name?.codedata?.lineRange
+        });
+
+        // Add documentation field after name (if it exists)
+        if (model.documentation) {
+            initialFields.push({
+                key: 'documentation',
+                label: model.documentation.metadata?.label || 'Documentation',
+                type: model.documentation.valueType || 'string',
+                optional: model.documentation.optional,
+                enabled: model.documentation.enabled,
+                editable: model.documentation.editable,
+                advanced: model.documentation.advanced,
+                documentation: model.documentation.metadata?.description || '',
+                value: model.documentation.value,
+                valueType: model.documentation.valueType,
+                valueTypeConstraint: model.documentation?.valueTypeConstraint
+            });
+        }
+
+        // Add parameters and other fields
+        initialFields.push(
             {
                 key: 'parameters',
                 label: isServiceClass ? 'Parameters' : (isGraphqlView ? 'Arguments' : 'Parameters'),
@@ -146,7 +183,7 @@ export function OperationForm(props: OperationFormProps) {
             {
                 key: 'returnType',
                 label: model.returnType.metadata?.label || 'Return Type',
-                type: 'TYPE',
+                type: model.returnType.valueType || 'TYPE',
                 optional: model.returnType.optional,
                 enabled: model.returnType.enabled,
                 editable: model.returnType.editable,
@@ -154,9 +191,10 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
                 valueType: model.returnType.valueType,
-                valueTypeConstraint: model.returnType.valueTypeConstraint || ''
+                properties: model.returnType.properties,
+                valueTypeConstraint: model.returnType?.valueTypeConstraint
             }
-        ];
+        );
 
         const properties = convertConfigToFormFields(model);
         initialFields.push(...properties);
@@ -193,12 +231,15 @@ export function OperationForm(props: OperationFormProps) {
 
     const handleFunctionCreate = (data: FormValues, formImports: FormImports) => {
         console.log("Function create with data:", data);
-        const { name, returnType, parameters: params } = data;
+        const { name, returnType, parameters: params, documentation } = data;
         const paramList = params ? getFunctionParametersList(params) : [];
         const newFunctionModel = { ...model };
         newFunctionModel.name.value = name;
         newFunctionModel.returnType.value = returnType;
         newFunctionModel.parameters = paramList;
+        if (documentation !== undefined && newFunctionModel.documentation !== undefined) {
+            newFunctionModel.documentation.value = documentation;
+        }
         newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
         Object.entries(data).forEach(([key, value]) => {
             if (newFunctionModel?.properties?.[key]) {
@@ -262,7 +303,7 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
         documentation: param.metadata?.description || '',
         value: param.value || '',
         valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || '',
+        valueTypeConstraint: param?.valueTypeConstraint,
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };
@@ -299,15 +340,21 @@ function convertConfigToFormFields(model: FunctionModel): FormField[] {
 }
 
 function convertParameterToParamValue(param: ParameterModel, index: number) {
+    const newFormValues: any = {};
+
+    if (param.documentation) {
+        newFormValues.documentation = param.documentation.value || '';
+    }
+
+    newFormValues.variable = param.name.value;
+    newFormValues.type = param.type.value;
+    newFormValues.defaultable = (param.defaultValue as PropertyModel)?.value || '';
+
     return {
         id: index,
         key: param.name.value,
         value: `${param.type.value} ${param.name.value}${(param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel)?.value}` : ''}`,
-        formValues: {
-            variable: param.name.value,
-            type: param.type.value,
-            defaultable: (param.defaultValue as PropertyModel)?.value || ''
-        },
+        formValues: newFormValues,
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,
         identifierRange: param.name.codedata?.lineRange,
