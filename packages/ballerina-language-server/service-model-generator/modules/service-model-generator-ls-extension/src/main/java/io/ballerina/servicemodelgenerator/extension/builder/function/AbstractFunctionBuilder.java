@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.IncludedRecordParameterNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -65,6 +66,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_INCLUDED_RECORD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
@@ -254,6 +256,14 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
             defaultValue.setEnabled(true);
+            return Optional.of(parameterModel);
+        } else if (parameterNode instanceof IncludedRecordParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            String paramType = parameter.typeName().toString().trim();
+            Parameter parameterModel = createParameter(paramName, KIND_INCLUDED_RECORD, paramType);
             return Optional.of(parameterModel);
         }
         return Optional.empty();

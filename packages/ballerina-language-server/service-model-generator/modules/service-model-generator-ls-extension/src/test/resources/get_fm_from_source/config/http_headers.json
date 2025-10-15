@@ -1,15 +1,15 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "http_service/request_headers.bal",
   "description": "",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "request_headers.bal",
       "startLine": {
-        "line": 16,
+        "line": 4,
         "offset": 4
       },
       "endLine": {
-        "line": 18,
+        "line": 14,
         "offset": 5
       }
     }
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "response",
+      "value": "profile",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -150,6 +150,252 @@
         "optional": true,
         "advanced": true,
         "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "authorization",
+          "description": "authorization"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "authorization",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "authorization",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "header",
+        "hidden": false,
+        "properties": {
+          "annotHeader": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Header",
+              "moduleName": "http"
+            },
+            "value": "",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "contentType",
+          "description": "contentType"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string?",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "contentType",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "contentType",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "header",
+        "hidden": false,
+        "properties": {
+          "annotHeader": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Header",
+              "moduleName": "http"
+            },
+            "value": "",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "requestId",
+          "description": "requestId"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string?",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "requestId",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "\"X-Request-ID\"",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "header",
+        "hidden": false,
+        "properties": {
+          "annotHeader": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Header",
+              "moduleName": "http"
+            },
+            "value": "{name: \"X-Request-ID\"}",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
       }
     ],
     "schema": {
@@ -163,7 +409,7 @@
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -210,7 +456,7 @@
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -223,7 +469,7 @@
           "value": "",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -238,6 +484,16 @@
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -295,11 +551,20 @@
           },
           "body": {
             "valueType": "TYPE",
-            "value": "http:Response",
+            "value": "json",
             "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "application/json",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
             "advanced": false
           },
           "name": {
@@ -313,15 +578,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "http:Response",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -432,7 +689,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "http:Response",
+      "value": "json",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -444,13 +701,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "request_headers.bal",
         "startLine": {
-          "line": 16,
+          "line": 4,
           "offset": 4
         },
         "endLine": {
-          "line": 18,
+          "line": 14,
           "offset": 5
         }
       }

@@ -1,15 +1,15 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "http_service/response_types.bal",
   "description": "",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "response_types.bal",
       "startLine": {
-        "line": 20,
+        "line": 10,
         "offset": 4
       },
       "endLine": {
-        "line": 22,
+        "line": 12,
         "offset": 5
       }
     }
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "intResult",
+      "value": "created",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -163,7 +163,7 @@
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -210,7 +210,7 @@
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -223,7 +223,7 @@
           "value": "",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -238,6 +238,16 @@
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -286,7 +296,7 @@
         {
           "statusCode": {
             "valueType": "SINGLE_SELECT",
-            "value": "200",
+            "value": "201",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -295,7 +305,7 @@
           },
           "body": {
             "valueType": "TYPE",
-            "value": "int",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -304,7 +314,7 @@
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "application/json",
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -322,7 +332,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": "",
+            "value": "http:Created",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -339,7 +349,7 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": true,
+          "editable": false,
           "advanced": false
         }
       ],
@@ -433,7 +443,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "int",
+      "value": "http:Created",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -445,13 +455,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "response_types.bal",
         "startLine": {
-          "line": 20,
+          "line": 10,
           "offset": 4
         },
         "endLine": {
-          "line": 22,
+          "line": 12,
           "offset": 5
         }
       }

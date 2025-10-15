@@ -1,15 +1,15 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "http_service/basic_http_methods.bal",
   "description": "",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "basic_http_methods.bal",
       "startLine": {
-        "line": 32,
+        "line": 6,
         "offset": 4
       },
       "endLine": {
-        "line": 34,
+        "line": 11,
         "offset": 5
       }
     }
@@ -24,7 +24,7 @@
       "placeholder": "GET",
       "valueType": "SINGLE_SELECT",
       "valueTypeConstraint": "http:Method",
-      "value": "get",
+      "value": "'default",
       "items": [
         "GET",
         "POST",
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "anonReturn",
+      "value": "[string... path]",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -150,65 +150,6 @@
         "optional": true,
         "advanced": true,
         "hidden": false
-      },
-      {
-        "metadata": {
-          "label": "dateInfo",
-          "description": "dateInfo"
-        },
-        "kind": "REQUIRED",
-        "type": {
-          "metadata": {
-            "label": "Parameter Type",
-            "description": "The type of the parameter"
-          },
-          "valueType": "TYPE",
-          "value": "DateInfo",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "metadata": {
-            "label": "Parameter Name",
-            "description": "The name of the parameter"
-          },
-          "valueType": "IDENTIFIER",
-          "value": "dateInfo",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "defaultValue": {
-          "metadata": {
-            "label": "Default Value",
-            "description": "The default value of the parameter"
-          },
-          "valueType": "EXPRESSION",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "documentation": {
-          "metadata": {
-            "label": "Description",
-            "description": "The description of the parameter"
-          },
-          "valueType": "STRING",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "httpParamType": "PAYLOAD",
-        "hidden": false
       }
     ],
     "schema": {
@@ -222,7 +163,7 @@
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -269,7 +210,7 @@
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -282,7 +223,7 @@
           "value": "",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -297,6 +238,16 @@
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -348,25 +299,25 @@
             "value": "200",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
           "body": {
             "valueType": "TYPE",
-            "value": "int",
+            "value": "json",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "",
+            "value": "application/json",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
@@ -375,29 +326,30 @@
             "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "type": {
             "valueType": "TYPE",
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "headers": {
             "valueType": "HEADER_SET",
-            "value": [],
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       ],
@@ -491,7 +443,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "record {|*http:Ok; int body;|}",
+      "value": "json",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -503,13 +455,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "basic_http_methods.bal",
         "startLine": {
-          "line": 32,
+          "line": 6,
           "offset": 4
         },
         "endLine": {
-          "line": 34,
+          "line": 11,
           "offset": 5
         }
       }

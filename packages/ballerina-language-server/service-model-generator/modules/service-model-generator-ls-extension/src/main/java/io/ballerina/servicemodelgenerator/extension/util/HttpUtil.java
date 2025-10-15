@@ -34,10 +34,13 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
@@ -45,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
@@ -61,11 +65,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_HEADER_PARAM_ANNOTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PAYLOAD_PARAM_ANNOTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_QUERY_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionParamListSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
@@ -291,20 +300,55 @@ public final class HttpUtil {
         return serviceModel;
     }
 
-    public static Optional<String> getHttpParameterType(NodeList<AnnotationNode> annotations) {
+    public static Optional<String> getHttpParamTypeAndSetHeaderName(Parameter parameter,
+                                                                    NodeList<AnnotationNode> annotations) {
         for (AnnotationNode annotation : annotations) {
-            Node annotReference = annotation.annotReference();
-            String annotName = annotReference.toString();
-            if (annotReference.kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                continue;
-            }
-            String[] annotStrings = annotName.split(":");
+            String annotName = annotation.annotReference().toString();
+            String[] annotStrings = annotName.split(COLON);
             if (!annotStrings[0].trim().equals(Constants.HTTP)) {
                 continue;
             }
-            return Optional.of(annotStrings[annotStrings.length - 1].trim().toUpperCase(Locale.ROOT));
+            String annotationReference = annotStrings[annotStrings.length - 1].trim();
+            if (annotationReference.equals(HTTP_QUERY_PARAM_ANNOTATION)
+                    || annotationReference.equals(HTTP_PAYLOAD_PARAM_ANNOTATION)) {
+                return Optional.of(annotationReference.toLowerCase(Locale.ROOT));
+            }
+            if (annotationReference.equals(HTTP_HEADER_PARAM_ANNOTATION)) {
+                Optional<MappingConstructorExpressionNode> mappingNode = annotation.annotValue();
+                String headerName = mappingNode.isPresent() ? extractFieldValue(mappingNode.get(), "name")
+                        : parameter.getName().getValue();
+                Value headerNameProperty = new Value.ValueBuilder()
+                        .valueType(VALUE_TYPE_IDENTIFIER)
+                        .value(headerName)
+                        .setValueTypeConstraint("string")
+                        .enabled(true)
+                        .editable(true)
+                        .build();
+                parameter.setHeaderName(headerNameProperty);
+                return Optional.of(annotationReference.toLowerCase(Locale.ROOT));
+            }
         }
         return Optional.empty();
+    }
+
+    private static String extractFieldValue(MappingConstructorExpressionNode mappingNode, String fieldName) {
+        // Parse the mapping constructor to find the specified field
+        for (MappingFieldNode field : mappingNode.fields()) {
+            if (field instanceof SpecificFieldNode specificField) {
+                // Get the field name
+                String currentFieldName = specificField.fieldName().toString().trim();
+
+                // Check if this is the field we're looking for
+                if (fieldName.equals(currentFieldName)) {
+                    // Get the field value
+                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
+                    if (valueExpr instanceof BasicLiteralNode literalNode) {
+                        return literalNode.literalToken().text().trim();
+                    }
+                }
+            }
+        }
+        return null; // Return null if field not found
     }
 
     private static void enableContractFirstApproach(Service service) {
@@ -545,8 +589,8 @@ public final class HttpUtil {
             }
             if (fieldSymbolMap.containsKey("mediaType")) {
                 TypeSymbol mediaTypeSymbol = fieldSymbolMap.get("mediaType").typeDescriptor();
-                if (!mediaTypeSymbol.getName().orElse("").equals("string")) {
-                    mediaType = mediaTypeSymbol.getName().orElse("");
+                if (!mediaTypeSymbol.signature().equals("string")) {
+                    mediaType = mediaTypeSymbol.signature();
                 }
             }
         }

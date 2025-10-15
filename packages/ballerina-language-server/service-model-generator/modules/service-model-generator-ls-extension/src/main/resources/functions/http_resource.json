@@ -151,7 +151,7 @@
       "type": {
         "enabled": true,
         "editable": true,
-        "value": "",
+        "value": "string",
         "valueType": "TYPE",
         "valueTypeConstraint": "anydata",
         "isType": true,
@@ -199,7 +199,7 @@
       "type": {
         "enabled": true,
         "editable": true,
-        "value": "",
+        "value": "string",
         "valueType": "TYPE",
         "valueTypeConstraint": "anydata",
         "isType": true,
@@ -215,6 +215,17 @@
         "valueTypeConstraint": "string",
         "isType": false,
         "placeholder": "name",
+        "optional": true,
+        "advanced": false
+      },
+      "headerName": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "isType": false,
+        "placeholder": "",
         "optional": false,
         "advanced": false
       },

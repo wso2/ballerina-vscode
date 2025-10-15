@@ -80,6 +80,7 @@ public class Constants {
     public static final String KIND_REQUIRED = "REQUIRED";
     public static final String KIND_DEFAULTABLE = "DEFAULTABLE";
     public static final String KIND_OBJECT_METHOD = "OBJECT_METHOD";
+    public static final String KIND_INCLUDED_RECORD = "INCLUDED_RECORD";
 
     public static final String PARAMETER = "parameter";
     public static final String SERVICE = "service";
@@ -104,6 +105,9 @@ public class Constants {
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+
+    public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
+    public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";
 
     public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
     public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
@@ -137,6 +141,10 @@ public class Constants {
             "entityConfig = {queueName: \"test-queue\"}, autoComplete = false)";
     public static final String SF_DEFAULT_LISTENER_EXPR = "new (auth = {username: \"\", password: \"\"})";
     public static final String GITHUB_DEFAULT_LISTENER_EXPR = "new ()";
+
+    public static final String HTTP_HEADER_PARAM_ANNOTATION = "Header";
+    public static final String HTTP_QUERY_PARAM_ANNOTATION = "Query";
+    public static final String HTTP_PAYLOAD_PARAM_ANNOTATION = "Payload";
 
     // file listeners
     public static final String FTP_DEFAULT_LISTENER_EXPR = "new ()";

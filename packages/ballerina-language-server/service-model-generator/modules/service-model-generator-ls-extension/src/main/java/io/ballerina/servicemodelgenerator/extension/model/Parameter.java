@@ -23,7 +23,9 @@ import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DEFAULT_VALUE_METADATA;
@@ -50,16 +52,18 @@ public class Parameter {
     private Value name;
     private Value defaultValue;
     private Value documentation;
+    private Value headerName;
     private boolean enabled;
     private boolean editable;
     private boolean optional;
     private boolean advanced;
     private String httpParamType;
     private boolean hidden;
+    private Map<String, Value> properties;
 
     public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, Value documentation,
                      boolean enabled, boolean editable, boolean optional, boolean advanced, String httpParamType,
-                     boolean hidden) {
+                     boolean hidden, Map<String, Value> properties) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
@@ -72,6 +76,7 @@ public class Parameter {
         this.advanced = advanced;
         this.httpParamType = httpParamType;
         this.hidden = hidden;
+        this.properties = properties;
     }
 
     public Parameter(Parameter parameter) {
@@ -87,6 +92,8 @@ public class Parameter {
         this.advanced = parameter.advanced;
         this.httpParamType = parameter.httpParamType;
         this.hidden = parameter.hidden;
+        this.headerName = parameter.headerName;
+        this.properties = parameter.properties;
     }
 
     public MetaData getMetadata() {
@@ -186,6 +193,25 @@ public class Parameter {
 
     public boolean isHidden() {
         return hidden;
+    }
+
+    public Value getHeaderName() {
+        return headerName;
+    }
+
+    public void setHeaderName(Value headerName) {
+        this.headerName = headerName;
+    }
+
+    public Map<String, Value> getProperties() {
+        if (Objects.isNull(properties)) {
+            properties = new LinkedHashMap<>();
+        }
+        return properties;
+    }
+
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
     }
 
     private static Value name(MetaData metadata) {
@@ -310,6 +336,7 @@ public class Parameter {
         private boolean advanced;
         private String httpParamType;
         private boolean hidden;
+        private Map<String, Value> properties;
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -371,9 +398,19 @@ public class Parameter {
             return this;
         }
 
+        public Builder properties(Map<String, Value> properties) {
+            this.properties = properties;
+            return this;
+        }
+
+        public Builder addProperty(String key, Value value) {
+            this.properties.put(key, value);
+            return this;
+        }
+
         public Parameter build() {
             return new Parameter(metadata, kind, type, name, defaultValue, documentation, enabled, editable, optional,
-                    advanced, httpParamType, hidden);
+                    advanced, httpParamType, hidden, properties);
         }
     }
 }

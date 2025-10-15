@@ -38,6 +38,7 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.IncludedRecordParameterNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
@@ -47,9 +48,11 @@ import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.RestParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -103,7 +106,9 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CD_TYPE_ANNOTATION_ATTACHMENT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -219,7 +224,7 @@ public final class Utils {
      * If an enabled choice exists, its properties are added to the service and the choice property is removed.
      *
      * @param service the service initialization model to update
-     * @param key the key of the choice property to process
+     * @param key     the key of the choice property to process
      */
     public static void applyEnabledChoiceProperty(ServiceInitModel service, String key) {
         Map<String, Value> properties = service.getProperties();
@@ -440,7 +445,7 @@ public final class Utils {
     }
 
     public static Optional<Function> getFunctionModel(String serviceType, String functionNameOrType) {
-        String resourcePath =  String.format("functions/%s_%s.json", serviceType.toLowerCase(Locale.US),
+        String resourcePath = String.format("functions/%s_%s.json", serviceType.toLowerCase(Locale.US),
                 functionNameOrType.toLowerCase(Locale.US));
         InputStream resourceStream = Utils.class.getClassLoader()
                 .getResourceAsStream(resourcePath);
@@ -486,6 +491,20 @@ public final class Utils {
             if (service.getProperties().containsKey(propertyName)) {
                 Value property = service.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+            } else {
+                if (!service.getProperties().containsKey(propertyName)) {
+                    Codedata codedata = new Codedata.Builder()
+                            .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                            .setOriginalName(annotName)
+                            .setModuleName(split.length > 1 ? split[0] : "")
+                            .build();
+
+                    Value value = new Value.ValueBuilder()
+                            .setCodedata(codedata)
+                            .value(getAnnotationValue(annotationNode))
+                            .build();
+                    service.getProperties().put(propertyName, value);
+                }
             }
         });
     }
@@ -502,14 +521,94 @@ public final class Utils {
                 return;
             }
             String annotName = annotationNode.annotReference().toString().trim();
-            String[] split = annotName.split(":");
+            String[] split = annotName.split(COLON);
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+            } else {
+                if (!function.getProperties().containsKey(propertyName)) {
+                    Codedata codedata = new Codedata.Builder()
+                            .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                            .setOriginalName(annotName)
+                            .setModuleName(split.length > 1 ? split[0] : "")
+                            .build();
+
+                    Value value = new Value.ValueBuilder()
+                            .setCodedata(codedata)
+                            .value(getAnnotationValue(annotationNode))
+                            .build();
+                    function.getProperties().put(propertyName, value);
+                }
             }
         });
+    }
+
+    public static NodeList<AnnotationNode> getParamAnnotations(ParameterNode parameterNode) {
+        switch (parameterNode) {
+            case RequiredParameterNode requiredParameterNode -> {
+                return requiredParameterNode.annotations();
+            }
+            case DefaultableParameterNode defaultableParameterNode -> {
+                return defaultableParameterNode.annotations();
+            }
+            case IncludedRecordParameterNode includedRecordParameterNode -> {
+                return includedRecordParameterNode.annotations();
+            }
+            case RestParameterNode restParameterNode -> {
+                return restParameterNode.annotations();
+            }
+            case null, default -> {
+            }
+        }
+        return NodeFactory.createEmptyNodeList();
+    }
+
+    /**
+     * This function will add the annotations of a parameter as properties to the parameter model.
+     * We can pass a skip list to skip certain annotations.
+     *
+     * @param parameterModel Parameter model we need to add the annotations as properties
+     * @param annotations Annotations of the parameter
+     * @param skipList       List of annotations to skip
+     */
+    public static void addParamAnnotationAsProperties(Parameter parameterModel,
+                                                      NodeList<AnnotationNode> annotations,
+                                                      List<String> skipList) {
+        if (Objects.isNull(annotations) || annotations.isEmpty()) {
+            return;
+        }
+
+        annotations.forEach(annotationNode -> {
+            String annotName = annotationNode.annotReference().toString().trim();
+            String[] split = annotName.split(COLON);
+            annotName = split[split.length - 1];
+            if (skipList.contains(annotName)) {
+                return;
+            }
+            String propertyName = ANNOT_PREFIX + annotName;
+            if (!parameterModel.getProperties().containsKey(propertyName)) {
+                Codedata codedata = new Codedata.Builder()
+                        .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                        .setOriginalName(annotName)
+                        .setModuleName(split.length > 1 ? split[0] : "")
+                        .build();
+
+                Value value = new Value.ValueBuilder()
+                        .setCodedata(codedata)
+                        .value(getAnnotationValue(annotationNode))
+                        .build();
+                parameterModel.getProperties().put(propertyName, value);
+            }
+        });
+    }
+
+    private static String getAnnotationValue(AnnotationNode annotationNode) {
+        if (annotationNode.annotValue().isEmpty()) {
+            return "";
+        }
+        return annotationNode.annotValue().get().toSourceCode().trim();
     }
 
     public static void updateServiceDocs(ServiceDeclarationNode serviceNode, Service service) {
@@ -638,8 +737,8 @@ public final class Utils {
 
     public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {
         Map<String, Value> properties = function.getProperties().entrySet().stream()
-                        .filter(entry -> entry.getKey().startsWith(ANNOT_PREFIX))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getKey().startsWith(ANNOT_PREFIX))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<String> annots = new ArrayList<>();
         if (properties.isEmpty()) {
@@ -715,7 +814,7 @@ public final class Utils {
     }
 
     public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
-                                                    List<TextEdit> edits) {
+                                                     List<TextEdit> edits) {
         Token serviceKeyword = serviceNode.serviceKeyword();
 
         List<String> annots = getAnnotationEdits(service);
@@ -997,7 +1096,7 @@ public final class Utils {
                     }
                     paramDef = String.format("%s %s", getValueString(paramType), getValueString(param.getName()));
                 }
-                if (Objects.nonNull(param.getHttpParamType()) && !param.getHttpParamType().equals("Query")) {
+                if (Objects.nonNull(param.getHttpParamType()) && param.getHttpParamType().equals("Header")) {
                     paramDef = String.format("@http:%s %s", param.getHttpParamType(), paramDef);
                 }
                 params.add(paramDef);
@@ -1012,10 +1111,8 @@ public final class Utils {
         String kind = function.getKind();
         switch (kind) {
             case KIND_QUERY, KIND_SUBSCRIPTION,
-                 KIND_RESOURCE ->
-                    qualifiers.add(RESOURCE);
-            case KIND_REMOTE, KIND_MUTATION ->
-                    qualifiers.add(REMOTE);
+                 KIND_RESOURCE -> qualifiers.add(RESOURCE);
+            case KIND_REMOTE, KIND_MUTATION -> qualifiers.add(REMOTE);
 
             default -> {
             }
@@ -1026,8 +1123,8 @@ public final class Utils {
     /**
      * Checks whether the given import exists in the given module part node.
      *
-     * @param node module part node
-     * @param org organization name
+     * @param node   module part node
+     * @param org    organization name
      * @param module module name
      * @return true if the import exists, false otherwise
      */
@@ -1045,7 +1142,7 @@ public final class Utils {
     /**
      * Generates the import statement for the given organization and module.
      *
-     * @param org organization name
+     * @param org    organization name
      * @param module module name
      * @return generated import statement
      */
@@ -1056,11 +1153,11 @@ public final class Utils {
     public static boolean filterTriggers(TriggerProperty triggerProperty, TriggerListRequest request) {
         return (request == null) ||
                 ((request.organization() == null || request.organization().equals(triggerProperty.orgName())) &&
-                (request.packageName() == null || request.packageName().equals(triggerProperty.packageName())) &&
-                (request.keyWord() == null || triggerProperty.keywords().stream()
-                        .anyMatch(keyword -> keyword.equalsIgnoreCase(request.keyWord()))) &&
-                (request.query() == null || triggerProperty.keywords().stream()
-                        .anyMatch(keyword -> keyword.contains(request.query()))));
+                        (request.packageName() == null || request.packageName().equals(triggerProperty.packageName()))
+                        && (request.keyWord() == null || triggerProperty.keywords().stream()
+                                .anyMatch(keyword -> keyword.equalsIgnoreCase(request.keyWord()))) &&
+                        (request.query() == null || triggerProperty.keywords().stream()
+                                .anyMatch(keyword -> keyword.contains(request.query()))));
     }
 
     public static boolean expectsTriggerByName(TriggerRequest request) {
@@ -1130,13 +1227,15 @@ public final class Utils {
 
         if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
             // It's a List<String>
-            Type listType = new TypeToken<List<String>>() { }.getType();
+            Type listType = new TypeToken<List<String>>() {
+            }.getType();
             return gson.fromJson(jsonString, listType);
         } else if (firstElement.isJsonObject()) {
             // Check if it has label and value properties (SelectionRecord)
             if (firstElement.getAsJsonObject().has("label") &&
                     firstElement.getAsJsonObject().has("value")) {
-                Type listType = new TypeToken<List<SelectionRecord>>() { }.getType();
+                Type listType = new TypeToken<List<SelectionRecord>>() {
+                }.getType();
                 return gson.fromJson(jsonString, listType);
             }
         }
@@ -1144,7 +1243,8 @@ public final class Utils {
         return new ArrayList<>();
     }
 
-    public record SelectionRecord(String label, String value) { }
+    public record SelectionRecord(String label, String value) {
+    }
 
     /**
      * Resolves a Ballerina module by organization, package, and module name.
@@ -1173,7 +1273,7 @@ public final class Utils {
 
         if (PackageUtil.isModuleUnresolved(orgName, packageName, latestVersion)) {
             notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE, moduleInfo, lsClientLogger);
-            Optional<SemanticModel> semanticModel =  PackageUtil.getSemanticModel(moduleInfo);
+            Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
             if (semanticModel.isEmpty()) {
                 notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE, moduleInfo, lsClientLogger);
             } else {

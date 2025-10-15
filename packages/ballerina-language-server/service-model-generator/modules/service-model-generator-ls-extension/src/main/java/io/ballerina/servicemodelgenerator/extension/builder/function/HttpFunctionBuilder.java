@@ -28,15 +28,12 @@ import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
-import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -74,15 +71,18 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_SERVICE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_INCLUDED_RECORD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.generateHttpResourceDefinition;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParameterType;
+import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParamTypeAndSetHeaderName;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.addParamAnnotationAsProperties;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getParamAnnotations;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -168,14 +168,15 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
 
         Types types = semanticModel.types();
         MapTypeSymbol mapTypeSymbol = types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build();
-
+        List<String> paramAnnotSkipList = List.of();
         parameters.forEach(parameterNode -> {
             Optional<Parameter> param = getParameterModel(parameterNode);
             if (param.isEmpty()) {
                 return;
             }
             Parameter parameterModel = param.get();
-            Optional<String> httpParameterType = getHttpParameterType(getParamAnnotations(parameterNode));
+            NodeList<AnnotationNode> paramAnnotations = getParamAnnotations(parameterNode);
+            Optional<String> httpParameterType = getHttpParamTypeAndSetHeaderName(parameterModel, paramAnnotations);
             if (httpParameterType.isPresent()) {
                 parameterModel.setHttpParamType(httpParameterType.get());
             } else {
@@ -212,7 +213,12 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     parameterModel.setEditable(true);
                 }
             }
+
+            if (parameterModel.getKind().equals(KIND_INCLUDED_RECORD)) {
+                parameterModel.setEditable(false);
+            }
             parameterModels.add(parameterModel);
+            addParamAnnotationAsProperties(parameterModel, paramAnnotations, paramAnnotSkipList);
         });
         functionModel.setParameters(parameterModels);
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
@@ -330,15 +336,5 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     NEW_LINE + statusCodeResEdits));
         }
         return Map.of(context.filePath(), edits);
-    }
-
-
-    private static NodeList<AnnotationNode> getParamAnnotations(ParameterNode parameterNode) {
-        if (parameterNode instanceof RequiredParameterNode requiredParam) {
-            return requiredParam.annotations();
-        } else if (parameterNode instanceof DefaultableParameterNode defaultableParam) {
-            return defaultableParam.annotations();
-        }
-        return NodeFactory.createEmptyNodeList();
     }
 }

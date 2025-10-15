@@ -1,15 +1,15 @@
 {
-  "filePath": "sample1/main.bal",
+  "filePath": "http_service/query_parameters.bal",
   "description": "",
   "codedata": {
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "query_parameters.bal",
       "startLine": {
-        "line": 6,
+        "line": 5,
         "offset": 4
       },
       "endLine": {
-        "line": 14,
+        "line": 11,
         "offset": 5
       }
     }
@@ -48,7 +48,7 @@
       "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "value": "greeting/[string name]",
+      "value": "products",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -153,8 +153,8 @@
       },
       {
         "metadata": {
-          "label": "header",
-          "description": "header"
+          "label": "name",
+          "description": "name"
         },
         "kind": "REQUIRED",
         "type": {
@@ -163,7 +163,7 @@
             "description": "The type of the parameter"
           },
           "valueType": "TYPE",
-          "value": "string",
+          "value": "string?",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -175,7 +175,7 @@
             "description": "The name of the parameter"
           },
           "valueType": "IDENTIFIER",
-          "value": "header",
+          "value": "name",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -207,22 +207,22 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "HEADER",
+        "httpParamType": "QUERY",
         "hidden": false
       },
       {
         "metadata": {
-          "label": "id",
-          "description": "id"
+          "label": "tags",
+          "description": "tags"
         },
-        "kind": "DEFAULTABLE",
+        "kind": "REQUIRED",
         "type": {
           "metadata": {
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
           "valueType": "TYPE",
-          "value": "int",
+          "value": "string[]",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -234,7 +234,7 @@
             "description": "The name of the parameter"
           },
           "valueType": "IDENTIFIER",
-          "value": "id",
+          "value": "tags",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -246,7 +246,66 @@
             "description": "The default value of the parameter"
           },
           "valueType": "EXPRESSION",
-          "value": "45",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "httpParamType": "QUERY",
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "'limit",
+          "description": "'limit"
+        },
+        "kind": "DEFAULTABLE",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "int?",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "'limit",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "value": "10",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -282,7 +341,7 @@
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -329,7 +388,7 @@
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -342,7 +401,7 @@
           "value": "",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -357,6 +416,16 @@
           "enabled": false,
           "editable": true,
           "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
           "advanced": false
         },
         "enabled": false,
@@ -408,7 +477,7 @@
             "value": "200",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
@@ -417,16 +486,16 @@
             "value": "json",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "",
+            "value": "application/json",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
@@ -435,30 +504,30 @@
             "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "type": {
             "valueType": "TYPE",
-            "value": "OkResponse",
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "headers": {
             "valueType": "HEADER_SET",
-            "value": [],
+            "value": "",
             "imports": {},
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       ],
@@ -552,7 +621,7 @@
       "placeholder": "",
       "valueType": "TYPE",
       "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
-      "value": "OkResponse",
+      "value": "json",
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -564,13 +633,13 @@
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "query_parameters.bal",
         "startLine": {
-          "line": 6,
+          "line": 5,
           "offset": 4
         },
         "endLine": {
-          "line": 14,
+          "line": 11,
           "offset": 5
         }
       }
@@ -590,7 +659,6 @@
         "placeholder": "{}",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "http:HttpResourceConfig",
-        "value": "{\n        consumes: []\n    }",
         "typeMembers": [
           {
             "type": "HttpResourceConfig",
