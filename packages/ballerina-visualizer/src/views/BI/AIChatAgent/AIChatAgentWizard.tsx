@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { useRef, useState } from 'react';
-import { CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
+import { useEffect, useRef, useState } from 'react';
+import { AvailableNode, CDModel, CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -78,6 +78,16 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const projectPath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const progressTimeoutRef = useRef<number | null>(null);
+    const designModelRef = useRef<CDModel>(null);
+
+    const init = async () => {
+        const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel();
+        designModelRef.current = designModelResponse.designModel;
+    }
+
+    useEffect(() => {
+        init();
+    }, []);
 
     const validateName = (name: string): boolean => {
         if (!name) {
@@ -88,8 +98,15 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setNameError("Name cannot start with a number");
             return false;
         }
-        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name)) {
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
             setNameError("Name can only contain letters, numbers, and underscores");
+            return false;
+        }
+        const isNameExists = designModelRef.current.services.some(
+            service => service.absolutePath?.trim() === `/${name}`
+        );
+        if (isNameExists) {
+            setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
             return false;
         }
         setNameError("");
