@@ -164,10 +164,16 @@ public class McpToolKitBuilder extends NodeBuilder {
             String label = (param.label() == null || param.label().isEmpty()) ? unescapedName : param.label();
             Property.Builder<FormBuilder<NodeBuilder>> builder = properties().custom()
                     .metadata().label(label).description(param.description()).stepOut()
-                    .codedata().kind(param.kind().name()).originalName(param.name()).stepOut()
-                    .placeholder(param.placeholder()).defaultValue(param.defaultValue())
-                    .typeConstraint(param.type()).typeMembers(param.typeMembers()).imports(param.importStatements())
-                    .editable().defaultable(param.optional());
+                    .codedata()
+                        .kind(param.kind().name())
+                        .originalName(param.name())
+                        .stepOut()
+                    .placeholder(param.placeholder())
+                    .defaultValue(param.defaultValue())
+                    .typeConstraint(param.type())
+                    .typeMembers(param.typeMembers())
+                    .editable()
+                    .defaultable(param.optional());
 
             // Configure property type & defaultability by parameter kind
             switch (param.kind()) {
@@ -232,8 +238,6 @@ public class McpToolKitBuilder extends NodeBuilder {
                     : "()";
             String toolKitName = String.valueOf(toolKitNameProperty.value());
 
-            sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
-            sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
             String sourceCode = generateMcpToolKitClassSource(toolKitName, permittedTools);
 
             // Check if class definition data exists in codedata
@@ -253,6 +257,9 @@ public class McpToolKitBuilder extends NodeBuilder {
                         .textEdit(SourceBuilder.SourceKind.STATEMENT, classFilePath, classRange);
             } else {
                 // Use default agents.bal location
+                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
+                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
+
                 sourceBuilder.token().source(sourceCode).skipFormatting().stepOut().textEdit();
             }
 
