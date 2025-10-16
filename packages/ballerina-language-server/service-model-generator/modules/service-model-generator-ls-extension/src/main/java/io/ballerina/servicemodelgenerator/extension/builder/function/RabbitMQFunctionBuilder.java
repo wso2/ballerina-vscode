@@ -18,7 +18,6 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.function;
 
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.processDataBindingParameter;
 
 /**
  * Represents the RabbitMQ function builder of the service model generator.
@@ -34,65 +34,13 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
  */
 public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
+    private static final String requiredParamType = "rabbitmq:AnydataMessage";
+    private static final String payloadFieldName = "content";
+
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        // Process data binding parameter before calling super.updateModel
-        processDataBindingParameter(context);
+        processDataBindingParameter(context.function(), requiredParamType, payloadFieldName);
         return super.updateModel(context);
-    }
-
-    /**
-     * Processes the data binding parameter for RabbitMQ functions.
-     * If a data binding parameter is enabled, it generates the inline anonymous record type
-     * and sets it as the type of the first parameter, then disables the data binding parameter.
-     *
-     * @param context the update model context
-     */
-    private void processDataBindingParameter(UpdateModelContext context) {
-        List<Parameter> parameters = context.function().getParameters();
-        if (parameters.isEmpty()) {
-            return;
-        }
-
-        // Find the DATA_BINDING parameter
-        Parameter dataBindingParam = null;
-        for (Parameter param : parameters) {
-            if ("DATA_BINDING".equals(param.getKind()) && param.isEnabled()) {
-                dataBindingParam = param;
-                break;
-            }
-        }
-
-        if (dataBindingParam == null) {
-            return;
-        }
-
-        // Get the data binding type and parameter name
-        String dataBindingType = dataBindingParam.getType().getValue();
-        String paramName = dataBindingParam.getName().getValue();
-
-        if (dataBindingType == null || dataBindingType.isEmpty()) {
-            return;
-        }
-
-        // Generate the inline anonymous record type
-        // Format: record {*rabbitmq:AnydataMessage; <DataBindingType> content;}
-        String inlineRecordType = String.format("record {*rabbitmq:AnydataMessage; %s content;}", dataBindingType);
-
-        // Find the first regular parameter and update its type
-        for (Parameter param : parameters) {
-            if (!"DATA_BINDING".equals(param.getKind())) {
-                // Update the parameter type to the inline record
-                param.getType().setValue(inlineRecordType);
-                param.setEnabled(true);
-//                // Update the parameter name
-//                param.getName().setValue(paramName);
-                break;
-            }
-        }
-
-        // Disable the DATA_BINDING parameter
-        dataBindingParam.setEnabled(false);
     }
 
     @Override
