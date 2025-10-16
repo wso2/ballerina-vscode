@@ -46,6 +46,7 @@ import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPan
 import { McpToolForm } from "./Forms/McpToolForm";
 import { removeForwardSlashes } from "./utils";
 import { RemoteForm } from "./Forms/RemoteForm";
+import { canDataBind } from "./utils";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -1126,10 +1127,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </PanelContainer>
                             )}
 
-                            {/* This is for editing a remote or resource function */}
-                            {functionModel && !isHttpService && !isMcpService && functionModel.kind === "REMOTE" && (
+                            {/* This is for adding or editing functions with data binding */}
+                            {functionModel && !isHttpService && !isMcpService && canDataBind(functionModel) && (
                                 <PanelContainer
-                                    title={"Function Configuration"}
+                                    title={"Message Handler Configuration"}
                                     show={showForm}
                                     onClose={handleNewFunctionClose}
                                     width={400}
@@ -1141,9 +1142,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     />
                                 </PanelContainer>
                             )}
-
-                            {/* This is for editing a remote or resource function */}
-                            {functionModel && !isHttpService && !isMcpService && functionModel.kind !== "REMOTE" && (
+                            {/* This is for adding or editing functions without data binding */}
+                            {functionModel && !isHttpService && !isMcpService && !canDataBind(functionModel) && (
                                 <PanelContainer
                                     title={"Function Configuration"}
                                     show={showForm}

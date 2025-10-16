@@ -16,59 +16,66 @@
  * under the License.
  */
 
-import React, { useState } from "react";
-import { Codicon, LinkButton, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ParameterModel } from "@wso2/ballerina-core";
+import { Codicon } from "@wso2/ui-toolkit";
+import {
+    ActionIconWrapper,
+    ContentSection,
+    DeleteIconWrapper,
+    EditIconWrapper,
+    HeaderLabel,
+    disabledHeaderLabel,
+    headerLabelStyles,
+} from "../../../styles";
 
 export interface ParametersProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void;
+    onEditClick?: (param: ParameterModel) => void;
     readonly?: boolean;
     showPayload: boolean;
 }
 
-const AddButtonWrapper = styled.div`
-    margin: 8px 0;
-`;
-
-const ParamItemContainer = styled.div`
+const ParamLabelContainer = styled.div`
     display: flex;
-    flex-direction: row;
     align-items: center;
-    padding: 8px;
-    margin-bottom: 4px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 4px;
-`;
-
-const ParamInfo = styled.div`
-    flex-grow: 1;
+    gap: 12px;
+    font-family: var(--vscode-font-family);
 `;
 
 const ParamName = styled.span`
-    font-weight: 500;
-    color: var(--vscode-input-foreground);
+    color: var(--vscode-editor-foreground, #222);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--vscode-font-family);
 `;
 
 const ParamType = styled.span`
+    font-size: 13px;
+    color: var(--vscode-descriptionForeground, #888);
+    background: var(--vscode-editorWidget-background, #f5f5f5);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.1px;
+    width: 60px;
+`;
+
+const ParamDefault = styled.span`
+    font-size: 13px;
+    color: var(--vscode-editorHint-foreground, #b0b0b0);
     margin-left: 8px;
-    color: var(--vscode-descriptionForeground);
-    font-size: 12px;
+    font-style: italic;
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, showPayload } = props;
+    const { parameters, readonly, onChange, onEditClick, showPayload } = props;
 
     const payloadParameters = parameters.filter(
         (param) => (param.httpParamType && param.httpParamType === "PAYLOAD") || param.kind === "DATA_BINDING"
     );
-
-    const onAddPayloadClick = () => {
-        console.log("Add payload clicked");
-        // This would typically open a schema editor or parameter editor
-    };
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(
@@ -82,32 +89,38 @@ export function Parameters(props: ParametersProps) {
             {/* Payload Parameters */}
             {showPayload && (
                 <>
-                    {payloadParameters.map((param: ParameterModel, index) => (
-                        <ParamItemContainer key={index}>
-                            <ParamInfo>
-                                <ParamName>{param.name.value}</ParamName>
-                                <ParamType>{param.type.value || param.type.valueTypeConstraint}</ParamType>
-                            </ParamInfo>
-                            {!readonly && (
-                                <LinkButton onClick={() => onDelete(param)}>
-                                    <Codicon name="trash" />
-                                </LinkButton>
-                            )}
-                        </ParamItemContainer>
-                    ))}
-                </>
-            )}
+                    {payloadParameters.map((param: ParameterModel, index) => {
+                        const label = (
+                            <ParamLabelContainer>
+                                <ParamType>{param.type.value}</ParamType>
+                            </ParamLabelContainer>
+                        );
 
-            {showPayload && payloadParameters.length === 0 && (
-                <AddButtonWrapper>
-                    <LinkButton
-                        sx={readonly && { color: "var(--vscode-badge-background)" }}
-                        onClick={!readonly ? onAddPayloadClick : undefined}
-                    >
-                        <Codicon name="add" />
-                        Add Payload Schema
-                    </LinkButton>
-                </AddButtonWrapper>
+                        return (
+                            <HeaderLabel key={index} data-testid={`${param.name.value}-item`}>
+                                <ContentSection>
+                                    <div
+                                        data-test-id={`${param.name.value}-param`}
+                                        className={readonly ? disabledHeaderLabel : headerLabelStyles}
+                                        onClick={() => !readonly && onEditClick(param)}
+                                    >
+                                        {label}
+                                    </div>
+                                    {!readonly && (
+                                        <ActionIconWrapper>
+                                            <EditIconWrapper>
+                                                <Codicon name="edit" onClick={() => onEditClick(param)} />
+                                            </EditIconWrapper>
+                                            <DeleteIconWrapper>
+                                                <Codicon name="trash" onClick={() => onDelete(param)} />
+                                            </DeleteIconWrapper>
+                                        </ActionIconWrapper>
+                                    )}
+                                </ContentSection>
+                            </HeaderLabel>
+                        );
+                    })}
+                </>
             )}
         </div>
     );

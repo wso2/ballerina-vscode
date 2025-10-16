@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ResponseCode, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { FunctionModel, ResponseCode, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 
 export enum HTTP_METHOD {
     "GET" = "GET",
@@ -71,4 +71,8 @@ export function sanitizedHttpPath(value: string): string {
 
 export function removeForwardSlashes(value: string): string {
     return value.replace(/\\/g, '');
+}
+
+export function canDataBind(functionModel: FunctionModel): boolean {
+    return functionModel.properties?.canDataBind?.value === "true";
 }
