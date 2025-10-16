@@ -6,7 +6,7 @@
   "moduleName": "kafka",
   "response": {
     "serviceInitModel": {
-      "id": "10",
+      "id": "11",
       "displayName": "Kafka Event Handler",
       "description": "Create a service to handle messages from Kafka topic(s)",
       "orgName": "ballerinax",
