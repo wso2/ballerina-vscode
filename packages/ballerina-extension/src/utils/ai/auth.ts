@@ -178,7 +178,7 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
 
             // Priority 2: Check stored credentials
             if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-                resolve(process.env.ANTHROPIC_API_KEY.trim());
+                resolve({loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: {apiKey: process.env.ANTHROPIC_API_KEY.trim()}});
                 return;
             }
             const credentials = await getAuthCredentials();
