@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -17,23 +16,23 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
-import {
-    ActionButtons,
-    SidePanelBody,
-    Typography,
-    ProgressIndicator,
-    LinkButton,
-    Codicon,
-    CheckBox,
-    CheckBoxGroup,
-    ThemeColors,
-} from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { FunctionModel, ParameterModel } from "@wso2/ballerina-core";
-import { Parameters } from "./Parameters/Parameters";
+import {
+    ActionButtons,
+    CheckBox,
+    CheckBoxGroup,
+    Codicon,
+    LinkButton,
+    ProgressIndicator,
+    SidePanelBody,
+    ThemeColors,
+    Typography,
+} from "@wso2/ui-toolkit";
+import { useEffect, useState } from "react";
 import { EditorContentColumn } from "../../styles";
-import { ParamEditor } from "../ResourceForm/Parameters/ParamEditor";
+import { ParamEditor } from "./Parameters/ParamEditor";
+import { Parameters } from "./Parameters/Parameters";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -81,10 +80,10 @@ export function RemoteForm(props: RemoteFormProps) {
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     useEffect(() => {
-        console.log("Remote Function Model", model);
-        // Get advanced parameters (excluding first parameter which is required)
-        const advancedParams = model.parameters?.filter((param) => !param.httpParamType) || [];
-        const additionalAdvancedParams = advancedParams.slice(1); // Skip first parameter
+        // Get advanced parameters (excluding DATA_BINDING which is shown in Payload section)
+        // IMPORTANT: Use the same filtering logic as in the render section
+        const advancedParams = model.parameters?.filter((param) => param.kind !== "DATA_BINDING") || [];
+        const additionalAdvancedParams = advancedParams.slice(1); // Skip first parameter (REQUIRED)
 
         // Check if any additional advanced parameters are enabled
         const hasEnabledAdvanced = additionalAdvancedParams.some((param) => param.enabled);
@@ -97,7 +96,6 @@ export function RemoteForm(props: RemoteFormProps) {
             parameters: params,
         };
         setFunctionModel(updatedFunctionModel);
-        console.log("Parameter Change: ", updatedFunctionModel);
     };
 
     const handlePayloadParamChange = (params: ParameterModel[]) => {
@@ -149,6 +147,16 @@ export function RemoteForm(props: RemoteFormProps) {
         }
     };
 
+    const onEditPayloadClick = (param: ParameterModel) => {
+        // Find the index of the parameter being edited
+        const index = functionModel.parameters.findIndex(
+            p => p.metadata.label === param.metadata.label && p.name.value === param.name.value
+        );
+        setEditingIndex(index);
+        setIsNew(false);
+        setEditModel(param);
+    };
+
     const onChangeParam = (param: ParameterModel) => {
         setEditModel(param);
         // Update the parameters array in real-time for existing parameters
@@ -197,12 +205,9 @@ export function RemoteForm(props: RemoteFormProps) {
         setEditingIndex(-1);
     };
 
-    // Payload parameter is the one with kind === "DATA_BINDING" and enabled (only one)
     const payloadParameter = functionModel.parameters?.find((param) => param.kind === "DATA_BINDING" && param.enabled);
 
-    // Advanced parameters are those without httpParamType and not DATA_BINDING (excluding the first one which is required)
-    const allAdvancedParameters = functionModel.parameters?.filter((param) => !param.httpParamType && param.kind !== "DATA_BINDING") || [];
-    const additionalAdvancedParameters = allAdvancedParameters.slice(1);
+    const advancedParameters = functionModel.parameters?.filter((param) => param.kind !== "DATA_BINDING" && param.kind !== "REQUIRED") || [];
 
     return (
         <>
@@ -222,7 +227,12 @@ export function RemoteForm(props: RemoteFormProps) {
                         </AddButtonWrapper>
                     )}
                     {payloadParameter && (
-                        <Parameters parameters={[payloadParameter]} onChange={handlePayloadParamChange} showPayload={true} />
+                        <Parameters
+                            parameters={[payloadParameter]}
+                            onChange={handlePayloadParamChange}
+                            onEditClick={onEditPayloadClick}
+                            showPayload={true}
+                        />
                     )}
 
                     {/* Payload Editor */}
@@ -232,12 +242,11 @@ export function RemoteForm(props: RemoteFormProps) {
                             onChange={onChangeParam}
                             onSave={onSaveParam}
                             onCancel={onParamEditCancel}
-                            type="PAYLOAD"
                         />
                     )}
 
                     {/* Advanced Parameters Section - Only show if there are additional parameters beyond the first */}
-                    {additionalAdvancedParameters.length > 0 && (
+                    {advancedParameters.length > 0 && (
                         <>
                             <OptionalConfigRow>
                                 Advanced Parameters
@@ -258,7 +267,7 @@ export function RemoteForm(props: RemoteFormProps) {
                                                 iconSx={{ fontSize: 12 }}
                                                 sx={{ height: 12 }}
                                             />
-                                            Collapse
+                                            Expand
                                         </LinkButton>
                                     )}
                                     {showAdvancedParameters && (
@@ -285,7 +294,7 @@ export function RemoteForm(props: RemoteFormProps) {
                             {showAdvancedParameters && (
                                 <OptionalConfigContent>
                                     <CheckBoxGroup direction="vertical">
-                                        {additionalAdvancedParameters.map((param: ParameterModel, index) => (
+                                        {advancedParameters.map((param: ParameterModel, index) => (
                                             <CheckBox
                                                 key={index}
                                                 label={
