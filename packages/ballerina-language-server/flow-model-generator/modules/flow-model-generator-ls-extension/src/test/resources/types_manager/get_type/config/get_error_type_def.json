@@ -97,7 +97,8 @@
         "type": "Person",
         "name": "Person",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false
@@ -194,6 +195,7 @@
           "name": "houseNo",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -203,6 +205,7 @@
           "name": "line1",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -212,6 +215,7 @@
           "name": "line2",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -221,6 +225,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -230,6 +235,7 @@
           "name": "country",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -338,7 +344,8 @@
           "type": "int",
           "name": "int",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         },
         {
           "kind": "TYPE",
@@ -346,7 +353,8 @@
           "type": "decimal",
           "name": "decimal",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -443,6 +451,7 @@
           "defaultValue": "12",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": "id of the person"
         },
         {
@@ -453,6 +462,7 @@
           "defaultValue": "\"John\"",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": "name of the person"
         },
         {
@@ -498,7 +508,8 @@
                 "type": "Address",
                 "name": "Address",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               }
             ],
             "allowAdditionalFields": false
@@ -507,6 +518,7 @@
           "defaultValue": "[\n        {\n            houseNo: \"10\",\n            line1: \"5th Ave\",\n            line2: \"4th St\",\n            city: \"New York City\",\n            country: \"USA\"\n        }\n    ]",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": "addresses of the person"
         },
         {
@@ -519,6 +531,7 @@
           "defaultValue": "getDefaultDob()",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": "date of birth"
         }
       ],

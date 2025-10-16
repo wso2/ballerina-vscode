@@ -135,7 +135,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         ServiceInitInfo initInfo = serviceInitInfo.get();
         ServiceDeclaration.Package pkg = initInfo.packageInfo();
 
-        ServiceInitModel serviceInitModel =  new ServiceInitModel.Builder()
+        ServiceInitModel serviceInitModel = new ServiceInitModel.Builder()
                 .setId(String.valueOf(pkg.packageId()))
                 .setDisplayName(initInfo.displayName())
                 .setDescription(initInfo.description())
@@ -180,7 +180,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     }
 
     static Map<String, List<TextEdit>> getServiceDeclarationEdits(AddServiceInitModelContext context,
-                                                                          ListenerDTO result) {
+                                                                  ListenerDTO result) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);

@@ -30,6 +30,7 @@ public class Constants {
     public static final String CAPABILITY_NAME = "serviceModel";
     public static final String DOUBLE_QUOTE = "\"";
     public static final String TAB = "\t";
+    public static final String TWO_TABS = TAB + TAB;
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -55,6 +56,7 @@ public class Constants {
     public static final String GRAPHQL = "graphql";
     public static final String TCP = "tcp";
     public static final String AI = "ai";
+    public static final String MCP = "mcp";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -83,6 +85,7 @@ public class Constants {
     public static final String KIND_INCLUDED_RECORD = "INCLUDED_RECORD";
 
     public static final String PARAMETER = "parameter";
+    public static final String ISOLATED = "isolated";
     public static final String SERVICE = "service";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";

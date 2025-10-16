@@ -906,7 +906,7 @@ public final class Utils {
         if (annotations.isEmpty()) { // metadata is present but no annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
-                edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
+                edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));
             }
             return;
         }
@@ -942,7 +942,7 @@ public final class Utils {
         if (documentationString.isEmpty()) { // metadata is present but no documentation
             if (!docEdit.isEmpty()) {
                 docEdit += System.lineSeparator();
-                edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
+                edits.add(new TextEdit(toRange(metadata.get().lineRange().startLine()), docEdit));
             }
             return;
         }
@@ -1259,14 +1259,14 @@ public final class Utils {
      * @param moduleName     the module name
      * @param lsClientLogger the language server client logger for notifications
      */
-    public static void resovleModule(String orgName, String packageName, String moduleName,
+    public static void resolveModule(String orgName, String packageName, String moduleName,
                                      LSClientLogger lsClientLogger) {
         if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
             return;
         }
         Path balHomePath = RepoUtils.createAndGetHomeReposPath();
-        Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR,
-                orgName, packageName));
+        Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR, orgName,
+                packageName));
         if (Files.exists(packagePath)) {
             return;
         }

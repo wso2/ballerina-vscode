@@ -6,7 +6,7 @@
   "moduleName": "rabbitmq",
   "response": {
     "serviceInitModel": {
-      "id": "9",
+      "id": "10",
       "displayName": "RabbitMQ Event Handler",
       "description": "Create a service to handle messages from a RabbitMQ queue",
       "orgName": "ballerinax",
