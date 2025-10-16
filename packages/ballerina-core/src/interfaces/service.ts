@@ -104,6 +104,7 @@ export interface StatusCodeResponse extends PropertyModel {
     name: PropertyModel;
     type: PropertyModel;
     headers: PropertyModel;
+    mediaType: PropertyModel;
 }
 
 interface MetaData {
