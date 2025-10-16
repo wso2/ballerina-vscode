@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useMemo } from 'react';
 
-import { Breadcrumbs, Codicon } from '@wso2/ui-toolkit';
+import { Breadcrumbs, Codicon, Icon } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import { View } from "../Views/DataMapperView";
 import { extractLastPartFromLabel } from './utils';
@@ -61,9 +61,9 @@ function LinkContent(props: LinkContentProps) {
         ) : (
             <>
                 {isSubMapping ? (
-                    <Codicon name="list-unordered" tooltip="SubMapping" />
+                    <Icon name="dataMapper" tooltip="SubMapping" />
                 ) : (
-                    <Codicon name="list-selection" tooltip="Query" />
+                    <Icon name="bi-dm-query" tooltip="Query" />
                 )}
                 {label}
             </>
