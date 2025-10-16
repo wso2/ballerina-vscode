@@ -1,0 +1,202 @@
+{
+  "description": "Test getting the http service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "http",
+  "moduleName": "http",
+  "response": {
+    "serviceInitModel": {
+      "id": "0",
+      "displayName": "HTTP Service",
+      "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http",
+      "version": "2.14.0",
+      "type": "http",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+      "properties": {
+        "designApproach": {
+          "metadata": {
+            "label": "Contract",
+            "description": "Service Contract"
+          },
+          "placeholder": "",
+          "valueType": "CHOICE",
+          "value": "",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Design From Scratch",
+                "description": "Design the service from scratch"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "basePath": {
+                  "metadata": {
+                    "label": "Service Base Path",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "type": "SERVICE_BASEPATH"
+                  },
+                  "placeholder": "",
+                  "valueType": "SERVICE_PATH",
+                  "valueTypeConstraint": "string",
+                  "value": "/",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Import From OpenAPI Specification",
+                "description": "Implement the service from an OpenAPI specification"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "spec": {
+                  "metadata": {
+                    "label": "OpenAPI Specification",
+                    "description": "Provide an OpenAPI specification to generate the resources"
+                  },
+                  "codedata": {
+                    "type": "OPENAPI"
+                  },
+                  "placeholder": "",
+                  "valueType": "FILE_SELECT",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "serviceTypeName": {
+                  "metadata": {
+                    "label": "Service Type Name",
+                    "description": "The name of the service contract type generated from the OpenAPI specification"
+                  },
+                  "codedata": {
+                    "type": "SERVICE_BASEPATH"
+                  },
+                  "placeholder": "",
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "configureListener": {
+          "metadata": {
+            "label": "Listener Configuration",
+            "description": "Configure the HTTP listener for the service"
+          },
+          "placeholder": "",
+          "valueType": "CHOICE",
+          "value": "",
+          "items": [],
+          "choices": [
+            {
+              "metadata": {
+                "label": "Shared Listener (Port 8080)",
+                "description": "Shared Listener (Port 8080)"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {},
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Custom Listener",
+                "description": "Configure a custom HTTP listener with a specific port"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "port": {
+                  "metadata": {
+                    "label": "Port",
+                    "description": "Provide a port number for the listener"
+                  },
+                  "codedata": {
+                    "argType": "LISTENER_PARAM_REQUIRED"
+                  },
+                  "placeholder": "8080",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "int",
+                  "value": "8080",
+                  "typeMembers": [],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "type": "LISTENER_VAR_NAME"
+                  },
+                  "placeholder": "httpListener",
+                  "valueType": "IDENTIFIER",
+                  "valueTypeConstraint": "string",
+                  "value": "httpListener",
+                  "items": [],
+                  "typeMembers": [],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "typeMembers": [],
+          "properties": {},
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}

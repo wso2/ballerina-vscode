@@ -1,0 +1,76 @@
+{
+  "description": "Test getting kafka service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "kafka",
+  "moduleName": "kafka",
+  "response": {
+    "serviceInitModel": {
+      "id": "10",
+      "displayName": "Kafka Event Handler",
+      "description": "Create a service to handle messages from Kafka topic(s)",
+      "orgName": "ballerinax",
+      "packageName": "kafka",
+      "moduleName": "kafka",
+      "version": "4.5.0",
+      "type": "kafka",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+      "properties": {
+        "bootstrapServers": {
+          "metadata": {
+            "label": "Bootstrap Servers",
+            "description": "List of remote server endpoints of the Kafka brokers"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "\"localhost:9092\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string|string[]",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "topics": {
+          "metadata": {
+            "label": "Topic(s)",
+            "description": "The topic(s) to subscribe to"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+          },
+          "placeholder": "\"myTopic\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string|string[]",
+          "value": "",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "kafkaListenerResult",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}

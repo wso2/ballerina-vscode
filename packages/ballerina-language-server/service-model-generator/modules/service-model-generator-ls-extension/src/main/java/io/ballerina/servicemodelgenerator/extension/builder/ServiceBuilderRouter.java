@@ -30,11 +30,15 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceB
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModelRequest;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
@@ -60,7 +64,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
  */
 public class ServiceBuilderRouter {
 
-    private static final Map<String, Supplier<? extends NodeBuilder<Service>>> CONSTRUCTOR_MAP = new HashMap<>() {{
+    private static final Map<String, Supplier<? extends ServiceNodeBuilder>> CONSTRUCTOR_MAP = new HashMap<>() {{
         put(HTTP, HttpServiceBuilder::new);
         put(AI, AiChatServiceBuilder::new);
         put(TCP, TCPServiceBuilder::new);
@@ -68,7 +72,7 @@ public class ServiceBuilderRouter {
         put(GRAPHQL, GraphqlServiceBuilder::new);
     }};
 
-    public static NodeBuilder<Service> getServiceBuilder(String protocol) {
+    public static ServiceNodeBuilder getServiceBuilder(String protocol) {
         return CONSTRUCTOR_MAP.getOrDefault(protocol, DefaultServiceBuilder::new).get();
     }
 
@@ -116,5 +120,25 @@ public class ServiceBuilderRouter {
         UpdateModelContext context = new UpdateModelContext(service, null, semanticModel, null,
                 workspaceManager, filePath, document, serviceNode, null);
         return serviceBuilder.updateModel(context);
+    }
+
+    public static ServiceInitModel getServiceInitModel(ServiceModelRequest request, Project project,
+                                                       SemanticModel semanticModel, Document document) {
+        ServiceNodeBuilder serviceBuilder = getServiceBuilder(request.moduleName());
+        GetServiceInitModelContext context = new GetServiceInitModelContext(
+                request.orgName(), request.pkgName(), request.moduleName(), project, semanticModel, document);
+        return serviceBuilder.getServiceInitModel(context);
+    }
+
+    public static Map<String, List<TextEdit>> addServiceInitSource(ServiceInitModel serviceInitModel,
+                                                                   SemanticModel semanticModel,
+                                                                   Project project, WorkspaceManager workspaceManager,
+                                                                   String filePath,
+                                                                   Document document)
+            throws Exception {
+        ServiceNodeBuilder serviceBuilder = getServiceBuilder(serviceInitModel.getModuleName());
+        AddServiceInitModelContext context = new AddServiceInitModelContext(serviceInitModel, semanticModel, project,
+                workspaceManager, filePath, document);
+        return serviceBuilder.addServiceInitSource(context);
     }
 }
