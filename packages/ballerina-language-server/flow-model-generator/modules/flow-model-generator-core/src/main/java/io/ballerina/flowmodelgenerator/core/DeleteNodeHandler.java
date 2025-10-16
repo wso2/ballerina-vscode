@@ -246,11 +246,9 @@ public class DeleteNodeHandler {
         DoStatementNode doStatementNode = (DoStatementNode) foundNode;
         BlockStatementNode blockStatement = doStatementNode.blockStatement();
         StringBuilder bodyStatements = new StringBuilder();
-        for (StatementNode statement : blockStatement.statements()) {
-            bodyStatements.append(statement.toSourceCode().trim());
-            if (!bodyStatements.toString().endsWith(System.lineSeparator())) {
-                bodyStatements.append(System.lineSeparator());
-            }
+        NodeList<StatementNode> statements = blockStatement.statements();
+        for (StatementNode statement : statements) {
+            bodyStatements.append(statement.toSourceCode());
         }
 
         List<TextEdit> textEdits = new ArrayList<>();

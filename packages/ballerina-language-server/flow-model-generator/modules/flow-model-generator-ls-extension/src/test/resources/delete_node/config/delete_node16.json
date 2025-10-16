@@ -30,7 +30,7 @@
             "character": 9
           }
         },
-        "newText": "string name = \"World\";\nreturn { message: \"Hello, \" + name  };"
+        "newText": "string name = \"World\";\n            return { message: \"Hello, \" + name  };"
       }
     ]
   }
