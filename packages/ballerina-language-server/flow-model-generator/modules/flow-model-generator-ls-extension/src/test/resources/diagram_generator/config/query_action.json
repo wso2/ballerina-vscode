@@ -347,7 +347,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "Represents a Kafka producer endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.1.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -407,7 +407,7 @@
           "acks": {
             "metadata": {
               "label": "Acks",
-              "description": "Number of acknowledgments  "
+              "description": "Number of acknowledgments"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:ProducerAcks",
@@ -423,7 +423,7 @@
             "typeMembers": [
               {
                 "type": "ProducerAcks",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -434,7 +434,7 @@
           "compressionType": {
             "metadata": {
               "label": "Compression Type",
-              "description": "Compression type to be used for messages  "
+              "description": "Compression type to be used for messages"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:CompressionType",
@@ -450,7 +450,7 @@
             "typeMembers": [
               {
                 "type": "CompressionType",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -461,7 +461,7 @@
           "clientId": {
             "metadata": {
               "label": "Client Id",
-              "description": "Identifier to be used for server side logging  "
+              "description": "Identifier to be used for server side logging"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -488,7 +488,7 @@
           "metricsRecordingLevel": {
             "metadata": {
               "label": "Metrics Recording Level",
-              "description": "Metrics recording level  "
+              "description": "Metrics recording level"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -515,7 +515,7 @@
           "metricReporterClasses": {
             "metadata": {
               "label": "Metric Reporter Classes",
-              "description": "Metrics reporter classes  "
+              "description": "Metrics reporter classes"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -542,7 +542,7 @@
           "partitionerClass": {
             "metadata": {
               "label": "Partitioner Class",
-              "description": "Partitioner class to be used to select the partition to which the message is sent  "
+              "description": "Partitioner class to be used to select the partition to which the message is sent"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -569,7 +569,7 @@
           "interceptorClasses": {
             "metadata": {
               "label": "Interceptor Classes",
-              "description": "Interceptor classes to be used before sending the records  "
+              "description": "Interceptor classes to be used before sending the records"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -596,7 +596,7 @@
           "transactionalId": {
             "metadata": {
               "label": "Transactional Id",
-              "description": "Transactional ID to be used in transactional delivery  "
+              "description": "Transactional ID to be used in transactional delivery"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -623,7 +623,7 @@
           "schemaRegistryUrl": {
             "metadata": {
               "label": "Schema Registry Url",
-              "description": "Avro schema registry URL. Use this field to specify the schema registry URL if the Avro  \nserializer is used  "
+              "description": "Avro schema registry URL. Use this field to specify the schema registry URL if the Avro\nserializer is used"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -650,7 +650,7 @@
           "avroSchema": {
             "metadata": {
               "label": "Avro Schema",
-              "description": "The schema used for key/value serialization (Deprecated) "
+              "description": "The schema used for key/value serialization (Deprecated)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "string",
@@ -731,7 +731,7 @@
           "schemaRegistryConfig": {
             "metadata": {
               "label": "Schema Registry Config",
-              "description": "Configurations to initialize a schema registry  "
+              "description": "Configurations to initialize a schema registry"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "map<anydata>",
@@ -758,7 +758,7 @@
           "keySerializerType": {
             "metadata": {
               "label": "Key Serializer Type",
-              "description": "Key serialization type  "
+              "description": "Key serialization type"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:SerializerType",
@@ -774,7 +774,7 @@
             "typeMembers": [
               {
                 "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -785,7 +785,7 @@
           "valueSerializerType": {
             "metadata": {
               "label": "Value Serializer Type",
-              "description": "Value serialization type  "
+              "description": "Value serialization type"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:SerializerType",
@@ -801,7 +801,7 @@
             "typeMembers": [
               {
                 "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -812,7 +812,7 @@
           "additionalProperties": {
             "metadata": {
               "label": "Additional Properties",
-              "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use  \nthis with caution since this can override any of the fields. It is not recomendded to use  \nthis field except in an extreme situation  "
+              "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use\nthis with caution since this can override any of the fields. It is not recomendded to use\nthis field except in an extreme situation"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "map<string>",
@@ -839,7 +839,7 @@
           "bufferMemory": {
             "metadata": {
               "label": "Buffer Memory",
-              "description": "Total bytes of memory the producer can use to buffer records  "
+              "description": "Total bytes of memory the producer can use to buffer records"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -866,7 +866,7 @@
           "retryCount": {
             "metadata": {
               "label": "Retry Count",
-              "description": "Number of retries to resend a record  "
+              "description": "Number of retries to resend a record"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -893,7 +893,7 @@
           "batchSize": {
             "metadata": {
               "label": "Batch Size",
-              "description": "Maximum number of bytes to be batched together when sending the records. Records exceeding this limit will  \nnot be batched. Setting this to 0 will disable batching  "
+              "description": "Maximum number of bytes to be batched together when sending the records. Records exceeding this limit will\nnot be batched. Setting this to 0 will disable batching"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -920,7 +920,7 @@
           "linger": {
             "metadata": {
               "label": "Linger",
-              "description": "Delay (in seconds) to allow other records to be batched before sending them to the Kafka server  "
+              "description": "Delay (in seconds) to allow other records to be batched before sending them to the Kafka server"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -947,7 +947,7 @@
           "sendBuffer": {
             "metadata": {
               "label": "Send Buffer",
-              "description": "Size of the TCP send buffer (SO_SNDBUF)  "
+              "description": "Size of the TCP send buffer (SO_SNDBUF)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -974,7 +974,7 @@
           "receiveBuffer": {
             "metadata": {
               "label": "Receive Buffer",
-              "description": "Size of the TCP receive buffer (SO_RCVBUF)  "
+              "description": "Size of the TCP receive buffer (SO_RCVBUF)"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -1001,7 +1001,7 @@
           "maxRequestSize": {
             "metadata": {
               "label": "Max Request Size",
-              "description": "The maximum size of a request in bytes  "
+              "description": "The maximum size of a request in bytes"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -1028,7 +1028,7 @@
           "reconnectBackoffTime": {
             "metadata": {
               "label": "Reconnect Backoff Time",
-              "description": "Time (in seconds) to wait before attempting to reconnect  "
+              "description": "Time (in seconds) to wait before attempting to reconnect"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1055,7 +1055,7 @@
           "reconnectBackoffMaxTime": {
             "metadata": {
               "label": "Reconnect Backoff Max Time",
-              "description": "Maximum amount of time in seconds to wait when reconnecting  "
+              "description": "Maximum amount of time in seconds to wait when reconnecting"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1082,7 +1082,7 @@
           "retryBackoffTime": {
             "metadata": {
               "label": "Retry Backoff Time",
-              "description": "Time (in seconds) to wait before attempting to retry a failed request  "
+              "description": "Time (in seconds) to wait before attempting to retry a failed request"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1109,7 +1109,7 @@
           "maxBlock": {
             "metadata": {
               "label": "Max Block",
-              "description": "Maximum block time (in seconds) during which the sending is blocked when the buffer is full  "
+              "description": "Maximum block time (in seconds) during which the sending is blocked when the buffer is full"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1136,7 +1136,7 @@
           "requestTimeout": {
             "metadata": {
               "label": "Request Timeout",
-              "description": "Wait time (in seconds) for the response of a request  "
+              "description": "Wait time (in seconds) for the response of a request"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1163,7 +1163,7 @@
           "metadataMaxAge": {
             "metadata": {
               "label": "Metadata Max Age",
-              "description": "Maximum time (in seconds) to force a refresh of metadata  "
+              "description": "Maximum time (in seconds) to force a refresh of metadata"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1190,7 +1190,7 @@
           "metricsSampleWindow": {
             "metadata": {
               "label": "Metrics Sample Window",
-              "description": "Time (in seconds) window for a metrics sample to compute over  "
+              "description": "Time (in seconds) window for a metrics sample to compute over"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1217,7 +1217,7 @@
           "metricsNumSamples": {
             "metadata": {
               "label": "Metrics Num Samples",
-              "description": "Number of samples maintained to compute the metrics  "
+              "description": "Number of samples maintained to compute the metrics"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -1244,7 +1244,7 @@
           "maxInFlightRequestsPerConnection": {
             "metadata": {
               "label": "Max In Flight Requests Per Connection",
-              "description": "Maximum number of unacknowledged requests on a single connection  "
+              "description": "Maximum number of unacknowledged requests on a single connection"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "int",
@@ -1271,7 +1271,7 @@
           "connectionsMaxIdleTime": {
             "metadata": {
               "label": "Connections Max Idle Time",
-              "description": "Close the idle connections after this number of seconds  "
+              "description": "Close the idle connections after this number of seconds"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1298,7 +1298,7 @@
           "transactionTimeout": {
             "metadata": {
               "label": "Transaction Timeout",
-              "description": "Timeout (in seconds) for transaction status update from the producer  "
+              "description": "Timeout (in seconds) for transaction status update from the producer"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "decimal",
@@ -1325,7 +1325,7 @@
           "enableIdempotence": {
             "metadata": {
               "label": "Enable Idempotence",
-              "description": "Exactly one copy of each message is written to the stream when enabled  "
+              "description": "Exactly one copy of each message is written to the stream when enabled"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "boolean",
@@ -1352,7 +1352,7 @@
           "secureSocket": {
             "metadata": {
               "label": "Secure Socket",
-              "description": "Configurations related to SSL/TLS encryption  "
+              "description": "Configurations related to SSL/TLS encryption"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:SecureSocket",
@@ -1368,7 +1368,7 @@
             "typeMembers": [
               {
                 "type": "SecureSocket",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1379,7 +1379,7 @@
           "auth": {
             "metadata": {
               "label": "Auth",
-              "description": "Authentication-related configurations for the `kafka:Producer`  "
+              "description": "Authentication-related configurations for the `kafka:Producer`"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "kafka:AuthenticationConfiguration",
@@ -1395,7 +1395,7 @@
             "typeMembers": [
               {
                 "type": "AuthenticationConfiguration",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1422,7 +1422,7 @@
             "typeMembers": [
               {
                 "type": "SecurityProtocol",
-                "packageInfo": "ballerinax:kafka:4.5.0",
+                "packageInfo": "ballerinax:kafka:4.6.1",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
