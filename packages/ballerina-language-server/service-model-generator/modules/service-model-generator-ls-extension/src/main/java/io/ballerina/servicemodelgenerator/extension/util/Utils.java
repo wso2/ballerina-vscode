@@ -1164,21 +1164,17 @@ public final class Utils {
      * @param moduleName     the module name
      * @param lsClientLogger the language server client logger for notifications
      */
-    public static void resovleModule(String orgName, String packageName, String moduleName,
+    public static void resolveModule(String orgName, String packageName, String moduleName,
                                      LSClientLogger lsClientLogger) {
         if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
             return;
         }
 
-        try {
-            Path balHomePath = RepoUtils.createAndGetHomeReposPath();
-            Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR,
-                    orgName, packageName));
-            if (Files.exists(packagePath)) {
-                return;
-            }
-        } catch (Exception e) {
-            // Ignore the exception and proceed to attempt module resolution
+        Path balHomePath = RepoUtils.createAndGetHomeReposPath();
+        Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR, orgName,
+                packageName));
+        if (Files.exists(packagePath)) {
+            return;
         }
 
         CentralAPI centralApi = RemoteCentral.getInstance();
