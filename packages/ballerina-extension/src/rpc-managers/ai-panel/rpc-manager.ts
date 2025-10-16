@@ -1048,8 +1048,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
 function getModifiedAssistantResponse(originalAssistantResponse: string, tempDir: string, project: ProjectSource): string {
     const newSourceFiles = [];
     for (const sourceFile of project.sourceFiles) {
-        const newContent = path.join(tempDir, sourceFile.filePath);
-        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContent, 'utf-8') });
+        const newContentPath = path.join(tempDir, sourceFile.filePath);
+        if (!fs.existsSync(newContentPath) && !(sourceFile.filePath.endsWith('.bal'))) {
+            newSourceFiles.push({ filePath: sourceFile.filePath, content: sourceFile.content });
+            continue;
+        }
+        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContentPath, 'utf-8') });
     }
 
     // Build a map from filenames to their new content

@@ -491,7 +491,7 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
         <div>
             <Title variant="h3">Integration Control Plane</Title>
             <p>
-                {"Moniter the deployment runtime using WSO2 Integration Control Plane."}
+                {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
             <CheckBox

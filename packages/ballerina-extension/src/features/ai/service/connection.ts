@@ -22,7 +22,7 @@ import { BACKEND_URL, DEVANT_API_KEY_FOR_ASK } from "../utils";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
@@ -190,10 +190,17 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 };
 
 /**
+ * Type definition for provider-specific cache options
+ */
+export type ProviderCacheOptions = 
+    | { anthropic: { cacheControl: { type: string } } } 
+    | { bedrock: { cachePoint: { type: string } } };
+
+/**
  * Returns provider-aware cache control options for prompt caching
  * @returns Cache control options based on the current login method
  */
-export const getProviderCacheControl = async () => {
+export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> => {
     const loginMethod = await getLoginMethod();
     
     switch (loginMethod) {

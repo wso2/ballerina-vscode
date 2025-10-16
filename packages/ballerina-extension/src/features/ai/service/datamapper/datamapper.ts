@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, generateObject } from "ai";
+import { ModelMessage, generateObject } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     DatamapperResponse,
@@ -657,14 +657,14 @@ async function getMappings(
         JSON.stringify(mappingTips)
     );
 
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         { role: "user", content: prompt }
     ];
 
     try {
         const { object } = await generateObject({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-            maxTokens: 4096,
+            maxOutputTokens: 4096,
             temperature: 0,
             messages: messages,
             schema: MappingSchema,
