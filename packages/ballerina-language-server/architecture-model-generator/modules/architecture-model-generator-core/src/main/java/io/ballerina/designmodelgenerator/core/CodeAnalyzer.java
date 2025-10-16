@@ -21,6 +21,7 @@ package io.ballerina.designmodelgenerator.core;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
+import io.ballerina.compiler.api.symbols.ClassFieldSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
@@ -66,10 +67,8 @@ import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.NamedWorkerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.PanicStatementNode;
-import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RemoteMethodCallActionNode;
@@ -79,7 +78,6 @@ import io.ballerina.compiler.syntax.tree.RollbackStatementNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.StartActionNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -259,7 +257,6 @@ public class CodeAnalyzer extends NodeVisitor {
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
         }
 
-        // Only handle connection expr if it's an Agent class
         if (isAgentMethodCall(methodCallExpressionNode.expression())) {
             handleConnectionExpr(methodCallExpressionNode.expression());
         }
@@ -393,7 +390,8 @@ public class CodeAnalyzer extends NodeVisitor {
                         expressionNode = checkExpressionNode.expression();
                     }
                     if (expressionNode instanceof NewExpressionNode newExpressionNode) {
-                        SeparatedNodeList<FunctionArgumentNode> argList = connectionFinder.getArgList(newExpressionNode);
+                        SeparatedNodeList<FunctionArgumentNode> argList =
+                                connectionFinder.getArgList(newExpressionNode);
                         List<ExpressionNode> argExprs = connectionFinder.getInitMethodArgExprs(argList);
                         for (ExpressionNode argExpr : argExprs) {
                             connectionFinder.handleInitMethodArgs(connection, argExpr);
@@ -572,15 +570,23 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private boolean isAgentMethodCall(ExpressionNode expressionNode) {
-        Optional<Symbol> symbol;
 
         if (expressionNode instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
-            NameReferenceNode fieldName = fieldAccessExpressionNode.fieldName();
-            symbol = semanticModel.symbol(fieldName);
-        } else {
-            symbol = semanticModel.symbol(expressionNode);
+            // Check if agent is defined at service scope
+            if (fieldAccessExpressionNode.expression().toSourceCode().trim().equals("self")) {
+                NameReferenceNode fieldName = fieldAccessExpressionNode.fieldName();
+                Optional<Symbol> fieldSymbol = semanticModel.symbol(fieldName);
+
+                if (fieldSymbol.isPresent() && fieldSymbol.get() instanceof ClassFieldSymbol classFieldSymbol) {
+                    TypeSymbol rawType = CommonUtils.getRawType(classFieldSymbol.typeDescriptor());
+                    if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
+                        return CommonUtils.isAgentClass(objectTypeSymbol);
+                    }
+                }
+            }
         }
 
+        Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
             if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
