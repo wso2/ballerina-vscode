@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
@@ -257,7 +258,12 @@ public class CodeAnalyzer extends NodeVisitor {
             String methodName = methodCallExpressionNode.methodName().toSourceCode().trim();
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
         }
-        handleConnectionExpr(methodCallExpressionNode.expression());
+
+        // Only handle connection expr if it's an Agent class
+        if (isAgentMethodCall(methodCallExpressionNode.expression())) {
+            handleConnectionExpr(methodCallExpressionNode.expression());
+        }
+
         methodCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
     }
 
@@ -629,5 +635,25 @@ public class CodeAnalyzer extends NodeVisitor {
             return parenthesizedArgList.isPresent() ? parenthesizedArgList.get().arguments() :
                     NodeFactory.createSeparatedNodeList();
         }
+    }
+
+    private boolean isAgentMethodCall(ExpressionNode expressionNode) {
+        Optional<Symbol> symbol;
+
+        if (expressionNode instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
+            NameReferenceNode fieldName = fieldAccessExpressionNode.fieldName();
+            symbol = semanticModel.symbol(fieldName);
+        } else {
+            symbol = semanticModel.symbol(expressionNode);
+        }
+
+        if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+            TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+            if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
+                return CommonUtils.isAgentClass(objectTypeSymbol);
+            }
+        }
+
+        return false;
     }
 }
