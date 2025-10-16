@@ -627,7 +627,7 @@
           "defaultValue": "1.0.0",
           "placeholder": "1.0.0",
           "valueType": "EXPRESSION",
-          "typeConstraint": "string",
+          "typeConstraint": "\"string\"",
           "typeMembers": [],
           "sourceKind": "SOURCE_ANNOTATION",
           "selections": []

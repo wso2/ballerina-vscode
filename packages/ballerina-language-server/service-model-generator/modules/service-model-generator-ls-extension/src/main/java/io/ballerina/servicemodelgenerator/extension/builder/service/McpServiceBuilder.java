@@ -88,8 +88,8 @@ public class McpServiceBuilder extends AbstractServiceBuilder {
     private String buildServiceConfig(String name, String version) {
         return "@" + MCP + ":ServiceConfig" + SPACE + OPEN_BRACE + NEW_LINE +
                TAB + "info: " + OPEN_BRACE + NEW_LINE +
-               TWO_TABS + "name: \"" + name + "\"," + NEW_LINE +
-               TWO_TABS + "version: \"" + version + "\"" + NEW_LINE +
+               TWO_TABS + "name: " + name + NEW_LINE +
+               TWO_TABS + "version: " + version + NEW_LINE +
                TAB + CLOSE_BRACE + NEW_LINE +
                CLOSE_BRACE + NEW_LINE;
     }
