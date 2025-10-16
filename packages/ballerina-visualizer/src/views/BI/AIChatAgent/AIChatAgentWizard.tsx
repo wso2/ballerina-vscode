@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { AvailableNode, CDModel, CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
+import { CDModel, CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -102,12 +102,14 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setNameError("Name can only contain letters, numbers, and underscores");
             return false;
         }
-        const isNameExists = designModelRef.current.services.some(
-            service => service.absolutePath?.trim() === `/${name}`
-        );
-        if (isNameExists) {
-            setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
-            return false;
+        if (designModelRef.current) {
+            const isNameExists = designModelRef.current.services.some(
+                service => service.absolutePath?.trim() === `/${name}`
+            );
+            if (isNameExists) {
+                setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
+                return false;
+            }
         }
         setNameError("");
         return true;
