@@ -87,8 +87,9 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIComponentView });
+    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
+        const workspacePath = StateMachine.context().workspacePath;
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm, workspacePath: workspacePath });
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, () => {

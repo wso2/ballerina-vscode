@@ -143,6 +143,7 @@ import {
     Item,
     Category,
     NodePosition,
+    AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -582,6 +583,20 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             const projectRoot = createBIProjectPure(params);
             openInVSCode(projectRoot);
+        }
+    }
+
+    async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
+        if (params.convertToWorkspace) {
+            // Create a new direcotory using the workspace name at same level as the current project and move the project to the new directory
+            const newDirectory = path.join(path.dirname(StateMachine.context().projectUri), params.workspaceName);
+            if (!fs.existsSync(newDirectory)) {
+                fs.mkdirSync(newDirectory, { recursive: true });
+            }
+            fs.renameSync(StateMachine.context().projectUri, path.join(newDirectory, path.basename(StateMachine.context().projectUri)));
+            openInVSCode(newDirectory);
+        } else {
+            // TODO: Just add the project to the workspace
         }
     }
 

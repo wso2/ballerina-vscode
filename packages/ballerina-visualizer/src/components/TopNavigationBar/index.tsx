@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -107,15 +107,17 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     const { onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [isBallerinaWorkspace, setIsBallerinaWorkspace] = useState<boolean>(false);
 
     useEffect(() => {
-        rpcClient
-            .getVisualizerRpcClient()
-            .getHistory()
-            .then((history) => {
-                console.log(">>> history", history);
-                setHistory(history);
-            });
+        Promise.all([
+            rpcClient.getVisualizerRpcClient().getHistory(),
+            rpcClient.getCommonRpcClient().isBallerinaWorkspace()
+        ]).then(([history, isWorkspace]) => {
+            console.log(">>> history", history);
+            setHistory(history);
+            setIsBallerinaWorkspace(isWorkspace);
+        });
     }, []);
 
     const handleBack = () => {
@@ -133,10 +135,6 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             rpcClient.getVisualizerRpcClient().goSelected(index);
         }
     };
-
-    const isBallerinaWorkspace = useMemo(() => {
-        return rpcClient.getCommonRpcClient().isBallerinaWorkspace();
-    }, []);
 
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
     const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];

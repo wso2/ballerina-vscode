@@ -41,6 +41,7 @@ import { ServiceDesigner } from "./views/BI/ServiceDesigner";
 import {
     WelcomeView,
     ProjectForm,
+    AddProjectForm,
     ComponentListView,
     PopupMessage,
     FunctionForm,
@@ -442,7 +443,10 @@ const MainPanel = () => {
                         setShowHome(false);
                         setViewComponent(<ImportIntegration />);
                         break;
-
+                    case MACHINE_VIEW.BIAddProjectForm:
+                        setShowHome(false);
+                        setViewComponent(<AddProjectForm />);
+                        break;
                     case MACHINE_VIEW.BIComponentView:
                         setViewComponent(<ComponentListView scope={value.scope} />);
                         break;
