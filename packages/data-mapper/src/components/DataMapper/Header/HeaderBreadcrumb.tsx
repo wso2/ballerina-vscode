@@ -51,17 +51,25 @@ interface LinkContentProps {
     label: string;
     isRootView?: boolean;
     isSubMapping?: boolean;
+    isReusable?: boolean;
 }
 
 function LinkContent(props: LinkContentProps) {
-    const { label, isRootView, isSubMapping } = props;
+    const { label, isRootView, isSubMapping, isReusable } = props;
     return (
         isRootView ? (
-            <>{label}</>
+            <>
+            {isReusable ? (
+                <Icon name="function-icon" tooltip="Data Mapper Function" />
+            ) : (
+                <Codicon name="symbol-variable" tooltip="Variable" />
+            )}
+            {label}
+            </>
         ) : (
             <>
                 {isSubMapping ? (
-                    <Icon name="dataMapper" tooltip="SubMapping" />
+                    <Icon name="bi-dm-submapping" tooltip="SubMapping" />
                 ) : (
                     <Icon name="bi-dm-query" tooltip="Query" />
                 )}
@@ -73,11 +81,12 @@ function LinkContent(props: LinkContentProps) {
 
 export interface HeaderBreadcrumbProps {
     views: View[];
+    reusable?: boolean;
     switchView: (index: number) => void;
 }
 
 export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
-    const { views, switchView } = props;
+    const { views, reusable, switchView } = props;
     const classes = useStyles();
 
     const [activeLink, links] = useMemo(() => {
@@ -90,7 +99,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
 
             const selectedLink = (
                 <div className={classes.active}>
-                    <LinkContent label={label} isRootView={isRootView} isSubMapping={isFocusedOnSubMappingRoot} />
+                    <LinkContent label={label} isRootView={isRootView} isSubMapping={isFocusedOnSubMappingRoot} isReusable={reusable} />
                 </div>
             );
 
@@ -106,7 +115,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
                             className={classes.link}
                             data-testid={`dm-header-breadcrumb-${index}`}
                         >
-                            <LinkContent label={label} isRootView={isRootView} isSubMapping={!!view.subMappingInfo} />
+                            <LinkContent label={label} isRootView={isRootView} isSubMapping={!!view.subMappingInfo} isReusable={reusable} />
                         </a>
                     );
                 })
