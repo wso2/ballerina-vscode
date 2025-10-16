@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp } from "@wso2/wso2-platform-core"
+import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq } from "./interfaces";
 export * from "./rpc-type"
 
@@ -30,4 +30,5 @@ export interface PlatformExtAPI {
     getSelectedContext: () => Promise<ContextItemEnriched | null>;
     getDirectoryComponents: (fsPath: string) => Promise<ComponentKind[]>;
     getMarketplaceIdl: (params: GetMarketplaceIdlReq) => Promise<MarketplaceIdlResp>;
+    getConnections: (params: GetConnectionsReq) => Promise<ConnectionListItem[]>
 }

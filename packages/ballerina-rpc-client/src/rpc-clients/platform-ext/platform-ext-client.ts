@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getSelectedContext, isLoggedIn, getDirectoryComponents, getMarketplaceIdl, createDevantComponentConnection } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getSelectedContext, isLoggedIn, getDirectoryComponents, getMarketplaceIdl, createDevantComponentConnection, getConnections } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp } from "@wso2/wso2-platform-core"
+import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
@@ -51,5 +51,9 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<string> {
         return this._messenger.sendRequest(createDevantComponentConnection, HOST_EXTENSION, params);
+    }
+    
+    getConnections(params: GetConnectionsReq): Promise<ConnectionListItem[]> {
+        return this._messenger.sendRequest(getConnections, HOST_EXTENSION, params);
     }
 }

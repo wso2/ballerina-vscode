@@ -19,7 +19,7 @@ import {  PlatformExtAPI } from "@wso2/ballerina-core";
 import { extensions, window } from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { ComponentDisplayType, ComponentKind, ContextItemEnriched, GetMarketplaceIdlReq, GetMarketplaceListReq, getTypeForDisplayType, IWso2PlatformExtensionAPI, MarketplaceIdlResp, MarketplaceListResp } from "@wso2/wso2-platform-core";
+import { ComponentDisplayType, ComponentKind, ConnectionListItem, ContextItemEnriched, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq, getTypeForDisplayType, IWso2PlatformExtensionAPI, MarketplaceIdlResp, MarketplaceListResp } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
@@ -80,6 +80,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return platformExt.getMarketplaceIdl(params);
         } catch (err) {
             log(`Failed to invoke getMarketplaceIdl: ${err}`);
+        }
+    }
+
+    async getConnections(params: GetConnectionsReq): Promise<ConnectionListItem[]> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt.getConnections(params);
+        } catch (err) {
+            log(`Failed to invoke getConnections: ${err}`);
         }
     }
 
