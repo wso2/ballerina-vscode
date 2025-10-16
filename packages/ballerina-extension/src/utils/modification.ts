@@ -22,6 +22,8 @@ import { URI } from "vscode-uri";
 import { writeFileSync } from "fs";
 import { StateMachine, updateView } from "../stateMachine";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "./project-artifacts-handler";
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 interface UpdateFileContentRequest {
     filePath: string;
@@ -65,6 +67,11 @@ export async function modifyFileContent(params: UpdateFileContentRequest): Promi
 }
 
 export function writeBallerinaFileDidOpenTemp(filePath: string, content: string) {
+    // Replace the selection with:
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+    }
     writeFileSync(filePath, content.trim());
     StateMachine.langClient().didChange({
         textDocument: { uri: filePath, version: 1 },

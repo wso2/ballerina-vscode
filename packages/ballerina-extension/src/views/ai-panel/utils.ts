@@ -102,7 +102,7 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
 
         await generateText({
             model: directAnthropic('claude-3-haiku-20240307'),
-            maxTokens: 1,
+            maxOutputTokens: 1,
             messages: [{ role: 'user', content: 'Hi' }]
         });
 
@@ -199,7 +199,7 @@ export const validateAwsCredentials = async (credentials: {
         // Make a minimal test call to validate credentials
         await generateText({
             model: bedrockClient,
-            maxTokens: 1,
+            maxOutputTokens: 1,
             messages: [{ role: 'user', content: 'Hi' }]
         });
 

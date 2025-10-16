@@ -156,6 +156,9 @@ export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
     }
 
     // Priority 2: Check stored credentials
+    if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
+        return LoginMethod.ANTHROPIC_KEY;
+    }
     const credentials = await getAuthCredentials();
     if (credentials) {
         return credentials.loginMethod;
@@ -174,6 +177,10 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
             }
 
             // Priority 2: Check stored credentials
+            if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
+                resolve(process.env.ANTHROPIC_API_KEY.trim());
+                return;
+            }
             const credentials = await getAuthCredentials();
 
             if (credentials) {
