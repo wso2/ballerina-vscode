@@ -58,7 +58,7 @@ export type FormField = {
     actionLabel?: string | JSX.Element;
     properties?: ConfigProperties;
     actionCallback?: () => void;
-    onValueChange?: (value: string) => void;
+    onValueChange?: (value: any) => void;
 };
 
 export type ParameterValue = {

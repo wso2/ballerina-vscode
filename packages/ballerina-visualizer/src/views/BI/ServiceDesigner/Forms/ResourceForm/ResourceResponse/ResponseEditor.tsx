@@ -17,7 +17,7 @@
  */
 // tslint:disable: jsx-no-multiline-js
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
@@ -55,6 +55,7 @@ export function ResponseEditor(props: ParamProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const [newFields, setNewFields] = useState<FormField[]>([]);
+    const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
         rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
@@ -132,19 +133,62 @@ export function ResponseEditor(props: ParamProps) {
         if (hasBody) {
             fields.push({
                 ...convertPropertyToFormField(res.body),
+                label: "Body Content Type",
+                documentation: "The data type or schema of the response body",
                 key: `body`,
             });
             fields.push({
-                ...convertPropertyToFormField(res.name),
-                key: `name`,
-            },);
+                ...convertPropertyToFormField(res.mediaType),
+                type: "ENUM",
+                items: ["", "application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data"],
+                key: `mediaType`,
+            });
             fields.push({
                 ...convertPropertyToFormField(res.headers, defaultItems),
                 key: `headers`,
             });
+            fields.push({
+                ...convertPropertyToFormField(res.name),
+                key: `check`,
+                type: "FLAG",
+                label: "Make this response reusable",
+                documentation: "Check this option to make this response reusable",
+                onValueChange: (value: boolean) => {
+                    if (value) {
+                        // When checked, add the name field after the checkbox
+                        const nameField: FormField = {
+                            ...convertPropertyToFormField(res.name),
+                            key: `name`,
+                        };
+                        // Insert name field right after the checkbox
+                        const checkboxIndex = newFieldsRef.current.findIndex(f => f.key === 'check');
+                        newFieldsRef.current.splice(checkboxIndex + 1, 0, nameField);
+                        newFieldsRef.current = [...newFieldsRef.current];
+                        setNewFields([...newFieldsRef.current]);
+                    } else {
+                        // When unchecked, remove the name field and clear its value
+                        res.name.value = "";
+                        const filteredFields = newFieldsRef.current.filter(f => f.key !== 'name');
+                        newFieldsRef.current = [...filteredFields];
+                        setNewFields([...newFieldsRef.current]);
+                    }
+                }
+            });
+
+            // If name already has a value, add the name field by default
+            if (res.name.value) {
+                fields.push({
+                    ...convertPropertyToFormField(res.name),
+                    key: `name`,
+                    label: "Response Name",
+                    documentation: "Enter a unique name for this reusable response",
+                    type: "STRING",
+                });
+            }
         }
 
-        setNewFields(fields);
+        newFieldsRef.current = [...fields];
+        setNewFields([...newFieldsRef.current]);
     };
 
     useEffect(() => {
@@ -178,20 +222,21 @@ export function ResponseEditor(props: ParamProps) {
         response.body.value = dataValues['body'];
         response.name.value = dataValues['name'];
         response.headers.values = dataValues['headers'];
+        response.mediaType.value = dataValues['mediaType'];
 
-        if (code === defaultCode) { // Case 1: Use select the default response success for the accessor
-            // If the user add a header type then user should fill the name field as well
-            if (dataValues['headers'] && dataValues['headers'].length > 0) {
-                updateNewFields({ ...response });
-                return false;
-            }
-        } else { // Case 2: User select a response other than the default success response
-            // If user add a body or header values then user must add a name.
-            if (dataValues['body'] || (dataValues['headers'] && dataValues['headers'].length > 0)) {
-                updateNewFields({ ...response });
-                return false;
-            }
-        }
+        // if (code === defaultCode) { // Case 1: Use select the default response success for the accessor
+        //     // If the user add a header type then user should fill the name field as well
+        //     if (dataValues['headers'] && dataValues['headers'].length > 0) {
+        //         updateNewFields({ ...response });
+        //         return false;
+        //     }
+        // } else { // Case 2: User select a response other than the default success response
+        //     // If user add a body or header values then user must add a name.
+        //     if (dataValues['body'] || (dataValues['headers'] && dataValues['headers'].length > 0)) {
+        //         updateNewFields({ ...response });
+        //         return false;
+        //     }
+        // }
         return true;
     }
 
@@ -205,6 +250,7 @@ export function ResponseEditor(props: ParamProps) {
             response.body.value = dataValues['body'];
             response.name.value = dataValues['name'];
             response.headers.values = dataValues['headers'];
+            response.mediaType.value = dataValues['mediaType'];
             response.body.imports = getImportsForProperty('body', formImports);
             onSave(response, index);
         }
