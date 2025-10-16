@@ -27,6 +27,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServic
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -53,6 +54,7 @@ import java.util.function.Supplier;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
@@ -70,6 +72,7 @@ public class ServiceBuilderRouter {
         put(TCP, TCPServiceBuilder::new);
         put(RABBITMQ, RabbitMQServiceBuilder::new);
         put(GRAPHQL, GraphqlServiceBuilder::new);
+        put(MCP, McpServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

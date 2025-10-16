@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "10",
+    "id": "11",
     "name": "Kafka Event Handler",
     "type": "kafka",
     "displayName": "Kafka Event Handler",

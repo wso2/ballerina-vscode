@@ -571,6 +571,90 @@
       },
       "serviceTypes": {
       }
+    },
+    {
+      "name": "mcp",
+      "version": "1.0.0",
+      "serviceTypeSkipList": [
+        "AdvancedService"
+      ],
+      "serviceDeclaration": {
+        "displayName": "MCP Service",
+        "description": "Create MCP service",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "MCP Service Type",
+        "typeDescriptorDescription": "The service type descriptor",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 0,
+        "absoluteResourcePathLabel": "Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "/mcp",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT",
+        "kind": "mcp"
+      },
+      "serviceTypes": {
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define mcp service configuration",
+          "typeConstraint": "mcp:ServiceConfiguration"
+        }
+      },
+      "initForm": {
+        "serviceName": {
+          "label": "Service Name",
+          "description": "The name of the mcp service",
+          "defaultValue": "",
+          "placeholder": "MCP Service",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SOURCE_ANNOTATION",
+          "selections": []
+        },
+        "version": {
+          "label": "Version",
+          "description": "The version of the mcp service",
+          "defaultValue": "\"1.0.0\"",
+          "placeholder": "\"1.0.0\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SOURCE_ANNOTATION",
+          "selections": []
+        },
+        "port": {
+          "label": "Port",
+          "description": "The port on which the MCP service listens",
+          "defaultValue": "8080",
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "int",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "basePath": {
+          "label": "Base Path",
+          "description": "The base path of the MCP service",
+          "defaultValue": "/mcp",
+          "placeholder": "/mcp",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "SERVICE_BASE_PATH",
+          "selections": []
+        }
+      }
     }
   ],
   "ballerinax": [

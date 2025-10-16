@@ -1,25 +1,25 @@
 {
-  "filePath": "sample7/main.bal",
-  "description": "Test the generation of service model for a rabbitmq service",
+  "filePath": "mcp_service/main.bal",
+  "description": "Get the service model of a mcp service",
   "start": {
     "line": 4,
     "offset": 0
   },
   "end": {
-    "line": 11,
+    "line": 36,
     "offset": 0
   },
   "response": {
-    "id": "10",
-    "name": "RabbitMQ Event Handler",
-    "type": "rabbitmq",
-    "displayName": "RabbitMQ Event Handler",
-    "moduleName": "rabbitmq",
-    "orgName": "ballerinax",
-    "version": "3.2.0",
-    "packageName": "rabbitmq",
-    "listenerProtocol": "rabbitmq",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+    "id": "8",
+    "name": "MCP Service",
+    "type": "mcp",
+    "displayName": "MCP Service",
+    "moduleName": "mcp",
+    "orgName": "ballerina",
+    "version": "1.0.0",
+    "packageName": "mcp",
+    "listenerProtocol": "mcp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.0.png",
     "documentation": {
       "metadata": {
         "label": "Description",
@@ -46,11 +46,11 @@
         },
         "placeholder": "",
         "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "rabbitmq:Listener",
-        "value": "rabbitmqListener",
+        "valueTypeConstraint": "mcp:Listener",
+        "value": "mcpListener",
         "values": [],
         "items": [
-          "rabbitmqListener"
+          "mcpListener"
         ],
         "enabled": true,
         "editable": true,
@@ -59,13 +59,13 @@
       },
       "serviceType": {
         "metadata": {
-          "label": "Service Type",
-          "description": "The name of the service contract type"
+          "label": "MCP Service Type",
+          "description": "The service type descriptor"
         },
         "codedata": {
           "type": "SERVICE_TYPE"
         },
-        "placeholder": "Service",
+        "placeholder": "",
         "valueType": "SINGLE_SELECT",
         "valueTypeConstraint": "string",
         "value": "Service",
@@ -78,18 +78,18 @@
         "optional": false,
         "advanced": false
       },
-      "stringLiteral": {
+      "basePath": {
         "metadata": {
-          "label": "Queue Name",
-          "description": "The name of the queue"
+          "label": "Base Path",
+          "description": ""
         },
         "codedata": {
-          "type": "STRING_LITERAL"
+          "type": "SERVICE_BASE_PATH"
         },
-        "placeholder": "\"\"",
+        "placeholder": "/mcp",
         "valueType": "SERVICE_PATH",
         "valueTypeConstraint": "string",
-        "value": "\"queueName\"",
+        "value": "/mcp",
         "values": [],
         "enabled": true,
         "editable": true,
@@ -99,7 +99,7 @@
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
-          "description": "Define advanced queue configurations "
+          "description": "Define mcp service configuration"
         },
         "codedata": {
           "type": "ANNOTATION_ATTACHMENT",
@@ -107,13 +107,13 @@
         },
         "placeholder": "{}",
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
-        "value": "",
+        "valueTypeConstraint": "mcp:ServiceConfiguration",
+        "value": "{\n    info: {\n        name: \"MCP Weather Server\",\n        version: \"1.0.0\"\n    },\n    sessionMode: mcp:AUTO\n}",
         "values": [],
         "typeMembers": [
           {
-            "type": "RabbitMQServiceConfig",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
+            "type": "ServiceConfiguration",
+            "packageInfo": "ballerina:mcp:1.0.0",
             "kind": "RECORD_TYPE",
             "selected": true
           }
@@ -132,7 +132,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 11,
+          "line": 36,
           "offset": 1
         }
       }
@@ -140,58 +140,59 @@
     "functions": [
       {
         "metadata": {
-          "label": "onMessage",
-          "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
+          "label": "",
+          "description": ""
         },
         "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "valueType": "IDENTIFIER",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
         "name": {
           "metadata": {
-            "label": "onMessage",
-            "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
+            "label": "Function Name",
+            "description": "The name of the function"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
-          "placeholder": "onMessage",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "value": "onMessage",
+          "value": "getCurrentWeather",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": false,
           "advanced": false
         },
         "parameters": [
           {
             "metadata": {
-              "label": "message",
-              "description": "The message received from the RabbitMQ queue"
+              "label": "city",
+              "description": "city"
             },
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:AnydataMessage",
               "valueType": "TYPE",
-              "value": "rabbitmq:AnydataMessage",
+              "value": "string",
               "enabled": true,
               "editable": true,
-              "optional": true,
+              "optional": false,
               "advanced": false
             },
             "name": {
               "metadata": {
-                "label": "message",
-                "description": "The message received from the RabbitMQ queue"
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
               },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "message",
               "valueType": "IDENTIFIER",
-              "value": "message",
+              "value": "city",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -202,9 +203,18 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "placeholder": "",
               "valueType": "EXPRESSION",
-              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -215,37 +225,27 @@
             "optional": false,
             "advanced": false,
             "hidden": false
-          },
-          {
-            "metadata": {
-              "label": "caller",
-              "description": "The RabbitMQ caller object to acknowledge the message"
-            },
-            "kind": "OPTIONAL",
+          }
+        ],
+        "schema": {
+          "parameter": {
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:Caller",
               "valueType": "TYPE",
-              "value": "rabbitmq:Caller",
               "enabled": true,
-              "editable": false,
-              "optional": true,
+              "editable": true,
+              "optional": false,
               "advanced": false
             },
             "name": {
               "metadata": {
-                "label": "caller",
-                "description": "The RabbitMQ caller object to acknowledge the message"
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
               },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "caller",
               "valueType": "IDENTIFIER",
-              "value": "caller",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -256,107 +256,125 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "placeholder": "",
               "valueType": "EXPRESSION",
-              "value": "",
               "enabled": true,
               "editable": true,
               "optional": true,
               "advanced": false
             },
-            "enabled": false,
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
             "editable": true,
-            "optional": true,
+            "optional": false,
             "advanced": false,
             "hidden": false
           }
-        ],
+        },
         "returnType": {
-          "hasError": true,
+          "hasError": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "placeholder": "error?",
           "valueType": "TYPE",
-          "value": "error?",
+          "value": "Weather|error",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": true,
           "advanced": false
         },
         "enabled": true,
         "optional": false,
         "editable": false,
-        "canAddParameters": false,
+        "canAddParameters": true,
         "codedata": {
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 5,
+              "line": 12,
               "offset": 4
             },
             "endLine": {
-              "line": 10,
-              "offset": 5
+              "line": 22,
+              "offset": 6
             }
           }
-        }
+        },
+        "properties": {}
       },
       {
         "metadata": {
-          "label": "onError",
-          "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
+          "label": "",
+          "description": ""
         },
         "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "valueType": "IDENTIFIER",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
         "name": {
           "metadata": {
-            "label": "onError",
-            "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
+            "label": "Function Name",
+            "description": "The name of the function"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
-          "placeholder": "onError",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
-          "value": "onError",
+          "value": "getWeatherForecast",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "value": "Get weather forecast for upcoming days",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "parameters": [
           {
             "metadata": {
-              "label": "message",
-              "description": "The message received from the RabbitMQ queue"
+              "label": "location",
+              "description": "location"
             },
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:AnydataMessage",
               "valueType": "TYPE",
-              "value": "rabbitmq:AnydataMessage",
+              "value": "string",
               "enabled": true,
               "editable": true,
-              "optional": true,
+              "optional": false,
               "advanced": false
             },
             "name": {
               "metadata": {
-                "label": "message",
-                "description": "The message received from the RabbitMQ queue"
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
               },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "message",
               "valueType": "IDENTIFIER",
-              "value": "message",
+              "value": "location",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -367,9 +385,19 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "placeholder": "",
               "valueType": "EXPRESSION",
-              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "value": "City name or coordinates (e.g., \"London\", \"40.7128,-74.0060\")",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -383,34 +411,29 @@
           },
           {
             "metadata": {
-              "label": "rabbitmqError",
-              "description": "The error occurred during the message processing"
+              "label": "days",
+              "description": "days"
             },
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:Error",
               "valueType": "TYPE",
-              "value": "rabbitmq:Error",
+              "value": "int",
               "enabled": true,
-              "editable": false,
-              "optional": true,
+              "editable": true,
+              "optional": false,
               "advanced": false
             },
             "name": {
               "metadata": {
-                "label": "rabbitmqError",
-                "description": "The error occurred during the message processing"
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
               },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "rabbitmqError",
               "valueType": "IDENTIFIER",
-              "value": "rabbitmqError",
+              "value": "days",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -421,9 +444,19 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "placeholder": "",
               "valueType": "EXPRESSION",
-              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "value": "Number of days to forecast (1-7)",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -436,24 +469,90 @@
             "hidden": false
           }
         ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "valueType": "TYPE",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "valueType": "EXPRESSION",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
         "returnType": {
-          "hasError": true,
+          "hasError": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "placeholder": "error?",
           "valueType": "TYPE",
-          "value": "error?",
+          "value": "WeatherForecast|error",
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "optional": true,
           "advanced": false
         },
-        "enabled": false,
+        "enabled": true,
         "optional": false,
         "editable": false,
-        "canAddParameters": false
+        "canAddParameters": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 24,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 35,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {}
       }
     ]
   }

@@ -1,30 +1,30 @@
 {
-  "description": "Test getting rabbitmq service init model when there are no existing listeners",
+  "description": "Test getting tcp service init model",
   "filePath": "sample1/main.bal",
-  "orgName": "ballerinax",
-  "pkgName": "rabbitmq",
-  "moduleName": "rabbitmq",
+  "orgName": "ballerina",
+  "pkgName": "mcp",
+  "moduleName": "mcp",
   "response": {
     "serviceInitModel": {
-      "id": "10",
-      "displayName": "RabbitMQ Event Handler",
-      "description": "Create a service to handle messages from a RabbitMQ queue",
-      "orgName": "ballerinax",
-      "packageName": "rabbitmq",
-      "moduleName": "rabbitmq",
-      "version": "3.2.0",
-      "type": "rabbitmq",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+      "id": "8",
+      "displayName": "MCP Service",
+      "description": "Create MCP service",
+      "orgName": "ballerina",
+      "packageName": "mcp",
+      "moduleName": "mcp",
+      "version": "1.0.0",
+      "type": "mcp",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.0.png",
       "properties": {
-        "basePath": {
+        "serviceName": {
           "metadata": {
-            "label": "Queue Name",
-            "description": "The name of the queue to listen to"
+            "label": "Service Name",
+            "description": "The name of the mcp service"
           },
           "codedata": {
-            "argType": "SERVICE_BASE_PATH"
+            "argType": "SOURCE_ANNOTATION"
           },
-          "placeholder": "\"myQueue\"",
+          "placeholder": "MCP Service",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "",
@@ -35,18 +35,18 @@
           "optional": false,
           "advanced": false
         },
-        "host": {
+        "version": {
           "metadata": {
-            "label": "Host",
-            "description": "The host used for establishing the connection"
+            "label": "Version",
+            "description": "The version of the mcp service"
           },
           "codedata": {
-            "argType": "LISTENER_PARAM_REQUIRED"
+            "argType": "SOURCE_ANNOTATION"
           },
-          "placeholder": "\"localhost\"",
+          "placeholder": "\"1.0.0\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
-          "value": "",
+          "value": "\"1.0.0\"",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -57,15 +57,34 @@
         "port": {
           "metadata": {
             "label": "Port",
-            "description": "The port used for establishing the connection"
+            "description": "The port on which the MCP service listens"
           },
           "codedata": {
             "argType": "LISTENER_PARAM_REQUIRED"
           },
-          "placeholder": "5672",
+          "placeholder": "8080",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
-          "value": "",
+          "value": "8080",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "basePath": {
+          "metadata": {
+            "label": "Base Path",
+            "description": "The base path of the MCP service"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/mcp",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "/mcp",
           "items": [],
           "typeMembers": [],
           "enabled": true,
@@ -83,7 +102,7 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
-          "value": "rabbitmqListener",
+          "value": "mcpListener",
           "enabled": true,
           "editable": true,
           "optional": false,

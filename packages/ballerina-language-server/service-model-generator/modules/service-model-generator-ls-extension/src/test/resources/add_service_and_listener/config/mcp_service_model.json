@@ -2,28 +2,47 @@
   "filePath": "sample1/main.bal",
   "description": "Test adding a rabbitmq service",
   "serviceInitModel": {
-    "id": "10",
-    "displayName": "RabbitMQ Event Handler",
-    "description": "Create a service to handle messages from a RabbitMQ queue",
-    "orgName": "ballerinax",
-    "packageName": "rabbitmq",
-    "moduleName": "rabbitmq",
-    "version": "3.2.0",
-    "type": "rabbitmq",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+    "id": "8",
+    "displayName": "MCP Service",
+    "description": "Create MCP service",
+    "orgName": "ballerina",
+    "packageName": "mcp",
+    "moduleName": "mcp",
+    "version": "1.0.0",
+    "type": "mcp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.0.png",
     "properties": {
-      "host": {
+      "serviceName": {
         "metadata": {
-          "label": "Host",
-          "description": "The host used for establishing the connection"
+          "label": "Service Name",
+          "description": "The name of the mcp service"
         },
         "codedata": {
-          "argType": "LISTENER_PARAM_REQUIRED"
+          "argType": "SOURCE_ANNOTATION"
         },
-        "placeholder": "\"localhost\"",
+        "placeholder": "MCP Service",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "value": "\"localhost\"",
+        "value": "\"Health Care MCP\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "version": {
+        "metadata": {
+          "label": "Version",
+          "description": "The version of the mcp service"
+        },
+        "codedata": {
+          "argType": "SOURCE_ANNOTATION"
+        },
+        "placeholder": "\"1.0.0\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"1.0.0\"",
         "items": [],
         "typeMembers": [],
         "enabled": true,
@@ -34,15 +53,15 @@
       "port": {
         "metadata": {
           "label": "Port",
-          "description": "The port used for establishing the connection"
+          "description": "The port on which the MCP service listens"
         },
         "codedata": {
           "argType": "LISTENER_PARAM_REQUIRED"
         },
-        "placeholder": "5672",
+        "placeholder": "8080",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "int",
-        "value": "5672",
+        "value": "8080",
         "items": [],
         "typeMembers": [],
         "enabled": true,
@@ -52,16 +71,16 @@
       },
       "basePath": {
         "metadata": {
-          "label": "Queue Name",
-          "description": "The name of the queue to listen to"
+          "label": "Base Path",
+          "description": "The base path of the MCP service"
         },
         "codedata": {
           "argType": "SERVICE_BASE_PATH"
         },
-        "placeholder": "\"myQueue\"",
+        "placeholder": "/mcp",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "value": "\"myQueue\"",
+        "value": "/mcp",
         "items": [],
         "typeMembers": [],
         "enabled": true,
@@ -71,7 +90,7 @@
       },
       "listenerVarName": {
         "metadata": {
-          "label": "Name",
+          "label": "Listener Name",
           "description": "Provide a name for the listener being created"
         },
         "codedata": {
@@ -79,7 +98,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "rabbitmqListener",
+        "value": "mcpListener",
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -100,7 +119,7 @@
             "character": 0
           }
         },
-        "newText": "\nimport ballerinax/rabbitmq;\n"
+        "newText": "\nimport ballerina/mcp;\n"
       },
       {
         "range": {
@@ -113,7 +132,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener rabbitmq:Listener rabbitmqListener = new (\"localhost\", 5672);\nservice \"myQueue\" on rabbitmqListener {\n\tremote function onMessage(rabbitmq:AnydataMessage message, rabbitmq:Caller caller) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onError(rabbitmq:AnydataMessage message, rabbitmq:Error rabbitmqError) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+        "newText": "\nlistener mcp:Listener mcpListener = new (8080);\n@mcp:ServiceConfig {\n\tinfo: {\n\t\tname: \"Health Care MCP\"\n\t\tversion: \"1.0.0\"\n\t}\n}\nisolated service mcp:Service /mcp on mcpListener {\n\n}\n"
       }
     ]
   }
