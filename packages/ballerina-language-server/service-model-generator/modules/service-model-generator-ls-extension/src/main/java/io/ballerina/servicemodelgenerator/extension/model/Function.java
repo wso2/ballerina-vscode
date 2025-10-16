@@ -256,6 +256,14 @@ public class Function {
     }
 
     public Value getDocumentation() {
+        if (documentation == null) {
+            documentation = new Value.ValueBuilder()
+                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .optional(true)
+                    .editable(true)
+                    .build();
+        }
         return documentation;
     }
 
