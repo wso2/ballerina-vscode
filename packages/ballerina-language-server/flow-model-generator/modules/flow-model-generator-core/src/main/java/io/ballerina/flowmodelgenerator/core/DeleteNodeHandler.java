@@ -86,7 +86,7 @@ public class DeleteNodeHandler {
 
     @Deprecated
     public JsonElement getTextEditsToDeletedNode(Document document, Project project) {
-        if (nodeToDelete.codedata().node() == NodeKind.ERROR_HANDLER) {
+        if ((nodeToDelete.codedata() != null && nodeToDelete.codedata().node() == NodeKind.ERROR_HANDLER)) {
             return handleErrorHandlerDeletion(nodeToDelete.codedata().lineRange(), filePath, document, project);
         }
 
@@ -99,7 +99,7 @@ public class DeleteNodeHandler {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
         LineRange lineRange = getNodeLineRange(node);
 
-        if (flowNode.codedata().node() == NodeKind.ERROR_HANDLER) {
+        if (flowNode.codedata() != null && flowNode.codedata().node() == NodeKind.ERROR_HANDLER) {
             return handleErrorHandlerDeletion(lineRange, filePath, document, project);
         }
 
