@@ -21,7 +21,7 @@ import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-u
 import type { MarketplaceItem, Organization } from "@wso2/wso2-platform-core";
 import { type FC, type ReactNode } from "react";
 import styled from "@emotion/styled";
-import { Button, Badge, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Badge, ProgressRing, Icon } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import SwaggerUIReact from "swagger-ui-react";
@@ -35,6 +35,12 @@ const StyledContainer = styled.div`
     gap: 0.5rem;
     overflow-y: auto;
     padding: 1rem;
+`;
+
+const CloseBtnContainer = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px;
 `;
 
 const StyledBadgeContainer = styled.div`
@@ -56,16 +62,10 @@ const StyledTagsContainer = styled.div`
     opacity: 0.8;
 `;
 
-const StyledButtonContainer = styled.div`
-    margin-top: 0.75rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 1rem;
-`;
-
 const StyledPanelsContainer = styled.div`
     margin-top: 1.25rem;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
 `;
 
 const StyledApiDefinitionContainer = styled.div`
@@ -106,8 +106,7 @@ export const SwaggerUI: FC<SwaggerUIProps> = (props) => {
 type Props = {
     item?: MarketplaceItem;
     org: Organization;
-    onCreateClick: () => void;
-    directoryFsPath: string;
+    onCloseClick: () => void;
 };
 
 const disableAuthorizeAndInfoPlugin = () => ({
@@ -127,7 +126,7 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCreateClick, directoryFsPath }) => {
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseClick }) => {
     const { rpcClient } = useRpcContext();
 
     const {
@@ -197,6 +196,11 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCreateC
 
     return (
         <StyledContainer>
+            <CloseBtnContainer>
+                <Button onClick={() => onCloseClick()} appearance="icon">
+                    <Icon name="bi-close" />
+                </Button>
+            </CloseBtnContainer>
             <StyledBadgeContainer>
                 <Badge>Type: {item?.serviceType}</Badge>
                 <Badge>Version: {item?.version}</Badge>
@@ -210,9 +214,6 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCreateC
                     ))}
                 </StyledTagsContainer>
             )}
-            <StyledButtonContainer>
-                <Button onClick={onCreateClick}>Use Connector</Button>
-            </StyledButtonContainer>
             <StyledPanelsContainer>
                 <VSCodePanels>
                     {panelTabs.map((item) => (

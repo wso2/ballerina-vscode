@@ -397,7 +397,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 )
             )}
             {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) || currentStep === WizardStep.DEVANT_CONNECTOR && (
-                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
+                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 1800 }} />
             )}
             {currentStep === WizardStep.CONNECTION_CONFIG && (
                 <PanelContainer

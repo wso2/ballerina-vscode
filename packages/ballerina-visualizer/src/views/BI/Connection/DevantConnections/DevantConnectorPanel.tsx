@@ -18,7 +18,6 @@
 
 import React, { FC, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
 import { useQuery } from "@tanstack/react-query";
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
@@ -30,7 +29,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
     onClose,
 }) => {
     const { rpcClient } = useRpcContext();
-    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
 
     const { data: projectPath } = useQuery({
         queryKey: ["projectPath"],
@@ -64,40 +63,31 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
     return (
         <>
             <>
-                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
                 <PanelContainer
                     show={true}
-                    title={`Create connection for ${selectedItem?.name}`}
-                    onClose={() => {
-                        onClose();
-                        setShowCreateForm(false);
-                    }}
-                    width={600}
+                    title="Create New Devant Connection"
+                    onClose={() => onClose()}
                     subPanelWidth={600}
-                    onBack={showCreateForm ? () => setShowCreateForm(false) : undefined}
-                >
-                    {showCreateForm ? (
-                        <>
-                            <DevantConnectorCreateForm
-                                component={directoryComponent}
+                    subPanel={
+                        showInfo && (
+                            <DevantConnectorMarketplaceInfo
+                                onCloseClick={() => setShowInfo(false)}
+                                org={selected?.org}
                                 item={selectedItem}
-                                onCreate={() => {
-                                    onClose();
-                                    setShowCreateForm(false);
-                                }}
-                                directoryFsPath={projectPath?.projectUri}
-                                org={selected.org}
-                                project={selected.project}
                             />
-                        </>
-                    ) : (
-                        <DevantConnectorMarketplaceInfo
-                            onCreateClick={() => setShowCreateForm(true)}
-                            org={selected?.org}
-                            directoryFsPath={projectPath?.projectUri}
-                            item={selectedItem}
-                        />
-                    )}
+                        )
+                    }
+                >
+                    <DevantConnectorCreateForm
+                        component={directoryComponent}
+                        item={selectedItem}
+                        onCreate={() => onClose()}
+                        directoryFsPath={projectPath?.projectUri}
+                        org={selected.org}
+                        project={selected.project}
+                        onShowInfo={() => setShowInfo(true)}
+                        isShowingInfo={showInfo}
+                    />
                 </PanelContainer>
             </>
         </>

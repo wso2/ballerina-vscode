@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionDetailed, ContextItemEnriched, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { RequestType } from "vscode-messenger-common";
 import { CreateDevantConnectionReq } from "./interfaces";
 
@@ -29,3 +29,4 @@ export const getMarketplaceItems: RequestType<GetMarketplaceListReq, Marketplace
 export const getSelectedContext: RequestType<void, ContextItemEnriched | null> = { method: `${_preFix}/getSelectedContext` };
 export const getDirectoryComponents: RequestType<string,  ComponentKind[]> = { method: `${_preFix}/getDirectoryComponents` };
 export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
+export const getConnections: RequestType<GetConnectionsReq,  ConnectionListItem[]> = { method: `${_preFix}/getConnections` };

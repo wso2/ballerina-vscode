@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     type ComponentKind,
     type ConnectionListItem,
@@ -30,8 +30,9 @@ import {
 import React, { useEffect, useState, type FC } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
-import { Dropdown, TextField, Button } from "@wso2/ui-toolkit";
+import { Dropdown, TextField, Button, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import styled from "@emotion/styled";
 
 interface Props {
     item: MarketplaceItem;
@@ -40,7 +41,16 @@ interface Props {
     project: Project;
     onCreate: () => void;
     directoryFsPath: string;
+    onShowInfo: () => void;
+    isShowingInfo: boolean;
 }
+
+const HeaderWrap = styled.div`
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+`;
 
 const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
     const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem;
@@ -108,10 +118,17 @@ interface CreateConnectionForm {
     schemaId?: string;
 }
 
-export const DevantConnectorCreateForm: FC<Props> = ({ item, component, org, project, directoryFsPath, onCreate }) => {
+export const DevantConnectorCreateForm: FC<Props> = ({
+    item,
+    component,
+    org,
+    project,
+    directoryFsPath,
+    onShowInfo,
+    isShowingInfo,
+    onCreate,
+}) => {
     const { rpcClient } = useRpcContext();
-
-    const allItems: ConnectionListItem[] = []; // todo: need to fetch existing connection names
 
     const visibilities = getPossibleVisibilities(item, project);
 
@@ -134,6 +151,19 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, component, org, pro
         }
     }, [schemas]);
 
+    const { data: componentConnections = [] } = useQuery({
+        queryKey: [
+            "componentConnections",
+            { component: component?.metadata?.id, project: project?.id },
+        ],
+        queryFn: () => rpcClient.getPlatformRpcClient().getConnections({
+            componentId: component?.metadata?.id,
+            orgId: org?.id?.toString(),
+            projectId: project?.id
+        }),
+        enabled: !!component,
+    });
+
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
             rpcClient.getPlatformRpcClient().createDevantComponentConnection({
@@ -150,70 +180,88 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, component, org, pro
     const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
     return (
-        <FormStyles.Container>
-            <FormStyles.Row>
-                <TextField
-                    label="Name"
-                    required
-                    name="name"
-                    placeholder="connection-name"
-                    sx={{ width: "100%" }}
-                    {...form.register("name", {
-                        validate: (value) => {
-                            if (!value || value.trim().length === 0) {
-                                return "Required";
-                            } else if (allItems.some((item) => item.name === value)) {
-                                return "Name already exists";
-                            }
-                        },
-                    })}
-                    errorMsg={form.formState.errors.name?.message}
-                />
-            </FormStyles.Row>
-            <FormStyles.Row>
-                <Dropdown
-                    id="visibility"
-                    label="Access Mode"
-                    containerSx={{ width: "100%" }}
-                    items={visibilities?.map((item) => ({
-                        value: item,
-                        content: capitalizeFirstLetter(item.toLowerCase()),
-                    }))}
-                    {...form.register("visibility", {
-                        validate: (value) => {
-                            if (!value) {
-                                return "Required";
-                            }
-                        },
-                    })}
-                    required
-                    disabled={visibilities?.length === 0}
-                    errorMsg={form.formState.errors.visibility?.message}
-                />
-            </FormStyles.Row>
-            <FormStyles.Row>
-                <Dropdown
-                    id="schemaId"
-                    label="Authentication Scheme"
-                    containerSx={{ width: "100%" }}
-                    items={schemas.map((item) => ({ value: item.id, content: item.name }))}
-                    {...form.register("schemaId", {
-                        validate: (value) => {
-                            if (!value) {
-                                return "Required";
-                            }
-                        },
-                    })}
-                    required
-                    disabled={schemas?.length === 0}
-                    errorMsg={form.formState.errors.schemaId?.message}
-                />
-            </FormStyles.Row>
-            <FormStyles.Footer>
-                <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
-                    {isCreatingConnection ? "Creating..." : "Create"}
+        <>
+            <HeaderWrap>
+                <Typography variant="body3">{item.name}</Typography>
+                <Button disabled={isShowingInfo} onClick={onShowInfo} appearance="icon">
+                    Details
                 </Button>
-            </FormStyles.Footer>
-        </FormStyles.Container>
+            </HeaderWrap>
+            <FormStyles.Container>
+                <FormStyles.Row>
+                    <TextField
+                        label="Name"
+                        required
+                        name="name"
+                        placeholder="connection-name"
+                        sx={{ width: "100%" }}
+                        {...form.register("name", {
+                            validate: (value) => {
+                                if (!value || value.trim().length === 0) {
+                                    return "Required";
+                                } else if (componentConnections?.some((item) => item.name === value)) {
+                                    return "Name already exists";
+                                } else if (
+                                    !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
+                                        value
+                                    )
+                                ) {
+                                    return "Cannot contain special characters";
+                                } else if (value.length < 3) {
+                                    return "Name is too short";
+                                } else if (value.length > 50) {
+                                    return "Name is too long";
+                                }
+                            },
+                        })}
+                        errorMsg={form.formState.errors.name?.message}
+                    />
+                </FormStyles.Row>
+                <FormStyles.Row>
+                    <Dropdown
+                        id="visibility"
+                        label="Access Mode"
+                        containerSx={{ width: "100%" }}
+                        items={visibilities?.map((item) => ({
+                            value: item,
+                            content: capitalizeFirstLetter(item.toLowerCase()),
+                        }))}
+                        {...form.register("visibility", {
+                            validate: (value) => {
+                                if (!value) {
+                                    return "Required";
+                                }
+                            },
+                        })}
+                        required
+                        disabled={visibilities?.length === 0}
+                        errorMsg={form.formState.errors.visibility?.message}
+                    />
+                </FormStyles.Row>
+                <FormStyles.Row>
+                    <Dropdown
+                        id="schemaId"
+                        label="Authentication Scheme"
+                        containerSx={{ width: "100%" }}
+                        items={schemas.map((item) => ({ value: item.id, content: item.name }))}
+                        {...form.register("schemaId", {
+                            validate: (value) => {
+                                if (!value) {
+                                    return "Required";
+                                }
+                            },
+                        })}
+                        required
+                        disabled={schemas?.length === 0}
+                        errorMsg={form.formState.errors.schemaId?.message}
+                    />
+                </FormStyles.Row>
+                <FormStyles.Footer>
+                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
+                        {isCreatingConnection ? "Creating..." : "Create"}
+                    </Button>
+                </FormStyles.Footer>
+            </FormStyles.Container>
+        </>
     );
 };
