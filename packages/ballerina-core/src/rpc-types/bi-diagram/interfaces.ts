@@ -32,6 +32,16 @@ export interface ProjectRequest {
     version?: string;
 }
 
+export interface AddProjectToWorkspaceRequest {
+    projectName: string;
+    packageName: string;
+    path: string;
+    convertToWorkspace?: boolean;
+    workspaceName?: string;
+    orgName?: string;
+    version?: string;
+}
+
 export interface WorkspacesResponse {
     workspaces: WorkspaceFolder[];
 }
