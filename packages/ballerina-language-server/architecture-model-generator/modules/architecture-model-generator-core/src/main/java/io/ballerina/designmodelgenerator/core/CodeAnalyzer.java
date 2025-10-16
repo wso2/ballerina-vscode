@@ -226,6 +226,7 @@ public class CodeAnalyzer extends NodeVisitor {
         for (StatementNode statement : functionBodyBlockNode.statements()) {
             statement.accept(this);
         }
+        // TODO: Check if we need this?
         super.visit(functionBodyBlockNode);
     }
 
@@ -256,6 +257,7 @@ public class CodeAnalyzer extends NodeVisitor {
             String methodName = methodCallExpressionNode.methodName().toSourceCode().trim();
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
         }
+        handleConnectionExpr(methodCallExpressionNode.expression());
         methodCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
     }
 
@@ -348,7 +350,7 @@ public class CodeAnalyzer extends NodeVisitor {
             if (symbol.isPresent() && symbol.get() instanceof TypeSymbol typeSymbol) {
                 TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
                 if (rawType instanceof ClassSymbol classSymbol) {
-                        arguments = getInitMethodParamNames(classSymbol, getArgList(newExpressionNode));
+                    arguments = getInitMethodParamNames(classSymbol, getArgList(newExpressionNode));
                 }
             }
         }

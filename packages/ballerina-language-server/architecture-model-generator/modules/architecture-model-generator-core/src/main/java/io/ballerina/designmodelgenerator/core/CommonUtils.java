@@ -21,6 +21,7 @@ package io.ballerina.designmodelgenerator.core;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.PathParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -31,6 +32,7 @@ import io.ballerina.compiler.api.symbols.resourcepath.PathRestParam;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -47,6 +49,12 @@ public class CommonUtils {
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
     private static final Random random = new Random();
+
+    public static final String BALLERINA_ORG_NAME = "ballerina";
+    public static final String BALLERINAX_ORG_NAME = "ballerinax";
+
+    private static final String AI = "ai";
+    private static final String AGENT = "Agent";
 
     /**
      * Get the raw type of the type descriptor. If the type descriptor is a type reference then return the associated
@@ -148,9 +156,8 @@ public class CommonUtils {
     /**
      * Returns the resource path string for the given resource method symbol.
      *
-     * @param semanticModel the semantic model
+     * @param semanticModel        the semantic model
      * @param resourceMethodSymbol the resource method symbol
-     *
      * @return the resource path string
      */
     public static String getResourcePathStr(SemanticModel semanticModel,
@@ -212,5 +219,25 @@ public class CommonUtils {
             case DOT_RESOURCE_PATH -> pathBuilder.append(".");
         }
         return pathBuilder.toString();
+    }
+
+    public static boolean isAgentClass(Symbol symbol) {
+        Optional<ModuleSymbol> optModule = symbol.getModule();
+        if (optModule.isEmpty()) {
+            return false;
+        }
+        ModuleID id = optModule.get().id();
+        if (!isAiModule(id.orgName(), id.packageName())) {
+            return false;
+        }
+        return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
+    }
+
+    public static boolean isAiModule(String org, String module) {
+        return (BALLERINAX_ORG_NAME.equals(org) || BALLERINA_ORG_NAME.equals(org)) && module.equals(AI);
+    }
+
+    public static String getTypeName(TypeSymbol typeSymbol) {
+        return typeSymbol.getName().orElse(typeSymbol.signature());
     }
 }
