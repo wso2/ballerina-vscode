@@ -46,9 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ReferenceType {
-    private static final Map<String, RefType> visitedTypeMap = new HashMap<>();
+    private static final Map<String, RefType> visitedTypeMap = new ConcurrentHashMap<>();
 
     public record Field(String fieldName, RefType type, boolean optional, String defaultValue) {
     }
@@ -330,6 +331,10 @@ public class ReferenceType {
     }
 
     private static ModuleID getModuleID(Symbol symbol) {
+        if (symbol.kind() == SymbolKind.RECORD_FIELD) {
+            Symbol typeDescriptor = ((RecordFieldSymbol) symbol).typeDescriptor();
+            return getModuleID(typeDescriptor);
+        }
         return symbol.getModule().isPresent()
                 ? symbol.getModule().get().id()
                 : null;
@@ -430,6 +435,10 @@ public class ReferenceType {
                 visitedTypeMap.put(depTypeKey, updatedDepType);
             }
         }
+    }
+
+    public static void clearVisitedTypeMap() {
+        visitedTypeMap.clear();
     }
 
 }

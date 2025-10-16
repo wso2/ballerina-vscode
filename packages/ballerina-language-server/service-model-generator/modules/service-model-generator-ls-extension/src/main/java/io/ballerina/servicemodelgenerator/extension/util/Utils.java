@@ -800,7 +800,7 @@ public final class Utils {
         if (annotations.isEmpty()) { // metadata is present but no annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
-                edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
+                edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));
             }
             return;
         }
@@ -836,7 +836,7 @@ public final class Utils {
         if (documentationString.isEmpty()) { // metadata is present but no documentation
             if (!docEdit.isEmpty()) {
                 docEdit += System.lineSeparator();
-                edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
+                edits.add(new TextEdit(toRange(metadata.get().lineRange().startLine()), docEdit));
             }
             return;
         }
