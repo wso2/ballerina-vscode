@@ -243,7 +243,6 @@ export function expandArrayFn(context: IDataMapperContext, inputId: string, outp
         targetField = viewId + ".0";
     }
 
-
     // Create base view properties
     const baseView: View = {
         label: label,
