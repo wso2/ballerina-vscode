@@ -239,7 +239,7 @@ public class ConnectionFinder {
                 lineRange.endLine());
     }
 
-    private SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
+    public SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
         if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
             return explicitNewExpressionNode.parenthesizedArgList().arguments();
         } else {
@@ -250,7 +250,7 @@ public class ConnectionFinder {
         }
     }
 
-    private List<ExpressionNode> getInitMethodArgExprs(SeparatedNodeList<FunctionArgumentNode> argumentNodes) {
+    public List<ExpressionNode> getInitMethodArgExprs(SeparatedNodeList<FunctionArgumentNode> argumentNodes) {
         List<ExpressionNode> arguments = new ArrayList<>();
 
         for (int argIdx = 0; argIdx < argumentNodes.size(); argIdx++) {
@@ -268,7 +268,7 @@ public class ConnectionFinder {
         return arguments;
     }
 
-    private void handleInitMethodArgs(Connection connection, ExpressionNode expressionNode) {
+    public void handleInitMethodArgs(Connection connection, ExpressionNode expressionNode) {
         if (expressionNode instanceof ListConstructorExpressionNode listConstructorExpressionNode) {
             for (Node expr : listConstructorExpressionNode.expressions()) {
                 Optional<Symbol> symbol = this.semanticModel.symbol(expr);

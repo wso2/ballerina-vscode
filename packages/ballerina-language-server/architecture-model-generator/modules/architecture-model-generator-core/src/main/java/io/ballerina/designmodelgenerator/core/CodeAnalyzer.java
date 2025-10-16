@@ -356,7 +356,7 @@ public class CodeAnalyzer extends NodeVisitor {
             if (symbol.isPresent() && symbol.get() instanceof TypeSymbol typeSymbol) {
                 TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
                 if (rawType instanceof ClassSymbol classSymbol) {
-                    arguments = getInitMethodParamNames(classSymbol, getArgList(newExpressionNode));
+                    arguments = getInitMethodParamNames(classSymbol, connectionFinder.getArgList(newExpressionNode));
                 }
             }
         }
@@ -393,70 +393,15 @@ public class CodeAnalyzer extends NodeVisitor {
                         expressionNode = checkExpressionNode.expression();
                     }
                     if (expressionNode instanceof NewExpressionNode newExpressionNode) {
-                        SeparatedNodeList<FunctionArgumentNode> argList = getArgList(newExpressionNode);
-                        List<ExpressionNode> argExprs = getInitMethodArgExprs(argList);
+                        SeparatedNodeList<FunctionArgumentNode> argList = connectionFinder.getArgList(newExpressionNode);
+                        List<ExpressionNode> argExprs = connectionFinder.getInitMethodArgExprs(argList);
                         for (ExpressionNode argExpr : argExprs) {
-                            handleInitMethodListArgs(connection, argExpr);
+                            connectionFinder.handleInitMethodArgs(connection, argExpr);
                         }
                     }
                 }
             }
         }
-    }
-
-    private void handleInitMethodListArgs(Connection connection, ExpressionNode expressionNode) {
-        if (expressionNode instanceof ListConstructorExpressionNode listConstructorExpressionNode) {
-            for (Node expr : listConstructorExpressionNode.expressions()) {
-                Optional<Symbol> symbol = this.semanticModel.symbol(expr);
-                if (symbol.isEmpty()) {
-                    continue;
-                }
-                if (symbol.get() instanceof FunctionSymbol functionSymbol) {
-                    connection.addDependentFunction(functionSymbol.getName().orElse(""));
-                }
-            }
-        } else if (expressionNode instanceof MappingConstructorExpressionNode mappingConstructorExpressionNode) {
-            for (Node expr : mappingConstructorExpressionNode.fields()) {
-                if (expr instanceof SpecificFieldNode specificFieldNode) {
-                    if (specificFieldNode.valueExpr().isPresent()) {
-                        handleInitMethodListArgs(connection, specificFieldNode.valueExpr().get());
-                    }
-                }
-            }
-        } else if (expressionNode instanceof SimpleNameReferenceNode varRef) {
-            Optional<Symbol> symbol = this.semanticModel.symbol(varRef);
-            if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
-                TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
-                if (rawType instanceof ClassSymbol classSymbol) {
-                    if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-                        if (intermediateModel.connectionMap.containsKey(String.valueOf(symbol.get()
-                                .getLocation().get().hashCode()))) {
-                            Connection dependentConnection = intermediateModel.connectionMap.get(String.valueOf(
-                                    symbol.get().getLocation().get().hashCode()));
-                            connection.addDependentConnection(dependentConnection.getUuid());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private List<ExpressionNode> getInitMethodArgExprs(SeparatedNodeList<FunctionArgumentNode> argumentNodes) {
-        List<ExpressionNode> arguments = new ArrayList<>();
-
-        for (int argIdx = 0; argIdx < argumentNodes.size(); argIdx++) {
-            Node argument = argumentNodes.get(argIdx);
-            if (argument == null) {
-                continue;
-            }
-            SyntaxKind argKind = argument.kind();
-            if (argKind == SyntaxKind.NAMED_ARG) {
-                arguments.add(((NamedArgumentNode) argument).expression());
-            } else if (argKind == SyntaxKind.POSITIONAL_ARG) {
-                arguments.add(((PositionalArgumentNode) argument).expression());
-            }
-        }
-        return arguments;
     }
 
     @Override
@@ -624,17 +569,6 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
         return keyValues;
-    }
-
-    private SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
-        if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
-            return explicitNewExpressionNode.parenthesizedArgList().arguments();
-        } else {
-            Optional<ParenthesizedArgList> parenthesizedArgList = ((ImplicitNewExpressionNode) newExpressionNode)
-                    .parenthesizedArgList();
-            return parenthesizedArgList.isPresent() ? parenthesizedArgList.get().arguments() :
-                    NodeFactory.createSeparatedNodeList();
-        }
     }
 
     private boolean isAgentMethodCall(ExpressionNode expressionNode) {
