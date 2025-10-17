@@ -139,10 +139,11 @@ export interface ResourceAccordionPropsV2 {
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
     readOnly?: boolean;
+    methodName?: string;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -222,7 +223,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(resource.icon)}>
-                        {resource.icon ? resource.icon.split("-")[0].toUpperCase() : "REMOTE"}
+                        {methodName ? methodName : resource.icon ? resource.icon.split("-")[0].toUpperCase() : "REMOTE"}
                     </MethodBox>
                     <MethodPath>{resource.name}</MethodPath>
                 </MethodSection>

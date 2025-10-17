@@ -133,8 +133,6 @@ export function ResponseEditor(props: ParamProps) {
         if (hasBody) {
             fields.push({
                 ...convertPropertyToFormField(res.body),
-                label: "Body Content Type",
-                documentation: "The data type or schema of the response body",
                 key: `body`,
             });
             fields.push({

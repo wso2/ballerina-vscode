@@ -148,11 +148,22 @@ export function ParamEditor(props: ParamProps) {
                     enabled: true,
                     defaultValue: "string",
                     value: param.headerName?.value,
-                    valueTypeConstraint: ""
+                    valueTypeConstraint: "",
+                    onValueChange: (value: string) => {
+                        const sanitizeValue = value.replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
+                            .replace(/\.([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
+                            .replace(/[^a-zA-Z0-9]/g, '');
+                        // Set the sanitized value to the variable name field
+                        // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
+                        if (param.name && typeof param.name === 'object') {
+                            param.name.value = sanitizeValue;
+                            onChange({ ...param, name: { ...param.name, value: sanitizeValue } });
+                        }
+                    }
                 });
                 fields.push({
                     key: `name`,
-                    label: 'Name',
+                    label: 'Variable Name',
                     advanced: true,
                     type: param.name.valueType,
                     optional: false,
