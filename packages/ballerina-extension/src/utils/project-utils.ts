@@ -22,11 +22,11 @@ import * as path from 'path';
 import { isSupportedVersion, VERSION } from "./config";
 import { BallerinaProject } from "@wso2/ballerina-core";
 
-function getCurrentBallerinaProject(file?: string): Promise<BallerinaProject> {
+function getCurrentBallerinaProject(projectPath?: string): Promise<BallerinaProject> {
     return new Promise((resolve, reject) => {
         const activeEditor = window.activeTextEditor;
         // get path of the current bal file
-        const uri = file ? Uri.file(file) : activeEditor.document.uri;
+        const uri = projectPath ? Uri.file(projectPath) : activeEditor.document.uri;
         // if currently opened file is a bal file
         if (extension.ballerinaExtInstance.langClient && isSupportedVersion(extension.ballerinaExtInstance, VERSION.BETA, 1)) {
             // get Ballerina Project path for current Ballerina file

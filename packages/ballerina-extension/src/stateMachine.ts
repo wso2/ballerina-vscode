@@ -90,7 +90,7 @@ const stateMachine = createMachine<MachineContext>(
                             actions: [
                                 assign({
                                     isBI: (context, event) => event.data.isBI,
-                                    projectUri: (context, event) => event.data.projectPath,
+                                    projectPath: (context, event) => event.data.projectPath,
                                     workspacePath: (context, event) => event.data.workspacePath,
                                     scope: (context, event) => event.data.scope,
                                     org: (context, event) => event.data.orgName,
@@ -114,7 +114,7 @@ const stateMachine = createMachine<MachineContext>(
                             cond: (context, event) => event.data && event.data.isBI,
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
-                                projectUri: (context, event) => event.data.projectPath,
+                                projectPath: (context, event) => event.data.projectPath,
                                 workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
@@ -126,7 +126,7 @@ const stateMachine = createMachine<MachineContext>(
                             cond: (context, event) => event.data && event.data.isBI === false,
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
-                                projectUri: (context, event) => event.data.projectPath,
+                                projectPath: (context, event) => event.data.projectPath,
                                 workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
@@ -334,14 +334,14 @@ const stateMachine = createMachine<MachineContext>(
             return new Promise(async (resolve, reject) => {
                 try {
                     // If the project uri or workspace path is not set, we don't need to build the project structure
-                    if (context.projectUri || context.workspacePath) {
+                    if (context.projectPath || context.workspacePath) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         // Register the event driven listener to get the artifact changes
                         context.langClient.registerPublishArtifacts();
                         // Initial Project Structure
-                        const projectStructure = await buildProjectArtifactsStructure(context.projectUri, context.langClient);
+                        const projectStructure = await buildProjectArtifactsStructure(context.projectPath, context.langClient);
                         resolve({ projectStructure });
                     } else {
                         resolve({ projectStructure: undefined });
@@ -379,10 +379,10 @@ const stateMachine = createMachine<MachineContext>(
         },
         resolveMissingDependencies: (context, event) => {
             return new Promise(async (resolve, reject) => {
-                if (context?.projectUri) {
+                if (context?.projectPath) {
                     const diagnostics: ProjectDiagnosticsResponse = await StateMachine.langClient().getProjectDiagnostics({
                         projectRootIdentifier: {
-                            uri: Uri.file(context.projectUri).toString(),
+                            uri: Uri.file(context.projectPath).toString(),
                         }
                     });
 
@@ -469,7 +469,7 @@ const stateMachine = createMachine<MachineContext>(
                         });
                         return resolve();
                     }
-                    const view = await getView(context.documentUri, context.position, context?.projectUri);
+                    const view = await getView(context.documentUri, context.position, context?.projectPath);
                     view.location.package = context.package;
                     history.push(view);
                     return resolve();
@@ -648,7 +648,7 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
-export function updateView(refreshTreeView?: boolean, projectUri?: string) {
+export function updateView(refreshTreeView?: boolean) {
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
@@ -694,7 +694,7 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectArtifactsStructure(projectUri || StateMachine.context().projectUri, StateMachine.langClient(), true);
+        buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }

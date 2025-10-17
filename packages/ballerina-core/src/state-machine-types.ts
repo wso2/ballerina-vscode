@@ -120,7 +120,7 @@ export type FocusFlowDiagramView = typeof FOCUS_FLOW_DIAGRAM_VIEW[keyof typeof F
 export interface VisualizerLocation {
     view?: MACHINE_VIEW | null;
     documentUri?: string;
-    projectUri?: string;
+    projectPath?: string;
     workspacePath?: string;
     identifier?: string;
     parentIdentifier?: string;

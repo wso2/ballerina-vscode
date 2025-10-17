@@ -28,7 +28,11 @@ import { injectAgentCode } from "./source-utils";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
 import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 
-export async function buildProjectArtifactsStructure(projectDir: string, langClient: ExtendedLangClient, isUpdate: boolean = false): Promise<ProjectStructureResponse> {
+export async function buildProjectArtifactsStructure(
+    projectPath: string,
+    langClient: ExtendedLangClient,
+    isUpdate: boolean = false
+): Promise<ProjectStructureResponse> {
     const result: ProjectStructureResponse = {
         projectName: "",
         directoryMap: {
@@ -45,14 +49,14 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
             [DIRECTORY_MAP.LOCAL_CONNECTORS]: [],
         }
     };
-    const designArtifacts = await langClient.getProjectArtifacts({ projectPath: projectDir });
+    const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
     console.log("designArtifacts", designArtifacts);
     if (designArtifacts?.artifacts) {
         traverseComponents(designArtifacts.artifacts, result);
-        await populateLocalConnectors(projectDir, result);
+        await populateLocalConnectors(projectPath, result);
     }
     // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
-    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
+    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectPath);
 
     let projectName = "";
     if (workspace) {
@@ -66,7 +70,7 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
         }
     } else {
         // Project defined within a Ballerina workspace
-        projectName = path.basename(projectDir);
+        projectName = path.basename(projectPath);
 
         // TODO: Get the project name from the package Ballerina.toml file
     }
@@ -82,8 +86,10 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    const projectUri = URI.file(StateMachine.context().projectUri);
-    const isWithinProject = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(projectUri.fsPath.toLowerCase());
+    const projectUri = URI.file(StateMachine.context().projectPath);
+    const isWithinProject = URI
+        .parse(publishedArtifacts.uri).fsPath.toLowerCase()
+        .includes(projectUri.fsPath.toLowerCase());
     if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
@@ -133,7 +139,7 @@ async function getComponents(artifacts: Record<string, BaseArtifact>, artifactTy
 }
 
 async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: string) {
-    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectPath), artifact.location.fileName).fsPath;
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -214,13 +220,13 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
 // This has to be replaced once we have a proper design for AI Agent Chat Service
 async function injectAIAgent(serviceArtifact: BaseArtifact) {
     // Fetch the organization name for importing the AI package
-    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
+    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectPath });
 
     //get AgentName
     const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
 
     // Retrieve the service model
-    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectPath), serviceArtifact.location.fileName).fsPath;
     const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
         filePath: targetFile,
         codedata: {
@@ -235,7 +241,7 @@ async function injectAIAgent(serviceArtifact: BaseArtifact) {
         return;
     }
     const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
-    const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
+    const serviceFile = path.join(StateMachine.context().projectPath, `main.bal`);
     ensureFileExists(serviceFile);
     await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
     const functionPosition: NodePosition = {

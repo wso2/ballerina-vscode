@@ -41,7 +41,7 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('ballerina');
     ballerinaExtInstance.context.subscriptions.push(diagnosticCollection);
 
-    const projectPath = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
     if (backgroundDriftCheckConfig) {
         if (!ballerinaExtInstance.context || projectPath == null || projectPath == "") {
             return;

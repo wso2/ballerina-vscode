@@ -660,8 +660,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async getModuleDirectory(params: GetModuleDirParams): Promise<string> {
         return new Promise((resolve) => {
-            const projectUri = params.filePath;
-            const projectFsPath = URI.parse(projectUri).fsPath;
+            const projectPath = params.filePath;
+            const projectFsPath = URI.parse(projectPath).fsPath;
             const moduleName = params.moduleName;
             const generatedPath = path.join(projectFsPath, "generated", moduleName);
             if (fs.existsSync(generatedPath) && fs.statSync(generatedPath).isDirectory()) {

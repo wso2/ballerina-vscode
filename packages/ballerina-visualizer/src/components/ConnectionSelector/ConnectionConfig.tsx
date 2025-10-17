@@ -51,7 +51,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
         await fetchSelectedConnection();
         setLoading(false);
     };

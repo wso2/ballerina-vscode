@@ -362,7 +362,7 @@ export async function createBIAutomation(params: ComponentRequest): Promise<Crea
     return new Promise(async (resolve) => {
         const functionFile = await handleAutomationCreation(params);
         const components = await StateMachine.langClient().getBallerinaProjectComponents({
-            documentIdentifiers: [{ uri: URI.file(StateMachine.context().projectUri).toString() }]
+            documentIdentifiers: [{ uri: URI.file(StateMachine.context().projectPath).toString() }]
         }) as BallerinaProjectComponents;
         const position: NodePosition = {};
         for (const pkg of components.packages) {
@@ -384,9 +384,9 @@ export async function createBIAutomation(params: ComponentRequest): Promise<Crea
 export async function createBIFunction(params: ComponentRequest): Promise<CreateComponentResponse> {
     return new Promise(async (resolve) => {
         const isExpressionBodied = params.functionType.isExpressionBodied;
-        const projectDir = path.join(StateMachine.context().projectUri);
+        const projectPath = StateMachine.context().projectPath;
         // Hack to create trasformation function (Use LS API to create the function when available)
-        const targetFile = path.join(projectDir, isExpressionBodied ? DATA_MAPPING_FILE : FUNCTIONS_FILE);
+        const targetFile = path.join(projectPath, isExpressionBodied ? DATA_MAPPING_FILE : FUNCTIONS_FILE);
         if (!fs.existsSync(targetFile)) {
             writeBallerinaFileDidOpen(targetFile, '');
         }
@@ -430,9 +430,9 @@ ${funcSignature}
     }
 }
 `;
-    const projectDir = path.join(StateMachine.context().projectUri);
+    const projectPath = StateMachine.context().projectPath;
     // Create foo.bal file within services directory
-    const taskFile = path.join(projectDir, `automation.bal`);
+    const taskFile = path.join(projectPath, `automation.bal`);
     writeBallerinaFileDidOpen(taskFile, balContent);
     console.log('Task Created.', `automation.bal`);
     return taskFile;

@@ -44,8 +44,8 @@ export class RecordCreatorRpcManager implements RecordCreatorAPI {
     }
 
     async convertJsonToRecordType(params: JsonToRecordParams): Promise<TypeDataWithReferences> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePathUri = path.join(projectUri, 'types.bal');
+        const projectPath = StateMachine.context().projectPath;
+        const filePathUri = path.join(projectPath, 'types.bal');
         return new Promise(async (resolve) => {
             const response = await StateMachine.langClient().convertJsonToRecordType({
                 ...params,
@@ -56,8 +56,8 @@ export class RecordCreatorRpcManager implements RecordCreatorAPI {
     }
 
     async convertXmlToRecordType(params: XMLToRecordParams): Promise<TypeDataWithReferences> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = path.join(projectUri, 'types.bal');
+        const projectPath = StateMachine.context().projectPath;
+        const filePath = path.join(projectPath, 'types.bal');
         return new Promise(async (resolve) => {
             const response = await StateMachine.langClient().convertXmlToRecordType({
                 ...params,
