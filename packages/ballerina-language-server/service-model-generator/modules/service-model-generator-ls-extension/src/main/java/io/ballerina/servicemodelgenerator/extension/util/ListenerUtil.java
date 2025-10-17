@@ -92,6 +92,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
@@ -301,7 +302,7 @@ public class ListenerUtil {
                 .setIcon(icon)
                 .setProperties(properties);
 
-        properties.put("name", nameProperty());
+        properties.put(VARIABLE_NAME_KEY, nameProperty());
         return listenerBuilder.build();
     }
 
@@ -327,8 +328,7 @@ public class ListenerUtil {
         return Optional.of(listener);
     }
 
-    public static Optional<Listener> getDefaultListenerModel(String org,
-                                                             ListenerDeclarationNode listenerNode) {
+    public static Optional<Listener> getDefaultListenerModel(String org, ListenerDeclarationNode listenerNode) {
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
         Optional<FunctionData> optFunctionResult = dbManager.getListener(org, "http");
         if (optFunctionResult.isEmpty()) {
@@ -340,7 +340,7 @@ public class ListenerUtil {
         functionData.setParameters(parameters);
         Listener listener = getListenerModelWithoutParamProps(functionData);
         listener.getProperties().put("defaultListener", getHttpDefaultListenerValue());
-        Value nameProperty = listener.getProperty("name");
+        Value nameProperty = listener.getVariableNameProperty();
         nameProperty.setValue(listenerNode.variableName().text().trim());
         nameProperty.setCodedata(new Codedata(listenerNode.variableName().lineRange()));
         nameProperty.setEditable(false);
@@ -409,7 +409,7 @@ public class ListenerUtil {
         functionData.setParameters(parameters);
 
         Listener listener = getListenerModelWithoutParamProps(functionData);
-        Value nameProperty = listener.getProperty("name");
+        Value nameProperty = listener.getVariableNameProperty();
         nameProperty.setValue(listenerDeclarationNode.variableName().text().trim());
         nameProperty.setCodedata(new Codedata(listenerDeclarationNode.variableName().lineRange()));
         nameProperty.setEditable(false);

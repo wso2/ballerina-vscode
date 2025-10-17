@@ -28,7 +28,7 @@
       "valueType": "IDENTIFIER",
       "value": "init",
       "enabled": true,
-      "editable": true,
+      "editable": false,
       "optional": false,
       "advanced": false
     },
@@ -40,8 +40,8 @@
         "description": "The return type of the function"
       },
       "valueType": "TYPE",
-      "enabled": true,
-      "editable": true,
+      "enabled": false,
+      "editable": false,
       "optional": true,
       "advanced": false
     },

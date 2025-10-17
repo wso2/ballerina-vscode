@@ -92,7 +92,8 @@
           "type": "string",
           "name": "string",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -189,7 +190,8 @@
           "type": "Person",
           "name": "Person",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -285,6 +287,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -294,6 +297,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -303,6 +307,7 @@
           "name": "isAdult",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -348,7 +353,8 @@
                 "type": "Person",
                 "name": "Person",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               }
             ],
             "allowAdditionalFields": false
@@ -356,6 +362,7 @@
           "name": "children",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -489,7 +496,8 @@
                 "type": "PersonWithChildren",
                 "name": "PersonWithChildren",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               },
               {
                 "kind": "TYPE",
@@ -499,14 +507,16 @@
                 "type": "Person",
                 "name": "Person",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               }
             ],
             "allowAdditionalFields": false
           },
           "name": "PersonWithChildren|Person",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -637,6 +647,7 @@
                 "name": "id",
                 "optional": false,
                 "readonly": false,
+                "isGraphqlId": false,
                 "docs": ""
               },
               {
@@ -646,6 +657,7 @@
                 "name": "name",
                 "optional": false,
                 "readonly": false,
+                "isGraphqlId": false,
                 "docs": ""
               },
               {
@@ -657,6 +669,7 @@
                 "name": "otherNames",
                 "optional": false,
                 "readonly": false,
+                "isGraphqlId": false,
                 "docs": ""
               }
             ],
@@ -665,7 +678,8 @@
           },
           "name": "record {|int id; string name; Names otherNames;|}",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -797,7 +811,8 @@
                 "type": "Person",
                 "name": "Person",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               },
               {
                 "kind": "TYPE",
@@ -805,14 +820,16 @@
                 "type": "string",
                 "name": "string",
                 "optional": false,
-                "readonly": false
+                "readonly": false,
+                "isGraphqlId": false
               }
             ],
             "allowAdditionalFields": false
           },
           "name": "Person|string",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false
@@ -908,6 +925,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -917,6 +935,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -926,6 +945,7 @@
           "name": "isAdult",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

@@ -1,109 +1,100 @@
 {
-  "source": "variable32.bal",
+  "source": "variable48.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable32.bal",
+      "fileName": "variable48.bal",
       "startLine": {
-        "line": 14,
-        "offset": 4
+        "line": 9,
+        "offset": 8
       },
       "endLine": {
-        "line": 14,
-        "offset": 25
+        "line": 9,
+        "offset": 51
       }
     },
-    "sourceCode": ""
+    "sourceCode": "MyRecord var1 = {name: names[0][0][index]};"
   },
   "position": {
-    "line": 14,
-    "offset": 4
+    "line": 9,
+    "offset": 8
   },
-  "propertyKey": "expression",
+  "targetField": "var1",
   "model": {
     "inputs": [
       {
-        "members": [
-          {
-            "fields": [],
-            "name": "a",
-            "displayName": "a",
-            "typeName": "Student",
-            "kind": "record",
-            "ref": "545732303"
+        "name": "index",
+        "displayName": "index",
+        "typeName": "int",
+        "kind": "int",
+        "category": "constant"
+      },
+      {
+        "member": {
+          "member": {
+            "member": {
+              "name": "names",
+              "displayName": "<namesItemItemItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "names",
+            "displayName": "<namesItemItem>",
+            "typeName": "string[]",
+            "kind": "array"
           },
-          {
-            "fields": [],
-            "name": "a",
-            "displayName": "a",
-            "typeName": "Person",
-            "kind": "record",
-            "ref": "887620673"
-          }
-        ],
-        "name": "a",
-        "displayName": "a",
-        "typeName": "[Student, Person]",
-        "kind": "tuple",
+          "name": "names",
+          "displayName": "<namesItem>",
+          "typeName": "string[][]",
+          "kind": "array"
+        },
+        "name": "names",
+        "displayName": "names",
+        "typeName": "string[][][]",
+        "kind": "array",
         "category": "local-variable"
       }
     ],
     "output": {
       "fields": [],
-      "name": "student",
-      "displayName": "student",
-      "typeName": "Student",
+      "name": "var1",
+      "displayName": "var1",
+      "typeName": "MyRecord",
       "kind": "record",
-      "ref": "545732303"
+      "ref": "1307267849"
     },
-    "mappings": [],
+    "mappings": [
+      {
+        "output": "var1.name",
+        "inputs": [
+          "names.0.0.index",
+          "index"
+        ],
+        "expression": "names[0][0][index]",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false,
+        "elementAccessIndex": [
+          "0",
+          "0",
+          "index"
+        ]
+      }
+    ],
     "refs": {
-      "545732303": {
+      "1307267849": {
         "fields": [
           {
-            "name": "id",
-            "displayName": "id",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "name": "age",
-            "displayName": "age",
+            "name": "name",
+            "displayName": "name",
             "typeName": "string",
             "kind": "string",
             "optional": false
           }
         ],
-        "typeName": "Student",
-        "kind": "record"
-      },
-      "887620673": {
-        "fields": [
-          {
-            "name": "id",
-            "displayName": "id",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "age",
-            "displayName": "age",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "name": "info1",
-            "displayName": "info1",
-            "typeName": "xml",
-            "kind": "xml",
-            "optional": false
-          }
-        ],
-        "typeName": "Person",
+        "typeName": "MyRecord",
         "kind": "record"
       }
     }

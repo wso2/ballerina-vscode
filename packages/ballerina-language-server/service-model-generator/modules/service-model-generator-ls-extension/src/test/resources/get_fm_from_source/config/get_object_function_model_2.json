@@ -85,6 +85,17 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -122,6 +133,17 @@
             "description": "The default value of the parameter"
           },
           "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,

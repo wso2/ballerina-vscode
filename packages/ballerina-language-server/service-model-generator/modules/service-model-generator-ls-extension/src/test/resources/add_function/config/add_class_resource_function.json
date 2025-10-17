@@ -12,10 +12,7 @@
         "line": 5,
         "offset": 0
       }
-    },
-    "inListenerInit": false,
-    "isBasePath": false,
-    "inDisplayAnnotation": false
+    }
   },
   "function": {
     "metadata": {
@@ -29,32 +26,94 @@
         "label": "Accessor",
         "description": "The accessor of the function"
       },
+      "valueType": "IDENTIFIER",
+      "value": "get",
       "enabled": true,
       "editable": true,
-      "value": "get",
-      "valueType": "IDENTIFIER",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "name": {
       "metadata": {
         "label": "Function Name",
         "description": "The name of the function"
       },
-      "enabled": true,
-      "editable": true,
-      "value": "author/[int id]",
+      "placeholder": "",
       "valueType": "IDENTIFIER",
       "valueTypeConstraint": "string",
-      "isType": false,
-      "placeholder": "",
+      "value": "author/[int id]",
+      "enabled": true,
+      "editable": true,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
-    "parameters": [],
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the parameter"
+      },
+      "valueType": "STRING",
+      "value": "This is a resource method",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "Author",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "author",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "value": "The author to be added",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    ],
     "schema": {
       "parameter": {
         "type": {
@@ -64,10 +123,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "name": {
           "metadata": {
@@ -76,10 +133,8 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "defaultValue": {
           "metadata": {
@@ -88,15 +143,14 @@
           },
           "enabled": false,
           "editable": true,
-          "isType": false,
           "optional": false,
-          "advanced": false,
-          "addNewButton": false
+          "advanced": false
         },
         "enabled": false,
         "editable": false,
         "optional": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       }
     },
     "returnType": {
@@ -105,18 +159,17 @@
         "label": "Return Type",
         "description": "The return type of the function"
       },
+      "valueType": "TYPE",
+      "value": "string|error?",
       "enabled": true,
       "editable": false,
-      "value": "string|error?",
-      "valueType": "TYPE",
-      "isType": false,
       "optional": false,
-      "advanced": false,
-      "addNewButton": false
+      "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": true,
+    "canAddParameters": false,
     "codedata": {
       "lineRange": {
         "fileName": "main.bal",
@@ -128,15 +181,9 @@
           "line": 28,
           "offset": 5
         }
-      },
-      "inListenerInit": false,
-      "isBasePath": false,
-      "inDisplayAnnotation": false
+      }
     },
-    "advanceProperties": {
-      "annotations": {},
-      "parameters": []
-    }
+    "properties": {}
   },
   "output": {
     "add_function_for_class.bal": [
@@ -151,7 +198,7 @@
             "character": 34
           }
         },
-        "newText": "\n\tresource function get author/[int id]() returns string|error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}"
+        "newText": "\n\t# This is a resource method\n\t# + author - The author to be added\n\tresource function get author/[int id](Author author) returns string|error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}"
       }
     ]
   }

@@ -37,6 +37,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperTransformFunc
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperClearCacheResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperNodePositionResponse;
@@ -47,6 +48,7 @@ import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeRes
 import io.ballerina.flowmodelgenerator.extension.response.DataMappingDeleteResponse;
 import io.ballerina.projects.Document;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -437,6 +439,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                         request.targetField(), false));
             } catch (Throwable e) {
                 response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Clears the visited type map cache in ReferenceType.
+     * This API can be used to reset the type cache when needed.
+     *
+     * @return Response indicating whether the cache was successfully cleared
+     * @since 1.2.0
+     */
+    @JsonRequest
+    public CompletableFuture<DataMapperClearCacheResponse> clearTypeCache() {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperClearCacheResponse response = new DataMapperClearCacheResponse();
+            try {
+                ReferenceType.clearVisitedTypeMap();
+                response.setSuccess(true);
+            } catch (Throwable e) {
+                response.setError(e);
+                response.setSuccess(false);
             }
             return response;
         });
