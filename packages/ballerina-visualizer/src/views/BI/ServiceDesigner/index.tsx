@@ -43,6 +43,7 @@ import { FunctionConfigForm } from "./Forms/FunctionConfigForm";
 import { FunctionForm } from "./Forms/FunctionForm";
 import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
+import { McpToolForm } from "./Forms/McpToolForm";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -196,6 +197,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [listeners, setListeners] = useState<string[]>([]);
     const [readonlyProperties, setReadonlyProperties] = useState<Set<ReadonlyProperty>>(new Set());
     const [isHttpService, setIsHttpService] = useState<boolean>(false);
+    const [isMcpService, setIsMcpService] = useState<boolean>(false);
     const [objectMethods, setObjectMethods] = useState<FunctionModel[]>([]);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOptionProps[]>([]);
     const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
@@ -289,6 +291,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             });
             setReadonlyProperties(readonlyProps);
             setIsHttpService(service.moduleName === "http");
+            setIsMcpService(service.moduleName === "mcp");
         }
 
         // Extract object methods if available (for service classes)
@@ -418,6 +421,19 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             .getHttpResourceModel({ type: "http", functionName: "resource" })
             .then((res) => {
                 console.log("New Function Model: ", res.function);
+                setFunctionModel(res.function);
+                setIsNew(true);
+                setShowForm(true);
+            });
+    };
+
+    const handleNewMcpTool = () => {
+        rpcClient
+            .getServiceDesignerRpcClient()
+            .getFunctionModel({ type: "mcp", functionName: "remote" })
+            .then((res) => {
+                console.log("New Function Model: ", res.function);
+                // let fields = res.function ? convertConfig(res.function.properties) : [];
                 setFunctionModel(res.function);
                 setIsNew(true);
                 setShowForm(true);
@@ -677,6 +693,20 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         })
         .length;
 
+    function createLineRange(filePath: string, position: NodePosition): LineRange {
+        return {
+            fileName: filePath,
+            startLine: {
+                line: position.startLine ?? 1,
+                offset: position.startColumn ?? 0
+            },
+            endLine: {
+                line: position.endLine ?? position.startLine ?? 1,
+                offset: position.endColumn ?? position.startColumn ?? 0
+            }
+        };
+    }
+
     return (
         <View>
             <TopNavigationBar />
@@ -697,7 +727,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
                                     </Button>
                                     {
-                                        serviceModel && isHttpService && (
+                                        serviceModel && (isHttpService || isMcpService) && (
                                             <>
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
@@ -705,7 +735,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             </>
                                         )
                                     }
-                                    {serviceModel && (
+                                    {serviceModel && !isMcpService && (
                                         <AddServiceElementDropdown
                                             buttonTitle="More"
                                             toolTip="More options"
@@ -827,8 +857,63 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     )}
                                 </>
                             )}
+
+                            {/* Listing Tools in MCP */}
+                            {isMcpService && (
+                                <>
+                                    <SectionHeader
+                                        title="Tools"
+                                        subtitle={`${resourcesCount === 0 ? `` : 'Define how the mcp service responds to tool calls'}`}
+                                    >
+                                        <ActionGroup>
+                                            {resources.length > 10 && (
+                                                <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
+                                            )}
+                                            {!haveServiceTypeName && resourcesCount > 0 && (
+                                                <Button appearance="primary" tooltip="Add Tool" onClick={handleNewMcpTool}>
+                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Tool</ButtonText>
+                                                </Button>
+                                            )}
+                                        </ActionGroup>
+                                    </SectionHeader>
+                                    <FunctionsContainer>
+                                        {resources
+                                            .filter((resource) => {
+                                                const search = searchValue.toLowerCase();
+                                                const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                                const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                                return nameMatch || iconMatch;
+                                            })
+                                            .map((resource, index) => (
+                                                <ResourceAccordionV2
+                                                    key={`${index}-${resource.name}`}
+                                                    resource={resource}
+                                                    readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                    onEditResource={handleFunctionEdit}
+                                                    onDeleteResource={handleFunctionDelete}
+                                                    onResourceImplement={handleOpenDiagram}
+                                                />
+                                            ))}
+                                    </FunctionsContainer>
+
+                                    {resourcesCount === 0 && (
+                                        <EmptyReadmeContainer>
+                                            <Description variant="body2">
+                                                No tools found. Add a new tool.
+                                            </Description>
+                                            <Button
+                                                appearance="primary"
+                                                onClick={handleNewMcpTool}>
+                                                <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                Add Tool
+                                            </Button>
+                                        </EmptyReadmeContainer>
+                                    )}
+                                </>
+                            )}
+
                             {/* Listing service type bound functions */}
-                            {!isHttpService && enabledHandlers.length > 0 && (
+                            {!(isHttpService || isMcpService) && enabledHandlers.length > 0 && (
                                 <>
                                     <SectionHeader
                                         title="Event Handlers"
@@ -935,7 +1020,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             )}
 
                             {/* This is for editing a remote or resource function */}
-                            {functionModel && !isHttpService && (
+                            {functionModel && !isHttpService && !isMcpService && (
                                 <PanelContainer
                                     title={"Function Configuration"}
                                     show={showForm}
@@ -966,7 +1051,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </PanelContainer>
                             )}
 
-
                             {/* This is for adding a init function to the service */}
                             <PanelContainer
                                 title={"Add Initialization Function"}
@@ -981,6 +1065,24 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     onClose={handleCloseInitFunction}
                                 />
                             </PanelContainer>
+
+                            {functionModel && isMcpService && (
+                                <PanelContainer
+                                    title={"Tool Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={400}
+                                >
+                                    <McpToolForm
+                                        model={functionModel}
+                                        filePath={filePath}
+                                        lineRange={createLineRange(filePath, position)}
+                                        isSaving={isSaving}
+                                        onSave={handleFunctionSubmit}
+                                        onClose={handleNewFunctionClose}
+                                    />
+                                </PanelContainer>
+                            )}
                         </ServiceContainer>
                     </>
                 )
