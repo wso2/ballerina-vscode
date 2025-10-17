@@ -394,9 +394,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
         if (newInputMode === InputMode.TEXT
             && typeof initialFieldValue.current === 'string'
-            && !(initialFieldValue.current.trim().startsWith("\"") 
-                    && initialFieldValue.current.trim().endsWith("\"")
-                )
+            && initialFieldValue.current.trim() !== ''
+            && !(initialFieldValue.current.trim().startsWith("\"")
+                && initialFieldValue.current.trim().endsWith("\"")
+            )
         ) {
             setInputMode(InputMode.EXP)
         }
