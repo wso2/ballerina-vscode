@@ -224,6 +224,34 @@
             "optional": true,
             "advanced": false,
             "hidden": false
+          },
+          {
+            "metadata": {
+              "label": "Data Binding",
+              "description": "Data binding parameter"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "valueType": "TYPE",
+              "value": "",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "valueType": "IDENTIFIER",
+              "value": "records",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
           }
         ],
         "returnType": {
@@ -255,6 +283,16 @@
               "line": 10,
               "offset": 5
             }
+          },
+          "moduleName": "kafka"
+        },
+        "properties": {
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
           }
         }
       },

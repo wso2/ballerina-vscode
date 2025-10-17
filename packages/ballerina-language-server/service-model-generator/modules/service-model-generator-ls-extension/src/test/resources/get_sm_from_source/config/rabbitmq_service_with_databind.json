@@ -1,5 +1,5 @@
 {
-  "filePath": "sample7/main.bal",
+  "filePath": "sample11/rabbitmq.bal",
   "description": "Test the generation of service model for a rabbitmq service",
   "start": {
     "line": 4,
@@ -126,7 +126,7 @@
     },
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "rabbitmq.bal",
         "startLine": {
           "line": 4,
           "offset": 0
@@ -210,7 +210,7 @@
               "optional": true,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": false,
             "advanced": false,
@@ -278,7 +278,7 @@
             "kind": "DATA_BINDING",
             "type": {
               "valueType": "TYPE",
-              "value": "",
+              "value": "Order",
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -292,7 +292,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": false,
+            "enabled": true,
             "editable": true,
             "optional": false,
             "advanced": false,
@@ -319,7 +319,7 @@
         "canAddParameters": false,
         "codedata": {
           "lineRange": {
-            "fileName": "main.bal",
+            "fileName": "rabbitmq.bal",
             "startLine": {
               "line": 5,
               "offset": 4

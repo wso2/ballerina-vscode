@@ -1,6 +1,6 @@
 {
-  "filePath": "sample7/main.bal",
-  "description": "Test the generation of service model for a rabbitmq service",
+  "filePath": "sample11/kafka.bal",
+  "description": "Test the generation of service model for a Kafka service with data binding parameter",
   "start": {
     "line": 4,
     "offset": 0
@@ -10,16 +10,16 @@
     "offset": 0
   },
   "response": {
-    "id": "10",
-    "name": "RabbitMQ Event Handler",
-    "type": "rabbitmq",
-    "displayName": "RabbitMQ Event Handler",
-    "moduleName": "rabbitmq",
+    "id": "11",
+    "name": "Kafka Event Handler",
+    "type": "kafka",
+    "displayName": "Kafka Event Handler",
+    "moduleName": "kafka",
     "orgName": "ballerinax",
-    "version": "3.2.0",
-    "packageName": "rabbitmq",
-    "listenerProtocol": "rabbitmq",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+    "version": "4.5.0",
+    "packageName": "kafka",
+    "listenerProtocol": "kafka",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
     "documentation": {
       "metadata": {
         "label": "Description",
@@ -38,19 +38,19 @@
     "properties": {
       "listener": {
         "metadata": {
-          "label": "Listeners",
-          "description": "The Listeners to be bound with the service"
+          "label": "Listener",
+          "description": "The Listener to be bound with the service"
         },
         "codedata": {
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
-        "valueTypeConstraint": "rabbitmq:Listener",
-        "value": "rabbitmqListener",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": "kafka:Listener",
+        "value": "kafkaListener",
         "values": [],
         "items": [
-          "rabbitmqListener"
+          "kafkaListener"
         ],
         "enabled": true,
         "editable": true,
@@ -77,56 +77,11 @@
         "editable": false,
         "optional": false,
         "advanced": false
-      },
-      "stringLiteral": {
-        "metadata": {
-          "label": "Queue Name",
-          "description": "The name of the queue"
-        },
-        "codedata": {
-          "type": "STRING_LITERAL"
-        },
-        "placeholder": "\"\"",
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
-        "value": "\"queueName\"",
-        "values": [],
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
-      "annotServiceConfig": {
-        "metadata": {
-          "label": "Service Configuration",
-          "description": "Define advanced queue configurations "
-        },
-        "codedata": {
-          "type": "ANNOTATION_ATTACHMENT",
-          "originalName": "ServiceConfig"
-        },
-        "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
-        "value": "",
-        "values": [],
-        "typeMembers": [
-          {
-            "type": "RabbitMQServiceConfig",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "kind": "RECORD_TYPE",
-            "selected": true
-          }
-        ],
-        "enabled": true,
-        "editable": true,
-        "optional": true,
-        "advanced": true
       }
     },
     "codedata": {
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "kafka.bal",
         "startLine": {
           "line": 4,
           "offset": 0
@@ -140,22 +95,22 @@
     "functions": [
       {
         "metadata": {
-          "label": "onMessage",
-          "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
+          "label": "onConsumerRecord",
+          "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
         },
         "kind": "REMOTE",
         "name": {
           "metadata": {
-            "label": "onMessage",
-            "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
+            "label": "onConsumerRecord",
+            "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
           },
           "codedata": {
             "type": "FUNCTION_NAME"
           },
-          "placeholder": "onMessage",
+          "placeholder": "onConsumerRecord",
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "onMessage",
+          "value": "onConsumerRecord",
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -164,8 +119,8 @@
         "parameters": [
           {
             "metadata": {
-              "label": "message",
-              "description": "The message received from the RabbitMQ queue"
+              "label": "records",
+              "description": "The records received for Kafka topic(s)"
             },
             "kind": "REQUIRED",
             "type": {
@@ -173,9 +128,9 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:AnydataMessage",
+              "placeholder": "kafka:AnydataConsumerRecord[]",
               "valueType": "TYPE",
-              "value": "rabbitmq:AnydataMessage",
+              "value": "kafka:AnydataConsumerRecord[]",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -183,15 +138,15 @@
             },
             "name": {
               "metadata": {
-                "label": "message",
-                "description": "The message received from the RabbitMQ queue"
+                "label": "records",
+                "description": "The records received for Kafka topic(s)"
               },
               "codedata": {
                 "type": "PARAMETER_NAME"
               },
-              "placeholder": "message",
+              "placeholder": "records",
               "valueType": "IDENTIFIER",
-              "value": "message",
+              "value": "records",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -210,7 +165,7 @@
               "optional": true,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": false,
             "advanced": false,
@@ -219,7 +174,7 @@
           {
             "metadata": {
               "label": "caller",
-              "description": "The RabbitMQ caller object to acknowledge the message"
+              "description": "The Kafka caller object to commit the offsets"
             },
             "kind": "OPTIONAL",
             "type": {
@@ -227,9 +182,9 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:Caller",
+              "placeholder": "kafka:Caller",
               "valueType": "TYPE",
-              "value": "rabbitmq:Caller",
+              "value": "kafka:Caller",
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -238,7 +193,7 @@
             "name": {
               "metadata": {
                 "label": "caller",
-                "description": "The RabbitMQ caller object to acknowledge the message"
+                "description": "The Kafka caller object to commit the offsets"
               },
               "codedata": {
                 "type": "PARAMETER_NAME"
@@ -278,7 +233,7 @@
             "kind": "DATA_BINDING",
             "type": {
               "valueType": "TYPE",
-              "value": "",
+              "value": "Order",
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -286,13 +241,13 @@
             },
             "name": {
               "valueType": "IDENTIFIER",
-              "value": "message",
+              "value": "records",
               "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false
             },
-            "enabled": false,
+            "enabled": true,
             "editable": true,
             "optional": false,
             "advanced": false,
@@ -319,7 +274,7 @@
         "canAddParameters": false,
         "codedata": {
           "lineRange": {
-            "fileName": "main.bal",
+            "fileName": "kafka.bal",
             "startLine": {
               "line": 5,
               "offset": 4
@@ -329,7 +284,7 @@
               "offset": 5
             }
           },
-          "moduleName": "rabbitmq"
+          "moduleName": "kafka"
         },
         "properties": {
           "canDataBind": {
@@ -367,61 +322,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "message",
-              "description": "The message received from the RabbitMQ queue"
-            },
-            "kind": "REQUIRED",
-            "type": {
-              "metadata": {
-                "label": "Type",
-                "description": "The type of the parameter"
-              },
-              "placeholder": "rabbitmq:AnydataMessage",
-              "valueType": "TYPE",
-              "value": "rabbitmq:AnydataMessage",
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
-            "name": {
-              "metadata": {
-                "label": "message",
-                "description": "The message received from the RabbitMQ queue"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "message",
-              "valueType": "IDENTIFIER",
-              "value": "message",
-              "enabled": true,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            "defaultValue": {
-              "metadata": {
-                "label": "Default Value",
-                "description": "The default value of the parameter"
-              },
-              "placeholder": "",
-              "valueType": "EXPRESSION",
-              "value": "",
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false,
-            "hidden": false
-          },
-          {
-            "metadata": {
-              "label": "rabbitmqError",
+              "label": "kafkaError",
               "description": "The error occurred during the message processing"
             },
             "kind": "REQUIRED",
@@ -430,9 +331,9 @@
                 "label": "Type",
                 "description": "The type of the parameter"
               },
-              "placeholder": "rabbitmq:Error",
+              "placeholder": "kafka:Error",
               "valueType": "TYPE",
-              "value": "rabbitmq:Error",
+              "value": "kafka:Error",
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -440,15 +341,15 @@
             },
             "name": {
               "metadata": {
-                "label": "rabbitmqError",
+                "label": "kafkaError",
                 "description": "The error occurred during the message processing"
               },
               "codedata": {
                 "type": "PARAMETER_NAME"
               },
-              "placeholder": "rabbitmqError",
+              "placeholder": "kafkaError",
               "valueType": "IDENTIFIER",
-              "value": "rabbitmqError",
+              "value": "kafkaError",
               "enabled": true,
               "editable": true,
               "optional": false,
