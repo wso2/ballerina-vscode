@@ -344,19 +344,19 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         </AccessorType>
                     )}
                     {!isAutomation && <Path>{parentMetadata?.label || ""}</Path>}
-                    {parameters && (
+                    {/* {parameters && (
                         <WrappedTooltip content={parameters}>
                             <Parameters>({parameters})</Parameters>
                         </WrappedTooltip>
-                    )}
+                    )} */}
                 </LeftElementsWrapper>
-                {returnType && (
+                {/* {returnType && (
                     <WrappedTooltip content={returnType}>
                         <ReturnType>
                             <ReturnTypeIcon name="bi-return" /> {returnType}
                         </ReturnType>
                     </WrappedTooltip>
-                )}
+                )} */}
             </SubTitleWrapper>
         );
     };
