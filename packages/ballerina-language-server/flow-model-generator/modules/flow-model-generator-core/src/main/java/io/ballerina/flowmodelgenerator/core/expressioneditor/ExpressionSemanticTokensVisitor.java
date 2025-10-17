@@ -30,10 +30,10 @@ import org.eclipse.lsp4j.SemanticTokens;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Visitor class for expression semantic tokens. This is a stateless visitor that analyzes expressions
@@ -42,11 +42,12 @@ import java.util.TreeSet;
  */
 public class ExpressionSemanticTokensVisitor extends NodeVisitor {
 
-    private final Set<SemanticToken> semanticTokens;
-    private boolean inFunctionCallArgument = false;
+    private final List<SemanticToken> semanticTokens;
+    private final Set<Long> seenPositions;
 
     public ExpressionSemanticTokensVisitor() {
-        this.semanticTokens = new TreeSet<>(SemanticToken.semanticTokenComparator);
+        this.semanticTokens = new ArrayList<>();
+        this.seenPositions = new HashSet<>();
     }
 
     /**
@@ -56,10 +57,15 @@ public class ExpressionSemanticTokensVisitor extends NodeVisitor {
      * @return {@link SemanticTokens}
      */
     public SemanticTokens getSemanticTokens(Node node) {
-        List<Integer> data = new ArrayList<>();
         node.accept(this);
+
+        // Sort tokens by position (line, then column)
+        semanticTokens.sort(SemanticToken.semanticTokenComparator);
+
+        // Pre-allocate with exact capacity needed (5 integers per token)
+        List<Integer> data = new ArrayList<>(semanticTokens.size() * 5);
         SemanticToken previousToken = null;
-        for (SemanticToken semanticToken : this.semanticTokens) {
+        for (SemanticToken semanticToken : semanticTokens) {
             previousToken = semanticToken.processSemanticToken(data, previousToken);
         }
         return new SemanticTokens(data);
@@ -67,10 +73,7 @@ public class ExpressionSemanticTokensVisitor extends NodeVisitor {
 
     @Override
     public void visit(SimpleNameReferenceNode simpleNameReferenceNode) {
-        // Mark as VARIABLE only if not inside function call arguments
-        if (!inFunctionCallArgument) {
-            addSemanticToken(simpleNameReferenceNode, ExpressionTokenTypes.VARIABLE.getId());
-        }
+        addSemanticToken(simpleNameReferenceNode, ExpressionTokenTypes.VARIABLE.getId());
     }
 
     @Override
@@ -105,21 +108,30 @@ public class ExpressionSemanticTokensVisitor extends NodeVisitor {
      */
     private void addSemanticToken(Node node, int type) {
         LinePosition startLine = node.lineRange().startLine();
-        SemanticToken semanticToken = new SemanticToken(startLine.line(), startLine.offset());
-        if (!semanticTokens.contains(semanticToken)) {
-            // For Token nodes, use text().length(); for other nodes, use textRange().length()
-            int length;
-            if (node instanceof Token token) {
-                String text = token.text().trim();
-                length = text.isEmpty() ? token.text().length() : text.length();
-            } else {
-                int textRangeLength = node.textRange().length();
-                // If textRange().length() returns 0, fall back to toSourceCode().length()
-                length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
-            }
-            semanticToken.setProperties(length, type, 0); // No modifiers for expressions
-            semanticTokens.add(semanticToken);
+        int line = startLine.line();
+        int column = startLine.offset();
+
+        // Efficient O(1) duplicate check using position hash (line << 32 | column)
+        long positionKey = ((long) line << 32) | column;
+        if (!seenPositions.add(positionKey)) {
+            return; // Already processed this position
         }
+
+        // Calculate token length using pattern matching
+        int length;
+        if (node instanceof Token token) {
+            String text = token.text().trim();
+            length = text.isEmpty() ? token.text().length() : text.length();
+        } else {
+            int textRangeLength = node.textRange().length();
+            // Avoid expensive toSourceCode() call - only use for specific zero-length cases
+            length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
+        }
+
+        // Create and add new semantic token
+        SemanticToken semanticToken = new SemanticToken(line, column);
+        semanticToken.setProperties(length, type, 0); // No modifiers for expressions
+        semanticTokens.add(semanticToken);
     }
 
     /**
@@ -127,8 +139,8 @@ public class ExpressionSemanticTokensVisitor extends NodeVisitor {
      */
     static class SemanticToken implements Comparable<SemanticToken> {
 
-        private final int line;
-        private final int column;
+        final int line;
+        final int column;
         private int length;
         private int type;
         private int modifiers;
@@ -138,11 +150,11 @@ public class ExpressionSemanticTokensVisitor extends NodeVisitor {
             this.column = column;
         }
 
-        private int getLine() {
+        int getLine() {
             return line;
         }
 
-        private int getColumn() {
+        int getColumn() {
             return column;
         }
 
