@@ -49,7 +49,6 @@ export enum WizardView {
 }
 
 interface EditConnectionWizardProps {
-    projectUri: string;
     connectionName: string;
     onClose?: () => void;
 }

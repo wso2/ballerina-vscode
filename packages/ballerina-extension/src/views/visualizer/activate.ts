@@ -86,7 +86,7 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS, () => {
-            return buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
+            return buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
         })
     );
 

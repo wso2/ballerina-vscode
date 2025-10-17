@@ -64,9 +64,9 @@ export class VisualizerWebview {
             }
 
             // Check the file is changed in the project.
-            const projectUri = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const documentUri = document.document.uri.toString();
-            const isDocumentUnderProject = documentUri.includes(projectUri);
+            const isDocumentUnderProject = documentUri.includes(projectPath);
             // Reset visualizer the undo-redo stack if user did changes in the editor
             if (isOpened && isDocumentUnderProject) {
                 undoRedoManager.reset();

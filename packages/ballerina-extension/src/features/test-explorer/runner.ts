@@ -138,7 +138,7 @@ enum TEST_STATUS {
 }
 
 async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, individualTest: boolean = false) {
-    const projectRoot = StateMachine.context().projectUri;
+    const projectRoot = StateMachine.context().projectPath;
 
     // reading test results
     let testsJson: JSON | undefined = undefined;
@@ -213,7 +213,7 @@ function endGroup(test: TestItem, allPassed: boolean, run: TestRun) {
 
 async function runCommand(command: string): Promise<void> {
     return new Promise((resolve, reject) => {
-        exec(command, { cwd: StateMachine.context().projectUri }, (error, stdout, stderr) => {
+        exec(command, { cwd: StateMachine.context().projectPath }, (error, stdout, stderr) => {
             if (error) {
                 // Report test failure
                 reject(new Error(stderr || 'Test failed!'));
@@ -229,7 +229,7 @@ async function runCommand(command: string): Promise<void> {
  */
 export async function startDebugging(testDebug: boolean, args: any[])
     : Promise<void> {
-    const uri: Uri = Uri.parse(StateMachine.context().projectUri);
+    const uri: Uri = Uri.parse(StateMachine.context().projectPath);
     const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
     const debugConfig: DebugConfiguration = await constructDebugConfig(uri, testDebug, args);
 

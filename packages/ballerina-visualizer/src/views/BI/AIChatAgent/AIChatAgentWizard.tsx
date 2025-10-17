@@ -111,8 +111,8 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
             // get project path
-            const filePath = await rpcClient.getVisualizerLocation();
-            projectPath.current = filePath.projectUri;
+            const visualizerContext = await rpcClient.getVisualizerLocation();
+            projectPath.current = visualizerContext.projectPath;
 
             // Search for agent node in the current file
             const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({

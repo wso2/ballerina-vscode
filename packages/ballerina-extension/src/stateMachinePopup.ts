@@ -146,7 +146,7 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
         initializeData: (context, event) => {
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
             return new Promise((resolve, reject) => {
-                const documentUri = StateMachine.context().projectUri;
+                const documentUri = StateMachine.context().projectPath;
                 resolve({ documentUri });
             });
         },

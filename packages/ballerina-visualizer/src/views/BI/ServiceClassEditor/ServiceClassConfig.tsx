@@ -60,12 +60,11 @@ const LoadingContainer = styled.div`
 interface ServiceClassConfigProps {
     fileName: string;
     position: NodePosition;
-    projectUri: string;
 }
 
 // TODO: Need to support inclusion type configurable option
 export function ServiceClassConfig(props: ServiceClassConfigProps) {
-    const { fileName, position, projectUri } = props;
+    const { fileName, position } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
