@@ -89,7 +89,7 @@ const getInitialVisibility = (visibilities: string[] = []) => {
     if (visibilities.includes(ServiceInfoVisibilityEnum.Organization)) {
         return ServiceInfoVisibilityEnum.Organization;
     }
-    return;
+    return "";
 };
 
 const getPossibleSchemas = (selectedVisibility: string, connectionSchemas: MarketplaceItemSchema[] = []) => {

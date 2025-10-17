@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {  PlatformExtAPI } from "@wso2/ballerina-core";
+import {  FlowNode, PlatformExtAPI, UpdateConfigVariableRequestV2 } from "@wso2/ballerina-core";
 import { extensions, window } from "vscode";
 import * as fs from "fs";
 import * as path from "path";
@@ -24,6 +24,8 @@ import { log } from "../../utils/logger";
 import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import * as toml from "@iarna/toml";
+import { StateMachine } from "../../stateMachine";
+import { CommonRpcManager } from "../common/rpc-manager";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     private async getPlatformExt() {
@@ -137,13 +139,16 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 return "";
             }
 
+            // Generate Bal client
             const diagram = new BiDiagramRpcManager();
+            const common = new CommonRpcManager();
             await diagram.generateOpenApiClient({
                 module: moduleName,
                 openApiContractPath: filePath,
                 projectPath: params.componentDir
             });
 
+            // Update bal.toml with created connection reference
             const balTomlPath = path.join(params.componentDir, "Ballerina.toml");
             if(fs.existsSync(balTomlPath)){
                 const fileContent = fs.readFileSync(balTomlPath, "utf-8");
@@ -156,8 +161,43 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
             }
 
+            // add ballerina/os import
+            // following not working
+            // const updateImports = await diagram.updateImports({
+            //     filePath: path.join(StateMachine.context().projectUri, "config.bal"),
+            //     importStatement: "import ballerina/os;"
+            // })
+            // console.log("updateImports", updateImports)
+
+            // create necessary config
+            const newConfigNode = await diagram.getConfigVariableNodeTemplate({isNew: true, isEnvVariable: true})
+
+            const newNode: FlowNode = {
+                ...newConfigNode?.flowNode,
+                codedata: { ...newConfigNode?.flowNode?.codedata, lineRange:{ "startLine":{"line":0,"offset":0},"endLine":{"line":0,"offset":0}} as any},
+                properties: {
+                    ...newConfigNode?.flowNode?.properties,
+                    // defaultValue: { ...newConfigNode?.flowNode?.properties?.defaultValue, value: `os:getEnv(\"new_env\")`, modified: true },
+                    defaultValue: { ...newConfigNode?.flowNode?.properties?.defaultValue, value: "?", modified: true },
+                    type: { ...newConfigNode?.flowNode?.properties?.type, value: "string", modified: true },
+                    variable: { ...newConfigNode?.flowNode?.properties?.variable, value: "connectionConfigName2", modified: true },
+                }
+            }
+
+            const tomValues = await common.getCurrentProjectTomlValues();
+
+            const req: UpdateConfigVariableRequestV2 = {
+                configVariable: newNode,
+                configFilePath: path.join(StateMachine.context().projectUri, "config.bal"),
+                packageName: `${tomValues?.package.org}/${tomValues?.package.name}`,
+                moduleName: "",
+            }
+
+            const resp = await diagram.updateConfigVariablesV2(req)
+
             return "";
         } catch (err) {
+            window.showErrorMessage("Failed to created Devant connection")
             log(`Failed to invoke createDevantComponentConnection: ${err}`);
         }
     }
