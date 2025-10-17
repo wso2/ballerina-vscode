@@ -390,7 +390,7 @@
         "body": {
           "metadata": {
             "label": "Response Body Schema",
-            "description": "The data type or schema of the response body"
+            "description": "Schema of the response body or data type of the response body"
           },
           "enabled": true,
           "editable": true,
@@ -403,7 +403,7 @@
         },
         "mediaType": {
           "metadata": {
-            "label": "Media Type",
+            "label": "Content Type",
             "description": "Value for the Content-Type header in the response"
           },
           "enabled": true,

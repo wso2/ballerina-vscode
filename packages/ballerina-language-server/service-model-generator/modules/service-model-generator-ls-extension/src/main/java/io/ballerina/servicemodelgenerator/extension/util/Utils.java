@@ -492,19 +492,17 @@ public final class Utils {
                 Value property = service.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
             } else {
-                if (!service.getProperties().containsKey(propertyName)) {
-                    Codedata codedata = new Codedata.Builder()
-                            .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
-                            .setOriginalName(annotName)
-                            .setModuleName(split.length > 1 ? split[0] : "")
-                            .build();
+                Codedata codedata = new Codedata.Builder()
+                        .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                        .setOriginalName(annotName)
+                        .setModuleName(split.length > 1 ? split[0] : "")
+                        .build();
 
-                    Value value = new Value.ValueBuilder()
-                            .setCodedata(codedata)
-                            .value(getAnnotationValue(annotationNode))
-                            .build();
-                    service.getProperties().put(propertyName, value);
-                }
+                Value value = new Value.ValueBuilder()
+                        .setCodedata(codedata)
+                        .value(getAnnotationValue(annotationNode))
+                        .build();
+                service.getProperties().put(propertyName, value);
             }
         });
     }
