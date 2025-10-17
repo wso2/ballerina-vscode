@@ -36,16 +36,16 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Visitor class for expression semantic tokens. This is a stateless visitor that analyzes expressions
+ * Visitor class for generating semantic tokens from expression nodes in the syntax tree.
  *
  * @since 1.3.0
  */
-public class ExpressionSemanticTokensVisitor extends NodeVisitor {
+public class SemanticTokenVisitor extends NodeVisitor {
 
     private final List<SemanticToken> semanticTokens;
     private final Set<Long> seenPositions;
 
-    public ExpressionSemanticTokensVisitor() {
+    public SemanticTokenVisitor() {
         this.semanticTokens = new ArrayList<>();
         this.seenPositions = new HashSet<>();
     }

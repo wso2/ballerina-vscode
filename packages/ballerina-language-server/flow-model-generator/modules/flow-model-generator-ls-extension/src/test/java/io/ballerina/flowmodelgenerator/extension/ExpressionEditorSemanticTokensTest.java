@@ -75,13 +75,6 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
     }
 
     @Override
-    protected String[] skipList() {
-        return new String[]{
-                // Add test configs to skip if needed
-        };
-    }
-
-    @Override
     protected String getResourceDir() {
         return "semantic_tokens";
     }

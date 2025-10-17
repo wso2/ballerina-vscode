@@ -27,7 +27,7 @@ import io.ballerina.flowmodelgenerator.core.VisibleVariableTypesGenerator;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.Debouncer;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
-import io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens.ExpressionSemanticTokensVisitor;
+import io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens.SemanticTokenVisitor;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.CompletionRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.DiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.SignatureHelpRequest;
@@ -235,7 +235,7 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
                 ExpressionNode expressionNode = NodeParser.parseExpression(request.expression());
 
                 // Create visitor and generate tokens
-                ExpressionSemanticTokensVisitor visitor = new ExpressionSemanticTokensVisitor();
+                SemanticTokenVisitor visitor = new SemanticTokenVisitor();
                 return visitor.getSemanticTokens(expressionNode);
             } catch (Throwable e) {
                 // Return empty tokens on parse error
