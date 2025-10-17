@@ -79,6 +79,7 @@ export interface AIPanelAPI {
     getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateCode: (params: GenerateCodeRequest) => void;
+    generateDesign: (params: GenerateCodeRequest) => Promise<boolean>;
     repairGeneratedCode: (params: RepairParams) => void;
     generateTestPlan: (params: TestPlanGenerationRequest) => void;
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
@@ -87,6 +88,6 @@ export interface AIPanelAPI {
     // ==================================
     // Doc Generation Related Functions
     // ==================================
-    getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
+    getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<boolean>;
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
 }
