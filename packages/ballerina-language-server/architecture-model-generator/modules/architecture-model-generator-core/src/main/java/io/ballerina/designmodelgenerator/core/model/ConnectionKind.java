@@ -21,7 +21,7 @@ package io.ballerina.designmodelgenerator.core.model;
 /**
  * Represents the kind connection in the design model.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public enum ConnectionKind {
     AGENT("Agent"),
