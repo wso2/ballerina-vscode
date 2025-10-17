@@ -35,7 +35,7 @@ public class Connection extends DesignGraphNode {
     private final String icon;
     private final Set<String> dependentFunctions;
     private final Set<String> dependentConnection;
-    private ConnectionKind kind = ConnectionKind.CONNECTION;
+    private String kind = ConnectionKind.CONNECTION.toString();
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon) {
         super(sortText);
@@ -65,7 +65,7 @@ public class Connection extends DesignGraphNode {
         this.location = location;
         this.scope = scope;
         this.icon = icon;
-        this.kind = kind;
+        this.kind = kind.toString();
         this.dependentFunctions = new HashSet<>();
         this.dependentConnection = new HashSet<>();
     }
@@ -111,7 +111,7 @@ public class Connection extends DesignGraphNode {
         this.dependentConnection.add(dependentConnection);
     }
 
-    public ConnectionKind getKind() {
+    public String getKind() {
         return kind;
     }
 

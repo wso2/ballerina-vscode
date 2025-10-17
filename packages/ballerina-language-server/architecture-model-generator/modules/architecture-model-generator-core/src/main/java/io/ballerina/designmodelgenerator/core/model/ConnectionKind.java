@@ -18,24 +18,15 @@
 
 package io.ballerina.designmodelgenerator.core.model;
 
-import com.google.gson.annotations.SerializedName;
-
 /**
- * Represents the kind/type of a connection in the design model.
+ * Represents the kind connection in the design model.
  *
  * @since 1.0.0
  */
 public enum ConnectionKind {
-    @SerializedName("Agent")
     AGENT("Agent"),
-
-    @SerializedName("Model Provider")
     MODEL_PROVIDER("Model Provider"),
-
-    @SerializedName("Embedding Provider")
     EMBEDDING_PROVIDER("Embedding Provider"),
-
-    @SerializedName("Connection")
     CONNECTION("Connection");
 
     private final String displayName;
@@ -52,4 +43,5 @@ public enum ConnectionKind {
     public String toString() {
         return displayName;
     }
+
 }
