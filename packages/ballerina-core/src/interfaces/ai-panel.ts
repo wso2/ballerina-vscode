@@ -25,6 +25,7 @@ export enum Command {
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
+    Design = '/design',
     Doc = '/doc'
 }
 

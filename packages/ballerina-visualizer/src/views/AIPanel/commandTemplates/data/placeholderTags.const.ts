@@ -72,6 +72,9 @@ export const placeholderTags: PlaceholderTagMap = {
     [Command.OpenAPI]: {
         'wildcard': {},
     },
+    [Command.Design]: {
+        'wildcard': {},
+    },
     [Command.Doc]: {
         'generate-user-doc': {
             servicename: [],

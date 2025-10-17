@@ -46,6 +46,7 @@ import {
     generateCode,
     GenerateCodeRequest,
     generateDataMapperModel,
+    generateDesign,
     generateFunctionTests,
     generateHealthcareCode,
     generateMappings,
@@ -169,11 +170,12 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getRelevantLibrariesAndFunctions, (args: RelevantLibrariesAndFunctionsRequest) => rpcManger.getRelevantLibrariesAndFunctions(args));
     messenger.onNotification(generateOpenAPI, (args: GenerateOpenAPIRequest) => rpcManger.generateOpenAPI(args));
     messenger.onNotification(generateCode, (args: GenerateCodeRequest) => rpcManger.generateCode(args));
+    messenger.onRequest(generateDesign, (args: GenerateCodeRequest) => rpcManger.generateDesign(args));
     messenger.onNotification(repairGeneratedCode, (args: RepairParams) => rpcManger.repairGeneratedCode(args));
     messenger.onNotification(generateTestPlan, (args: TestPlanGenerationRequest) => rpcManger.generateTestPlan(args));
     messenger.onNotification(generateFunctionTests, (args: TestGeneratorIntermediaryState) => rpcManger.generateFunctionTests(args));
     messenger.onNotification(generateHealthcareCode, (args: GenerateCodeRequest) => rpcManger.generateHealthcareCode(args));
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
-    messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
+    messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
 }

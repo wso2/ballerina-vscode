@@ -723,6 +723,14 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
+                case Command.Design: {
+                    switch (parsedInput.templateId) {
+                        case TemplateId.Wildcard:
+                            await processDesignGeneration(parsedInput.text, inputText);
+                            break;
+                    }
+                    break;
+                }
                 case Command.Doc: {
                     switch (parsedInput.templateId) {
                         case "generate-user-doc":
@@ -1667,6 +1675,17 @@ const AIChat: React.FC = () => {
         };
 
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
+    }
+
+    async function processDesignGeneration(useCase: string, message: string) {
+        const requestBody: GenerateCodeRequest = {
+            usecase: useCase,
+            chatHistory: chatArray,
+            operationType: CodeGenerationType.CODE_GENERATION,
+            fileAttachmentContents: [],
+        };
+
+        await rpcClient.getAiPanelRpcClient().generateDesign(requestBody);
     }
 
     async function handleStop() {
