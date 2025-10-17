@@ -64,6 +64,8 @@ const ServiceContainer = styled.div`
 const FunctionsContainer = styled.div`
     max-height: 550px;
     overflow: scroll;
+    padding: 15px;
+    padding-right: 0px;
 `;
 
 const ButtonText = styled.span`
@@ -75,7 +77,7 @@ const ButtonText = styled.span`
 
 const HeaderContainer = styled.div`
     display: flex;
-    padding: 15px;
+    padding: 0px 15px;
     align-items: center;
     justify-content: space-between;
 `;
@@ -154,7 +156,6 @@ const EmptyReadmeContainer = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    height: 100%;
 `;
 
 const Description = styled(Typography)`
@@ -333,19 +334,19 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             });
         }
 
-        if (!hasInitMethod) {
-            options.push({
-                title: "Add Init Function",
-                description: "Add a new init function within the service",
-                value: ADD_INIT_FUNCTION
-            });
-        }
+        // if (!hasInitMethod) {
+        //     options.push({
+        //         title: "Add Init Function",
+        //         description: "Add a new init function within the service",
+        //         value: ADD_INIT_FUNCTION
+        //     });
+        // }
 
-        options.push({
-            title: "Add Function",
-            description: "Add a new reusable function within the service",
-            value: ADD_REUSABLE_FUNCTION
-        });
+        // options.push({
+        //     title: "Add Sub Flow",
+        //     description: "Add a new reusable function within the service",
+        //     value: ADD_REUSABLE_FUNCTION
+        // });
 
         options.push({
             title: "Export OpenAPI Spec",
@@ -685,6 +686,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
 
     const resourcesCount = resources
+        .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
         .filter((resource) => {
             const search = searchValue.toLowerCase();
             const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
@@ -785,7 +787,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         </MetadataRow>
                                     )}
 
-                                    {resources?.
+                                    {/* {resources?.
                                         filter((func) => func.name === "init")
                                         .map((functionModel, index) => (
                                             <MetadataRow>
@@ -799,62 +801,93 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     </LinkButton>
                                                 </Typography>
                                             </MetadataRow>
-                                        ))}
+                                        ))} */}
                                 </ServiceMetadataContainer>
                             )}
 
-                            {/* Listing Resources in HTTP */}
-                            {isHttpService && (
+
+                            {resources.filter((resource) => resource.type === DIRECTORY_MAP.FUNCTION && resource.name === "init").length > 0 && (
                                 <>
                                     <SectionHeader
-                                        title="Resources"
-                                        subtitle={`${resourcesCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
+                                        title="Initialization Function"
+                                        subtitle={`Define the initialization logic for the service`}
                                     >
-                                        <ActionGroup>
-                                            {resources.length > 10 && (
-                                                <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
-                                            )}
-                                            {!haveServiceTypeName && resourcesCount > 0 && (
-                                                <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
-                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
-                                                </Button>
-                                            )}
-                                        </ActionGroup>
                                     </SectionHeader>
                                     <FunctionsContainer>
                                         {resources
-                                            .filter((resource) => {
-                                                const search = searchValue.toLowerCase();
-                                                const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
-                                                const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
-                                                return nameMatch || iconMatch;
-                                            })
-                                            .filter((resource) => resource.name !== "init")
+                                            .filter((resource) => resource.type === DIRECTORY_MAP.FUNCTION && resource.name === "init")
                                             .map((resource, index) => (
                                                 <ResourceAccordionV2
+                                                    methodName="INIT"
                                                     key={`${index}-${resource.name}`}
                                                     resource={resource}
                                                     readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
                                                     onEditResource={handleFunctionEdit}
                                                     onDeleteResource={handleFunctionDelete}
-                                                    onResourceImplement={handleOpenDiagram}
+                                                    onResourceImplement={() => { openInit(resource) }}
                                                 />
                                             ))}
                                     </FunctionsContainer>
 
-                                    {resourcesCount === 0 && (
-                                        <EmptyReadmeContainer>
-                                            <Description variant="body2">
-                                                No resources found. Add a new resource.
-                                            </Description>
-                                            <Button
-                                                appearance="primary"
-                                                onClick={handleNewResourceFunction}>
-                                                <Codicon name="add" sx={{ marginRight: 5 }} />
-                                                Add Resource
-                                            </Button>
-                                        </EmptyReadmeContainer>
-                                    )}
+                                </>
+                            )}
+
+
+                            {/* Listing Resources in HTTP */}
+                            {isHttpService && (
+                                <>
+
+                                    <>
+                                        <SectionHeader
+                                            title="Resources"
+                                            subtitle={`${resourcesCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
+                                        >
+                                            <ActionGroup>
+                                                {resources.length > 10 && (
+                                                    <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
+                                                )}
+                                                {!haveServiceTypeName && resourcesCount > 0 && (
+                                                    <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
+                                                        <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
+                                                    </Button>
+                                                )}
+                                            </ActionGroup>
+                                        </SectionHeader>
+                                        <FunctionsContainer>
+                                            {resources
+                                                .filter((resource) => {
+                                                    const search = searchValue.toLowerCase();
+                                                    const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                                    const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                                    return nameMatch || iconMatch;
+                                                })
+                                                .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
+                                                .map((resource, index) => (
+                                                    <ResourceAccordionV2
+                                                        key={`${index}-${resource.name}`}
+                                                        resource={resource}
+                                                        readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                        onEditResource={handleFunctionEdit}
+                                                        onDeleteResource={handleFunctionDelete}
+                                                        onResourceImplement={handleOpenDiagram}
+                                                    />
+                                                ))}
+                                        </FunctionsContainer>
+
+                                        {resourcesCount === 0 && (
+                                            <EmptyReadmeContainer>
+                                                <Description variant="body2">
+                                                    No resources found. Add a new resource.
+                                                </Description>
+                                                <Button
+                                                    appearance="primary"
+                                                    onClick={handleNewResourceFunction}>
+                                                    <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                    Add Resource
+                                                </Button>
+                                            </EmptyReadmeContainer>
+                                        )}
+                                    </>
                                 </>
                             )}
 
@@ -913,14 +946,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             )}
 
                             {/* Listing service type bound functions */}
-                            {!(isHttpService || isMcpService) && enabledHandlers.length > 0 && (
+                            {!(isHttpService || isMcpService) && (
                                 <>
                                     <SectionHeader
                                         title="Event Handlers"
                                         subtitle="Define how the service responds to events"
                                     >
                                         <ActionGroup>
-                                            {unusedHandlers.length > 0 && (
+                                            {enabledHandlers.length !== 0 && unusedHandlers.length > 0 && (
                                                 <Button appearance="primary" tooltip="Add Handler" onClick={onSelectAddHandler}>
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Handler</ButtonText>
                                                 </Button>
@@ -939,11 +972,25 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             />
                                         ))}
                                     </FunctionsContainer>
+
+                                    {enabledHandlers.length === 0 && (
+                                        <EmptyReadmeContainer>
+                                            <Description variant="body2">
+                                                No event handlers found. Add a new event handler.
+                                            </Description>
+                                            <Button
+                                                appearance="primary"
+                                                onClick={onSelectAddHandler}>
+                                                <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                Add Handler
+                                            </Button>
+                                        </EmptyReadmeContainer>
+                                    )}
                                 </>
                             )}
 
                             {/* Listing service type bound functions */}
-                            {(initMethod && (
+                            {/* {(initMethod && (
                                 <>
                                     <SectionHeader
                                         title="Initialization Function"
@@ -960,10 +1007,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         />
                                     </FunctionsContainer>
                                 </>
-                            ))}
+                            ))} */}
 
                             {/* Listing service type bound functions */}
-                            {(objectMethods.length > 0 && (
+                            {/* {(objectMethods.length > 0 && (
                                 <>
                                     <SectionHeader
                                         title="Functions"
@@ -982,7 +1029,46 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         ))}
                                     </FunctionsContainer>
                                 </>
-                            ))}
+                            ))} */}
+
+
+                            {resources.filter((resource) => resource.type === DIRECTORY_MAP.FUNCTION && resource.name !== "init").length > 0 && (
+                                <>
+                                    <SectionHeader
+                                        title="Functions"
+                                        subtitle="Reusable functions within the service"
+                                    >
+                                        <ActionGroup>
+                                            {/* {!haveServiceTypeName && resourcesCount > 0 && (
+                                                <Button appearance="primary" tooltip="Add Sub Flow" onClick={handleNewResourceFunction}>
+                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Sub Flow</ButtonText>
+                                                </Button>
+                                            )} */}
+                                        </ActionGroup>
+                                    </SectionHeader>
+                                    <FunctionsContainer>
+                                        {resources
+                                            .filter((resource) => {
+                                                const search = searchValue.toLowerCase();
+                                                const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                                const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                                return nameMatch || iconMatch;
+                                            })
+                                            .filter((resource) => resource.type === DIRECTORY_MAP.FUNCTION && resource.name !== "init")
+                                            .map((resource, index) => (
+                                                <ResourceAccordionV2
+                                                    methodName="FUNC"
+                                                    key={`${index}-${resource.name}`}
+                                                    resource={resource}
+                                                    readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                    onEditResource={handleFunctionEdit}
+                                                    onDeleteResource={handleFunctionDelete}
+                                                    onResourceImplement={handleOpenDiagram}
+                                                />
+                                            ))}
+                                    </FunctionsContainer>
+                                </>
+                            )}
 
                             {/* This is for adding a http resource */}
                             {functionModel && isHttpService && functionModel.kind === "RESOURCE" && isNew && (
@@ -1103,13 +1189,13 @@ function SectionHeader({ title, subtitle, children }: SectionHeaderProps) {
             <div>
                 <Typography
                     variant="h3"
-                    sx={{ marginLeft: 10, fontWeight: 'bold' }}
+                    sx={{ marginLeft: 10, fontWeight: 'bold', marginBottom: 4 }}
                 >
                     {title}
                 </Typography>
                 <Typography
                     variant="body3"
-                    sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)' }}
+                    sx={{ marginLeft: 10, color: 'var(--vscode-descriptionForeground)', marginBottom: 0 }}
                 >
                     {subtitle}
                 </Typography>

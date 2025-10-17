@@ -118,6 +118,7 @@ export function getColorByMethod(method: string) {
 
 export interface ResourceAccordionProps {
     functionModel: FunctionModel;
+    method?: string;
     goToSource: (resource: FunctionModel) => void;
     onEditResource: (resource: FunctionModel) => void;
     onDeleteResource: (resource: FunctionModel) => void;
@@ -125,7 +126,7 @@ export interface ResourceAccordionProps {
 }
 
 export function ResourceAccordion(params: ResourceAccordionProps) {
-    const { functionModel, goToSource, onEditResource, onDeleteResource, onResourceImplement } = params;
+    const { functionModel, method, goToSource, onEditResource, onDeleteResource, onResourceImplement } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -173,7 +174,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox>
-                        handler
+                        {method || "Event"}
                     </MethodBox>
                     <MethodPath>{functionModel.name.value}</MethodPath>
                 </MethodSection>

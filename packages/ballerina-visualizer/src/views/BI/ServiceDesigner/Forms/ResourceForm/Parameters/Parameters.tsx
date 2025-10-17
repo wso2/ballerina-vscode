@@ -113,11 +113,19 @@ export function Parameters(props: ParametersProps) {
     };
 
     const onAddParamClick = (httpParamType: "QUERY" | "HEADER") => {
-        queryModel.name.value = "";
-        queryModel.type.value = "";
-        queryModel.httpParamType = httpParamType;
+        switch (httpParamType) {
+            case "QUERY":
+                queryModel.name.value = "";
+                queryModel.httpParamType = httpParamType;
+                setEditModel(queryModel);
+                break;
+            case "HEADER":
+                headerModel.name.value = "";
+                headerModel.httpParamType = httpParamType;
+                setEditModel(headerModel);
+                break;
+        }
         setIsNew(true);
-        setEditModel(queryModel);
         setEditingIndex(-1);
     };
 

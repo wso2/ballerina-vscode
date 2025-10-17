@@ -78,7 +78,7 @@ export function ParamItem(props: ParamItemProps) {
                     {param.httpParamType === "HEADER" && param.headerName.value && (
                         <ParamName>{param.headerName.value}</ParamName>
                     )}
-                    {param.name.value && (
+                    {param.httpParamType !== "HEADER" && param.name?.value && (
                         <ParamName>{param.name.value}</ParamName>
                     )}
                     {(param.defaultValue as PropertyModel)?.value && (
