@@ -142,18 +142,14 @@ export function isMergeable(typeName: string): boolean {
 }
 
 
-export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
-    if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
-        let suffix = '';
-        const sourceDim = getDMTypeDim(sourcePort.attributes.field);
-        const targetDim = getDMTypeDim(targetPort.attributes.field);
-        const dimDelta = sourceDim - targetDim;
-        for (let i = 0; i < dimDelta; i++) {
-            suffix += '[0]';
-        }
-        return suffix;
-    }
-    return '';
+export function genArrayElementAccessSuffix(link: DataMapperLinkModel): string {
+    const sourcePort = link.getSourcePort() as InputOutputPortModel;
+    const targetPort = link.getTargetPort() as InputOutputPortModel;
+    
+    const sourceDim = getDMTypeDim(sourcePort.attributes.field);
+    const targetDim = getDMTypeDim(targetPort.attributes.field);
+    
+    return '[0]'.repeat(sourceDim - targetDim);
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {

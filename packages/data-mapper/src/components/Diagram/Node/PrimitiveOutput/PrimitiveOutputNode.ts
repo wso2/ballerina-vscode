@@ -103,8 +103,8 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
         const query = this.context.model?.query;
 
         mappings.forEach((mapping) => {
-            const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
+            const { isComplex, isQueryExpression, isFunctionCall, elementAccessIndex, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1 || elementAccessIndex) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
