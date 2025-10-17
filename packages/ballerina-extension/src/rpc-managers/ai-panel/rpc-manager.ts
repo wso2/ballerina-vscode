@@ -74,7 +74,7 @@ import {
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
-    TextEdit
+    TextEdit,
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -87,6 +87,7 @@ import { FunctionDefinition, ModulePart, STKindChecker, STNode } from "@wso2/syn
 import { isNumber } from "lodash";
 import { URI } from "vscode-uri";
 import { NOT_SUPPORTED } from "../../../src/core/extended-language-client";
+import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../../src/features/ai/constants";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
@@ -118,7 +119,7 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../../src/features/ai/constants";
+import { generatDesign, generateDesignCore } from "../../../src/features/ai/service/design/design";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -1014,8 +1015,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+    async getGeneratedDocumentation(params: DocGenerationRequest): Promise<boolean> {
         await generateDocumentationForService(params);
+        return true;
     }
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
@@ -1038,6 +1040,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.error(">>> Failed to add files to the project", error);
             return false; //silently fail for timeout issues.
         }
+    }
+
+    async generateDesign(params: GenerateCodeRequest): Promise<boolean> {
+        await generatDesign(params);
+        return true;
     }
 }
 
