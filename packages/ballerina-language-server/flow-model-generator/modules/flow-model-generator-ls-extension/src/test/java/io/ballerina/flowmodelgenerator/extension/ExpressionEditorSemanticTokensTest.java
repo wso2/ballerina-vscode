@@ -20,7 +20,7 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionTokenTypes;
+import io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens.ExpressionTokenTypes;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorSemanticTokensRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.SemanticTokens;

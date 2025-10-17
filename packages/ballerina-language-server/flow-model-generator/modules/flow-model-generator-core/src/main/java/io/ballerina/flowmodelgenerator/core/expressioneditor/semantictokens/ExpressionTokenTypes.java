@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.core.expressioneditor;
+package io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
 
 /**
  * Token types for expression semantic tokens.
