@@ -18,8 +18,8 @@
 
 import React, { useMemo } from 'react';
 import { Label, Slider, SwitchWrapper } from './styles';
-import { getDefaultExpressionMode } from '../editors/ChipExpressionEditor/utils';
-import { InputMode } from '../editors/ChipExpressionEditor/types';
+import { InputMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { getDefaultExpressionMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils';
 
 interface ModeSwitcherProps {
     value: InputMode;

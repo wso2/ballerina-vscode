@@ -42,10 +42,10 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { InputMode } from './ChipExpressionEditor/types';
-import { getDefaultExpressionMode, getInputModeFromTypes } from './ChipExpressionEditor/utils';
 import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;

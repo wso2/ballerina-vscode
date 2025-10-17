@@ -17,9 +17,9 @@
  */
 
 import { FormExpressionEditor } from "@wso2/ui-toolkit";
-import { ExpressionField } from "./ExpressionField";
+import { ExpressionField } from "../../ExpressionField";
 import React from "react";
-import { getValueForTextModeEditor } from "./utils";
+import { getValueForTextModeEditor } from "../../utils";
 
 type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef'>;
 
