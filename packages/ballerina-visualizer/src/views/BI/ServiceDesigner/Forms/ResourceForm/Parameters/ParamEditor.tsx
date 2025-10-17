@@ -80,17 +80,17 @@ export function ParamEditor(props: ParamProps) {
         const fields: FormField[] = [];
 
         // Add name field
-        fields.push({
-            key: `name`,
-            label: 'Name',
-            type: param.name.valueType,
-            optional: false,
-            editable: true,
-            documentation: '',
-            enabled: param.name?.enabled,
-            value: param.name.value,
-            valueTypeConstraint: ""
-        });
+        // fields.push({
+        //     key: `name`,
+        //     label: 'Name',
+        //     type: param.name.valueType,
+        //     optional: false,
+        //     editable: true,
+        //     documentation: '',
+        //     enabled: param.name?.enabled,
+        //     value: param.name.value,
+        //     valueTypeConstraint: ""
+        // });
 
         // // Add type field if not hidden
         // if (!hideType) {
@@ -110,8 +110,58 @@ export function ParamEditor(props: ParamProps) {
 
         switch (type) {
             case "QUERY":
-            case "HEADER":
             case "PATH":
+                fields.push({
+                    key: `name`,
+                    label: 'Name',
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value,
+                    valueTypeConstraint: ""
+                });
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: "ENUM",
+                    advanced: true,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    defaultValue: "string",
+                    value: param.type.value,
+                    items: ["string", "int", "float", "decimal", "boolean"],
+                    valueTypeConstraint: ""
+                });
+                break;
+            case "HEADER":
+                fields.push({
+                    key: `headerName`,
+                    label: 'Header Name',
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    defaultValue: "string",
+                    value: param.headerName?.value,
+                    valueTypeConstraint: ""
+                });
+                fields.push({
+                    key: `name`,
+                    label: 'Name',
+                    advanced: true,
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value,
+                    valueTypeConstraint: ""
+                });
                 fields.push({
                     key: `type`,
                     label: 'Type',
@@ -128,6 +178,17 @@ export function ParamEditor(props: ParamProps) {
                 });
                 break;
             case "PAYLOAD":
+                fields.push({
+                    key: `name`,
+                    label: 'Name',
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value,
+                    valueTypeConstraint: ""
+                });
                 fields.push({
                     key: `type`,
                     label: 'Type',
@@ -175,6 +236,7 @@ export function ParamEditor(props: ParamProps) {
                 imports: getImportsForProperty('type', formImports)
             },
             name: { ...param.name, value: dataValues['name'] ?? param.name.value },
+            headerName: { ...param.headerName, value: dataValues['headerName'] ?? param.headerName?.value },
             defaultValue: {
                 ...(param.defaultValue as PropertyModel),
                 value: dataValues['defaultValue'] ?? (param.defaultValue as PropertyModel)?.value,

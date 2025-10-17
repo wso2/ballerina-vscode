@@ -155,6 +155,7 @@ export interface ParameterModel extends PropertyModel {
     kind?: "REQUIRED" | "OPTIONAL",
     type?: PropertyModel;
     name?: PropertyModel;
+    headerName?: PropertyModel;
     documentation?: PropertyModel;
 }
 
