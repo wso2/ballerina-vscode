@@ -139,6 +139,13 @@ export const commandTemplates = {
             placeholders: [],
         },
     ],
+    [Command.Design]: [
+        {
+            id: TemplateId.Wildcard,
+            text: '',
+            placeholders: [],
+        },
+    ],
     [Command.Doc]: [
         {
             id: TemplateId.GenerateUserDoc,
@@ -193,6 +200,12 @@ export const suggestedCommandTemplates: AIPanelPrompt[] = [
         command: Command.Code,
         templateId: TemplateId.Wildcard,
         text: 'write a hello world http service',
+    },
+    {
+        type: 'command-template',
+        command: Command.Design,
+        templateId: TemplateId.Wildcard,
+        text: 'design an API for a task management system',
     },
     {
         type: 'command-template',

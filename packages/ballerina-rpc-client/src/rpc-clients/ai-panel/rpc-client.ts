@@ -76,6 +76,7 @@ import {
     fetchData,
     generateCode,
     generateDataMapperModel,
+    generateDesign,
     generateFunctionTests,
     generateHealthcareCode,
     generateMappings,
@@ -353,6 +354,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(generateCode, HOST_EXTENSION, params);
     }
 
+    generateDesign(params: GenerateCodeRequest): Promise<boolean> {
+        return this._messenger.sendRequest(generateDesign, HOST_EXTENSION, params);
+    }
+
     repairGeneratedCode(params: RepairParams): void {
         return this._messenger.sendNotification(repairGeneratedCode, HOST_EXTENSION, params);
     }
@@ -373,7 +378,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
     }
 
-    getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+    getGeneratedDocumentation(params: DocGenerationRequest): Promise<boolean> {
         return this._messenger.sendRequest(getGeneratedDocumentation, HOST_EXTENSION, params);
     }
 
