@@ -104,6 +104,7 @@ export interface Mapping {
     isQueryExpression?: boolean;
     isFunctionCall?: boolean;
     functionRange?: LineRange;
+    elementAccessIndex?: string[];
 }
 
 export interface ExpandedDMModel {

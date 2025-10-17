@@ -78,6 +78,18 @@ export const renderIconButton = (node: LinkConnectorNode) => {
     return renderExpressionIcon();
 }
 
+export const renderIndexingButton = (onClick: () => void, node: LinkConnectorNode) => (
+    <Button
+        appearance="icon"
+        onClick={onClick}
+        data-testid={`link-connector-indexing-${node?.value}`}
+        tooltip='indexing'
+    > 
+        {`[${node.mapping.elementAccessIndex.toString()}]`}
+    </Button>
+);
+
+
 export const renderEditButton = (onClick: () => void, nodeValue: string) => (
     <Button
         appearance="icon"
