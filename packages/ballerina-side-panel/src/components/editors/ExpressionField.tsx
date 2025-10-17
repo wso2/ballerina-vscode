@@ -25,9 +25,9 @@ import {
     ThemeColors,
     Tooltip
 } from '@wso2/ui-toolkit';
-import { InputMode } from './ChipExpressionEditor/types';
 import { S } from './ExpressionEditor';
-import TextModeEditor from './TextModeEditor';
+import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 
 export interface ExpressionField {
     inputMode: InputMode;
