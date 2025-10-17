@@ -222,7 +222,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(resource.icon)}>
-                        {resource.icon.split("-")[0].toUpperCase()}
+                        {resource.icon ? resource.icon.split("-")[0].toUpperCase() : "REMOTE"}
                     </MethodBox>
                     <MethodPath>{resource.name}</MethodPath>
                 </MethodSection>
