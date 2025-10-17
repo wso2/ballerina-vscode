@@ -255,6 +255,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -577,6 +578,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -1012,6 +1014,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -1332,6 +1335,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {

@@ -213,6 +213,10 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
         }
 
+        List<Parameter> parameterModels = new ArrayList<>();
+        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setParameters(parameterModels);
+
         boolean isInit = Utils.isInitFunction(functionDefinitionNode);
         if (isInit) {
             functionModel.setKind(KIND_DEFAULT);
@@ -227,13 +231,11 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         }
 
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
-        List<Parameter> parameterModels = new ArrayList<>();
+
         parameters.forEach(parameterNode -> {
             Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
-        functionModel.setParameters(parameterModels);
-        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         functionModel.setCanAddParameters(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;

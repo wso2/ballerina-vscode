@@ -646,7 +646,7 @@
             "character": 1
           }
         },
-        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"application/text\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"application/text\" mediaType = \"\"application/text\"\";\n|};"
+        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};"
       }
     ]
   }

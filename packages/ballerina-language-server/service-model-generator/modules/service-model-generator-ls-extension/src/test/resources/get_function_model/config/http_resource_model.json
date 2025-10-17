@@ -242,7 +242,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
+        "httpParamType": "HEADER",
         "hidden": false
       },
       "payload": {
@@ -362,7 +362,7 @@
           "body": {
             "metadata": {
               "label": "Response Body Schema",
-              "description": "The data type or schema of the response body"
+              "description": "Schema of the response body or data type of the response body"
             },
             "valueType": "TYPE",
             "value": "",
@@ -373,7 +373,7 @@
           },
           "mediaType": {
             "metadata": {
-              "label": "Media Type",
+              "label": "Content Type",
               "description": "Value for the Content-Type header in the response"
             },
             "valueType": "TYPE",

@@ -216,7 +216,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
+        "httpParamType": "HEADER",
         "hidden": false,
         "properties": {
           "annotHeader": {
@@ -298,7 +298,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
+        "httpParamType": "HEADER",
         "hidden": false,
         "properties": {
           "annotHeader": {
@@ -380,7 +380,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
+        "httpParamType": "HEADER",
         "hidden": false,
         "properties": {
           "annotHeader": {
@@ -500,7 +500,7 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
+        "httpParamType": "HEADER",
         "hidden": false
       },
       "payload": {

@@ -207,8 +207,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Payload",
-        "hidden": false
+        "httpParamType": "PAYLOAD",
+        "hidden": false,
+        "properties": {}
       }
     ],
     "schema": {

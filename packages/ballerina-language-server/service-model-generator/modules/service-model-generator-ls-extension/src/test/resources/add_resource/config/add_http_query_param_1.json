@@ -207,8 +207,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Query",
-        "hidden": false
+        "httpParamType": "QUERY",
+        "hidden": false,
+        "properties": {}
       },
       {
         "metadata": {
@@ -266,8 +267,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Query",
-        "hidden": false
+        "httpParamType": "QUERY",
+        "hidden": false,
+        "properties": {}
       },
       {
         "metadata": {
@@ -326,8 +328,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Query",
-        "hidden": false
+        "httpParamType": "QUERY",
+        "hidden": false,
+        "properties": {}
       }
     ],
     "schema": {

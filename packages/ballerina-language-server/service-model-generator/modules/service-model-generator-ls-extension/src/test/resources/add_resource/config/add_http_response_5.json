@@ -314,7 +314,7 @@
           },
           "mediaType": {
             "valueType": "EXPRESSION",
-            "value": "\"application/text\"",
+            "value": "application/text",
             "imports": {},
             "enabled": true,
             "editable": false,
@@ -514,7 +514,7 @@
             "character": 5
           }
         },
-        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"\"application/text\"\";\n\t|}; {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"application/text\";\n\t|} {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
       }
     ]
   }

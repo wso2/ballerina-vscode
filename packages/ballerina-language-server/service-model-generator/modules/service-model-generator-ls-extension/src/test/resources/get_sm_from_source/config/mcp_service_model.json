@@ -310,7 +310,20 @@
             }
           }
         },
-        "properties": {}
+        "properties": {
+          "annotTool": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Tool",
+              "moduleName": "mcp"
+            },
+            "value": "{\n        description: string `\n            **Description**: Get current weather conditions for a location\n            **Parameters**:\n            - location (string, required): City name or coordinates (e.g., \"London\", \"40.7128,-74.0060\")\n            `\n    }",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
       },
       {
         "metadata": {
