@@ -20,17 +20,21 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.flowmodelgenerator.core.TypesGenerator;
 import io.ballerina.flowmodelgenerator.core.VisibleVariableTypesGenerator;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.Debouncer;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
+import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionSemanticTokensVisitor;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.CompletionRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.DiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.SignatureHelpRequest;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorCompletionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorDiagnosticsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorSemanticTokensRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorSignatureRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FunctionCallTemplateRequest;
@@ -52,6 +56,7 @@ import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerSe
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -59,6 +64,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -218,6 +224,23 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
                 response.setError(e);
             }
             return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<SemanticTokens> semanticTokens(ExpressionEditorSemanticTokensRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Parse expression using NodeParser
+                ExpressionNode expressionNode = NodeParser.parseExpression(request.expression());
+
+                // Create visitor and generate tokens
+                ExpressionSemanticTokensVisitor visitor = new ExpressionSemanticTokensVisitor();
+                return visitor.getSemanticTokens(expressionNode);
+            } catch (Throwable e) {
+                // Return empty tokens on parse error
+                return new SemanticTokens(new ArrayList<>());
+            }
         });
     }
 
