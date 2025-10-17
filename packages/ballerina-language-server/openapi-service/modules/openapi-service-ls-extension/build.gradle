@@ -59,6 +59,9 @@ dependencies {
         exclude group: "javax.validation", module: "validation-api"
     }
     implementation "io.swagger.core.v3:swagger-models"
+
+    dist "io.ballerina.openapi:core:${openAPICoreVersion}"
+    dist "io.ballerina.openapi:ballerina-to-openapi:${ballerinaToOpenApiVersion}"
 }
 
 def balDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
