@@ -62,6 +62,11 @@ dependencies {
 
     dist "io.ballerina.openapi:core:${openAPICoreVersion}"
     dist "io.ballerina.openapi:ballerina-to-openapi:${ballerinaToOpenApiVersion}"
+    dist("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}") {
+        exclude group: "io.swagger", module: "swagger-compat-spec-parser"
+        exclude group: "org.slf4j", module: "slf4j-ext"
+        exclude group: "javax.validation", module: "validation-api"
+    }
 }
 
 def balDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
