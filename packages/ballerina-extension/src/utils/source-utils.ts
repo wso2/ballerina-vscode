@@ -211,7 +211,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[]) {
     const newArtifact = response.find(artifact => artifact.isNew);
     const stateContext = StateMachine.context().view;
-    if (newArtifact.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
+    if (newArtifact?.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
     } else {
         notifyCurrentWebview();
@@ -228,20 +228,3 @@ export async function injectImportIfMissing(importStatement: string, filePath: s
     }
 }
 
-export async function injectAgentCode(name: string, serviceFile: string, injectionPosition: LinePosition, orgName: string) {
-    // Update the service function code 
-    const serviceEdit = new vscode.WorkspaceEdit();
-    // Choose agent invocation code based on orgName
-    const serviceSourceCode =
-        orgName === "ballerina"
-            ?
-            `            string stringResult = check _${name}Agent.run(request.message, request.sessionId); 
-            return {message: stringResult};
-`
-            :
-            `        string stringResult = check _${name}Agent->run(request.message, request.sessionId);
-        return {message: stringResult};
-`;
-    serviceEdit.insert(Uri.file(serviceFile), new Position(injectionPosition.line, 0), serviceSourceCode);
-    await workspace.applyEdit(serviceEdit);
-}
