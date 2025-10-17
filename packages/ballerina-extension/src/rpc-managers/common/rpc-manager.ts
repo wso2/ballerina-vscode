@@ -246,25 +246,9 @@ export class CommonRpcManager implements CommonRPCAPI {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
-    async getBallerinaProjectRoot(): Promise<string | null> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        // Check if workspaceFolderPath is a Ballerina project
-        // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        // TODO: This logic needs to be updated for multi-package workspaces
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
-        if (fs.existsSync(ballerinaProjectFile)) {
-            return workspaceFolderPath;
-        }
-        return null;
-    }
-
     async getCurrentProjectTomlValues(): Promise<TomlValues> {
-        const projectRoot = await this.getBallerinaProjectRoot();
-        const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
+        const projectPath = StateMachine.context().projectPath;
+        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
         if (fs.existsSync(ballerinaTomlPath)) {
             const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
             try {
