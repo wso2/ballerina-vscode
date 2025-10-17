@@ -1,0 +1,13 @@
+{
+  "description": "Simple variable reference",
+  "expression": "myVar",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

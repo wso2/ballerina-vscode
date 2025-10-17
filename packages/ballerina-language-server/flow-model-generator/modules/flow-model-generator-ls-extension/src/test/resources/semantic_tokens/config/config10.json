@@ -1,0 +1,5 @@
+{
+  "description": "Simple string literal",
+  "expression": "\"xyz\"",
+  "expectedTokens": []
+}

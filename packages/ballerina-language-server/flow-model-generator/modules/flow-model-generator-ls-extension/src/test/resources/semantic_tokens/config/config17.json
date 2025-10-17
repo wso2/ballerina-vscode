@@ -1,0 +1,13 @@
+{
+  "description": "Member access with string literal index x[\"foo\"]",
+  "expression": "x[\"foo\"]",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

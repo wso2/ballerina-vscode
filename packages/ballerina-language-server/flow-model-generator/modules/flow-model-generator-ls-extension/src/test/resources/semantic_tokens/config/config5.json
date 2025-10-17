@@ -1,0 +1,5 @@
+ {
+  "description": "Function call with no arguments",
+  "expression": "fn()",
+  "expectedTokens": []
+}

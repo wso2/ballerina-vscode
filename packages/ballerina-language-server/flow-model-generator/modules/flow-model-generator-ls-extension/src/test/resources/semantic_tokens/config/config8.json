@@ -1,0 +1,27 @@
+{
+  "description": "Variable with field access in addition expression",
+  "expression": "myVar + parent.field1",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 8,
+      "length": 6,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 15,
+      "length": 6,
+      "type": 1,
+      "modifiers": 0
+    }
+  ]
+}

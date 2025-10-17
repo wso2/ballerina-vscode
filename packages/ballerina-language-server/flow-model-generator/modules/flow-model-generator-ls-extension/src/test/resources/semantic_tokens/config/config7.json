@@ -1,0 +1,27 @@
+{
+  "description": "Chained field access expression",
+  "expression": "parent.field1.field2",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 6,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 7,
+      "length": 6,
+      "type": 1,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 14,
+      "length": 6,
+      "type": 1,
+      "modifiers": 0
+    }
+  ]
+}

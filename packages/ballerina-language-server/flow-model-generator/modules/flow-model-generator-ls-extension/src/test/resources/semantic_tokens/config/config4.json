@@ -1,0 +1,20 @@
+{
+  "description": "Function call with empty arguments",
+  "expression": "fn(,)",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 3,
+      "length": 0,
+      "type": 2,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 4,
+      "length": 0,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

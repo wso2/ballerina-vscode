@@ -1,0 +1,13 @@
+{
+  "description": "Function call with complex field access argument",
+  "expression": "fn(parent.field)",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 3,
+      "length": 7,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

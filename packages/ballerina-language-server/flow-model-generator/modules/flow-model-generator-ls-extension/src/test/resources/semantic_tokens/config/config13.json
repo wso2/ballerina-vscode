@@ -1,0 +1,20 @@
+{
+  "description": "Mapping constructor with variable values",
+  "expression": "{key1: val1, key2: val2}",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 7,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 19,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "description": "Optional field access",
+  "expression": "parent?.field",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 6,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 8,
+      "length": 5,
+      "type": 1,
+      "modifiers": 0
+    }
+  ]
+}
