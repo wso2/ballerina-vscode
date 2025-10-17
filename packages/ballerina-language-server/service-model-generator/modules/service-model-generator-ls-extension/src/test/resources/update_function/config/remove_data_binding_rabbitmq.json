@@ -1,6 +1,6 @@
 {
   "filePath": "rabbitmq_service_with_databind.bal",
-  "description": "Remove data binding from event handler",
+  "description": "Remove data binding from rabbitmq event handler",
   "function": {
     "metadata": {
       "label": "onMessage",
@@ -133,7 +133,7 @@
           "label": "caller",
           "description": "The RabbitMQ caller object to acknowledge the message"
         },
-        "kind": "OPTIONAL",
+        "kind": "REQUIRED",
         "type": {
           "metadata": {
             "label": "Type",
@@ -183,7 +183,7 @@
           "optional": true,
           "advanced": false
         },
-        "enabled": false,
+        "enabled": true,
         "editable": true,
         "optional": true,
         "advanced": false,
@@ -245,7 +245,7 @@
             "character": 103
           }
         },
-        "newText": "(rabbitmq:AnydataMessage message) returns error? "
+        "newText": "(rabbitmq:AnydataMessage message, rabbitmq:Caller caller) returns error? "
       }
     ]
   }
