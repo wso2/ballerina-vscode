@@ -164,6 +164,13 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const path = selectedService.basePath;
             const service = `http://localhost:${port}${path}`;
             await createGraphqlView(service);
+        } else if (selectedService.type === ServiceType.MCP) {
+            const selectedPort: number = await getServicePort(workspaceRoot, selectedService);
+            selectedService.port = selectedPort;
+            const path = selectedService.basePath;
+            const serviceUrl = `http://localhost:${selectedPort}${path}`;
+
+            await openMcpInspector(serviceUrl);
         } else {
             const selectedPort: number = await getServicePort(workspaceRoot, selectedService);
             selectedService.port = selectedPort;
@@ -218,6 +225,33 @@ async function openChatView(basePath: string, port: string) {
     }
 }
 
+async function openMcpInspector(serverUrl: string) {
+    const extensionId = 'wso2.mcp-inspector';
+
+    const extension = vscode.extensions.getExtension(extensionId);
+
+    if (extension) {
+        try {
+            await vscode.commands.executeCommand('mcpInspector.openInspectorWithUrl', {
+                serverUrl: serverUrl,
+                transport: "streamable-http"
+            });
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to open MCP Inspector: ${error}`);
+        }
+    } else {
+        const choice = await vscode.window.showInformationMessage(
+            'MCP Inspector extension is required. Would you like to install it?',
+            'Install',
+            'Cancel'
+        );
+
+        if (choice === 'Install') {
+            vscode.commands.executeCommand('workbench.extensions.search', extensionId);
+        }
+    }
+}
+
 async function findServiceForResource(services: ServiceInfo[], resourceMetadata: ResourceMetadata, serviceMetadata: ServiceMetadata): Promise<ServiceInfo | undefined> {
     try {
         // Normalize path values for comparison
@@ -268,12 +302,24 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
         const services = response.designModel.services
             .filter(({ type }) => {
                 const lowerType = type.toLowerCase();
-                return lowerType.includes('http') || lowerType.includes('ai') || lowerType.includes('graphql');
+                return lowerType.includes('http') || lowerType.includes('ai') || lowerType.includes('graphql') || lowerType.includes('mcp');
             })
             .map(({ displayName, absolutePath, location, attachedListeners, type }) => {
                 const trimmedPath = absolutePath.trim();
                 const name = displayName || (trimmedPath.startsWith('/') ? trimmedPath.substring(1) : trimmedPath);
-                const serviceType = type.toLowerCase().includes('http') ? ServiceType.HTTP : type.toLowerCase().includes('graphql') ? ServiceType.GRAPHQL : ServiceType.AGENT;
+
+                let serviceType: ServiceType;
+                const lowerType = type.toLowerCase();
+                if (lowerType.includes('http')) {
+                    serviceType = ServiceType.HTTP;
+                } else if (lowerType.includes('graphql')) {
+                    serviceType = ServiceType.GRAPHQL;
+                } else if (lowerType.includes('mcp')) {
+                    serviceType = ServiceType.MCP;
+                } else {
+                    serviceType = ServiceType.AGENT;
+                }
+
                 const listener = {
                     name: attachedListeners
                         .map(listenerId => response.designModel.listeners.find(l => l.uuid === listenerId)?.symbol)
@@ -915,7 +961,8 @@ function disposeErrorWatcher() {
 enum ServiceType {
     HTTP = 'HTTP',
     AGENT = 'AI Agent',
-    GRAPHQL = 'GraphQL'
+    GRAPHQL = 'GraphQL',
+    MCP = 'MCP'
 }
 
 interface ServiceInfo {
