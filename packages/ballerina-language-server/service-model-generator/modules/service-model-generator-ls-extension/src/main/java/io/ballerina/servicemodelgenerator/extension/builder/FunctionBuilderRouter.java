@@ -28,6 +28,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunc
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -79,11 +80,12 @@ public class FunctionBuilderRouter {
     }
 
     public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
-                                                             Document document, FunctionDefinitionNode functionNode)
+                                                             Document document, FunctionDefinitionNode functionNode,
+                                                             SemanticModel semanticModel)
             throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
-                document, null, functionNode);
+        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null, null,
+                filePath, document, null, functionNode);
         return functionBuilder.updateModel(context);
     }
 
@@ -94,10 +96,16 @@ public class FunctionBuilderRouter {
             context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
                     metadata.serviceTypeIdentifier(), metadata.orgName(), metadata.packageName(),
                     metadata.moduleName());
-        } else {
-            context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
-                    moduleName, null, null, moduleName);
+            NodeBuilder<Function> functionBuilder = getFunctionBuilder(metadata.moduleName());
+            Function function = functionBuilder.getModelFromSource(context);
+            Codedata codedata = function.getCodedata();
+            codedata.setOrgName(metadata.orgName());
+            codedata.setPackageName(metadata.packageName());
+            codedata.setModuleName(metadata.moduleName());
+            return function;
         }
+        context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+                    moduleName, null, null, moduleName);
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(context.moduleName());
         return functionBuilder.getModelFromSource(context);
     }

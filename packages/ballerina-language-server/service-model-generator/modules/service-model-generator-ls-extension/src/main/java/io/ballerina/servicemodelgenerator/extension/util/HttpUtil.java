@@ -67,6 +67,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_HEADER_PARAM_ANNOTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_HEADER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_PAYLOAD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_QUERY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PAYLOAD_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_QUERY_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -310,7 +313,7 @@ public final class HttpUtil {
             String annotationReference = annotStrings[annotStrings.length - 1].trim();
             if (annotationReference.equals(HTTP_QUERY_PARAM_ANNOTATION)
                     || annotationReference.equals(HTTP_PAYLOAD_PARAM_ANNOTATION)) {
-                return Optional.of(annotationReference.toLowerCase(Locale.ROOT));
+                return Optional.of(annotationReference);
             }
             if (annotationReference.equals(HTTP_HEADER_PARAM_ANNOTATION)) {
                 Optional<MappingConstructorExpressionNode> mappingNode = annotation.annotValue();
@@ -563,8 +566,8 @@ public final class HttpUtil {
             // Add HTTP annotation if applicable
             String httpParamType = param.getHttpParamType();
             if (httpParamType != null) {
-                if (httpParamType.equals(HTTP_HEADER_PARAM_ANNOTATION)) {
-                    paramDef.append("@http:").append(httpParamType);
+                if (httpParamType.equals(HTTP_PARAM_TYPE_HEADER)) {
+                    paramDef.append("@http:").append(HTTP_HEADER_PARAM_ANNOTATION);
                     Value headerName = param.getHeaderName();
                     if (headerName != null && headerName.isEnabledWithValue()
                             && !headerName.getValue().equals(param.getName().getValue())) {
@@ -574,11 +577,13 @@ public final class HttpUtil {
                     Value queryAnnot = properties.get("annotQuery");
                     Value payloadAnnot = properties.get("annotPayload");
                     if (Objects.nonNull(queryAnnot)) {
-                        paramDef.append("@http:").append(httpParamType).append(queryAnnot.getValue());
+                        paramDef.append("@http:").append(HTTP_QUERY_PARAM_ANNOTATION).append(queryAnnot.getValue());
                     } else if (Objects.nonNull(payloadAnnot)) {
-                        paramDef.append("@http:").append(httpParamType).append(payloadAnnot.getValue());
-                    } else {
-                        paramDef.append("@http:").append(httpParamType);
+                        paramDef.append("@http:").append(HTTP_PAYLOAD_PARAM_ANNOTATION).append(payloadAnnot.getValue());
+                    } else if (httpParamType.equals(HTTP_PARAM_TYPE_QUERY)) {
+                        paramDef.append("@http:").append(HTTP_QUERY_PARAM_ANNOTATION);
+                    } else if (httpParamType.equals(HTTP_PARAM_TYPE_PAYLOAD)) {
+                        paramDef.append("@http:").append(HTTP_PAYLOAD_PARAM_ANNOTATION);
                     }
                 }
                 paramDef.append(SPACE);
@@ -653,7 +658,7 @@ public final class HttpUtil {
             if (fieldSymbolMap.containsKey("mediaType")) {
                 TypeSymbol mediaTypeSymbol = fieldSymbolMap.get("mediaType").typeDescriptor();
                 if (!mediaTypeSymbol.signature().equals("string")) {
-                    mediaType = mediaTypeSymbol.signature();
+                    mediaType = mediaTypeSymbol.signature().replaceAll("^\"|\"$", "");
                 }
             }
         }
@@ -759,7 +764,7 @@ public final class HttpUtil {
             }
         }
         Value headers = response.getHeaders();
-        if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
+        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValue().isEmpty()) {
             createNewType = true;
         }
 
@@ -808,7 +813,7 @@ public final class HttpUtil {
     private static String getNewResponseTypeStr(String statusCodeTypeName, HttpResponse response,
                                                 Map<String, String> imports) {
         String name = response.getName().getValue();
-        return "public type " + name + " " + getRecordTypeDescriptor(statusCodeTypeName, response, imports);
+        return "public type " + name + " " + getRecordTypeDescriptor(statusCodeTypeName, response, imports) + ";";
     }
 
     private static String getRecordTypeDescriptor(String statusCodeTypeName, HttpResponse response,
@@ -827,7 +832,7 @@ public final class HttpUtil {
         if (Objects.nonNull(mediaType) && mediaType.isEnabledWithValue()) {
             String mediaTypeValue = mediaType.getValue();
             if (!mediaTypeValue.isBlank()) {
-                template += "\t%s mediaType = \"%s\";%n".formatted(mediaTypeValue, mediaTypeValue);
+                template += "\t\"%s\" mediaType = \"%s\";%n".formatted(mediaTypeValue, mediaTypeValue);
             }
         }
 
@@ -858,7 +863,7 @@ public final class HttpUtil {
             template += "\t%s headers;%n".formatted(headersRecordDef);
         }
 
-        template += "|};";
+        template += "|}";
         return template;
     }
 }

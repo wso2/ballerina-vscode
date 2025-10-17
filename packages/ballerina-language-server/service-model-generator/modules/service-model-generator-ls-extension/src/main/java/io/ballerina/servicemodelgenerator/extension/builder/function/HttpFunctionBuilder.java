@@ -70,6 +70,8 @@ import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_PAYLOAD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_QUERY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PAYLOAD_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_INCLUDED_RECORD;
@@ -100,6 +102,12 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String HTTP_CALLER_TYPE = "http:Caller";
     private static final String HTTP_HEADERS_TYPE = "http:Headers";
     private static final String HTTP_REQUEST_CONTEXT_TYPE = "http:RequestContext";
+
+    private static final Map<String, String> HTTP_PARAM_TYPE_MAP = new HashMap<>() {{
+        put("Payload", "PAYLOAD");
+        put("Query", "QUERY");
+        put("Header", "HEADER");
+    }};
 
     @Override
     public Optional<Function> getModelTemplate(GetModelContext context) {
@@ -179,7 +187,8 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
             NodeList<AnnotationNode> paramAnnotations = getParamAnnotations(parameterNode);
             Optional<String> httpParameterType = getHttpParamTypeAndSetHeaderName(parameterModel, paramAnnotations);
             if (httpParameterType.isPresent()) {
-                parameterModel.setHttpParamType(httpParameterType.get());
+                String httpParamType = httpParameterType.get();
+                parameterModel.setHttpParamType(HTTP_PARAM_TYPE_MAP.getOrDefault(httpParamType, httpParamType));
             } else {
                 String typeName = parameterModel.getType().getValue();
                 if (typeName.equals(HTTP_REQUEST_TYPE)) {
@@ -203,14 +212,13 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                     if (paramSymbol.isPresent() && paramSymbol.get() instanceof ParameterSymbol parameterSymbol) {
                         TypeSymbol paramType = parameterSymbol.typeDescriptor();
                         if (paramType.subtypeOf(mapTypeSymbol)) {
-                            parameterModel.setHttpParamType(HTTP_PAYLOAD_PARAM_ANNOTATION);
+                            parameterModel.setHttpParamType(HTTP_PARAM_TYPE_PAYLOAD);
                             parameterModel.setEditable(true);
                             parameterModels.add(parameterModel);
                             return;
                         }
                     }
-
-                    parameterModel.setHttpParamType(Constants.HTTP_QUERY_PARAM_ANNOTATION);
+                    parameterModel.setHttpParamType(HTTP_PARAM_TYPE_QUERY);
                     parameterModel.setEditable(true);
                 }
             }

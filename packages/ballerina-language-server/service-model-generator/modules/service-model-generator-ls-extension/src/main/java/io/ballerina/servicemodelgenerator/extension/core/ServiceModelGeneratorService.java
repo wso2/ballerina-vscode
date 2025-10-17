@@ -618,14 +618,21 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                Optional<SemanticModel> semanticModelOp;
+                Optional<Document> document;
+                try {
+                    this.workspaceManager.loadProject(filePath);
+                    semanticModelOp = this.workspaceManager.semanticModel(filePath);
+                    document = this.workspaceManager.document(filePath);
+                } catch (Exception e) {
+                    return new CommonSourceResponse(e);
+                }
+                if (semanticModelOp.isEmpty() || document.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 Function function = request.function();
-                LineRange lineRange = function.getCodedata().getLineRange();
-                NonTerminalNode node = findNonTerminalNode(function.getCodedata(), document.get());
+                Codedata codedata = function.getCodedata();
+                NonTerminalNode node = findNonTerminalNode(codedata, document.get());
                 if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
@@ -633,11 +640,9 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 if (!(parentNode instanceof ServiceDeclarationNode || parentNode instanceof ClassDefinitionNode)) {
                     return new CommonSourceResponse();
                 }
-                List<TextEdit> edits = new ArrayList<>();
-                String moduleName = (request.function().getCodedata().getModuleName() != null) ?
-                        request.function().getCodedata().getModuleName() : DEFAULT;
+                String moduleName = codedata.getModuleName() != null ? codedata.getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
-                        request.filePath(), document.get(), functionDefinitionNode);
+                        request.filePath(), document.get(), functionDefinitionNode, semanticModelOp.get());
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);

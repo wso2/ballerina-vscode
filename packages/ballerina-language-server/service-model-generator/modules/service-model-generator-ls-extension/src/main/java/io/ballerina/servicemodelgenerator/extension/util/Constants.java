@@ -42,6 +42,7 @@ public class Constants {
     public static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
     public static final String AT = "@";
     public static final String COLON = ":";
+    public static final String COMMA = ",";
 
     public static final String SINGLE_SELECT_VALUE = "SINGLE_SELECT";
     public static final String MULTIPLE_SELECT_VALUE = "MULTIPLE_SELECT";
@@ -146,6 +147,10 @@ public class Constants {
     public static final String HTTP_HEADER_PARAM_ANNOTATION = "Header";
     public static final String HTTP_QUERY_PARAM_ANNOTATION = "Query";
     public static final String HTTP_PAYLOAD_PARAM_ANNOTATION = "Payload";
+
+    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+    public static final String HTTP_PARAM_TYPE_HEADER = "HEADER";
+    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
 
     // file listeners
     public static final String FTP_DEFAULT_LISTENER_EXPR = "new ()";

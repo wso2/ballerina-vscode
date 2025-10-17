@@ -247,7 +247,7 @@
       "enabled": false,
       "editable": true,
       "optional": false,
-      "httpParamType": "Header"
+      "httpParamType": "HEADER"
     },
     "payload": {
       "metadata": {
