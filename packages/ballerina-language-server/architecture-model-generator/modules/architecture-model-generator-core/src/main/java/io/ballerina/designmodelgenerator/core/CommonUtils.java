@@ -31,7 +31,9 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathRestParam;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
+import io.ballerina.designmodelgenerator.core.model.ConnectionKind;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -55,6 +57,14 @@ public class CommonUtils {
 
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
+
+    private static final Map<String, ConnectionKind> CONNECTION_KIND_MAP = Map.of(
+            "Agent", ConnectionKind.AGENT,
+            "ModelProvider", ConnectionKind.MODEL_PROVIDER,
+            "Wso2ModelProvider", ConnectionKind.MODEL_PROVIDER,
+            "EmbeddingProvider", ConnectionKind.EMBEDDING_PROVIDER,
+            "Wso2EmbeddingProvider", ConnectionKind.EMBEDDING_PROVIDER
+    );
 
     /**
      * Get the raw type of the type descriptor. If the type descriptor is a type reference then return the associated
@@ -239,5 +249,10 @@ public class CommonUtils {
 
     public static String getTypeName(TypeSymbol typeSymbol) {
         return typeSymbol.getName().orElse(typeSymbol.signature());
+    }
+
+    public static ConnectionKind getConnectionKind(TypeSymbol typeSymbol) {
+        String typeName = getTypeName(typeSymbol);
+        return CONNECTION_KIND_MAP.getOrDefault(typeName, ConnectionKind.CONNECTION);
     }
 }

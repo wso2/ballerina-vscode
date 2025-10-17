@@ -183,7 +183,7 @@ public class DesignModelGenerator {
                         boolean showConnection = !isAgentClass; // Hide agent class connections
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
-                                CommonUtils.getTypeName(objectTypeSymbol));
+                                CommonUtils.getConnectionKind(objectTypeSymbol));
                         intermediateModel.connectionMap.put(
                                 String.valueOf(variableSymbol.getLocation().get().hashCode()), connection);
                         intermediateModel.uuidToConnectionMap.put(connection.getUuid(), connection);

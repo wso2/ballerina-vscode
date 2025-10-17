@@ -35,7 +35,7 @@ public class Connection extends DesignGraphNode {
     private final String icon;
     private final Set<String> dependentFunctions;
     private final Set<String> dependentConnection;
-    private String type = "Connection";
+    private ConnectionKind kind = ConnectionKind.CONNECTION;
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon) {
         super(sortText);
@@ -59,13 +59,13 @@ public class Connection extends DesignGraphNode {
     }
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon,
-                      boolean enableFlow, String type) {
+                      boolean enableFlow, ConnectionKind kind) {
         super(enableFlow, sortText);
         this.symbol = symbol;
         this.location = location;
         this.scope = scope;
         this.icon = icon;
-        this.type = type;
+        this.kind = kind;
         this.dependentFunctions = new HashSet<>();
         this.dependentConnection = new HashSet<>();
     }
@@ -111,8 +111,8 @@ public class Connection extends DesignGraphNode {
         this.dependentConnection.add(dependentConnection);
     }
 
-    public String getType() {
-        return type;
+    public ConnectionKind getKind() {
+        return kind;
     }
 
     @Override
