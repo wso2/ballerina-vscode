@@ -75,7 +75,12 @@ export function ParamItem(props: ParamItemProps) {
             </ParamType>
             {param?.type?.value ? (
                 <>
-                    <ParamName>{param.name.value}</ParamName>
+                    {param.httpParamType === "HEADER" && param.headerName.value && (
+                        <ParamName>{param.headerName.value}</ParamName>
+                    )}
+                    {param.name.value && (
+                        <ParamName>{param.name.value}</ParamName>
+                    )}
                     {(param.defaultValue as PropertyModel)?.value && (
                         <ParamDefault>
                             = {(param.defaultValue as PropertyModel).value}

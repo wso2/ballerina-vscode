@@ -197,6 +197,15 @@ export function Parameters(props: ParametersProps) {
         setEditingIndex(-1);
     };
 
+    const getParameterDescription = (label: string): string => {
+        const descriptions: { [key: string]: string } = {
+            "Request": "Access the complete HTTP request object including the request body (payload), all HTTP headers, query parameters, path parameters, and other request metadata. Use this to work with the entire incoming request context.",
+            "Headers": "Access all HTTP headers sent by the client in the request. This includes standard headers like Content-Type, Authorization, User-Agent, and any custom headers. Use this to retrieve and process specific header values.",
+            "Caller": "Access information about the caller/client making the request. This provides context about the service caller, including authentication details, caller identity, and caller-specific metadata. Use this for authorization and logging purposes."
+        };
+        return descriptions[label] || "Use this input to configure advanced parameters.";
+    };
+
     return (
         <div>
             {/* <---------------- Query Parameters Start ----------------> */}
@@ -369,6 +378,7 @@ export function Parameters(props: ParametersProps) {
                                             label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
                                             checked={param.enabled}
                                             onChange={(checked) => onAdvancedChecked(param, checked)}
+                                            sx={{ description: getParameterDescription(param.metadata.label) }}
                                         />
                                     ))
                                 }
