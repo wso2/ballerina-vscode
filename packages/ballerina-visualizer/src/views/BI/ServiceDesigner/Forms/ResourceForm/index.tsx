@@ -22,7 +22,7 @@ import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator, T
 import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
-import { HTTP_METHOD } from '../../utils';
+import { getDefaultResponse, HTTP_METHOD } from '../../utils';
 import { FunctionModel, ParameterModel, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
@@ -108,11 +108,19 @@ export function ResourceForm(props: ResourceFormProps) {
 
 	const setResourceMethod = (method: string) => {
 		setMethod(method);
+		const defaultStatusCode = getDefaultResponse(method as HTTP_METHOD);
+
+		const updatedResponse = {
+			...model.returnType.responses[0],
+			statusCode: { value: defaultStatusCode }
+		}
+
 		const updatedFunctionModel = {
-			...functionModel,
-			accessor: { ...functionModel.accessor, value: method }
+			...model,
+			accessor: { ...model.accessor, value: method },
+			returnType: { ...model.returnType, responses: [updatedResponse] },
 		};
-		setFunctionModel(updatedFunctionModel);
+		setFunctionModel(updatedFunctionModel as FunctionModel);
 	}
 
 	const onPathChange = (method: PropertyModel, path: PropertyModel) => {
