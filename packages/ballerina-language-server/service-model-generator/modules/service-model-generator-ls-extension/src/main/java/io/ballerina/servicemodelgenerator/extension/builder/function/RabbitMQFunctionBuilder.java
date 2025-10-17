@@ -34,12 +34,12 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.pro
  */
 public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
-    private static final String requiredParamType = "rabbitmq:AnydataMessage";
-    private static final String payloadFieldName = "content";
+    private static final String REQUIRED_PARAM_TYPE = "rabbitmq:AnydataMessage";
+    private static final String PAYLOAD_FIELD_NAME = "content";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        processDataBindingParameter(context.function(), requiredParamType, payloadFieldName);
+        processDataBindingParameter(context.function(), REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false);
         return super.updateModel(context);
     }
 

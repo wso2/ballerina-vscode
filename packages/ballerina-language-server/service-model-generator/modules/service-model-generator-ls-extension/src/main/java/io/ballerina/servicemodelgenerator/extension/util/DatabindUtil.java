@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
@@ -37,6 +38,7 @@ import java.util.Map;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_PROPERTY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_TEMPLATE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.EMPTY_ARRAY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 
@@ -180,7 +182,13 @@ public final class DatabindUtil {
             return null;
         }
 
-        if (!(targetParam.get().typeName() instanceof RecordTypeDescriptorNode recordType)) {
+        Node recordParam = targetParam.get().typeName();
+
+        if (recordParam instanceof ArrayTypeDescriptorNode arrayTypeNode) {
+            recordParam = arrayTypeNode.memberTypeDesc();
+        }
+
+        if (!(recordParam instanceof RecordTypeDescriptorNode recordType)) {
             return null;
         }
 
@@ -234,11 +242,13 @@ public final class DatabindUtil {
      * @param requiredParamType The default parameter type (e.g., "rabbitmq:AnydataMessage")
      * @param dataBindingType   The data binding type (e.g., "Order")
      * @param payloadFieldName  The field name for the payload (e.g., "content")
+     * @param isArray           Whether the parameter is an array type
      * @return The inline record type string
      */
     public static String createInlineRecordType(String requiredParamType, String dataBindingType,
-                                                String payloadFieldName) {
-        return String.format(DATA_BINDING_TEMPLATE, requiredParamType, dataBindingType, payloadFieldName);
+                                                String payloadFieldName, boolean isArray) {
+        return String.format(DATA_BINDING_TEMPLATE, requiredParamType, dataBindingType, payloadFieldName,
+                isArray ? EMPTY_ARRAY : "");
     }
 
     /**
@@ -249,9 +259,10 @@ public final class DatabindUtil {
      * @param function          The function containing the parameters
      * @param requiredParamType The required parameter type (e.g., "rabbitmq:AnydataMessage")
      * @param payloadFieldName  The field name for the payload (e.g., "content")
+     * @param isArray           Whether the parameter is an array type
      */
     public static void processDataBindingParameter(Function function, String requiredParamType,
-                                                   String payloadFieldName) {
+                                                   String payloadFieldName, boolean isArray) {
         List<Parameter> parameters = function.getParameters();
         if (parameters.isEmpty()) {
             return;
@@ -275,7 +286,7 @@ public final class DatabindUtil {
             return;
         }
 
-        String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName);
+        String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName, isArray);
 
         for (Parameter param : parameters) {
             if (KIND_REQUIRED.equals(param.getKind())) {
