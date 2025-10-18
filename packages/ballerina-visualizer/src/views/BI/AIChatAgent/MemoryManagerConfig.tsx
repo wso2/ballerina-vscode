@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
+import { CodeData, Flow, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
@@ -65,7 +65,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const agentFilePath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
-    const moduleNodes = useRef<FlowNode[]>([]);
+    const moduleNodes = useRef<Flow>();
 
     useEffect(() => {
         initPanel();
@@ -103,8 +103,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             return [];
         }
 
-        moduleNodes.current = moduleNodesResponse.flowModel.connections;
-        return moduleNodes.current;
+        moduleNodes.current = moduleNodesResponse.flowModel;
     };
 
     const findAgentNode = (): void => {
@@ -114,7 +113,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             return;
         }
 
-        const agentNode = moduleNodes.current.find(
+        const agentNode = moduleNodes.current.connections?.find(
             (node) => node.properties.variable.value === agentName
         );
 
