@@ -22,6 +22,8 @@ import { Type } from '@wso2/ballerina-core';
 import { EditorContext, StackItem } from '@wso2/type-editor';
 import DynamicModal from '../Modal';
 import { FormTypeEditor } from '../../views/BI/TypeEditor';
+import { useRpcContext } from '@wso2/ballerina-rpc-client';
+import { ProgressRing } from '@wso2/ui-toolkit';
 
 const BreadcrumbContainer = styled.div`
     display: flex;
@@ -55,6 +57,7 @@ interface ContextBasedFormTypeEditorProps {
     modalTitle?: string;
     modalWidth?: number;
     modalHeight?: number;
+    editMode?: boolean; // If true, load existing type for editing instead of creating new
 }
 
 export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProps> = (props) => {
@@ -66,11 +69,15 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         isGraphql = false,
         modalTitle = "Create New Type",
         modalWidth = 650,
-        modalHeight = 600
+        modalHeight = 600,
+        editMode = false
     } = props;
 
+    const { rpcClient } = useRpcContext();
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
+    const [loadingType, setLoadingType] = useState<boolean>(false);
+    const [existingType, setExistingType] = useState<Type | null>(null);
     
     // Stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -175,21 +182,67 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
     useEffect(() => {
         if (isOpen) {
             setTypeEditorState({ isOpen: true, newTypeValue: initialTypeName });
-            resetStack();
+            
+            // If in edit mode, fetch the existing type
+            if (editMode && initialTypeName) {
+                fetchExistingType(initialTypeName);
+            } else {
+                resetStack();
+                setExistingType(null);
+            }
         } else {
             setTypeEditorState({ isOpen: false, newTypeValue: "" });
+            setExistingType(null);
         }
-    }, [isOpen, initialTypeName]);
+    }, [isOpen, initialTypeName, editMode]);
+
+    const fetchExistingType = async (typeName: string) => {
+        setLoadingType(true);
+        try {
+            // Get the project path and construct the types.bal file path
+            const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
+            const filePath = `${projectUri}/types.bal`;
+            
+            // Fetch all types from the file
+            const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({
+                filePath: filePath
+            });
+            
+            // Find the specific type by name
+            const foundType = typesResponse.types.find((type: Type) => type.name === typeName);
+            
+            if (foundType) {
+                setExistingType(foundType);
+                // Update stack with the existing type
+                setStack([{
+                    type: foundType,
+                    isDirty: false
+                }]);
+            } else {
+                // If type not found, reset to default
+                console.warn(`Type "${typeName}" not found in ${filePath}`);
+                resetStack();
+            }
+        } catch (error) {
+            console.error('Error fetching existing type:', error);
+            resetStack();
+        } finally {
+            setLoadingType(false);
+        }
+    };
 
     useEffect(() => {
-        const tempStack = [...stack];
-        const firstItem = tempStack[0];
-        if (firstItem) {
-            firstItem.type = defaultType();
-            tempStack[0] = firstItem;
-            setStack(tempStack);
+        // Only update stack with default type if not in edit mode
+        if (!editMode) {
+            const tempStack = [...stack];
+            const firstItem = tempStack[0];
+            if (firstItem && !existingType) {
+                firstItem.type = defaultType();
+                tempStack[0] = firstItem;
+                setStack(tempStack);
+            }
         }
-    }, [typeEditorState.newTypeValue]);
+    }, [typeEditorState.newTypeValue, editMode, existingType]);
 
     const handleTypeChange = async (type: Type) => {
         setTypeEditorState({ ...typeEditorState, isOpen: true });
@@ -243,31 +296,39 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                     setOpenState={handleTypeEditorStateChange}
                 >
                     <div style={{ padding: '0px 20px' }}>
-                        {stack.slice(0, i + 1).length > 1 && (
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "NewType"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
+                        {loadingType && editMode && i === 0 ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                                <ProgressRing />
+                            </div>
+                        ) : (
+                            <>
+                                {stack.slice(0, i + 1).length > 1 && (
+                                    <BreadcrumbContainer>
+                                        {stack.slice(0, i + 1).map((stackItem, index) => (
+                                            <React.Fragment key={index}>
+                                                {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                                <BreadcrumbItem>
+                                                    {stackItem?.type?.name || "NewType"}
+                                                </BreadcrumbItem>
+                                            </React.Fragment>
+                                        ))}
+                                    </BreadcrumbContainer>
+                                )}
+                                <FormTypeEditor
+                                    type={editMode && i === 0 && existingType ? existingType : (peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType())}
+                                    newType={editMode && i === 0 ? false : (peekTypeStack() ? peekTypeStack().isDirty : false)}
+                                    newTypeValue={typeEditorState.newTypeValue}
+                                    isPopupTypeForm={true}
+                                    isGraphql={isGraphql}
+                                    onTypeChange={handleTypeChange}
+                                    onSaveType={onSaveType}
+                                    onTypeCreate={() => { }}
+                                    getNewTypeCreateForm={getNewTypeCreateForm}
+                                    refetchTypes={refetchStates[i]}
+                                    isContextTypeForm={true}
+                                />
+                            </>
                         )}
-                        <FormTypeEditor
-                            type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
-                            newType={peekTypeStack() ? peekTypeStack().isDirty : false}
-                            newTypeValue={typeEditorState.newTypeValue}
-                            isPopupTypeForm={true}
-                            isGraphql={isGraphql}
-                            onTypeChange={handleTypeChange}
-                            onSaveType={onSaveType}
-                            onTypeCreate={() => { }}
-                            getNewTypeCreateForm={getNewTypeCreateForm}
-                            refetchTypes={refetchStates[i]}
-                            isContextTypeForm={true}
-                        />
                     </div>
                 </DynamicModal>
             ))}
