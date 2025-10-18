@@ -325,7 +325,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                                     onTypeCreate={() => { }}
                                     getNewTypeCreateForm={getNewTypeCreateForm}
                                     refetchTypes={refetchStates[i]}
-                                    isContextTypeForm={true}
+                                    isContextTypeForm={i === 0}
                                 />
                             </>
                         )}
