@@ -794,7 +794,7 @@ public class CommonUtils {
 
         // Add "#" before each line and append to the result
         for (String line : lines) {
-            formattedComment.append("# ").append(line).append("\n");
+            formattedComment.append("# ").append(line).append(System.lineSeparator());
         }
 
         // Convert StringBuilder to String and return
@@ -1045,5 +1045,18 @@ public class CommonUtils {
             return moduleName.substring(lastDot + 1);
         }
         return moduleName;
+    }
+
+    /**
+     * Checks if the given node is a Markdown documentation line.
+     *
+     * @param node the node to check
+     * @return true if the node is a Markdown documentation line, false otherwise
+     */
+    public static boolean isMarkdownDocumentationLine(Node node) {
+        SyntaxKind nodeKind = node.kind();
+        return nodeKind == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_REFERENCE_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE;
     }
 }

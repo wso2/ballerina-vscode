@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.ModuleID;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
@@ -39,6 +41,10 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class TypeUtils {
+    public static final String BALLERINA_ORG = "ballerina";
+    public static final String GRAPHQL_DEFAULT_MODULE_PREFIX = "graphql";
+    public static final String GRAPHQL_ID_ANNOTATION_NAME = "ID";
+
     private static final Set<TypeDescKind> BUILT_IN_TYPE_KINDS = Set.of(
             TypeDescKind.INT, TypeDescKind.BYTE, TypeDescKind.FLOAT,
             TypeDescKind.DECIMAL, TypeDescKind.BOOLEAN, TypeDescKind.STRING, TypeDescKind.READONLY,
@@ -92,6 +98,21 @@ public class TypeUtils {
         ModuleID moduleId = typeSymbol.getModule().get().id();
         return String.format("%s/%s:%s",
                 moduleId.orgName(), moduleId.packageName(), typeSymbol.getName().get());
+    }
+
+    /**
+     * Check if the given annotation attachment is a GraphQL ID annotation.
+     *
+     * @param annotAttach the annotation attachment symbol
+     * @return true if the annotation is a GraphQL ID annotation, false otherwise
+     */
+    public static boolean isGraphqlIdAnnotation(AnnotationAttachmentSymbol annotAttach) {
+        AnnotationSymbol annot = annotAttach.typeDescriptor();
+        return annot.getName().isPresent()
+                && annot.getName().get().equals(GRAPHQL_ID_ANNOTATION_NAME)
+                && annot.getModule().isPresent()
+                && annot.getModule().get().id().orgName().equals(BALLERINA_ORG)
+                && annot.getModule().get().id().moduleName().equals(GRAPHQL_DEFAULT_MODULE_PREFIX);
     }
 
     private static void addTypeRefIds(TypeSymbol ts, ModuleInfo moduleInfo, List<String> typeRefs) {

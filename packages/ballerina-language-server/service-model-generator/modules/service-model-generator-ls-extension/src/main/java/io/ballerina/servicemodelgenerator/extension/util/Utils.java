@@ -19,7 +19,13 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.centralconnector.CentralAPI;
+import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
@@ -33,6 +39,9 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
+import io.ballerina.compiler.syntax.tree.MarkdownParameterDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -49,6 +58,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -57,21 +69,29 @@ import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerProperty;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerListRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.TriggerRequest;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.NameUtil;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,7 +103,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
@@ -93,6 +116,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
@@ -100,6 +124,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 
 /**
  * Common utility functions used in the project.
@@ -107,6 +132,15 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil
  * @since 1.0.0
  */
 public final class Utils {
+
+    private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
+    private static final String MODULE_PULLING_FAILED_MESSAGE = "Failed to pull the module: %s";
+    private static final String MODULE_PULLING_SUCCESS_MESSAGE = "Successfully pulled the module: %s";
+
+    private static final String REPOSITORIES_DIR = "repositories";
+    private static final String CENTRAL_REPO = "central.ballerina.io";
+    private static final String BALA_DIR = "bala";
+    private static final List<String> DISTRIBUTION_MODULES = Arrays.asList("http", "graphql", "tcp");
 
     private Utils() {
     }
@@ -175,8 +209,33 @@ public final class Utils {
             designApproach.getChoices().stream()
                     .filter(Value::isEnabled).findFirst()
                     .ifPresent(selectedApproach -> service.addProperties(selectedApproach.getProperties()));
-            service.getProperties().remove(Constants.PROPERTY_DESIGN_APPROACH);
+            service.getProperties().remove(PROPERTY_DESIGN_APPROACH);
         }
+    }
+
+    /**
+     * Applies the properties of the enabled choice from the specified choice property key in the service init model.
+     * If an enabled choice exists, its properties are added to the service and the choice property is removed.
+     *
+     * @param service the service initialization model to update
+     * @param key the key of the choice property to process
+     */
+    public static void applyEnabledChoiceProperty(ServiceInitModel service, String key) {
+        Map<String, Value> properties = service.getProperties();
+        Value choiceProperty = properties.get(key);
+        if (Objects.isNull(choiceProperty) || !choiceProperty.isEnabled()
+                || Objects.isNull(choiceProperty.getChoices()) || choiceProperty.getChoices().isEmpty()) {
+            return;
+        }
+        boolean choiceEnabled = choiceProperty.getChoices().stream().anyMatch(Value::isEnabled);
+        if (!choiceEnabled) {
+            choiceProperty.getChoices().getFirst().setEnabled(true);
+        }
+        choiceProperty.getChoices().stream()
+                .filter(Value::isEnabled)
+                .findFirst()
+                .ifPresent(selectedChoice -> service.addProperties(selectedChoice.getProperties()));
+        properties.remove(key);
     }
 
     private static Optional<Service> getServiceByServiceType(String serviceType) {
@@ -298,6 +357,7 @@ public final class Utils {
         functionModel.setParameters(parameterModels);
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         functionModel.setCanAddParameters(true);
+        updateFunctionDocs(functionDefinitionNode, functionModel);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }
@@ -451,6 +511,79 @@ public final class Utils {
         });
     }
 
+    public static void updateServiceDocs(ServiceDeclarationNode serviceNode, Service service) {
+        Optional<MetadataNode> metadata = serviceNode.metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+        Optional<Node> docString = metadata.get().documentationString();
+        if (docString.isEmpty() || docString.get().kind() != SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            return;
+        }
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder serviceDoc = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (CommonUtils.isMarkdownDocumentationLine(documentationLine)) {
+                NodeList<Node> nodes = ((MarkdownDocumentationLineNode) documentationLine).documentElements();
+                nodes.stream().forEach(node -> serviceDoc.append(node.toSourceCode()));
+            }
+        }
+        service.getDocumentation().setValue(serviceDoc.toString().stripTrailing());
+    }
+
+    public static void updateFunctionDocs(FunctionDefinitionNode functionDef, Function function) {
+        Optional<MetadataNode> metadata = functionDef.metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+        Optional<Node> docString = metadata.get().documentationString();
+        if (docString.isEmpty() || docString.get().kind() != SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            return;
+        }
+        String doc = getFunctionDesc(functionDef);
+        function.getDocumentation().setValue(doc);
+        function.getParameters().forEach(parameter -> {
+            if (!parameter.getName().getValue().equals(GRAPHQL_CONTEXT) &&
+                    !parameter.getName().getValue().equals(GRAPHQL_FIELD)) {
+                String paramDesc = getParamDesc(functionDef, parameter.getName().getValue());
+                parameter.getDocumentation().setValue(paramDesc);
+            }
+        });
+    }
+
+    private static String getFunctionDesc(FunctionDefinitionNode funcDefNode) {
+        Optional<MetadataNode> metadata = funcDefNode.metadata();
+        Optional<Node> docString = metadata.get().documentationString();
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder description = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (CommonUtils.isMarkdownDocumentationLine(documentationLine)) {
+                NodeList<Node> nodes = ((MarkdownDocumentationLineNode) documentationLine).documentElements();
+                nodes.stream().forEach(node -> description.append(node.toSourceCode()));
+            }
+        }
+        return description.toString().stripTrailing();
+    }
+
+    private static String getParamDesc(FunctionDefinitionNode funcDefNode, String paramName) {
+        Optional<MetadataNode> metadata = funcDefNode.metadata();
+        Optional<Node> docString = metadata.get().documentationString();
+        MarkdownDocumentationNode docNode = (MarkdownDocumentationNode) docString.get();
+        StringBuilder paramDoc = new StringBuilder();
+        for (Node documentationLine : docNode.documentationLines()) {
+            if (documentationLine.kind() == SyntaxKind.MARKDOWN_PARAMETER_DOCUMENTATION_LINE) {
+                MarkdownParameterDocumentationLineNode docLine =
+                        (MarkdownParameterDocumentationLineNode) documentationLine;
+                String name = docLine.parameterName().text().trim();
+                NodeList<Node> nodes = docLine.documentElements();
+                if (paramName.equals(name) && !nodes.isEmpty()) {
+                    nodes.stream().forEach(node -> paramDoc.append(node.toSourceCode()));
+                }
+            }
+        }
+        return paramDoc.toString().stripTrailing();
+    }
+
     private static String getListenerExprName(ExpressionNode expressionNode) {
         if (expressionNode instanceof NameReferenceNode nameReferenceNode) {
             return nameReferenceNode.toSourceCode().trim();
@@ -494,7 +627,7 @@ public final class Utils {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                String ref = service.getModuleName() + ":" + value.getCodedata().getOriginalName();
+                String ref = getProtocol(service.getModuleName()) + ":" + value.getCodedata().getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
             }
@@ -516,7 +649,7 @@ public final class Utils {
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
                 Codedata codedata = value.getCodedata();
-                String ref = codedata.getModuleName() + ":" + codedata.getOriginalName();
+                String ref = getProtocol(codedata.getModuleName()) + ":" + codedata.getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
                 if (Objects.nonNull(value.getImports())) {
@@ -525,6 +658,59 @@ public final class Utils {
             }
         }
         return annots;
+    }
+
+    public static String getDocumentationEdits(Service service) {
+        String docs = "";
+        if (Objects.nonNull(service.getDocumentation()) && service.getDocumentation().getValue() != null) {
+            String formatted = getFormattedDesc(service.getDocumentation().getValue());
+            docs += formatted;
+        }
+        return docs;
+    }
+
+    public static String getDocumentationEdits(ServiceClass serviceClass) {
+        String docs = "";
+        if (Objects.nonNull(serviceClass.documentation()) && serviceClass.documentation().getValue() != null) {
+            String formatted = getFormattedDesc(serviceClass.documentation().getValue());
+            docs += formatted;
+        }
+        return docs;
+    }
+
+    public static String getDocumentationEdits(Function function) {
+        String docEdits = "";
+        if (Objects.nonNull(function.getDocumentation()) && function.getDocumentation().getValue() != null) {
+            String formatted = getFormattedDesc(function.getDocumentation().getValue());
+            docEdits = formatted.isEmpty() ? docEdits : formatted;
+        }
+        for (Parameter parameter : function.getParameters()) {
+            Value doc = parameter.getDocumentation();
+            if (Objects.nonNull(doc) && parameter.isEnabled() && doc.getValue() != null) {
+                String formatted = getFormattedParamDesc(doc.getValue(), parameter.getName().getValue());
+                docEdits = formatted.isEmpty() ? docEdits : docEdits + NEW_LINE + formatted;
+            }
+        }
+        return docEdits;
+    }
+
+    public static String getFormattedDesc(String desc) {
+        if (desc.isBlank()) {
+            return "";
+        }
+        String doc = CommonUtils.convertToBalDocs(desc);
+        return doc.stripTrailing();
+    }
+
+    public static String getFormattedParamDesc(String desc, String paramName) {
+        if (desc.isBlank()) {
+            return "";
+        }
+        StringBuilder docBuilder = new StringBuilder();
+        String[] docs = desc.trim().split(NEW_LINE);
+        String paramDoc = String.join(" ", docs);
+        docBuilder.append("# + ").append(paramName).append(" - ").append(paramDoc);
+        return docBuilder.toString();
     }
 
     public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
@@ -564,6 +750,36 @@ public final class Utils {
         edits.add(new TextEdit(toRange(range), annotEdit));
     }
 
+    public static void addServiceDocTextEdits(Service service, ServiceDeclarationNode serviceNode,
+                                              List<TextEdit> edits) {
+        Token serviceKeyword = serviceNode.serviceKeyword();
+
+        String docEdit = getDocumentationEdits(service);
+
+        Optional<MetadataNode> metadata = serviceNode.metadata();
+        if (metadata.isEmpty()) { // metadata is empty and the service has documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += NEW_LINE;
+                edits.add(new TextEdit(toRange(serviceKeyword.lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        Optional<Node> documentationString = metadata.get().documentationString();
+        if (documentationString.isEmpty()) { // metadata is present but no documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += NEW_LINE;
+                edits.add(new TextEdit(toRange(metadata.get().lineRange()), docEdit));
+            }
+            return;
+        }
+
+        LinePosition docStartLinePos = documentationString.get().lineRange().startLine();
+        LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
+        LineRange range = LineRange.from(serviceKeyword.lineRange().fileName(), docStartLinePos, docEndLinePos);
+        edits.add(new TextEdit(toRange(range), docEdit));
+    }
+
     public static void addFunctionAnnotationTextEdits(Function function, FunctionDefinitionNode functionDef,
                                                       List<TextEdit> edits, Map<String, String> imports) {
         Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
@@ -584,7 +800,7 @@ public final class Utils {
         if (annotations.isEmpty()) { // metadata is present but no annotations
             if (!annotEdit.isEmpty()) {
                 annotEdit += System.lineSeparator();
-                edits.add(new TextEdit(toRange(metadata.get().lineRange()), annotEdit));
+                edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), annotEdit));
             }
             return;
         }
@@ -600,6 +816,35 @@ public final class Utils {
                 firstAnnotationEndLinePos, lastAnnotationEndLinePos);
 
         edits.add(new TextEdit(toRange(range), annotEdit));
+    }
+
+    public static void addFunctionDocTextEdits(Function function, FunctionDefinitionNode functionDef,
+                                               List<TextEdit> edits) {
+        Token firstToken = functionDef.qualifierList().isEmpty() ? functionDef.functionKeyword()
+                : functionDef.qualifierList().get(0);
+        String docEdit = getDocumentationEdits(function);
+        Optional<MetadataNode> metadata = functionDef.metadata();
+        if (metadata.isEmpty()) { // metadata is empty and the service has documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(firstToken.lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        Optional<Node> documentationString = metadata.get().documentationString();
+        if (documentationString.isEmpty()) { // metadata is present but no documentation
+            if (!docEdit.isEmpty()) {
+                docEdit += System.lineSeparator();
+                edits.add(new TextEdit(toRange(metadata.get().lineRange().startLine()), docEdit));
+            }
+            return;
+        }
+
+        LinePosition docStartLinePos = documentationString.get().lineRange().startLine();
+        LinePosition docEndLinePos = documentationString.get().lineRange().endLine();
+        LineRange range = LineRange.from(firstToken.lineRange().fileName(), docStartLinePos, docEndLinePos);
+        edits.add(new TextEdit(toRange(range), docEdit));
     }
 
     public static String getValueString(Value value) {
@@ -646,6 +891,10 @@ public final class Utils {
                                                    FunctionSignatureContext signatureContext,
                                                    Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
+        String documentation = getDocumentationEdits(function);
+        if (!documentation.isEmpty()) {
+            builder.append(documentation).append(NEW_LINE);
+        }
 
         List<String> functionAnnotations = getAnnotationEdits(function, imports);
         if (!functionAnnotations.isEmpty()) {
@@ -868,5 +1117,95 @@ public final class Utils {
             return input.substring(1);
         }
         return input;
+    }
+
+    public static List<Object> deserializeSelections(String jsonString) {
+        JsonElement jsonElement = JsonParser.parseString(jsonString);
+        Gson gson = new Gson();
+
+        if (!jsonElement.isJsonArray()) {
+            return new ArrayList<>();
+        }
+
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+
+        if (jsonArray.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Check the type of first element
+        JsonElement firstElement = jsonArray.get(0);
+
+        if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
+            // It's a List<String>
+            Type listType = new TypeToken<List<String>>() { }.getType();
+            return gson.fromJson(jsonString, listType);
+        } else if (firstElement.isJsonObject()) {
+            // Check if it has label and value properties (SelectionRecord)
+            if (firstElement.getAsJsonObject().has("label") &&
+                    firstElement.getAsJsonObject().has("value")) {
+                Type listType = new TypeToken<List<SelectionRecord>>() { }.getType();
+                return gson.fromJson(jsonString, listType);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public record SelectionRecord(String label, String value) { }
+
+    /**
+     * Resolves a Ballerina module by organization, package, and module name.
+     * If the module is not found locally, attempts to pull it from the central repository,
+     * notifies the client about the process.
+     *
+     * @param orgName        the organization name
+     * @param packageName    the package name
+     * @param moduleName     the module name
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    public static void resolveModule(String orgName, String packageName, String moduleName,
+                                     LSClientLogger lsClientLogger) {
+        if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
+            return;
+        }
+
+        Path balHomePath = RepoUtils.createAndGetHomeReposPath();
+        Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR, orgName,
+                packageName));
+        if (Files.exists(packagePath)) {
+            return;
+        }
+
+        CentralAPI centralApi = RemoteCentral.getInstance();
+        String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
+        ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);
+
+        if (PackageUtil.isModuleUnresolved(orgName, packageName, latestVersion)) {
+            notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE, moduleInfo, lsClientLogger);
+            Optional<SemanticModel> semanticModel =  PackageUtil.getSemanticModel(moduleInfo);
+            if (semanticModel.isEmpty()) {
+                notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE, moduleInfo, lsClientLogger);
+            } else {
+                notifyClient(MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE, moduleInfo, lsClientLogger);
+            }
+        }
+    }
+
+    /**
+     * Notifies the client with a formatted message about the module resolution status.
+     *
+     * @param messageType    the type of message (info, error, etc.)
+     * @param message        the message template
+     * @param moduleInfo     the module information
+     * @param lsClientLogger the language server client logger for notifications
+     */
+    private static void notifyClient(MessageType messageType, String message, ModuleInfo moduleInfo,
+                                     LSClientLogger lsClientLogger) {
+        if (lsClientLogger != null) {
+            String signature =
+                    String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+            lsClientLogger.notifyClient(messageType, String.format(message, signature));
+        }
     }
 }

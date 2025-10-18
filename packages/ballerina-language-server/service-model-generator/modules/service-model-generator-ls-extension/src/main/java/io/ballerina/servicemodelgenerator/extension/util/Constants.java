@@ -30,6 +30,7 @@ public class Constants {
     public static final String CAPABILITY_NAME = "serviceModel";
     public static final String DOUBLE_QUOTE = "\"";
     public static final String TAB = "\t";
+    public static final String TWO_TABS = TAB + TAB;
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -47,11 +48,13 @@ public class Constants {
     public static final String DEFAULT_LISTENER_ITEM_LABEL = "(+) Create and use a %s listener with " +
             "default configurations";
     public static final String DEFAULT_LISTENER_VAR_NAME = "%sDefaultListener";
+    public static final String LISTENER_VAR_NAME = "%sListener";
 
     public static final String HTTP = "http";
     public static final String GRAPHQL = "graphql";
     public static final String TCP = "tcp";
     public static final String AI = "ai";
+    public static final String MCP = "mcp";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -66,6 +69,7 @@ public class Constants {
     public static final String PROPERTY_REQUIRED_FUNCTIONS = "requiredFunctions";
     public static final String PROPERTY_DESIGN_APPROACH = "designApproach";
     public static final String PROPERTY_NAME = "name";
+    public static final String PROPERTY_BASE_PATH = "basePath";
 
     public static final String KIND_QUERY = "QUERY";
     public static final String KIND_MUTATION = "MUTATION";
@@ -78,6 +82,7 @@ public class Constants {
     public static final String KIND_OBJECT_METHOD = "OBJECT_METHOD";
 
     public static final String PARAMETER = "parameter";
+    public static final String ISOLATED = "isolated";
     public static final String SERVICE = "service";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
@@ -87,13 +92,27 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
+    public static final String VALUE_TYPE_FORM = "FORM";
+    public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
+    public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+
+    public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
+    public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD = "LISTENER_PARAM_INCLUDED_FIELD";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD =
+            "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
+    public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
+    public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+
+    public static final String TYPE_SERVICE = "Service";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";
@@ -101,6 +120,7 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
+    public static final String VARIABLE_NAME_KEY = "variableNameKey";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
@@ -131,16 +151,22 @@ public class Constants {
             "The name of the argument");
     public static final MetaData ARGUMENT_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the argument");
+    public static final MetaData ARGUMENT_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the argument");
     public static final MetaData PARAMETER_TYPE_METADATA = new MetaData("Parameter Type",
             "The type of the parameter");
     public static final MetaData PARAMETER_NAME_METADATA = new MetaData("Parameter Name",
             "The name of the parameter");
     public static final MetaData PARAMETER_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the parameter");
+    public static final MetaData PARAMETER_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the parameter");
     public static final MetaData FIELD_TYPE_METADATA = new MetaData("Field Type",
             "The type of the field");
     public static final MetaData FIELD_NAME_METADATA = new MetaData("Field Name",
             "The name of the field");
+    public static final MetaData FIELD_DOCUMENTAION_METADATA = new MetaData("Description",
+            "The description of the field");
     public static final MetaData FIELD_DEFAULT_VALUE_METADATA = new MetaData("Initial Value",
             "The initial value of the filed");
     public static final MetaData FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
@@ -153,9 +179,17 @@ public class Constants {
             "The resource path");
     public static final MetaData RESOURCE_FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
             "The return type of the resource");
+    public static final MetaData RESOURCE_FUNCTION_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the resource");
+    public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
+            "description of the object");
 
     // organization names
     public static final String BALLERINA = "ballerina";
+
+    // types
+    public static final String USER_DEFINED_TYPE = "User-Defined";
+    public static final String ERROR_TYPE = "Error Types";
 
     // annotation attachment points
     public static final String OBJECT_METHOD = "OBJECT_METHOD";
@@ -172,6 +206,14 @@ public class Constants {
     public static final String GRAPHQL_CONTEXT_KEY = "paramContext";
     public static final String GRAPHQL_FIELD_KEY = "paramField";
     public static final String VALUE_FIELD = "value";
+
+    // Type API contexts
+    public static final String GRAPHQL_FIELD_TYPE = "GRAPHQL_FIELD_TYPE";
+    public static final String GRAPHQL_INPUT_TYPE = "GRAPHQL_INPUT_TYPE";
+
+    // GraphQL types
+    public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
+    public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
 
     private Constants() {
     }

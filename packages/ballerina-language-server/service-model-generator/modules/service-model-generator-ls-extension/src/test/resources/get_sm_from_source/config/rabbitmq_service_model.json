@@ -10,17 +10,31 @@
     "offset": 0
   },
   "response": {
-    "id": "9",
+    "id": "10",
     "name": "RabbitMQ Event Handler",
     "type": "rabbitmq",
     "displayName": "RabbitMQ Event Handler",
-    "description": "Add the service documentation",
     "moduleName": "rabbitmq",
     "orgName": "ballerinax",
     "version": "3.2.0",
     "packageName": "rabbitmq",
     "listenerProtocol": "rabbitmq",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -60,7 +74,7 @@
           "Service"
         ],
         "enabled": false,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       },

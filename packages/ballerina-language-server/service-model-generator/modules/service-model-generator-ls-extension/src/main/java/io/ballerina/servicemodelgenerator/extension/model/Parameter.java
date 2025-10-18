@@ -27,12 +27,14 @@ import java.util.Locale;
 import java.util.Objects;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_DEFAULT_VALUE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
 
@@ -47,6 +49,7 @@ public class Parameter {
     private Value type;
     private Value name;
     private Value defaultValue;
+    private Value documentation;
     private boolean enabled;
     private boolean editable;
     private boolean optional;
@@ -54,13 +57,15 @@ public class Parameter {
     private String httpParamType;
     private boolean hidden;
 
-    public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, boolean enabled,
-                     boolean editable, boolean optional, boolean advanced, String httpParamType, boolean hidden) {
+    public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, Value documentation,
+                     boolean enabled, boolean editable, boolean optional, boolean advanced, String httpParamType,
+                     boolean hidden) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
         this.name = name;
         this.defaultValue = defaultValue;
+        this.documentation = documentation;
         this.enabled = enabled;
         this.editable = editable;
         this.optional = optional;
@@ -72,6 +77,7 @@ public class Parameter {
     public Parameter(Parameter parameter) {
         this.metadata = parameter.metadata;
         this.kind = parameter.kind;
+        this.documentation = parameter.documentation;
         this.type = parameter.type;
         this.name = parameter.name;
         this.defaultValue = parameter.defaultValue;
@@ -97,6 +103,22 @@ public class Parameter {
 
     public void setKind(String kind) {
         this.kind = kind;
+    }
+
+    public Value getDocumentation() {
+        if (Objects.isNull(documentation)) {
+            documentation = new Value.ValueBuilder()
+                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .optional(true)
+                    .editable(true)
+                    .build();
+        }
+        return documentation;
+    }
+
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
     }
 
     public Value getType() {
@@ -202,11 +224,23 @@ public class Parameter {
                 .build();
     }
 
+    private static Value documentation(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_STRING)
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build();
+    }
+
     public static Parameter getNewField() {
-        return new Parameter.Builder()
+        return new Builder()
                 .type(type(FIELD_TYPE_METADATA))
                 .name(name(FIELD_NAME_METADATA))
                 .defaultValue(defaultValue(FIELD_DEFAULT_VALUE_METADATA))
+                .editable(true)
+                .optional(true)
                 .build();
     }
 
@@ -215,6 +249,7 @@ public class Parameter {
                 .type(type(ARGUMENT_TYPE_METADATA))
                 .name(name(ARGUMENT_NAME_METADATA))
                 .defaultValue(defaultValue(ARGUMENT_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(ARGUMENT_DOCUMENTATION_METADATA))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -225,6 +260,7 @@ public class Parameter {
                 .type(type(PARAMETER_TYPE_METADATA))
                 .name(name(PARAMETER_NAME_METADATA))
                 .defaultValue(defaultValue(PARAMETER_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(PARAMETER_DOCUMENTATION_METADATA))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -275,6 +311,7 @@ public class Parameter {
         private Value type;
         private Value name;
         private Value defaultValue;
+        private Value documentation;
         private boolean enabled;
         private boolean editable;
         private boolean optional;
@@ -289,6 +326,11 @@ public class Parameter {
 
         public Builder kind(String kind) {
             this.kind = kind;
+            return this;
+        }
+
+        public Builder documentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -338,8 +380,8 @@ public class Parameter {
         }
 
         public Parameter build() {
-            return new Parameter(metadata, kind, type, name, defaultValue, enabled, editable, optional, advanced,
-                    httpParamType, hidden);
+            return new Parameter(metadata, kind, type, name, defaultValue, documentation, enabled, editable, optional,
+                    advanced, httpParamType, hidden);
         }
     }
 }
