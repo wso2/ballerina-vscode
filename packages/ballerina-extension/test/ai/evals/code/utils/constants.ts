@@ -77,5 +77,6 @@ export const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
     OPEN: "vscode.open",
     SHOW_EXAMPLES: "ballerina.showExamples",
-    AI_GENERATE_CODE_CORE: "ballerina.test.ai.generateCodeCore"
+    AI_GENERATE_CODE_CORE: "ballerina.test.ai.generateCodeCore",
+    AI_GENERATE_MAPPING_CODE_CORE: "ballerina.test.ai.generatemappingCodecore"
 } as const;

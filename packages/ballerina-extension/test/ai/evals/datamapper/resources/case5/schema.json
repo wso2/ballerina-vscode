@@ -1,0 +1,141 @@
+{
+  "mappingsModel": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "personal",
+        "displayName": "personal",
+        "typeName": "PersonalInfo",
+        "kind": "record",
+        "category": "parameter"
+      },
+      {
+        "fields": [],
+        "name": "contact",
+        "displayName": "contact",
+        "typeName": "ContactInfo",
+        "kind": "record",
+        "category": "parameter"
+      },
+      {
+        "name": "username",
+        "displayName": "username",
+        "typeName": "string",
+        "kind": "string",
+        "category": "parameter"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "createUserAccount",
+      "displayName": "createUserAccount",
+      "typeName": "UserAccount",
+      "kind": "record"
+    },
+    "mappings": [],
+    "refs": {
+      "PersonalInfo": {
+        "fields": [
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "lastName",
+            "displayName": "lastName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "dateOfBirth",
+            "displayName": "dateOfBirth",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "PersonalInfo",
+        "kind": "record"
+      },
+      "ContactInfo": {
+        "fields": [
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "phoneNumber",
+            "displayName": "phoneNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "address",
+            "displayName": "address",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "ContactInfo",
+        "kind": "record"
+      },
+      "UserAccount": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "birthDate",
+            "displayName": "birthDate",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "contactEmail",
+            "displayName": "contactEmail",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "contactPhone",
+            "displayName": "contactPhone",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "residentialAddress",
+            "displayName": "residentialAddress",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserAccount",
+        "kind": "record"
+      }
+    }
+  }
+}

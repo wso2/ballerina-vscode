@@ -1,0 +1,92 @@
+{
+  "mappingsModel": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "employee",
+        "displayName": "employee",
+        "typeName": "Employee",
+        "kind": "record",
+        "category": "parameter"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "transformEmployee",
+      "displayName": "transformEmployee",
+      "typeName": "EmployeeProfile",
+      "kind": "record"
+    },
+    "mappings": [],
+    "refs": {
+      "Employee": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "skills",
+            "displayName": "skills",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "yearsOfExperience",
+            "displayName": "yearsOfExperience",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Employee",
+        "kind": "record"
+      },
+      "EmployeeProfile": {
+        "fields": [
+          {
+            "name": "employeeId",
+            "displayName": "employeeId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "technicalSkills",
+            "displayName": "technicalSkills",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "experienceLevel",
+            "displayName": "experienceLevel",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "EmployeeProfile",
+        "kind": "record"
+      }
+    }
+  }
+}
