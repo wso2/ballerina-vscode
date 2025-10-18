@@ -202,18 +202,18 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             // Check if agent already has a configured memory manager
             const agentMemoryValue = agentNodeRef.current?.properties?.memory?.value;
             if (!agentMemoryValue) {
-                // No existing memory manager - use template for new configuration
-                setMemoryManagerNode(nodeTemplate);
+                setMemoryManagerNode(undefined);
                 return;
             }
 
             // Find the existing memory manager node from module variables
             const existingMemoryVariable = moduleNodes.current?.variables?.find(
                 (node) => node.properties.variable.value === agentMemoryValue.toString().trim()
+                    && node.properties.type.value.toString().includes(memoryManagerCodeData.object)
             );
 
-            // Use existing configuration if found, otherwise use template
-            setMemoryManagerNode(existingMemoryVariable || nodeTemplate);
+            // Set the existing configuration if found, otherwise undefined to use template defaults
+            setMemoryManagerNode(existingMemoryVariable);
         } catch (error) {
             console.error("Error loading memory manager template", error);
         } finally {
@@ -304,9 +304,9 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             {!isLoading && memoryManagerNodeTemplate && agentNodeRef.current?.codedata?.lineRange && (
                 <FormGenerator
                     fileName={agentFilePath.current}
-                    node={memoryManagerNode}
+                    node={memoryManagerNode || memoryManagerNodeTemplate}
                     nodeFormTemplate={memoryManagerNodeTemplate}
-                    targetLineRange={memoryManagerNode?.codedata?.lineRange ? memoryManagerNode.codedata.lineRange : agentNodeRef.current.codedata.lineRange}
+                    targetLineRange={memoryManagerNode?.codedata?.lineRange || agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={isSaving}
                     submitText={isSaving ? "Saving..." : "Save"}
