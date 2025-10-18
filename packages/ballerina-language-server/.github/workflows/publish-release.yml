@@ -31,9 +31,9 @@ jobs:
         id: cache-ballerina
         with:
           path: /home/runner/.ballerina/repositories/
-          key: ${{ runner.os }}-ballerina-${{ hashFiles('**/gradle.properties') }}
+          key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-ballerina-
+            ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
 
       - name: Generate SBOM
         env:
