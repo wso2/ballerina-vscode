@@ -95,6 +95,7 @@ export function Parameters(props: ParametersProps) {
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
     
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
 
 
     const handleAdvanceParamToggle = () => {
@@ -143,8 +144,13 @@ export function Parameters(props: ParametersProps) {
         setIsTypeEditorOpen(false);
     };
 
-    const handleOpenFormTypeEditor = (open: boolean, newType?: string) => {
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
         setIsTypeEditorOpen(open);
+        if (typeName) {
+            setEditingTypeName(typeName);
+        } else {
+            setEditingTypeName("");
+        }
     };
 
     const onDelete = (param: ParameterModel) => {
@@ -369,8 +375,9 @@ export function Parameters(props: ParametersProps) {
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName="PayloadType"
-                modalTitle="Define Payload"
+                initialTypeName={editingTypeName || "PayloadType"}
+                editMode={!!editingTypeName}
+                modalTitle={editingTypeName ? "Edit Type" : "Define Payload"}
                 modalWidth={650}
                 modalHeight={600}
             />
