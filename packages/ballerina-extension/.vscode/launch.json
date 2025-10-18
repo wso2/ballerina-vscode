@@ -71,6 +71,6 @@
             "outFiles": [
                 "${workspaceFolder}/out/src/debugger/**/*.js"
             ],
-        },
+        }
     ]
 }
