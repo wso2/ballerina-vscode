@@ -64,6 +64,7 @@ interface FormFieldEditorProps {
     newServerUrl?: string;
     mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
+    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -81,7 +82,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         setSubComponentEnabled,
         handleNewTypeSelected,
         scopeFieldAddon,
-        newServerUrl
+        newServerUrl,
+        openFormTypeEditor
     } = props;
     if (!field.enabled || field.hidden) {
         return <></>;

@@ -353,6 +353,7 @@ export interface FormProps {
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
+    openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -391,6 +392,7 @@ export const Form = forwardRef((props: FormProps) => {
         injectedComponents,
         hideSaveButton = false,
         onValidityChange,
+        openFormTypeEditor,
     } = props;
 
     const {
@@ -770,6 +772,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         newServerUrl={newServerUrl}
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
+                                        openFormTypeEditor={openFormTypeEditor && ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))}
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
