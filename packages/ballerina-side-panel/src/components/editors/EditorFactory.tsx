@@ -135,6 +135,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             <TypeEditor
                 field={field}
                 openRecordEditor={openRecordEditor}
+                openFormTypeEditor={openFormTypeEditor}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}

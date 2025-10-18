@@ -143,6 +143,10 @@ export function Parameters(props: ParametersProps) {
         setIsTypeEditorOpen(false);
     };
 
+    const handleOpenFormTypeEditor = (open: boolean, newType?: string) => {
+        setIsTypeEditorOpen(open);
+    };
+
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(p => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value);
         onChange(updatedParameters);
@@ -262,6 +266,7 @@ export function Parameters(props: ParametersProps) {
                     onChange={onChangeParam}
                     onSave={onSaveParam}
                     onCancel={onParamEditCancel}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                 />
             }
 

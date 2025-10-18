@@ -105,6 +105,7 @@ interface FormProps {
         component: ReactNode;
         index: number;
     }[];
+    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -134,6 +135,7 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
+        openFormTypeEditor,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -837,6 +839,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={openFormTypeEditor}
                     onCancelForm={onBack || onCancel}
                     submitText={submitText}
                     cancelText={cancelText}
