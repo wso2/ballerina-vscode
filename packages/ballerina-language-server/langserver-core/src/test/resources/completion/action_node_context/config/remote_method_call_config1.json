@@ -635,6 +635,9 @@
     },
     {
       "label": "prodClient",
+      "labelDetails": {
+        "detail": "ProductClient"
+      },
       "kind": "Variable",
       "detail": "ProductClient",
       "sortText": "F",
@@ -670,6 +673,9 @@
     },
     {
       "label": "count",
+      "labelDetails": {
+        "detail": "int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

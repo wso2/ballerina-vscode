@@ -392,6 +392,9 @@
     },
     {
       "label": "testValue",
+      "labelDetails": {
+        "detail": "module1:TestClass1"
+      },
       "kind": "Variable",
       "detail": "module1:TestClass1",
       "sortText": "AB",
@@ -415,6 +418,9 @@
     },
     {
       "label": "l1",
+      "labelDetails": {
+        "detail": "module1:Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "F",

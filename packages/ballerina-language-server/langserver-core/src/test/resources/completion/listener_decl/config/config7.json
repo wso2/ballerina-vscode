@@ -8,6 +8,9 @@
   "items": [
     {
       "label": "test",
+      "labelDetails": {
+        "detail": "$UndefinedType$"
+      },
       "kind": "Variable",
       "detail": "$UndefinedType$",
       "sortText": "B",

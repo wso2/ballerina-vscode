@@ -403,6 +403,9 @@
     },
     {
       "label": "testClient",
+      "labelDetails": {
+        "detail": "module1:Client"
+      },
       "kind": "Variable",
       "detail": "module1:Client",
       "sortText": "AB",

@@ -4,9 +4,13 @@
     "character": 30
   },
   "source": "service_decl/source/source6e.bal",
+  "description": "",
   "items": [
     {
       "label": "listener1",
+      "labelDetails": {
+        "detail": "module1:Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "A",

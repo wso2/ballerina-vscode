@@ -697,6 +697,9 @@
     },
     {
       "label": "cl",
+      "labelDetails": {
+        "detail": "ClientClass"
+      },
       "kind": "Variable",
       "detail": "ClientClass",
       "sortText": "B",
