@@ -1,0 +1,71 @@
+{
+  "mappingsModel": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "person",
+        "displayName": "person",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "parameter"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "transform",
+      "displayName": "transform",
+      "typeName": "Student",
+      "kind": "record"
+    },
+    "mappings": [],
+    "refs": {
+      "Student": {
+        "fields": [
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "Person": {
+        "fields": [
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "lastName",
+            "displayName": "lastName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}
