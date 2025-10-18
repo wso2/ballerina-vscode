@@ -1,0 +1,76 @@
+{
+  "description": "Test getting graphql service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "graphql",
+  "moduleName": "graphql",
+  "response": {
+    "serviceInitModel": {
+      "id": "2",
+      "displayName": "GraphQL Service",
+      "description": "Create GraphQL service",
+      "orgName": "ballerina",
+      "packageName": "graphql",
+      "moduleName": "graphql",
+      "version": "1.16.0",
+      "type": "graphql",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+      "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Base Path",
+            "description": "The base path of the GraphQL service"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/graphql",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "/graphql",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "port": {
+          "metadata": {
+            "label": "Port",
+            "description": "The port on which the GraphQL service listens"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "8080",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "int",
+          "value": "8080",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "graphqlListener",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}
