@@ -211,7 +211,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[]) {
     const newArtifact = response.find(artifact => artifact.isNew);
     const stateContext = StateMachine.context().view;
-    if (newArtifact.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
+    if (newArtifact?.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
     } else {
         notifyCurrentWebview();
