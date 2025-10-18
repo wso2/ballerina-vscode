@@ -23,7 +23,8 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel } from '@wso2/ballerina-core';
+import { ConfigProperties, ParameterModel, Type } from '@wso2/ballerina-core';
+import { ContextBasedFormTypeEditor } from '../../../../../../components/FormTypeEditorModal';
 
 export interface ParametersProps {
     parameters: ParameterModel[];
@@ -92,6 +93,8 @@ export function Parameters(props: ParametersProps) {
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
+    
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
 
     const handleAdvanceParamToggle = () => {
@@ -119,11 +122,25 @@ export function Parameters(props: ParametersProps) {
     };
 
     const onAddPayloadClick = () => {
+        // Open FormTypeEditor modal instead of ParamEditor
+        setIsTypeEditorOpen(true);
+    };
+
+    const handleTypeCreated = (type: Type) => {
+        // When a type is created, set it as the payload type
         payloadModel.name.value = "payload";
-        payloadModel.type.value = "";
-        setIsNew(true);
-        setEditModel(payloadModel);
-        setEditingIndex(-1);
+        payloadModel.type.value = type.name;
+        payloadModel.enabled = true;
+        
+        // Add the payload parameter to the list
+        onChange([...parameters, payloadModel]);
+        
+        // Close the modal
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
     };
 
     const onDelete = (param: ParameterModel) => {
@@ -252,7 +269,7 @@ export function Parameters(props: ParametersProps) {
                 <AddButtonWrapper >
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddPayloadClick)}>
                         <Codicon name="add" />
-                        <>Add Payload</>
+                        <>Define Payload</>
                     </LinkButton>
                 </AddButtonWrapper>
             }
@@ -342,6 +359,16 @@ export function Parameters(props: ParametersProps) {
             </>
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
+            {/* FormTypeEditor Modal for Add Payload */}
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName="PayloadType"
+                modalTitle="Define Payload"
+                modalWidth={650}
+                modalHeight={600}
+            />
         </div >
     );
 }
