@@ -57,7 +57,8 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     // Available memory managers from the AI module
     const [availableMemoryManagers, setAvailableMemoryManagers] = useState<CodeData[]>([]);
     // Currently selected/configured memory manager with full node details
-    const [selectedMemoryManager, setSelectedMemoryManager] = useState<FlowNode>();
+    const [memoryManagerNodeTemplate, setMemoryManagerNodeTemplate] = useState<FlowNode>();
+    const [memoryManagerNode, setMemoryManagerNode] = useState<FlowNode>();
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -183,8 +184,8 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
 
     const loadMemoryManagerTemplate = async (memoryManagerCodeData: CodeData): Promise<void> => {
         setIsLoading(true);
-
         try {
+            // Fetch the node template for the selected memory manager
             const nodeTemplate = await getNodeTemplate(
                 rpcClient,
                 memoryManagerCodeData,
@@ -196,7 +197,23 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                 return;
             }
 
-            setSelectedMemoryManager(nodeTemplate);
+            setMemoryManagerNodeTemplate(nodeTemplate);
+
+            // Check if agent already has a configured memory manager
+            const agentMemoryValue = agentNodeRef.current?.properties?.memory?.value;
+            if (!agentMemoryValue) {
+                // No existing memory manager - use template for new configuration
+                setMemoryManagerNode(nodeTemplate);
+                return;
+            }
+
+            // Find the existing memory manager node from module variables
+            const existingMemoryVariable = moduleNodes.current?.variables?.find(
+                (node) => node.properties.variable.value === agentMemoryValue.toString().trim()
+            );
+
+            // Use existing configuration if found, otherwise use template
+            setMemoryManagerNode(existingMemoryVariable || nodeTemplate);
         } catch (error) {
             console.error("Error loading memory manager template", error);
         } finally {
@@ -251,7 +268,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
 
     const getCurrentMemoryManagerType = (): string => {
         return (
-            selectedMemoryManager?.codedata?.object ||
+            memoryManagerNodeTemplate?.codedata?.object ||
             ((agentCallNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
             "Select a memory manager..."
         );
@@ -284,11 +301,12 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                     <RelativeLoader />
                 </LoaderContainer>
             )}
-            {!isLoading && selectedMemoryManager && agentNodeRef.current?.codedata?.lineRange && (
+            {!isLoading && memoryManagerNodeTemplate && agentNodeRef.current?.codedata?.lineRange && (
                 <FormGenerator
                     fileName={agentFilePath.current}
-                    node={selectedMemoryManager}
-                    targetLineRange={agentNodeRef.current.codedata.lineRange}
+                    node={memoryManagerNode}
+                    nodeFormTemplate={memoryManagerNodeTemplate}
+                    targetLineRange={memoryManagerNode?.codedata?.lineRange ? memoryManagerNode.codedata.lineRange : agentNodeRef.current.codedata.lineRange}
                     onSubmit={handleOnSave}
                     disableSaveButton={isSaving}
                     submitText={isSaving ? "Saving..." : "Save"}
