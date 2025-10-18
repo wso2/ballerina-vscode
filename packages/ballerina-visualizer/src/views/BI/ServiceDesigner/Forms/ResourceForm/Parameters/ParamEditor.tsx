@@ -37,10 +37,11 @@ export interface ParamProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
+    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel } = props;
+    const { param, hideType = false, onChange, onSave, onCancel, openFormTypeEditor } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -98,7 +99,7 @@ export function ParamEditor(props: ParamProps) {
                 type: param.type.valueType,
                 optional: false,
                 editable: true,
-                documentation: '',
+                documentation: param.documentation.metadata.description || '',
                 enabled: param.type?.enabled,
                 value: param.type.value,
                 valueTypeConstraint: ""
@@ -143,10 +144,10 @@ export function ParamEditor(props: ParamProps) {
                 enabled: !!dataValues['defaultValue']
             }
         };
-        
+
         // Update the parent component's state first
         onChange(updatedParam);
-        
+
         // Then call onSave if provided
         if (onSave) {
             onSave(updatedParam);
@@ -193,7 +194,7 @@ export function ParamEditor(props: ParamProps) {
                 </EditorContent>
             }
             <>
-                {filePath && targetLineRange &&
+                {filePath && targetLineRange && param.httpParamType !== "PAYLOAD" &&
                     <FormGeneratorNew
                         fileName={filePath}
                         targetLineRange={targetLineRange}
@@ -204,6 +205,22 @@ export function ParamEditor(props: ParamProps) {
                         nestedForm={true}
                         helperPaneSide='left'
                         preserveFieldOrder={true}
+                    />
+                }
+
+                {filePath && targetLineRange && param.httpParamType === "PAYLOAD" &&
+                    <FormGeneratorNew
+                        fileName={filePath}
+                        targetLineRange={targetLineRange}
+                        fields={currentFields}
+                        onBack={handleOnCancel}
+                        onSubmit={onParameterSubmit}
+                        submitText={param.type.value ? "Save" : "Add"}
+                        nestedForm={true}
+                        helperPaneSide='left'
+                        preserveFieldOrder={true}
+                        openFormTypeEditor={openFormTypeEditor}
+
                     />
                 }
 
