@@ -16,14 +16,54 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { ProcessMappingParametersRequest } from "@wso2/ballerina-core";
 import { TestCase, TestEventResult, BalTestResult } from "../types";
-import { VSCODE_COMMANDS, TIMING } from "./constants";
+import { VSCODE_COMMANDS, TIMING, FILES } from "./constants";
 import { createTestEventHandler } from "./test-event-handler";
 
 const execAsync = promisify(exec);
+
+/**
+ * Setup workspace for test execution
+ */
+async function setupWorkspace(projectPath: string): Promise<void> {
+    console.log(`📂 Setting up workspace: ${projectPath}`);
+
+    // Close all editors first
+    await vscode.commands.executeCommand(VSCODE_COMMANDS.CLOSE_ALL_EDITORS);
+
+    // Add the Ballerina workspace to trigger workspaceContains activation event
+    const currentFolderCount = vscode.workspace.workspaceFolders?.length || 0;
+    vscode.workspace.updateWorkspaceFolders(0, currentFolderCount, {
+        uri: vscode.Uri.file(projectPath),
+    });
+
+    // Wait for workspace to be added
+    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETUP_DELAY));
+
+    // Force extension activation by opening the types file first (to load type definitions)
+    try {
+        const typesBalFile = vscode.Uri.file(path.join(projectPath, FILES.TYPES_BAL));
+        console.log(`📄 Opening types file: ${typesBalFile.fsPath}`);
+        await vscode.commands.executeCommand(VSCODE_COMMANDS.OPEN, typesBalFile);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Then open main.bal file
+        const mainBalFile = vscode.Uri.file(path.join(projectPath, FILES.MAIN_BAL));
+        console.log(`📄 Opening main file: ${mainBalFile.fsPath}`);
+        await vscode.commands.executeCommand(VSCODE_COMMANDS.OPEN, mainBalFile);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error) {
+        console.error("Error opening files:", error);
+    }
+
+    // Give extra time for language server to index all files
+    console.log(`⏳ Waiting for language server to index files...`);
+    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
+}
 
 /**
  * Execute datamapper test for a single test case
@@ -33,25 +73,18 @@ export async function executeDatamapperTest(testCase: TestCase): Promise<TestEve
 
     const { handler, getResult } = createTestEventHandler();
 
-    // Load schema from file
-    const schemaContent = await fs.promises.readFile(testCase.schemaPath, "utf-8");
-    const schema = JSON.parse(schemaContent);
+    // Setup workspace properly
+    await setupWorkspace(testCase.resourcePath);
 
-    // Extract input record names from schema
-    const inputRecords = schema.mappingsModel.inputs
-        .filter((input: any) => input.kind === "record")
-        .map((input: any) => input.typeName);
-
-    const outputRecord = schema.mappingsModel.output.typeName;
+    // Wait for workspace to stabilize and language server to index
+    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
 
     const params: ProcessMappingParametersRequest = {
         parameters: {
-            inputRecord: inputRecords,
-            outputRecord: outputRecord,
+            inputRecord: [],
+            outputRecord: "",
             functionName: testCase.expectedFunctionName,
-        },
-        metadata: schema,
-        attachments: [],
+        }
     };
 
     try {
@@ -61,7 +94,8 @@ export async function executeDatamapperTest(testCase: TestCase): Promise<TestEve
             handler
         );
 
-        return getResult();
+        const result = getResult();
+        return result;
     } catch (error) {
         console.error(`❌ Test case ${testCase.name} failed with error:`, error);
         const result = getResult();
@@ -76,6 +110,55 @@ export async function updateMainBalFile(testCase: TestCase, generatedCode: strin
     const mainBalPath = `${testCase.resourcePath}/main.bal`;
     await fs.promises.writeFile(mainBalPath, generatedCode, "utf-8");
     console.log(`✅ Updated ${mainBalPath} with generated mapping code`);
+}
+
+/**
+ * Parse individual test assertions from bal test output
+ */
+function parseTestAssertions(output: string): any[] {
+    const assertions: any[] = [];
+
+    const assertionPattern = /\[fail\]\s+(\w+):\s+Assertion Failed!\s+expected:\s+'([^']*)'\s+actual\s+:\s+'([^']*)'/g;
+    let match;
+
+    while ((match = assertionPattern.exec(output)) !== null) {
+        const testName = match[1];
+        const expected = match[2];
+        const actual = match[3];
+
+        assertions.push({
+            testName,
+            fieldName: testName, // Use test name as field identifier
+            passed: false,
+            expected,
+            actual
+        });
+    }
+
+    // For passing tests, extract from test summary
+    // Pattern: test name in output followed by passing status
+    const passedTestsPattern = /(\d+)\s+passing/i;
+    const passMatch = output.match(passedTestsPattern);
+
+    if (passMatch) {
+        // Try to extract passing test names
+        const testNamePattern = /@test:Config\s*\{\}\s*function\s+(\w+)/g;
+        const testContent = output.match(/Running\s+Tests/i);
+
+        if (testContent) {
+            // Find test function names in the surrounding context
+            const testFuncMatches = [...output.matchAll(/\[pass\]\s+(\w+)/g)];
+            testFuncMatches.forEach(m => {
+                assertions.push({
+                    testName: m[1],
+                    fieldName: m[1],
+                    passed: true
+                });
+            });
+        }
+    }
+
+    return assertions;
 }
 
 /**
@@ -103,13 +186,17 @@ export async function runBalTest(testCase: TestCase): Promise<BalTestResult> {
         const skipped = skippedMatch ? parseInt(skippedMatch[1], 10) : 0;
         const total = passed + failed + skipped;
 
+        // Parse individual assertions
+        const assertions = parseTestAssertions(output);
+
         return {
             passed,
             failed,
             skipped,
             total,
             output,
-            success: failed === 0 && passed > 0
+            success: failed === 0 && passed > 0,
+            assertions
         };
     } catch (error: any) {
         const output = error.stdout + error.stderr;
@@ -125,13 +212,17 @@ export async function runBalTest(testCase: TestCase): Promise<BalTestResult> {
         const skipped = skippedMatch ? parseInt(skippedMatch[1], 10) : 0;
         const total = passed + failed + skipped;
 
+        // Parse individual assertions
+        const assertions = parseTestAssertions(output);
+
         return {
             passed,
             failed,
             skipped,
             total,
             output,
-            success: false
+            success: false,
+            assertions
         };
     }
 }

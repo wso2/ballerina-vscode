@@ -34,6 +34,9 @@ import { PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
 import { URI } from "vscode-uri";
 import { getAllDataMapperSource } from "./service/datamapper/datamapper";
 
+// Set to false to include mappings with default values
+const OMIT_DEFAULT_MAPPINGS_ENABLED = true;
+
 // ================================================================================================
 // Utility Functions - Type checking and validation helpers
 // ================================================================================================
@@ -248,22 +251,6 @@ export function createDataMappingFunctionSource(
   functionName: string,
   inputNames: string[]
 ): string {
-  if (!inputParams || inputParams.length === 0) {
-    throw new Error("Input parameters are required for function creation");
-  }
-
-  if (!outputParam) {
-    throw new Error("Output parameter is required for function creation");
-  }
-
-  if (!functionName || functionName.trim() === "") {
-    throw new Error("Function name is required and cannot be empty");
-  }
-
-  if (!inputNames || inputNames.length !== inputParams.length) {
-    throw new Error("Input names must match the number of input parameters");
-  }
-
   const parametersStr = buildParametersString(inputParams, inputNames);
   const returnTypeStr = buildReturnTypeString(outputParam);
 
@@ -400,8 +387,14 @@ export async function generateDataMapperModel(
       position: position
     }) as DataMapperModelResponse;
 
+  if (!dataMapperModel) {
+    console.error('DataMapperModel is undefined', dataMapperModel);
+    throw new Error('Failed to retrieve DataMapperModel from language client');
+  }
+
   let mappingsModel = ensureUnionRefs(dataMapperModel.mappingsModel as DMModel);
   mappingsModel = normalizeRefs(mappingsModel);
+  mappingsModel = omitDefaultMappings(mappingsModel, OMIT_DEFAULT_MAPPINGS_ENABLED);
 
   if (mappingsModel.subMappings && mappingsModel.subMappings.length > 0) {
     mappingsModel.subMappings = await processSubMappings(
@@ -739,6 +732,23 @@ export function normalizeRefs(model: DMModel): DMModel {
   }
 
   processedModel.refs = newRefs;
+
+  return processedModel;
+}
+
+export function omitDefaultMappings(model: DMModel, enabled: boolean = true): DMModel {
+  if (!enabled || !model.mappings || !Array.isArray(model.mappings)) {
+    return model;
+  }
+
+  const processedModel: DMModel = JSON.parse(JSON.stringify(model));
+
+  processedModel.mappings = processedModel.mappings.filter((mapping: Mapping) => {
+    if (!mapping.inputs || !Array.isArray(mapping.inputs)) {
+      return true;
+    }
+    return mapping.inputs.length > 0;
+  });
 
   return processedModel;
 }
@@ -1250,15 +1260,21 @@ export async function repairCodeAndGetUpdatedContent(
   langClient: ExtendedLangClient,
   projectRoot: string
 ): Promise<{ finalContent: string; customFunctionsContent: string }> {
+  
+  // Read main file content
+  let finalContent = fs.readFileSync(params.tempFileMetadata.codeData.lineRange.fileName, 'utf8');
+  
+  // Read custom functions content (only if path is provided)
+  let customFunctionsContent = params.customFunctionsFilePath 
+    ? await getCustomFunctionsContent(params.customFunctionsFilePath)
+    : '';
+
   // Check and repair diagnostics
   const diagnostics = await checkAndRepairDiagnostics(
     params,
     langClient,
     projectRoot
   );
-
-  let finalContent = fs.readFileSync(params.tempFileMetadata.codeData.lineRange.fileName, 'utf8');
-  let customFunctionsContent = await getCustomFunctionsContent(params.customFunctionsFilePath);
 
   // Repair with LLM if needed
   if (diagnostics.diagnosticsList && diagnostics.diagnosticsList.length > 0) {
@@ -1278,7 +1294,7 @@ export async function repairCodeAndGetUpdatedContent(
 }
 
 // Get custom functions content if file exists
-async function getCustomFunctionsContent(
+export async function getCustomFunctionsContent(
   customFunctionsFilePath: string | undefined,
 ): Promise<string> {
   if (!customFunctionsFilePath) {
@@ -1426,63 +1442,66 @@ export function determineMappingFilePath(
   } else if (activeFile && activeFile.endsWith(".bal")) {
     return activeFile;
   } else {
-    // If no active file, find an existing .bal file
     if (projectRoot) {
       const allBalFiles = findBalFilesInDirectory(projectRoot);
       if (allBalFiles.length > 0) {
-        // Return the last file (to avoid conflict with functions.bal which might use first)
         return path.basename(allBalFiles[allBalFiles.length - 1]);
       }
     }
-    // Fallback to data_mappings.bal (If there's no .bal file)
-    return "data_mappings.bal";
+
+    return null;
   }
 }
 
 // Determine the file path for custom functions
 export function determineCustomFunctionsPath(
   projectRoot: string,
-  activeFilePath: string
-): string {
+  activeFilePath?: string
+): string | null {
   const functionsBalPath = path.join(projectRoot, "functions.bal");
-  activeFilePath = path.join(projectRoot, activeFilePath);
 
-  // Check if functions.bal exists in project root
   if (fs.existsSync(functionsBalPath)) {
     return functionsBalPath;
   }
 
-  // Find all .bal files in the project, excluding the active file
   const allBalFiles = findBalFilesInDirectory(projectRoot);
-  const otherBalFiles = allBalFiles.filter(file => file !== activeFilePath);
-
-  // If there are other .bal files (excluding active file), use the first one
-  if (otherBalFiles.length > 0) {
-    return otherBalFiles[0];
+  
+  if (activeFilePath) {
+    const normalizedActiveFilePath = path.join(projectRoot, activeFilePath);
+    const otherBalFiles = allBalFiles.filter(file => file !== normalizedActiveFilePath);
+    
+    if (otherBalFiles.length > 0) {
+      return otherBalFiles[0];
+    }
+    if (otherBalFiles.length === 0) {
+      return allBalFiles[0];
+    }
+  } else {
+    if (allBalFiles.length > 0) {
+      return allBalFiles[0];
+    }
   }
 
-  // Fallback: return functions.bal path (will be created)
-  return functionsBalPath;
+  return null;
 }
 
 // Build file array for mapping results
 export function buildMappingFileArray(
-  tempFileMetadata: ExtendedDataMapperMetadata,
+  filePath: string,
   finalContent: string,
-  customFunctionsFilePath: string | undefined,
-  customFunctionsContent: string,
-  customFunctionsTargetPath?: string
+  customFunctionsTargetPath?: string,
+  customFunctionsContent?: string
 ): SourceFile[] {
   const fileArray: SourceFile[] = [
     {
-      filePath: tempFileMetadata.codeData.lineRange.fileName,
+      filePath: filePath,
       content: finalContent
     }
   ];
 
-  if (customFunctionsFilePath && customFunctionsContent) {
+  if (customFunctionsContent) {
     fileArray.push({
-      filePath: customFunctionsTargetPath || customFunctionsFilePath,
+      filePath: customFunctionsTargetPath,
       content: customFunctionsContent
     });
   }

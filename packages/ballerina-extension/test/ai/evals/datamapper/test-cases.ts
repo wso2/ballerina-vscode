@@ -18,7 +18,7 @@ import * as path from "path";
 import { TestCase } from "./types";
 import { PATHS } from "./utils/constants";
 
-const RESOURCES_DIR = path.resolve(__dirname, PATHS.RESOURCES_DIR_RELATIVE);
+const PROJECT_ROOT = path.resolve(__dirname, PATHS.PROJECT_ROOT_RELATIVE);
 
 /**
  * Test cases for datamapper code generation
@@ -26,32 +26,17 @@ const RESOURCES_DIR = path.resolve(__dirname, PATHS.RESOURCES_DIR_RELATIVE);
 export const testCases: TestCase[] = [
     {
         name: "Person to Student mapping",
-        resourcePath: path.join(RESOURCES_DIR, "case1"),
-        schemaPath: path.join(RESOURCES_DIR, "case1", "schema.json"),
+        resourcePath: path.join(PROJECT_ROOT, "case1"),
         expectedFunctionName: "transform",
     },
     {
-        name: "Employee to EmployeeProfile with arrays",
-        resourcePath: path.join(RESOURCES_DIR, "case2"),
-        schemaPath: path.join(RESOURCES_DIR, "case2", "schema.json"),
-        expectedFunctionName: "transformEmployee",
+        name: "Employee to EmployeeInfo mapping",
+        resourcePath: path.join(PROJECT_ROOT, "case2"),
+        expectedFunctionName: "transform",
     },
     {
-        name: "Customer with nested records to CustomerInfo",
-        resourcePath: path.join(RESOURCES_DIR, "case3"),
-        schemaPath: path.join(RESOURCES_DIR, "case3", "schema.json"),
-        expectedFunctionName: "transformCustomer",
-    },
-    {
-        name: "Product with optional fields and type conversion",
-        resourcePath: path.join(RESOURCES_DIR, "case4"),
-        schemaPath: path.join(RESOURCES_DIR, "case4", "schema.json"),
-        expectedFunctionName: "transformProduct",
-    },
-    {
-        name: "Multiple inputs - PersonalInfo and ContactInfo to UserAccount",
-        resourcePath: path.join(RESOURCES_DIR, "case5"),
-        schemaPath: path.join(RESOURCES_DIR, "case5", "schema.json"),
-        expectedFunctionName: "createUserAccount",
-    },
+        name: "Student to PersonalProfile mapping",
+        resourcePath: path.join(PROJECT_ROOT, "case3"),
+        expectedFunctionName: "transform",
+    }
 ];

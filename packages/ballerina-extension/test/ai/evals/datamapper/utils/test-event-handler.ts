@@ -34,7 +34,7 @@ export function createTestEventHandler(): { handler: any; getResult: () => TestE
             result.completed = true;
         } else if (event.type === "error") {
             result.error = event.content;
-        } else if (event.type === "file_array") {
+        } else if (event.type === "generated_sources") {
             result.fileArray = event.fileArray;
         } else if (event.type === "content_block") {
             result.content = event.content;

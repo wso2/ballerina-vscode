@@ -14,8 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { LLMEvaluationResult } from "../../code/utils/evaluator-utils";
 import { BalTestResult } from "./test-types";
+
+/**
+ * Field-level accuracy tracking
+ */
+export interface FieldAccuracy {
+    readonly fieldName: string;
+    readonly testName: string;
+    readonly passed: boolean;
+    readonly expected?: string;
+    readonly actual?: string;
+}
 
 /**
  * Datamapper use case result
@@ -23,12 +33,12 @@ import { BalTestResult } from "./test-types";
 export interface DatamapperUsecaseResult {
     readonly testName: string;
     readonly balTestResult: BalTestResult;
-    readonly llmEvaluation: LLMEvaluationResult;
     readonly passed: boolean;
     readonly duration?: number;
     readonly timestamp?: number;
     readonly failureReason?: string;
     readonly iteration?: number;
+    readonly fieldResults?: readonly FieldAccuracy[];
 }
 
 /**
@@ -72,7 +82,9 @@ export interface Summary {
     readonly iterations?: number;
     readonly iterationResults?: readonly IterationSummary[];
     readonly perTestCaseAccuracy?: readonly TestCaseAccuracy[];
-    readonly evaluationSummary: number;
+    readonly totalFields?: number;
+    readonly totalFieldsPassed?: number;
+    readonly fieldAccuracy?: number;
 }
 
 /**
@@ -83,5 +95,4 @@ export interface SummaryCompact {
     readonly totalPassed: number;
     readonly totalFailed: number;
     readonly accuracy: number;
-    readonly evaluationSummary: number;
 }

@@ -14,15 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { LLMEvaluationResult } from "../../code/utils/evaluator-utils";
-
 /**
  * Test case definition for datamapper
  */
 export interface TestCase {
     readonly name: string;
     readonly resourcePath: string;
-    readonly schemaPath: string;
     readonly expectedFunctionName: string;
 }
 
@@ -38,6 +35,17 @@ export interface TestEventResult {
 }
 
 /**
+ * Individual test assertion result
+ */
+export interface TestAssertionResult {
+    readonly testName: string;
+    readonly fieldName: string;
+    readonly passed: boolean;
+    readonly expected?: string;
+    readonly actual?: string;
+}
+
+/**
  * Ballerina test result
  */
 export interface BalTestResult {
@@ -47,6 +55,7 @@ export interface BalTestResult {
     readonly total: number;
     readonly output: string;
     readonly success: boolean;
+    readonly assertions?: readonly TestAssertionResult[];
 }
 
 /**
@@ -56,7 +65,6 @@ export interface DatamapperTestResult {
     readonly testCase: TestCase;
     readonly generationResult: TestEventResult;
     readonly balTestResult?: BalTestResult;
-    readonly llmEvaluation?: LLMEvaluationResult;
     readonly passed: boolean;
     readonly failureReason?: string;
 }
