@@ -140,6 +140,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     } = useDraftNodeManager(model);
 
     const selectedNodeRef = useRef<FlowNode>();
+    const parentNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
@@ -1835,6 +1836,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
 
+        // Check if agent already has a configured memory manager
+        const agentMemoryValue = agentNode?.properties?.memory?.value;
+
+        // Find the existing memory manager node from module variables
+        const existingMemoryVariable = agentMemoryValue
+            ? moduleNodes.flowModel.variables.find(
+                (node) => node.codedata.node === "MEMORY_MANAGER"
+                    && node.properties.variable.value === agentMemoryValue.toString().trim()
+            ) : undefined;
+
         // Initialize and sync memory metadata between nodes
         agentNode.metadata.data = agentNode.metadata.data || {} as NodeMetadata;
         const agentCallMetadata = agentCallNode.metadata.data as NodeMetadata;
@@ -1844,7 +1855,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         // Open memory manager panel
-        selectedNodeRef.current = agentNode;
+        selectedNodeRef.current = existingMemoryVariable;
+        parentNodeRef.current = agentNode;
         showEditForm.current = true;
         setSidePanelView(SidePanelView.AGENT_MEMORY_MANAGER);
         setShowSidePanel(true);
@@ -2233,6 +2245,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 subPanel={subPanel}
                 categories={categories}
                 selectedNode={selectedNodeRef.current}
+                parentNode={parentNodeRef.current}
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}
                 showEditForm={showEditForm.current}

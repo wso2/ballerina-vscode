@@ -45,12 +45,13 @@ const Row = styled.div`
 `;
 
 interface MemoryManagerConfigProps {
+    memoryManagerNode: FlowNode;
     agentNode: FlowNode;
     onSave?: () => void;
 }
 
 export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Element {
-    const { agentNode, onSave } = props;
+    const { agentNode, memoryManagerNode: existingMemoryVariable, onSave } = props;
 
     const { rpcClient } = useRpcContext();
 
@@ -66,7 +67,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const agentFilePath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
-    const moduleNodes = useRef<Flow>();
     const targetLineRange = useRef<any>();
 
     useEffect(() => {
@@ -81,9 +81,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             agentFilePath.current = await getAgentFilePath(rpcClient);
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
-            // Load module nodes and find the agent node
-            await fetchModuleNodes();
-
             // Load available memory managers
             const memoryManagers = await fetchAvailableMemoryManagers();
             if (memoryManagers.length > 0) {
@@ -94,17 +91,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const fetchModuleNodes = async (): Promise<FlowNode[]> => {
-        const moduleNodesResponse = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-
-        if (!moduleNodesResponse.flowModel.connections.length) {
-            console.error("No module connections found");
-            return [];
-        }
-
-        moduleNodes.current = moduleNodesResponse.flowModel;
     };
 
     const fetchAvailableMemoryManagers = async (): Promise<CodeData[]> => {
@@ -171,18 +157,6 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                 console.error("Failed to get node template for memory manager");
                 return;
             }
-
-            // Check if agent already has a configured memory manager
-            const agentMemoryValue = agentNode?.properties?.memory?.value;
-
-            // Find the existing memory manager node from module variables
-            const existingMemoryVariable = agentMemoryValue
-                ? moduleNodes.current?.variables?.find(
-                    (node) => node.codedata.node === "MEMORY_MANAGER"
-                        && node.properties.variable.value === agentMemoryValue.toString().trim()
-                )
-                : undefined;
-
 
             if (existingMemoryVariable) {
                 // Existing memory manager variable found - use its line range for editing/replacing
