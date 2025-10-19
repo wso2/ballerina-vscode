@@ -1,8 +1,0 @@
-[package]
-org = "test"
-name = "datamapper_case5"
-version = "0.1.0"
-distribution = "2201.8.0"
-
-[build-options]
-observabilityIncluded = true

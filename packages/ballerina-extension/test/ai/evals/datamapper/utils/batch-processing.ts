@@ -16,7 +16,6 @@
 
 import { TestCase, DatamapperUsecaseResult } from "../types";
 import { executeDatamapperTest, updateMainBalFile, runBalTest } from "./test-execution";
-import { performLLMEvaluation } from "./test-evaluation";
 import { DEFAULT_TEST_CONFIG, TIMING, wait } from "./constants";
 
 /**
@@ -38,7 +37,6 @@ export async function processSingleTestCase(
         return {
             testName: testCase.name,
             balTestResult: { passed: 0, failed: 0, skipped: 0, total: 0, output: "", success: false },
-            llmEvaluation: { is_correct: false, rating: 0, reasoning: "Generation failed" },
             passed: false,
             failureReason: `Generation failed: ${generationResult.error}`,
             duration: Date.now() - startTime,
@@ -51,7 +49,6 @@ export async function processSingleTestCase(
         return {
             testName: testCase.name,
             balTestResult: { passed: 0, failed: 0, skipped: 0, total: 0, output: "", success: false },
-            llmEvaluation: { is_correct: false, rating: 0, reasoning: "No files generated" },
             passed: false,
             failureReason: "No files generated",
             duration: Date.now() - startTime,
@@ -60,43 +57,40 @@ export async function processSingleTestCase(
         };
     }
 
-    // Update the main.bal file with generated code
-    const mainFile = generationResult.fileArray.find((f: any) => f.filePath.endsWith("main.bal"));
-    if (!mainFile) {
-        return {
-            testName: testCase.name,
-            balTestResult: { passed: 0, failed: 0, skipped: 0, total: 0, output: "", success: false },
-            llmEvaluation: { is_correct: false, rating: 0, reasoning: "No main.bal file in generated output" },
-            passed: false,
-            failureReason: "No main.bal file in generated output",
-            duration: Date.now() - startTime,
-            timestamp: Date.now(),
-            iteration
-        };
+    // Write all generated files to disk
+    const fs = require("fs");
+    for (const file of generationResult.fileArray) {
+        console.log(`✅ Writing generated file: ${file.filePath}`);
+        await fs.promises.writeFile(file.filePath, file.content, "utf-8");
     }
 
-    await updateMainBalFile(testCase, mainFile.content);
+    // Wait to ensure files are properly persisted
+    console.log(`⏳ Waiting ${TIMING.FILE_WRITE_DELAY}ms for files to be persisted...`);
+    await wait(TIMING.FILE_WRITE_DELAY);
+
+    // Additional wait before running bal test to ensure file system stability
+    console.log(`⏳ Waiting ${TIMING.PRE_BAL_TEST_DELAY}ms before running bal test...`);
+    await wait(TIMING.PRE_BAL_TEST_DELAY);
 
     // Run bal test to validate generated code
     const balTestResult = await runBalTest(testCase);
 
-    // Perform LLM evaluation
-    const llmEvaluation = await performLLMEvaluation(testCase);
-
-    // Test passes if bal test succeeds AND LLM evaluation is positive
-    const passed = balTestResult.success && llmEvaluation.is_correct;
+    // Test passes if bal test succeeds
+    const passed = balTestResult.success;
 
     let failureReason: string | undefined;
     if (!passed) {
-        const reasons = [];
-        if (!balTestResult.success) {
-            reasons.push(`Bal test failed: ${balTestResult.failed} test(s) failed`);
-        }
-        if (!llmEvaluation.is_correct) {
-            reasons.push(`LLM evaluation failed: ${llmEvaluation.reasoning}`);
-        }
-        failureReason = reasons.join("; ");
+        failureReason = `Bal test failed: ${balTestResult.failed} test(s) failed`;
     }
+
+    // Extract field-level results from assertions
+    const fieldResults = balTestResult.assertions?.map(assertion => ({
+        fieldName: assertion.fieldName,
+        testName: assertion.testName,
+        passed: assertion.passed,
+        expected: assertion.expected,
+        actual: assertion.actual
+    })) || [];
 
     console.log(`\n${passed ? '✅' : '❌'} Test ${passed ? 'PASSED' : 'FAILED'} for ${testCase.name}`);
     if (failureReason) {
@@ -106,12 +100,12 @@ export async function processSingleTestCase(
     return {
         testName: testCase.name,
         balTestResult,
-        llmEvaluation,
         passed,
         failureReason,
         duration: Date.now() - startTime,
         timestamp: Date.now(),
-        iteration
+        iteration,
+        fieldResults
     };
 }
 

@@ -20,7 +20,7 @@ import { TestConfiguration } from '../types';
  * Default test configuration
  */
 export const DEFAULT_TEST_CONFIG: TestConfiguration = {
-    maxConcurrency: 5,
+    maxConcurrency: 1,
     iterations: 1
 } as const;
 
@@ -34,14 +34,16 @@ export const TIMING = {
     MAX_ACTIVATION_ATTEMPTS: 30,
     INTER_BATCH_DELAY: 2000,
     TEST_WAIT_TIME: 15000,
-    BAL_TEST_TIMEOUT: 60000
+    BAL_TEST_TIMEOUT: 60000,
+    FILE_WRITE_DELAY: 2000,
+    PRE_BAL_TEST_DELAY: 3000
 } as const;
 
 /**
  * Path constants
  */
 export const PATHS = {
-    RESOURCES_DIR_RELATIVE: "../../../../../test/ai/evals/datamapper/resources",
+    PROJECT_ROOT_RELATIVE: "../../../../../test/data/ai_datamapper",
     ENV_FILE_RELATIVE: "../../../../.env",
     DEFAULT_RESULTS_DIR: "../../../../../../test/ai/evals/datamapper/results"
 } as const;
@@ -52,7 +54,6 @@ export const PATHS = {
 export const FILES = {
     MAIN_BAL: "main.bal",
     TYPES_BAL: "types.bal",
-    SCHEMA_JSON: "schema.json",
     BALLERINA_TOML: "Ballerina.toml"
 } as const;
 

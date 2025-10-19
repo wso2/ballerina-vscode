@@ -28,8 +28,16 @@ export function generateComprehensiveReport(summary: Summary): void {
     console.log(`   Total Test Cases: ${summary.totalTests}`);
     console.log(`   Passed: ${summary.totalPassed} (${Math.round(summary.accuracy)}%)`);
     console.log(`   Failed: ${summary.totalFailed} (${Math.round((summary.totalFailed / summary.totalTests) * 100)}%)`);
-    console.log(`   Overall Accuracy: ${summary.accuracy}%`);
-    console.log(`   Average LLM Evaluation Rating: ${summary.evaluationSummary.toFixed(2)}/10`);
+    console.log(`   Test Case Accuracy: ${summary.accuracy}%`);
+
+    // Display field-level accuracy
+    if (summary.totalFields !== undefined && summary.fieldAccuracy !== undefined) {
+        console.log(`\n🎯 FIELD-LEVEL ACCURACY:`);
+        console.log(`   Total Fields/Assertions: ${summary.totalFields}`);
+        console.log(`   Fields Passed: ${summary.totalFieldsPassed}`);
+        console.log(`   Fields Failed: ${summary.totalFields - (summary.totalFieldsPassed || 0)}`);
+        console.log(`   Field Accuracy: ${summary.fieldAccuracy.toFixed(2)}%`);
+    }
 
     // Display iteration-specific summaries if multiple iterations
     if (summary.iterations && summary.iterations > 1 && summary.iterationResults) {
@@ -81,7 +89,19 @@ export function generateComprehensiveSummary(
     const accuracy = (totalPassed / results.length) * 100;
     const totalDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0);
     const averageDuration = totalDuration / results.length;
-    const evaluationSummary = results.reduce((sum, r) => sum + r.llmEvaluation.rating, 0) / results.length;
+
+    // Calculate field-level accuracy
+    let totalFields = 0;
+    let totalFieldsPassed = 0;
+
+    results.forEach(result => {
+        if (result.fieldResults) {
+            totalFields += result.fieldResults.length;
+            totalFieldsPassed += result.fieldResults.filter(f => f.passed).length;
+        }
+    });
+
+    const fieldAccuracy = totalFields > 0 ? (totalFieldsPassed / totalFields) * 100 : 0;
 
     // Build summary with or without iteration data
     if (iterations && iterations > 1) {
@@ -94,10 +114,12 @@ export function generateComprehensiveSummary(
             totalDuration,
             averageDuration,
             timestamp: Date.now(),
-            evaluationSummary,
             iterations,
             iterationResults: generateIterationResults(results, iterations),
-            perTestCaseAccuracy: generatePerTestCaseAccuracy(results)
+            perTestCaseAccuracy: generatePerTestCaseAccuracy(results),
+            totalFields,
+            totalFieldsPassed,
+            fieldAccuracy
         };
     }
 
@@ -110,7 +132,9 @@ export function generateComprehensiveSummary(
         totalDuration,
         averageDuration,
         timestamp: Date.now(),
-        evaluationSummary
+        totalFields,
+        totalFieldsPassed,
+        fieldAccuracy
     };
 }
 
@@ -237,13 +261,27 @@ export function logExecutionCompletion(
     const totalPassed = results.filter(r => r.passed).length;
     const totalFailed = results.length - totalPassed;
 
+    // Calculate field-level accuracy
+    let totalFields = 0;
+    let totalFieldsPassed = 0;
+
+    results.forEach(result => {
+        if (result.fieldResults) {
+            totalFields += result.fieldResults.length;
+            totalFieldsPassed += result.fieldResults.filter(f => f.passed).length;
+        }
+    });
+
+    const fieldAccuracy = totalFields > 0 ? (totalFieldsPassed / totalFields) * 100 : 0;
+
     console.log('\n' + '='.repeat(80));
     console.log('✅ DATAMAPPER TEST EXECUTION COMPLETED');
     console.log('='.repeat(80));
     console.log(`   Total Duration: ${(duration / 1000).toFixed(2)}s`);
     console.log(`   Passed: ${totalPassed}/${results.length}`);
     console.log(`   Failed: ${totalFailed}/${results.length}`);
-    console.log(`   Accuracy: ${Math.round((totalPassed / results.length) * 100)}%`);
+    console.log(`   Test Case Accuracy: ${Math.round((totalPassed / results.length) * 100)}%`);
+    console.log(`   Field-Level Accuracy: ${fieldAccuracy.toFixed(2)}% (${totalFieldsPassed}/${totalFields} fields)`);
     console.log(`   Results saved to: ${resultsDir}`);
     console.log('='.repeat(80));
 }

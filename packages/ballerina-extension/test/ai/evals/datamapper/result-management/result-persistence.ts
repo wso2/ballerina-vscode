@@ -46,7 +46,8 @@ export async function persistUsecaseResult(
             passed: usecaseResult.passed,
             duration: usecaseResult.duration,
             iteration: usecaseResult.iteration,
-            failureReason: usecaseResult.failureReason
+            failureReason: usecaseResult.failureReason,
+            fieldResults: usecaseResult.fieldResults
         }, null, 2)
     );
 
@@ -56,11 +57,13 @@ export async function persistUsecaseResult(
         JSON.stringify(usecaseResult.balTestResult, null, 2)
     );
 
-    // Write LLM evaluation
-    await fs.promises.writeFile(
-        path.join(resultDir, "llm-evaluation.json"),
-        JSON.stringify(usecaseResult.llmEvaluation, null, 2)
-    );
+    // Write field-level results separately for easy analysis
+    if (usecaseResult.fieldResults && usecaseResult.fieldResults.length > 0) {
+        await fs.promises.writeFile(
+            path.join(resultDir, "field-results.json"),
+            JSON.stringify(usecaseResult.fieldResults, null, 2)
+        );
+    }
 
     console.log(`Result persisted for index ${index}${iteration !== undefined ? ` (iteration ${iteration})` : ''}: ${usecaseResult.testName}`);
 }
@@ -73,8 +76,7 @@ export async function persistSummary(summary: Summary, resultsDir: string): Prom
         totalTests: summary.totalTests,
         totalPassed: summary.totalPassed,
         totalFailed: summary.totalFailed,
-        accuracy: summary.accuracy,
-        evaluationSummary: summary.evaluationSummary
+        accuracy: summary.accuracy
     };
 
     await fs.promises.writeFile(
@@ -87,6 +89,19 @@ export async function persistSummary(summary: Summary, resultsDir: string): Prom
         await fs.promises.writeFile(
             path.join(resultsDir, "per-test-case-accuracy.json"),
             JSON.stringify(summary.perTestCaseAccuracy, null, 2)
+        );
+    }
+
+    // Write field-level accuracy summary
+    if (summary.totalFields !== undefined && summary.totalFieldsPassed !== undefined) {
+        await fs.promises.writeFile(
+            path.join(resultsDir, "field-level-accuracy.json"),
+            JSON.stringify({
+                totalFields: summary.totalFields,
+                totalFieldsPassed: summary.totalFieldsPassed,
+                totalFieldsFailed: summary.totalFields - summary.totalFieldsPassed,
+                fieldAccuracy: summary.fieldAccuracy
+            }, null, 2)
         );
     }
 

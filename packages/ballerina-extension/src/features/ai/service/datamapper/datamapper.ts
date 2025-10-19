@@ -29,7 +29,7 @@ import { getDataMappingPrompt } from "./dataMappingPrompt";
 import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { getErrorMessage } from "../utils";
-import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings } from "../../dataMapping";
+import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
 import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../../../../src/utils/source-utils";
 import { getBallerinaProjectRoot } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
@@ -339,35 +339,66 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
 
     await updateSourceCode({ textEdits: sourceCodeResponse.textEdits });
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const codeRepairResult = await repairCodeAndGetUpdatedContent({
-        tempFileMetadata,
-        customFunctionsFilePath: allMappingsRequest.customFunctionsFilePath,
-        imports: uniqueImportStatements,
-        tempDir: tempDirectory
-    }, langClient, projectRoot);
+    let customFunctionsTargetPath: string;
+    let customFunctionsFileName: string;
+    
+    if (allMappingsRequest.customFunctionsFilePath) {
+        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
+        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+    }
+
+    // Check if mappings file and custom functions file are the same
+    const mainFilePath = tempFileMetadata.codeData.lineRange.fileName;
+    const isSameFile = customFunctionsTargetPath && 
+        path.resolve(mainFilePath) === path.resolve(path.join(tempDirectory, customFunctionsFileName));
+
+    let codeRepairResult: { finalContent: string; customFunctionsContent: string };
+    const customContent = await getCustomFunctionsContent(allMappingsRequest.customFunctionsFilePath);
+
+    if (isSameFile) {
+        const fs = require('fs');
+        const mainContent = fs.readFileSync(mainFilePath, 'utf8');
+
+        if (customContent) {
+            // Merge: main content + custom functions
+            const mergedContent = `${mainContent}\n\n${customContent}`;
+            fs.writeFileSync(mainFilePath, mergedContent, 'utf8');
+        }
+        
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata,
+            customFunctionsFilePath: undefined,
+            imports: uniqueImportStatements,
+            tempDir: tempDirectory
+        }, langClient, projectRoot);
+
+        codeRepairResult.customFunctionsContent = '';
+    } else {
+        // Files are different, repair them separately
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata,
+            customFunctionsFilePath: allMappingsRequest.customFunctionsFilePath,
+            imports: uniqueImportStatements,
+            tempDir: tempDirectory
+        }, langClient, projectRoot);
+    }
 
     const generatedFunctionDefinition = await getFunctionDefinitionFromSyntaxTree(
         langClient,
         tempFileMetadata.codeData.lineRange.fileName,
         targetFunctionName
     );
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    let customFunctionsTargetPath: string;
-    let customFunctionsFileName: string;
-
-    if (codeRepairResult.customFunctionsContent) {
-        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, currentActiveFile || mappingContext.filePath);
-        customFunctionsFileName = path.basename(customFunctionsTargetPath);
-    }
+    let targetFilePath = path.join(projectRoot, mappingContext.filePath);
 
     const generatedSourceFiles = buildMappingFileArray(
-        tempFileMetadata,
+        targetFilePath,
         codeRepairResult.finalContent,
-        allMappingsRequest.customFunctionsFilePath,
+        customFunctionsTargetPath,
         codeRepairResult.customFunctionsContent,
-        customFunctionsTargetPath
     );
 
     // Build assistant response
@@ -380,10 +411,15 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     assistantResponse += `- **Output Record**: ${mappingContext.mappingDetails.outputParam}\n`;
     assistantResponse += `- **Function Name**: ${targetFunctionName}\n`;
 
-    assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
+    if (isSameFile) {
+        const mergedContent = `${generatedFunctionDefinition.source}\n${customContent}`;
+        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
+    } else {
+        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
 
-    if (codeRepairResult.customFunctionsContent) {
-        assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        if (codeRepairResult.customFunctionsContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        }
     }
 
     eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });
@@ -585,6 +621,14 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
     // Initialize generation process
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
+    const projectImports = await collectAllImportsFromProject();
+    const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
+
+    // Remove duplicates based on moduleName
+    const uniqueImportStatements = Array.from(
+        new Map(allImportStatements.map(imp => [imp.moduleName, imp])).values()
+    );
+
     let targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
 
     if (!targetFileName) {
@@ -601,26 +645,54 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
     await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const codeRepairResult = await repairCodeAndGetUpdatedContent({
-        tempFileMetadata: inlineMappingsResult.tempFileMetadata,
-        customFunctionsFilePath: inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
-        tempDir: inlineMappingsResult.tempDir
-    }, langClient, projectRoot);
-
-    let customFunctionsTargetPath: string;
-    let customFunctionsFileName: string;
-
-    if (codeRepairResult.customFunctionsContent) {
+    let customFunctionsTargetPath: string | undefined;
+    let customFunctionsFileName: string | undefined;
+    
+    if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
         customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, targetFileName);
         customFunctionsFileName = path.basename(customFunctionsTargetPath);
     }
 
+    // Check if mappings file and custom functions file are the same
+    const mainFilePath = inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName;
+    const isSameFile = customFunctionsTargetPath && 
+        path.resolve(mainFilePath) === path.resolve(path.join(inlineMappingsResult.tempDir, customFunctionsFileName));
+
+    let codeRepairResult: { finalContent: string; customFunctionsContent: string };
+    const customContent = await getCustomFunctionsContent(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath);
+
+    if (isSameFile) {
+        const fs = require('fs');
+        const mainContent = fs.readFileSync(mainFilePath, 'utf8');
+
+        if (customContent) {
+            // Merge: main content + custom functions
+            const mergedContent = `${mainContent}\n\n${customContent}`;
+            fs.writeFileSync(mainFilePath, mergedContent, 'utf8');
+        }
+        
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata: inlineMappingsResult.tempFileMetadata,
+            customFunctionsFilePath: undefined,
+            imports: uniqueImportStatements,
+            tempDir: inlineMappingsResult.tempDir
+        }, langClient, projectRoot);
+
+        codeRepairResult.customFunctionsContent = '';
+    } else {
+        // Files are different, repair them separately
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata: inlineMappingsResult.tempFileMetadata,
+            customFunctionsFilePath: inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
+            tempDir: inlineMappingsResult.tempDir
+        }, langClient, projectRoot);
+    }
+
     const generatedSourceFiles = buildMappingFileArray(
-        inlineMappingsResult.tempFileMetadata,
+        context.documentUri,
         codeRepairResult.finalContent,
-        inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
+        customFunctionsTargetPath,
         codeRepairResult.customFunctionsContent,
-        customFunctionsTargetPath
     );
 
     const variableName = inlineMappingRequest.metadata.name || inlineMappingsResult.tempFileMetadata.name;
@@ -640,10 +712,16 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
     // Build assistant response
     assistantResponse = `Here are the data mappings:\n\n`;
     assistantResponse += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-    assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
 
-    if (codeRepairResult.customFunctionsContent) {
-        assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+    if (isSameFile) {
+        const mergedCodeDisplay = customContent ? `${codeToDisplay}\n${customContent}` : codeToDisplay;
+        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
+    } else {
+        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
+
+        if (codeRepairResult.customFunctionsContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        }
     }
 
     eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });

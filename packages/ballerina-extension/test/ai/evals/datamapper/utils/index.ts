@@ -17,5 +17,4 @@
 export * from './constants';
 export * from './test-event-handler';
 export * from './test-execution';
-export * from './test-evaluation';
 export * from './batch-processing';
