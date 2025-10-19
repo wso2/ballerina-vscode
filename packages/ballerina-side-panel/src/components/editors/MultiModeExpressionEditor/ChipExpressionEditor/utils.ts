@@ -95,8 +95,10 @@ export const getInvalidTokensRange = (value: string, tokens: number[], absoluteO
         }
 
         const currentTokenAbsoluteOffset = getAbsoluteColumnOffset(value, currentLine, currentChar);
-
-        if ((currentTokenAbsoluteOffset + tokenLength) <= absoluteOffset -1) continue;
+        console.log("Chunk:", chunk);
+        console.log("currentTokenAbsoluteOffset", currentTokenAbsoluteOffset + tokenLength);
+        console.log("checking against absoluteOffset", absoluteOffset);
+        if ((currentTokenAbsoluteOffset + tokenLength) <= absoluteOffset) continue;
         const affectedTokensStartIndex = i * 5;
         let affectedTokensEndIndex = affectedTokensStartIndex;
         for (let j = affectedTokensStartIndex; j < tokens.length; j += 5) {
@@ -113,6 +115,7 @@ export const getInvalidTokensRange = (value: string, tokens: number[], absoluteO
         }
         break;
     }
+    console.log("affectedRange", affectedRange);
     return affectedRange;
 }
 
@@ -120,14 +123,17 @@ export const handleErrorCorrection = (range: { start: number; end: number }, tok
     const validTokensBeforeErrorRange = tokens.slice(0, range.start);
     const validTokensAfterErrorRange = tokens.slice(range.end);
     const correctionRequiredTokens = tokens.slice(range.start, range.end);
+    console.log("correctionRequiredTokens", correctionRequiredTokens);
 
     
     // Adjust the first token's column offset in the affected range
     // The rest remain relative to each other
     if (correctionRequiredTokens.length >= 5) {
         // Adjust the first token's delta start char (index 1)
+        console.log("correction applied:", correction);
         correctionRequiredTokens[1] += correction;
     }
+    console.log("correction required tokens after adjustment", correctionRequiredTokens);
     
     return [...validTokensBeforeErrorRange, ...correctionRequiredTokens, ...validTokensAfterErrorRange];
 }

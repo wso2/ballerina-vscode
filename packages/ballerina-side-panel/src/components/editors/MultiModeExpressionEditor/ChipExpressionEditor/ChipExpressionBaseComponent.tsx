@@ -53,7 +53,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         0, 6, 1, 0, 0,
         0, 5, 1, 0, 0,
     ])
-    
+
     const currentCursorPositionRef = React.useRef<{ start: number; end: number }>({ start: 0, end: 0 });
 
     const handleSelectionChange = () => {
@@ -163,7 +163,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     onChange={(newValue) => {
                         handleSelectionChange();
                         cursorBeforeChangeRef.current = { ...currentCursorPositionRef.current }; // Save cursor before change
-                        const invalidTokensRange = getInvalidTokensRange(value, tokens, cursorBeforeChangeRef.current.start);
+                        console.log("cursor correction", (newValue.length - value.length))
+                        const invalidTokensRange = getInvalidTokensRange(value, tokens, cursorBeforeChangeRef.current.start - (newValue.length - value.length));
                         const correctedTokens = handleErrorCorrection(invalidTokensRange, tokens, newValue.length - value.length);
                         console.log("Corrected Tokens: ", correctedTokens);
                         setTokens(correctedTokens);
@@ -176,8 +177,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     <TokenizedExpression value={value} tokens={tokens} />
                 </AutoExpandingEditableDiv>
             </ChipEditorContainer>
-            {JSON.stringify(currentCursorPositionRef.current)}
+            <pre>           
+                 {JSON.stringify(currentCursorPositionRef.current)}
+            </pre>           
             {JSON.stringify(value)}
+            <div style={{maxWidth: '300px'}}> {JSON.stringify(tokens)}</div>
         </>
     )
 }
