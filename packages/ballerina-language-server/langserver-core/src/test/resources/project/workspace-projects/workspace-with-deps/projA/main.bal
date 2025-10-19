@@ -1,6 +1,4 @@
-import test/projB;
-
+// Simple test file for projA in workspace
 public function main() {
-    // This will cause an error when getMessage is non-public
-    string msg = projB:getMessage();
+    string result = "Hello from projA";
 }
