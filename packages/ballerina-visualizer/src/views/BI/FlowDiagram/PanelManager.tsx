@@ -309,7 +309,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
-                return <MemoryManagerConfig agentCallNode={selectedNode} onSave={onClose} />;
+                return <MemoryManagerConfig agentNode={selectedNode} onSave={onClose} />;
 
             case SidePanelView.FUNCTION_LIST:
                 return (

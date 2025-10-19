@@ -1823,8 +1823,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowSidePanel(true);
     };
 
-    const handleOnSelectMemoryManager = (node: FlowNode) => {
-        selectedNodeRef.current = node;
+    const handleOnSelectMemoryManager = async (agentCallNode: FlowNode) => {
+        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        const connectionValue = agentCallNode.properties.connection.value;
+        const agentNode = moduleNodes.flowModel.connections.find(
+            (node) => node.properties.variable.value === connectionValue
+        );
+
+        if (!agentNode) {
+            console.error(`Agent node not found for connection: ${connectionValue}`, agentCallNode);
+            return;
+        }
+
+        // Initialize and sync memory metadata between nodes
+        agentNode.metadata.data = agentNode.metadata.data || {} as NodeMetadata;
+        const agentCallMetadata = agentCallNode.metadata.data as NodeMetadata;
+
+        if (agentCallMetadata?.memory) {
+            (agentNode.metadata.data as NodeMetadata).memory = agentCallMetadata.memory;
+        }
+
+        // Open memory manager panel
+        selectedNodeRef.current = agentNode;
         showEditForm.current = true;
         setSidePanelView(SidePanelView.AGENT_MEMORY_MANAGER);
         setShowSidePanel(true);
