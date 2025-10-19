@@ -85,6 +85,7 @@ interface PanelManagerProps {
     subPanel: SubPanel;
     categories: any[];
     selectedNode?: FlowNode;
+    parentNode?: FlowNode;
     nodeFormTemplate?: FlowNode;
     selectedClientName?: string;
     showEditForm?: boolean;
@@ -131,6 +132,7 @@ interface PanelManagerProps {
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     setSidePanelView: (view: SidePanelView) => void;
+    onChangeSelectedNode?: (node: FlowNode) => void;
 
     // AI Agent handlers
     onSelectTool?: (tool: ToolData, node: FlowNode) => void;
@@ -149,6 +151,7 @@ export function PanelManager(props: PanelManagerProps) {
         subPanel,
         categories,
         selectedNode,
+        parentNode,
         nodeFormTemplate,
         selectedClientName,
         showEditForm,
@@ -193,6 +196,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSelectNewConnection,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
+        onChangeSelectedNode
     } = props;
 
     const handleOnBackToAddTool = () => {
@@ -309,7 +313,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
-                return <MemoryManagerConfig agentNode={selectedNode} onSave={onClose} />;
+                return <MemoryManagerConfig agentNode={parentNode} memoryManagerNode={selectedNode} onSave={onClose} />;
 
             case SidePanelView.FUNCTION_LIST:
                 return (
