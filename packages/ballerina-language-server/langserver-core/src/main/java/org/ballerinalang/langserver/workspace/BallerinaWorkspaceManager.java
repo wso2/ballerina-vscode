@@ -105,7 +105,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -1531,18 +1530,25 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
                 WorkspaceProject workspaceProject = (WorkspaceProject) project;
                 List<BuildProject> topologicallySortedList = workspaceProject.getResolution().dependencyGraph()
                         .toTopologicallySortedList();
+                BuildProject targetProject = null;
+                // Add all workspace packages to sourceRootToProject
                 for (BuildProject buildProject : topologicallySortedList) {
-                    if (buildProject.sourceRoot().equals(projectRoot)) {
-                        clientLogger.logTrace("Operation '" + operationName +
-                                "' {workspace package: '" + projectRoot.toUri().toString() + "'} loaded from workspace");
-                        return buildProject;
+                    Path buildProjectRoot = buildProject.sourceRoot();
+                    sourceRootToProject.put(buildProjectRoot, ProjectContext.from(buildProject));
+                    if (buildProjectRoot.equals(projectRoot)) {
+                        targetProject = buildProject;
                     }
                 }
-                throw new ProjectException("Project not found in the workspace: " + projectRoot);
+                if (targetProject == null) {
+                    throw new ProjectException("Project not found in the workspace: " + projectRoot);
+                }
+                clientLogger.logTrace("Operation '" + operationName +
+                        "' {workspace package: '" + projectRoot.toUri() + "'} loaded from workspace");
+                return targetProject;
             }
 
             clientLogger.logTrace("Operation '" + operationName +
-                    "' {project: '" + projectRoot.toUri().toString() + "' kind: '" +
+                    "' {project: '" + projectRoot.toUri() + "' kind: '" +
                     project.kind().name().toLowerCase(Locale.getDefault()) + "'} created");
             return project;
         } catch (ProjectException e) {
