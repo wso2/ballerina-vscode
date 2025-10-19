@@ -102,6 +102,7 @@ public class CommonUtils {
     private static final String DATA_LOADER_TYPE_NAME = "DataLoader";
     private static final String CHUNKER_TYPE_NAME = "Chunker";
     private static final String MEMORY_MANAGER_TYPE_NAME = "Memory";
+    private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -312,7 +313,7 @@ public class CommonUtils {
      * Converts syntax-node line position into a lsp4j position.
      *
      * @param start start line position
-     * @param end end line position
+     * @param end   end line position
      * @return {@link Range} converted range
      */
     public static Range toRange(LinePosition start, LinePosition end) {
@@ -1021,6 +1022,11 @@ public class CommonUtils {
     public static boolean isAiMemoryManager(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, MEMORY_MANAGER_TYPE_NAME);
+    }
+
+    public static boolean isAiMemoryStore(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME);
     }
 
     private static ClassSymbol getClassSymbol(Symbol symbol) {
