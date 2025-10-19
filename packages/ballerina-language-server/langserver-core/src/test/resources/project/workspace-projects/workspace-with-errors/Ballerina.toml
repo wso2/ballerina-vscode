@@ -1,0 +1,6 @@
+[workspace]
+members = ["pkg1", "pkg2"]
+
+[workspace.package]
+org = "lstest"
+version = "1.0.0"

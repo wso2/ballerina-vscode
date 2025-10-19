@@ -43,7 +43,7 @@ import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
-import io.ballerina.projects.directory.SingleFileProject;
+import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -1438,12 +1438,62 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         if (ProjectPaths.isStandaloneBalFile(path)) {
             return new ImmutablePair<>(ProjectKind.SINGLE_FILE_PROJECT, path);
         }
+
+        // Check for workspace project first (before package-level detection)
+        Path workspaceRoot = findWorkspaceRoot(path);
+        if (workspaceRoot != null) {
+            // For workspace projects, return the package root (not workspace root) as the project root
+            // This ensures each package in the workspace is cached separately
+            // The actual workspace will be loaded in createProject() and the correct package extracted
+            Path packageRoot = ProjectPaths.packageRoot(path);
+            return new ImmutablePair<>(ProjectKind.BUILD_PROJECT, packageRoot);
+        }
+
         // Following is a temp fix to distinguish Bala and Build projects
         Path tomlPath = ProjectPaths.packageRoot(path).resolve(ProjectConstants.BALLERINA_TOML);
         if (Files.exists(tomlPath)) {
             return new ImmutablePair<>(ProjectKind.BUILD_PROJECT, ProjectPaths.packageRoot(path));
         }
         return new ImmutablePair<>(ProjectKind.BALA_PROJECT, ProjectPaths.packageRoot(path));
+    }
+
+    /**
+     * Find the workspace root directory by traversing upwards from the given path.
+     * A workspace is identified by a Ballerina.toml file containing a [workspace] section.
+     *
+     * @param path The file path to start searching from
+     * @return The workspace root path, or null if not in a workspace
+     */
+    private Path findWorkspaceRoot(Path path) {
+        Path current = path.toAbsolutePath();
+
+        // Traverse upwards to find workspace root
+        while (current != null && current.getParent() != null) {
+            Path tomlPath = current.resolve(ProjectConstants.BALLERINA_TOML);
+            if (Files.exists(tomlPath) && isWorkspaceToml(tomlPath)) {
+                return current;
+            }
+            current = current.getParent();
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a Ballerina.toml file defines a workspace (contains [workspace] section).
+     *
+     * @param tomlPath Path to the Ballerina.toml file
+     * @return true if the file contains a [workspace] section, false otherwise
+     */
+    private boolean isWorkspaceToml(Path tomlPath) {
+        try {
+            String content = Files.readString(tomlPath);
+            // Simple check for [workspace] section
+            // This could be improved with proper TOML parsing if needed
+            return content.contains("[workspace]");
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private Optional<ProjectContext> projectContext(Path projectRoot) {
@@ -1463,25 +1513,34 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         ProjectKind projectKind = projectKindAndProjectRootPair.getLeft();
         Path projectRoot = projectKindAndProjectRootPair.getRight();
         try {
-            Project project;
-            if (projectKind == ProjectKind.BUILD_PROJECT) {
-                project = BuildProject.load(projectRoot, buildOptions);
+            // Use ProjectLoader to load the project - it auto-detects the project type including workspaces
+            Project project = ProjectLoader.load(filePath, buildOptions).project();
 
-                // TODO: Remove this once https://github.com/ballerina-platform/ballerina-lang/issues/43972 is resolved
-                // Save the dependencies.toml to resolve the inconsistencies issue in the subsequent builds
-                if (BallerinaCompilerApi.getInstance().hasOptimizedDependencyCompilation(project)) {
-                    BuildOptions newOptions = BuildOptions.builder()
-                            .setOffline(CommonUtil.COMPILE_OFFLINE)
-                            .setSticky(false)
-                            .build();
-                    project = BuildProject.load(projectRoot, newOptions);
-                }
-            } else if (projectKind == ProjectKind.SINGLE_FILE_PROJECT) {
-                project = SingleFileProject.load(projectRoot, buildOptions);
-            } else {
-                // Projects other than single file and build will use the ProjectLoader.
-                project = ProjectLoader.loadProject(projectRoot, buildOptions);
+            // TODO: Remove this once https://github.com/ballerina-platform/ballerina-lang/issues/43972 is resolved
+            // Save the dependencies.toml to resolve the inconsistencies issue in the subsequent builds
+            if (BallerinaCompilerApi.getInstance().hasOptimizedDependencyCompilation(project)) {
+                BuildOptions newOptions = BuildOptions.builder()
+                        .setOffline(CommonUtil.COMPILE_OFFLINE)
+                        .setSticky(false)
+                        .build();
+                project = ProjectLoader.load(projectRoot, newOptions).project();
             }
+
+            // Handle workspace projects - extract the specific package from the workspace
+            if (project.kind().equals(ProjectKind.WORKSPACE_PROJECT)) {
+                WorkspaceProject workspaceProject = (WorkspaceProject) project;
+                List<BuildProject> topologicallySortedList = workspaceProject.getResolution().dependencyGraph()
+                        .toTopologicallySortedList();
+                for (BuildProject buildProject : topologicallySortedList) {
+                    if (buildProject.sourceRoot().equals(projectRoot)) {
+                        clientLogger.logTrace("Operation '" + operationName +
+                                "' {workspace package: '" + projectRoot.toUri().toString() + "'} loaded from workspace");
+                        return buildProject;
+                    }
+                }
+                throw new ProjectException("Project not found in the workspace: " + projectRoot);
+            }
+
             clientLogger.logTrace("Operation '" + operationName +
                     "' {project: '" + projectRoot.toUri().toString() + "' kind: '" +
                     project.kind().name().toLowerCase(Locale.getDefault()) + "'} created");
@@ -1558,7 +1617,8 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
             return projectContext;
         }
         //Try to create the project again.
-        Optional<ProjectContext> newProjectContext = createProjectContext(projectRoot, operationName);
+        // Pass the original filePath, not projectRoot, so project detection can work correctly
+        Optional<ProjectContext> newProjectContext = createProjectContext(filePath, operationName);
         if (newProjectContext.isEmpty()) {
             throw new WorkspaceDocumentException("Cannot find the project of uri: " + filePath.toString());
         }
