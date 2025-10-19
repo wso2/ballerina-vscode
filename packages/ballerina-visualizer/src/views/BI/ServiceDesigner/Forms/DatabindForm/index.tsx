@@ -30,7 +30,6 @@ import {
     Typography,
 } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
-import { EditorContentColumn } from "../../styles";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 
@@ -60,6 +59,14 @@ const AddButtonWrapper = styled.div`
     margin: 8px 0;
 `;
 
+export const EditorContentColumn = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    gap: 10px;
+`;
+
 export interface DatabindFormProps {
     model: FunctionModel;
     isSaving?: boolean;
@@ -79,16 +86,6 @@ export function DatabindForm(props: DatabindFormProps) {
     const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
-    useEffect(() => {
-        // Get advanced parameters (excluding DATA_BINDING which is shown in Payload section)
-        // IMPORTANT: Use the same filtering logic as in the render section
-        const advancedParams = model.parameters?.filter((param) => param.kind !== "DATA_BINDING") || [];
-        const additionalAdvancedParams = advancedParams.slice(1); // Skip first parameter (REQUIRED)
-
-        // Check if any additional advanced parameters are enabled
-        const hasEnabledAdvanced = additionalAdvancedParams.some((param) => param.enabled);
-        setShowAdvancedParameters(hasEnabledAdvanced);
-    }, []);
 
     const handleParamChange = (params: ParameterModel[]) => {
         const updatedFunctionModel = {
@@ -207,7 +204,7 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const payloadParameter = functionModel.parameters?.find((param) => param.kind === "DATA_BINDING" && param.enabled);
 
-    const advancedParameters = functionModel.parameters?.filter((param) => param.kind !== "DATA_BINDING" && param.kind !== "REQUIRED") || [];
+    const advancedParameters = functionModel.parameters?.filter((param) => param.kind !== "DATA_BINDING" && param.optional) || [];
 
     return (
         <>
