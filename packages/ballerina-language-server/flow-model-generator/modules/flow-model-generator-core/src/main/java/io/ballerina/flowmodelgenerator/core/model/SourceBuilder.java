@@ -121,7 +121,7 @@ public class SourceBuilder {
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
-                case AGENT -> AGENTS_BAL;
+                case AGENT, MEMORY_MANAGER -> AGENTS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
