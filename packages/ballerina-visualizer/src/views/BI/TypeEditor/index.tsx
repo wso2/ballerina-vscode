@@ -47,14 +47,15 @@ type FormTypeEditorProps = {
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: () => void;
-    onSaveType: (type: Type) => void
+    onSaveType: (type: Type | string) => void
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
     isContextTypeForm?: boolean;
+    simpleType?: string;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -246,6 +247,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         newTypeValue={newTypeValue}
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
+                        simpleType={simpleType}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,

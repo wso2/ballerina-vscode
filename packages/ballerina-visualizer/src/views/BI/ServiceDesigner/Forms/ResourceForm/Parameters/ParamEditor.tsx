@@ -99,7 +99,7 @@ export function ParamEditor(props: ParamProps) {
                 type: param.type.valueType,
                 optional: false,
                 editable: true,
-                documentation: param.documentation.metadata.description || '',
+                documentation: param?.documentation?.metadata?.description || '',
                 enabled: param.type?.enabled,
                 value: param.type.value,
                 valueTypeConstraint: ""
@@ -194,7 +194,7 @@ export function ParamEditor(props: ParamProps) {
                 </EditorContent>
             }
             <>
-                {filePath && targetLineRange && param.httpParamType !== "PAYLOAD" &&
+                {filePath && targetLineRange &&
                     <FormGeneratorNew
                         fileName={filePath}
                         targetLineRange={targetLineRange}
@@ -205,21 +205,6 @@ export function ParamEditor(props: ParamProps) {
                         nestedForm={true}
                         helperPaneSide='left'
                         preserveFieldOrder={true}
-                    />
-                }
-
-                {filePath && targetLineRange && param.httpParamType === "PAYLOAD" &&
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={currentFields}
-                        onBack={handleOnCancel}
-                        onSubmit={onParameterSubmit}
-                        submitText={param.type.value ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                        preserveFieldOrder={true}
-                        openFormTypeEditor={openFormTypeEditor}
 
                     />
                 }

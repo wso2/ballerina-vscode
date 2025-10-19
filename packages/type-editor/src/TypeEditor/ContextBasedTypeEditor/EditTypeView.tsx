@@ -480,7 +480,25 @@ export function EditTypeView(props: EditTypeViewProps) {
     return (
         <>
             <CategoryRow>
-                
+                {!isNewType && !isEditing && !type.properties["name"]?.editable && (
+                    <InputWrapper>
+                        <TextFieldWrapper>
+                            <TextField
+                                id={type.name}
+                                data-testid="type-name-display"
+                                name={type.name}
+                                value={type.name}
+                                label={type?.properties["name"]?.metadata?.label}
+                                required={!type?.properties["name"]?.optional}
+                                description={type?.properties["name"]?.metadata?.description}
+                                readOnly={!type.properties["name"]?.editable}
+                            />
+                        </TextFieldWrapper>
+                        <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
+                            <Icon name="bi-edit" sx={{ width: 18, height: 18, fontSize: 18 }} />
+                        </EditButton>
+                    </InputWrapper>
+                )}
                 {isEditing && (
                     <>
                         <EditableRow>
@@ -525,18 +543,18 @@ export function EditTypeView(props: EditTypeViewProps) {
                 )}
             </CategoryRow>
 
-           <div style={{overflow: 'auto', maxHeight: '70vh'}}>
-             <>
-                        <SchemaRecordEditor
-                            type={type}
-                            isAnonymous={false}
-                            onChange={handleSetType}
-                            newType={newType}
-                            isGraphql={isGraphql}
-                            onValidationError={handleValidationError}
-                        />
-                        <AdvancedOptions type={type} onChange={handleSetType} />
-                    </>
+            <div style={{ overflow: 'auto', maxHeight: '70vh' }}>
+                <>
+                    <SchemaRecordEditor
+                        type={type}
+                        isAnonymous={false}
+                        onChange={handleSetType}
+                        newType={newType}
+                        isGraphql={isGraphql}
+                        onValidationError={handleValidationError}
+                    />
+                    <AdvancedOptions type={type} onChange={handleSetType} />
+                </>
 
            </div>
             <Footer>

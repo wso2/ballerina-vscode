@@ -29,6 +29,7 @@ import { GenericImportTab } from "./GenericImportTab";
 import { ContextTypeCreatorTab } from "./ContextTypeCreator";
 import { BrowseTypesTab } from "./BrowseTypesTab";
 import { EditTypeView } from "./EditTypeView";
+import { SimpleTypeEditor } from "./SimpleTypeEditor";
 
 namespace S {
     export const Container = styled(SidePanelBody)`
@@ -43,10 +44,11 @@ interface ContextTypeEditorProps {
     imports?: Imports;
     rpcClient: BallerinaRpcClient;
     onTypeChange: (type: Type, rename?: boolean) => void;
-    onSaveType: (type: Type) => void;
+    onSaveType: (type: Type | string) => void;
     newType: boolean;
     newTypeValue?: string;
     isPopupTypeForm: boolean;
+    simpleType?: string;
     isGraphql?: boolean;
     typeHelper: {
         loading?: boolean;
@@ -66,7 +68,7 @@ interface ContextTypeEditorProps {
 
 
 export function ContextTypeEditor(props: ContextTypeEditorProps) {
-    const { isGraphql, newType, isPopupTypeForm } = props;
+    const { isGraphql, newType, isPopupTypeForm, simpleType } = props;
 
     const [initialTypeKind] = useState<TypeNodeKind>(() =>
         (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
@@ -208,21 +210,36 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 onTypeSelect={props.onSaveType}
                             />
                         </div>
-                        
+
                     </TabPanel>
                 ) : (
-                    <div style={{ padding: '10px' }} data-testid="type-editor-content">
-                        <EditTypeView
-                            onTypeChange={props.onTypeChange}
-                            editingType={type}
-                            newType={newType}
-                            isGraphql={isGraphql}
-                            initialTypeKind={initialTypeKind}
-                            onTypeSave={onTypeSave}
-                            isSaving={isSaving}
-                            setIsSaving={setIsSaving}
-                        />
-                    </div>
+                    <>
+                        {simpleType ? (
+                            <div style={{ padding: '10px' }} data-testid="type-editor-content">
+                                <SimpleTypeEditor
+                                    typeName={simpleType}
+                                    basicTypes={props.typeHelper.basicTypes}
+                                    importedTypes={props.typeHelper.importedTypes}
+                                    onSearchTypeHelper={props.typeHelper.onSearchTypeHelper}
+                                    onTypeItemClick={props.typeHelper.onTypeItemClick}
+                                    onSave={props.onSaveType}
+                                />
+                            </div>
+                        ) : (
+                            <div style={{ padding: '10px' }} data-testid="type-editor-content">
+                                <EditTypeView
+                                    onTypeChange={props.onTypeChange}
+                                    editingType={type}
+                                    newType={newType}
+                                    isGraphql={isGraphql}
+                                    initialTypeKind={initialTypeKind}
+                                    onTypeSave={onTypeSave}
+                                    isSaving={isSaving}
+                                    setIsSaving={setIsSaving}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </S.Container>
         </TypeHelperContext.Provider>

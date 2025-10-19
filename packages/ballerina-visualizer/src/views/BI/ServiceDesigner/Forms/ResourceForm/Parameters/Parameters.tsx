@@ -127,17 +127,27 @@ export function Parameters(props: ParametersProps) {
         setIsTypeEditorOpen(true);
     };
 
-    const handleTypeCreated = (type: Type) => {
+    const handleTypeCreated = (type: Type | string) => {
         // When a type is created, set it as the payload type
-        payloadModel.name.value = "payload";
-        payloadModel.type.value = type.name;
-        payloadModel.enabled = true;
+        const updatedPayloadModel = { ...payloadModel };
+        updatedPayloadModel.name.value = "payload";
+        updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
+        updatedPayloadModel.enabled = true;
         
-        // Add the payload parameter to the list
-        onChange([...parameters, payloadModel]);
+        // Check if we're editing an existing payload or adding a new one
+        const existingPayloadIndex = parameters.findIndex(p => p.httpParamType === "PAYLOAD");
+        
+        if (existingPayloadIndex >= 0) {
+            // Update existing editing model
+            setEditModel(updatedPayloadModel);
+        } else {
+            // Add new payload parameter
+            onChange([...parameters, updatedPayloadModel]);
+        }
         
         // Close the modal
         setIsTypeEditorOpen(false);
+        setEditingTypeName("");
     };
 
     const handleTypeEditorClose = () => {
