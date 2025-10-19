@@ -16,29 +16,24 @@
  * under the License.
  */
 
-export enum InputMode {
-    TEXT = "Text",
-    EXP = "Expression"
+import React from "react";
+import { Chip } from "../styles";
+
+export type ChipProps = {
+    type: 'variable' | 'property' | 'parameter';
+    text: string;
+    onFocus?: () => void;
+    onBlur?: () => void;
 }
 
-export const INPUT_MODE_MAP = {
-  string: InputMode.TEXT,
-  //later add more when needed
-};
+export const ChipComponent = (props: ChipProps) => {
+    const { type, text, onFocus, onBlur } = props;
 
-export type ExpressionColumnOffset = {
-    startColumn: number;
-    endColumn: number;
-}
-
-export type ExpressionTokenPosition = {
-    lineNumber: number;
-    column: ExpressionColumnOffset;
-}
-
-export type Token = {
-  line: number;
-  column: number;
-  length: number;
-  tokenType: 'variable'
+    if (type === 'variable') {
+        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+    } else if (type === 'property') {
+        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+    } else {
+        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+    }
 }

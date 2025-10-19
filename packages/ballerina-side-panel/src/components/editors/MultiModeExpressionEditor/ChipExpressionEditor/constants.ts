@@ -16,29 +16,4 @@
  * under the License.
  */
 
-export enum InputMode {
-    TEXT = "Text",
-    EXP = "Expression"
-}
-
-export const INPUT_MODE_MAP = {
-  string: InputMode.TEXT,
-  //later add more when needed
-};
-
-export type ExpressionColumnOffset = {
-    startColumn: number;
-    endColumn: number;
-}
-
-export type ExpressionTokenPosition = {
-    lineNumber: number;
-    column: ExpressionColumnOffset;
-}
-
-export type Token = {
-  line: number;
-  column: number;
-  length: number;
-  tokenType: 'variable'
-}
+export const CHIP_EXPRESSION_EDITOR_HEIGHT = 26;
