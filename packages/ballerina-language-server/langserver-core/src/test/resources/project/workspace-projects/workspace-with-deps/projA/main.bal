@@ -1,4 +1,5 @@
-// Simple test file for projA in workspace
+import projB;
+
 public function main() {
-    string result = "Hello from projA";
+    int result = projB:foo();
 }

@@ -1,2 +1,2 @@
 [workspace]
-members = ["projA", "projB"]
+packages = ["projA", "projB"]

@@ -1,6 +1,2 @@
 [workspace]
-members = ["my-package"]
-
-[workspace.package]
-org = "lstest"
-version = "2.0.0"
+packages = ["my-package"]
