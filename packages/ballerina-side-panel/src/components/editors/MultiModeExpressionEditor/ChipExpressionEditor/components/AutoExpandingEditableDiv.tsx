@@ -37,6 +37,29 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         onChange(event.currentTarget.textContent || "");
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== "Backspace" && e.key !== "Delete") return;
+        const selection = window.getSelection();
+        if (!selection || !selection.anchorNode) return;
+        const { anchorNode, anchorOffset } = selection;
+        if (anchorNode.nodeType === Node.TEXT_NODE) {
+            const textNode = anchorNode as Text;
+            if (anchorOffset > 0) return;
+            const parent = textNode.parentNode;
+            if (!parent) return;
+
+            const prev = parent.previousSibling;
+            if (prev) {
+                if (prev.nodeType !== Node.TEXT_NODE) {
+                    e.preventDefault();
+                }
+            }
+            return;
+        }
+        e.preventDefault();
+    };
+
+
     return (
         <ChipEditorField
             ref={fieldRef}
@@ -45,6 +68,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             suppressContentEditableWarning
             onInput={handleChange}
             onSelect={onSelect}
+            onKeyDown={handleKeyDown}
             onClick={onClick}
             onKeyUp={onKeyUp}
         >
