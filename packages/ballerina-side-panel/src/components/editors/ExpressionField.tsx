@@ -28,6 +28,7 @@ import {
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -132,34 +133,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     }
 
     return (
-        <FormExpressionEditor
-            ref={exprRef}
-            anchorRef={anchorRef}
-            name={name}
-            completions={completions}
-            value={sanitizedExpression ? sanitizedExpression(value) : value}
-            autoFocus={autoFocus}
-            startAdornment={<EditorRibbon onClick={onToggleHelperPane} />}
-            ariaLabel={ariaLabel}
-            onChange={onChange}
-            extractArgsFromFunction={extractArgsFromFunction}
-            onCompletionSelect={onCompletionSelect}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onSave={onSave}
-            onCancel={onCancel}
-            onRemove={onRemove}
-            enableExIcon={false}
-            isHelperPaneOpen={isHelperPaneOpen}
-            changeHelperPaneState={changeHelperPaneState}
-            helperPaneOrigin="vertical"
-            getHelperPane={getHelperPane}
-            helperPaneHeight={helperPaneHeight}
-            helperPaneWidth={helperPaneWidth}
-            growRange={growRange}
-            sx={{ paddingInline: '0' }}
-            placeholder={placeholder}
-            helperPaneZIndex={helperPaneZIndex}
+        <ChipExpressionBaseComponent
         />
     );
 };
