@@ -60,14 +60,14 @@ const AddButtonWrapper = styled.div`
     margin: 8px 0;
 `;
 
-export interface RemoteFormProps {
+export interface DatabindFormProps {
     model: FunctionModel;
     isSaving?: boolean;
     onSave: (functionModel: FunctionModel) => void;
     onClose: () => void;
 }
 
-export function RemoteForm(props: RemoteFormProps) {
+export function DatabindForm(props: DatabindFormProps) {
     const { model, isSaving = false, onSave, onClose } = props;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);

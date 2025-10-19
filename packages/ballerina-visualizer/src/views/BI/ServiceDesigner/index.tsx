@@ -44,9 +44,8 @@ import { FunctionForm } from "./Forms/FunctionForm";
 import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 import { McpToolForm } from "./Forms/McpToolForm";
-import { removeForwardSlashes } from "./utils";
-import { RemoteForm } from "./Forms/RemoteForm";
-import { canDataBind } from "./utils";
+import { removeForwardSlashes, canDataBind } from "./utils";
+import { DatabindForm } from "./Forms/DatabindForm";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -1135,14 +1134,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     onClose={handleNewFunctionClose}
                                     width={400}
                                 >
-                                    <RemoteForm
+                                    <DatabindForm
                                         model={functionModel}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
                                     />
                                 </PanelContainer>
                             )}
-                            {/* This is for adding or editing functions without data binding */}
+
+                            {/* This is for adding or editing functions */}
                             {functionModel && !isHttpService && !isMcpService && !canDataBind(functionModel) && (
                                 <PanelContainer
                                     title={"Function Configuration"}
