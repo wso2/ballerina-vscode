@@ -208,7 +208,8 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
 
             // Find the existing memory manager node from module variables
             const existingMemoryVariable = moduleNodes.current?.variables?.find(
-                (node) => node.properties.variable.value === agentMemoryValue.toString().trim()
+                (node) => node.codedata.node === "MEMORY_MANAGER"
+                    && node.properties.variable.value === agentMemoryValue.toString().trim()
                     && node.properties.type.value.toString().includes(memoryManagerCodeData.object)
             );
 
