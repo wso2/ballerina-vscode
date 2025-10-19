@@ -51,7 +51,7 @@ interface TypeEditorState {
 interface ContextBasedFormTypeEditorProps {
     isOpen: boolean;
     onClose: () => void;
-    onTypeCreate: (type: Type) => void;
+    onTypeCreate: (type: Type | string) => void;
     initialTypeName?: string;
     isGraphql?: boolean;
     modalTitle?: string;
@@ -78,6 +78,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [loadingType, setLoadingType] = useState<boolean>(false);
     const [existingType, setExistingType] = useState<Type | null>(null);
+    const [simpleType, setSimpleType] = useState<string>(undefined);
     
     // Stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -207,6 +208,8 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
             const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({
                 filePath: filePath
             });
+
+            console.log("typesResponse", typesResponse);
             
             // Find the specific type by name
             const foundType = typesResponse.types.find((type: Type) => type.name === typeName);
@@ -221,6 +224,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
             } else {
                 // If type not found, reset to default
                 console.warn(`Type "${typeName}" not found in ${filePath}`);
+                setSimpleType(typeName);
                 resetStack();
             }
         } catch (error) {
@@ -267,7 +271,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         });
     };
 
-    const onSaveType = (type: Type) => {
+    const onSaveType = (type: Type | string) => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -326,6 +330,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                                     getNewTypeCreateForm={getNewTypeCreateForm}
                                     refetchTypes={refetchStates[i]}
                                     isContextTypeForm={i === 0}
+                                    simpleType={simpleType}
                                 />
                             </>
                         )}

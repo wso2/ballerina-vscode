@@ -202,11 +202,6 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                             }}
                         >
                             <TypeName variant="body2">{item.name}</TypeName>
-                            {/* {item.labelDetails?.description && (
-                                <TypeDescription variant="body3">
-                                    {item.labelDetails.description}
-                                </TypeDescription>
-                            )} */}
                         </TypeItem>
                     ))}
                 </TypeList>

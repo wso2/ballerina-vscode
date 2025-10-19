@@ -67,6 +67,7 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { ContextBasedFormTypeEditor } from "../../../../components/FormTypeEditorModal";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -105,7 +106,6 @@ interface FormProps {
         component: ReactNode;
         index: number;
     }[];
-    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -135,7 +135,6 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
-        openFormTypeEditor,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -165,6 +164,38 @@ export function FormGeneratorNew(props: FormProps) {
         isDirty: false,
         type: undefined
     }]);
+
+
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
+
+
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
+        setIsTypeEditorOpen(open);
+        if (typeName) {
+            setEditingTypeName(typeName);
+        } else {
+            setEditingTypeName("");
+        }
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+        if (type) {
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            setFields(fields.map((field) => {
+                if (field.key === 'type') {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            }));
+        }
+    };
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
@@ -766,7 +797,7 @@ export function FormGeneratorNew(props: FormProps) {
         })
     }
 
-    const onSaveType = (type: Type) => {
+    const onSaveType = () => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -839,7 +870,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
-                    openFormTypeEditor={openFormTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     onCancelForm={onBack || onCancel}
                     submitText={submitText}
                     cancelText={cancelText}
@@ -901,6 +932,16 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "PayloadType"}
+                editMode={!!editingTypeName}
+                modalTitle={editingTypeName ? "Edit Type" : "Define Payload"}
+                modalWidth={650}
+                modalHeight={600}
+            />
         </EditorContext.Provider>
     );
 }
