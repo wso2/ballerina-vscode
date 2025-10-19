@@ -218,7 +218,7 @@ public class Constants {
     // Data binding
     public static final String DATA_BINDING = "DATA_BINDING";
     public static final String DATA_BINDING_PROPERTY = "canDataBind";
-    public static final String DATA_BINDING_TEMPLATE = "record {*%s; %s %s;}%s";
+    public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
     public static final String EMPTY_ARRAY = "[]";
 
     private Constants() {
