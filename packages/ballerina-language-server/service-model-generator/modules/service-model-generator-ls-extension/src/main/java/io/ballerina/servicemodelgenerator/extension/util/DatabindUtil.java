@@ -264,6 +264,9 @@ public final class DatabindUtil {
             if (fieldType.getName().isPresent()) {
                 return fieldType.getName().get();
             }
+            if (!fieldType.signature().isEmpty()) {
+                return fieldType.signature();
+            }
         }
 
         return null;
