@@ -45,6 +45,15 @@ export const HeaderButtons = styled.div({
     marginRight: "10px",
 });
 
+export const TodoPanel = styled.div`
+    max-height: 30vh;
+    overflow-y: auto;
+    border-bottom: 2px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
+    padding: 12px 20px;
+    flex-shrink: 0;
+`;
+
 export const Main = styled.main({
     flex: 1,
     flexDirection: "column",

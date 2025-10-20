@@ -121,6 +121,8 @@ import {
     showSignInAlert,
     stopAIMappings,
     submitFeedback,
+    submitTaskApproval,
+    SubmitTaskApprovalRequest,
     updateDevelopmentDocument,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
@@ -384,5 +386,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         return this._messenger.sendRequest(addFilesToProject, HOST_EXTENSION, params);
+    }
+
+    submitTaskApproval(params: SubmitTaskApprovalRequest): void {
+        this._messenger.sendNotification(submitTaskApproval, HOST_EXTENSION, params);
     }
 }
