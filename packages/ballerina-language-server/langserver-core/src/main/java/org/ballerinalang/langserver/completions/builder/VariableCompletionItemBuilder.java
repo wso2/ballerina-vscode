@@ -17,7 +17,10 @@
  */
 package org.ballerinalang.langserver.completions.builder;
 
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.completions.util.ItemResolverConstants;
@@ -33,6 +36,8 @@ import org.eclipse.lsp4j.CompletionItemLabelDetails;
 public final class VariableCompletionItemBuilder {
 
     private static final String CONFIGURABLE_CATEGORY = "Configurable";
+    private static final String LISTENER_CATEGORY = "Listener";
+    private static final String CLIENT_CATEGORY = "Client";
 
     private VariableCompletionItemBuilder() {
     }
@@ -55,8 +60,18 @@ public final class VariableCompletionItemBuilder {
 
         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
         labelDetails.setDetail(detail);
-        if (varSymbol != null && varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
-            labelDetails.setDescription(CONFIGURABLE_CATEGORY);
+        if (varSymbol != null) {
+            if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
+                labelDetails.setDescription(CONFIGURABLE_CATEGORY);
+            } else if (varSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                labelDetails.setDescription(LISTENER_CATEGORY);
+            } else if (varSymbol.typeDescriptor() instanceof TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
+                TypeSymbol typeSymbol = typeReferenceTypeSymbol.typeDescriptor();
+                if (typeSymbol instanceof ClassSymbol classSymbol
+                        && classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                    labelDetails.setDescription(CLIENT_CATEGORY);
+                }
+            }
         }
         item.setLabelDetails(labelDetails);
 

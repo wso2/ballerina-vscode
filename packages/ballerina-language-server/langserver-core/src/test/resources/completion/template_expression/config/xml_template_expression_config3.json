@@ -51,7 +51,8 @@
     {
       "label": "listener1",
       "labelDetails": {
-        "detail": "module1:Listener"
+        "detail": "module1:Listener",
+        "description": "Listener"
       },
       "kind": "Variable",
       "detail": "module1:Listener",
