@@ -63,6 +63,8 @@ import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
 import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
+import { PanelOverlayProvider } from "./context/PanelOverlayContext";
+import { PanelOverlayRenderer } from "./PanelOverlayRenderer";
 import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
@@ -2228,7 +2230,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     );
 
     return (
-        <>
+        <PanelOverlayProvider>
             <View>
                 {(showProgressIndicator || fetchingAiSuggestions) && model && (
                     <ProgressIndicator color={ThemeColors.PRIMARY} />
@@ -2300,6 +2302,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
             />
-        </>
+
+            <PanelOverlayRenderer />
+        </PanelOverlayProvider>
     );
 }
