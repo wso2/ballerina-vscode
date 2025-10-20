@@ -1052,7 +1052,8 @@ public class CommonUtils {
                 .map(TypeSymbol::getModule)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
+                .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) ||
+                        BALLERINAX_ORG_NAME.equals(moduleId.id().orgName())) &&
                         AI.equals(moduleId.id().moduleName()));
     }
 
