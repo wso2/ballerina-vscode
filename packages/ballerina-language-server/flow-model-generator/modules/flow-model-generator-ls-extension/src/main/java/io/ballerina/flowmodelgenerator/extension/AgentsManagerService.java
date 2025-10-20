@@ -63,6 +63,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
+
     private WorkspaceManager workspaceManager;
 
     @Override
@@ -93,7 +94,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetAgentsResponse response = new GetAgentsResponse();
             try {
-                AgentsGenerator agentsGenerator  = new AgentsGenerator();
+                AgentsGenerator agentsGenerator = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
                 Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
@@ -113,7 +114,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetModelsResponse response = new GetModelsResponse();
             try {
-                AgentsGenerator agentsGenerator  = new AgentsGenerator();
+                AgentsGenerator agentsGenerator = new AgentsGenerator();
                 if (BALLERINA.equals(request.orgName())) {
                     response.setModels(agentsGenerator.getNewBallerinaxModels());
                 } else {
@@ -132,7 +133,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             GetMemoryManagersResponse response = new GetMemoryManagersResponse();
             try {
-                AgentsGenerator agentsGenerator  = new AgentsGenerator();
+                AgentsGenerator agentsGenerator = new AgentsGenerator();
                 String orgName = request.orgName() != null ? request.orgName() : BALLERINAX;
                 Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(orgName, AI);
                 if (semanticModel.isEmpty()) {
@@ -274,7 +275,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 response.setToolName(request.toolName());
                 response.setFlowNode(agentsGenerator.getToolFlowNode(functionDefinitionNode, document));
                 response.setMethodCallFlowNode(agentsGenerator.getMethodCallFlowNode(functionDefinitionNode,
-                        optProject.get(), document));
+                        optProject.get(), document, this.workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
