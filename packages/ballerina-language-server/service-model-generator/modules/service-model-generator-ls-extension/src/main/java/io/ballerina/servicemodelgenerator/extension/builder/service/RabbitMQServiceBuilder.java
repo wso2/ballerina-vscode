@@ -46,6 +46,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
+import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 
 /**
@@ -61,7 +62,10 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
-        filterRabbitMqFunctions(service.getFunctions());
+        String enabledFunction = filterRabbitMqFunctions(service.getFunctions());
+        if (enabledFunction != null) {
+            addDataBindingParam(service, enabledFunction, context);
+        }
         return service;
     }
 
@@ -155,12 +159,13 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
     }
 
     /**
-     * Filters the RabbitMQ service functions to ensure that only one of `onMessage` or `onRequest` is present.
-     * If both are present, it retains the enabled one and removes the other.
+     * Filters the RabbitMQ service functions to ensure that only one of `onMessage` or `onRequest` is present. If both
+     * are present, it retains the enabled one and removes the other.
      *
      * @param functions List of functions in the RabbitMQ service
+     * @return The name of the enabled function (onMessage or onRequest), or null if neither is enabled
      */
-    private static void filterRabbitMqFunctions(List<Function> functions) {
+    private static String filterRabbitMqFunctions(List<Function> functions) {
         boolean hasOnMessage = false;
         boolean hasOnRequest = false;
         int onMessageIndex = -1;
@@ -178,9 +183,12 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         }
         if (hasOnMessage) {
             functions.remove(onRequestIndex);
+            return ON_MESSAGE;
         } else if (hasOnRequest) {
             functions.remove(onMessageIndex);
+            return ON_REQUEST;
         }
+        return null;
     }
 
     @Override

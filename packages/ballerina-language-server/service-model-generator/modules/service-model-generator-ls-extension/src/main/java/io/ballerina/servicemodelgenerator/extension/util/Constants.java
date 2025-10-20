@@ -215,6 +215,12 @@ public class Constants {
     public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
     public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
 
+    // Data binding
+    public static final String DATA_BINDING = "DATA_BINDING";
+    public static final String DATA_BINDING_PROPERTY = "canDataBind";
+    public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
+    public static final String EMPTY_ARRAY = "[]";
+
     private Constants() {
     }
 }
