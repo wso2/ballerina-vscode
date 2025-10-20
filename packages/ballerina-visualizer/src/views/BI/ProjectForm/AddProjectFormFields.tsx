@@ -125,6 +125,7 @@ export function AddProjectFormFields({
                         value={formData.workspaceName}
                         label="Workspace Name"
                         placeholder="Enter workspace name"
+                        autoFocus={true}
                         required={true}
                     />
                 </WorkspaceSection>
@@ -136,7 +137,7 @@ export function AddProjectFormFields({
                     value={formData.integrationName}
                     label="Integration Name"
                     placeholder="Enter an integration name"
-                    autoFocus={true}
+                    autoFocus={isInWorkspace}
                     required={true}
                 />
             </FieldGroup>

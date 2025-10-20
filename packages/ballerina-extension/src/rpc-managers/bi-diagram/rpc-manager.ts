@@ -178,7 +178,6 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
-import { buildProjectArtifactsStructure } from "../../utils/project-artifacts";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -594,7 +593,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
         if (params.convertToWorkspace) {
-            convertProjectToWorkspace(params.workspaceName);
+            await convertProjectToWorkspace(params);
         } else {
             await addProjectToExistingWorkspace(params);
         }

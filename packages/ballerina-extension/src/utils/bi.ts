@@ -28,6 +28,7 @@ import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "toml";
 import { buildProjectArtifactsStructure } from "./project-artifacts";
+import { getProjectTomlValues } from "../rpc-managers/common/utils";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -276,16 +277,24 @@ sticky = true
     return projectRoot;
 }
 
-export function convertProjectToWorkspace(workspaceName: string) {
+export async function convertProjectToWorkspace(params: AddProjectToWorkspaceRequest) {
     const currentProjectPath = StateMachine.context().projectPath;
-    const newDirectory = path.join(path.dirname(currentProjectPath), workspaceName);
+    const { package: { name: currentPackageName } } = await getProjectTomlValues(currentProjectPath);
+
+    const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
     
     if (!fs.existsSync(newDirectory)) {
         fs.mkdirSync(newDirectory, { recursive: true });
     }
     
-    const newProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
-    fs.renameSync(currentProjectPath, newProjectPath);
+    const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
+    fs.renameSync(currentProjectPath, updatedProjectPath);
+
+    createWorkspaceToml(newDirectory, currentPackageName);
+    updateWorkspaceToml(newDirectory, params.packageName);
+
+    createProjectInWorkspace(params, newDirectory);
+
     openInVSCode(newDirectory);
 }
 
@@ -297,6 +306,15 @@ export async function addProjectToExistingWorkspace(params: AddProjectToWorkspac
     const projectPath = createProjectInWorkspace(params, workspacePath);
     
     await openNewlyCreatedProject(params, workspacePath, projectPath);
+}
+
+function createWorkspaceToml(workspacePath: string, packageName: string) {
+    const ballerinaTomlContent = `
+[workspace]
+packages = ["${packageName}"]
+`;
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
 }
 
 function updateWorkspaceToml(workspacePath: string, packageName: string) {
