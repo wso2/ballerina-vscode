@@ -29,8 +29,8 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunc
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
-import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.builder.function.RabbitMQFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
