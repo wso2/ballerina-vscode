@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder.PAYLOAD_FIELD_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.processDataBindingParameter;
 
@@ -35,7 +36,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.pro
 public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "kafka:AnydataConsumerRecord";
-    private static final String PAYLOAD_FIELD_NAME = "value";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {

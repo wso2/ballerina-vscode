@@ -18,6 +18,11 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -25,15 +30,18 @@ import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_PROPERTY;
@@ -104,27 +112,34 @@ public final class DatabindUtil {
      *
      * @param sourceFunction     The function from source code
      * @param sourceFunctionNode The FunctionDefinitionNode from source
-     * @return DataBindingInfo containing enabled state, parameter type, and name
+     * @param semanticModel      The semantic model for resolving type references
+     * @param payloadFieldName   The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
+     * @return DataBindingInfo containing enabled state, parameter type, name, and editability
      */
     private static DataBindingInfo determineDataBindingInfo(Function sourceFunction,
-                                                            FunctionDefinitionNode sourceFunctionNode) {
+                                                            FunctionDefinitionNode sourceFunctionNode,
+                                                            io.ballerina.compiler.api.SemanticModel semanticModel,
+                                                            String payloadFieldName) {
         boolean dataBindingEnabled = false;
         String paramType = "";
         String paramName = "";
+        boolean editable = false;
 
         if (sourceFunction != null && !sourceFunction.getParameters().isEmpty() && sourceFunctionNode != null) {
             Parameter sourceParam = sourceFunction.getParameters().getFirst();
             paramName = sourceParam.getName().getValue();
 
-            String dataBindingType = extractDataBindingType(sourceFunctionNode, paramName);
+            DataBindingTypeInfo typeInfo = extractDataBindingType(sourceFunctionNode, paramName, semanticModel,
+                    payloadFieldName);
 
-            if (dataBindingType != null) {
+            if (typeInfo != null && typeInfo.typeName() != null) {
                 dataBindingEnabled = true;
-                paramType = dataBindingType;
+                paramType = typeInfo.typeName();
+                editable = typeInfo.editable();
             }
         }
 
-        return new DataBindingInfo(dataBindingEnabled, paramType, paramName);
+        return new DataBindingInfo(dataBindingEnabled, paramType, paramName, editable);
     }
 
     /**
@@ -133,10 +148,11 @@ public final class DatabindUtil {
      * @param paramType          The parameter type value
      * @param paramName          The parameter name value
      * @param dataBindingEnabled Whether the parameter should be enabled
+     * @param editable           Whether the parameter should be editable
      * @return The created Parameter object
      */
     private static Parameter createDataBindingParam(String paramType, String paramName,
-                                                    boolean dataBindingEnabled) {
+                                                    boolean dataBindingEnabled, boolean editable) {
         Value parameterType = new Value.ValueBuilder()
                 .valueType(Constants.VALUE_TYPE_TYPE)
                 .value(paramType)
@@ -157,20 +173,25 @@ public final class DatabindUtil {
                 .type(parameterType)
                 .name(parameterNameValue)
                 .enabled(dataBindingEnabled)
-                .editable(true)
+                .editable(editable)
                 .optional(false)
                 .build();
     }
 
     /**
      * Extracts the data binding type from a record type descriptor in a function parameter. For example, from a
-     * parameter with type "record {*rabbitmq:AnydataMessage; Order content;}", this method extracts "Order".
+     * parameter with type "record {*rabbitmq:AnydataMessage; Order content;}", this method extracts "Order". Also
+     * handles type references.
      *
-     * @param functionNode The FunctionDefinitionNode to analyze
-     * @param paramName    The name of the parameter to extract the type from
-     * @return The extracted data binding type, or null if not found
+     * @param functionNode     The FunctionDefinitionNode to analyze
+     * @param paramName        The name of the parameter to extract the type from
+     * @param semanticModel    The semantic model for resolving type references
+     * @param payloadFieldName The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
+     * @return DataBindingTypeInfo containing the type name and resolution method, or null if not found
      */
-    private static String extractDataBindingType(FunctionDefinitionNode functionNode, String paramName) {
+    private static DataBindingTypeInfo extractDataBindingType(FunctionDefinitionNode functionNode, String paramName,
+                                                              io.ballerina.compiler.api.SemanticModel semanticModel,
+                                                              String payloadFieldName) {
         java.util.Optional<RequiredParameterNode> targetParam = functionNode.functionSignature().parameters().stream()
                 .filter(paramNode -> paramNode instanceof RequiredParameterNode)
                 .map(paramNode -> (RequiredParameterNode) paramNode)
@@ -182,13 +203,32 @@ public final class DatabindUtil {
             return null;
         }
 
-        Node recordParam = targetParam.get().typeName();
+        Node targetTypeNameNode = targetParam.get().typeName();
 
-        if (recordParam instanceof ArrayTypeDescriptorNode arrayTypeNode) {
-            recordParam = arrayTypeNode.memberTypeDesc();
+        if (targetTypeNameNode instanceof ArrayTypeDescriptorNode arrayTypeNode) {
+            targetTypeNameNode = arrayTypeNode.memberTypeDesc();
         }
 
-        if (!(recordParam instanceof RecordTypeDescriptorNode recordType)) {
+        if (targetTypeNameNode instanceof SimpleNameReferenceNode simpleNameRef) {
+            Optional<Symbol> symbolOpt = semanticModel.symbol(simpleNameRef);
+            if (symbolOpt.isPresent() && symbolOpt.get() instanceof TypeReferenceTypeSymbol typeDefSymbol) {
+                TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
+                // Unwrap type references to get the actual type
+                typeSymbol = CommonUtil.getRawType(typeSymbol);
+
+                if (typeSymbol instanceof RecordTypeSymbol recordTypeSymbol) {
+                    // Extract the data binding field from the resolved record type using efficient map lookup
+                    String typeName = extractDataBindingTypeFromRecordSymbol(recordTypeSymbol, payloadFieldName);
+                    if (typeName != null) {
+                        return new DataBindingTypeInfo(typeName, false);
+                    }
+                    return new DataBindingTypeInfo(simpleNameRef.name().toString().trim(), false);
+                }
+            }
+            return null;
+        }
+
+        if (!(targetTypeNameNode instanceof RecordTypeDescriptorNode recordType)) {
             return null;
         }
 
@@ -196,7 +236,34 @@ public final class DatabindUtil {
             if (!(field instanceof RecordFieldNode recordField)) {
                 continue;
             }
-            return recordField.typeName().toString().trim();
+            if (!recordField.fieldName().text().trim().equals(payloadFieldName)) {
+                continue;
+            }
+            String typeName = recordField.typeName().toString().trim();
+            return new DataBindingTypeInfo(typeName, true);
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts the data binding field type from a RecordTypeSymbol using efficient map lookup.
+     *
+     * @param recordTypeSymbol The record type symbol to analyze
+     * @param payloadFieldName The specific field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
+     * @return The data binding type name, or null if not found
+     */
+    private static String extractDataBindingTypeFromRecordSymbol(RecordTypeSymbol recordTypeSymbol,
+                                                                 String payloadFieldName) {
+        Map<String, RecordFieldSymbol> fieldSymbols = recordTypeSymbol.fieldDescriptors();
+
+        // Efficient lookup using the specific field name
+        RecordFieldSymbol fieldSymbol = fieldSymbols.get(payloadFieldName);
+        if (fieldSymbol != null) {
+            TypeSymbol fieldType = fieldSymbol.typeDescriptor();
+            if (fieldType.getName().isPresent()) {
+                return fieldType.getName().get();
+            }
         }
 
         return null;
@@ -206,11 +273,13 @@ public final class DatabindUtil {
      * Adds a data binding parameter to the specified function in the service. This method analyzes the source code to
      * determine if data binding is being used and adds the appropriate DATA_BINDING parameter.
      *
-     * @param service      The service model containing the functions
-     * @param functionName Name of the function to add the data binding parameter to
-     * @param context      ModelFromSourceContext to access the source node
+     * @param service          The service model containing the functions
+     * @param functionName     Name of the function to add the data binding parameter to
+     * @param context          ModelFromSourceContext to access the source node
+     * @param payloadFieldName The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
      */
-    public static void addDataBindingParam(Service service, String functionName, ModelFromSourceContext context) {
+    public static void addDataBindingParam(Service service, String functionName, ModelFromSourceContext context,
+                                           String payloadFieldName) {
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
 
         FunctionMatch match = findMatchingFunctions(service, functionName, serviceNode);
@@ -220,13 +289,16 @@ public final class DatabindUtil {
 
         DataBindingInfo dataBindingInfo = determineDataBindingInfo(
                 match.sourceFunction(),
-                match.sourceFunctionNode()
+                match.sourceFunctionNode(),
+                context.semanticModel(),
+                payloadFieldName
         );
 
         Parameter dataBindingParam = createDataBindingParam(
                 dataBindingInfo.paramType(),
                 dataBindingInfo.paramName(),
-                dataBindingInfo.enabled()
+                dataBindingInfo.enabled(),
+                dataBindingInfo.editable()
         );
 
         match.targetFunction().addParameter(dataBindingParam);
@@ -318,10 +390,23 @@ public final class DatabindUtil {
      * @param enabled   Whether data binding should be enabled
      * @param paramType The parameter type to use
      * @param paramName The parameter name to use
+     * @param editable  Whether the data binding parameter should be editable
      */
     public record DataBindingInfo(
             boolean enabled,
             String paramType,
-            String paramName
+            String paramName,
+            boolean editable
+    ) { }
+
+    /**
+     * Record to hold extracted data binding type information.
+     *
+     * @param typeName The data binding type name (e.g., "Order")
+     * @param editable Whether the data binding parameter should be editable
+     */
+    private record DataBindingTypeInfo(
+            String typeName,
+            boolean editable
     ) { }
 }

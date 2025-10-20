@@ -295,7 +295,7 @@
               "advanced": false
             },
             "enabled": false,
-            "editable": true,
+            "editable": false,
             "optional": false,
             "advanced": false,
             "hidden": false,

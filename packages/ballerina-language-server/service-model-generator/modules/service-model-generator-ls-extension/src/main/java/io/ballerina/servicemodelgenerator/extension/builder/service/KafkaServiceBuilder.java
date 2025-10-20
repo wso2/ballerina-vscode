@@ -32,11 +32,12 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.add
 public final class KafkaServiceBuilder extends AbstractServiceBuilder {
 
     private static final String ON_CONSUMER_RECORD = "onConsumerRecord";
+    public static final String PAYLOAD_FIELD_NAME = "value";
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
-        addDataBindingParam(service, ON_CONSUMER_RECORD, context);
+        addDataBindingParam(service, ON_CONSUMER_RECORD, context, PAYLOAD_FIELD_NAME);
         return service;
     }
 

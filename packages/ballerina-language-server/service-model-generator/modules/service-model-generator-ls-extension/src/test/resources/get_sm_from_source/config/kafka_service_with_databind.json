@@ -119,8 +119,8 @@
         "parameters": [
           {
             "metadata": {
-              "label": "records",
-              "description": "The records received for Kafka topic(s)"
+              "label": "messages",
+              "description": "The messages received for Kafka topic(s)"
             },
             "kind": "REQUIRED",
             "type": {
@@ -138,15 +138,15 @@
             },
             "name": {
               "metadata": {
-                "label": "records",
-                "description": "The records received for Kafka topic(s)"
+                "label": "messages",
+                "description": "The messages received for Kafka topic(s)"
               },
               "codedata": {
                 "type": "PARAMETER_NAME"
               },
-              "placeholder": "records",
+              "placeholder": "messages",
               "valueType": "IDENTIFIER",
-              "value": "records",
+              "value": "messages",
               "enabled": true,
               "editable": true,
               "optional": false,

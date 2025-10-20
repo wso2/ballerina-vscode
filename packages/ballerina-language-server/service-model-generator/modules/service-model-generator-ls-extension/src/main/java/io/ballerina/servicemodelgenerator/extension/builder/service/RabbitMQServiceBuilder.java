@@ -58,13 +58,14 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
     private static final String ON_MESSAGE = "onMessage";
     private static final String ON_REQUEST = "onRequest";
+    public static final String PAYLOAD_FIELD_NAME = "content";
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
         String enabledFunction = filterRabbitMqFunctions(service.getFunctions());
         if (enabledFunction != null) {
-            addDataBindingParam(service, enabledFunction, context);
+            addDataBindingParam(service, enabledFunction, context, PAYLOAD_FIELD_NAME);
         }
         return service;
     }
