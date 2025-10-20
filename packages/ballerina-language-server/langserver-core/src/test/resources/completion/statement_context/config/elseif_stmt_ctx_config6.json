@@ -372,7 +372,7 @@
     {
       "label": "testInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

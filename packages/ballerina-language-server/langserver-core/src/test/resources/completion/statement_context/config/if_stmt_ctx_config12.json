@@ -484,7 +484,7 @@
     {
       "label": "a",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -514,7 +514,7 @@
     {
       "label": "z",
       "labelDetails": {
-        "detail": "boolean"
+        "detail": " boolean"
       },
       "kind": "Variable",
       "detail": "boolean",

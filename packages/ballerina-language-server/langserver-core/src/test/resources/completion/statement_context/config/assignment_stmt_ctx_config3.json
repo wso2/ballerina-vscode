@@ -393,7 +393,7 @@
     {
       "label": "testValue",
       "labelDetails": {
-        "detail": "module1:TestClass1"
+        "detail": " module1:TestClass1"
       },
       "kind": "Variable",
       "detail": "module1:TestClass1",
@@ -419,7 +419,7 @@
     {
       "label": "l1",
       "labelDetails": {
-        "detail": "module1:Listener",
+        "detail": " module1:Listener",
         "description": "Listener"
       },
       "kind": "Variable",

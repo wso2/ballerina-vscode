@@ -1023,7 +1023,7 @@
     {
       "label": "module1:GLOBAL_VAR",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -1214,7 +1214,7 @@
     {
       "label": "module1:TEST_FUTURE_INT",
       "labelDetails": {
-        "detail": "future<int>"
+        "detail": " future<int>"
       },
       "kind": "Variable",
       "detail": "future<int>",
@@ -1236,7 +1236,8 @@
     {
       "label": "module1:listener1",
       "labelDetails": {
-        "detail": "module1:Listener"
+        "detail": " module1:Listener",
+        "description": "Listener"
       },
       "kind": "Variable",
       "detail": "module1:Listener",

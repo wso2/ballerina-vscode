@@ -655,7 +655,7 @@
     {
       "label": "fName",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -686,7 +686,7 @@
     {
       "label": "lName",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",

@@ -530,7 +530,7 @@
     {
       "label": "res",
       "labelDetails": {
-        "detail": "error"
+        "detail": " error"
       },
       "kind": "Variable",
       "detail": "error",

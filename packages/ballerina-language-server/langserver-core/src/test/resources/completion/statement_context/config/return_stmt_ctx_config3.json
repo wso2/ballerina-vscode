@@ -527,7 +527,7 @@
     {
       "label": "testVar",
       "labelDetails": {
-        "detail": "12"
+        "detail": " 12"
       },
       "kind": "Variable",
       "detail": "12",

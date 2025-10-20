@@ -882,7 +882,7 @@
     {
       "label": "a",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

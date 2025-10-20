@@ -545,7 +545,7 @@
     {
       "label": "numberList",
       "labelDetails": {
-        "detail": "int[]"
+        "detail": " int[]"
       },
       "kind": "Variable",
       "detail": "int[]",
@@ -556,7 +556,7 @@
     {
       "label": "breakValue",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -567,7 +567,7 @@
     {
       "label": "counter",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

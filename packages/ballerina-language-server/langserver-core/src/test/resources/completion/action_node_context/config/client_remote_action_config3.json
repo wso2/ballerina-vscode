@@ -364,7 +364,8 @@
     {
       "label": "clientEndpoint",
       "labelDetails": {
-        "detail": "Client"
+        "detail": " Client",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "Client",
@@ -417,7 +418,7 @@
     {
       "label": "resp",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

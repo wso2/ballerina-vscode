@@ -600,7 +600,7 @@
     {
       "label": "myInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -611,7 +611,7 @@
     {
       "label": "myString",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -645,7 +645,8 @@
     {
       "label": "cl",
       "labelDetails": {
-        "detail": "MyClass"
+        "detail": " MyClass",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "MyClass",

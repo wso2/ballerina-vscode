@@ -411,7 +411,7 @@
     {
       "label": "a",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -423,7 +423,7 @@
     {
       "label": "c",
       "labelDetails": {
-        "detail": "float",
+        "detail": " float",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -435,7 +435,7 @@
     {
       "label": "b",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -447,7 +447,7 @@
     {
       "label": "x1",
       "labelDetails": {
-        "detail": "float"
+        "detail": " float"
       },
       "kind": "Variable",
       "detail": "float",

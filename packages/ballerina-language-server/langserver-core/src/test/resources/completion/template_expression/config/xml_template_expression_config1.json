@@ -289,7 +289,7 @@
     {
       "label": "another",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -330,7 +330,7 @@
     {
       "label": "url",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -341,7 +341,7 @@
     {
       "label": "val",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -352,7 +352,7 @@
     {
       "label": "a",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -378,7 +378,7 @@
     {
       "label": "last",
       "labelDetails": {
-        "detail": "xml"
+        "detail": " xml"
       },
       "kind": "Variable",
       "detail": "xml",

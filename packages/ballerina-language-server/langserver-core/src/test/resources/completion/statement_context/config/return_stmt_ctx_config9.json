@@ -518,7 +518,7 @@
     {
       "label": "test",
       "labelDetails": {
-        "detail": "function () returns ()"
+        "detail": " function () returns ()"
       },
       "kind": "Variable",
       "detail": "function () returns ()",

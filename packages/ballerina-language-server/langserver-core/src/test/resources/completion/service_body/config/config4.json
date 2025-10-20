@@ -503,7 +503,7 @@
     {
       "label": "s",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -514,7 +514,7 @@
     {
       "label": "self",
       "labelDetails": {
-        "detail": "isolated service object {isolated resource function get foo/[string bar] () returns ();}"
+        "detail": " isolated service object {isolated resource function get foo/[string bar] () returns ();}"
       },
       "kind": "Variable",
       "detail": "isolated service object {isolated resource function get foo/[string bar] () returns ();}",
@@ -525,7 +525,7 @@
     {
       "label": "bar",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -924,7 +924,7 @@
     {
       "label": "host",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Configurable"
       },
       "kind": "Variable",
@@ -936,7 +936,7 @@
     {
       "label": "port",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Configurable"
       },
       "kind": "Variable",

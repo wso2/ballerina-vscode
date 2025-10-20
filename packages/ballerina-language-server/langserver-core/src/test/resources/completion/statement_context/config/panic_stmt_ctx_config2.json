@@ -470,7 +470,7 @@
     {
       "label": "n",
       "labelDetails": {
-        "detail": "0",
+        "detail": " 0",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -482,7 +482,7 @@
     {
       "label": "m",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",

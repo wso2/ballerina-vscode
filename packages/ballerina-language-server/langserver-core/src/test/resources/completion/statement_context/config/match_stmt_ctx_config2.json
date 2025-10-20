@@ -385,7 +385,7 @@
     {
       "label": "var1",
       "labelDetails": {
-        "detail": "string|int|boolean"
+        "detail": " string|int|boolean"
       },
       "kind": "Variable",
       "detail": "string|int|boolean",
@@ -396,7 +396,7 @@
     {
       "label": "var2",
       "labelDetails": {
-        "detail": "[string, int, boolean]"
+        "detail": " [string, int, boolean]"
       },
       "kind": "Variable",
       "detail": "[string, int, boolean]",
@@ -434,7 +434,7 @@
     {
       "label": "var4",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -445,7 +445,7 @@
     {
       "label": "i",
       "labelDetails": {
-        "detail": "string|int|boolean",
+        "detail": " string|int|boolean",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -468,7 +468,7 @@
     {
       "label": "var5",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

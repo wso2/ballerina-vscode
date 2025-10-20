@@ -9,7 +9,8 @@
     {
       "label": "test",
       "labelDetails": {
-        "detail": "$UndefinedType$"
+        "detail": " $UndefinedType$",
+        "description": "Listener"
       },
       "kind": "Variable",
       "detail": "$UndefinedType$",

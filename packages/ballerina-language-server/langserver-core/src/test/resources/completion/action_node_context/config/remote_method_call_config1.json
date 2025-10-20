@@ -636,7 +636,8 @@
     {
       "label": "prodClient",
       "labelDetails": {
-        "detail": "ProductClient"
+        "detail": " ProductClient",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "ProductClient",
@@ -674,7 +675,7 @@
     {
       "label": "count",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

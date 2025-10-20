@@ -526,7 +526,7 @@
     {
       "label": "self",
       "labelDetails": {
-        "detail": "TestClass"
+        "detail": " TestClass"
       },
       "kind": "Variable",
       "detail": "TestClass",

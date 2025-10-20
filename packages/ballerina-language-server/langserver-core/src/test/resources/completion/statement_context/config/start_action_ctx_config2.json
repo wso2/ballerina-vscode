@@ -299,7 +299,7 @@
     {
       "label": "fs",
       "labelDetails": {
-        "detail": "future<string>"
+        "detail": " future<string>"
       },
       "kind": "Variable",
       "detail": "future<string>",

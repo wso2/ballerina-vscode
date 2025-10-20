@@ -382,6 +382,9 @@
     },
     {
       "label": "err1",
+      "labelDetails": {
+        "detail": " Error1"
+      },
       "kind": "Variable",
       "detail": "Error1",
       "sortText": "AB",

@@ -59,7 +59,7 @@ public final class VariableCompletionItemBuilder {
         item.setDetail(detail);
 
         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-        labelDetails.setDetail(detail);
+        labelDetails.setDetail(" " + detail);
         if (varSymbol != null) {
             if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
                 labelDetails.setDescription(CONFIGURABLE_CATEGORY);

@@ -503,7 +503,7 @@
     {
       "label": "l1",
       "labelDetails": {
-        "detail": "module1:Listener",
+        "detail": " module1:Listener",
         "description": "Listener"
       },
       "kind": "Variable",
@@ -515,7 +515,7 @@
     {
       "label": "self",
       "labelDetails": {
-        "detail": "isolated service object {resource function get . () returns int;}"
+        "detail": " isolated service object {resource function get . () returns int;}"
       },
       "kind": "Variable",
       "detail": "isolated service object {resource function get . () returns int;}",

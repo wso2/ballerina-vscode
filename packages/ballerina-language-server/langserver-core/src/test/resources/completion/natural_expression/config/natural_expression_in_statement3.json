@@ -655,7 +655,7 @@
     {
       "label": "address",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -667,7 +667,7 @@
     {
       "label": "age",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -698,7 +698,7 @@
     {
       "label": "person",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

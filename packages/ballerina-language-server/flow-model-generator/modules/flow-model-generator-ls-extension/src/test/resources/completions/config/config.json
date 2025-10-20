@@ -450,7 +450,7 @@
     {
       "label": "host",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Configurable"
       },
       "kind": "Variable",
@@ -462,7 +462,7 @@
     {
       "label": "localVar",
       "labelDetails": {
-        "detail": "float"
+        "detail": " float"
       },
       "kind": "Variable",
       "detail": "float",
@@ -473,7 +473,7 @@
     {
       "label": "moduleVar",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -484,7 +484,7 @@
     {
       "label": "port",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Configurable"
       },
       "kind": "Variable",
@@ -496,7 +496,7 @@
     {
       "label": "self",
       "labelDetails": {
-        "detail": "service object {int classVar; resource function get test () returns ();}"
+        "detail": " service object {int classVar; resource function get test () returns ();}"
       },
       "kind": "Variable",
       "detail": "service object {int classVar; resource function get test () returns ();}",

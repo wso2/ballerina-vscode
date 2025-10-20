@@ -912,7 +912,7 @@
     {
       "label": "cl",
       "labelDetails": {
-        "detail": "module1:Client",
+        "detail": " module1:Client",
         "description": "Client"
       },
       "kind": "Variable",

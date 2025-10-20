@@ -415,7 +415,7 @@
     {
       "label": "hello",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -434,7 +434,7 @@
     {
       "label": "myStr",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -472,7 +472,7 @@
     {
       "label": "myInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -502,7 +502,7 @@
     {
       "label": "myType",
       "labelDetails": {
-        "detail": "MyType",
+        "detail": " MyType",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -514,7 +514,7 @@
     {
       "label": "paramStr",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -537,7 +537,7 @@
     {
       "label": "func",
       "labelDetails": {
-        "detail": "function () returns string",
+        "detail": " function () returns string",
         "description": "Parameter"
       },
       "kind": "Variable",

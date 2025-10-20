@@ -513,7 +513,8 @@
     {
       "label": "cl",
       "labelDetails": {
-        "detail": "MyClient"
+        "detail": " MyClient",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "MyClient",
@@ -550,7 +551,7 @@
     {
       "label": "i",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -569,7 +570,7 @@
     {
       "label": "s",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

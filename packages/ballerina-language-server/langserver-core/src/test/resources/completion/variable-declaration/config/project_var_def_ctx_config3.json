@@ -461,6 +461,9 @@
     },
     {
       "label": "defaultModel",
+      "labelDetails": {
+        "detail": " Model"
+      },
       "kind": "Variable",
       "detail": "Model",
       "sortText": "AB",

@@ -385,7 +385,7 @@
     {
       "label": "'if",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -404,7 +404,7 @@
     {
       "label": "'from",
       "labelDetails": {
-        "detail": "Currency",
+        "detail": " Currency",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -435,7 +435,7 @@
     {
       "label": "fromCurrency",
       "labelDetails": {
-        "detail": "Currency"
+        "detail": " Currency"
       },
       "kind": "Variable",
       "detail": "Currency",
@@ -480,7 +480,7 @@
     {
       "label": "'to",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",

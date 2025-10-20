@@ -4,6 +4,7 @@
     "character": 22
   },
   "source": "expression_context/source/mapping_expr_ctx_source61.bal",
+  "description": "",
   "items": [
     {
       "label": "readonly",
@@ -16,6 +17,9 @@
     },
     {
       "label": "pets",
+      "labelDetails": {
+        "detail": " Pet[]"
+      },
       "kind": "Variable",
       "detail": "Pet[]",
       "sortText": "AB",
@@ -24,6 +28,9 @@
     },
     {
       "label": "petStore",
+      "labelDetails": {
+        "detail": " PetStore"
+      },
       "kind": "Variable",
       "detail": "PetStore",
       "sortText": "F",

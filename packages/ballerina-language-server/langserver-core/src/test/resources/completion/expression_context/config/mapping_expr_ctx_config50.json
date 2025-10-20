@@ -4,6 +4,7 @@
     "character": 12
   },
   "source": "expression_context/source/mapping_expr_ctx_source50.bal",
+  "description": "",
   "items": [
     {
       "label": "readonly",
@@ -16,6 +17,9 @@
     },
     {
       "label": "map1",
+      "labelDetails": {
+        "detail": " map<RecordName>"
+      },
       "kind": "Variable",
       "detail": "map<RecordName>",
       "sortText": "AB",
@@ -24,6 +28,9 @@
     },
     {
       "label": "recMap",
+      "labelDetails": {
+        "detail": " map<map<RecordName>>"
+      },
       "kind": "Variable",
       "detail": "map<map<RecordName>>",
       "sortText": "F",

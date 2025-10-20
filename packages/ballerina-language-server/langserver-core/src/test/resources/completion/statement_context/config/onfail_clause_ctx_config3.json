@@ -539,7 +539,7 @@
     {
       "label": "animals",
       "labelDetails": {
-        "detail": "string[]"
+        "detail": " string[]"
       },
       "kind": "Variable",
       "detail": "string[]",
@@ -565,7 +565,7 @@
     {
       "label": "animal",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

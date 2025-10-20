@@ -488,7 +488,7 @@
     {
       "label": "validator2",
       "labelDetails": {
-        "detail": "boolean",
+        "detail": " boolean",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -500,7 +500,7 @@
     {
       "label": "validator1",
       "labelDetails": {
-        "detail": "boolean",
+        "detail": " boolean",
         "description": "Parameter"
       },
       "kind": "Variable",

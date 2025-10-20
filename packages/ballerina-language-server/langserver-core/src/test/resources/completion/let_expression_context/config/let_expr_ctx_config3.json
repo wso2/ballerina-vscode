@@ -411,7 +411,7 @@
     {
       "label": "x",
       "labelDetails": {
-        "detail": "float",
+        "detail": " float",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -459,7 +459,7 @@
     {
       "label": "x2",
       "labelDetails": {
-        "detail": "float"
+        "detail": " float"
       },
       "kind": "Variable",
       "detail": "float",

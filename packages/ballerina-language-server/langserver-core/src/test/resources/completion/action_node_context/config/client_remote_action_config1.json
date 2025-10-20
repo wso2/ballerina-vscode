@@ -372,7 +372,8 @@
     {
       "label": "cl",
       "labelDetails": {
-        "detail": "module1:Client"
+        "detail": " module1:Client",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "module1:Client",
@@ -430,7 +431,7 @@
     {
       "label": "testInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -441,7 +442,7 @@
     {
       "label": "url",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

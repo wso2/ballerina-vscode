@@ -52,7 +52,7 @@ public final class ParameterCompletionItemBuilder {
         item.setKind(CompletionItemKind.Variable);
 
         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-        labelDetails.setDetail(detail);
+        labelDetails.setDetail(" " + detail);
         labelDetails.setDescription(PARAMETER_CATEGORY);
         item.setLabelDetails(labelDetails);
 

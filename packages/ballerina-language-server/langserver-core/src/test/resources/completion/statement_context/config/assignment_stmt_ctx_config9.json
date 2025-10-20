@@ -385,7 +385,7 @@
     {
       "label": "proxyHost",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -405,7 +405,7 @@
     {
       "label": "proxyPort",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -417,7 +417,7 @@
     {
       "label": "self",
       "labelDetails": {
-        "detail": "ProxyClient"
+        "detail": " ProxyClient"
       },
       "kind": "Variable",
       "detail": "ProxyClient",

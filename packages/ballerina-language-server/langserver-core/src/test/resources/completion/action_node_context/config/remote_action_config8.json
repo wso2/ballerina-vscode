@@ -513,7 +513,8 @@
     {
       "label": "prodClient",
       "labelDetails": {
-        "detail": "ProductClient"
+        "detail": " ProductClient",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "ProductClient",
@@ -604,7 +605,7 @@
     {
       "label": "name",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -615,7 +616,7 @@
     {
       "label": "pageSize",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -627,7 +628,7 @@
     {
       "label": "count",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -638,7 +639,8 @@
     {
       "label": "modClient",
       "labelDetails": {
-        "detail": "module1:Client"
+        "detail": " module1:Client",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "module1:Client",
@@ -668,7 +670,7 @@
     {
       "label": "lastName",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -680,7 +682,7 @@
     {
       "label": "page",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -692,7 +694,7 @@
     {
       "label": "firstName",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",

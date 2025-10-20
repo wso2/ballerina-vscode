@@ -400,7 +400,7 @@
     {
       "label": "res",
       "labelDetails": {
-        "detail": "()"
+        "detail": " ()"
       },
       "kind": "Variable",
       "detail": "()",

@@ -51,6 +51,17 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
+      "kind": "Variable",
+      "detail": "string",
+      "sortText": "F",
+      "insertText": "secondVal",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "firstVal",
       "kind": "Variable",
       "detail": "\"first\"",
@@ -67,7 +78,7 @@
     {
       "label": "admission",
       "labelDetails": {
-        "detail": "Admission",
+        "detail": " Admission",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -79,24 +90,13 @@
     {
       "label": "person",
       "labelDetails": {
-        "detail": "Person",
+        "detail": " Person",
         "description": "Parameter"
       },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "F",
       "insertText": "person",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "secondVal",
-      "labelDetails": {
-        "detail": "string"
-      },
-      "kind": "Variable",
-      "detail": "string",
-      "sortText": "F",
-      "insertText": "secondVal",
       "insertTextFormat": "Snippet"
     }
   ]

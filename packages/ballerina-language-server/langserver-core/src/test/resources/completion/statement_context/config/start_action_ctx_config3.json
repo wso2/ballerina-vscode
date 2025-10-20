@@ -284,7 +284,7 @@
     {
       "label": "y",
       "labelDetails": {
-        "detail": "future<string>"
+        "detail": " future<string>"
       },
       "kind": "Variable",
       "detail": "future<string>",
@@ -310,7 +310,7 @@
     {
       "label": "anonFunction",
       "labelDetails": {
-        "detail": "function (string, string) returns string"
+        "detail": " function (string, string) returns string"
       },
       "kind": "Variable",
       "detail": "function (string, string) returns string",

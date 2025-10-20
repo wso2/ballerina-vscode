@@ -541,7 +541,7 @@
     {
       "label": "name",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -591,7 +591,7 @@
     {
       "label": "secondVal",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",

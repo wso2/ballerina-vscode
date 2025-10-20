@@ -405,7 +405,7 @@
     {
       "label": "moduleVar",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -435,7 +435,7 @@
     {
       "label": "v",
       "labelDetails": {
-        "detail": "any",
+        "detail": " any",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -447,7 +447,7 @@
     {
       "label": "localVar",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

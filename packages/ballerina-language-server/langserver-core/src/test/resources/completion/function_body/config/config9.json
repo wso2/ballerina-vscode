@@ -423,7 +423,7 @@
     {
       "label": "arg1",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -435,7 +435,7 @@
     {
       "label": "gInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -457,7 +457,7 @@
     {
       "label": "arg2",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -469,7 +469,7 @@
     {
       "label": "mInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

@@ -525,7 +525,7 @@
     {
       "label": "regex1",
       "labelDetails": {
-        "detail": "string:RegExp"
+        "detail": " string:RegExp"
       },
       "kind": "Variable",
       "detail": "string:RegExp",
@@ -561,7 +561,7 @@
     {
       "label": "intVal",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

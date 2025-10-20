@@ -362,6 +362,9 @@
     },
     {
       "label": "value2",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AABB",
@@ -385,6 +388,9 @@
     },
     {
       "label": "value1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AABB",
@@ -408,6 +414,9 @@
     },
     {
       "label": "numberList",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AFB",

@@ -698,7 +698,8 @@
     {
       "label": "cl",
       "labelDetails": {
-        "detail": "ClientClass"
+        "detail": " ClientClass",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "ClientClass",

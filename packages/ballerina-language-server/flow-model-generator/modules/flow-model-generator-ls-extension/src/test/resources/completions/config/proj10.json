@@ -43,7 +43,7 @@
     {
       "label": "i",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -54,7 +54,7 @@
     {
       "label": "rec",
       "labelDetails": {
-        "detail": "MyRecord"
+        "detail": " MyRecord"
       },
       "kind": "Variable",
       "detail": "MyRecord",
@@ -65,7 +65,7 @@
     {
       "label": "strucrturedRec",
       "labelDetails": {
-        "detail": "MyRecord"
+        "detail": " MyRecord"
       },
       "kind": "Variable",
       "detail": "MyRecord",
@@ -76,7 +76,7 @@
     {
       "label": "structuredArray",
       "labelDetails": {
-        "detail": "int[]"
+        "detail": " int[]"
       },
       "kind": "Variable",
       "detail": "int[]",
@@ -87,7 +87,7 @@
     {
       "label": "structuredMap",
       "labelDetails": {
-        "detail": "map<string>"
+        "detail": " map<string>"
       },
       "kind": "Variable",
       "detail": "map<string>",

@@ -512,7 +512,7 @@
     {
       "label": "v",
       "labelDetails": {
-        "detail": "any",
+        "detail": " any",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -524,7 +524,7 @@
     {
       "label": "arr",
       "labelDetails": {
-        "detail": "int[]"
+        "detail": " int[]"
       },
       "kind": "Variable",
       "detail": "int[]",
@@ -808,7 +808,7 @@
     {
       "label": "module1:TEST_FUTURE_INT",
       "labelDetails": {
-        "detail": "future<int>"
+        "detail": " future<int>"
       },
       "kind": "Variable",
       "detail": "future<int>",

@@ -355,7 +355,7 @@
     {
       "label": "testVar",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",

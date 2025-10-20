@@ -481,7 +481,7 @@
     {
       "label": "testString",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -492,7 +492,7 @@
     {
       "label": "testFutureString",
       "labelDetails": {
-        "detail": "future<string>"
+        "detail": " future<string>"
       },
       "kind": "Variable",
       "detail": "future<string>",
@@ -518,7 +518,7 @@
     {
       "label": "testFutureInt",
       "labelDetails": {
-        "detail": "future<int>"
+        "detail": " future<int>"
       },
       "kind": "Variable",
       "detail": "future<int>",

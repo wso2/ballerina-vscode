@@ -453,7 +453,7 @@
     {
       "label": "str",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -491,7 +491,7 @@
     {
       "label": "obj2",
       "labelDetails": {
-        "detail": "TestObject2"
+        "detail": " TestObject2"
       },
       "kind": "Variable",
       "detail": "TestObject2",

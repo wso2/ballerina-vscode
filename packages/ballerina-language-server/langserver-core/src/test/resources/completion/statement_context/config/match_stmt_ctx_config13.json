@@ -373,7 +373,7 @@
     {
       "label": "myInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -406,7 +406,7 @@
     {
       "label": "r1",
       "labelDetails": {
-        "detail": "MyRecord"
+        "detail": " MyRecord"
       },
       "kind": "Variable",
       "detail": "MyRecord",

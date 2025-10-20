@@ -17,7 +17,7 @@
     {
       "label": "fint",
       "labelDetails": {
-        "detail": "future<int>"
+        "detail": " future<int>"
       },
       "kind": "Variable",
       "detail": "future<int>",
@@ -36,7 +36,7 @@
     {
       "label": "fstr",
       "labelDetails": {
-        "detail": "future<string>"
+        "detail": " future<string>"
       },
       "kind": "Variable",
       "detail": "future<string>",
@@ -47,7 +47,7 @@
     {
       "label": "myVar",
       "labelDetails": {
-        "detail": "map<string|error>"
+        "detail": " map<string|error>"
       },
       "kind": "Variable",
       "detail": "map<string|error>",

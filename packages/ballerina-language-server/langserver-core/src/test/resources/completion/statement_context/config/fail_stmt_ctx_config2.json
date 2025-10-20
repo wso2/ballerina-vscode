@@ -388,7 +388,7 @@
     {
       "label": "testErr",
       "labelDetails": {
-        "detail": "error"
+        "detail": " error"
       },
       "kind": "Variable",
       "detail": "error",
@@ -399,7 +399,7 @@
     {
       "label": "testInt",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
@@ -421,7 +421,7 @@
     {
       "label": "subErr",
       "labelDetails": {
-        "detail": "Err"
+        "detail": " Err"
       },
       "kind": "Variable",
       "detail": "Err",

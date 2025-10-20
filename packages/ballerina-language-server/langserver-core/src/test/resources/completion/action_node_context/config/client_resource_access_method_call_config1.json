@@ -636,7 +636,8 @@
     {
       "label": "myClient",
       "labelDetails": {
-        "detail": "MyClient"
+        "detail": " MyClient",
+        "description": "Client"
       },
       "kind": "Variable",
       "detail": "MyClient",
@@ -666,7 +667,7 @@
     {
       "label": "response",
       "labelDetails": {
-        "detail": "string"
+        "detail": " string"
       },
       "kind": "Variable",
       "detail": "string",
@@ -704,7 +705,7 @@
     {
       "label": "count",
       "labelDetails": {
-        "detail": "int",
+        "detail": " int",
         "description": "Parameter"
       },
       "kind": "Variable",
@@ -716,7 +717,7 @@
     {
       "label": "param1",
       "labelDetails": {
-        "detail": "string",
+        "detail": " string",
         "description": "Parameter"
       },
       "kind": "Variable",

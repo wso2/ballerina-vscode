@@ -408,7 +408,7 @@
     {
       "label": "l1",
       "labelDetails": {
-        "detail": "module1:Listener",
+        "detail": " module1:Listener",
         "description": "Listener"
       },
       "kind": "Variable",
@@ -420,7 +420,7 @@
     {
       "label": "testValue",
       "labelDetails": {
-        "detail": "int"
+        "detail": " int"
       },
       "kind": "Variable",
       "detail": "int",
