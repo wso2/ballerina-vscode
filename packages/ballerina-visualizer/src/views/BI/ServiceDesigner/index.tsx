@@ -369,7 +369,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 const services = res.directoryMap[DIRECTORY_MAP.SERVICE];
                 if (services.length > 0) {
                     const selectedService = services.find((service) => service.name === serviceIdentifier);
-                    setResources(selectedService.resources);
+                    if (selectedService.moduleName === "mcp") {
+                        const updatedResources = selectedService.resources.map(resource => ({
+                            ...resource,
+                            icon: "tool"
+                        }));
+                        setResources(updatedResources);
+                    } else {
+                        setResources(selectedService.resources);
+                    }
 
                     // // Remove the init option from setDropdownOptions(options); if init function is here
                     // if (selectedService.resources.find((func) => func.name === "init")) {
@@ -925,6 +933,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     onEditResource={handleFunctionEdit}
                                                     onDeleteResource={handleFunctionDelete}
                                                     onResourceImplement={handleOpenDiagram}
+                                                    isMcpTool={true}
                                                 />
                                             ))}
                                     </FunctionsContainer>
