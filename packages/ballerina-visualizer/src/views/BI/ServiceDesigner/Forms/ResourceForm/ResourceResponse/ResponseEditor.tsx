@@ -134,12 +134,39 @@ export function ResponseEditor(props: ParamProps) {
             fields.push({
                 ...convertPropertyToFormField(res.body),
                 key: `body`,
+                onValueChange: (value: string) => {
+                    switch (value) {
+                        case "json":
+                            res.mediaType.value = "application/json";
+                            break;
+                        case "xml":
+                            res.mediaType.value = "application/xml";
+                            break;
+                        case "string":
+                            res.mediaType.value = "text/plain";
+                            break;
+                    }
+                    // Update the mediaType field in the fields array
+                    const updatedFields = newFieldsRef.current.map(field => {
+                        if (field.key === 'mediaType') {
+                            return {
+                                ...field,
+                                value: res.mediaType.value,
+                                defaultValue: res.mediaType.value
+                            };
+                        }
+                        return field;
+                    });
+                    newFieldsRef.current = updatedFields;
+                    setNewFields([...updatedFields]);
+                }
             });
             fields.push({
                 ...convertPropertyToFormField(res.mediaType),
-                type: "ENUM",
-                items: ["", "application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data"],
+                type: "AUTOCOMPLETE",
+                items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
                 key: `mediaType`,
+                defaultValue: res.mediaType.value,
             });
             fields.push({
                 ...convertPropertyToFormField(res.headers, defaultItems),
