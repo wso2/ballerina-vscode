@@ -25,6 +25,7 @@ import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
+import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -166,7 +167,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                 val.value = data[val.key];
             }
             if (val.key === "basePath") {
-                val.value = data[val.key].replace(/-/g, '\\-').replace(/\./g, '\\.');
+                val.value = sanitizedHttpPath(data[val.key] as string);
             }
             val.imports = getImportsForProperty(val.key, formImports);
         })
@@ -250,7 +251,7 @@ function convertConfig(service: ServiceModel): FormField[] {
         }
 
         if (key === "basePath") {
-            formField.value = (formField.value as string).replace(/\\/g, '');
+            formField.value = removeForwardSlashes(formField.value as string);
         }
 
         formFields.push(formField);
