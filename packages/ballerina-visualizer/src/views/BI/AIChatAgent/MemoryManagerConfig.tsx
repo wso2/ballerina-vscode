@@ -25,6 +25,10 @@ import { useEffect, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { FormGenerator } from "../Forms/FormGenerator";
 import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
+import { usePanelOverlay } from "../FlowDiagram/hooks/usePanelOverlay";
+import { ConnectionSelectionList } from "../../../components/ConnectionSelector/ConnectionSelectionList";
+import { ConnectionCreator } from "../../../components/ConnectionSelector/ConnectionCreator";
+import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
 
 const Container = styled.div`
     padding: 24px 16px 0;
@@ -54,6 +58,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const { agentNode, memoryManagerNode: existingMemoryVariable, onSave } = props;
 
     const { rpcClient } = useRpcContext();
+    const { openOverlay, closeTopOverlay } = usePanelOverlay();
 
     // Available memory managers from the AI module
     const [availableMemoryManagers, setAvailableMemoryManagers] = useState<CodeData[]>([]);
@@ -68,6 +73,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
     const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
     const targetLineRange = useRef<any>();
+    const currentOverlayId = useRef<string | null>(null);
 
     useEffect(() => {
         initPanel();
@@ -244,6 +250,94 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
         );
     };
 
+    const handleStoreCreated = (createdNode: FlowNode) => {
+        // Extract the store reference from the created node
+        const storeReference = createdNode.properties?.store?.value as string;
+
+        if (!storeReference) {
+            console.error("No store reference found in created node");
+            return;
+        }
+
+        // Update the memory manager template with the new store reference
+        if (memoryManagerNodeTemplate) {
+            const updatedTemplate = cloneDeep(memoryManagerNodeTemplate);
+            const storeProperty = (updatedTemplate.properties as any)['store'];
+            if (storeProperty) {
+                storeProperty.value = storeReference;
+            }
+            setMemoryManagerNodeTemplate(updatedTemplate);
+
+            // If there's an existing memory manager node, update it too
+            if (memoryManagerNode) {
+                const updatedNode = cloneDeep(memoryManagerNode);
+                const nodeStoreProperty = (updatedNode.properties as any)['store'];
+                if (nodeStoreProperty) {
+                    nodeStoreProperty.value = storeReference;
+                }
+                setMemoryManagerNode(updatedNode);
+            }
+        }
+
+        // Close the overlay
+        closeTopOverlay();
+    };
+
+    const handleSelectStore = async (nodeId: string, metadata?: any) => {
+        if (!currentOverlayId.current) {
+            return;
+        }
+
+        try {
+            const { flowNode } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                targetLineRange.current,
+                agentFilePath.current,
+                rpcClient
+            );
+
+            // Close the selection overlay and open the creation overlay
+            closeTopOverlay();
+
+            // Open the creation overlay
+            currentOverlayId.current = openOverlay({
+                title: "Create Memory Store",
+                content: (
+                    <ConnectionCreator
+                        connectionKind="MEMORY_STORE"
+                        selectedNode={memoryManagerNode || memoryManagerNodeTemplate}
+                        nodeFormTemplate={flowNode}
+                        onSave={handleStoreCreated}
+                    />
+                ),
+                onBack: handleBackToSelection,
+            });
+        } catch (error) {
+            console.error("Error selecting memory store:", error);
+        }
+    };
+
+    const handleBackToSelection = () => {
+        // Close the current overlay (Create Memory Store) before opening the previous one
+        closeTopOverlay();
+        // Then open the selection overlay
+        handleOpenStoreSelection();
+    };
+
+    const handleOpenStoreSelection = () => {
+        currentOverlayId.current = openOverlay({
+            title: "Select Memory Store",
+            content: (
+                <ConnectionSelectionList
+                    connectionKind="MEMORY_STORE"
+                    onSelect={handleSelectStore}
+                />
+            ),
+            onBack: closeTopOverlay,
+        });
+    };
+
     return (
         <>
             {availableMemoryManagers.length > 0 && (
@@ -257,8 +351,8 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                                 value: memory.object,
                                 content: memory.object.replace(/([A-Z])/g, ' $1').trim(),
                             }))}
-                            label="Select Memory Manager"
-                            description="Available Memory Managers"
+                            label="Select Memory"
+                            description="Available Memory"
                             onValueChange={handleMemoryManagerChange}
                             value={getCurrentMemoryManagerType()}
                             containerSx={{ width: "100%" }}
@@ -284,17 +378,17 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
                     fieldOverrides={{
                         store: {
                             type: "ACTION_EXPRESSION",
-                            actionCallback: () => {
-                                console.log("Create new store clicked!");
-                                // TODO: Add your navigation logic here
-                                // navigateToPanel(SidePanelView.CONNECTION_SELECT, 'store');
-                            },
+                            actionCallback: handleOpenStoreSelection,
+                            defaultValue: "In-Memory Short Term Memory Store",
                             actionLabel: (
                                 <>
                                     <Codicon name="add" />
                                     Create New Memory Store
                                 </>
                             ),
+                        },
+                        overflowConfiguration: {
+                            defaultValue: "Overflow Trim Configuration"
                         },
                         type: {
                             hidden: true
