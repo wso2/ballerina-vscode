@@ -66,7 +66,7 @@ export function getTitleFromStatusCodeAndType(responseCodes: VisibleTypesRespons
 
 
 export function sanitizedHttpPath(value: string): string {
-    return value.replace(/-/g, '\\-').replace(/\./g, '\\.');
+    return removeForwardSlashes(value).replace(/-/g, '\\-').replace(/\./g, '\\.');
 }
 
 export function removeForwardSlashes(value: string): string {
