@@ -125,7 +125,7 @@ export const handleErrorCorrection = (range: { start: number; end: number }, tok
     const correctionRequiredTokens = tokens.slice(range.start, range.end);
     console.log("correctionRequiredTokens", correctionRequiredTokens);
 
-    
+
     // Adjust the first token's column offset in the affected range
     // The rest remain relative to each other
     if (correctionRequiredTokens.length >= 5) {
@@ -134,7 +134,7 @@ export const handleErrorCorrection = (range: { start: number; end: number }, tok
         correctionRequiredTokens[1] += correction;
     }
     console.log("correction required tokens after adjustment", correctionRequiredTokens);
-    
+
     return [...validTokensBeforeErrorRange, ...correctionRequiredTokens, ...validTokensAfterErrorRange];
 }
 
@@ -150,3 +150,21 @@ export const getTokenChunks = (tokens: number[]) => {
     }
     return tokenChunks;
 }
+
+//for menus
+
+export const calculateMenuPosition = (targetElement: HTMLElement, container: HTMLDivElement) => {
+    const rect = targetElement.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    if (!containerRect) return null;
+
+    const menuWidth = 120;
+    let top = rect.bottom - containerRect.top + 4;
+    let left = rect.left - containerRect.left;
+    if (left + menuWidth > containerRect.width) {
+        left = containerRect.width - menuWidth;
+    }
+
+    return { top, left };
+};

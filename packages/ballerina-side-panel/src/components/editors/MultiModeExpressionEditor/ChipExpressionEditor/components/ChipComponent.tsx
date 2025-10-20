@@ -16,24 +16,36 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useRef } from "react";
 import { Chip } from "../styles";
 
 export type ChipProps = {
     type: 'variable' | 'property' | 'parameter';
     text: string;
-    onFocus?: () => void;
+    onClick?: (element: HTMLElement) => void;
     onBlur?: () => void;
 }
 
 export const ChipComponent = (props: ChipProps) => {
-    const { type, text, onFocus, onBlur } = props;
+    const { type, text, onClick, onBlur } = props;
+    const chipRef = useRef<HTMLDivElement>(null);
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onClick && chipRef.current) {
+            onClick(chipRef.current);
+        }
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
 
     if (type === 'variable') {
-        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
     } else if (type === 'property') {
-        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
     } else {
-        return <Chip contentEditable={false} onFocus={onFocus} onBlur={onBlur}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
     }
 }

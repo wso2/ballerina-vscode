@@ -606,7 +606,6 @@ export function FormGeneratorNew(props: FormProps) {
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,
