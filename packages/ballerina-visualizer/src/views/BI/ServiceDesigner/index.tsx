@@ -702,6 +702,16 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             return nameMatch || iconMatch;
         })
         .length;
+    
+    const remoteFunctionsCount = resources
+        .filter((resource) => resource.type === DIRECTORY_MAP.REMOTE)
+        .filter((resource) => {
+            const search = searchValue.toLowerCase();
+            const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+            const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+            return nameMatch || iconMatch;
+        })
+        .length;
 
     function createLineRange(filePath: string, position: NodePosition): LineRange {
         return {
@@ -904,13 +914,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <>
                                     <SectionHeader
                                         title="Tools"
-                                        subtitle={`${resources.length === 0 ? `` : 'Define how the mcp service responds to tool calls'}`}
+                                        subtitle={`${remoteFunctionsCount === 0 ? `` : 'Define how the mcp service responds to tool calls'}`}
                                     >
                                         <ActionGroup>
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                             )}
-                                            {!haveServiceTypeName && resources.length > 0 && (
+                                            {!haveServiceTypeName && remoteFunctionsCount > 0 && (
                                                 <Button appearance="primary" tooltip="Add Tool" onClick={handleNewMcpTool}>
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Tool</ButtonText>
                                                 </Button>
@@ -938,7 +948,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             ))}
                                     </FunctionsContainer>
 
-                                    {resources.length === 0 && (
+                                    {remoteFunctionsCount === 0 && (
                                         <EmptyReadmeContainer>
                                             <Description variant="body2">
                                                 No tools found. Add a new tool.

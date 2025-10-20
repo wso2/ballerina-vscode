@@ -311,6 +311,11 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
             };
         }
 
+        // Check if defaultValue field exists and set optional to true
+        if (parameterConfig["defaultValue"]) {
+            parameterConfig["defaultValue"].optional = true;
+        }
+
         // Iterate over each parameter field in the parameter config
         for (const key in parameterConfig) {
             if (parameterConfig.hasOwnProperty(key)) {
