@@ -47,9 +47,7 @@ import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { checkIsBallerinaWorkspace, goToSource } from "../../utils";
-import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
-import { parse } from 'toml';
-import * as fs from 'fs';
+import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getProjectTomlValues, getUpdatedSource } from "./utils";
 import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
@@ -247,17 +245,7 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async getCurrentProjectTomlValues(): Promise<TomlValues> {
-        const projectPath = StateMachine.context().projectPath;
-        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-        if (fs.existsSync(ballerinaTomlPath)) {
-            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-            try {
-                return parse(tomlContent);
-            } catch (error) {
-                console.error("Failed to load Ballerina.toml content", error);
-                return;
-            }
-        }
+        return getProjectTomlValues(StateMachine.context().projectPath);
     }
 
     async isBallerinaWorkspace(): Promise<boolean> {
