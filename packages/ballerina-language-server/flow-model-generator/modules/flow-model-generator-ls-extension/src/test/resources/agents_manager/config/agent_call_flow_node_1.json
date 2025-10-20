@@ -470,7 +470,7 @@
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "ai:AgentType",
-            "value": "ai:REACT_AGENT\n",
+            "value": "ai:REACT_AGENT",
             "placeholder": "\"FUNCTION_CALL_AGENT\"",
             "optional": true,
             "editable": true,

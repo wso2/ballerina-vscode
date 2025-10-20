@@ -360,6 +360,9 @@
     },
     {
       "label": "value2",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -425,6 +428,9 @@
     },
     {
       "label": "testVar",
+      "labelDetails": {
+        "detail": " typedesc<int>|error"
+      },
       "kind": "Variable",
       "detail": "typedesc<int>|error",
       "sortText": "B",

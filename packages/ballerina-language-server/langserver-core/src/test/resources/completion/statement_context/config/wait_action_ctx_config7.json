@@ -8,6 +8,9 @@
   "items": [
     {
       "label": "fs2",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "B",
@@ -16,6 +19,9 @@
     },
     {
       "label": "fs",
+      "labelDetails": {
+        "detail": " future<string|error>"
+      },
       "kind": "Variable",
       "detail": "future<string|error>",
       "sortText": "B",

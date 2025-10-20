@@ -1,4 +1,6 @@
 -- Drop tables if they already exist to prevent conflicts
+DROP TABLE IF EXISTS ServiceInitializerPropertyMemberType;
+DROP TABLE IF EXISTS ServiceInitializerProperty;
 DROP TABLE IF EXISTS ServiceTypeFunctionParameter;
 DROP TABLE IF EXISTS ServiceTypeFunction;
 DROP TABLE IF EXISTS ServiceType;
@@ -22,6 +24,7 @@ CREATE TABLE Package (
 CREATE TABLE ServiceDeclaration (
     package_id PRIMARY KEY,
     display_name TEXT NOT NULL,
+    description TEXT NOT NULL,
     optional_type_descriptor INTEGER CHECK(optional_type_descriptor IN (0, 1)),
     type_descriptor_label TEXT,
     type_descriptor_description TEXT,
@@ -83,7 +86,7 @@ CREATE TABLE Annotation (
     display_name TEXT,
     description TEXT,
     package_id INTEGER,
-    type_constrain TEXT, -- JSON type for parameter type information
+    type_constraint TEXT, -- JSON type for parameter type information
     package TEXT, -- format of the package is org:name:version
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
@@ -127,4 +130,30 @@ CREATE TABLE ServiceTypeFunctionParameter (
     editable_type INTEGER,
     function_id INTEGER,
     FOREIGN KEY (function_id) REFERENCES ServiceTypeFunction(function_id) ON DELETE CASCADE
+);
+
+CREATE TABLE ServiceInitializerProperty (
+    initializer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    package_id INTEGER,
+    key_name TEXT NOT NULL,
+    label TEXT NOT NULL,
+    description TEXT NOT NULL,
+    default_value TEXT,
+    placeholder TEXT,
+    value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT')),
+    type_constraint TEXT,
+    source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
+    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD', 'SOURCE_ANNOTATION')),
+    selections TEXT, -- Comma-separated values for selection options
+    FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
+);
+
+-- Create Parameter Member Type table
+CREATE TABLE ServiceInitializerPropertyMemberType (
+    member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type JSON, -- JSON type for parameter type information
+    kind TEXT,
+    initializer_id INTEGER,
+    package TEXT, -- format of the package is org:name:version
+    FOREIGN KEY (initializer_id) REFERENCES ServiceInitializerProperty(initializer_id) ON DELETE CASCADE
 );

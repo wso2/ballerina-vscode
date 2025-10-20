@@ -94,7 +94,7 @@
         "type": "LISTENER",
         "name": "tcpListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
         "module": "tcp",
         "children": {}
       }
@@ -116,7 +116,7 @@
         "type": "SERVICE",
         "name": "TCP Service",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
         "module": "tcp",
         "children": {
           "onConnect": {

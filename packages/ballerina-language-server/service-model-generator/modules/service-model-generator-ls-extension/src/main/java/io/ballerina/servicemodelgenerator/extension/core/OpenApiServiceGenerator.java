@@ -53,6 +53,7 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -80,6 +81,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.ballerina.openapi.core.generators.common.GeneratorConstants.DEFAULT_FILE_HEADER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
@@ -114,15 +116,29 @@ public class OpenApiServiceGenerator {
         this.workspaceManager = workspaceManager;
     }
 
-    public Map<String, List<TextEdit>> generateService(Service service, ListenerUtil.DefaultListener
-            defaultListener)
+    public Map<String, List<TextEdit>> generateService(Service service, ListenerUtil.DefaultListener defaultListener)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
+        String typeName = service.getServiceContractTypeName();
+        String listeners = service.getListener().getValue();
+        String listenerDeclaration = null;
+        if (Objects.nonNull(defaultListener)) {
+            listenerDeclaration = ListenerUtil.getDefaultListenerDeclarationStmt(defaultListener);
+        }
+        return generateService(typeName, listeners, listenerDeclaration);
+    }
+
+    public Map<String, List<TextEdit>> generateService(ServiceInitModel service, String listeners,
+                                                       String listenerDeclaration) throws WorkspaceDocumentException,
+            FormatterException, IOException, BallerinaOpenApiException, EventSyncException {
+        String typeName = service.getServiceContractTypeName();
+        return generateService(typeName, listeners, listenerDeclaration);
+    }
+
+    private Map<String, List<TextEdit>> generateService(String typeName, String listeners, String listenerDeclaration)
             throws IOException,
             BallerinaOpenApiException, FormatterException, WorkspaceDocumentException, EventSyncException {
         Filter filter = new Filter(new ArrayList<>(), new ArrayList<>());
-
-        String typeName = service.getServiceContractTypeName();
-        String listeners = service.getListener().getValue();
-
 
         List<Diagnostic> diagnostics = new ArrayList<>();
         GenSrcFile serviceTypeFile = generateServiceType(openAPIContractPath, typeName, filter, diagnostics);
@@ -158,19 +174,14 @@ public class OpenApiServiceGenerator {
                 String importText = Utils.getImportStmt("ballerina", "http");
                 textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
-
-            if (Objects.nonNull(defaultListener)) {
-                String stmt = ListenerUtil.getDefaultListenerDeclarationStmt(defaultListener);
-                textEdits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
-            }
-
-            StringBuilder serviceBuilder = new StringBuilder();
-
             String serviceImplContent = genServiceImplementation(serviceTypeFile, typeName, listeners, project,
                     mainFile);
-            serviceBuilder.append(serviceImplContent);
-
-            textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceBuilder.toString()));
+            StringBuilder builder = new StringBuilder(NEW_LINE);
+            if (Objects.nonNull(listenerDeclaration)) {
+                builder.append(listenerDeclaration).append(NEW_LINE);
+            }
+            builder.append(serviceImplContent);
+            textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
             textEditsMap.put(mainFile.toAbsolutePath().toString(), textEdits);
         }
         textEditsMap.put(projectPath.resolve(serviceTypeFile.getFileName()).toAbsolutePath().toString(),

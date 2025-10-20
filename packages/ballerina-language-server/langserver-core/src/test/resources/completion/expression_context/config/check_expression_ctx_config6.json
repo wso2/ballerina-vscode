@@ -427,6 +427,9 @@
     },
     {
       "label": "prod",
+      "labelDetails": {
+        "detail": " Product"
+      },
       "kind": "Variable",
       "detail": "Product",
       "sortText": "DB",
@@ -478,6 +481,9 @@
     },
     {
       "label": "s",
+      "labelDetails": {
+        "detail": " Student"
+      },
       "kind": "Variable",
       "detail": "Student",
       "sortText": "CB",
@@ -501,6 +507,10 @@
     },
     {
       "label": "prodClient",
+      "labelDetails": {
+        "detail": " ProductClient",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "ProductClient",
       "sortText": "AB",

@@ -363,6 +363,10 @@
     },
     {
       "label": "clientEndpoint",
+      "labelDetails": {
+        "detail": " Client",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "Client",
       "sortText": "F",
@@ -413,6 +417,9 @@
     },
     {
       "label": "resp",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

@@ -5,7 +5,7 @@
   "moduleName": "kafka",
   "response": {
     "listener": {
-      "id": "10",
+      "id": "11",
       "name": "Kafka Listener",
       "type": "kafka",
       "displayName": "Kafka",

@@ -664,6 +664,10 @@
     },
     {
       "label": "myClient",
+      "labelDetails": {
+        "detail": " MyClient",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "MyClient",
       "sortText": "F",

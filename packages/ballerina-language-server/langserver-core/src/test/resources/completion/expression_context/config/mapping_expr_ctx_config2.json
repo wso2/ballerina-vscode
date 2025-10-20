@@ -377,6 +377,9 @@
     },
     {
       "label": "value2",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -385,6 +388,9 @@
     },
     {
       "label": "value1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

@@ -1,0 +1,239 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Create a http service using openapi spec with default listener",
+  "serviceInitModel": {
+    "id": "0",
+    "displayName": "HTTP Service",
+    "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http",
+    "version": "2.14.0",
+    "type": "http",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+    "properties": {
+      "designApproach": {
+        "metadata": {
+          "label": "Contract",
+          "description": "Service Contract"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "CHOICE",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "choices": [
+          {
+            "metadata": {
+              "label": "Design From Scratch",
+              "description": "Design the service from scratch"
+            },
+            "enabled": false,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {
+              "basePath": {
+                "metadata": {
+                  "label": "Service Base Path",
+                  "description": ""
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "/",
+                "valueType": "SERVICE_PATH",
+                "valueTypeConstraint": "string",
+                "isType": false,
+                "placeholder": "",
+                "optional": false,
+                "advanced": false,
+                "codedata": {
+                  "type": "SERVICE_BASEPATH"
+                }
+              }
+            }
+          },
+          {
+            "metadata": {
+              "label": "Import From OpenAPI Specification",
+              "description": "Implement the service from an OpenAPI specification"
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {
+              "spec": {
+                "metadata": {
+                  "label": "OpenAPI Specification",
+                  "description": "Provide an OpenAPI specification to generate the resources"
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "openapi.yaml",
+                "valueType": "FILE_SELECT",
+                "valueTypeConstraint": "string",
+                "isType": false,
+                "placeholder": "",
+                "optional": true,
+                "advanced": false,
+                "codedata": {
+                  "type": "OPENAPI"
+                }
+              },
+              "serviceTypeName": {
+                "metadata": {
+                  "label": "Service Type Name",
+                  "description": "The name of the service contract type generated from the OpenAPI specification"
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "WeatherAPI",
+                "valueType": "IDENTIFIER",
+                "valueTypeConstraint": "string",
+                "isType": false,
+                "placeholder": "",
+                "optional": false,
+                "advanced": false,
+                "codedata": {
+                  "type": "SERVICE_BASEPATH"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "configureListener": {
+        "metadata": {
+          "label": "Listener Configuration",
+          "description": "Configure the HTTP listener for the service"
+        },
+        "value": "",
+        "valueType": "CHOICE",
+        "isType": false,
+        "placeholder": "",
+        "items": [],
+        "choices": [
+          {
+            "metadata": {
+              "label": "Use Default Listener on Port 8080",
+              "description": "Use the default HTTP listener on port 8080"
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {}
+          },
+          {
+            "metadata": {
+              "label": "Configure Listener with Custom Port",
+              "description": "Configure a custom HTTP listener with a specific port"
+            },
+            "enabled": false,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {
+              "port": {
+                "metadata": {
+                  "label": "Port",
+                  "description": "Provide a port number for the listener"
+                },
+                "codedata": {
+                  "argType": "LISTENER_PARAM_REQUIRED"
+                },
+                "placeholder": "8080",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "int",
+                "value": "8080",
+                "items": [],
+                "typeMembers": [],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
+              },
+              "listenerVarName": {
+                "metadata": {
+                  "label": "Listener Name",
+                  "description": "Provide a name for the listener being created"
+                },
+                "codedata": {
+                  "type": "LISTENER_VAR_NAME"
+                },
+                "placeholder": "httpListener",
+                "valueType": "IDENTIFIER",
+                "valueTypeConstraint": "string",
+                "value": "httpListener",
+                "items": [],
+                "typeMembers": [],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
+              }
+            }
+          }
+        ],
+        "properties": {},
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener http:Listener httpDefaultListener = http:getDefaultListener();\nservice WeatherAPI on httpDefaultListener {\n\n\tresource function get albums (string[] _artists_, string? X\\-API\\-VERSION) returns album[]|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n\n\tresource function post albums (album payload) returns album|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n\n\tresource function get albums/[string _id] () returns album|MessageNotFound|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:NOT_FOUND;\n\t\t}\n\t}\n\n\tresource function get albums/[string id]/artist () returns album_aRTIST|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n}\n"
+      }
+    ],
+    "sample1/service_contract_WeatherAPI.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "// AUTO-GENERATED FILE.\n// This file is auto-generated by the Ballerina OpenAPI tool.\n\nimport ballerina/http;\n\n@http:ServiceConfig {basePath: \"/api/v1\"}\ntype WeatherAPI service object {\n    *http:ServiceContract;\n    resource function get albums(string[] _artists_ = [], @http:Header string? X\\-API\\-VERSION = \"v1\") returns album[]|ErrorPayloadBadRequest;\n    resource function post albums(@http:Payload album payload) returns album|ErrorPayloadBadRequest;\n    resource function get albums/[string _id]() returns album|MessageNotFound|ErrorPayloadBadRequest;\n    resource function get albums/[string id]/artist() returns album_aRTIST|ErrorPayloadBadRequest;\n};\n\npublic type ErrorPayloadBadRequest record {|\n    *http:BadRequest;\n    ErrorPayload body;\n|};\n\npublic type ErrorPayload record {\n    string? timestamp;\n    int? status;\n    string? reason;\n    string? message;\n    string? path;\n    string? method;\n};\n\npublic type album record {|\n    string? _id;\n    string? title;\n    string? artist;\n|};\n\npublic type album_aRTIST record {|\n    string? id;\n    string? name;\n    album[]? albums;\n|};\n\npublic type MessageNotFound record {|\n    *http:NotFound;\n    message body;\n|};\n\npublic type message record {|\n    string? message;\n    int? code;\n|};\n"
+      }
+    ]
+  }
+}

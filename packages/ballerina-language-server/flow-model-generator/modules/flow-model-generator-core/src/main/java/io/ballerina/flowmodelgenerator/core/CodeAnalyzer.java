@@ -939,7 +939,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     String value = null;
                     String selectedType = "";
                     if (paramValue != null) {
-                        value = paramValue.toSourceCode();
+                        value = paramValue.toSourceCode().strip();
                         Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                         if (paramType.isPresent()) {
                             if (paramType.get().getModule().isPresent()) {
@@ -974,7 +974,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
-                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()).toSourceCode());
+                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()).toSourceCode().strip());
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
@@ -1045,7 +1045,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
                             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                                     nodeBuilder.properties().custom();
-                            String value = paramValue != null ? paramValue.toSourceCode() : null;
+                            String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                             Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                             String selectedType = "";
@@ -1092,7 +1092,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                 String value = null;
                                 String selectedType = "";
                                 if (paramValue != null) {
-                                    value = paramValue.toSourceCode();
+                                    value = paramValue.toSourceCode().strip();
                                     Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                                     if (paramType.isPresent()) {
                                         if (paramType.get().getModule().isPresent()) {
@@ -1138,7 +1138,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
-                            String value = paramValue.toSourceCode();
+                            String value = paramValue.toSourceCode().strip();
                             Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                             String selectedType = "";
                             if (paramType.isPresent()) {
@@ -1186,7 +1186,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 String value = null;
                 String selectedType = "";
                 if (paramValue != null) {
-                    value = paramValue.toSourceCode();
+                    value = paramValue.toSourceCode().strip();
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                     if (paramType.isPresent()) {
                         if (paramType.get().getModule().isPresent()) {
@@ -1224,7 +1224,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 String escapedParamName = CommonUtil.escapeReservedKeyword(entry.getKey());
                 if (!funcParamMap.containsKey(escapedParamName)) {
                     LinkedHashMap<String, String> map = new LinkedHashMap<>();
-                    map.put(entry.getKey(), entry.getValue().toSourceCode());
+                    map.put(entry.getKey(), entry.getValue().toSourceCode().strip());
                     includedRecordRestArgs.add(map);
                     continue;
                 }
@@ -1236,7 +1236,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 String selectedType = "";
                 Node paramValue = entry.getValue();
                 if (paramValue != null) {
-                    value = paramValue.toSourceCode();
+                    value = paramValue.toSourceCode().strip();
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
                     if (paramType.isPresent()) {
                         if (paramType.get().getModule().isPresent()) {

@@ -480,6 +480,9 @@
     },
     {
       "label": "testString",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "D",
@@ -488,6 +491,9 @@
     },
     {
       "label": "testFutureString",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "A",
@@ -511,6 +517,9 @@
     },
     {
       "label": "testFutureInt",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "B",

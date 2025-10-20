@@ -2,7 +2,7 @@
   "filePath": "sample1/main.bal",
   "description": "Test adding a rabbitmq service",
   "service": {
-    "id": "9",
+    "id": "10",
     "name": "RabbitMQ Event Handler",
     "type": "rabbitmq",
     "displayName": "RabbitMQ Event Handler",

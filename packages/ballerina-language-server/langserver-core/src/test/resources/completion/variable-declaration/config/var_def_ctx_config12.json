@@ -414,6 +414,9 @@
     },
     {
       "label": "var1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -430,6 +433,9 @@
     },
     {
       "label": "result",
+      "labelDetails": {
+        "detail": " error?"
+      },
       "kind": "Variable",
       "detail": "error?",
       "sortText": "AB",

@@ -30,6 +30,7 @@ public class Constants {
     public static final String CAPABILITY_NAME = "serviceModel";
     public static final String DOUBLE_QUOTE = "\"";
     public static final String TAB = "\t";
+    public static final String TWO_TABS = TAB + TAB;
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -39,6 +40,7 @@ public class Constants {
     public static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
     public static final String AT = "@";
     public static final String COLON = ":";
+    public static final String COMMA = ",";
 
     public static final String SINGLE_SELECT_VALUE = "SINGLE_SELECT";
     public static final String MULTIPLE_SELECT_VALUE = "MULTIPLE_SELECT";
@@ -47,11 +49,13 @@ public class Constants {
     public static final String DEFAULT_LISTENER_ITEM_LABEL = "(+) Create and use a %s listener with " +
             "default configurations";
     public static final String DEFAULT_LISTENER_VAR_NAME = "%sDefaultListener";
+    public static final String LISTENER_VAR_NAME = "%sListener";
 
     public static final String HTTP = "http";
     public static final String GRAPHQL = "graphql";
     public static final String TCP = "tcp";
     public static final String AI = "ai";
+    public static final String MCP = "mcp";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -66,6 +70,7 @@ public class Constants {
     public static final String PROPERTY_REQUIRED_FUNCTIONS = "requiredFunctions";
     public static final String PROPERTY_DESIGN_APPROACH = "designApproach";
     public static final String PROPERTY_NAME = "name";
+    public static final String PROPERTY_BASE_PATH = "basePath";
 
     public static final String KIND_QUERY = "QUERY";
     public static final String KIND_MUTATION = "MUTATION";
@@ -87,6 +92,9 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
+    public static final String VALUE_TYPE_FORM = "FORM";
+    public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
@@ -95,6 +103,16 @@ public class Constants {
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
     public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+
+    public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
+    public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD = "LISTENER_PARAM_INCLUDED_FIELD";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD =
+            "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
+    public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
+    public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+
+    public static final String TYPE_SERVICE = "Service";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";
@@ -196,6 +214,12 @@ public class Constants {
     // GraphQL types
     public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
     public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
+
+    // Data binding
+    public static final String DATA_BINDING = "DATA_BINDING";
+    public static final String DATA_BINDING_PROPERTY = "canDataBind";
+    public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
+    public static final String EMPTY_ARRAY = "[]";
 
     private Constants() {
     }
