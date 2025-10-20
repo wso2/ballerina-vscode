@@ -447,7 +447,8 @@ public class ReferenceType {
                             ModuleID symModuleId = getModuleID(sym);
                             if (symModuleId != null) {
                                 return depType.moduleInfo.orgName.equals(symModuleId.orgName()) &&
-                                       depType.moduleInfo.moduleName.equals(symModuleId.moduleName());
+                                       depType.moduleInfo.moduleName.equals(symModuleId.moduleName()) &&
+                                        depType.moduleInfo.version.equals(symModuleId.version());
                             }
                         }
                         return true;
@@ -459,10 +460,7 @@ public class ReferenceType {
                 TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
                 TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
                 String moduleId = typeDesc.getModule().isPresent() ?
-                        typeDesc.getModule().get().id().toString() :
-//                        depType.moduleInfo.orgName + "/" + depType.moduleInfo.moduleName + ":" + depType.moduleInfo.version
-                        null
-                        ;
+                        typeDesc.getModule().get().id().toString() : null;
                 String updatedHashCode = String.valueOf(Objects.hash(
                         moduleId,
                         typeDefSymbol.getName().orElse(""),
