@@ -46,7 +46,7 @@ export type CDConnection = {
     enableFlowModel: boolean;
     sortText: string;
     icon?: string;
-    kind: string;
+    kind?: string;
 };
 
 export type CDListener = {
