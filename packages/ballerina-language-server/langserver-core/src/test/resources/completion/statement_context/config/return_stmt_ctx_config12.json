@@ -502,6 +502,10 @@
     },
     {
       "label": "l1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "B",
@@ -510,6 +514,9 @@
     },
     {
       "label": "self",
+      "labelDetails": {
+        "detail": " isolated service object {resource function get . () returns ();}"
+      },
       "kind": "Variable",
       "detail": "isolated service object {resource function get . () returns ();}",
       "sortText": "B",

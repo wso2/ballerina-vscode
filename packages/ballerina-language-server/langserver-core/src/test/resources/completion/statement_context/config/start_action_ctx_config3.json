@@ -283,6 +283,9 @@
     },
     {
       "label": "y",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "BB",
@@ -306,6 +309,9 @@
     },
     {
       "label": "anonFunction",
+      "labelDetails": {
+        "detail": " function (string, string) returns string"
+      },
       "kind": "Variable",
       "detail": "function (string, string) returns string",
       "sortText": "BB",

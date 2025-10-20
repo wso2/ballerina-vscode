@@ -426,6 +426,10 @@
     },
     {
       "label": "testParam1",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -442,6 +446,10 @@
     },
     {
       "label": "testParam2",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

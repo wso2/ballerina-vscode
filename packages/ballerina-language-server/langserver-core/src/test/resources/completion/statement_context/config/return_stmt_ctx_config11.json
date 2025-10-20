@@ -525,6 +525,9 @@
     },
     {
       "label": "self",
+      "labelDetails": {
+        "detail": " TestClass"
+      },
       "kind": "Variable",
       "detail": "TestClass",
       "sortText": "B",

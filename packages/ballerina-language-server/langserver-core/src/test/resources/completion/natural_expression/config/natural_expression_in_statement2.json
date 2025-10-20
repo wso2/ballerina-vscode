@@ -618,6 +618,10 @@
     },
     {
       "label": "address",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",
@@ -626,6 +630,10 @@
     },
     {
       "label": "age",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "ACB",
@@ -653,6 +661,9 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",

@@ -464,6 +464,9 @@
     },
     {
       "label": "var1",
+      "labelDetails": {
+        "detail": " MyType"
+      },
       "kind": "Variable",
       "detail": "MyType",
       "sortText": "AB",
@@ -472,6 +475,9 @@
     },
     {
       "label": "myString",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -480,6 +486,9 @@
     },
     {
       "label": "total",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -499,6 +508,9 @@
     },
     {
       "label": "myInt2",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -507,6 +519,9 @@
     },
     {
       "label": "myInt1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -515,6 +530,9 @@
     },
     {
       "label": "addFunction",
+      "labelDetails": {
+        "detail": " function (int num1, int num2) returns int"
+      },
       "kind": "Variable",
       "detail": "function (int num1, int num2) returns int",
       "sortText": "F",

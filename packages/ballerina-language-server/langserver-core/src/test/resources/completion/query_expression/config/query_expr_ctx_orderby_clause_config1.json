@@ -348,6 +348,9 @@
     },
     {
       "label": "outputNameString",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -356,6 +359,9 @@
     },
     {
       "label": "customerList",
+      "labelDetails": {
+        "detail": " Customer[]"
+      },
       "kind": "Variable",
       "detail": "Customer[]",
       "sortText": "CB",
@@ -380,6 +386,9 @@
     },
     {
       "label": "onConflictError",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "CB",
@@ -388,6 +397,9 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "AB",
@@ -411,6 +423,9 @@
     },
     {
       "label": "personList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "CB",
@@ -419,6 +434,9 @@
     },
     {
       "label": "c3",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "CB",
@@ -446,6 +464,9 @@
     },
     {
       "label": "p1",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "CB",
@@ -454,6 +475,9 @@
     },
     {
       "label": "p2",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "CB",
@@ -462,6 +486,9 @@
     },
     {
       "label": "c1",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "CB",
@@ -470,6 +497,9 @@
     },
     {
       "label": "c2",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "CB",

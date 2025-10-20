@@ -549,6 +549,9 @@
     },
     {
       "label": "valueA",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -557,6 +560,9 @@
     },
     {
       "label": "valueB",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -593,6 +599,10 @@
     },
     {
       "label": "logic",
+      "labelDetails": {
+        "detail": " function (json) returns boolean|error",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "function (json) returns boolean|error",
       "sortText": "B",
