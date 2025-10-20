@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     FunctionModel,
     LineRange,
@@ -43,9 +43,39 @@ interface McpToolFormProps {
 
 export function McpToolForm(props: McpToolFormProps) {
     console.log("McpToolForm props: ", props);
-    const { model, onSave, onClose, filePath, lineRange, isServiceClass, isSaving } = props;
+    const { model: initialModel, onSave, onClose, filePath, lineRange, isServiceClass, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const [model, setModel] = useState<FunctionModel>(() => structuredClone(initialModel));
+
+    useEffect(() => {
+        setModel((prevModel) => {
+            const properties = prevModel.properties ? { ...prevModel.properties } : {};
+
+            if (!properties.toolDescription) {
+                properties.toolDescription = {
+                    metadata: {
+                        label: "Tool Description",
+                        description: "Description of what this MCP tool does",
+                    },
+                    placeholder: "Describe what this tool does...",
+                    valueType: "STRING",
+                    valueTypeConstraint: "string",
+                    value: "",
+                    enabled: true,
+                    editable: true,
+                    optional: true,
+                    advanced: false,
+                };
+            }
+
+            // Return a new FunctionModel object (immutably updated)
+            return {
+                ...prevModel,
+                properties,
+            };
+        });
+    }, []); // Runs only once after mount
 
     const handleParamChange = (param: Parameter) => {
         const name = `${param.formValues["variable"]}`;
@@ -266,6 +296,21 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
     // Get the parameter configuration if it exists
     const parameterConfig = schema["parameter"] as ConfigProperties;
     if (parameterConfig) {
+        // Check if documentation field exists, if not add it
+        if (!parameterConfig["documentation"]) {
+            parameterConfig["documentation"] = {
+                metadata: {
+                    label: "Description",
+                    description: "The description of the parameter",
+                },
+                valueType: "STRING",
+                enabled: true,
+                editable: true,
+                optional: true,
+                advanced: false,
+            };
+        }
+
         // Iterate over each parameter field in the parameter config
         for (const key in parameterConfig) {
             if (parameterConfig.hasOwnProperty(key)) {
@@ -339,6 +384,7 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
             variable: param.name.value,
             type: param.type.value,
             defaultable: (param.defaultValue as PropertyModel)?.value || "",
+            documentation: param.documentation?.value || "",
         },
         icon: "symbol-variable",
         identifierEditable: param.name?.editable,
