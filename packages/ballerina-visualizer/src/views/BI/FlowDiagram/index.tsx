@@ -1844,7 +1844,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Find the existing memory manager node from module variables
         const existingMemoryVariable = agentMemoryValue
             ? moduleNodes.flowModel.variables.find(
-                (node) => node.codedata.node === "MEMORY_MANAGER"
+                (node) => node.codedata.node === "MEMORY"
                     && node.properties.variable.value === agentMemoryValue.toString().trim()
             ) : undefined;
 

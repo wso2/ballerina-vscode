@@ -104,7 +104,7 @@ export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Elemen
             const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                 filePath: agentFilePath.current,
                 queryMap: { orgName: aiModuleOrg.current },
-                searchKind: "MEMORY_MANAGER"
+                searchKind: "MEMORY"
             });
 
             if (!searchResponse?.categories?.[0]?.items) {

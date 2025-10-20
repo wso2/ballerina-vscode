@@ -397,7 +397,7 @@ export type NodeKind =
     | "LV_EXPRESSION"
     | "MATCH"
     | "METHOD_CALL"
-    | "MEMORY_MANAGER"
+    | "MEMORY"
     | "MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
