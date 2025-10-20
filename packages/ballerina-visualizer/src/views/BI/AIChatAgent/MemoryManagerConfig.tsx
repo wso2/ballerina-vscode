@@ -128,7 +128,12 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         }
 
         // Get the memory type from agent metadata
-        const currentMemoryType = (agentNode.metadata?.data as NodeMetadata)?.memory?.type as string;
+        let currentMemoryType = (agentNode.metadata?.data as NodeMetadata)?.memory?.type as string;
+
+        // Remove "ai:" prefix if present
+        if (currentMemoryType?.startsWith("ai:")) {
+            currentMemoryType = currentMemoryType.substring(3);
+        }
 
         // Find the corresponding memory code data
         let memoryCodeData: CodeData;
@@ -149,6 +154,21 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         await loadMemoryTemplate(memoryCodeData);
     };
 
+    const extractMemorySizeFromAgent = (): string | null => {
+        if (!agentNode) {
+            return null;
+        }
+        const memoryValue = agentNode.properties?.memory?.value?.toString();
+        if (memoryValue) {
+            // Match patterns like "new ai:MessageWindowChatMemory(10)" or "MessageWindowChatMemory(10)"
+            const sizeMatch = memoryValue.match(/\((\d+)\)/);
+            if (sizeMatch && sizeMatch[1]) {
+                return sizeMatch[1];
+            }
+        }
+        return null;
+    };
+
     const loadMemoryTemplate = async (memoryCodeData: CodeData): Promise<void> => {
         setIsLoading(true);
         try {
@@ -162,6 +182,12 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
             if (!nodeTemplate) {
                 console.error("Failed to get node template for memory");
                 return;
+            }
+
+            // Extract size from agent's memory configuration if available
+            const memorySizeFromAgent = extractMemorySizeFromAgent();
+            if (memorySizeFromAgent !== null && nodeTemplate.properties?.['size']) {
+                nodeTemplate.properties['size'].value = memorySizeFromAgent;
             }
 
             if (existingMemoryVariable) {
@@ -243,11 +269,18 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     };
 
     const getCurrentMemoryType = (): string => {
-        return (
+        let memoryType = (
             memoryNodeTemplate?.codedata?.object ||
             ((agentNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
             "Select a memory..."
         );
+
+        // Remove "ai:" prefix if present
+        if (memoryType?.startsWith("ai:")) {
+            memoryType = memoryType.substring(3);
+        }
+
+        return memoryType;
     };
 
     const handleStoreCreated = (createdNode: FlowNode) => {

@@ -113,8 +113,8 @@ export type AgentData = {
 };
 
 export type MemoryData = {
-    name: string;
     type: string;
+    size: string
 };
 
 export type Imports = {
