@@ -52,6 +52,27 @@
         "items": [
           "mcpListener"
         ],
+        "properties": {
+          "mcpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 11,
+                  "offset": 28
+                },
+                "endLine": {
+                  "line": 11,
+                  "offset": 39
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,

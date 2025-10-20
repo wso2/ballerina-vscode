@@ -54,6 +54,27 @@
           "graphQLListener",
           "(+) Create and use a graphql listener with default configurations"
         ],
+        "properties": {
+          "graphQLListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 25,
+                  "offset": 20
+                },
+                "endLine": {
+                  "line": 25,
+                  "offset": 35
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,

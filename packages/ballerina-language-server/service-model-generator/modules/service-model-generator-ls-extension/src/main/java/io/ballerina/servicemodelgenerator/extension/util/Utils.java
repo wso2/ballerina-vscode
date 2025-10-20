@@ -96,6 +96,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -462,15 +463,50 @@ public final class Utils {
 
     public static void populateListenerInfo(Service serviceModel, ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
-        int size = expressions.size();
-        if (size == 1) {
-            serviceModel.getListener().setValue(getListenerExprName(expressions.get(0)));
-        } else if (size > 1) {
-            for (int i = 0; i < size; i++) {
-                ExpressionNode expressionNode = expressions.get(i);
-                serviceModel.getListener().addValue(getListenerExprName(expressionNode));
+        Value listener = serviceModel.getListener();
+        Map<String, Value> properties = getOrCreateListenerProperties(listener);
+        if (expressions.size() == 1) {
+            handleSingleListener(expressions.get(0), listener, properties);
+        } else {
+            handleMultipleListeners(expressions, listener, properties);
+        }
+    }
+
+    private static Map<String, Value> getOrCreateListenerProperties(Value listener) {
+        Map<String, Value> properties = listener.getProperties();
+        if (properties == null) {
+            properties = new HashMap<>();
+            listener.setProperties(properties);
+        }
+        return properties;
+    }
+
+    private static void handleSingleListener(ExpressionNode expression, Value listener,
+                                             Map<String, Value> properties) {
+        String listenerExprName = getListenerExprName(expression);
+        if (!listenerExprName.isEmpty()) {
+            listener.setValue(listenerExprName);
+            properties.put(listenerExprName, createListenerValue(expression));
+        }
+    }
+
+    private static void handleMultipleListeners(SeparatedNodeList<ExpressionNode> expressions,
+                                                Value listener, Map<String, Value> properties) {
+        for (ExpressionNode expression : expressions) {
+            String listenerExprName = getListenerExprName(expression);
+            if (!listenerExprName.isEmpty()) {
+                listener.addValue(listenerExprName);
+                properties.put(listenerExprName, createListenerValue(expression));
             }
         }
+    }
+
+    private static Value createListenerValue(ExpressionNode expression) {
+        return new Value.ValueBuilder()
+                .setCodedata(new Codedata.Builder()
+                        .setLineRange(expression.lineRange())
+                        .build())
+                .build();
     }
 
     public static void updateAnnotationAttachmentProperty(ServiceDeclarationNode serviceNode,

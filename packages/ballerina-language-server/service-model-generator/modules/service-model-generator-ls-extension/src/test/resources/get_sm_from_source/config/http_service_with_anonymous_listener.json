@@ -52,6 +52,27 @@
           "(+) Create and use the default HTTP listener (port: 9090)",
           "new http:Listener(port = 8080)"
         ],
+        "properties": {
+          "new http:Listener(port = 8080)": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 2,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 2,
+                  "offset": 51
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,

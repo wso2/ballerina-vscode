@@ -53,6 +53,27 @@
           "githubListener",
           "(+) Create and use the default HTTP listener (port: 9090)"
         ],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 8,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 8,
+                  "offset": 33
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
