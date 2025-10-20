@@ -1,1 +1,0 @@
-{"id":"(person.id).toString()","name":"person.name","course":"{\n courseId: check (person.courseId).ensureType(),\ntitle: (person.courseId).toString() \n}"}
