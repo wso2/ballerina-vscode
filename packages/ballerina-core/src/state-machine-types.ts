@@ -324,6 +324,95 @@ export type AIMachineSendableEvent =
         : { type: K; payload: AIMachineEventMap[K] }
     }[keyof AIMachineEventMap];
 
+export type AIChatMachineStateValue =
+    | 'Idle'
+    | 'CreatingPlan'
+    | 'PlanReview'
+    | 'UpdatingPlan'
+    | 'ExecutingTask'
+    | 'AwaitingUserAction'
+    | 'FinetuningTask'
+    | 'QuestioningUser'
+    | 'Completed'
+    | 'Error';
+
+export enum AIChatMachineEventType {
+    SUBMIT_PROMPT = 'SUBMIT_PROMPT',
+    PLAN_CREATED = 'PLAN_CREATED',
+    EDIT_TASK = 'EDIT_TASK',
+    UPDATE_PLAN_WITH_PROMPT = 'UPDATE_PLAN_WITH_PROMPT',
+    FINALIZE_PLAN = 'FINALIZE_PLAN',
+    TASK_COMPLETED = 'TASK_COMPLETED',
+    CONTINUE_TO_NEXT = 'CONTINUE_TO_NEXT',
+    FINETUNE_TASK = 'FINETUNE_TASK',
+    FINETUNE_COMPLETED = 'FINETUNE_COMPLETED',
+    ASK_QUESTION = 'ASK_QUESTION',
+    ANSWER_QUESTION = 'ANSWER_QUESTION',
+    ALL_TASKS_COMPLETED = 'ALL_TASKS_COMPLETED',
+    RESET = 'RESET',
+    RESTORE_STATE = 'RESTORE_STATE',
+    ERROR = 'ERROR',
+    RETRY = 'RETRY',
+}
+
+export interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+}
+
+export interface Task {
+    id: string;
+    description: string;
+    status: 'pending' | 'in-progress' | 'completed' | 'failed';
+    result?: string;
+    error?: string;
+}
+
+export interface Plan {
+    id: string;
+    tasks: Task[];
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface Question {
+    id: string;
+    question: string;
+    context?: string;
+    timestamp: number;
+}
+
+export interface AIChatMachineContext {
+    initialPrompt?: string;
+    chatHistory: ChatMessage[];
+    currentPlan?: Plan;
+    currentTaskIndex: number;
+    currentQuestion?: Question;
+    errorMessage?: string;
+    sessionId?: string;
+    projectId?: string;
+}
+
+export type AIChatMachineSendableEvent =
+    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string } }
+    | { type: AIChatMachineEventType.PLAN_CREATED; payload: { plan: Plan } }
+    | { type: AIChatMachineEventType.EDIT_TASK; payload: { taskId: string; description: string } }
+    | { type: AIChatMachineEventType.UPDATE_PLAN_WITH_PROMPT; payload: { prompt: string } }
+    | { type: AIChatMachineEventType.FINALIZE_PLAN }
+    | { type: AIChatMachineEventType.TASK_COMPLETED; payload: { result: string } }
+    | { type: AIChatMachineEventType.CONTINUE_TO_NEXT }
+    | { type: AIChatMachineEventType.FINETUNE_TASK; payload: { instructions: string } }
+    | { type: AIChatMachineEventType.FINETUNE_COMPLETED; payload: { result: string } }
+    | { type: AIChatMachineEventType.ASK_QUESTION; payload: { question: Question } }
+    | { type: AIChatMachineEventType.ANSWER_QUESTION; payload: { answer: string } }
+    | { type: AIChatMachineEventType.ALL_TASKS_COMPLETED }
+    | { type: AIChatMachineEventType.RESET }
+    | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
+    | { type: AIChatMachineEventType.ERROR; payload: { message: string } }
+    | { type: AIChatMachineEventType.RETRY };
+
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
@@ -380,3 +469,6 @@ export enum ColorThemeKind {
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
 export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };
+
+export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { method: 'aiChatStateChanged' };
+export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
