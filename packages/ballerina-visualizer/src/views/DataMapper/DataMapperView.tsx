@@ -676,6 +676,7 @@ export function DataMapperView(props: DataMapperProps) {
                         <DataMapper
                             modelState={modelState}
                             name={name}
+                            reusable={reusable}
                             onClose={onDMClose}
                             onRefresh={onDMRefresh}
                             onReset={onDMReset}
