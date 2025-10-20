@@ -71,8 +71,8 @@ export function AIAgentPanel(props: AIAgentPanelProps) {
     return (
         <PanelViewMore disabled={isDisabled}>
             <TitleWrapper>
-                <Title variant="h2">AI Agent</Title>
-                <BodyText>Create an agent that you can chat with or use as an API.</BodyText>
+                <Title variant="h2">AI Integration</Title>
+                <BodyText>Create an integration that connects your system with AI capabilities.</BodyText>
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
