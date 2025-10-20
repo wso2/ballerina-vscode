@@ -66,6 +66,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_HEADER_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_HEADER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_PAYLOAD;
@@ -317,7 +318,7 @@ public final class HttpUtil {
             }
             if (annotationReference.equals(HTTP_HEADER_PARAM_ANNOTATION)) {
                 Optional<MappingConstructorExpressionNode> mappingNode = annotation.annotValue();
-                String headerName = mappingNode.isPresent() ? extractFieldValue(mappingNode.get(), "name")
+                String headerName = mappingNode.isPresent() ? extractFieldValue(mappingNode.get(), "name", false)
                         : parameter.getName().getValue();
                 Value headerNameProperty = new Value.ValueBuilder()
                         .valueType(VALUE_TYPE_IDENTIFIER)
@@ -333,7 +334,9 @@ public final class HttpUtil {
         return Optional.empty();
     }
 
-    private static String extractFieldValue(MappingConstructorExpressionNode mappingNode, String fieldName) {
+    private static String extractFieldValue(MappingConstructorExpressionNode mappingNode,
+                                            String fieldName,
+                                            boolean isStringLiteral) {
         // Parse the mapping constructor to find the specified field
         for (MappingFieldNode field : mappingNode.fields()) {
             if (field instanceof SpecificFieldNode specificField) {
@@ -345,7 +348,10 @@ public final class HttpUtil {
                     // Get the field value
                     ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
                     if (valueExpr instanceof BasicLiteralNode literalNode) {
-                        return literalNode.literalToken().text().trim();
+                        if (isStringLiteral) {
+                            return literalNode.literalToken().text().trim();
+                        }
+                        return literalNode.literalToken().text().trim().replaceAll(DOUBLE_QUOTE, "");
                     }
                 }
             }
@@ -571,7 +577,7 @@ public final class HttpUtil {
                     Value headerName = param.getHeaderName();
                     if (headerName != null && headerName.isEnabledWithValue()
                             && !headerName.getValue().equals(param.getName().getValue())) {
-                        paramDef.append(" {name: ").append(headerName.getValue()).append("}");
+                        paramDef.append(" {name: ").append(headerName.getLiteralValue()).append("}");
                     }
                 } else {
                     Value queryAnnot = properties.get("annotQuery");

@@ -370,7 +370,7 @@
         "headerName": {
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "string",
-          "value": "\"X-Request-ID\"",
+          "value": "X-Request-ID",
           "enabled": true,
           "editable": true,
           "optional": false,
