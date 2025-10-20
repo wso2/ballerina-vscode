@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -70,35 +71,27 @@ public final class DatabindUtil {
      */
     private static FunctionMatch findMatchingFunctions(Service service, String functionName,
                                                        ServiceDeclarationNode serviceNode) {
-        List<FunctionDefinitionNode> functionNodesInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> (FunctionDefinitionNode) member)
-                .toList();
-
-        List<Function> functionsInSource = functionNodesInSource.stream()
-                .map(member -> getFunctionModel(member, Map.of()))
-                .toList();
-
-        Function targetFunction = null;
-        for (Function function : service.getFunctions()) {
-            if (function.getName().getValue().equals(functionName)) {
-                targetFunction = function;
-                break;
-            }
-        }
+        Function targetFunction = service.getFunctions().stream()
+                .filter(func -> func.getName().getValue().equals(functionName))
+                .findFirst()
+                .orElse(null);
 
         if (targetFunction == null) {
             return null;
         }
 
-        // Find matching function in source
+        List<FunctionDefinitionNode> functionNodesInSource = serviceNode.members().stream()
+                .filter(member -> member instanceof FunctionDefinitionNode)
+                .map(member -> (FunctionDefinitionNode) member)
+                .toList();
+
         Function sourceFunction = null;
         FunctionDefinitionNode sourceFunctionNode = null;
-        for (int i = 0; i < functionsInSource.size(); i++) {
-            Function function = functionsInSource.get(i);
-            if (function.getName().getValue().equals(functionName)) {
-                sourceFunction = function;
-                sourceFunctionNode = functionNodesInSource.get(i);
+        for (FunctionDefinitionNode node : functionNodesInSource) {
+            Function func = getFunctionModel(node, Map.of());
+            if (func.getName().getValue().equals(functionName)) {
+                sourceFunction = func;
+                sourceFunctionNode = node;
                 break;
             }
         }
@@ -118,7 +111,7 @@ public final class DatabindUtil {
      */
     private static DataBindingInfo determineDataBindingInfo(Function sourceFunction,
                                                             FunctionDefinitionNode sourceFunctionNode,
-                                                            io.ballerina.compiler.api.SemanticModel semanticModel,
+                                                            SemanticModel semanticModel,
                                                             String payloadFieldName) {
         boolean dataBindingEnabled = false;
         String paramType = "";
@@ -178,21 +171,70 @@ public final class DatabindUtil {
                 .build();
     }
 
+    private static Node unwrapArrayType(Node typeNode) {
+        return typeNode instanceof ArrayTypeDescriptorNode arrayTypeNode
+                ? arrayTypeNode.memberTypeDesc()
+                : typeNode;
+    }
+
     /**
-     * Extracts the data binding type from a record type descriptor in a function parameter. For example, from a
-     * parameter with type "record {*rabbitmq:AnydataMessage; Order content;}", this method extracts "Order". Also
-     * handles type references.
+     * Extracts data binding type from a type reference (e.g., a named record type).
+     *
+     * @param simpleNameRef    The simple name reference node
+     * @param semanticModel    The semantic model for resolving type references
+     * @param payloadFieldName The field name to look up
+     * @return DataBindingTypeInfo or null if not found
+     */
+    private static DataBindingTypeInfo extractFromTypeReference(SimpleNameReferenceNode simpleNameRef,
+                                                                SemanticModel semanticModel,
+                                                                String payloadFieldName) {
+        Optional<Symbol> symbolOpt = semanticModel.symbol(simpleNameRef);
+        if (symbolOpt.isEmpty() || !(symbolOpt.get() instanceof TypeReferenceTypeSymbol typeDefSymbol)) {
+            return null;
+        }
+
+        TypeSymbol typeSymbol = CommonUtil.getRawType(typeDefSymbol.typeDescriptor());
+        if (!(typeSymbol instanceof RecordTypeSymbol recordTypeSymbol)) {
+            return null;
+        }
+
+        String typeName = extractDataBindingTypeFromRecordSymbol(recordTypeSymbol, payloadFieldName);
+        return typeName != null
+                ? new DataBindingTypeInfo(typeName, false)
+                : new DataBindingTypeInfo(simpleNameRef.name().toString().trim(), false);
+    }
+
+    /**
+     * Extracts data binding type from an inline record type descriptor.
+     *
+     * @param recordType       The record type descriptor node
+     * @param payloadFieldName The field name to look up
+     * @return DataBindingTypeInfo or null if not found
+     */
+    private static DataBindingTypeInfo extractFromInlineRecord(RecordTypeDescriptorNode recordType,
+                                                               String payloadFieldName) {
+        return recordType.fields().stream()
+                .filter(field -> field instanceof RecordFieldNode)
+                .map(field -> (RecordFieldNode) field)
+                .filter(recordField -> recordField.fieldName().text().trim().equals(payloadFieldName))
+                .findFirst()
+                .map(recordField -> new DataBindingTypeInfo(recordField.typeName().toString().trim(), true))
+                .orElse(null);
+    }
+
+    /**
+     * Extracts the data binding type from a function parameter.
      *
      * @param functionNode     The FunctionDefinitionNode to analyze
      * @param paramName        The name of the parameter to extract the type from
      * @param semanticModel    The semantic model for resolving type references
-     * @param payloadFieldName The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
-     * @return DataBindingTypeInfo containing the type name and resolution method, or null if not found
+     * @param payloadFieldName The field name to look up
+     * @return DataBindingTypeInfo or null if not found
      */
     private static DataBindingTypeInfo extractDataBindingType(FunctionDefinitionNode functionNode, String paramName,
-                                                              io.ballerina.compiler.api.SemanticModel semanticModel,
+                                                              SemanticModel semanticModel,
                                                               String payloadFieldName) {
-        java.util.Optional<RequiredParameterNode> targetParam = functionNode.functionSignature().parameters().stream()
+        Optional<RequiredParameterNode> targetParam = functionNode.functionSignature().parameters().stream()
                 .filter(paramNode -> paramNode instanceof RequiredParameterNode)
                 .map(paramNode -> (RequiredParameterNode) paramNode)
                 .filter(reqParam -> reqParam.paramName().isPresent() &&
@@ -203,44 +245,14 @@ public final class DatabindUtil {
             return null;
         }
 
-        Node targetTypeNameNode = targetParam.get().typeName();
-
-        if (targetTypeNameNode instanceof ArrayTypeDescriptorNode arrayTypeNode) {
-            targetTypeNameNode = arrayTypeNode.memberTypeDesc();
-        }
+        Node targetTypeNameNode = unwrapArrayType(targetParam.get().typeName());
 
         if (targetTypeNameNode instanceof SimpleNameReferenceNode simpleNameRef) {
-            Optional<Symbol> symbolOpt = semanticModel.symbol(simpleNameRef);
-            if (symbolOpt.isPresent() && symbolOpt.get() instanceof TypeReferenceTypeSymbol typeDefSymbol) {
-                TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
-                // Unwrap type references to get the actual type
-                typeSymbol = CommonUtil.getRawType(typeSymbol);
-
-                if (typeSymbol instanceof RecordTypeSymbol recordTypeSymbol) {
-                    // Extract the data binding field from the resolved record type using efficient map lookup
-                    String typeName = extractDataBindingTypeFromRecordSymbol(recordTypeSymbol, payloadFieldName);
-                    if (typeName != null) {
-                        return new DataBindingTypeInfo(typeName, false);
-                    }
-                    return new DataBindingTypeInfo(simpleNameRef.name().toString().trim(), false);
-                }
-            }
-            return null;
+            return extractFromTypeReference(simpleNameRef, semanticModel, payloadFieldName);
         }
 
-        if (!(targetTypeNameNode instanceof RecordTypeDescriptorNode recordType)) {
-            return null;
-        }
-
-        for (Node field : recordType.fields()) {
-            if (!(field instanceof RecordFieldNode recordField)) {
-                continue;
-            }
-            if (!recordField.fieldName().text().trim().equals(payloadFieldName)) {
-                continue;
-            }
-            String typeName = recordField.typeName().toString().trim();
-            return new DataBindingTypeInfo(typeName, true);
+        if (targetTypeNameNode instanceof RecordTypeDescriptorNode recordType) {
+            return extractFromInlineRecord(recordType, payloadFieldName);
         }
 
         return null;
@@ -343,11 +355,17 @@ public final class DatabindUtil {
             return;
         }
 
-        // Find the enabled DATA_BINDING parameter
         Parameter dataBindingParam = null;
+        Parameter requiredParam = null;
+
         for (Parameter param : parameters) {
             if (DATA_BINDING.equals(param.getKind()) && param.isEnabled()) {
                 dataBindingParam = param;
+            }
+            if (KIND_REQUIRED.equals(param.getKind())) {
+                requiredParam = param;
+            }
+            if (dataBindingParam != null && requiredParam != null) {
                 break;
             }
         }
@@ -361,14 +379,11 @@ public final class DatabindUtil {
             return;
         }
 
-        String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName, isArray);
-
-        for (Parameter param : parameters) {
-            if (KIND_REQUIRED.equals(param.getKind())) {
-                param.getType().setValue(inlineRecordType);
-                param.setEnabled(true);
-                break;
-            }
+        if (requiredParam != null) {
+            String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName,
+                    isArray);
+            requiredParam.getType().setValue(inlineRecordType);
+            requiredParam.setEnabled(true);
         }
 
         dataBindingParam.setEnabled(false);
