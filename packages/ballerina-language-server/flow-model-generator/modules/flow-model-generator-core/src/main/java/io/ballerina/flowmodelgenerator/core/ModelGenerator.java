@@ -61,6 +61,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 
 import java.nio.file.Path;
@@ -89,12 +90,14 @@ public class ModelGenerator {
     private final Path filePath;
     private final Gson gson;
     private final Project project;
+    private final WorkspaceManager workspaceManager;
 
-    public ModelGenerator(Project project, SemanticModel model, Path filePath) {
+    public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
         this.semanticModel = model;
         this.filePath = filePath;
         this.project = project;
         this.gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        this.workspaceManager = workspaceManager;
     }
 
     /**
@@ -152,7 +155,8 @@ public class ModelGenerator {
 
         // Analyze the code block to find the flow nodes
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, dataMappings,
-                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true);
+                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true,
+                workspaceManager);
         canvasNode.accept(codeAnalyzer);
 
         // Generate the flow model
@@ -172,9 +176,9 @@ public class ModelGenerator {
             }
         }
         Comparator<FlowNode> comparator = Comparator.comparing(
-            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                          .map(property -> property.value().toString())
-                          .orElse("")
+                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                        .map(property -> property.value().toString())
+                        .orElse("")
         );
         connectionsList.sort(comparator);
         variablesList.sort(comparator);
@@ -235,7 +239,7 @@ public class ModelGenerator {
                     }
                     CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.SERVICE_SCOPE,
                             Map.of(), Map.of(), document.textDocument(),
-                            ModuleInfo.from(document.module().descriptor()), false);
+                            ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
                     statement.accept(codeAnalyzer);
                     List<FlowNode> nodes = codeAnalyzer.getFlowNodes();
                     connections.add(nodes.stream().findFirst().orElseThrow());
@@ -295,7 +299,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
@@ -344,7 +349,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()),
+                false, workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
