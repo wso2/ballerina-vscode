@@ -1021,7 +1021,8 @@ public class CommonUtils {
 
     public static boolean isAiMemory(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
-        return classSymbol != null && hasAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME);
+        return classSymbol != null && (hasAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME) ||
+                hasBallerinaxAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME));
     }
 
     public static boolean isAiMemoryStore(Symbol symbol) {
@@ -1054,6 +1055,18 @@ public class CommonUtils {
                 .map(Optional::get)
                 .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) ||
                         BALLERINAX_ORG_NAME.equals(moduleId.id().orgName())) &&
+                        AI.equals(moduleId.id().moduleName()));
+    }
+
+    private static boolean hasBallerinaxAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleId -> BALLERINAX_ORG_NAME.equals(moduleId.id().orgName()) &&
                         AI.equals(moduleId.id().moduleName()));
     }
 
