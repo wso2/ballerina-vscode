@@ -218,7 +218,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputId: string, outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -227,12 +227,23 @@ export function expandArrayFn(context: IDataMapperContext, sourceField: string, 
     }
 
     const lastView = views[views.length - 1];
-    
+
+    const outputIdDotIndex = outputId.indexOf(".");
+    let label: string;
+    let targetField: string;
+    if (outputIdDotIndex !== -1) {
+        label = outputId.slice(outputIdDotIndex + 1);
+        targetField = viewId + "." + label;
+    } else {
+        label = "[]";
+        targetField = viewId + ".0";
+    }
+
     // Create base view properties
     const baseView: View = {
-        label: targetField,
-        sourceField,
-        targetField
+        label: label,
+        sourceField: inputId,
+        targetField: targetField
     };
 
     // Create the new view with or without sub-mapping info
