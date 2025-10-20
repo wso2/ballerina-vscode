@@ -23,6 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -529,17 +530,27 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     return new ListenerFromSourceResponse();
                 }
                 NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
-                if (!(node instanceof ListenerDeclarationNode listenerNode)) {
-                    return new ListenerFromSourceResponse();
+                if (node instanceof ListenerDeclarationNode listenerNode) {
+                    Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode,
+                            request.codedata().getOrgName(), semanticModel);
+                    if (listenerModelOp.isEmpty()) {
+                        return new ListenerFromSourceResponse();
+                    }
+                    Listener listenerModel = listenerModelOp.get();
+                    listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
+                    return new ListenerFromSourceResponse(listenerModel);
+                } else if (node instanceof ExplicitNewExpressionNode newExpressionNode) {
+                    Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(
+                            newExpressionNode, request.codedata().getOrgName(), semanticModel);
+                    if (listenerModelOp.isEmpty()) {
+                        return new ListenerFromSourceResponse();
+                    }
+                    Listener listenerModel = listenerModelOp.get();
+                    listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
+                    return new ListenerFromSourceResponse(listenerModel);
                 }
-                Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode,
-                        request.codedata().getOrgName(), semanticModel);
-                if (listenerModelOp.isEmpty()) {
-                    return new ListenerFromSourceResponse();
-                }
-                Listener listenerModel = listenerModelOp.get();
-                listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
-                return new ListenerFromSourceResponse(listenerModel);
+
+                return new ListenerFromSourceResponse();
             } catch (Exception e) {
                 return new ListenerFromSourceResponse(e);
             }
