@@ -22,8 +22,7 @@
             "module": "ai",
             "packageName": "ai",
             "object": "MessageWindowChatMemory",
-            "symbol": "init",
-            "version": "1.6.0"
+            "symbol": "init"
           },
           "enabled": true
         }

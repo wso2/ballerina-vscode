@@ -14,7 +14,10 @@
         {
           "metadata": {
             "label": "Short Term Memory",
-            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions.",
+            "data": {
+              "minVersion": "1.6.0"
+            }
           },
           "codedata": {
             "node": "MEMORY",
@@ -22,8 +25,7 @@
             "module": "ai",
             "packageName": "ai",
             "object": "ShortTermMemory",
-            "symbol": "init",
-            "version": "1.6.0"
+            "symbol": "init"
           },
           "enabled": true
         },
@@ -38,8 +40,7 @@
             "module": "ai",
             "packageName": "ai",
             "object": "MessageWindowChatMemory",
-            "symbol": "init",
-            "version": "1.6.0"
+            "symbol": "init"
           },
           "enabled": true
         },
@@ -54,8 +55,7 @@
             "module": "ai",
             "packageName": "ai",
             "object": "MessageWindowChatMemory",
-            "symbol": "init",
-            "version": "1.6.0"
+            "symbol": "init"
           },
           "enabled": true
         }
