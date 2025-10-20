@@ -1,0 +1,112 @@
+{
+  "source": "variable33.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable33.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 33
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 23,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "myStudent",
+        "displayName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "545732303"
+      },
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1889977605"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "545732303"
+    },
+    "mappings": [],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    }
+  }
+}
