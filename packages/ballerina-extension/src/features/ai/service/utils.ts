@@ -211,6 +211,17 @@ export function sendToolResultNotification(toolName: string, toolOutput: any): v
     sendAIPanelNotification(msg);
 }
 
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskId?: string, message?: string): void {
+    const msg: ChatNotify = {
+        type: "task_approval_request",
+        approvalType: approvalType,
+        tasks: tasks,
+        taskId: taskId,
+        message: message,
+    };
+    sendAIPanelNotification(msg);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }

@@ -56,11 +56,13 @@ import { Button, Icon, Codicon, Typography } from "@wso2/ui-toolkit";
 import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
+import TodoSection from "../TodoSection";
+import ApprovalDialog from "../ApprovalDialog";
 import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, TodoPanel } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
@@ -149,6 +151,18 @@ const AIChat: React.FC = () => {
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
+
+    // Approval dialog state
+    const [approvalRequest, setApprovalRequest] = useState<{
+        approvalType: "plan" | "completion";
+        tasks: any[];
+        taskId?: string;
+        message?: string;
+    } | null>(null);
+
+    // Top-level tasks state for the todo panel
+    const [activeTasks, setActiveTasks] = useState<any[] | null>(null);
+    const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -300,6 +314,21 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName == "TaskWrite") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        // Show different indicator based on whether tasks exist
+                        if (!activeTasks || activeTasks.length === 0) {
+                            // Initial task creation
+                            newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
+                        } else {
+                            // Task update
+                            newMessages[newMessages.length - 1].content += `\n\n<toolcall>Updating tasks...</toolcall>`;
+                        }
+                    }
+                    return newMessages;
+                });
             }
         } else if (type === "tool_result") {
             if (response.toolName == "LibraryProviderTool") {
@@ -325,7 +354,99 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName == "TaskWrite") {
+                const taskOutput = response.toolOutput;
+                console.log("[TaskWrite] Tool result received:", taskOutput);
+                console.log("[TaskWrite] All tasks count:", taskOutput?.allTasks?.length);
+
+                // Update the top-level tasks if they exist (after approval)
+                if (taskOutput.success && taskOutput.allTasks && taskOutput.allTasks.length > 0) {
+                    // Only update if activeTasks is already set (meaning plan was approved)
+                    if (activeTasks && activeTasks.length > 0) {
+                        console.log("[TaskWrite] Updating top-level tasks display");
+                        setActiveTasks(taskOutput.allTasks);
+                        setTasksMessage(taskOutput.message);
+                    }
+                }
+
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        if (!taskOutput.success || !taskOutput.allTasks || taskOutput.allTasks.length === 0) {
+                            // Check if this is an internal validation error that shouldn't be shown to user
+                            const isInternalError = taskOutput.message &&
+                                taskOutput.message.includes("You MUST send ALL tasks with their current statuses");
+
+                            const indicatorPattern = /<toolcall>(Planning\.\.\.|Updating\.\.\.)<\/toolcall>/;
+                            if (!isInternalError) {
+                                // Parse and simplify the backend message
+                                let simplifiedMessage = "Task update failed";
+                                if (taskOutput.message) {
+                                    // Extract the key parts: "Plan not approved" or "Work not approved" + user comment
+                                    if (taskOutput.message.includes("Plan not approved")) {
+                                        // Extract user comment if present
+                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
+                                        simplifiedMessage = commentMatch
+                                            ? `Plan not approved: ${commentMatch[1]}`
+                                            : "Plan not approved";
+                                    } else if (taskOutput.message.includes("Work not approved")) {
+                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
+                                        simplifiedMessage = commentMatch
+                                            ? `Work not approved: ${commentMatch[1]}`
+                                            : "Work not approved";
+                                    }
+                                }
+
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(
+                                    indicatorPattern,
+                                    `<toolcall>${simplifiedMessage}</toolcall>`
+                                );
+                            } else {
+                                // For internal errors, just remove the Planning indicator without showing an error
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(indicatorPattern, "");
+                            }
+                        } else {
+                            // Prepare todo data with ALL tasks
+                            const todoData = {
+                                tasks: taskOutput.allTasks, // This should contain ALL tasks with updated statuses
+                                message: taskOutput.message
+                            };
+                            const todoJson = JSON.stringify(todoData);
+
+                            console.log("[TaskWrite] Creating todo with", todoData.tasks.length, "tasks");
+
+                            // Replace "Planning..." or "Updating tasks..." toolcall or existing todo section with new todo section
+                            const taskPattern = /<toolcall>(Planning\.\.\.|Updating tasks\.\.\.)<\/toolcall>|<todo>.*?<\/todo>/s;
+                            const lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                            if (taskPattern.test(lastMessageContent)) {
+                                console.log("[TaskWrite] Replacing existing todo section");
+                                newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                                    taskPattern,
+                                    `<todo>${todoJson}</todo>`
+                                );
+                            } else {
+                                console.log("[TaskWrite] Appending new todo section");
+                                newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
+                            }
+                        }
+                    }
+                    return newMessages;
+                });
             }
+        } else if (type === "task_approval_request") {
+            // Handle approval request from the backend
+            console.log("[Approval] Received approval request:", response);
+            setApprovalRequest({
+                approvalType: response.approvalType,
+                tasks: response.tasks,
+                taskId: response.taskId,
+                message: response.message,
+            });
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
@@ -555,7 +676,8 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processCodeGeneration([parsedInput.text, attachments, CodeGenerationType.CODE_GENERATION], inputText);
+            await processDesignGeneration(parsedInput.text, inputText);
+            //await processCodeGeneration([parsedInput.text, attachments, CodeGenerationType.CODE_GENERATION], inputText);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
@@ -1713,6 +1835,9 @@ const AIChat: React.FC = () => {
         );
 
         setMessages((prevMessages) => []);
+        // Clear active tasks when clearing chat
+        setActiveTasks(null);
+        setTasksMessage(undefined);
 
         localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
     }
@@ -1917,6 +2042,42 @@ const AIChat: React.FC = () => {
         });
     };
 
+    // Handle approval dialog approve action
+    const handleApprovalApprove = (comment?: string) => {
+        if (!approvalRequest) return;
+
+        console.log("[Approval] User approved:", comment);
+
+        // Send approval response via RPC
+        rpcClient.getAiPanelRpcClient().submitTaskApproval({
+            approved: true,
+            comment,
+        });
+
+        // Show tasks in the top panel after approval (for both plan and completion)
+        setActiveTasks(approvalRequest.tasks);
+        setTasksMessage(approvalRequest.message);
+
+        // Close dialog
+        setApprovalRequest(null);
+    };
+
+    // Handle approval dialog reject action
+    const handleApprovalReject = (comment?: string) => {
+        if (!approvalRequest) return;
+
+        console.log("[Approval] User rejected:", comment);
+
+        // Send rejection response via RPC
+        rpcClient.getAiPanelRpcClient().submitTaskApproval({
+            approved: false,
+            comment,
+        });
+
+        // Close dialog
+        setApprovalRequest(null);
+    };
+
     return (
         <>
             {!showSettings && (
@@ -1943,6 +2104,11 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
+                    {activeTasks && activeTasks.length > 0 && (
+                        <TodoPanel>
+                            <TodoSection tasks={activeTasks} message={tasksMessage} />
+                        </TodoPanel>
+                    )}
                     <main style={{ flex: 1, overflowY: "auto" }}>
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
@@ -2045,6 +2211,10 @@ const AIChat: React.FC = () => {
                                                     failed={segment.failed}
                                                 />
                                             );
+                                        } else if (segment.type === SegmentType.Todo) {
+                                            // Skip rendering todo in chat messages - tasks are shown only in top panel
+                                            // The <todo> tags remain in message content for agent context
+                                            return null;
                                         } else if (segment.type === SegmentType.Attachment) {
                                             return (
                                                 <AttachmentsContainer>
@@ -2205,6 +2375,16 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
+            {approvalRequest && (
+                <ApprovalDialog
+                    approvalType={approvalRequest.approvalType}
+                    tasks={approvalRequest.tasks}
+                    taskId={approvalRequest.taskId}
+                    message={approvalRequest.message}
+                    onApprove={handleApprovalApprove}
+                    onReject={handleApprovalReject}
+                />
+            )}
         </>
     );
 };
@@ -2328,6 +2508,7 @@ export enum SegmentType {
     Text = "Text",
     Progress = "Progress",
     ToolCall = "ToolCall",
+    Todo = "Todo",
     Attachment = "Attachment",
     InlineCode = "InlineCode",
     References = "References",
@@ -2403,7 +2584,7 @@ export function splitContent(content: string): Segment[] {
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
     let match;
     let lastIndex = 0;
 
@@ -2460,8 +2641,26 @@ export function splitContent(content: string): Segment[] {
                 text: toolcallText,
             });
         } else if (match[7]) {
+            // <todo> block matched
+            const todoData = match[7];
+
+            updateLastProgressSegmentLoading();
+            try {
+                const parsedData = JSON.parse(todoData);
+                segments.push({
+                    type: SegmentType.Todo,
+                    loading: false,
+                    text: "",
+                    tasks: parsedData.tasks || [],
+                    message: parsedData.message || ""
+                });
+            } catch (error) {
+                // If parsing fails, show as text
+                console.error("Failed to parse todo data:", error);
+            }
+        } else if (match[8]) {
             // <attachment> block matched
-            const attachmentName = match[7].trim();
+            const attachmentName = match[8].trim();
 
             updateLastProgressSegmentLoading();
 
@@ -2476,9 +2675,9 @@ export function splitContent(content: string): Segment[] {
                     text: attachmentName,
                 });
             }
-        } else if (match[8]) {
+        } else if (match[9]) {
             // <scenario> block matched
-            const scenarioContent = match[8].trim();
+            const scenarioContent = match[9].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -2486,10 +2685,10 @@ export function splitContent(content: string): Segment[] {
                 loading: false,
                 text: scenarioContent,
             });
-        } else if (match[9]) {
+        } else if (match[10]) {
             // <button> block matched
-            const buttonType = match[9].trim();
-            const buttonContent = match[10].trim();
+            const buttonType = match[10].trim();
+            const buttonContent = match[11].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -2498,16 +2697,16 @@ export function splitContent(content: string): Segment[] {
                 text: buttonContent,
                 buttonType: buttonType,
             });
-        } else if (match[11]) {
-            segments.push({
-                type: SegmentType.InlineCode,
-                text: match[11].trim(),
-                loading: false,
-            });
         } else if (match[12]) {
             segments.push({
-                type: SegmentType.References,
+                type: SegmentType.InlineCode,
                 text: match[12].trim(),
+                loading: false,
+            });
+        } else if (match[13]) {
+            segments.push({
+                type: SegmentType.References,
+                text: match[13].trim(),
                 loading: false,
             });
         }

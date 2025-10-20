@@ -98,6 +98,8 @@ import {
     RelevantLibrariesAndFunctionsRequest,
     repairGeneratedCode,
     RepairParams,
+    submitTaskApproval,
+    SubmitTaskApprovalRequest,
     RequirementSpecification,
     showSignInAlert,
     stopAIMappings,
@@ -178,4 +180,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
     messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
+    messenger.onNotification(submitTaskApproval, (args: SubmitTaskApprovalRequest) => rpcManger.submitTaskApproval(args));
 }

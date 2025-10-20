@@ -189,7 +189,8 @@ export type ChatNotify =
     | ToolCall
     | ToolResult
     | EvalsToolResult
-    | UsageMetricsEvent;
+    | UsageMetricsEvent
+    | TaskApprovalRequest;
 
 export interface ChatStart {
     type: "start";
@@ -253,6 +254,14 @@ export interface UsageMetricsEvent {
         cacheReadInputTokens: number;
         outputTokens: number;
     };
+}
+
+export interface TaskApprovalRequest {
+    type: "task_approval_request";
+    approvalType: "plan" | "completion";
+    tasks: any[];
+    taskId?: string;
+    message?: string;
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

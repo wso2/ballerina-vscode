@@ -15,7 +15,7 @@
 // under the License.
 
 import { ChatNotify, Command } from "@wso2/ballerina-core";
-import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification } from "./utils";
+import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification, sendTaskApprovalRequestNotification } from "./utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
@@ -49,6 +49,15 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "tool_result":
                 sendToolResultNotification(event.toolName, event.toolOutput);
+                break;
+            case "task_approval_request":
+                console.log("[Event Handler] Task approval request received:", event);
+                sendTaskApprovalRequestNotification(
+                    event.approvalType,
+                    event.tasks,
+                    event.taskId,
+                    event.message
+                );
                 break;
             case "evals_tool_result":
             case "usage_metrics":
