@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public class MemoryBuilder extends CallBuilder {
 
-    public static final String LABEL = "Memory Manager";
+    public static final String LABEL = "Memory";
 
     private static final String MEMORY_NAME_LABEL = "Memory Name";
     private static final String MEMORY_NAME_LABEL_DOC = "Name of the memory instance";
@@ -103,7 +103,8 @@ public class MemoryBuilder extends CallBuilder {
         sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable();
 
         // Conditionally add check keyword based on the property
-        if (FlowNodeUtil.hasCheckKeyFlagSet(sourceBuilder.flowNode)) {
+        if (FlowNodeUtil.hasCheckKeyFlagSet(sourceBuilder.flowNode) &&
+                !sourceBuilder.flowNode.codedata().object().equals(MESSAGE_WINDOW_CHAT_MEMORY_OBJ)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
