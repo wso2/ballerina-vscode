@@ -42,7 +42,8 @@ import {
     IOType,
     MACHINE_VIEW,
     VisualizerLocation,
-    DeleteClauseRequest
+    DeleteClauseRequest,
+    IORoot
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -715,7 +716,7 @@ export function DataMapperView(props: DataMapperProps) {
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
     inputs: model.inputs.map(i => i.name),
     output: model.output.name,
-    subMappings: model.subMappings?.map(s => s.name) || [],
+    subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 

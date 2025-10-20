@@ -155,88 +155,9 @@ export const getFunctionParametersList = (params: Parameter[]) => {
     return paramList;
 }
 
-export const getDataMapperParametersList = (params: string[]) => {
-    const paramList: FunctionParameters[] = [];
-    const paramNames: string[] = [];
-
-    params.forEach(param => {
-        const varName = lowercaseFirstLetter(param);
-        const generatedName = createUniqueName(varName);
-        paramNames.push(generatedName);
-
-        paramList.push({
-            type: param,
-            name: generatedName
-        });
-    })
-    return paramList;
-
-    function lowercaseFirstLetter(input: string): string {
-        if (!input) return input;
-        return input.charAt(0).toLowerCase() + input.slice(1);
-    }
-
-    function createUniqueName(name: string): string {
-        let newName = name;
-        let counter = 1;
-        while (paramNames.includes(newName)) {
-            newName = name + counter;
-            counter++;
-        }
-        return newName;
-    }
-}
-
-export function findRegexMatches(input: string): MatchResult[] {
-    // Define the regular expression using a RegExp literal
-    const regex = /\<(c(o(d(e((?:[ ]+(f(i(l(e(n(a(m(e(=("([^ "\n]+("(\>)?([ \n]+(`(`(`)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?/g;
-
-    const matches: MatchResult[] = [];
-    let match: RegExpExecArray | null;
-
-    // Use exec in a loop to find all matches
-    while ((match = regex.exec(input)) !== null) {
-        // Avoid infinite loops with zero-length matches
-        if (match.index === regex.lastIndex) {
-            regex.lastIndex++;
-        }
-
-        matches.push({
-            start: match.index,
-            end: regex.lastIndex,
-            matchedText: match[0],
-        });
-    }
-
-    return matches;
-}
-
 export const isPositionChanged = (prev: NodePosition, current: NodePosition) => {
     return prev.startLine !== current.startLine ||
         prev.startColumn !== current.startColumn ||
         prev.endLine !== current.endLine ||
         prev.endColumn !== current.endColumn;
 };
-
-export function formatWithProperIndentation(content: string, baseIndent: number = 1): string {
-    const lines = content.split('\n');
-    let currentIndent = baseIndent;
-
-    return lines.map(line => {
-        const trimmedLine = line.trim();
-
-        // Decrease indent for closing braces/brackets
-        if (trimmedLine.startsWith('}') || trimmedLine.startsWith(']')) {
-            currentIndent = Math.max(1, currentIndent - 1);
-        }
-
-        const indentedLine = '    '.repeat(currentIndent) + trimmedLine;
-
-        // Increase indent for opening braces/brackets
-        if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[')) {
-            currentIndent++;
-        }
-
-        return indentedLine;
-    }).join('\n');
-}
