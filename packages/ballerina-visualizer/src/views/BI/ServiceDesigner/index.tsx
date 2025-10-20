@@ -904,13 +904,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <>
                                     <SectionHeader
                                         title="Tools"
-                                        subtitle={`${resourcesCount === 0 ? `` : 'Define how the mcp service responds to tool calls'}`}
+                                        subtitle={`${resources.length === 0 ? `` : 'Define how the mcp service responds to tool calls'}`}
                                     >
                                         <ActionGroup>
                                             {resources.length > 10 && (
                                                 <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                             )}
-                                            {!haveServiceTypeName && resourcesCount > 0 && (
+                                            {!haveServiceTypeName && resources.length > 0 && (
                                                 <Button appearance="primary" tooltip="Add Tool" onClick={handleNewMcpTool}>
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Tool</ButtonText>
                                                 </Button>
@@ -938,7 +938,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             ))}
                                     </FunctionsContainer>
 
-                                    {resourcesCount === 0 && (
+                                    {resources.length === 0 && (
                                         <EmptyReadmeContainer>
                                             <Description variant="body2">
                                                 No tools found. Add a new tool.
