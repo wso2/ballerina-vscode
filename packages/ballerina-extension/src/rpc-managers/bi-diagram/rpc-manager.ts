@@ -144,10 +144,14 @@ import {
     Category,
     NodePosition,
     AddProjectToWorkspaceRequest,
+    MACHINE_VIEW,
+    EVENT_TYPE,
+    VisualizerLocation,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
+import { parse } from 'toml';
 
 import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
@@ -166,14 +170,16 @@ import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
-import { StateMachine, updateView } from "../../stateMachine";
+import { openView, StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { buildProjectArtifactsStructure } from "../../utils/project-artifacts";
+
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -588,15 +594,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
         if (params.convertToWorkspace) {
-            // Create a new direcotory using the workspace name at same level as the current project and move the project to the new directory
-            const newDirectory = path.join(path.dirname(StateMachine.context().projectPath), params.workspaceName);
-            if (!fs.existsSync(newDirectory)) {
-                fs.mkdirSync(newDirectory, { recursive: true });
-            }
-            fs.renameSync(StateMachine.context().projectPath, path.join(newDirectory, path.basename(StateMachine.context().projectPath)));
-            openInVSCode(newDirectory);
+            convertProjectToWorkspace(params.workspaceName);
         } else {
-            // TODO: Just add the project to the workspace
+            await addProjectToExistingWorkspace(params);
         }
     }
 

@@ -203,7 +203,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async addToProject(req: AddToProjectRequest): Promise<boolean> {
-
+        // TODO: Ensure this is working for multi-project workspaces.
         const workspaceFolders = workspace.workspaceFolders;
         if (!workspaceFolders) {
             throw new Error("No workspaces found.");

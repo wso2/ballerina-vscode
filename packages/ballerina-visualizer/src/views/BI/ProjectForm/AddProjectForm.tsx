@@ -69,6 +69,7 @@ export function AddProjectForm() {
     });
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -85,6 +86,7 @@ export function AddProjectForm() {
     }, []);
 
     const handleAddProject = () => {
+        setIsLoading(true);
         rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
             projectName: formData.integrationName,
             packageName: formData.packageName,
@@ -121,13 +123,21 @@ export function AddProjectForm() {
 
             <ButtonWrapper>
                 <Button
-                    disabled={!isFormValidAddProject(formData, isInWorkspace)}
+                    disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
                     onClick={handleAddProject}
                     appearance="primary"
                 >
-                    {!isInWorkspace 
-                        ? "Convert & Add Integration"
-                        : "Add Integration"}
+                    {isLoading ? (
+                        <Typography variant="progress">
+                            {!isInWorkspace 
+                                ? "Converting & Adding..."
+                                : "Adding..."}
+                        </Typography>
+                    ) : (
+                        !isInWorkspace 
+                            ? "Convert & Add Integration"
+                            : "Add Integration"
+                    )}
                 </Button>
             </ButtonWrapper>
         </FormContainer>
