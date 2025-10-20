@@ -349,6 +349,9 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                         choice.enabled = true;
                         for (const key in choice.properties) {
                             choice.properties[key].value = data[key];
+                            if (key === "basePath") {
+                                choice.properties[key].value = data[key].replace(/-/g, '\\-').replace(/\./g, '\\.');
+                            }
                         }
                     }
                 })
