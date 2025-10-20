@@ -47,11 +47,41 @@ export const Chip = styled.div`
     color: white;
     cursor: pointer;
     font-size: 12px;
-    padding: 2px 6px;
+    padding: 2px 10px;
     display: inline-block;
     transition: all 0.2s ease;
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
 
     &:hover {
-        transform: scale(1.25);
+        background-color: rgba(0, 122, 204, 0.5);
+    }
+
+    &:active {
+        box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.8);
+    }
+`
+
+export const ChipMenu = styled.div<{ top: number; left: number }>`
+    position: absolute;
+    top: ${props => props.top}px;
+    left: ${props => props.left}px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    border: 1px solid ${ThemeColors.ON_SURFACE};
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 120px;
+`;
+
+export const ChipMenuItem = styled.div`
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE};
+    
+    &:hover {
+        background-color: ${ThemeColors.SURFACE};
     }
 `

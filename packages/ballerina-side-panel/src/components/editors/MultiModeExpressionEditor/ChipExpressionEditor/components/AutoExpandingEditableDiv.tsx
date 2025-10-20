@@ -26,18 +26,21 @@ export type AutoExpandingEditableDivProps = {
     onSelect?: () => void;
     value: string;
     tokens: number[];
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
     onKeyUp?: () => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    onFocus?: (e: React.FocusEvent<HTMLDivElement>) => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
-    const { children, onChange, onSelect, onClick, onKeyUp, fieldRef, value, tokens } = props;
+    const { children, onChange, onSelect, onClick, onKeyUp, onFocus, fieldRef, value, tokens, onKeyDown } = props;
 
     const handleChange = (event: React.FormEvent<HTMLDivElement>) => {
         onChange(event.currentTarget.textContent || "");
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        onKeyDown && onKeyDown(e);
         if (e.key !== "Backspace" && e.key !== "Delete") return;
         const selection = window.getSelection();
         if (!selection || !selection.anchorNode) return;
@@ -71,6 +74,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             onKeyDown={handleKeyDown}
             onClick={onClick}
             onKeyUp={onKeyUp}
+            onFocus={onFocus}
         >
             {children}
         </ChipEditorField>

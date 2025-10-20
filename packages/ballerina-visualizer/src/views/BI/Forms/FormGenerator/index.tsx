@@ -789,7 +789,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,

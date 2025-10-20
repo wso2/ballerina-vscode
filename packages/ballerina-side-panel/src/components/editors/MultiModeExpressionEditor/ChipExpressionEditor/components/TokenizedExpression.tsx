@@ -21,7 +21,12 @@ import { ReactNode } from "react";
 import { ChipComponent } from "./ChipComponent";
 import { getAbsoluteColumnOffset, getTokenChunks } from "../utils";
 
-export const createHtmlRichText = (value: string, tokens: number[]) => {
+export const createHtmlRichText = (
+    value: string, 
+    tokens: number[],
+    onChipClick?: (element: HTMLElement, value: string, type: string) => void,
+    onChipBlur?: () => void
+) => {
     const tokenChunks = getTokenChunks(tokens);
     const richHtmlText: ReactNode[] = [];
     let currentLine = 0;
@@ -49,7 +54,7 @@ export const createHtmlRichText = (value: string, tokens: number[]) => {
         );
         const currentTokenValue = value.slice(absoluteOffset, absoluteOffset + tokenLength);
         const tokenType = getTokenTypeFromIndex(tokenTypeIndex);
-        const currentTokenChip = getTokenChip(currentTokenValue, tokenType);
+        const currentTokenChip = getTokenChip(currentTokenValue, tokenType, absoluteOffset, onChipClick, onChipBlur);
         richHtmlText.push(currentTokenChip);
 
         previousTokenEndOffset = absoluteOffset + tokenLength;
@@ -71,34 +76,49 @@ export const getTokenTypeFromIndex = (index: number): string => {
     return tokenTypes[index] || 'property';
 };
 
-export const getTokenChip = (value: string, type: string): ReactNode => {
-    const handleFocus = () => {
-        console.log(`Focused on ${type}: ${value}`);
+export const getTokenChip = (
+    value: string, 
+    type: string, 
+    absoluteOffset?: number,
+    onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void,
+    onChipBlur?: () => void
+): ReactNode => {
+    const handleClick = (element: HTMLElement) => {
+        console.log(`Clicked on ${type}: ${value}`);
+        if (onChipClick) {
+            onChipClick(element, value, type, absoluteOffset);
+        }
     };
 
     const handleBlur = () => {
         console.log(`Blurred from ${type}: ${value}`);
+        if (onChipBlur) {
+            onChipBlur();
+        }
     };
 
     switch (type) {
         case "variable":
-            return <ChipComponent type="variable" text={value} onFocus={handleFocus} onBlur={handleBlur} />;
+            return <ChipComponent type="variable" text={value} onClick={handleClick} onBlur={handleBlur} />;
         case "parameter":
-            return <ChipComponent type="parameter" text={value} onFocus={handleFocus} onBlur={handleBlur} />;
+            return <ChipComponent type="parameter" text={value} onClick={handleClick} onBlur={handleBlur} />;
         case "property":
-            return <ChipComponent type="property" text={value} onFocus={handleFocus} onBlur={handleBlur} />;
+            return <ChipComponent type="property" text={value} onClick={handleClick} onBlur={handleBlur} />;
         default:
-            return <ChipComponent type="property" text={value} onFocus={handleFocus} onBlur={handleBlur} />;
+            return <ChipComponent type="property" text={value} onClick={handleClick} onBlur={handleBlur} />;
     }
 }
 
 export type TokenizedExpressionProps = {
     value: string;
     tokens: number[];
+    onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
+    onChipBlur?: () => void;
 }
 
 export const TokenizedExpression = (props: TokenizedExpressionProps) => {
-    const htmlRichText = createHtmlRichText(props.value, props.tokens);
+    const { value, tokens, onChipClick, onChipBlur } = props;
+    const htmlRichText = createHtmlRichText(value, tokens, onChipClick, onChipBlur);
 
     return (
         <React.Fragment>{htmlRichText}</React.Fragment>
