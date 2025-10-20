@@ -439,15 +439,30 @@ public class ReferenceType {
             String depTypeKey = entry.getKey();
             RefType depType = entry.getValue();
             Symbol depSymbol = typeDefSymbols.stream()
-                    .filter(sym -> depType.name.equals(sym.getName().orElse("")))
+                    .filter(sym -> {
+                        if (!depType.name.equals(sym.getName().orElse(""))) {
+                            return false;
+                        }
+                        if (depType.moduleInfo != null) {
+                            ModuleID symModuleId = getModuleID(sym);
+                            if (symModuleId != null) {
+                                return depType.moduleInfo.orgName.equals(symModuleId.orgName()) &&
+                                       depType.moduleInfo.moduleName.equals(symModuleId.moduleName());
+                            }
+                        }
+                        return true;
+                    })
                     .findFirst()
                     .orElse(null);
 
             if (depSymbol != null) {
                 TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
                 TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
-                String moduleId = typeDefSymbol.getModule().isPresent() ?
-                        typeDefSymbol.getModule().get().id().toString() : null;
+                String moduleId = typeDesc.getModule().isPresent() ?
+                        typeDesc.getModule().get().id().toString() :
+//                        depType.moduleInfo.orgName + "/" + depType.moduleInfo.moduleName + ":" + depType.moduleInfo.version
+                        null
+                        ;
                 String updatedHashCode = String.valueOf(Objects.hash(
                         moduleId,
                         typeDefSymbol.getName().orElse(""),
