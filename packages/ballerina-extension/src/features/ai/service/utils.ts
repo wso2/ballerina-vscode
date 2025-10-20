@@ -27,6 +27,7 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFiles,
+    SourceFile,
     TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
@@ -207,6 +208,14 @@ export function sendToolResultNotification(toolName: string, toolOutput: any): v
         type: "tool_result",
         toolName: toolName,
         toolOutput: toolOutput,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void {
+    const msg: ChatNotify = {
+        type: "generated_sources",
+        fileArray: fileArray,
     };
     sendAIPanelNotification(msg);
 }

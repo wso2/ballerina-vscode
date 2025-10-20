@@ -18,58 +18,6 @@
  */
 
 // Data-mapper related interfaces
-export interface SimpleFieldDescriptor {
-    type: string;
-    comment: string;
-}
-
-export interface NestedFieldDescriptor {
-    [key: string]: SimpleFieldDescriptor | NestedFieldDescriptor;
-}
-
-export interface RecordDefinitonObject {
-    recordFields: NestedFieldDescriptor;
-    recordFieldsMetadata: {
-        [fieldName: string]: FieldMetadata;
-    };
-}
-
-export interface FieldMetadata {
-    typeName: string;
-    type: string;
-    typeInstance: string;
-    optional: boolean;
-    nullable?: boolean;
-    nullableArray?: boolean;
-    members?: {
-        [memberName: string]: FieldMetadata;
-    };
-    fields?: {
-        [fieldName: string]: FieldMetadata;
-    };
-}
-
-export interface ParameterField {
-    isArrayType: boolean;
-    parameterName: string;
-    parameterType: string;
-    type: string;
-    members?: {
-        [memberName: string]: FieldMetadata;
-    };
-    fields?: {
-        [fieldName: string]: FieldMetadata;
-    };
-}
-
-export interface InputMetadata {
-    [parameterName: string]: ParameterField;
-}
-
-export interface OutputMetadata {
-    [fieldName: string]: FieldMetadata;
-}
-
 export interface MappingField {
     MAPPING_TIP: string;
     INPUT_FIELDS: string[];
@@ -81,40 +29,6 @@ export interface MappingFields {
 
 export interface MappingFileRecord {
     mapping_fields: MappingFields;
-}
-
-export interface ParameterMetadata {
-    inputs: NestedFieldDescriptor;
-    output: NestedFieldDescriptor;
-    inputMetadata: InputMetadata;
-    outputMetadata: OutputMetadata;
-    mapping_fields?: MappingFields;
-    constants?: Record<string, FieldMetadata>;
-    configurables?: Record<string, FieldMetadata>;
-    variables?: Record<string, FieldMetadata>;
-    enums?: Record<string, FieldMetadata>;
-}
-
-export interface ParameterDefinitions {
-    parameterMetadata: ParameterMetadata;
-    errorStatus: boolean;
-}
-
-export interface VisitorContext {
-    recordFields: NestedFieldDescriptor;
-    recordFieldsMetadata: { [key: string]: FieldMetadata };
-    memberRecordFields: NestedFieldDescriptor;
-    memberFieldsMetadata: { [key: string]: FieldMetadata };
-    fieldMetadata: FieldMetadata;
-    isNill: boolean;
-    isNullable: boolean;
-    isArray: boolean;
-    isRecord: boolean;
-    isSimple: boolean;
-    isUnion: boolean;
-    isArrayNullable: boolean;
-    isRecordNullable: boolean;
-    memberName: string;
 }
 
 export interface MappingData {
@@ -131,18 +45,3 @@ export interface MappingsResponse {
     mappings: IntermediateMapping;
 }
 
-export interface ProcessParentKeyResult {
-    itemKey: string;
-    combinedKey: string;
-    inputArrayNullable: boolean;
-    isSet: boolean;
-    isInputDeeplyNested: boolean;
-}
-
-export interface ProcessCombinedKeyResult {
-    isinputRecordArrayNullable: boolean;
-    isinputRecordArrayOptional: boolean;
-    isinputArrayNullable: boolean;
-    isinputArrayOptional: boolean;
-    isinputNullableArray: boolean;
-}
