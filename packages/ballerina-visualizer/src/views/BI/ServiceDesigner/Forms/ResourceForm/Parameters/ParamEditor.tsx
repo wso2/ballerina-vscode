@@ -150,14 +150,17 @@ export function ParamEditor(props: ParamProps) {
                     value: param.headerName?.value,
                     valueTypeConstraint: "",
                     onValueChange: (value: string) => {
-                        const sanitizeValue = value.replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
+                        const sanitizeValue = value
+                            .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/\.([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/[^a-zA-Z0-9]/g, '');
+                        const sanitizedValueWithLowerFirst = sanitizeValue.charAt(0).toLowerCase() + sanitizeValue.slice(1);
                         // Set the sanitized value to the variable name field
                         // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
                         if (param.name && typeof param.name === 'object') {
                             param.name.value = sanitizeValue;
-                            onChange({ ...param, name: { ...param.name, value: sanitizeValue } });
+                            param.headerName.value = value;
+                            onChange({ ...param, name: { ...param.name, value: sanitizedValueWithLowerFirst } });
                         }
                     }
                 });
