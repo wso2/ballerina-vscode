@@ -387,6 +387,9 @@
     },
     {
       "label": "testErr",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "A",
@@ -395,6 +398,9 @@
     },
     {
       "label": "testInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "C",
@@ -414,6 +420,9 @@
     },
     {
       "label": "subErr",
+      "labelDetails": {
+        "detail": " Err"
+      },
       "kind": "Variable",
       "detail": "Err",
       "sortText": "A",

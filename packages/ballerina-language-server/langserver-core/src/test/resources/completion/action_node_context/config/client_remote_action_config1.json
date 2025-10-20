@@ -371,6 +371,10 @@
     },
     {
       "label": "cl",
+      "labelDetails": {
+        "detail": " module1:Client",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "module1:Client",
       "sortText": "F",
@@ -426,6 +430,9 @@
     },
     {
       "label": "testInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -434,6 +441,9 @@
     },
     {
       "label": "url",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

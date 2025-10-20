@@ -16,6 +16,9 @@
     },
     {
       "label": "fint",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "F",
@@ -32,6 +35,9 @@
     },
     {
       "label": "fstr",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "F",
@@ -40,6 +46,9 @@
     },
     {
       "label": "myVar",
+      "labelDetails": {
+        "detail": " map<string|error>"
+      },
       "kind": "Variable",
       "detail": "map<string|error>",
       "sortText": "F",

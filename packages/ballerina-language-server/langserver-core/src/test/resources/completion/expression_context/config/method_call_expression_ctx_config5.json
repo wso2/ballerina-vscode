@@ -403,6 +403,9 @@
     },
     {
       "label": "testFPointer",
+      "labelDetails": {
+        "detail": " function (int) returns ()"
+      },
       "kind": "Variable",
       "detail": "function (int) returns ()",
       "sortText": "CD",
@@ -411,6 +414,9 @@
     },
     {
       "label": "testInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AD",
@@ -419,6 +425,9 @@
     },
     {
       "label": "arr",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "CD",
@@ -469,6 +478,9 @@
     },
     {
       "label": "cls",
+      "labelDetails": {
+        "detail": " TestClass"
+      },
       "kind": "Variable",
       "detail": "TestClass",
       "sortText": "CD",

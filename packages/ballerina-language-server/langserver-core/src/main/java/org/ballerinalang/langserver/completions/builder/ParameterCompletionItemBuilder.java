@@ -21,6 +21,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.completions.util.ItemResolverConstants;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 
 /**
  * This is used for building parameter completions.
@@ -28,6 +29,9 @@ import org.eclipse.lsp4j.CompletionItemKind;
  * @since 1.0.0
  */
 public final class ParameterCompletionItemBuilder {
+
+    private static final String PARAMETER_CATEGORY = "Parameter";
+
     private ParameterCompletionItemBuilder() {
     }
 
@@ -43,8 +47,15 @@ public final class ParameterCompletionItemBuilder {
         item.setLabel(label);
         String insertText = CommonUtil.escapeSpecialCharsInInsertText(label);
         item.setInsertText(insertText);
-        item.setDetail((type.isEmpty()) ? ItemResolverConstants.NONE : type);
+        String detail = (type.isEmpty()) ? ItemResolverConstants.NONE : type;
+        item.setDetail(detail);
         item.setKind(CompletionItemKind.Variable);
+
+        CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+        labelDetails.setDetail(" " + detail);
+        labelDetails.setDescription(PARAMETER_CATEGORY);
+        item.setLabelDetails(labelDetails);
+
         return item;
     }
 }

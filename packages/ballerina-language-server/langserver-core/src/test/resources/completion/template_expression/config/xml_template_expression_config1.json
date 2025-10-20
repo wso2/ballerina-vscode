@@ -288,6 +288,9 @@
     },
     {
       "label": "another",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",
@@ -326,6 +329,9 @@
     },
     {
       "label": "url",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",
@@ -334,6 +340,9 @@
     },
     {
       "label": "val",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",
@@ -342,6 +351,9 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "ABB",
@@ -365,6 +377,9 @@
     },
     {
       "label": "last",
+      "labelDetails": {
+        "detail": " xml"
+      },
       "kind": "Variable",
       "detail": "xml",
       "sortText": "AAB",

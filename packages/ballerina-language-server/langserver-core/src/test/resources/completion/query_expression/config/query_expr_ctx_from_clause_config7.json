@@ -491,6 +491,9 @@
     },
     {
       "label": "students",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -499,6 +502,9 @@
     },
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

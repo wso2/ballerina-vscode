@@ -468,6 +468,9 @@
     },
     {
       "label": "students",
+      "labelDetails": {
+        "detail": " xml"
+      },
       "kind": "Variable",
       "detail": "xml",
       "sortText": "AB",
@@ -476,6 +479,9 @@
     },
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " xml"
+      },
       "kind": "Variable",
       "detail": "xml",
       "sortText": "AB",
