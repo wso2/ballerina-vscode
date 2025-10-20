@@ -63,6 +63,7 @@ import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModelR
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceClassSourceRequest;
+import io.ballerina.servicemodelgenerator.extension.model.request.ServiceInitSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModelRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceSourceRequest;
@@ -78,6 +79,7 @@ import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromS
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceClassModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceFromSourceResponse;
+import io.ballerina.servicemodelgenerator.extension.model.response.ServiceInitModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerListResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerResponse;
@@ -89,6 +91,8 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.CompletionItem;
@@ -114,13 +118,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.RESOURCE_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.HTTP_RESOURCE_ADD;
@@ -139,6 +142,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 @JsonSegment("serviceDesign")
 public class ServiceModelGeneratorService implements ExtendedLanguageServerService {
 
+    private LSClientLogger lsClientLogger;
     private WorkspaceManager workspaceManager;
     private final Map<String, TriggerProperty> triggerProperties;
     private static final Type propertyMapType = new TypeToken<Map<String, TriggerProperty>>() {
@@ -162,8 +166,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     }
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
+    public void init(LanguageServer langServer, WorkspaceManager workspaceManager,
+                     LanguageServerContext serverContext) {
         this.workspaceManager = workspaceManager;
+        this.lsClientLogger = LSClientLogger.getInstance(serverContext);
     }
 
     @Override
@@ -522,10 +528,6 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             }
             String moduleName = (request.codedata().getModuleName() != null) ?
                     request.codedata().getModuleName() : DEFAULT;
-            if (moduleName.equals(DEFAULT) &&
-                    functionDefinitionNode.parent() instanceof ServiceDeclarationNode serviceDecNode) {
-                moduleName = deriveServiceType(serviceDecNode, semanticModelOp.get()).moduleName();
-            }
             Function function = FunctionBuilderRouter.getFunctionFromSource(moduleName, semanticModelOp.get(),
                     functionDefinitionNode);
             return new FunctionFromSourceResponse(function);
@@ -900,6 +902,59 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 return Either.forLeft(TypeCompletionGenerator.getTypes(project, request.context()));
             } catch (Throwable e) {
                 return Either.forRight(new CompletionList());
+            }
+        });
+    }
+
+    /**
+     * Get the initial service model which is a unification of service and listener models.
+     *
+     * @param request Service model request
+     * @return {@link ServiceInitModelResponse} of the service init model response
+     */
+    @JsonRequest
+    public CompletableFuture<ServiceInitModelResponse> getServiceInitModel(ServiceModelRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Path filePath = Path.of(request.filePath());
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    throw new IllegalStateException("Failed to load the document or semantic model");
+                }
+                Utils.resolveModule(request.orgName(), request.pkgName(), request.moduleName(), lsClientLogger);
+                return new ServiceInitModelResponse(ServiceBuilderRouter.getServiceInitModel(request,
+                        project, semanticModel.get(), document.get()));
+            } catch (Throwable e) {
+                return new ServiceInitModelResponse(e);
+            }
+        });
+    }
+
+    /**
+     * Get the list of text edits to add a service and a listener to the given module.
+     *
+     * @param request Service source request
+     * @return {@link CommonSourceResponse} of the common source response
+     */
+    @JsonRequest
+    public CompletableFuture<CommonSourceResponse> addServiceAndListener(ServiceInitSourceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Path filePath = Path.of(request.filePath());
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    return new CommonSourceResponse();
+                }
+                Map<String, List<TextEdit>> textEdits = ServiceBuilderRouter.addServiceInitSource(
+                        request.serviceInitModel(), semanticModel.get(), project, workspaceManager,
+                        request.filePath(), document.get());
+                return new CommonSourceResponse(textEdits);
+            } catch (Throwable e) {
+                return new CommonSourceResponse(e);
             }
         });
     }
