@@ -13,16 +13,33 @@
       "items": [
         {
           "metadata": {
+            "label": "Short Term Memory",
+            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "MEMORY",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "ShortTermMemory",
+            "symbol": "init",
+            "version": "1.6.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
             "label": "Message Window Chat Memory",
             "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
           },
           "codedata": {
-            "node": "CLASS_INIT",
+            "node": "MEMORY",
             "org": "ballerina",
             "module": "ai",
             "packageName": "ai",
             "object": "MessageWindowChatMemory",
-            "symbol": "init"
+            "symbol": "init",
+            "version": "1.6.0"
           },
           "enabled": true
         }

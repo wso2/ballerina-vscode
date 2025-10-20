@@ -1,6 +1,6 @@
 {
   "description": "Non-existent org name search test for memory managers",
-  "kind": "MEMORY_MANAGER",
+  "kind": "MEMORY",
   "source": "empty.bal",
   "queryMap": {
     "orgName": "nonexistent"
