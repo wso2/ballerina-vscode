@@ -1844,8 +1844,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Find the existing memory manager node from module variables
         const existingMemoryVariable = agentMemoryValue
             ? moduleNodes.flowModel.variables.find(
-                (node) => node.codedata.node === "MEMORY"
-                    && node.properties.variable.value === agentMemoryValue.toString().trim()
+                (node) => node.properties.variable.value === agentMemoryValue.toString().trim()
             ) : undefined;
 
         // Initialize and sync memory metadata between nodes
@@ -1869,7 +1868,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
-            const agentFilePath = await getAgentFilePath(rpcClient);
+            if (!agentNode) {
+                console.error("Agent node not found for deleting memory manager:", node);
+                return;
+            }
 
             // remove memory manager statement if any
             if (agentNode.properties.memory && agentNode.properties.memory?.value !== "()") {
@@ -1877,39 +1879,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 if (memoryVar) {
                     const memoryNode = await findFlowNodeByModuleVarName(memoryVar, rpcClient);
                     if (memoryNode) {
+                        const memoryFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(memoryNode.codedata.lineRange.fileName);
                         await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-                            filePath: agentFilePath,
+                            filePath: memoryFilePath,
                             flowNode: memoryNode,
                         });
                     }
                 }
             }
 
-            // Create a clone of the agent node to modify
-            const updatedAgentNode = cloneDeep(agentNode);
-
             // Remove memory manager from agent node
-            if (!updatedAgentNode.properties.memory) {
-                updatedAgentNode.properties.memory = {
-                    value: "",
-                    advanced: true,
-                    optional: true,
-                    editable: true,
-                    valueType: "EXPRESSION",
-                    valueTypeConstraint: "agent:MemoryManager",
-                    metadata: {
-                        label: "Memory Manager",
-                        description: "The memory manager used by the agent to store and manage conversation history",
-                    },
-                    placeholder: "object {}",
-                };
-            } else {
-                agentNode.properties.memory.value = "()";
-            }
-            // Generate the source code
-            const agentResponse = await rpcClient
+            agentNode.properties.memory.value = "()";
+            const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentNode.codedata.lineRange.fileName);
+            await rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: agentFilePath, flowNode: agentNode });
+
         } catch (error) {
             console.error("Error deleting memory manager:", error);
             alert("Failed to remove memory manager. Please try again.");
