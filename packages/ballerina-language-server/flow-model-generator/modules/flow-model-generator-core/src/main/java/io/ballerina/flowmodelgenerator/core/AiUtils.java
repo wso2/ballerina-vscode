@@ -373,7 +373,7 @@ public class AiUtils {
         return featureSets.flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
-    private static int compareSemver(String version1, String version2) {
+    public static int compareSemver(String version1, String version2) {
         String[] parts1 = version1.split("\\.");
         String[] parts2 = version2.split("\\.");
         int length = Math.max(parts1.length, parts2.length);
