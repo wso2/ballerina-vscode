@@ -39,7 +39,8 @@ public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        processDataBindingParameter(context.function(), REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false);
+        processDataBindingParameter(context.function(), context.functionNode(), REQUIRED_PARAM_TYPE,
+                PAYLOAD_FIELD_NAME, false);
         return super.updateModel(context);
     }
 

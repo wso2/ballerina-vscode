@@ -69,8 +69,8 @@ public final class DatabindUtil {
      * @param serviceNode  The ServiceDeclarationNode from source
      * @return FunctionMatch containing the matched functions, or null if target function not found
      */
-    private static FunctionMatch findMatchingFunctions(Service service, String functionName,
-                                                       ServiceDeclarationNode serviceNode) {
+    public static FunctionMatch findMatchingFunctions(Service service, String functionName,
+                                                      ServiceDeclarationNode serviceNode) {
         Function targetFunction = service.getFunctions().stream()
                 .filter(func -> func.getName().getValue().equals(functionName))
                 .findFirst()
@@ -116,7 +116,7 @@ public final class DatabindUtil {
         boolean dataBindingEnabled = false;
         String paramType = "";
         String paramName = "";
-        boolean editable = false;
+        boolean editable = true;
 
         if (sourceFunction != null && !sourceFunction.getParameters().isEmpty() && sourceFunctionNode != null) {
             Parameter sourceParam = sourceFunction.getParameters().getFirst();
@@ -178,6 +178,23 @@ public final class DatabindUtil {
     }
 
     /**
+     * Finds a required parameter by name in a function definition.
+     *
+     * @param functionNode The FunctionDefinitionNode to search
+     * @param paramName    The name of the parameter to find
+     * @return Optional containing the RequiredParameterNode if found
+     */
+    private static Optional<RequiredParameterNode> findRequiredParameter(FunctionDefinitionNode functionNode,
+                                                                         String paramName) {
+        return functionNode.functionSignature().parameters().stream()
+                .filter(paramNode -> paramNode instanceof RequiredParameterNode)
+                .map(paramNode -> (RequiredParameterNode) paramNode)
+                .filter(reqParam -> reqParam.paramName().isPresent() &&
+                        reqParam.paramName().get().text().trim().equals(paramName))
+                .findFirst();
+    }
+
+    /**
      * Extracts data binding type from a type reference (e.g., a named record type).
      *
      * @param simpleNameRef    The simple name reference node
@@ -234,12 +251,7 @@ public final class DatabindUtil {
     private static DataBindingTypeInfo extractDataBindingType(FunctionDefinitionNode functionNode, String paramName,
                                                               SemanticModel semanticModel,
                                                               String payloadFieldName) {
-        Optional<RequiredParameterNode> targetParam = functionNode.functionSignature().parameters().stream()
-                .filter(paramNode -> paramNode instanceof RequiredParameterNode)
-                .map(paramNode -> (RequiredParameterNode) paramNode)
-                .filter(reqParam -> reqParam.paramName().isPresent() &&
-                        reqParam.paramName().get().text().trim().equals(paramName))
-                .findFirst();
+        Optional<RequiredParameterNode> targetParam = findRequiredParameter(functionNode, paramName);
 
         if (targetParam.isEmpty()) {
             return null;
@@ -344,12 +356,13 @@ public final class DatabindUtil {
      * then disables the DATA_BINDING parameter.
      *
      * @param function          The function containing the parameters
+     * @param functionNode      The FunctionDefinitionNode from source code
      * @param requiredParamType The required parameter type (e.g., "rabbitmq:AnydataMessage")
      * @param payloadFieldName  The field name for the payload (e.g., "content")
      * @param isArray           Whether the parameter is an array type
      */
-    public static void processDataBindingParameter(Function function, String requiredParamType,
-                                                   String payloadFieldName, boolean isArray) {
+    public static void processDataBindingParameter(Function function, FunctionDefinitionNode functionNode,
+                                                   String requiredParamType, String payloadFieldName, boolean isArray) {
         List<Parameter> parameters = function.getParameters();
         if (parameters.isEmpty()) {
             return;
@@ -362,7 +375,7 @@ public final class DatabindUtil {
             if (DATA_BINDING.equals(param.getKind()) && param.isEnabled()) {
                 dataBindingParam = param;
             }
-            if (KIND_REQUIRED.equals(param.getKind())) {
+            if (KIND_REQUIRED.equals(param.getKind()) && !param.isOptional()) {
                 requiredParam = param;
             }
             if (dataBindingParam != null && requiredParam != null) {
@@ -374,16 +387,28 @@ public final class DatabindUtil {
             return;
         }
 
-        String dataBindingType = dataBindingParam.getType().getValue();
-        if (dataBindingType == null || dataBindingType.isEmpty()) {
-            return;
-        }
+        if (!dataBindingParam.isEditable() && functionNode != null && requiredParam != null) {
+            String paramName = dataBindingParam.getName().getValue();
+            Optional<RequiredParameterNode> sourceParam = findRequiredParameter(functionNode, paramName);
 
-        if (requiredParam != null) {
-            String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName,
-                    isArray);
-            requiredParam.getType().setValue(inlineRecordType);
-            requiredParam.setEnabled(true);
+            if (sourceParam.isPresent()) {
+                String sourceParamType = sourceParam.get().typeName().toString().trim();
+                requiredParam.getType().setValue(sourceParamType);
+                requiredParam.setEnabled(true);
+            }
+        } else {
+            String dataBindingType = dataBindingParam.getType().getValue();
+
+            if (dataBindingType == null || dataBindingType.isEmpty()) {
+                return;
+            }
+
+            if (requiredParam != null) {
+                String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName,
+                        isArray);
+                requiredParam.getType().setValue(inlineRecordType);
+                requiredParam.setEnabled(true);
+            }
         }
 
         dataBindingParam.setEnabled(false);

@@ -39,7 +39,8 @@ public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        processDataBindingParameter(context.function(), REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, true);
+        processDataBindingParameter(context.function(), context.functionNode(), REQUIRED_PARAM_TYPE,
+                PAYLOAD_FIELD_NAME, true);
         return super.updateModel(context);
     }
 
