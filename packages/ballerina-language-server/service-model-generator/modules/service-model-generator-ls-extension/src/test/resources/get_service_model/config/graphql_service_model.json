@@ -41,7 +41,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
           "valueTypeConstraint": "graphql:Listener",
           "value": "",
           "values": [],

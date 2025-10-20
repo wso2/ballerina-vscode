@@ -102,10 +102,13 @@ public class Constants {
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
     public static final String VALUE_TYPE_STRING = "STRING";
+    public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
 
     public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
     public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";

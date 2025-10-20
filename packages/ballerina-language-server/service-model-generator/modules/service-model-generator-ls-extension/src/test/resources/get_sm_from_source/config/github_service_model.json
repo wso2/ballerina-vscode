@@ -45,7 +45,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "github:Listener",
         "value": "githubDefaultListener",
         "values": [],
