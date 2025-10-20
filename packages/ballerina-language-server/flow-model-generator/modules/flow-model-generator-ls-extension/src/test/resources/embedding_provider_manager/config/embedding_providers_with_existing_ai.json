@@ -24,7 +24,7 @@
           },
           {
             "metadata": {
-              "label": "Open Embedding Provider",
+              "label": "OpenAI Embedding Provider",
               "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
             },
             "codedata": {
