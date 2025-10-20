@@ -32,7 +32,6 @@ import java.util.Map;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COMMA;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ISOLATED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
@@ -65,7 +64,7 @@ public class McpServiceBuilder extends AbstractServiceBuilder {
         String serviceDeclaration = NEW_LINE +
                 result.listenerDeclaration() + NEW_LINE +
                 buildServiceConfig(serviceName, version) +
-                ISOLATED + SPACE + SERVICE + SPACE +
+                SERVICE + SPACE +
                 serviceInitModel.getModuleName() + COLON + MCP_BASIC_SERVICE_CLASS_NAME + SPACE +
                 serviceInitModel.getBasePath(result.listenerProtocol()) + SPACE +
                 ON + SPACE + result.listenerVarName() + SPACE + OPEN_BRACE +
