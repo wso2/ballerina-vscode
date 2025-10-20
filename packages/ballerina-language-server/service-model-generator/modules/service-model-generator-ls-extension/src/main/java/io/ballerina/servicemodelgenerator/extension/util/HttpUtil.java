@@ -284,8 +284,6 @@ public final class HttpUtil {
                 serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
             }
         }
-
-        serviceModel.getProperties().forEach((key, value) -> value.setAdvanced(false));
     }
 
     private static void updateServiceInfo(Service serviceModel, Service commonSvcModel) {

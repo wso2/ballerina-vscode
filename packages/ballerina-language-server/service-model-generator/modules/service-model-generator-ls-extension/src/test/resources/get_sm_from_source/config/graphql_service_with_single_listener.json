@@ -123,7 +123,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {

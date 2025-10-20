@@ -104,7 +104,9 @@ public class ServiceBuilderRouter {
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
                 workspaceManager, serviceMetadata.serviceType(), serviceMetadata.orgName(),
                 serviceMetadata.packageName(), serviceMetadata.moduleName());
-        return serviceBuilder.getModelFromSource(context);
+        Service service = serviceBuilder.getModelFromSource(context);
+        service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        return service;
     }
 
     public static Map<String, List<TextEdit>> addService(Service service,

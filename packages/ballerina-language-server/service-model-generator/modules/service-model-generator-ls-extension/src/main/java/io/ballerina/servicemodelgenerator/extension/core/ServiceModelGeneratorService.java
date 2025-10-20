@@ -538,6 +538,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     return new ListenerFromSourceResponse();
                 }
                 Listener listenerModel = listenerModelOp.get();
+                listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
                 return new ListenerFromSourceResponse(listenerModel);
             } catch (Exception e) {
                 return new ListenerFromSourceResponse(e);
