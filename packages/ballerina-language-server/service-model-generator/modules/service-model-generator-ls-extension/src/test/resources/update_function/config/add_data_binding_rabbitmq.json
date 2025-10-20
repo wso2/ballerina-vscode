@@ -80,7 +80,7 @@
           },
           "placeholder": "rabbitmq:AnydataMessage",
           "valueType": "TYPE",
-          "value": "record {*rabbitmq:AnydataMessage; Order content;}",
+          "value": "record {|*rabbitmq:AnydataMessage; Order content;|}",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -245,7 +245,7 @@
             "character": 101
           }
         },
-        "newText": "(record {*rabbitmq:AnydataMessage; Order content;} message, rabbitmq:Caller caller) returns error? "
+        "newText": "(record {|*rabbitmq:AnydataMessage; Order content;|} message, rabbitmq:Caller caller) returns error? "
       }
     ]
   }

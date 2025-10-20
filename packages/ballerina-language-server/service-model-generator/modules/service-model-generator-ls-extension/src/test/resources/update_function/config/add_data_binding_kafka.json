@@ -40,7 +40,7 @@
         "kind": "DATA_BINDING",
         "type": {
           "valueType": "TYPE",
-          "value": "json",
+          "value": "Order",
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -80,7 +80,7 @@
           },
           "placeholder": "kafka:AnydataConsumerRecord[]",
           "valueType": "TYPE",
-          "value": "record {*kafka:AnydataConsumerRecord; json value;}[]",
+          "value": "record {|*kafka:AnydataConsumerRecord; Order value;|}[]",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -245,7 +245,7 @@
             "character": 90
           }
         },
-        "newText": "(record {*kafka:AnydataConsumerRecord; json value;}[] records) returns error? "
+        "newText": "(record {|*kafka:AnydataConsumerRecord; Order value;|}[] records) returns error? "
       }
     ]
   }

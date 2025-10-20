@@ -24,49 +24,7 @@
       "optional": false,
       "advanced": false
     },
-    "documentation": {
-      "valueType": "STRING",
-      "enabled": true,
-      "editable": true,
-      "optional": true,
-      "advanced": false
-    },
     "parameters": [
-      {
-        "metadata": {
-          "label": "Data Binding",
-          "description": "Data binding parameter"
-        },
-        "kind": "DATA_BINDING",
-        "type": {
-          "valueType": "TYPE",
-          "value": "Order",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "valueType": "IDENTIFIER",
-          "value": "message",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "documentation": {
-          "valueType": "STRING",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "enabled": false,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "hidden": false
-      },
       {
         "metadata": {
           "label": "message",
@@ -110,13 +68,6 @@
           "placeholder": "",
           "valueType": "EXPRESSION",
           "value": "",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "documentation": {
-          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -176,16 +127,37 @@
           "optional": true,
           "advanced": false
         },
-        "documentation": {
-          "valueType": "STRING",
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
         "enabled": true,
         "editable": true,
         "optional": true,
+        "advanced": false,
+        "hidden": false
+      },
+      {
+        "metadata": {
+          "label": "Data Binding",
+          "description": "Data binding parameter"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "valueType": "TYPE",
+          "value": "Order",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "message",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
         "advanced": false,
         "hidden": false
       }

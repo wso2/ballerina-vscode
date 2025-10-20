@@ -27,7 +27,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.add
 /**
  * Builder class for Kafka service.
  *
- * @since 1.2.0
+ * @since 1.3.0
  */
 public final class KafkaServiceBuilder extends AbstractServiceBuilder {
 
