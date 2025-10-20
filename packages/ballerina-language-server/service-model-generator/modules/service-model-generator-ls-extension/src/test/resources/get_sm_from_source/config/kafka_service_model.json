@@ -250,7 +250,7 @@
               "advanced": false
             },
             "enabled": false,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false,
             "hidden": false,
