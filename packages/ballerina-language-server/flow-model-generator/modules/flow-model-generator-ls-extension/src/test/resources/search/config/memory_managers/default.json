@@ -1,6 +1,6 @@
 {
   "description": "Sample memory managers search flow model",
-  "kind": "MEMORY_MANAGER",
+  "kind": "MEMORY",
   "source": "empty.bal",
   "queryMap": {},
   "categories": [

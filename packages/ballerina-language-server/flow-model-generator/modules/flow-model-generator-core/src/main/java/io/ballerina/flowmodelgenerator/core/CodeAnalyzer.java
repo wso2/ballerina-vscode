@@ -184,7 +184,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryManager;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
@@ -1517,8 +1517,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
             return NodeKind.MCP_TOOLKIT;
         }
-        if (isAiMemoryManager(classSymbol)) {
-            return NodeKind.MEMORY_MANAGER;
+        if (isAiMemory(classSymbol)) {
+            return NodeKind.MEMORY;
         }
         if (isAiMemoryStore(classSymbol)) {
             return NodeKind.MEMORY_STORE;
@@ -1534,7 +1534,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 CommonUtils::isAiVectorStore, FunctionData.Kind.VECTOR_STORE,
                 CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
                 CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER,
-                CommonUtils::isAiMemoryManager, FunctionData.Kind.MEMORY_MANAGER,
+                CommonUtils::isAiMemory, FunctionData.Kind.MEMORY,
                 CommonUtils::isAiMemoryStore, FunctionData.Kind.MEMORY_STORE
         );
 

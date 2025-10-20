@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents memory manager node in the flow model.
+ * Represents memory node in the flow model.
  *
  * @since 1.3.1
  */
@@ -48,24 +48,24 @@ public class MemoryManagerBuilder extends CallBuilder {
 
     public static final String LABEL = "Memory Manager";
 
-    private static final String MEMORY_MANAGER_NAME_LABEL = "Memory Manager Name";
-    private static final String MEMORY_MANAGER_NAME_LABEL_DOC = "Name of the memory manager";
+    private static final String MEMORY_NAME_LABEL = "Memory Name";
+    private static final String MEMORY_NAME_LABEL_DOC = "Name of the memory instance";
     private static final String MESSAGE_WINDOW_CHAT_MEMORY_OBJ = "MessageWindowChatMemory";
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL);
-        codedata().node(NodeKind.MEMORY_MANAGER);
+        codedata().node(NodeKind.MEMORY);
     }
 
     @Override
     protected NodeKind getFunctionNodeKind() {
-        return NodeKind.MEMORY_MANAGER;
+        return NodeKind.MEMORY;
     }
 
     @Override
     protected FunctionData.Kind getFunctionResultKind() {
-        return FunctionData.Kind.MEMORY_MANAGER;
+        return FunctionData.Kind.MEMORY;
     }
 
     @Override
@@ -76,20 +76,20 @@ public class MemoryManagerBuilder extends CallBuilder {
 
         FunctionData functionData = new FunctionDataBuilder().moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
-                .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MEMORY_MANAGER)
+                .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MEMORY)
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
 
-        codedata().node(NodeKind.MEMORY_MANAGER)
+        codedata().node(NodeKind.MEMORY)
                 .org(functionData.org()).module(functionData.moduleName())
                 .packageName(functionData.packageName()).version(functionData.version())
                 .object(functionData.name())
                 .symbol(codedata.symbol());
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, MEMORY_MANAGER_NAME_LABEL, MEMORY_MANAGER_NAME_LABEL_DOC,
+            setReturnTypeProperties(functionData, context, MEMORY_NAME_LABEL, MEMORY_NAME_LABEL_DOC,
                     false);
         }
         setParameterProperties(functionData);
