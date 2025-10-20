@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "9",
+    "id": "10",
     "name": "RabbitMQ Event Handler",
     "type": "rabbitmq",
     "displayName": "RabbitMQ Event Handler",
@@ -74,7 +74,7 @@
           "Service"
         ],
         "enabled": false,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       },

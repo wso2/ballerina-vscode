@@ -9,6 +9,8 @@ type Student record {|
    string username;
    string password;
    string 'record;
+   json data;
+   any info;
 |};
 
 const string CONST = "CONST";

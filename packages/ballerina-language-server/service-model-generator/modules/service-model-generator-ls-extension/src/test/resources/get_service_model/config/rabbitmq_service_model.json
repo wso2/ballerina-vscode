@@ -6,7 +6,7 @@
   "moduleName": "rabbitmq",
   "response": {
     "service": {
-      "id": "9",
+      "id": "10",
       "name": "RabbitMQ Event Handler",
       "type": "rabbitmq",
       "displayName": "RabbitMQ Event Handler",

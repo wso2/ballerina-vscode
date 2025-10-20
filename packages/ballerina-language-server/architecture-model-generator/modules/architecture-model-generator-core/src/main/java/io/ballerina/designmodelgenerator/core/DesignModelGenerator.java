@@ -175,12 +175,15 @@ public class DesignModelGenerator {
             if (symbol instanceof VariableSymbol variableSymbol) {
                 TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
                 if (typeSymbol instanceof ObjectTypeSymbol objectTypeSymbol) {
-                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                    boolean isAgentClass = CommonUtils.isAgentClass(objectTypeSymbol);
+                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isAgentClass) {
                         LineRange lineRange = variableSymbol.getLocation().get().lineRange();
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());
+                        boolean showConnection = !isAgentClass; // Hide agent class connections
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
-                                getLocation(lineRange), Connection.Scope.GLOBAL, icon, true);
+                                getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
+                                CommonUtils.getConnectionKind(objectTypeSymbol));
                         intermediateModel.connectionMap.put(
                                 String.valueOf(variableSymbol.getLocation().get().hashCode()), connection);
                         intermediateModel.uuidToConnectionMap.put(connection.getUuid(), connection);

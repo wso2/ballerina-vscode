@@ -1,0 +1,101 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "4",
+    "displayName": "Directory Service",
+    "description": "Create a service to monitor a directory for file events",
+    "orgName": "ballerina",
+    "packageName": "file",
+    "moduleName": "file",
+    "version": "1.12.0",
+    "type": "file",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_file_1.12.0.png",
+    "properties": {
+      "path": {
+        "metadata": {
+          "label": "Path",
+          "description": "Directory path to be monitored"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+        },
+        "placeholder": "\"/tmp\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"/Users\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "recursive": {
+        "metadata": {
+          "label": "Recursive",
+          "description": "Recursively monitor all sub-directories"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "false",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "boolean",
+        "value": "true",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "fileListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/file;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener file:Listener fileListener = new (path = \"/Users\", recursive = true);\nservice file:Service on fileListener {\n\tremote function onCreate(file:FileEvent event) {\n\t}\n}\n"
+      }
+    ]
+  }
+}

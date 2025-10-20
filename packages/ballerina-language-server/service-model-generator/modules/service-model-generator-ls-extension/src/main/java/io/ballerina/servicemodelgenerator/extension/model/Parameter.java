@@ -106,6 +106,14 @@ public class Parameter {
     }
 
     public Value getDocumentation() {
+        if (Objects.isNull(documentation)) {
+            documentation = new Value.ValueBuilder()
+                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .optional(true)
+                    .editable(true)
+                    .build();
+        }
         return documentation;
     }
 

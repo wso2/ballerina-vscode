@@ -26,14 +26,22 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
@@ -51,15 +59,24 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -74,6 +91,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRe
 public final class HttpServiceBuilder extends AbstractServiceBuilder {
 
     private static final String HTTP_SERVICE_MODEL_LOCATION = "services/http.json";
+    private static final String NEW_HTTP_SERVICE_MODEL_LOCATION = "services/http_new.json";
 
     public HttpServiceBuilder() {
     }
@@ -92,6 +110,75 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         } catch (IOException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
+                .getResourceAsStream(NEW_HTTP_SERVICE_MODEL_LOCATION);
+        if (resourceStream == null) {
+            return null;
+        }
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Value listenerNameProp = listenerNameProperty(context);
+            Value listener = serviceInitModel.getProperties().get(KEY_CONFIGURE_LISTENER);
+            listener.getChoices().get(1).getProperties().get(KEY_LISTENER_VAR_NAME)
+                    .setValue(listenerNameProp.getValue());
+            return serviceInitModel;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+
+        Map<String, Value> properties = serviceInitModel.getProperties();
+
+        StringBuilder listenerDeclaration = new StringBuilder("listener http:Listener ");
+        String listenerVarName;
+        if (Objects.nonNull(properties.get("port")) && Objects.nonNull(properties.get("listenerVarName"))) {
+            listenerVarName = properties.get("listenerVarName").getValue();
+            listenerDeclaration.append(listenerVarName).append(" = ").append("new (")
+                    .append(properties.get("port").getValue()).append(");");
+        } else {
+            listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), "httpDefaultListener");
+            listenerDeclaration.append(listenerVarName).append(" = ").append("http:getDefaultListener();");
+        }
+
+        if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
+            return new OpenApiServiceGenerator(Path.of(serviceInitModel.getOpenAPISpec().getValue()),
+                    context.project().sourceRoot(), context.workspaceManager())
+                    .generateService(serviceInitModel, listenerVarName, listenerDeclaration.toString());
+        }
+
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+
+        String basePath = properties.get("basePath").getValue();
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(listenerDeclaration)
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE).append(basePath)
+                .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        List<TextEdit> edits = new ArrayList<>();
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        return Map.of(context.filePath(), edits);
     }
 
     @Override
@@ -116,7 +203,7 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         Map<String, String> imports = new HashMap<>();
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        List<String> functionsStr = buildMethodDefinitions(service, HTTP_SERVICE_ADD, imports);
+        List<String> functionsStr = buildMethodDefinitions(service.getFunctions(), HTTP_SERVICE_ADD, imports);
         buildServiceNodeBody(functionsStr, serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();

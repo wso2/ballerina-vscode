@@ -1,0 +1,139 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "8",
+    "displayName": "MCP Service",
+    "description": "Create MCP service",
+    "orgName": "ballerina",
+    "packageName": "mcp",
+    "moduleName": "mcp",
+    "version": "1.0.0",
+    "type": "mcp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.0.png",
+    "properties": {
+      "serviceName": {
+        "metadata": {
+          "label": "Service Name",
+          "description": "The name of the mcp service"
+        },
+        "codedata": {
+          "argType": "SOURCE_ANNOTATION"
+        },
+        "placeholder": "MCP Service",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"Health Care MCP\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "version": {
+        "metadata": {
+          "label": "Version",
+          "description": "The version of the mcp service"
+        },
+        "codedata": {
+          "argType": "SOURCE_ANNOTATION"
+        },
+        "placeholder": "\"1.0.0\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"1.0.0\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "The port on which the MCP service listens"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "8080",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "value": "8080",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Base Path",
+          "description": "The base path of the MCP service"
+        },
+        "codedata": {
+          "argType": "SERVICE_BASE_PATH"
+        },
+        "placeholder": "/mcp",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "/mcp",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "mcpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/mcp;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener mcp:Listener mcpListener = new (8080);\n@mcp:ServiceConfig {\n\tinfo: {\n\t\tname: \"Health Care MCP\"\n\t\tversion: \"1.0.0\"\n\t}\n}\nisolated service mcp:Service /mcp on mcpListener {\n\n}\n"
+      }
+    ]
+  }
+}

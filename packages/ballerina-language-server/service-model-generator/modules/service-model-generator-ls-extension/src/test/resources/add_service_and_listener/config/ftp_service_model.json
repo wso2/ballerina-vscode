@@ -1,0 +1,142 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a rabbitmq service",
+  "serviceInitModel": {
+    "id": "5",
+    "displayName": "FTP Service",
+    "description": "Create a service to monitor a directory in a FTP server for file events",
+    "orgName": "ballerina",
+    "packageName": "ftp",
+    "moduleName": "ftp",
+    "version": "2.13.0",
+    "type": "ftp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.0.png",
+    "properties": {
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "Target FTP server url"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"127.0.0.1\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"127.0.0.1\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "Target FTP server port"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "21",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "value": "21",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "protocol": {
+        "metadata": {
+          "label": "Protocol",
+          "description": "The protocol to connect to the FTP server"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"ftp\"",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": "string",
+        "value": "\"ftp\"",
+        "items": [
+          "\"ftp\"",
+          "\"sftp\""
+        ],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "path": {
+        "metadata": {
+          "label": "Path",
+          "description": "The path to be monitored"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"/\"",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"/\"",
+        "items": [],
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "ftpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/ftp;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener ftp:Listener ftpListener = new (host = \"127.0.0.1\", port = 21, protocol = \"ftp\", path = \"/\");\nservice ftp:Service on ftpListener {\n\tremote function onFileChange(ftp:WatchEvent & readonly event, ftp:Caller caller) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+      }
+    ]
+  }
+}
