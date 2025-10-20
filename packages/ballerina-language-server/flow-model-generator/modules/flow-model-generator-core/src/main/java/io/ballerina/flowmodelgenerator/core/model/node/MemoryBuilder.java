@@ -44,7 +44,7 @@ import java.util.Set;
  *
  * @since 1.3.1
  */
-public class MemoryManagerBuilder extends CallBuilder {
+public class MemoryBuilder extends CallBuilder {
 
     public static final String LABEL = "Memory Manager";
 

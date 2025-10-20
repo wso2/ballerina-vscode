@@ -52,7 +52,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.LockBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MatchBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.MemoryManagerBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
@@ -158,7 +158,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.AGENT, AgentBuilder::new);
         put(NodeKind.AGENT_CALL, AgentCallBuilder::new);
         put(NodeKind.CLASS_INIT, ClassInitBuilder::new);
-        put(NodeKind.MEMORY, MemoryManagerBuilder::new);
+        put(NodeKind.MEMORY, MemoryBuilder::new);
         put(NodeKind.MEMORY_STORE, MemoryStoreBuilder::new);
         put(NodeKind.MODEL_PROVIDER, ModelProviderBuilder::new);
         put(NodeKind.EMBEDDING_PROVIDER, EmbeddingProviderBuilder::new);
