@@ -211,6 +211,17 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
 
     return (
         <Container>
+            {selectedType && (
+                <div style={{ marginTop: '16px' }}>
+                    <TextField
+                        id="selected-type"
+                        label="Selected Type"
+                        value={selectedType.name}
+                        readOnly
+                    />
+                </div>
+            )}
+
             <SearchContainer>
                 <TextField
                     value={searchText}
