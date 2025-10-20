@@ -343,6 +343,9 @@
     },
     {
       "label": "flag",
+      "labelDetails": {
+        "detail": " boolean"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "F",
@@ -351,6 +354,9 @@
     },
     {
       "label": "n",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -411,6 +417,10 @@
     },
     {
       "label": "test",
+      "labelDetails": {
+        "detail": " boolean",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "F",

@@ -407,6 +407,10 @@
     },
     {
       "label": "l1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "F",
@@ -415,6 +419,9 @@
     },
     {
       "label": "testValue",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

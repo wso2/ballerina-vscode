@@ -4,6 +4,7 @@
     "character": 9
   },
   "source": "expression_context/source/mapping_expr_ctx_source41.bal",
+  "description": "",
   "items": [
     {
       "label": "readonly",
@@ -24,6 +25,9 @@
     },
     {
       "label": "rec3Field2",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

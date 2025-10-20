@@ -599,6 +599,9 @@
     },
     {
       "label": "arr",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AABB",
@@ -607,6 +610,9 @@
     },
     {
       "label": "intArr1",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AABB",
@@ -615,6 +621,9 @@
     },
     {
       "label": "intArr3",
+      "labelDetails": {
+        "detail": " int[][]"
+      },
       "kind": "Variable",
       "detail": "int[][]",
       "sortText": "AFB",
@@ -623,6 +632,9 @@
     },
     {
       "label": "i",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AFB",
@@ -631,6 +643,9 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AFB",
@@ -639,6 +654,9 @@
     },
     {
       "label": "dim2Arr",
+      "labelDetails": {
+        "detail": " int[][]"
+      },
       "kind": "Variable",
       "detail": "int[][]",
       "sortText": "AFB",
@@ -677,6 +695,9 @@
     },
     {
       "label": "intArr2",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AABB",
@@ -712,6 +733,9 @@
     },
     {
       "label": "intArr5",
+      "labelDetails": {
+        "detail": " Dim1[]"
+      },
       "kind": "Variable",
       "detail": "Dim1[]",
       "sortText": "AFB",
@@ -720,6 +744,9 @@
     },
     {
       "label": "intArr4",
+      "labelDetails": {
+        "detail": " int[][]"
+      },
       "kind": "Variable",
       "detail": "int[][]",
       "sortText": "AFB",

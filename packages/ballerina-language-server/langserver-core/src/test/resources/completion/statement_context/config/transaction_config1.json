@@ -529,6 +529,9 @@
     },
     {
       "label": "res",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "B",

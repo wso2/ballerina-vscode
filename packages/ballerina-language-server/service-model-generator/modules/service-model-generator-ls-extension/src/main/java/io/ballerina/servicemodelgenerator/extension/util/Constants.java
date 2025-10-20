@@ -40,6 +40,7 @@ public class Constants {
     public static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
     public static final String AT = "@";
     public static final String COLON = ":";
+    public static final String COMMA = ",";
 
     public static final String SINGLE_SELECT_VALUE = "SINGLE_SELECT";
     public static final String MULTIPLE_SELECT_VALUE = "MULTIPLE_SELECT";
@@ -82,7 +83,6 @@ public class Constants {
     public static final String KIND_OBJECT_METHOD = "OBJECT_METHOD";
 
     public static final String PARAMETER = "parameter";
-    public static final String ISOLATED = "isolated";
     public static final String SERVICE = "service";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";

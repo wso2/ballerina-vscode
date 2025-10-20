@@ -4,6 +4,7 @@
     "character": 16
   },
   "source": "expression_context/source/type_test_expression_ctx_source7.bal",
+  "description": "",
   "items": [
     {
       "label": "TEST_INT_CONST1",
@@ -173,6 +174,10 @@
     },
     {
       "label": "listener1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "BBC",
@@ -249,6 +254,9 @@
     },
     {
       "label": "TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "BBC",
@@ -257,6 +265,9 @@
     },
     {
       "label": "GLOBAL_VAR",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BBC",

@@ -399,6 +399,10 @@
     },
     {
       "label": "d",
+      "labelDetails": {
+        "detail": " float[]",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "float[]",
       "sortText": "F",
@@ -407,6 +411,10 @@
     },
     {
       "label": "b",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -446,6 +454,10 @@
     },
     {
       "label": "c",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -465,6 +477,9 @@
     },
     {
       "label": "rec",
+      "labelDetails": {
+        "detail": " R1"
+      },
       "kind": "Variable",
       "detail": "R1",
       "sortText": "AB",
@@ -473,6 +488,10 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -498,6 +517,9 @@
     },
     {
       "label": "x",
+      "labelDetails": {
+        "detail": " FT"
+      },
       "kind": "Variable",
       "detail": "FT",
       "sortText": "F",

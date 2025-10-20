@@ -4,6 +4,7 @@
     "character": 26
   },
   "source": "action_node_context/source/client_resource_access_action_source4.bal",
+  "description": "",
   "items": [
     {
       "label": "TEST_INT_CONST1",
@@ -49,14 +50,20 @@
     },
     {
       "label": "TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
-      "detail": "future\u003cint\u003e",
+      "detail": "future<int>",
       "sortText": "C",
       "insertText": "TEST_FUTURE_INT",
       "insertTextFormat": "Snippet"
     },
     {
       "label": "GLOBAL_VAR",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "C",
@@ -65,6 +72,10 @@
     },
     {
       "label": "listener1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "C",

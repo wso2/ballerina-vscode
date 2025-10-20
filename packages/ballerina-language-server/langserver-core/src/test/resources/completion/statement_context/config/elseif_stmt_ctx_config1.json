@@ -541,6 +541,9 @@
     },
     {
       "label": "testInt",
+      "labelDetails": {
+        "detail": " 2"
+      },
       "kind": "Variable",
       "detail": "2",
       "sortText": "B",

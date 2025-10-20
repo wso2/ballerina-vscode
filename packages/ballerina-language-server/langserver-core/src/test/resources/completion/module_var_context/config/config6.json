@@ -392,6 +392,10 @@
     },
     {
       "label": "testC",
+      "labelDetails": {
+        "detail": " module1:Client",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "module1:Client",
       "sortText": "AB",

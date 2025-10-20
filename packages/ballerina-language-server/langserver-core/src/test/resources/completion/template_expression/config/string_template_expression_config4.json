@@ -273,6 +273,9 @@
     },
     {
       "label": "varRecTypeDef",
+      "labelDetails": {
+        "detail": " RecordTypeDec"
+      },
       "kind": "Variable",
       "detail": "RecordTypeDec",
       "sortText": "ACB",
@@ -281,6 +284,9 @@
     },
     {
       "label": "varIntTypeDef",
+      "labelDetails": {
+        "detail": " IntTypeDef"
+      },
       "kind": "Variable",
       "detail": "IntTypeDef",
       "sortText": "AAB",
@@ -289,6 +295,9 @@
     },
     {
       "label": "varInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AAB",
@@ -312,6 +321,9 @@
     },
     {
       "label": "hello",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AAB",
@@ -335,6 +347,9 @@
     },
     {
       "label": "varString",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AAB",

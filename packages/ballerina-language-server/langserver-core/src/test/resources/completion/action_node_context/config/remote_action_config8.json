@@ -512,6 +512,10 @@
     },
     {
       "label": "prodClient",
+      "labelDetails": {
+        "detail": " ProductClient",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "ProductClient",
       "sortText": "AB",
@@ -600,6 +604,9 @@
     },
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -608,6 +615,10 @@
     },
     {
       "label": "pageSize",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",
@@ -616,6 +627,9 @@
     },
     {
       "label": "count",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",
@@ -624,6 +638,10 @@
     },
     {
       "label": "modClient",
+      "labelDetails": {
+        "detail": " module1:Client",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "module1:Client",
       "sortText": "AB",
@@ -651,6 +669,10 @@
     },
     {
       "label": "lastName",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -659,6 +681,10 @@
     },
     {
       "label": "page",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",
@@ -667,6 +693,10 @@
     },
     {
       "label": "firstName",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",

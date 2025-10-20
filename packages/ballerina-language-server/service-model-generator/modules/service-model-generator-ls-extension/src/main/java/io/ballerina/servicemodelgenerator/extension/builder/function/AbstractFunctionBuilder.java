@@ -70,6 +70,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
@@ -313,7 +314,8 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         String functionName = context.functionNode().functionName().text().trim();
         LineRange nameRange = context.functionNode().functionName().lineRange();
         String functionKind = context.function().getKind();
-        boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION);
+        boolean isRemote = functionKind.equals(KIND_REMOTE) || functionKind.equals(KIND_MUTATION)
+                || functionKind.equals(OBJECT_METHOD);
         String newFunctionName = context.function().getName().getValue();
         if (isRemote && !functionName.equals(newFunctionName)) {
             edits.add(new TextEdit(Utils.toRange(nameRange), newFunctionName));

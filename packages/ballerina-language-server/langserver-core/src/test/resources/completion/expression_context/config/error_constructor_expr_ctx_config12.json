@@ -372,6 +372,9 @@
     },
     {
       "label": "ce",
+      "labelDetails": {
+        "detail": " ERR"
+      },
       "kind": "Variable",
       "detail": "ERR",
       "sortText": "AB",
