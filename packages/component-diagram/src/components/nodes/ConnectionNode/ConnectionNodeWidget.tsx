@@ -165,7 +165,7 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
     };
 
     const getNodeDescription = () => {
-        if (model.node.kind) {
+        if (model.node?.kind) {
             return model.node.kind;
         }
         return "Connection";
