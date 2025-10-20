@@ -105,6 +105,7 @@ export interface Mapping {
     isFunctionCall?: boolean;
     functionRange?: LineRange;
     functionContent?: string;
+    elementAccessIndex?: string[];
 }
 
 export interface ExpandedDMModel {
