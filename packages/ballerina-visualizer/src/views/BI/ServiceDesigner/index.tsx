@@ -702,7 +702,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             return nameMatch || iconMatch;
         })
         .length;
-    
+
     const remoteFunctionsCount = resources
         .filter((resource) => resource.type === DIRECTORY_MAP.REMOTE)
         .filter((resource) => {
@@ -798,7 +798,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     />
                                                     <PropertyKey>{prop.label}:</PropertyKey>
                                                     <PropertyValue>
-                                                        {Array.isArray(prop.value) ? prop.value.join(", ") : prop.value}
+                                                        {Array.isArray(prop.value)
+                                                            ? prop.value.map(val => typeof val === "string" ? val.replace(/\\/g, '') : val).join(", ")
+                                                            : (typeof prop.value === "string" ? prop.value.replace(/\\/g, '') : prop.value)
+                                                        }
                                                     </PropertyValue>
                                                 </PropertyInline>
                                             ))}

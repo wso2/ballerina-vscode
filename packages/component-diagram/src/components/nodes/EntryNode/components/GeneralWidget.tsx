@@ -50,7 +50,7 @@ const getNodeTitle = (model: EntryNodeModel) => {
         return model.node.displayName;
     }
     if ((model.node as CDService).absolutePath) {
-        return (model.node as CDService).absolutePath;
+        return (model.node as CDService).absolutePath.replace(/\\/g, "");
     }
     return "";
 };
