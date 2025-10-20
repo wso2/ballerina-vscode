@@ -78,7 +78,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,10 +125,16 @@ class ServiceIndexGenerator {
                                        PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(buildProject, org,
-                    packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
+            Optional<Package> packageOpt = PackageUtil.getModulePackage(buildProject, org,
+
+                    packageMetadataInfo.name(), packageMetadataInfo.version());
+            if (packageOpt.isEmpty()) {
+                LOGGER.warning("Package not found: " + org + "/" + packageMetadataInfo.name() + ":" + packageMetadataInfo.version());
+                return;
+            }
+            resolvedPackage = packageOpt.get();
         } catch (Throwable e) {
-            LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + e.getMessage());
+            LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + " - " + e.getMessage());
             return;
         }
         PackageDescriptor descriptor = resolvedPackage.descriptor();
@@ -212,6 +220,16 @@ class ServiceIndexGenerator {
 
                 DatabaseManager.insertAnnotation(packageId, annotationName, attachPoints, annotation.displayName(),
                         annotation.description(), annotation.typeConstraint(), pkgInfo);
+            }
+        }
+
+        // readonly metadata
+        if (Objects.nonNull(packageMetadataInfo.readOnlyMetaData())) {
+            List<MetadataItem> metadataItems = packageMetadataInfo.readOnlyMetaData();
+            for (MetadataItem item : metadataItems) {
+                // Insert metadata with the kind field
+                DatabaseManager.insertServiceReadOnlyMetaData(packageId, item.key(),
+                        item.displayName(), item.kind());
             }
         }
 
@@ -639,7 +657,11 @@ class ServiceIndexGenerator {
     private record PackageMetadataInfo(String name, String version, List<String> serviceTypeSkipList,
                                        ServiceDeclaration serviceDeclaration,
                                        Map<String, ServiceType> serviceTypes, Map<String, Annotation> annotations,
-                                       Map<String, ServiceInitializerProperty> initForm) {
+                                       Map<String, ServiceInitializerProperty> initForm,
+                                       List<MetadataItem> readOnlyMetaData) {
+    }
+
+    private record MetadataItem(String key, String displayName, String kind) {
     }
 
     record ServiceDeclaration(int optionalTypeDescriptor, String displayName, String description,

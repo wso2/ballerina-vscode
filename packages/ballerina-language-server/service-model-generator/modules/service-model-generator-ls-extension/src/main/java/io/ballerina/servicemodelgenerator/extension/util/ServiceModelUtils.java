@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
+import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
@@ -49,6 +50,7 @@ import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -424,6 +426,35 @@ public class ServiceModelUtils {
                 .valueType(Constants.VALUE_TYPE_STRING)
                 .setValueTypeConstraint("string")
                 .optional(true)
+                .setAdvanced(false)
+                .enabled(true)
+                .editable(true);
+        return valueBuilder.build();
+    }
+
+    public static Value getReadonlyMetadata(String orgName, String packageName, String serviceType) {
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        HashMap<String, String> props = new HashMap<>();
+
+        // Try to get metadata from database if service type and package info is available
+        if (orgName != null && packageName != null && serviceType != null) {
+            List<ReadOnlyMetaData> metaDataList =
+                    ServiceDatabaseManager.getInstance().getReadOnlyMetaData(orgName, packageName, serviceType);
+
+            for (ReadOnlyMetaData metaData : metaDataList) {
+                String displayName = metaData.displayName() != null && !metaData.displayName().isEmpty()
+                        ? metaData.displayName()
+                        : metaData.metadataKey();
+                props.put(displayName, "");  // Value will be populated at runtime by extractors
+            }
+        }
+
+        valueBuilder.setCodedata(new Codedata("READONLY"))
+                .value(props)
+                .valueType("SINGLE_SELECT")
+                .setValueTypeConstraint("boolean")
+                .setPlaceholder("false")
+                .optional(false)
                 .setAdvanced(false)
                 .enabled(true)
                 .editable(true);

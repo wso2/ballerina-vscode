@@ -57,7 +57,13 @@
         }
       },
       "initForm": {
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"},
+        {"key": "basePath", "displayName": "Base Path", "kind": "SERVICE_DESCRIPTION"},
+        {"key": "host", "displayName": "Host Address", "kind": "SERVICE_DESCRIPTION"},
+        {"key": "config", "displayName": "Service Configuration", "kind": "ANNOTATION"}
+      ]
     },
     {
       "name": "graphql",
@@ -948,7 +954,14 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "autoAck", "displayName": "Auto Acknowledge", "kind": "ANNOTATION"},
+        {"key": "queueName", "displayName": "Queue Name", "kind": "ANNOTATION"},
+        {"key": "host", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
+        {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
+      ]
+
     },
     {
       "name": "kafka",

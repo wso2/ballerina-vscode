@@ -25,7 +25,7 @@ CREATE TABLE Package (
 CREATE TABLE ServiceDeclaration (
     package_id PRIMARY KEY,
     display_name TEXT NOT NULL,
-    kind TEXT NOT NULL,
+    description TEXT NOT NULL,
     optional_type_descriptor INTEGER CHECK(optional_type_descriptor IN (0, 1)),
     type_descriptor_label TEXT,
     type_descriptor_description TEXT,
@@ -39,6 +39,7 @@ CREATE TABLE ServiceDeclaration (
     string_literal_label TEXT,
     string_literal_description TEXT,
     string_literal_default_value TEXT,
+    kind TEXT NOT NULL,
     listener_kind TEXT CHECK(listener_kind IN ('MULTIPLE_SELECT', 'SINGLE_SELECT')),
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
@@ -143,7 +144,7 @@ CREATE TABLE ServiceInitializerProperty (
     value_type TEXT CHECK(value_type IN ('TYPE', 'FLAG', 'EXPRESSION', 'SINGLE_SELECT')),
     type_constraint TEXT,
     source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
-    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD', 'SOURCE_ANNOTATION')),
+    'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD')),
     selections TEXT, -- Comma-separated values for selection options
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
@@ -152,9 +153,10 @@ CREATE TABLE ServiceInitializerProperty (
 CREATE TABLE ServiceReadOnlyMetaData (
     metadata_id INTEGER PRIMARY KEY AUTOINCREMENT,
     package_id INTEGER,
+    service_type TEXT NOT NULL,
     metadata_key TEXT NOT NULL,
     display_name TEXT,
-    kind TEXT NOT NULL,
+    description TEXT,
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
 

@@ -47,6 +47,8 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
+import io.ballerina.servicemodelgenerator.extension.extractor.ReadOnlyMetadataManager;
+import io.ballerina.servicemodelgenerator.extension.extractor.CustomExtractor;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -94,6 +96,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
@@ -285,7 +288,10 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         if (serviceTemplate.optionalStringLiteral() == 0) {
             properties.put("stringLiteral", getStringLiteral(serviceTemplate));
         }
-
+        // Get the service type for metadata retrieval
+        List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(pkg.packageId());
+        String serviceType = serviceTypes.isEmpty() ? null : serviceTypes.getFirst();
+        properties.put("readOnlyMetaData", getReadonlyMetadata(pkg.org(), pkg.name(), serviceType));
         List<AnnotationAttachment> annotationAttachments = ServiceDatabaseManager.getInstance()
                 .getAnnotationAttachments(pkg.packageId());
         for (AnnotationAttachment annotationAttachment : annotationAttachments) {
@@ -431,6 +437,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
         return serviceModel;
     }
 
@@ -525,6 +532,48 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
                 }
             }
+        }
+    }
+
+    /**
+     * Updates the readOnly metadata in the service model using the new extraction architecture.
+     * This method uses the ReadOnlyMetadataManager to extract values from different sources
+     * based on the metadata kind (ANNOTATION, LISTENER_PARAM, SERVICE_DESCRIPTION, CUSTOM).
+     *
+     * @param serviceModel The service model to update
+     * @param serviceNode The service declaration node containing annotations
+     * @param context The model context containing service information
+     */
+    private void updateReadOnlyMetadataWithAnnotations(Service serviceModel, ServiceDeclarationNode serviceNode,
+                                                      ModelFromSourceContext context) {
+        // Get the current readOnly metadata property
+        Value currentReadOnlyMetadata = serviceModel.getProperty("readOnlyMetaData");
+        if (currentReadOnlyMetadata == null) {
+            return;
+        }
+
+        // Create the ReadOnlyMetadataManager
+        ReadOnlyMetadataManager metadataManager = new ReadOnlyMetadataManager();
+
+        // Check if the current service builder supports custom extraction
+        Optional<CustomExtractor> customExtractor = Optional.empty();
+        if (this instanceof CustomExtractor customServiceBuilder) {
+            customExtractor = Optional.of(customServiceBuilder);
+        }
+
+        // Extract all metadata values using the new architecture
+        Map<String, String> extractedValues = metadataManager.extractAllMetadata(serviceNode, context, customExtractor);
+
+        // Get the current value as a map (readOnly metadata uses HashMap<String, String>)
+        Object currentValue = currentReadOnlyMetadata.getValue();
+        HashMap<String, String> currentProps;
+
+        if (currentValue instanceof HashMap) {
+            currentProps = (HashMap<String, String>) currentValue;
+            currentProps.putAll(extractedValues);
+        } else {
+            currentProps = new HashMap<>(extractedValues);
+            currentReadOnlyMetadata.setValue(currentProps);
         }
     }
 

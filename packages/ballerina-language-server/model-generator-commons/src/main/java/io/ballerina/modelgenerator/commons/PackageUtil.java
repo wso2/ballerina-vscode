@@ -81,8 +81,11 @@ public class PackageUtil {
         if (ballerinaHome == null || ballerinaHome.isEmpty()) {
             Path currentPath = getPath(Paths.get(
                     PackageUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath()));
-            Path distributionPath = getParentPath(getParentPath(getParentPath(currentPath)));
-            System.setProperty(BALLERINA_HOME_PROPERTY, distributionPath.toString());
+//            Path distributionPath = getParentPath(getParentPath(getParentPath(currentPath)));
+            String distributionPathString = ("/Users/samith/.ballerina/ballerina-home" +
+                    "/distributions" +
+                    "/ballerina-2201.13.0-m3");
+            System.setProperty(BALLERINA_HOME_PROPERTY, distributionPathString);
         }
 
         try {
