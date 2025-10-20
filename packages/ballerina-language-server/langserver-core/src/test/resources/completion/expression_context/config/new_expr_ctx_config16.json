@@ -4,6 +4,7 @@
     "character": 47
   },
   "source": "expression_context/source/new_expr_ctx_source16.bal",
+  "description": "",
   "items": [
     {
       "label": "ENUM1_FIELD1",
@@ -173,6 +174,10 @@
     },
     {
       "label": "listener1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "C",
@@ -249,6 +254,9 @@
     },
     {
       "label": "TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "C",
@@ -257,6 +265,9 @@
     },
     {
       "label": "GLOBAL_VAR",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "C",

@@ -368,6 +368,9 @@
     },
     {
       "label": "medalStats",
+      "labelDetails": {
+        "detail": " stream<MedalStats, error?>"
+      },
       "kind": "Variable",
       "detail": "stream<MedalStats, error?>",
       "sortText": "F",
@@ -376,6 +379,9 @@
     },
     {
       "label": "stats",
+      "labelDetails": {
+        "detail": " MedalStats"
+      },
       "kind": "Variable",
       "detail": "MedalStats",
       "sortText": "F",
@@ -392,6 +398,9 @@
     },
     {
       "label": "entry",
+      "labelDetails": {
+        "detail": " [string, int]"
+      },
       "kind": "Variable",
       "detail": "[string, int]",
       "sortText": "F",
@@ -423,6 +432,9 @@
     },
     {
       "label": "athletesByCountry",
+      "labelDetails": {
+        "detail": " map<int>"
+      },
       "kind": "Variable",
       "detail": "map<int>",
       "sortText": "F",
@@ -431,6 +443,9 @@
     },
     {
       "label": "ratio",
+      "labelDetails": {
+        "detail": " float"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "AB",

@@ -363,6 +363,9 @@
     },
     {
       "label": "customerList",
+      "labelDetails": {
+        "detail": " Customer[]"
+      },
       "kind": "Variable",
       "detail": "Customer[]",
       "sortText": "BB",
@@ -379,6 +382,9 @@
     },
     {
       "label": "c3",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "BB",
@@ -395,6 +401,9 @@
     },
     {
       "label": "c1",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "BB",
@@ -403,6 +412,9 @@
     },
     {
       "label": "c2",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "BB",
@@ -426,6 +438,9 @@
     },
     {
       "label": "customer",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "AB",

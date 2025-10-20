@@ -468,6 +468,9 @@
     },
     {
       "label": "listResult",
+      "labelDetails": {
+        "detail": " string[]"
+      },
       "kind": "Variable",
       "detail": "string[]",
       "sortText": "F",
@@ -484,6 +487,9 @@
     },
     {
       "label": "athletesByCountry",
+      "labelDetails": {
+        "detail": " map<int>"
+      },
       "kind": "Variable",
       "detail": "map<int>",
       "sortText": "F",
@@ -492,6 +498,9 @@
     },
     {
       "label": "xlimit",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -500,6 +509,9 @@
     },
     {
       "label": "zlimit",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -534,6 +546,9 @@
     },
     {
       "label": "alimit",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",

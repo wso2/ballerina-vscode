@@ -494,6 +494,9 @@
     },
     {
       "label": "x",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AFB",
@@ -502,6 +505,9 @@
     },
     {
       "label": "y",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AFB",

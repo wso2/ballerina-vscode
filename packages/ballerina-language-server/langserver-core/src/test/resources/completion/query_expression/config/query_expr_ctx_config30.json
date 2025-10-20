@@ -487,6 +487,9 @@
     },
     {
       "label": "customerMap",
+      "labelDetails": {
+        "detail": " map<string>"
+      },
       "kind": "Variable",
       "detail": "map<string>",
       "sortText": "BB",
@@ -495,6 +498,9 @@
     },
     {
       "label": "customerStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -503,6 +509,9 @@
     },
     {
       "label": "i",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "CB",
@@ -511,6 +520,9 @@
     },
     {
       "label": "customerList",
+      "labelDetails": {
+        "detail": " Customer[]"
+      },
       "kind": "Variable",
       "detail": "Customer[]",
       "sortText": "AB",
@@ -519,6 +531,9 @@
     },
     {
       "label": "filteredCustomers",
+      "labelDetails": {
+        "detail": " Customer[]"
+      },
       "kind": "Variable",
       "detail": "Customer[]",
       "sortText": "AB",
@@ -550,6 +565,9 @@
     },
     {
       "label": "c",
+      "labelDetails": {
+        "detail": " Customer"
+      },
       "kind": "Variable",
       "detail": "Customer",
       "sortText": "CB",
@@ -558,6 +576,9 @@
     },
     {
       "label": "customers",
+      "labelDetails": {
+        "detail": " Customer[]"
+      },
       "kind": "Variable",
       "detail": "Customer[]",
       "sortText": "AB",
@@ -581,6 +602,9 @@
     },
     {
       "label": "customerStrArray",
+      "labelDetails": {
+        "detail": " string[]"
+      },
       "kind": "Variable",
       "detail": "string[]",
       "sortText": "BB",
