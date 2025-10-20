@@ -117,7 +117,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
         }
-    }, [type]);
+    }, [type, detectedFormat, importTypeName]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
@@ -274,11 +274,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
             }
 
             if (record) {
-                onTypeSave(record.type);
+               await onTypeSave(record.type);
             }
         } catch (err) {
             setError("Could not import JSON as type.");
             console.error("Error importing JSON as type:", err);
+        } finally {
             setIsSaving(false);
         }
     };
@@ -312,11 +313,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
             }
 
             if (lastRecord) {
-                onTypeSave(lastRecord.type);
+                await onTypeSave(lastRecord.type);
             }
         } catch (err) {
             setError("Failed to import XML as type.");
             console.error("Error importing XML as type:", err);
+        } finally {
             setIsSaving(false);
         }
     };
