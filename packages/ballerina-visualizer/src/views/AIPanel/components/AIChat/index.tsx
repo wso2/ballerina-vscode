@@ -48,6 +48,8 @@ import {
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
+    AIChatMachineEventType,
+    AIChatMachineStateValue,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -149,6 +151,7 @@ const AIChat: React.FC = () => {
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
+    const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -205,8 +208,8 @@ const AIChat: React.FC = () => {
             chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
             setIsReqFileExists(
                 chatLocation != null &&
-                    chatLocation != undefined &&
-                    (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
+                chatLocation != undefined &&
+                (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
             );
 
             generateNaturalProgrammingTemplate(isReqFileExists);
@@ -273,6 +276,10 @@ const AIChat: React.FC = () => {
                     });
             });
     }, []);
+
+    rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
+        setAiChatStateMachineState(newState);
+    });
 
     rpcClient?.onChatNotify((response: ChatNotify) => {
         // TODO: Need to handle the content as step blocks
@@ -1678,14 +1685,10 @@ const AIChat: React.FC = () => {
     }
 
     async function processDesignGeneration(useCase: string, message: string) {
-        const requestBody: GenerateCodeRequest = {
-            usecase: useCase,
-            chatHistory: chatArray,
-            operationType: CodeGenerationType.CODE_GENERATION,
-            fileAttachmentContents: [],
-        };
-
-        await rpcClient.getAiPanelRpcClient().generateDesign(requestBody);
+        rpcClient.sendAIChatStateEvent({
+            type: AIChatMachineEventType.SUBMIT_PROMPT,
+            payload: { prompt: useCase }
+        });
     }
 
     async function handleStop() {
@@ -1715,6 +1718,8 @@ const AIChat: React.FC = () => {
         setMessages((prevMessages) => []);
 
         localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
+
+        rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
 
     const questionMessages = messages.filter((message) => message.type === "question");
@@ -1927,6 +1932,7 @@ const AIChat: React.FC = () => {
                             <br />
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
+                        <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
                             <Button
                                 appearance="icon"

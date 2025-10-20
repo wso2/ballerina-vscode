@@ -16,6 +16,7 @@ import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
 import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { AIChatStateMachine } from './views/ai-panel/aiChatMachine';
 
 interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
@@ -307,6 +308,7 @@ const stateMachine = createMachine<MachineContext>(
                     const ls = await activateBallerina();
                     fetchAndCacheLibraryData();
                     AIStateMachine.initialize();
+                    AIChatStateMachine.initialize();
                     StateMachinePopup.initialize();
                     commands.executeCommand('setContext', 'BI.status', 'loadingDone');
                     if (!ls.biSupported) {
