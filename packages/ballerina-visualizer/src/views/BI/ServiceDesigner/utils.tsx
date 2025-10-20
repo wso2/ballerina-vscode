@@ -63,3 +63,12 @@ export function getTitleFromStatusCodeAndType(responseCodes: VisibleTypesRespons
 
     return responseCode ? `${responseCode.labelDetails.detail} - ${responseCode.label}` : "";
 }
+
+
+export function sanitizedHttpPath(value: string): string {
+    return value.replace(/-/g, '\\-').replace(/\./g, '\\.');
+}
+
+export function removeForwardSlashes(value: string): string {
+    return value.replace(/\\/g, '');
+}

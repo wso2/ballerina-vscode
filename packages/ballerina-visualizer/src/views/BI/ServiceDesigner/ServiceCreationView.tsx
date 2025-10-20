@@ -30,6 +30,7 @@ import styled from "@emotion/styled";
 import { getImportsForProperty } from "../../../utils/bi";
 import { DownloadIcon } from "../../../components/DownloadIcon";
 import { RelativeLoader } from "../../../components/RelativeLoader";
+import { sanitizedHttpPath } from "./utils";
 
 const Container = styled.div`
     display: flex;
@@ -350,7 +351,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                         for (const key in choice.properties) {
                             choice.properties[key].value = data[key];
                             if (key === "basePath") {
-                                choice.properties[key].value = data[key].replace(/-/g, '\\-').replace(/\./g, '\\.');
+                                choice.properties[key].value = sanitizedHttpPath(data[key]);
                             }
                         }
                     }

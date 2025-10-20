@@ -24,6 +24,7 @@ import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
 import { ParamEditor } from '../Parameters/ParamEditor';
+import { removeForwardSlashes } from '../../../utils';
 
 
 const MethodLabel = styled.label`
@@ -246,7 +247,7 @@ export function ResourcePath(props: ResourcePathProps) {
 					}}
 					onKeyUp={handleBlur}
 					placeholder="path/foo"
-					value={path.value}
+					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}
 				/>
 			</PathContainer>

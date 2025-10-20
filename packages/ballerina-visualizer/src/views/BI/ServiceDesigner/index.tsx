@@ -44,6 +44,7 @@ import { FunctionForm } from "./Forms/FunctionForm";
 import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 import { McpToolForm } from "./Forms/McpToolForm";
+import { removeForwardSlashes } from "./utils";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -798,10 +799,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     />
                                                     <PropertyKey>{prop.label}:</PropertyKey>
                                                     <PropertyValue>
-                                                        {Array.isArray(prop.value)
-                                                            ? prop.value.map(val => typeof val === "string" ? val.replace(/\\/g, '') : val).join(", ")
-                                                            : (typeof prop.value === "string" ? prop.value.replace(/\\/g, '') : prop.value)
-                                                        }
+                                                        {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
                                                     </PropertyValue>
                                                 </PropertyInline>
                                             ))}

@@ -33,6 +33,7 @@ import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordio
 import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
+import { removeForwardSlashes } from "../ServiceDesigner/utils";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -343,7 +344,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                             {parentMetadata?.accessor || ""}
                         </AccessorType>
                     )}
-                    {!isAutomation && <Path>{parentMetadata?.label || ""}</Path>}
+                    {!isAutomation && <Path>{removeForwardSlashes(parentMetadata?.label || "")}</Path>}
                     {/* {parameters && (
                         <WrappedTooltip content={parameters}>
                             <Parameters>({parameters})</Parameters>

@@ -22,7 +22,7 @@ import { ActionButtons, Divider, SidePanelBody, Typography, ProgressIndicator, T
 import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
-import { getDefaultResponse, HTTP_METHOD } from '../../utils';
+import { getDefaultResponse, HTTP_METHOD, removeForwardSlashes, sanitizedHttpPath } from '../../utils';
 import { FunctionModel, ParameterModel, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
@@ -161,6 +161,7 @@ export function ResourceForm(props: ResourceFormProps) {
 		if (createMore) {
 			closeMethod();
 		}
+		functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
 		onSave(functionModel, !createMore);
 	}
 
