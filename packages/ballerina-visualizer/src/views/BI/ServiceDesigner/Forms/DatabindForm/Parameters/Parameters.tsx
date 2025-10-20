@@ -33,7 +33,6 @@ export interface ParametersProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void;
     onEditClick?: (param: ParameterModel) => void;
-    readonly?: boolean;
     showPayload: boolean;
 }
 
@@ -71,11 +70,7 @@ const ParamDefault = styled.span`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, onEditClick, showPayload } = props;
-
-    const payloadParameters = parameters.filter(
-        (param) => (param.httpParamType && param.httpParamType === "PAYLOAD") || param.kind === "DATA_BINDING"
-    );
+    const { parameters, onChange, onEditClick, showPayload } = props;
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(
@@ -86,15 +81,15 @@ export function Parameters(props: ParametersProps) {
 
     return (
         <div>
-            {/* Payload Parameters */}
             {showPayload && (
                 <>
-                    {payloadParameters.map((param: ParameterModel, index) => {
+                    {parameters.map((param: ParameterModel, index) => {
                         const label = (
                             <ParamLabelContainer>
                                 <ParamType>{param.type.value}</ParamType>
                             </ParamLabelContainer>
                         );
+                        const readonly = param.editable === false;
 
                         return (
                             <HeaderLabel key={index} data-testid={`${param.name.value}-item`}>
@@ -106,16 +101,16 @@ export function Parameters(props: ParametersProps) {
                                     >
                                         {label}
                                     </div>
-                                    {!readonly && (
-                                        <ActionIconWrapper>
+                                    <ActionIconWrapper>
+                                        {!readonly && (
                                             <EditIconWrapper>
                                                 <Codicon name="edit" onClick={() => onEditClick(param)} />
                                             </EditIconWrapper>
-                                            <DeleteIconWrapper>
-                                                <Codicon name="trash" onClick={() => onDelete(param)} />
-                                            </DeleteIconWrapper>
-                                        </ActionIconWrapper>
-                                    )}
+                                        )}
+                                        <DeleteIconWrapper>
+                                            <Codicon name="trash" onClick={() => onDelete(param)} />
+                                        </DeleteIconWrapper>
+                                    </ActionIconWrapper>
                                 </ContentSection>
                             </HeaderLabel>
                         );
