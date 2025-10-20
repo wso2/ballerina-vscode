@@ -20,12 +20,14 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
+import { parse } from "toml";
+import { buildProjectArtifactsStructure } from "./project-artifacts";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -97,45 +99,6 @@ generated/
 # See https://ballerina.io/learn/provide-values-to-configurable-variables/ for more details.
 Config.toml
 `;
-
-export function createBIProject(name: string, isService: boolean) {
-    window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Select Project Location' })
-        .then(uri => {
-            if (uri && uri[0]) {
-                const projectLocation = uri[0].fsPath;
-
-                const command = isService ? `bal new -t service ${name}` : `bal new ${name}`;
-                const options = { cwd: projectLocation };
-
-                exec(command, options, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`Error creating BI project: ${error.message}`);
-                        return;
-                    }
-
-                    console.log(`BI project created successfully at ${projectLocation}`);
-                    console.log(`stdout: ${stdout}`);
-                    console.error(`stderr: ${stderr}`);
-
-                    // Update Ballerina.toml file in the created project folder
-                    const tomlFilePath = `${projectLocation}/${name}/Ballerina.toml`;
-                    hackToUpdateBallerinaToml(tomlFilePath);
-
-                    if (isService) {
-                        const filePath = `${projectLocation}/${name}/service.bal`;
-                        hackToUpdateService(filePath);
-                    } else {
-                        const filePath = `${projectLocation}/${name}/main.bal`;
-                        hackToUpdateMain(filePath);
-                    }
-
-                    const newProjectUri = Uri.joinPath(uri[0], name);
-                    commands.executeCommand('vscode.openFolder', newProjectUri);
-
-                });
-            }
-        });
-}
 
 export function getUsername(): string {
     // Get current username from the system across different OS platforms
@@ -311,6 +274,94 @@ sticky = true
 
     console.log(`BI project created successfully at ${projectRoot}`);
     return projectRoot;
+}
+
+export function convertProjectToWorkspace(workspaceName: string) {
+    const currentProjectPath = StateMachine.context().projectPath;
+    const newDirectory = path.join(path.dirname(currentProjectPath), workspaceName);
+    
+    if (!fs.existsSync(newDirectory)) {
+        fs.mkdirSync(newDirectory, { recursive: true });
+    }
+    
+    const newProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
+    fs.renameSync(currentProjectPath, newProjectPath);
+    openInVSCode(newDirectory);
+}
+
+export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
+    const workspacePath = StateMachine.context().workspacePath;
+    
+    updateWorkspaceToml(workspacePath, params.packageName);
+    
+    const projectPath = createProjectInWorkspace(params, workspacePath);
+    
+    await openNewlyCreatedProject(params, workspacePath, projectPath);
+}
+
+function updateWorkspaceToml(workspacePath: string, packageName: string) {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return;
+    }
+
+    try {
+        const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
+        const tomlData = parse(ballerinaTomlContent);
+        const existingPackages: string[] = tomlData.packages || [];
+        
+        if (existingPackages.includes(packageName)) {
+            return; // Package already exists
+        }
+
+        const updatedContent = addPackageToToml(ballerinaTomlContent, packageName);
+        fs.writeFileSync(ballerinaTomlPath, updatedContent);
+    } catch (error) {
+        console.error('Failed to update workspace Ballerina.toml:', error);
+    }
+}
+
+function addPackageToToml(tomlContent: string, packageName: string): string {
+    const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
+    const match = tomlContent.match(packagesRegex);
+    
+    if (match) {
+        const currentArrayContent = match[1].trim();
+        const newArrayContent = currentArrayContent === '' 
+            ? `"${packageName}"` 
+            : `${currentArrayContent}, "${packageName}"`;
+        
+        return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
+    } else {
+        return tomlContent + `\npackages = ["${packageName}"]\n`;
+    }
+}
+
+function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspacePath: string): string {
+    const projectRequest: ProjectRequest = {
+        projectName: params.projectName,
+        packageName: params.packageName,
+        projectPath: workspacePath,
+        createDirectory: true,
+        orgName: params.orgName,
+        version: params.version
+    };
+    
+    return createBIProjectPure(projectRequest);
+}
+
+async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
+    const viewLocation: VisualizerLocation = {
+        view: MACHINE_VIEW.Overview,
+        workspacePath: workspacePath,
+        projectPath: projectPath,
+        package: params.packageName,
+        org: params.orgName
+    };
+    
+    await buildProjectArtifactsStructure(projectPath, StateMachine.langClient(), true);
+    openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
 
 export function openInVSCode(projectRoot: string) {

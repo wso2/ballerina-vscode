@@ -26,8 +26,8 @@ export interface ProjectRequest {
     packageName: string;
     projectPath: string;
     createDirectory: boolean;
-    createAsWorkspace: boolean;
-    workspaceName: string;
+    createAsWorkspace?: boolean;
+    workspaceName?: string;
     orgName?: string;
     version?: string;
 }

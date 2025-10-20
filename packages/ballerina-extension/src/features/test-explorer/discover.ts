@@ -99,7 +99,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
 export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     uri: Uri, testController: TestController) {
     const request: TestsDiscoveryRequest = {
-        filePath: uri.path
+        projectPath: uri.path
     };
     const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getFileTestFunctions(request);
     if (!response || !response.result) {
