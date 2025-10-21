@@ -26,30 +26,47 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SyntaxInfo;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.eclipse.lsp4j.TextEdit;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_PROPERTY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING_TEMPLATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.EMPTY_ARRAY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PAYLOAD_FIELD_NAME_PROPERTY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.WRAPPER_TYPE_NAME_PROPERTY;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
  * Utility class for data binding parameter operations.
@@ -217,8 +234,8 @@ public final class DatabindUtil {
 
         String typeName = extractDataBindingTypeFromRecordSymbol(recordTypeSymbol, payloadFieldName);
         return typeName != null
-                ? new DataBindingTypeInfo(typeName, false)
-                : new DataBindingTypeInfo(simpleNameRef.name().toString().trim(), false);
+                ? new DataBindingTypeInfo(typeName, true)
+                : new DataBindingTypeInfo(simpleNameRef.name().toString().trim(), true);
     }
 
     /**
@@ -333,6 +350,42 @@ public final class DatabindUtil {
         match.targetFunction().addProperty(DATA_BINDING_PROPERTY,
                 new Value.ValueBuilder().value("true").build()
         );
+        // Add payloadFieldName property
+        match.targetFunction().addProperty(PAYLOAD_FIELD_NAME_PROPERTY,
+                new Value.ValueBuilder().value(payloadFieldName).build()
+        );
+
+        // Extract existing wrapper type name from function node if it exists
+        String existingWrapperTypeName = "";
+        if (match.sourceFunctionNode() != null && context.semanticModel() != null) {
+            String paramName = dataBindingParam.getName().getValue();
+            // Use the service node's module to get the document for semantic model context
+            Optional<Document> documentOpt = Optional.empty();
+            if (context.project() != null) {
+                Module module = context.project().currentPackage().getDefaultModule();
+                if (module != null) {
+                    for (DocumentId docId : module.documentIds()) {
+                        Document doc = module.document(docId);
+                        // Find the document that contains the service
+                        documentOpt = Optional.of(doc);
+                        break;
+                    }
+                }
+            }
+
+            if (documentOpt.isPresent()) {
+                String extractedTypeName = extractExistingDatabindTypeName(match.sourceFunctionNode(), paramName,
+                        context.semanticModel(), documentOpt.get(), "");
+                if (extractedTypeName != null) {
+                    existingWrapperTypeName = extractedTypeName;
+                }
+            }
+        }
+
+        // Add wrapperTypeName property with existing value or empty if new
+        match.targetFunction().addProperty(WRAPPER_TYPE_NAME_PROPERTY,
+                new Value.ValueBuilder().value(existingWrapperTypeName).build()
+        );
     }
 
     /**
@@ -351,66 +404,179 @@ public final class DatabindUtil {
     }
 
     /**
-     * Processes the data binding parameter for functions during code generation. If a DATA_BINDING parameter is
-     * enabled, it generates the inline anonymous record type and sets it as the type of the first REQUIRED parameter,
-     * then disables the DATA_BINDING parameter.
+     * Finds the DATA_BINDING parameter in a function.
      *
-     * @param function          The function containing the parameters
-     * @param functionNode      The FunctionDefinitionNode from source code
-     * @param requiredParamType The required parameter type (e.g., "rabbitmq:AnydataMessage")
-     * @param payloadFieldName  The field name for the payload (e.g., "content")
-     * @param isArray           Whether the parameter is an array type
+     * @param function The function to search
+     * @return Optional containing the DATA_BINDING parameter if found and enabled
      */
-    public static void processDataBindingParameter(Function function, FunctionDefinitionNode functionNode,
-                                                   String requiredParamType, String payloadFieldName, boolean isArray) {
-        List<Parameter> parameters = function.getParameters();
-        if (parameters.isEmpty()) {
-            return;
+    private static Optional<Parameter> findDataBindingParameter(Function function) {
+        return function.getParameters().stream()
+                .filter(param -> DATA_BINDING.equals(param.getKind()) && param.isEnabled())
+                .findFirst();
+    }
+
+    /**
+     * Finds the first REQUIRED parameter in a function.
+     *
+     * @param function The function to search
+     * @return Optional containing the REQUIRED parameter if found
+     */
+    private static Optional<Parameter> findRequiredParameter(Function function) {
+        return function.getParameters().stream()
+                .filter(param -> KIND_REQUIRED.equals(param.getKind()) && !param.isOptional())
+                .findFirst();
+    }
+
+    /**
+     * Processes databinding for a function update operation. This is the main entry point for databinding logic. This
+     * method: 1. Finds the DATA_BINDING parameter (if exists and enabled) 2. Determines if creating new type or
+     * updating existing 3. Generates/updates type in types.bal 4. Updates the function parameter type 5. Returns
+     * TextEdits for types.bal
+     *
+     * @param context          The UpdateModelContext
+     * @param prefix           Type name prefix for generated types (e.g., "KafkaAnydataConsumer",
+     *                         "RabbitMQAnydataMessage")
+     * @param baseType         Base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param payloadFieldName Field name (e.g., "value", "content")
+     * @param isArray          Whether parameter is array type
+     * @return Map of file paths to TextEdit lists for types.bal
+     */
+    public static Map<String, List<TextEdit>> processDatabindingUpdate(UpdateModelContext context,
+                                                                       String prefix,
+                                                                       String baseType,
+                                                                       String payloadFieldName,
+                                                                       boolean isArray) {
+        Function function = context.function();
+        Optional<Parameter> dataBindingParamOpt = findDataBindingParameter(function);
+
+        if (dataBindingParamOpt.isEmpty()) {
+            return Map.of();
         }
 
-        Parameter dataBindingParam = null;
-        Parameter requiredParam = null;
+        Parameter dataBindingParam = dataBindingParamOpt.get();
 
-        for (Parameter param : parameters) {
-            if (DATA_BINDING.equals(param.getKind()) && param.isEnabled()) {
-                dataBindingParam = param;
-            }
-            if (KIND_REQUIRED.equals(param.getKind()) && !param.isOptional()) {
-                requiredParam = param;
-            }
-            if (dataBindingParam != null && requiredParam != null) {
-                break;
+        if (!dataBindingParam.isEditable()) {
+            handleNonEditableDataBinding(function, context.functionNode(), isArray);
+            return Map.of();
+        }
+
+        String newDataBindingType = dataBindingParam.getType().getValue();
+        if (newDataBindingType == null || newDataBindingType.isEmpty()) {
+            return Map.of();
+        }
+
+        // Check if a custom wrapper type name is provided via property
+        String customWrapperTypeName = null;
+        Value wrapperTypeNameProp = function.getProperty(WRAPPER_TYPE_NAME_PROPERTY);
+        if (wrapperTypeNameProp != null) {
+            String propValue = wrapperTypeNameProp.getValue();
+            if (propValue != null && !propValue.isEmpty()) {
+                // Validate the custom type name against keywords and existing symbols
+                customWrapperTypeName = validateCustomWrapperTypeName(propValue, context);
             }
         }
 
-        if (dataBindingParam == null) {
-            return;
-        }
-
-        if (!dataBindingParam.isEditable() && functionNode != null && requiredParam != null) {
+        // Determine if we're updating an existing type or creating a new one
+        String existingTypeName = null;
+        if (context.functionNode() != null) {
             String paramName = dataBindingParam.getName().getValue();
-            Optional<RequiredParameterNode> sourceParam = findRequiredParameter(functionNode, paramName);
-
-            if (sourceParam.isPresent()) {
-                String sourceParamType = sourceParam.get().typeName().toString().trim();
-                requiredParam.getType().setValue(sourceParamType);
-                requiredParam.setEnabled(true);
-            }
-        } else {
-            String dataBindingType = dataBindingParam.getType().getValue();
-
-            if (dataBindingType == null || dataBindingType.isEmpty()) {
-                return;
-            }
-
-            if (requiredParam != null) {
-                String inlineRecordType = createInlineRecordType(requiredParamType, dataBindingType, payloadFieldName,
-                        isArray);
-                requiredParam.getType().setValue(inlineRecordType);
-                requiredParam.setEnabled(true);
-            }
+            existingTypeName = extractExistingDatabindTypeName(context.functionNode(), paramName,
+                    context.semanticModel(), context.document(), baseType);
         }
 
+        Map<String, List<TextEdit>> typesEdits;
+        String typeName;
+
+        if (customWrapperTypeName != null && !customWrapperTypeName.equals(existingTypeName)) {
+            // User provided a custom wrapper type name that differs from existing
+            if (existingTypeName != null) {
+                // Rename the existing type to the custom name
+                typeName = customWrapperTypeName;
+                typesEdits = updateTypeDefinitionEdits(context, existingTypeName, baseType,
+                        newDataBindingType, payloadFieldName, customWrapperTypeName);
+            } else {
+                // Create new type with custom name
+                typeName = customWrapperTypeName;
+                typesEdits = createTypeDefinitionEdits(context, customWrapperTypeName, baseType,
+                        newDataBindingType, payloadFieldName, isArray);
+            }
+        } else if (existingTypeName != null) {
+            // Update existing type with same name
+            typeName = existingTypeName;
+            typesEdits = updateTypeDefinitionEdits(context, existingTypeName, baseType,
+                    newDataBindingType, payloadFieldName);
+        } else {
+            // Create new type
+            typeName = generateDataBindTypeName(context, prefix);
+            typesEdits = createTypeDefinitionEdits(context, typeName, baseType,
+                    newDataBindingType, payloadFieldName, isArray);
+        }
+
+        // Update the databind parameter's type value and the required parameter
+        updateFunctionParameters(function, dataBindingParam, typeName, isArray);
+
+        // Update the wrapper type name property
+        function.addProperty(WRAPPER_TYPE_NAME_PROPERTY,
+                new Value.ValueBuilder().value(typeName).build()
+        );
+
+        return typesEdits;
+    }
+
+    /**
+     * Handles non-editable databinding by preserving the source type.
+     *
+     * @param function     The function containing parameters
+     * @param functionNode The FunctionDefinitionNode from source
+     * @param isArray      Whether the parameter is array type
+     */
+    private static void handleNonEditableDataBinding(Function function, FunctionDefinitionNode functionNode,
+                                                     boolean isArray) {
+        Optional<Parameter> dataBindingParamOpt = findDataBindingParameter(function);
+        Optional<Parameter> requiredParamOpt = findRequiredParameter(function);
+
+        if (dataBindingParamOpt.isEmpty() || requiredParamOpt.isEmpty() || functionNode == null) {
+            return;
+        }
+
+        Parameter dataBindingParam = dataBindingParamOpt.get();
+        Parameter requiredParam = requiredParamOpt.get();
+
+        String paramName = dataBindingParam.getName().getValue();
+        Optional<RequiredParameterNode> sourceParam = findRequiredParameter(functionNode, paramName);
+
+        if (sourceParam.isPresent()) {
+            String sourceParamType = sourceParam.get().typeName().toString().trim();
+            requiredParam.getType().setValue(sourceParamType);
+            requiredParam.setEnabled(true);
+        }
+
+        dataBindingParam.setEnabled(false);
+    }
+
+    /**
+     * Updates function parameters with the databind type name.
+     *
+     * @param function         The function to update
+     * @param dataBindingParam The databinding parameter
+     * @param typeName         The type name to use
+     * @param isArray          Whether the parameter is array type
+     */
+    private static void updateFunctionParameters(Function function, Parameter dataBindingParam,
+                                                 String typeName, boolean isArray) {
+        // Update databind parameter's type value
+        dataBindingParam.getType().setValue(typeName);
+
+        // Update required parameter
+        Optional<Parameter> requiredParamOpt = findRequiredParameter(function);
+        if (requiredParamOpt.isPresent()) {
+            Parameter requiredParam = requiredParamOpt.get();
+            String paramType = typeName + (isArray ? "[]" : "");
+            requiredParam.getType().setValue(paramType);
+            requiredParam.setEnabled(true);
+        }
+
+        // Disable databinding parameter
         dataBindingParam.setEnabled(false);
     }
 
@@ -452,4 +618,438 @@ public final class DatabindUtil {
             String typeName,
             boolean editable
     ) { }
+
+    /**
+     * Validates a custom wrapper type name to ensure it doesn't conflict with Ballerina keywords or existing symbols in
+     * the semantic model.
+     *
+     * @param customTypeName The proposed type name
+     * @param context        The UpdateModelContext containing semantic model information
+     * @return The validated type name (same as input if valid, or null if invalid)
+     */
+    private static String validateCustomWrapperTypeName(String customTypeName, UpdateModelContext context) {
+        if (customTypeName == null || customTypeName.isEmpty()) {
+            return null;
+        }
+
+        // Check if it's a valid identifier
+        if (!SyntaxInfo.isIdentifier(customTypeName)) {
+            return null;
+        }
+
+        // Check if it's a Ballerina keyword
+        if (SyntaxInfo.isKeyword(customTypeName)) {
+            return null;
+        }
+
+        // If semantic model is available, check against visible symbols
+        if (context.semanticModel() != null && context.document() != null) {
+            LinePosition linePosition = context.functionNode() != null
+                    ? context.functionNode().lineRange().startLine()
+                    : LinePosition.from(0, 0);
+
+            Set<String> visibleSymbols = context.semanticModel()
+                    .visibleSymbols(context.document(), linePosition).stream()
+                    .filter(s -> s.getName().isPresent())
+                    .map(s -> s.getName().get())
+                    .collect(HashSet::new, Set::add, Set::addAll);
+
+            // Type name already exists in visible symbols - invalid
+            if (visibleSymbols.contains(customTypeName)) {
+                return null;
+            }
+        }
+
+        return customTypeName;
+    }
+
+    /**
+     * Generates a unique databind type name for the given prefix using semantic model.
+     *
+     * @param context The UpdateModelContext containing project and document information
+     * @param prefix  The prefix for generated type names (e.g., "KafkaAnydataConsumer", "RabbitMQAnydataMessage")
+     * @return A unique type name (e.g., "KafkaAnydataConsumer1", "RabbitMQAnydataMessage1")
+     */
+    private static String generateDataBindTypeName(UpdateModelContext context, String prefix) {
+        // If we have a semantic model and document, use the semantic approach
+        if (context.semanticModel() != null && context.document() != null) {
+            // Get the line position for the function (or start of document if not available)
+            LinePosition linePosition = context.functionNode() != null
+                    ? context.functionNode().lineRange().startLine()
+                    : LinePosition.from(0, 0);
+
+            return Utils.generateTypeIdentifier(context.semanticModel(), context.document(),
+                    linePosition, prefix);
+        }
+
+        // Fallback: use semantic model if available, otherwise parse syntax tree
+        Project project = context.project() != null ? context.project() : context.document().module().project();
+        Document typesDocument = getTypesDocument(project, context.filePath());
+        int nextNumber = findNextDatabindNumber(context.semanticModel(), typesDocument, prefix);
+        return prefix + nextNumber;
+    }
+
+    /**
+     * Extracts import statements needed for the given baseType. For example, "kafka:AnydataConsumerRecord" returns
+     * org/kafka imports.
+     *
+     * @param baseType       The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param modulePartNode The module part node to check existing imports
+     * @return Set of import statements to add
+     */
+    private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode) {
+        Set<String> imports = new HashSet<>();
+
+        // Extract org/module from baseType (e.g., "kafka:AnydataConsumerRecord" -> "kafka")
+        if (baseType.contains(":")) {
+            String moduleName = baseType.substring(0, baseType.indexOf(":"));
+            // Kafka -> ballerinax/kafka, RabbitMQ -> ballerinax/rabbitmq, etc.
+            String org = "ballerinax";
+            String importModule = moduleName.toLowerCase();
+
+            if (!importExists(modulePartNode, org, importModule)) {
+                imports.add(getImportStmt(org, importModule));
+            }
+        }
+
+        return imports;
+    }
+
+    /**
+     * Creates TextEdits for adding a databind type definition to types.bal.
+     *
+     * @param context          The UpdateModelContext containing project information
+     * @param typeName         The name for the new type (e.g., "KafkaDatabind1")
+     * @param baseType         The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param dataBindingType  The data binding field type (e.g., "Order")
+     * @param payloadFieldName The field name for the payload (e.g., "value" or "content")
+     * @param isArray          Whether the parameter is an array type
+     * @return Map of file paths to TextEdit lists
+     */
+    private static Map<String, List<TextEdit>> createTypeDefinitionEdits(UpdateModelContext context,
+                                                                         String typeName,
+                                                                         String baseType,
+                                                                         String dataBindingType,
+                                                                         String payloadFieldName,
+                                                                         boolean isArray) {
+        Project project = context.project() != null ? context.project() : context.document().module().project();
+        Document typesDocument = getTypesDocument(project, context.filePath());
+        String typeDefinition = generateTypeDefinition(typeName, baseType, dataBindingType, payloadFieldName);
+
+        // Determine insertion point
+        ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
+        LinePosition insertPosition;
+
+        if (modulePartNode.members().isEmpty()) {
+            // Empty file, insert at the beginning
+            insertPosition = LinePosition.from(0, 0);
+        } else {
+            // Insert at the end of the file
+            Node lastMember = modulePartNode.members().get(modulePartNode.members().size() - 1);
+            insertPosition = lastMember.lineRange().endLine();
+        }
+
+        List<TextEdit> edits = new ArrayList<>();
+
+        // Extract and add required imports
+        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode);
+        if (!requiredImports.isEmpty()) {
+            String importsText = String.join("\n", requiredImports);
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
+        }
+
+        // Add the type definition
+        TextEdit typeEdit = new TextEdit(Utils.toRange(insertPosition),
+                (modulePartNode.members().isEmpty() ? "" : "\n\n") + typeDefinition);
+        edits.add(typeEdit);
+
+        // Construct the path to types.bal
+        String typesFilePath = project.sourceRoot().resolve("types.bal").toAbsolutePath().toString();
+
+        return Map.of(typesFilePath, edits);
+    }
+
+    /**
+     * Gets or finds the types.bal document in the project.
+     *
+     * @param project         The Ballerina project
+     * @param currentFilePath The current file path to determine the module
+     * @return The types.bal Document
+     */
+    private static Document getTypesDocument(Project project, String currentFilePath) {
+        Module defaultModule = project.currentPackage().getDefaultModule();
+
+        // Look for existing types.bal
+        for (DocumentId documentId : defaultModule.documentIds()) {
+            Document document = defaultModule.document(documentId);
+            if (document.name().equals("types.bal")) {
+                return document;
+            }
+        }
+
+        // If types.bal doesn't exist, we need to return the first document as a placeholder
+        // In actual implementation, the LSP extension should create the file
+        // For now, return the first available document
+        return defaultModule.document(defaultModule.documentIds().iterator().next());
+    }
+
+    /**
+     * Finds the next available databind type number for a given prefix using semantic model.
+     *
+     * @param semanticModel The semantic model for resolution
+     * @param document      The document for accessing visible symbols
+     * @param prefix        The prefix for generated type names (e.g., "KafkaAnydataConsumer",
+     *                      "RabbitMQAnydataMessage")
+     * @return The next available number (starting from 1)
+     */
+    private static int findNextDatabindNumber(SemanticModel semanticModel, Document document, String prefix) {
+        int maxNumber = 0;
+
+        LinePosition startPosition = LinePosition.from(0, 0);
+        List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, startPosition);
+
+        for (Symbol symbol : visibleSymbols) {
+            if (symbol.getName().isPresent()) {
+                String typeName = symbol.getName().get();
+                if (typeName.startsWith(prefix)) {
+                    try {
+                        String numberPart = typeName.substring(prefix.length());
+                        int number = Integer.parseInt(numberPart);
+                        maxNumber = Math.max(maxNumber, number);
+                    } catch (NumberFormatException e) {
+                        // Ignore type names that don't follow the pattern
+                    }
+                }
+            }
+        }
+
+        return maxNumber + 1;
+    }
+
+    /**
+     * Generates the source code for a databind type definition.
+     *
+     * @param typeName         The name for the type (e.g., "KafkaDatabind1")
+     * @param baseType         The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param dataBindingType  The data binding field type (e.g., "Order")
+     * @param payloadFieldName The field name for the payload (e.g., "value" or "content")
+     * @return The type definition source code
+     */
+    private static String generateTypeDefinition(String typeName, String baseType, String dataBindingType,
+                                                 String payloadFieldName) {
+        return String.format("type %s record {|\n    *%s;\n    %s %s;\n|};",
+                typeName, baseType, dataBindingType, payloadFieldName);
+    }
+
+    /**
+     * Extracts the existing databind type name from the function signature. For example, from "KafkaDatabind2[]"
+     * returns "KafkaDatabind2".
+     * <p>
+     * Validates that the type is a subtype of the baseType using semantic model to ensure it's a proper databinding
+     * type.
+     *
+     * @param functionNode  The FunctionDefinitionNode to analyze
+     * @param paramName     The name of the parameter to extract the type from
+     * @param semanticModel The semantic model for resolving type symbols
+     * @param document      The document for accessing visible symbols at specific positions
+     * @param baseType      The base record type (e.g., "kafka:AnydataConsumerRecord") to check against
+     * @return The databind type name, or null if not found or not a subtype of baseType
+     */
+    private static String extractExistingDatabindTypeName(FunctionDefinitionNode functionNode, String paramName,
+                                                          SemanticModel semanticModel, Document document,
+                                                          String baseType) {
+        Optional<RequiredParameterNode> targetParam = findRequiredParameter(functionNode, paramName);
+        if (targetParam.isEmpty()) {
+            return null;
+        }
+
+        String typeString = targetParam.get().typeName().toString().trim();
+
+        // Remove array suffix if present
+        if (typeString.endsWith("[]")) {
+            typeString = typeString.substring(0, typeString.length() - 2);
+        }
+
+        // Check if it's a simple type name (not a qualified name or inline record)
+        if (typeString.contains(":") || typeString.contains("{")) {
+            return null;
+        }
+
+        // Verify that the existing type is a subtype of the base type using semantic model
+        if (semanticModel != null && document != null) {
+            Optional<Symbol> typeSymbolOpt = semanticModel.symbol(unwrapArrayType(targetParam.get().typeName()));
+            if (typeSymbolOpt.isPresent() && typeSymbolOpt.get() instanceof TypeSymbol typeSymbol) {
+                TypeSymbol existingRawType = CommonUtil.getRawType(typeSymbol);
+
+                // Try to resolve the base type symbol from the qualified name (e.g., "kafka:AnydataConsumerRecord")
+                Optional<TypeSymbol> baseTypeSymbolOpt = resolveQualifiedTypeName(semanticModel, document, baseType);
+
+                if (baseTypeSymbolOpt.isPresent()) {
+                    TypeSymbol baseTypeSymbol = baseTypeSymbolOpt.get();
+                    // Check if existingType is a subtype of baseType
+                    if (existingRawType.subtypeOf(baseTypeSymbol)) {
+                        return typeString;
+                    }
+                    return null;
+                } else {
+                    // If we can't resolve the base type, at least check if existing type is a record
+                    if (existingRawType instanceof RecordTypeSymbol) {
+                        return typeString;
+                    }
+                }
+            }
+        }
+
+        return typeString;
+    }
+
+    /**
+     * Resolves a qualified type name (e.g., "kafka:AnydataConsumerRecord") to a TypeSymbol. Uses pattern from
+     * ModuleUtil.getTypeFromModule() but adapted for SemanticModel + Document context.
+     *
+     * @param semanticModel The semantic model for resolution
+     * @param document      The document for accessing visible symbols
+     * @param qualifiedName The qualified type name to resolve
+     * @return Optional containing the resolved TypeSymbol
+     */
+    private static Optional<TypeSymbol> resolveQualifiedTypeName(SemanticModel semanticModel, Document document,
+                                                                 String qualifiedName) {
+        if (!qualifiedName.contains(":")) {
+            return Optional.empty();
+        }
+
+        try {
+            String[] parts = qualifiedName.split(":");
+            if (parts.length != 2) {
+                return Optional.empty();
+            }
+
+            String moduleAlias = parts[0];
+            String typeName = parts[1];
+
+            // Get visible symbols at the beginning of the document to find module imports
+            LinePosition startPosition = LinePosition.from(0, 0);
+            List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, startPosition);
+
+            // Find the module symbol matching the alias
+            Optional<io.ballerina.compiler.api.symbols.ModuleSymbol> moduleSymbolOpt = visibleSymbols.stream()
+                    .filter(symbol -> symbol.kind().toString().equals("MODULE") &&
+                            symbol.getName().isPresent() &&
+                            symbol.getName().get().equals(moduleAlias))
+                    .findFirst()
+                    .filter(symbol -> symbol instanceof io.ballerina.compiler.api.symbols.ModuleSymbol)
+                    .map(symbol -> (io.ballerina.compiler.api.symbols.ModuleSymbol) symbol);
+
+            if (moduleSymbolOpt.isEmpty()) {
+                return Optional.empty();
+            }
+
+            io.ballerina.compiler.api.symbols.ModuleSymbol moduleSymbol = moduleSymbolOpt.get();
+
+            // Search for the type in the module's type definitions using stream-based approach
+            Optional<TypeSymbol> typeFromTypeDefs = moduleSymbol.typeDefinitions().stream()
+                    .filter(typeDefSymbol -> typeDefSymbol.getName().isPresent() &&
+                            typeDefSymbol.getName().get().equals(typeName))
+                    .findFirst()
+                    .map(io.ballerina.compiler.api.symbols.TypeDefinitionSymbol::typeDescriptor);
+
+            if (typeFromTypeDefs.isPresent()) {
+                return typeFromTypeDefs;
+            }
+
+            // Search for class symbols if type definition not found
+            return moduleSymbol.classes().stream()
+                    .filter(classSymbol -> classSymbol.getName().isPresent() &&
+                            classSymbol.getName().get().equals(typeName))
+                    .map(classSymbol -> (TypeSymbol) classSymbol)
+                    .findFirst();
+
+        } catch (Exception e) {
+            // If resolution fails, return empty
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Updates an existing databind type definition in types.bal.
+     *
+     * @param context            The UpdateModelContext containing project information
+     * @param existingTypeName   The existing type name to update (e.g., "KafkaDatabind2")
+     * @param baseType           The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param newDataBindingType The new data binding field type (e.g., "Customer")
+     * @param payloadFieldName   The field name for the payload (e.g., "value")
+     * @return Map of file paths to TextEdit lists
+     */
+    private static Map<String, List<TextEdit>> updateTypeDefinitionEdits(UpdateModelContext context,
+                                                                         String existingTypeName,
+                                                                         String baseType,
+                                                                         String newDataBindingType,
+                                                                         String payloadFieldName) {
+        return updateTypeDefinitionEdits(context, existingTypeName, baseType, newDataBindingType, payloadFieldName,
+                null);
+    }
+
+    /**
+     * Updates an existing databind type definition in types.bal with optional renaming.
+     *
+     * @param context            The UpdateModelContext containing project information
+     * @param existingTypeName   The existing type name to update (e.g., "KafkaDatabind2")
+     * @param baseType           The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param newDataBindingType The new data binding field type (e.g., "Customer")
+     * @param payloadFieldName   The field name for the payload (e.g., "value")
+     * @param newTypeName        The new type name to rename to (optional, if null uses existingTypeName)
+     * @return Map of file paths to TextEdit lists
+     */
+    private static Map<String, List<TextEdit>> updateTypeDefinitionEdits(UpdateModelContext context,
+                                                                         String existingTypeName,
+                                                                         String baseType,
+                                                                         String newDataBindingType,
+                                                                         String payloadFieldName,
+                                                                         String newTypeName) {
+        Project project = context.project() != null ? context.project() : context.document().module().project();
+        Document typesDocument = getTypesDocument(project, context.filePath());
+
+        // Find the existing type definition
+        ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
+        TypeDefinitionNode existingTypeDef = null;
+
+        for (Node member : modulePartNode.members()) {
+            if (member instanceof TypeDefinitionNode typeDefNode) {
+                if (typeDefNode.typeName().text().equals(existingTypeName)) {
+                    existingTypeDef = typeDefNode;
+                    break;
+                }
+            }
+        }
+
+        if (existingTypeDef == null) {
+            // Type doesn't exist, create it instead
+            return createTypeDefinitionEdits(context, existingTypeName, baseType, newDataBindingType,
+                    payloadFieldName, false);
+        }
+
+        // Use newTypeName if provided for renaming, otherwise use existingTypeName
+        String typeNameForDefinition = newTypeName != null ? newTypeName : existingTypeName;
+
+        // Generate the new type definition
+        String newTypeDefinition = generateTypeDefinition(typeNameForDefinition, baseType, newDataBindingType,
+                payloadFieldName);
+
+        List<TextEdit> edits = new ArrayList<>();
+
+        // Extract and add required imports
+        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode);
+        if (!requiredImports.isEmpty()) {
+            String importsText = String.join("\n", requiredImports);
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
+        }
+
+        // Create a TextEdit to replace the old definition
+        TextEdit replaceEdit = new TextEdit(Utils.toRange(existingTypeDef.lineRange()), newTypeDefinition);
+        edits.add(replaceEdit);
+
+        String typesFilePath = project.sourceRoot().resolve("types.bal").toAbsolutePath().toString();
+        return Map.of(typesFilePath, edits);
+    }
 }

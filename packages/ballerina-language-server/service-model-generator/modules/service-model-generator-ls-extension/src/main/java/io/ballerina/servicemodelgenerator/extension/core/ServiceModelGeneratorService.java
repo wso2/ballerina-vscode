@@ -639,7 +639,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 Function function = request.function();
@@ -656,7 +657,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 String moduleName = (request.function().getCodedata().getModuleName() != null) ?
                         request.function().getCodedata().getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
-                        request.filePath(), document.get(), functionDefinitionNode);
+                        request.filePath(), document.get(), functionDefinitionNode, semanticModel.get());
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);

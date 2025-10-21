@@ -19,14 +19,15 @@
 package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.util.DatabindUtil;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder.PAYLOAD_FIELD_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
-import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.processDataBindingParameter;
 
 /**
  * Represents the RabbitMQ function builder of the service model generator.
@@ -36,12 +37,17 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.pro
 public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "rabbitmq:AnydataMessage";
+    private static final String TYPE_PREFIX = "RabbitMQAnydataMessage";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        processDataBindingParameter(context.function(), context.functionNode(), REQUIRED_PARAM_TYPE,
-                PAYLOAD_FIELD_NAME, false);
-        return super.updateModel(context);
+        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingUpdate(
+                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false);
+
+        Map<String, List<TextEdit>> mainFileEdits = super.updateModel(context);
+        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
+        allEdits.putAll(databindEdits);
+        return allEdits;
     }
 
     @Override

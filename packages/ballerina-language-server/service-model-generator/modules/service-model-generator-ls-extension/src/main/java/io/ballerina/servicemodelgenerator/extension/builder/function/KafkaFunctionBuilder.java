@@ -19,14 +19,15 @@
 package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.util.DatabindUtil;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder.PAYLOAD_FIELD_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
-import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.processDataBindingParameter;
 
 /**
  * Represents the Kafka function builder of the service model generator.
@@ -36,12 +37,22 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.pro
 public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "kafka:AnydataConsumerRecord";
+    private static final String TYPE_PREFIX = "KafkaAnydataConsumer";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        processDataBindingParameter(context.function(), context.functionNode(), REQUIRED_PARAM_TYPE,
-                PAYLOAD_FIELD_NAME, true);
-        return super.updateModel(context);
+        // Process databinding - handles type generation/update and parameter updates
+        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingUpdate(
+                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, true);
+
+        // Get edits for main file
+        Map<String, List<TextEdit>> mainFileEdits = super.updateModel(context);
+
+        // Merge both edits into a mutable map
+        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
+        allEdits.putAll(databindEdits);
+
+        return allEdits;
     }
 
     @Override
