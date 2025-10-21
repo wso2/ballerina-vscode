@@ -243,7 +243,7 @@
             },
             "name": {
               "valueType": "IDENTIFIER",
-              "value": "records",
+              "value": "messages",
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -291,6 +291,20 @@
           "moduleName": "kafka"
         },
         "properties": {
+          "wrapperTypeName": {
+            "value": "KafkaAnydataConsumer",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "payloadFieldName": {
+            "value": "value",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
           "canDataBind": {
             "value": "true",
             "enabled": false,
