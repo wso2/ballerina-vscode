@@ -132,6 +132,15 @@ const colors = {
     "HEAD": '#9012fe'
 }
 
+const ActionButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    & > vscode-button::part(control) {
+        padding: 4px 8px;
+    }
+`;
+
 
 export interface ResourceAccordionPropsV2 {
     resource: ProjectStructureArtifactResponse;
@@ -232,17 +241,11 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 </MethodSection>
                 <ButtonSection>
                     <>
-                        <Button appearance="icon" tooltip="Edit Resource" onClick={handleEditResource} disabled={readOnly}>
-                            <Icon
-                                name="editIcon"
-                                sx={{
-                                    marginTop: 3.5,
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
-                                }}
-                            />
-                        </Button>
-                        <Button appearance="icon" tooltip="Delete Resource" onClick={handleDeleteResource} disabled={readOnly}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
+                            <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                            Configure
+                        </ActionButton >
+                        <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
                             <Codicon
                                 name="trash"
                                 sx={{
@@ -250,7 +253,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                                     opacity: readOnly ? 0.5 : 1,
                                 }}
                             />
-                        </Button>
+                        </ActionButton >
                     </>
                 </ButtonSection>
 
@@ -264,6 +267,6 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
             />
-        </AccordionContainer>
+        </AccordionContainer >
     );
 };
