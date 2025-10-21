@@ -54,6 +54,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     private static final String AGENT_NAME_PROPERTY = "agentName";
     private static final String AGENT = "Agent";
     private static final String MODEL = "Model";
+    private static final String DEFAULT_AGENT_NAME = "chat";
 
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
@@ -96,9 +97,31 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     private String getAgentNameFromService(Service service) {
         Value agentNameValue = service.getProperty(AGENT_NAME_PROPERTY);
-        return agentNameValue != null && agentNameValue.isEnabledWithValue()
+        String rawAgentName = agentNameValue != null && agentNameValue.isEnabledWithValue()
                 ? agentNameValue.getValue()
-                : "chat";
+                : DEFAULT_AGENT_NAME;
+        return sanitizeIdentifier(rawAgentName);
+    }
+    
+    private String sanitizeIdentifier(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return DEFAULT_AGENT_NAME;
+        }
+
+        // Replace any character that is not a letter, digit, or underscore with an underscore
+        String sanitized = name.replaceAll("[^A-Za-z0-9_]", "_");
+
+        // If the identifier starts with a digit, prefix it with an underscore
+        if (!sanitized.isEmpty() && Character.isDigit(sanitized.charAt(0))) {
+            sanitized = "_" + sanitized;
+        }
+
+        // If after sanitization the string is empty or contains only underscores, fallback to "chat"
+        if (sanitized.isEmpty() || sanitized.matches("_+")) {
+            return DEFAULT_AGENT_NAME;
+        }
+
+        return sanitized;
     }
 
     private void addDefaultListenerEdit(AddModelContext context, List<TextEdit> edits) {
