@@ -546,7 +546,7 @@ public class AiUtils {
             return "Default Embedding Provider (WSO2)";
         }
 
-        String providerName = capitalizeFirstChar(moduleName.replaceAll("ai|\\.", ""));
+        String providerName = capitalizeFirstChar(moduleName.replaceAll("^ai|\\.", ""));
         String label = providerName + " " + className;
         if (className.contains("ModelProvider")) {
             label = providerName + " " + className.replace("ModelProvider", " Model Provider");
