@@ -28,9 +28,8 @@ let groups: string[] = [];
 export async function discoverTestFunctionsInProject(ballerinaExtInstance: BallerinaExtension,
     testController: TestController) {
     groups.push(testController.id);
-    const filePath: string = path.join(StateMachine.context().projectUri);
     const request: TestsDiscoveryRequest = {
-        filePath
+        projectPath: StateMachine.context().projectPath
     };
     const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getProjectTestFunctions(request);
     if (response) {
@@ -41,8 +40,6 @@ export async function discoverTestFunctionsInProject(ballerinaExtInstance: Balle
 
 function createTests(response: TestsDiscoveryResponse, testController: TestController) {
     if (response.result) {
-        const projectDir = path.join(StateMachine.context().projectUri);
-
         // Check if the result is a Map or a plain object
         const isMap = response.result instanceof Map;
 
@@ -74,7 +71,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
                 const testFunc: FunctionTreeNode = tf as FunctionTreeNode;
                 // Generate a unique ID for the test item using the function name
                 const fileName: string = testFunc.lineRange.fileName;
-                const fileUri = Uri.file(path.join(projectDir, fileName));
+                const fileUri = Uri.file(path.join(StateMachine.context().projectPath, fileName));
                 const testId = `test:${path.basename(fileUri.path)}:${testFunc.functionName}`;
 
                 // Create a test item for the test function
@@ -102,7 +99,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
 export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     uri: Uri, testController: TestController) {
     const request: TestsDiscoveryRequest = {
-        filePath: uri.path
+        projectPath: uri.path
     };
     const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getFileTestFunctions(request);
     if (!response || !response.result) {

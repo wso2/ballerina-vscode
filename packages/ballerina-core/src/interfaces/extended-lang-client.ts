@@ -583,7 +583,7 @@ export interface ExecutorPositions {
 // Test Manager related interfaces 
 
 export interface TestsDiscoveryRequest {
-    filePath: string;
+    projectPath: string;
 }
 
 export interface TestsDiscoveryResponse {

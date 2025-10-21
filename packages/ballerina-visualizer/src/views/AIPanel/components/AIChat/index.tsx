@@ -201,7 +201,7 @@ const AIChat: React.FC = () => {
     async function fetchBackendUrl() {
         try {
             backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
+            chatLocation = (await rpcClient.getVisualizerLocation()).projectPath ;
             setIsReqFileExists(
                 chatLocation != null &&
                     chatLocation != undefined &&

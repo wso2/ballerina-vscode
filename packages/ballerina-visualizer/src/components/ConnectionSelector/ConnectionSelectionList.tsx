@@ -51,7 +51,7 @@ export function ConnectionSelectionList(props: ConnectionSelectionListProps): JS
 
     const initPanel = async () => {
         setLoading(true);
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
         aiModuleOrg.current = await getAiModuleOrg(rpcClient, selectedNode?.codedata?.node);
         searchConfig.current = getSearchConfig(connectionKind, aiModuleOrg.current);
         progressTimeoutRef.current = setTimeout(() => {

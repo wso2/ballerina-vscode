@@ -17,9 +17,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon, FormCheckBox } from "@wso2/ui-toolkit";
+import { TextField, CheckBox, LinkButton, ThemeColors, Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { sanitizePackageName, validatePackageName } from "./utils";
 
 const FieldGroup = styled.div`
@@ -56,25 +55,31 @@ const Description = styled.div`
     text-align: left;
 `;
 
-export interface ProjectFormData {
+const WorkspaceSection = styled.div`
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+`;
+
+export interface AddProjectFormData {
     integrationName: string;
     packageName: string;
-    path: string;
-    createDirectory: boolean;
-    createAsWorkspace: boolean;
-    workspaceName: string;
+    workspaceName?: string;
     orgName: string;
     version: string;
 }
 
-export interface ProjectFormFieldsProps {
-    formData: ProjectFormData;
-    onFormDataChange: (data: Partial<ProjectFormData>) => void;
-    onValidationChange?: (isValid: boolean) => void;
+export interface AddProjectFormFieldsProps {
+    formData: AddProjectFormData;
+    onFormDataChange: (data: Partial<AddProjectFormData>) => void;
+    isInWorkspace: boolean; // true if already in a workspace, false if in a package
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, onValidationChange }: ProjectFormFieldsProps) {
-    const { rpcClient } = useRpcContext();
+export function AddProjectFormFields({ 
+    formData, 
+    onFormDataChange,
+    isInWorkspace 
+}: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -88,7 +93,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
     };
 
     const handlePackageName = (value: string) => {
-        // Allow dots and other characters while typing
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
@@ -96,11 +100,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         if (packageNameError) {
             setPackageNameError(null);
         }
-    };
-
-    const handleProjectDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        onFormDataChange({ path: projectDirectory.path });
     };
 
     const handleShowOptionalConfigurations = () => {
@@ -111,31 +110,34 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         setShowOptionalConfigurations(false);
     };
 
-    useEffect(() => {
-        (async () => {
-            if (!formData.path) {
-                const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
-                onFormDataChange({ path: currentDir.path });
-            }
-        })();
-    }, []);
-
     // Effect to trigger validation when requested by parent
     useEffect(() => {
         const error = validatePackageName(formData.packageName, formData.integrationName);
         setPackageNameError(error);
-        onValidationChange?.(error === null);
-    }, [formData.packageName, onValidationChange]);
+    }, [formData.packageName]);
 
     return (
         <>
+            {!isInWorkspace && (
+                <WorkspaceSection>
+                    <TextField
+                        onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                        value={formData.workspaceName}
+                        label="Workspace Name"
+                        placeholder="Enter workspace name"
+                        autoFocus={true}
+                        required={true}
+                    />
+                </WorkspaceSection>
+            )}
+
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
                     label="Integration Name"
                     placeholder="Enter an integration name"
-                    autoFocus={true}
+                    autoFocus={isInWorkspace}
                     required={true}
                 />
             </FieldGroup>
@@ -148,23 +150,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     description="This will be used as the Ballerina package name for the integration."
                     errorMsg={packageNameError || ""}
                 />
-            </FieldGroup>
-
-            <FieldGroup>
-                <LocationSelector
-                    label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
-                    onSelect={handleProjectDirSelection}
-                />
-
-                <CheckboxContainer>
-                    <CheckBox
-                        label={`Create a new directory using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
-                        checked={formData.createDirectory}
-                        onChange={(checked) => onFormDataChange({ createDirectory: checked })}
-                    />
-                </CheckboxContainer>
             </FieldGroup>
 
             <OptionalConfigRow>
@@ -193,27 +178,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
             {showOptionalConfigurations && (
                 <OptionalConfigContent>
-                    <FieldGroup>
-                        <CheckboxContainer>
-                            <CheckBox
-                                label="Create as workspace"
-                                checked={formData.createAsWorkspace}
-                                onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
-                            />
-                            <Description>
-                                Include this integration in a new workspace for multi-project management.
-                            </Description>
-                        </CheckboxContainer>
-                        {formData.createAsWorkspace && (
-                            <TextField
-                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                value={formData.workspaceName}
-                                label="Workspace Name"
-                                placeholder="Enter workspace name"
-                                required={true}
-                            />
-                        )}
-                    </FieldGroup>
                     <FieldGroup>
                         <TextField
                             onTextChange={(value) => onFormDataChange({ orgName: value })}

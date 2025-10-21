@@ -49,5 +49,6 @@ export interface CommonRPCAPI {
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
+    isBallerinaWorkspace: () => Promise<boolean>;
 
 }

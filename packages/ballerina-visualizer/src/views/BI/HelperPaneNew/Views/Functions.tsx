@@ -66,14 +66,14 @@ export const FunctionsPage = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
-    const [projectUri, setProjectUri] = useState<string>('');
+    const [projectPath, setProjectPath] = useState<string>('');
 
     const { addModal , closeModal} = useModalStack();
 
 
 
     //TODO: get the correct filepath
-    let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
+    let defaultFunctionsFile = Utils.joinPath(URI.file(projectPath), 'functions.bal').fsPath;
 
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
@@ -150,7 +150,7 @@ export const FunctionsPage = ({
 
     const setDefaultFunctionsPath = () => {
         rpcClient.getVisualizerLocation().then((location) => {
-            setProjectUri(location?.projectUri || '')
+            setProjectPath(location?.projectPath || '')
         })
     }
 
@@ -180,7 +180,7 @@ export const FunctionsPage = ({
     const handleNewFunctionClick = () => {
         addModal(
             <FunctionFormStatic
-                projectPath={projectUri}
+                projectPath={projectPath}
                 filePath={defaultFunctionsFile}
                 handleSubmit={handleFunctionSave}
                 functionName={undefined}

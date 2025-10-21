@@ -142,8 +142,8 @@ export const Variables = (props: VariablesPageProps) => {
     }, [targetLineRange])
 
     const getProjectInfo = async () => {
-        const projectPath = await rpcClient.getVisualizerLocation();
-        setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
+        const visualizerContext = await rpcClient.getVisualizerLocation();
+        setProjectPathUri(URI.file(visualizerContext.projectPath).fsPath);
     }
 
     const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {

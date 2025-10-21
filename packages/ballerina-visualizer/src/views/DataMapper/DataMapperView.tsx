@@ -56,6 +56,7 @@ import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } fro
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
 import { UndoRedoGroup } from "../../components/UndoRedoGroup";
+import { p } from "@tanstack/query-core/build/legacy/hydration-Cvr-9VdO";
 
 // Types for model comparison
 interface ModelSignature {
@@ -66,7 +67,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
+    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -642,7 +643,7 @@ export function DataMapperView(props: DataMapperProps) {
                 <>
                     {reusable && (!hasInputs || !hasOutputs) ? (
                         <FunctionForm
-                            projectPath={projectUri}
+                            projectPath={projectPath}
                             filePath={filePath}
                             functionName={modelState.model.output.name}
                             isDataMapper={true}

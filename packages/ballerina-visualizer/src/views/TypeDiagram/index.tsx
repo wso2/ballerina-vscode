@@ -37,7 +37,6 @@ export const Title: React.FC<any> = styled.div`
 
 interface TypeDiagramProps {
     selectedTypeId?: string;
-    projectUri?: string;
     addType?: boolean;
 }
 
@@ -51,7 +50,7 @@ interface TypeEditorState {
 const MAX_TYPES_FOR_FULL_VIEW = 80;
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { selectedTypeId, projectUri, addType } = props;
+    const { selectedTypeId, addType } = props;
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
