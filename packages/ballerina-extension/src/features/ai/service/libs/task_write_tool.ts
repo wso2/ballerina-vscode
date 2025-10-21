@@ -17,26 +17,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
+import { Task, TaskStatus, TaskTypes } from '@wso2/ballerina-core';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
-
-/**
- * Task status enum
- */
-export enum TaskStatus {
-    PENDING = "pending",
-    IN_PROGRESS = "in_progress",
-    COMPLETED = "completed"
-}
-
-/**
- * Task interface representing a single implementation task
- */
-export interface Task {
-    id: string;
-    description: string;
-    status: TaskStatus;
-}
 
 /**
  * Result returned by TaskWrite tool
@@ -50,11 +33,17 @@ export interface TaskWriteResult {
 /**
  * Zod schema for a single task input
  */
-const TaskInputSchema = z.object({
+export const TaskInputSchema = z.object({
     id: z.string().optional().describe("Task ID (required when updating existing tasks, omit when creating new tasks)"),
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
-    status: z.enum(["pending", "in_progress", "completed"]).describe("Current status of the task. Use 'pending' for new tasks, 'in_progress' when starting work, 'completed' when done.")
+    status: z.enum(["pending", "in_progress", "completed"]).describe("Current status of the task. Use 'pending' for new tasks, 'in_progress' when starting work, 'completed' when done."),
+    type: z.enum(["service_design", "connections_init", "implementation"]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
 });
+
+/**
+ * Type for a single task input
+ */
+export type TaskInput = z.infer<typeof TaskInputSchema>;
 
 /**
  * Zod schema for TaskWrite tool input
@@ -93,8 +82,9 @@ export function resolveTaskApproval(response: { approved: boolean; comment?: str
 export function createTaskWriteTool(eventHandler?: CopilotEventHandler) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
-
-ONLY use this tool if you have MORE THAN 3 tasks. For 3 or fewer tasks, proceed directly without this tool.
+## Task Ordering:
+- Tasks should be ordered sequentially as they need to be executed.
+- Prioritize service design, then connection initializations, then implementation tasks.
 
 ## CRITICAL RULE - ALWAYS SEND ALL TASKS:
 This tool is STATELESS. Every call MUST include ALL tasks.
@@ -112,9 +102,9 @@ This tool is STATELESS. Every call MUST include ALL tasks.
 Send ALL tasks with status "pending", no IDs.
 Example:
 [
-  {"description": "Create data types", "status": "pending"},
-  {"description": "Implement REST API", "status": "pending"},
-  {"description": "Add error handling", "status": "pending"}
+  {"description": "Create the HTTP service contract", "status": "pending", "type": "service_design"},
+  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
+  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 ## UPDATING TASKS (Every Other Call):
@@ -131,34 +121,24 @@ Workflow per task:
 Example (3 tasks total):
 Start task 1 - Send ALL:
 [
-  {"id": "1", "description": "Create data types", "status": "in_progress"},
-  {"id": "2", "description": "Implement REST API", "status": "pending"},
-  {"id": "3", "description": "Add error handling", "status": "pending"}
+  {"id": "1", "description": "Create the HTTP service contract", "status": "in_progress", "type": "service_design"},
+  {"id": "2", "description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
+  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 Complete task 1 - Send ALL:
 [
-  {"id": "1", "description": "Create data types", "status": "completed"},
-  {"id": "2", "description": "Implement REST API", "status": "pending"},
-  {"id": "3", "description": "Add error handling", "status": "pending"}
+  {"id": "1", "description": "Create the HTTP service contract", "status": "complete", "type": "service_design"},
+  {"id": "2", "description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
+  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 Start task 2 - Send ALL:
 [
-  {"id": "1", "description": "Create data types", "status": "completed"},
-  {"id": "2", "description": "Implement REST API", "status": "in_progress"},
-  {"id": "3", "description": "Add error handling", "status": "pending"}
+  {"id": "1", "description": "Create the HTTP service contract", "status": "complete", "type": "service_design"},
+  {"id": "2", "description": "Create the MYSQL Connection", "status": "in_progress", "type": "connections_init"},
+  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
-
-WRONG:
-[{"id": "1", "status": "completed"}]  // Only 1 task - WILL BE REJECTED!
-
-CORRECT:
-[
-  {"id": "1", "status": "completed"},
-  {"id": "2", "status": "pending"},
-  {"id": "3", "status": "pending"}
-]  // Sending ALL tasks
 
 Rules:
 - Send ALL tasks every single call (tool will reject partial lists)
@@ -174,7 +154,8 @@ Rules:
                 const allTasks: Task[] = input.tasks.map(task => ({
                     id: task.id || `task_${Date.now()}_${Math.random()}`, // Generate ID only if not provided
                     description: task.description,
-                    status: task.status as TaskStatus
+                    status: task.status as TaskStatus,
+                    type: task.type as TaskTypes
                 }));
 
                 console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
