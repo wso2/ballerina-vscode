@@ -106,7 +106,6 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
-    ProjectImports,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -163,7 +162,6 @@ export interface BIDiagramAPI {
     removeBreakpointFromSource: (params: BreakpointRequest) => void;
     getBreakpointInfo: () => Promise<CurrentBreakpointsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
-    getAllImports: () => Promise<ProjectImports>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
     getDesignModel: () => Promise<BIDesignModelResponse>;

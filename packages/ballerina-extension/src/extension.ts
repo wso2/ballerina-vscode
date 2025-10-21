@@ -109,8 +109,10 @@ export async function activate(context: ExtensionContext) {
     extension.context = context;
     // Init RPC Layer methods
     RPCLayer.init();
+    
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
+    
     // Then return the ballerina extension context
     return { ballerinaExtInstance: extension.ballerinaExtInstance, projectPath: StateMachine.context().projectPath };
 }

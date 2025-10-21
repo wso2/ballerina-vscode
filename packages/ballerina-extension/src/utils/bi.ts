@@ -123,14 +123,14 @@ export function getUsername(): string {
  * @returns The resolved directory path
  */
 function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCreateDirectory: boolean = true): string {
-    const resolvedPath = directoryName 
+    const resolvedPath = directoryName
         ? path.join(basePath, directoryName)
         : basePath;
-    
+
     if (shouldCreateDirectory && !fs.existsSync(resolvedPath)) {
         fs.mkdirSync(resolvedPath, { recursive: true });
     }
-    
+
     return resolvedPath;
 }
 
@@ -143,8 +143,8 @@ function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCr
  */
 function resolveProjectPath(projectPath: string, sanitizedPackageName: string, createDirectory: boolean): string {
     return resolveDirectoryPath(
-        projectPath, 
-        createDirectory ? sanitizedPackageName : undefined, 
+        projectPath,
+        createDirectory ? sanitizedPackageName : undefined,
         createDirectory
     );
 }
@@ -167,8 +167,8 @@ function resolveWorkspacePath(basePath: string, workspaceName: string): string {
 function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo {
     const sanitizedPackageName = sanitizeName(projectRequest.packageName);
     const projectRoot = resolveProjectPath(
-        projectRequest.projectPath, 
-        sanitizedPackageName, 
+        projectRequest.projectPath,
+        sanitizedPackageName,
         projectRequest.createDirectory
     );
     const finalOrgName = projectRequest.orgName || getUsername();
@@ -243,7 +243,11 @@ sticky = true
     const mainBal = path.join(projectRoot, 'main.bal');
     writeBallerinaFileDidOpen(mainBal, EMPTY);
 
-    // Create main.bal file
+    // Create automation.bal file
+    const automationBal = path.join(projectRoot, 'automation.bal');
+    writeBallerinaFileDidOpen(automationBal, EMPTY);
+
+    // Create agents.bal file
     const agentsBal = path.join(projectRoot, 'agents.bal');
     writeBallerinaFileDidOpen(agentsBal, EMPTY);
 
@@ -282,11 +286,11 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     const { package: { name: currentPackageName } } = await getProjectTomlValues(currentProjectPath);
 
     const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
-    
+
     if (!fs.existsSync(newDirectory)) {
         fs.mkdirSync(newDirectory, { recursive: true });
     }
-    
+
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
@@ -300,11 +304,11 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    
+
     updateWorkspaceToml(workspacePath, params.packageName);
-    
+
     const projectPath = createProjectInWorkspace(params, workspacePath);
-    
+
     await openNewlyCreatedProject(params, workspacePath, projectPath);
 }
 
@@ -319,7 +323,7 @@ packages = ["${packageName}"]
 
 function updateWorkspaceToml(workspacePath: string, packageName: string) {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
-    
+
     if (!fs.existsSync(ballerinaTomlPath)) {
         return;
     }
@@ -328,7 +332,7 @@ function updateWorkspaceToml(workspacePath: string, packageName: string) {
         const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
         const tomlData = parse(ballerinaTomlContent);
         const existingPackages: string[] = tomlData.packages || [];
-        
+
         if (existingPackages.includes(packageName)) {
             return; // Package already exists
         }
@@ -343,13 +347,13 @@ function updateWorkspaceToml(workspacePath: string, packageName: string) {
 function addPackageToToml(tomlContent: string, packageName: string): string {
     const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
     const match = tomlContent.match(packagesRegex);
-    
+
     if (match) {
         const currentArrayContent = match[1].trim();
-        const newArrayContent = currentArrayContent === '' 
-            ? `"${packageName}"` 
+        const newArrayContent = currentArrayContent === ''
+            ? `"${packageName}"`
             : `${currentArrayContent}, "${packageName}"`;
-        
+
         return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
     } else {
         return tomlContent + `\npackages = ["${packageName}"]\n`;
@@ -365,7 +369,7 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
         orgName: params.orgName,
         version: params.version
     };
-    
+
     return createBIProjectPure(projectRequest);
 }
 
@@ -377,7 +381,7 @@ async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, wor
         package: params.packageName,
         org: params.orgName
     };
-    
+
     await buildProjectArtifactsStructure(projectPath, StateMachine.langClient(), true);
     openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
@@ -401,7 +405,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
             content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
         }
-        
+
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 

@@ -62,9 +62,9 @@ export interface ExpressionBarProps {
 export interface DataMapperEditorProps {
     modelState: ModelState;
     name: string;
+    reusable?: boolean;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
-    generateForm: (formProps: DMFormProps) => JSX.Element;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
@@ -75,9 +75,12 @@ export interface DataMapperEditorProps {
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
+    onRefresh: () => Promise<void>;
+    onReset: () => Promise<void>;
     onClose: () => void;
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
+    generateForm: (formProps: DMFormProps) => JSX.Element;
     undoRedoGroup: () => JSX.Element;
 }
 

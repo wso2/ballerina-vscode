@@ -15,7 +15,7 @@
 // under the License.
 
 import { TestGenerationRequest1, ProjectSource, Diagnostic } from "./test";
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 import { flattenProjectToText, getExternalTypesAsJsonSchema, getTypesAsJsonSchema, getDiagnosticsAsText, extractSectionToFix } from "./utils";
 
 // ==============================================
@@ -675,7 +675,7 @@ Provide ONLY the fixed code section. Your response should be enclosed in <code> 
 //            MESSAGE CREATION FUNCTIONS
 // ==============================================
 
-export function createServiceTestGenMessages(request: TestGenerationRequest1): CoreMessage[] {
+export function createServiceTestGenMessages(request: TestGenerationRequest1): ModelMessage[] {
     const serviceTestGenUser1 = createServiceTestGenUser1Message(request);
 
     if (!request.diagnostics || !request.existingTests) {
@@ -689,7 +689,7 @@ export function createServiceTestGenMessages(request: TestGenerationRequest1): C
     }
 }
 
-export function createServiceTestGenUser1Message(request: TestGenerationRequest1): CoreMessage {
+export function createServiceTestGenUser1Message(request: TestGenerationRequest1): ModelMessage {
     if (!request.openApiSpec) {
         throw new Error("OpenAPI specification is required for test generation.");
     }
@@ -708,14 +708,14 @@ export function createServiceTestGenUser1Message(request: TestGenerationRequest1
     };
 }
 
-export function createServiceTestGenAssistant1Message(): CoreMessage {
+export function createServiceTestGenAssistant1Message(): ModelMessage {
     return {
         role: "assistant",
         content: getServiceTestGenAssistant1Prompt()
     };
 }
 
-export function createServiceTestGenUser2Message(request: TestGenerationRequest1): CoreMessage {
+export function createServiceTestGenUser2Message(request: TestGenerationRequest1): ModelMessage {
     const prompt = request.testPlan 
         ? getServiceTestGenUser2WithPlanPrompt(request.targetIdentifier, request.testPlan)
         : getServiceTestGenUser2Prompt(request.targetIdentifier);
@@ -726,14 +726,14 @@ export function createServiceTestGenUser2Message(request: TestGenerationRequest1
     };
 }
 
-export function createServiceTestDiagnosticsAssistant1Message(request: TestGenerationRequest1): CoreMessage {
+export function createServiceTestDiagnosticsAssistant1Message(request: TestGenerationRequest1): ModelMessage {
     return {
         role: "assistant",
         content: getServiceTestDiagnosticsAssistant1Prompt()
     };
 }
 
-export function createServiceTestDiagnosticsUser2Message(request: TestGenerationRequest1): CoreMessage {
+export function createServiceTestDiagnosticsUser2Message(request: TestGenerationRequest1): ModelMessage {
     if (!request.diagnostics) {
         throw new Error("Diagnostics are required for test generation.");
     }
@@ -750,12 +750,12 @@ export function createServiceTestDiagnosticsUser2Message(request: TestGeneration
     };
 }
 
-export function createFunctionTestGenMessages(request: TestGenerationRequest1): CoreMessage[] {
+export function createFunctionTestGenMessages(request: TestGenerationRequest1): ModelMessage[] {
     const functionTestGenUser = createFunctionTestGenUserMessage(request);
     return [functionTestGenUser];
 }
 
-export function createFunctionTestGenUserMessage(request: TestGenerationRequest1): CoreMessage {
+export function createFunctionTestGenUserMessage(request: TestGenerationRequest1): ModelMessage {
     if (!request.testPlan) {
         throw new Error("Test plan is required for function test generation.");
     }

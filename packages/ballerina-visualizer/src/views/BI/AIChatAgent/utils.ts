@@ -138,6 +138,9 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines and normalize whitespace from the tools value
     // toolsValue = toolsValue.toString().replace(/\s+/g, "");
+    if (toolsValue == undefined) {
+        toolsValue = `[]`;
+    }
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
         if (toolsArray.length > 0) {
