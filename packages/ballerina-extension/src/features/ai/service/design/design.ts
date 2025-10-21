@@ -14,18 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateCodeRequest } from "@wso2/ballerina-core";
+import { Command, GenerateCodeRequest, Task } from "@wso2/ballerina-core";
 import { ModelMessage, stepCountIs, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, resolveTaskApproval } from "../libs/task_write_tool";
+import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, resolveTaskApproval, TaskWriteResult } from "../libs/task_write_tool";
 
 // Re-export for RPC manager to use
 export { resolveTaskApproval as resolveApproval };
 
-export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<Task[]> {
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
@@ -33,54 +33,24 @@ export async function generateDesignCore(params: GenerateCodeRequest, eventHandl
     const allMessages: ModelMessage[] = [
             {
                 role: "system",
-                content: `You are an expert assistant specializing in Ballerina code generation. You should ONLY answer Ballerina related queries.
+                content: `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
-Your primary responsibility is to generate a high-level design for a Ballerina integration based on the user's requirements, and then implement it.
+You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks. This plan will be visible to the user and the execution will be guided on the tasks you create.
 
-IMPORTANT: Before executing any other actions to fulfill the user's query, you MUST first design a comprehensive plan.
-
-When creating a design, provide a structured outline that includes:
-
-1. **Overview**: A brief summary of the integration's purpose and goals
-2. **Components**: List all major components/modules needed (e.g., HTTP services, clients, data models, connectors)
-3. **Data Flow**: Describe how data moves through the system
-   - Input sources and formats
-   - Transformation steps
-   - Output destinations and formats
-4. **Interactions**: Detail the interactions between components
-   - API endpoints and their purposes
-   - External service integrations
-   - Database or storage interactions
-5. **Error Handling**: Outline error handling strategy
-6. **Security Considerations**: Note any authentication, authorization, or data security requirements
-
-After creating the high-level design, if the implementation requires MORE THAN THREE distinct steps, break it down into specific implementation tasks and execute them step by step. Do NOT mention internal tool names to the user - just naturally describe what you're doing (e.g., "I'll now break this down into implementation tasks" instead of "I'll use the TaskWrite tool").
-
-Format your design plan clearly using markdown with appropriate headings and bullet points for readability.`,
-                providerOptions: cacheOptions,
-            },
-            {
-                role: "system",
-                content: ` if you are generating code, ensure to:
-   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
-   - Determine the necessary client initialization.
-   - Define Types needed for the query in the types.bal file.
-   - Outline the service OR main function for the query.
-   - Outline the required function usages as noted in Step 2.
-   - Based on the types of identified functions, plan the data flow. Transform data as necessary.
-    - Finally, provide a
-        Example Codeblock segment:
-        <code filename="main.bal">
-        \`\`\`ballerina
-        //code goes here
-        \`\`\`
-        </code>
+Do NOT mention internal tool names to the user - just naturally describe what you're doing (e.g., "I'll now break this down into implementation tasks" instead of "I'll use the ${TASK_WRITE_TOOL_NAME} tool").
 `,
+                providerOptions: cacheOptions,
             },
             ...historyMessages,
             {
                 role: "user",
-                content: params.usecase,
+                content: `The first step is to create a very high level consise design plan for the following requirement. 
+Then you must create the tasks using ${TASK_WRITE_TOOL_NAME} tool accoringly. Then the user will approve the tasks or ask for modifications.
+
+                
+<User Query>
+${params.usecase}
+</User Query>`,
             },
         ];
 
@@ -90,7 +60,7 @@ Format your design plan clearly using markdown with appropriate headings and bul
     };
 
     const { fullStream } = streamText({
-        model: await getAnthropicClient(ANTHROPIC_HAIKU),
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 8192,
         temperature: 0,
         messages: allMessages,
@@ -98,6 +68,9 @@ Format your design plan clearly using markdown with appropriate headings and bul
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
+
+    // TODO: Will it call this tool multiple times? 
+    let finalTasks: Task[] = [];
 
     eventHandler({ type: "start" });
 
@@ -123,7 +96,7 @@ Format your design plan clearly using markdown with appropriate headings and bul
 
                 // Emit tool result event with full task list
                 if (toolName === TASK_WRITE_TOOL_NAME && result) {
-                    const taskResult = result as any;
+                    const taskResult = result as TaskWriteResult;
                     eventHandler({
                         type: "tool_result",
                         toolName,
@@ -133,6 +106,7 @@ Format your design plan clearly using markdown with appropriate headings and bul
                             allTasks: taskResult.tasks // Tool returns complete task list
                         }
                     });
+                    finalTasks = taskResult.tasks;
                 }
                 break;
             }
@@ -151,13 +125,14 @@ Format your design plan clearly using markdown with appropriate headings and bul
             }
         }
     }
+    return finalTasks;
 }
 
 // Main public function that uses the default event handler
-export async function generatDesign(params: GenerateCodeRequest): Promise<void> {
+export async function generateDesign(params: GenerateCodeRequest): Promise<Task[]> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
-        await generateDesignCore(params, eventHandler);
+        return await generateDesignCore(params, eventHandler);
     } catch (error) {
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
