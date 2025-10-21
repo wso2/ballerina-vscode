@@ -144,7 +144,7 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any }) {
                 )}
                 {func.path && (
                     <Title hovered={isHovered}>
-                        {`/${func.path}`}
+                        {`/${func.path.replace(/\\/g, "")}`}
                     </Title>
                 )}
                 {func.name && <Title hovered={isHovered}>{func.name}</Title>}
