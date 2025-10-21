@@ -288,8 +288,8 @@ export function AddMcpServer(props: AddToolProps): JSX.Element {
         hasUpdatedToolsField.current = false; // Reset on panel init
         setLoading(true);
         // get project path
-        const filePath = await rpcClient.getVisualizerLocation();
-        projectPath.current = filePath.projectUri;
+        const visualizerContext = await rpcClient.getVisualizerLocation();
+        projectPath.current = visualizerContext.projectPath;
         // get agent file path
         agentFilePath.current = await getAgentFilePath(rpcClient);
         // fetch tools and agent node

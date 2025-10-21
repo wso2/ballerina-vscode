@@ -80,12 +80,11 @@ const Path = styled.span`
 interface GraphQLDiagramProps {
     filePath: string;
     position: NodePosition;
-    projectUri?: string;
     serviceIdentifier: string;
 }
 
 export function GraphQLDiagram(props: GraphQLDiagramProps) {
-    const { filePath, position, projectUri, serviceIdentifier } = props;
+    const { filePath, position, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const queryClient = useQueryClient();
     const [isServiceEditorOpen, setIsServiceEditorOpen] = useState<boolean>(false);
@@ -519,7 +518,6 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                     serviceIdentifier={serviceIdentifier}
                     onClose={onTypeEditorClosed}
                     type={editingType}
-                    projectUri={projectUri}
                     onImplementation={handleOnImplementation}
                 />
             )}

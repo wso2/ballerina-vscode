@@ -14,8 +14,17 @@ import { extension } from './BalExtensionContext';
 import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, getWorkspacePackageNames, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+
+export interface ProjectMetadata {
+    readonly isBI: boolean;
+    readonly projectPath: string;
+    readonly workspacePath?: string;
+    readonly scope?: SCOPE;
+    readonly orgName?: string;
+    readonly packageName?: string;
+}
 
 interface MachineContext extends VisualizerLocation {
     langClient: ExtendedLangClient | null;
@@ -81,7 +90,8 @@ const stateMachine = createMachine<MachineContext>(
                             actions: [
                                 assign({
                                     isBI: (context, event) => event.data.isBI,
-                                    projectUri: (context, event) => event.data.projectPath,
+                                    projectPath: (context, event) => event.data.projectPath,
+                                    workspacePath: (context, event) => event.data.workspacePath,
                                     scope: (context, event) => event.data.scope,
                                     org: (context, event) => event.data.orgName,
                                     package: (context, event) => event.data.packageName,
@@ -104,7 +114,8 @@ const stateMachine = createMachine<MachineContext>(
                             cond: (context, event) => event.data && event.data.isBI,
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
-                                projectUri: (context, event) => event.data.projectPath,
+                                projectPath: (context, event) => event.data.projectPath,
+                                workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
                                 package: (context, event) => event.data.packageName,
@@ -115,7 +126,8 @@ const stateMachine = createMachine<MachineContext>(
                             cond: (context, event) => event.data && event.data.isBI === false,
                             actions: assign({
                                 isBI: (context, event) => event.data.isBI,
-                                projectUri: (context, event) => event.data.projectPath,
+                                projectPath: (context, event) => event.data.projectPath,
+                                workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
                                 package: (context, event) => event.data.packageName,
@@ -261,6 +273,8 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.viewLocation.position,
                                     identifier: (context, event) => event.viewLocation.identifier,
                                     serviceType: (context, event) => event.viewLocation.serviceType,
+                                    projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
+                                    package: (context, event) => event.viewLocation?.package,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
@@ -321,15 +335,15 @@ const stateMachine = createMachine<MachineContext>(
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
-                    // If the project uri is not set, we don't need to build the project structure
-                    if (context.projectUri) {
+                    // If the project uri or workspace path is not set, we don't need to build the project structure
+                    if (context.projectPath || context.workspacePath) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         // Register the event driven listener to get the artifact changes
                         context.langClient.registerPublishArtifacts();
                         // Initial Project Structure
-                        const projectStructure = await buildProjectArtifactsStructure(context.projectUri, context.langClient);
+                        const projectStructure = await buildProjectArtifactsStructure(context.projectPath, context.langClient);
                         resolve({ projectStructure });
                     } else {
                         resolve({ projectStructure: undefined });
@@ -367,10 +381,10 @@ const stateMachine = createMachine<MachineContext>(
         },
         resolveMissingDependencies: (context, event) => {
             return new Promise(async (resolve, reject) => {
-                if (context?.projectUri) {
+                if (context?.projectPath) {
                     const diagnostics: ProjectDiagnosticsResponse = await StateMachine.langClient().getProjectDiagnostics({
                         projectRootIdentifier: {
-                            uri: Uri.file(context.projectUri).toString(),
+                            uri: Uri.file(context.projectPath).toString(),
                         }
                     });
 
@@ -448,10 +462,17 @@ const stateMachine = createMachine<MachineContext>(
             return new Promise(async (resolve, reject) => {
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({ location: { view: MACHINE_VIEW.Overview, documentUri: context.documentUri } });
+                        history.push({
+                            location: {
+                                view: MACHINE_VIEW.Overview,
+                                documentUri: context.documentUri,
+                                package: context.package
+                            }
+                        });
                         return resolve();
                     }
-                    const view = await getView(context.documentUri, context.position, context?.projectUri);
+                    const view = await getView(context.documentUri, context.position, context?.projectPath);
+                    view.location.package = context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -461,6 +482,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            package: context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
@@ -628,7 +650,7 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
-export function updateView(refreshTreeView?: boolean, projectUri?: string) {
+export function updateView(refreshTreeView?: boolean) {
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
@@ -674,7 +696,7 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectArtifactsStructure(projectUri || StateMachine.context().projectUri, StateMachine.langClient(), true);
+        buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }
@@ -709,7 +731,7 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string, scope?: SCOPE }> {
+async function checkForProjects(): Promise<ProjectMetadata> {
     const workspaceFolders = workspace.workspaceFolders;
 
     if (!workspaceFolders) {
@@ -717,31 +739,30 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
     }
 
     if (workspaceFolders.length > 1) {
-        return await handleMultipleWorkspaces(workspaceFolders);
+        return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    return await handleSingleWorkspace(workspaceFolders[0].uri);
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
-async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerina(folder.uri));
+async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
+    const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
 
     if (balProjects.length > 1) {
-        const projectPaths = balProjects.map(folder => folder.uri.fsPath);
-        let selectedProject = await window.showQuickPick(projectPaths, {
-            placeHolder: 'Select a project to load the WSO2 Integrator'
+        // Show notification to guide users to use Ballerina workspaces instead of VSCode workspaces
+        window.showInformationMessage(
+            'Multiple Ballerina projects detected in VSCode workspace. Please use Ballerina workspaces for better project management and native support.',
+            'Learn More'
+        ).then(selection => {
+            if (selection === 'Learn More') {
+                // TODO: Add a guide on how to use Ballerina workspaces
+                // Open documentation or guide about Ballerina workspaces
+                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/organize-ballerina-code/'));
+            }
         });
-
-        if (!selectedProject) {
-            // Pick the first project if the user cancels the selection
-            selectedProject = projectPaths[0];
-        }
-
-        const isBI = checkIsBI(Uri.file(selectedProject));
-        const scope = isBI && fetchScope(Uri.file(selectedProject));
-        const { orgName, packageName } = getOrgPackageName(selectedProject);
-        setBIContext(isBI);
-        return { isBI, projectPath: selectedProject, scope, orgName, packageName };
+        
+        // Return empty result to indicate no project should be loaded
+        return { isBI: false, projectPath: '' };
     } else if (balProjects.length === 1) {
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
@@ -753,19 +774,55 @@ async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFold
     return { isBI: false, projectPath: '' };
 }
 
-async function handleSingleWorkspace(workspaceURI: any) {
-    const isBallerina = checkIsBallerina(workspaceURI);
-    const isBI = isBallerina && checkIsBI(workspaceURI);
-    const scope = fetchScope(workspaceURI);
-    const projectPath = isBallerina ? workspaceURI.fsPath : "";
-    const { orgName, packageName } = getOrgPackageName(projectPath);
+async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
+    const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
 
-    setBIContext(isBI);
-    if (!isBI) {
-        console.error("No BI enabled workspace found");
+    if (isBallerinaWorkspace) {
+        // TODO: Provide a quick pick to select the package to load the WSO2 Integrator
+        // if the user selects a package, then load the WSO2 Integrator for that package
+        // if the user cancels the selection, then load the WSO2 Integrator for the first package
+        const packages = getWorkspacePackageNames(workspaceURI);
+        const userSelectedPackage = await window.showQuickPick(packages, {
+            title: 'Select Package for WSO2 Integrator: BI',
+            placeHolder: 'Choose a package from your workspace to load in BI mode',
+            ignoreFocusOut: true
+        });
+
+        const targetPackage = userSelectedPackage || getFirstWorkspacePackageName(workspaceURI);
+
+        if (targetPackage) {
+            const packagePath = path.join(workspaceURI.fsPath, targetPackage);
+            const packageUri = Uri.file(packagePath);
+            
+            const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
+            const isBI = isBallerinaPackage && checkIsBI(packageUri);
+            const scope = fetchScope(packageUri);
+            const projectPath = isBallerinaPackage ? packagePath : "";
+            const { orgName, packageName } = getOrgPackageName(projectPath);
+
+            setBIContext(isBI);
+            if (!isBI) {
+                console.error("No BI enabled workspace found");
+            }
+    
+            return { isBI, projectPath, workspacePath: workspaceURI.fsPath, scope, orgName, packageName };
+        } else {
+            return { isBI: false, projectPath: '' };
+        }
+    } else {
+        const isBallerinaPackage = checkIsBallerinaPackage(workspaceURI);
+        const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
+        const scope = fetchScope(workspaceURI);
+        const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
+        const { orgName, packageName } = getOrgPackageName(projectPath);
+    
+        setBIContext(isBI);
+        if (!isBI) {
+            console.error("No BI enabled workspace found");
+        }
+    
+        return { isBI, projectPath, scope, orgName, packageName };
     }
-
-    return { isBI, projectPath, scope, orgName, packageName };
 }
 
 function setBIContext(isBI: boolean) {

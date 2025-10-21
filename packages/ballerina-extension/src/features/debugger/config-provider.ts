@@ -114,7 +114,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 async function handleMainFunctionParams(config: DebugConfiguration) {
     const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
-            uri: "file://" + StateMachine.context().projectUri
+            uri: Uri.file(StateMachine.context().projectPath).toString()
         }
     }) as MainFunctionParamsResponse;
     if (res.hasMain) {
@@ -520,7 +520,7 @@ async function handleBreakpointVisualization(uri: Uri, clientBreakpoint: DebugPr
     const newContext = StateMachine.context();
 
     // Check if breakpoint is in a different project
-    if (!uri.fsPath.startsWith(newContext.projectUri)) {
+    if (!uri.fsPath.startsWith(newContext.projectPath)) {
         console.log("Breakpoint is in a different project");
         window.showInformationMessage("Cannot visualize breakpoint since it belongs to a different project");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);

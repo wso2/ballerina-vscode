@@ -71,8 +71,8 @@ export function NewAgent(props: NewAgentProps): JSX.Element {
     const initPanel = async () => {
         setLoading(true);
         // get project path
-        const filePath = await rpcClient.getVisualizerLocation();
-        projectPath.current = filePath.projectUri;
+        const visualizerContext = await rpcClient.getVisualizerLocation();
+        projectPath.current = visualizerContext.projectPath;
         // get agent org
         aiModuleOrg.current = await getAiModuleOrg(rpcClient);
         // fetch agent node

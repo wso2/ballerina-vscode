@@ -71,7 +71,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={location.documentUri || location.projectUri}
+                                fileName={location.documentUri || location.projectPath}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
                                 isPopupScreen={true}
@@ -84,7 +84,6 @@ const PopupPanel = (props: PopupPanelProps) => {
                         setViewComponent(
                             <>
                                 <EditConnectionWizard
-                                    projectUri={location.projectUri}
                                     connectionName={machineState?.identifier}
                                     onClose={onClose}
                                 />
@@ -98,7 +97,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                     rpcClient.getVisualizerLocation().then(async (location) => {
                         const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(<FunctionForm
-                            projectPath={location.projectUri}
+                            projectPath={location.projectPath}
                             filePath={defaultFunctionsFile}
                             functionName={undefined}
                             isPopup={true} />
@@ -111,7 +110,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                         const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('data_mappings.bal');
                         setViewComponent(
                             <FunctionForm
-                                projectPath={location.projectUri}
+                                projectPath={location.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={undefined}
                                 isDataMapper={true}
@@ -126,7 +125,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                         const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
                         setViewComponent(
                             <FunctionForm
-                                projectPath={location.projectUri}
+                                projectPath={location.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={undefined}
                                 isDataMapper={false}

@@ -43,12 +43,12 @@ const TRACE_SERVER_VERBOSE = "verbose";
 
 export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
-        prepareAndGenerateConfig(context, StateMachine.context().projectUri, false, true);
+        prepareAndGenerateConfig(context, StateMachine.context().projectPath, false, true);
     });
 
     commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
         commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
-        startDebugging(Uri.file(StateMachine.context().projectUri), false, true);
+        startDebugging(Uri.file(StateMachine.context().projectPath), false, true);
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, () => {
@@ -87,8 +87,9 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIComponentView });
+    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
+        const workspacePath = StateMachine.context().workspacePath;
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm, workspacePath: workspacePath });
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, () => {
@@ -125,8 +126,8 @@ export function activate(context: BallerinaExtension) {
 
 
 function openBallerinaTomlFile(context: BallerinaExtension) {
-    const projectRoot = StateMachine.context().projectUri;
-    const ballerinaTomlFile = path.join(projectRoot, "Ballerina.toml");
+    const projectPath = StateMachine.context().projectPath;
+    const ballerinaTomlFile = path.join(projectPath, "Ballerina.toml");
     try {
         const content = readFileSync(ballerinaTomlFile, "utf8");
         if (content) {
@@ -148,12 +149,12 @@ function openBallerinaTomlFile(context: BallerinaExtension) {
 }
 
 function openAllBallerinaFiles(context: BallerinaExtension) {
-    const projectRoot = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
-    if (context.langClient && projectRoot) {
+    if (context.langClient && projectPath) {
         try {
             // Find all Ballerina files in the project
-            const ballerinaFiles = findBallerinaFiles(projectRoot);
+            const ballerinaFiles = findBallerinaFiles(projectPath);
             console.log(`>>> Found ${ballerinaFiles.length} Ballerina files in the project`);
 
             // Open each Ballerina file
@@ -315,7 +316,7 @@ function isFlowNodeOpenInDiagram(connector: FlowNode) {
         endLine: connector.codedata.lineRange.endLine.line,
         endColumn: connector.codedata.lineRange.endLine.offset
     };
-    const flowNodeFilePath = path.join(StateMachine.context().projectUri, connector.codedata.lineRange.fileName);
+    const flowNodeFilePath = path.join(StateMachine.context().projectPath, connector.codedata.lineRange.fileName);
 
     return isFilePathsEqual(openedComponentFilePath, flowNodeFilePath)
         && isPositionEqual(openedCompoentPosition, flowNodePosition);

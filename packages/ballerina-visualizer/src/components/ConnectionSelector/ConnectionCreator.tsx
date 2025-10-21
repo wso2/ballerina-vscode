@@ -51,7 +51,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
         const currentPosition = await rpcClient.getVisualizerLocation().then((location) => location.position);
         targetLineRangeRef.current = {
             startLine: {

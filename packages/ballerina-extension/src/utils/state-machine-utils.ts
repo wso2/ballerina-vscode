@@ -28,10 +28,10 @@ import { getConstructBodyString } from "./history/util";
 import { extension } from "../BalExtensionContext";
 import path from "path";
 
-export async function getView(documentUri: string, position: NodePosition, projectUri?: string): Promise<HistoryEntry> {
+export async function getView(documentUri: string, position: NodePosition, projectPath?: string): Promise<HistoryEntry> {
     const haveTreeData = !!StateMachine.context().projectStructure;
     const isServiceClassFunction = await checkForServiceClassFunctions(documentUri, position);
-    if (isServiceClassFunction || path.relative(projectUri || '', documentUri).startsWith("tests")) {
+    if (isServiceClassFunction || path.relative(projectPath || '', documentUri).startsWith("tests")) {
         return {
             location: {
                 view: MACHINE_VIEW.BIDiagram,
@@ -42,10 +42,10 @@ export async function getView(documentUri: string, position: NodePosition, proje
             dataMapperDepth: 0
         };
     } else if (haveTreeData) {
-        return getViewByArtifacts(documentUri, position, projectUri);
+        return getViewByArtifacts(documentUri, position, projectPath);
     }
     else {
-        return await getViewBySTRange(documentUri, position, projectUri);
+        return await getViewBySTRange(documentUri, position, projectPath);
     }
 }
 
@@ -66,7 +66,7 @@ async function checkForServiceClassFunctions(documentUri: string, position: Node
 }
 
 // TODO: This is not used anymore. Remove it.
-async function getViewBySTRange(documentUri: string, position: NodePosition, projectUri?: string) {
+async function getViewBySTRange(documentUri: string, position: NodePosition, projectPath?: string): Promise<HistoryEntry> {
     const req = getSTByRangeReq(documentUri, position);
     const node = await StateMachine.langClient().getSTByRange(req) as SyntaxTreeResponse;
     if (node.parseSuccess) {
@@ -85,7 +85,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                         documentUri: documentUri,
                         position: position,
                         identifier: name,
-                        projectUri: projectUri
+                        projectPath
                     }
                 };
             }
@@ -104,7 +104,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                         documentUri: documentUri,
                         position: position,
                         identifier: name,
-                        projectUri: projectUri
+                        projectPath
                     }
                 };
             }
@@ -123,7 +123,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                         documentUri: documentUri,
                         position: position,
                         identifier: name,
-                        projectUri: projectUri
+                        projectPath
                     }
                 };
             }
@@ -174,7 +174,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                         identifier: node.syntaxTree.absoluteResourcePath.map((path) => path.value).join(''),
                         documentUri: documentUri,
                         position: position,
-                        projectUri: projectUri
+                        projectPath
                     }
                 };
             } else {
@@ -249,7 +249,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
 
 }
 
-function getViewByArtifacts(documentUri: string, position: NodePosition, projectUri?: string) {
+function getViewByArtifacts(documentUri: string, position: NodePosition, projectPath?: string) {
     const currentProjectArtifacts = StateMachine.context().projectStructure;
     if (currentProjectArtifacts) {
         // Iterate through each category in the directory map
@@ -259,7 +259,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
                 //  Go through the resources array if it exists
                 if (dir.resources && dir.resources.length > 0) {
                     for (const resource of dir.resources) {
-                        const view = findViewByArtifact(resource, position, documentUri, projectUri);
+                        const view = findViewByArtifact(resource, position, documentUri, projectPath);
                         if (view) {
                             view.location.parentIdentifier = dir.name;
                             return view;
@@ -267,7 +267,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
                     }
                 }
                 // Check the current directory
-                const view = findViewByArtifact(dir, position, documentUri, projectUri);
+                const view = findViewByArtifact(dir, position, documentUri, projectPath);
                 if (view) {
                     return view;
                 }
@@ -278,7 +278,12 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
     }
 }
 
-function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: NodePosition, documentUri: string, projectUri?: string): HistoryEntry {
+function findViewByArtifact(
+    dir: ProjectStructureArtifactResponse,
+    position: NodePosition,
+    documentUri: string,
+    projectPath?: string
+): HistoryEntry {
     const currentDocumentUri = documentUri;
     const artifactUri = dir.path;
     if (artifactUri === currentDocumentUri && isPositionWithinRange(position, dir.position)) {
@@ -291,7 +296,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                             identifier: dir.name,
                             documentUri: currentDocumentUri,
                             position: position,
-                            projectUri: projectUri,
+                            projectPath: projectPath,
                             artifactType: DIRECTORY_MAP.SERVICE
                         }
                     };
@@ -302,7 +307,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                             identifier: dir.name,
                             documentUri: currentDocumentUri,
                             position: position,
-                            projectUri: projectUri,
+                            projectPath: projectPath,
                             artifactType: DIRECTORY_MAP.SERVICE,
                         }
                     };
@@ -381,7 +386,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         documentUri: currentDocumentUri,
                         position: position,
                         identifier: dir.name,
-                        projectUri: projectUri,
+                        projectPath: projectPath,
                         artifactType: DIRECTORY_MAP.TYPE
                     }
                 };
