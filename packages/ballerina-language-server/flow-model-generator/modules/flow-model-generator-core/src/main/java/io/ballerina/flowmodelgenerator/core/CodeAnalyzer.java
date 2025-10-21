@@ -560,7 +560,7 @@ public class CodeAnalyzer extends NodeVisitor {
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
-        
+
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
             nodeBuilder.metadata().addData("memory",
@@ -603,6 +603,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         newExpressionNode.toSourceCode().strip())
                 .version(moduleId.map(ModuleID::version).orElse(""))
                 .isNew(false)
+                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY))
                 .build();
 
         Path agentFilePath =
@@ -1646,6 +1647,19 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .type(Property.ValueType.LV_EXPRESSION)
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
+                    .editable()
+                    .stepOut()
+                    .addProperty(Property.VARIABLE_KEY);
+        } else {
+            // If a node was identified (e.g., agent, connection), set the variable property on it
+            String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
+            nodeBuilder.properties().custom()
+                    .metadata()
+                        .label(AssignBuilder.VARIABLE_LABEL)
+                        .description(AssignBuilder.VARIABLE_DOC)
+                        .stepOut()
+                    .type(Property.ValueType.IDENTIFIER)
+                    .value(variableName)
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);

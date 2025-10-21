@@ -352,9 +352,18 @@ public class AgentCallBuilder extends CallBuilder {
         TextRange textRange = CommonUtils.toTextRange(textDocument, codedata.lineRange());
         NonTerminalNode syntaxNode = ((ModulePartNode) syntaxTree.rootNode()).findNode(textRange, true);
 
+        // Extract scope from the codedata, defaulting to LOCAL_SCOPE if not found
+        String scope = Property.LOCAL_SCOPE;
+        if (codedata.data() != null && codedata.data().containsKey(Property.SCOPE_KEY)) {
+            Object scopeValue = codedata.data().get(Property.SCOPE_KEY);
+            if (scopeValue != null) {
+                scope = scopeValue.toString();
+            }
+        }
+
         // Use CodeAnalyzer to analyze the syntax node and generate FlowNode
         Project project = document.module().project();
-        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE,
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope,
                 Map.of(), Map.of(), textDocument,
                 ModuleInfo.from(document.module().descriptor()), false,
                 agentTemplateContext.workspaceManager());
