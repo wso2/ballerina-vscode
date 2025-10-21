@@ -31,6 +31,74 @@ import { getImportsForProperty } from '../../../../../../utils/bi';
 
 const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "Header" }];
 
+const contentTypes = [
+    "A-IM",
+    "Accept",
+    "Accept-Charset",
+    "Accept-Encoding",
+    "Accept-Language",
+    "Accept-Datetime",
+    "Access-Control-Request-Method",
+    "Access-Control-Request-Headers",
+    "Authorization",
+    "Cache-Control",
+    "Connection",
+    "Content-Encoding",
+    "Content-Length",
+    "Content-MD5",
+    "Content-Type",
+    "Cookie",
+    "Date",
+    "Expect",
+    "Forwarded",
+    "From",
+    "Host",
+    "HTTP2-Settings",
+    "If-Match",
+    "If-Modified-Since",
+    "If-None-Match",
+    "If-Range",
+    "If-Unmodified-Since",
+    "Max-Forwards",
+    "Origin",
+    "Pragma",
+    "Prefer",
+    "Proxy-Authorization",
+    "Range",
+    "Referer",
+    "TE",
+    "Trailer",
+    "Transfer-Encoding",
+    "User-Agent",
+    "Upgrade",
+    "Via",
+    "Warning",
+    "Upgrade-Insecure-Requests",
+    "X-Requested-With",
+    "DNT",
+    "X-Forwarded-For",
+    "X-Forwarded-Host",
+    "X-Forwarded-Proto",
+    "Front-End-Https",
+    "X-Http-Method-Override",
+    "X-ATT-DeviceId",
+    "X-Wap-Profile",
+    "Proxy-Connection",
+    "X-UIDH",
+    "X-Csrf-Token",
+    "X-Request-ID",
+    "X-Correlation-ID",
+    "Save-Data",
+    "Sec-GPC",
+    "Sec-Fetch-Site",
+    "Sec-Fetch-Mode",
+    "Sec-Fetch-User",
+    "Sec-Fetch-Dest",
+    "Sec-CH-UA",
+    "Sec-CH-UA-Mobile",
+    "Sec-CH-UA-Platform"
+];
+
 export interface ParamProps {
     param: ParameterModel;
     hideType?: boolean;
@@ -141,13 +209,13 @@ export function ParamEditor(props: ParamProps) {
                 fields.push({
                     key: `headerName`,
                     label: 'Header Name',
-                    type: param.name.valueType,
+                    type: "AUTOCOMPLETE",
+                    items: contentTypes,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: true,
-                    defaultValue: "string",
-                    value: param.headerName?.value,
+                    value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
                     valueTypeConstraint: "",
                     onValueChange: (value: string) => {
                         const sanitizeValue = value
@@ -159,7 +227,7 @@ export function ParamEditor(props: ParamProps) {
                         // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
                         if (param.name && typeof param.name === 'object') {
                             param.name.value = sanitizeValue;
-                            param.headerName.value = value;
+                            param.headerName.value = `"${value}"`;
                             onChange({ ...param, name: { ...param.name, value: sanitizedValueWithLowerFirst } });
                         }
                     }
@@ -173,7 +241,7 @@ export function ParamEditor(props: ParamProps) {
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
-                    value: param.name.value,
+                    value: param.name.value || "contentType",
                     valueTypeConstraint: ""
                 });
                 fields.push({
@@ -250,7 +318,7 @@ export function ParamEditor(props: ParamProps) {
                 imports: getImportsForProperty('type', formImports)
             },
             name: { ...param.name, value: dataValues['name'] ?? param.name.value },
-            headerName: { ...param.headerName, value: dataValues['headerName'] ?? param.headerName?.value },
+            headerName: { ...param.headerName, value: dataValues['headerName'] !== undefined ? `"${dataValues['headerName']}"` : param.headerName?.value },
             defaultValue: {
                 ...(param.defaultValue as PropertyModel),
                 value: dataValues['defaultValue'] ?? (param.defaultValue as PropertyModel)?.value,
