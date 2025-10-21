@@ -709,7 +709,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         },
                     });
 
-                    let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics ?? response.diagnostics);
+                    let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics);
 
                     // HACK: filter unknown module and undefined type diagnostics for local connections
                     uniqueDiagnostics = filterUnsupportedDiagnostics(uniqueDiagnostics);
