@@ -17,6 +17,7 @@
  */
 
 import styled from "@emotion/styled";
+import { keyframes } from "@emotion/react";
 import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "./constants";
 import { ThemeColors } from "@wso2/ui-toolkit";
 
@@ -25,12 +26,13 @@ export const ChipEditorField = styled.div`
     font-size: 12px;
     min-height: ${CHIP_EXPRESSION_EDITOR_HEIGHT}px;
     width: 100%;
-    padding: 5px 8px;
+    padding: 2px 8px;
     background-color: ${ThemeColors.OUTLINE_VARIANT};
     white-space: pre-wrap;
     outline: none;
     border: none;
     word-break: break-all;
+    position: relative;
 `;
 
 export const ChipEditorContainer = styled.div`
@@ -46,6 +48,7 @@ export const Chip = styled.div`
     background-color: rgba(0, 122, 204, 0.3);
     color: white;
     cursor: pointer;
+    margin: 2px 4px;
     font-size: 12px;
     padding: 2px 10px;
     display: inline-block;
@@ -85,3 +88,162 @@ export const ChipMenuItem = styled.div`
         background-color: ${ThemeColors.SURFACE};
     }
 `
+
+export const InvisibleSpan = styled.span`
+    min-height: 20px;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    text-decoration: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    &:focus {
+        outline: none;
+        border: none;
+        box-shadow: none;
+    }
+
+    &:active {
+        outline: none;
+        border: none;
+        box-shadow: none;
+    }
+
+    &:hover {
+        outline: none;
+        border: none;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    &::before,
+    &::after {
+        border: none;
+        outline: none;
+        box-shadow: none;
+    }
+`;
+
+const CompletionsadeInUp = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+`;
+
+export const COMPLETIONS_WIDTH = 300;
+
+export const Completions = styled.div`
+    background-color: ${ThemeColors.SURFACE_BRIGHT};
+    border: 1px solid ${ThemeColors.OUTLINE};
+    width: ${COMPLETIONS_WIDTH}px;
+    max-height: 300px;
+    overflow-y: auto;
+    position: absolute;
+    padding: 2px 0px;
+    border-radius: 3px;
+    top: 0;
+    left: 0;
+    z-index: 2001;
+    animation: ${CompletionsadeInUp} 0.3s ease forwards;
+`
+
+export const DescriptionWrapper = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2001;
+    background-color: ${ThemeColors.SURFACE_BRIGHT};
+    color: white;
+    width: fit-content;
+    height: fit-content;
+    padding: 4px 8px; 
+    border-radius: 2px;
+    border: 1px solid ${ThemeColors.OUTLINE};
+    font-size: 14px;
+    pointer-events: none; 
+    transform: translateX(-100%);
+`;
+
+export const CompletionsItemEl = styled.div<CompletionsItemElProps>`
+    height: 25px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0px 5px;
+    align-items: center;
+    background-color: ${(props: CompletionsItemElProps) =>
+        props.isSelected
+            ? 'var(--vscode-list-activeSelectionBackground)'
+            : ThemeColors.SURFACE_BRIGHT};
+    &:hover {
+        background-color: ${ThemeColors.OUTLINE_VARIANT};
+        cursor: pointer;
+    }
+`;
+
+export const CompletionsTag = styled.div`
+    color: ${ThemeColors.ON_SURFACE_VARIANT}
+`
+
+interface CompletionsItemElProps {
+    isSelected?: boolean;
+}
+
+// Floating toggle button styles - VS Code design philosophy
+export const FloatingButtonContainer = styled.div`
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    display: flex;
+    gap: 6px;
+    z-index: 1500;
+`;
+
+export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
+    width: 16px;
+    height: 16px;
+    border: 1px solid ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE};
+    border-radius: 2px;
+    background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_DIM};
+    color: ${props => props.isActive ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+    outline: none;
+    padding: 0;
+    box-shadow: ${props => props.isActive ? `0 0 0 1px ${ThemeColors.PRIMARY}` : 'none'};
+
+    &:hover {
+        background-color: ${props => props.isActive ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_DIM};
+        border-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT};
+    }
+
+    &:active {
+        background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_DIM};
+    }
+
+    &:focus-visible {
+        outline: 1px solid ${ThemeColors.PRIMARY};
+        outline-offset: 2px;
+    }
+`;
+

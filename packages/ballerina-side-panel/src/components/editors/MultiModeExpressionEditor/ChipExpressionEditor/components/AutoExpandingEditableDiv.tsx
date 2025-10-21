@@ -16,67 +16,89 @@
  * under the License.
  */
 
-import React from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { ChipEditorField } from "../styles"
 
 export type AutoExpandingEditableDivProps = {
+    fieldContainerRef?: React.RefObject<HTMLDivElement>;
     children?: React.ReactNode;
-    fieldRef?: React.RefObject<HTMLDivElement>;
-    onChange: (value: string) => void;
-    onSelect?: () => void;
-    value: string;
-    tokens: number[];
-    onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
-    onKeyUp?: () => void;
+    onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-    onFocus?: (e: React.FocusEvent<HTMLDivElement>) => void;
+    onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
+    onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
+    onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
+    style?: React.CSSProperties;
+    onFocusChange?: (isFocused: boolean) => void;
+    floatingControls?: React.ReactNode;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
-    const { children, onChange, onSelect, onClick, onKeyUp, onFocus, fieldRef, value, tokens, onKeyDown } = props;
+    const { children, onKeyUp, onKeyDown, onMouseDown, onMouseUp, onInput, fieldContainerRef, style } = props;
 
-    const handleChange = (event: React.FormEvent<HTMLDivElement>) => {
-        onChange(event.currentTarget.textContent || "");
-    }
+    const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        onKeyDown && onKeyDown(e);
-        if (e.key !== "Backspace" && e.key !== "Delete") return;
-        const selection = window.getSelection();
-        if (!selection || !selection.anchorNode) return;
-        const { anchorNode, anchorOffset } = selection;
-        if (anchorNode.nodeType === Node.TEXT_NODE) {
-            const textNode = anchorNode as Text;
-            if (anchorOffset > 0) return;
-            const parent = textNode.parentNode;
-            if (!parent) return;
-
-            const prev = parent.previousSibling;
-            if (prev) {
-                if (prev.nodeType !== Node.TEXT_NODE) {
-                    e.preventDefault();
-                }
-            }
+    const checkFocusState = useCallback(() => {
+        const container = fieldContainerRef?.current;
+        if (!container) {
+            setIsAnyElementFocused(false);
             return;
         }
-        e.preventDefault();
-    };
 
+        const activeElement = document.activeElement as HTMLElement;
+        
+        // Check if focused element is within our container
+        const isWithinContainer = container.contains(activeElement);
+        
+        // Check if it's an editable span (contenteditable), a chip, or a floating toggle button
+        const isEditableOrChip = 
+            activeElement?.hasAttribute('contenteditable') ||
+            activeElement?.getAttribute('data-chip') === 'true' ||
+            activeElement?.hasAttribute('data-element-id') ||
+            activeElement?.getAttribute('aria-pressed') !== null; // Floating toggle buttons
+
+        setIsAnyElementFocused(isWithinContainer && isEditableOrChip);
+    }, [fieldContainerRef]);
+
+    useEffect(() => {
+        const handleFocusIn = () => {
+            checkFocusState();
+        };
+
+        const handleFocusOut = () => {
+            // Small delay to allow focus to move to buttons if needed
+            setTimeout(checkFocusState, 10);
+        };
+
+        document.addEventListener('focusin', handleFocusIn);
+        document.addEventListener('focusout', handleFocusOut);
+
+        // Initial check
+        checkFocusState();
+
+        return () => {
+            document.removeEventListener('focusin', handleFocusIn);
+            document.removeEventListener('focusout', handleFocusOut);
+        };
+    }, [checkFocusState]);
+
+    useEffect(() => {
+        if (props.onFocusChange) {
+            props.onFocusChange(isAnyElementFocused);
+        }
+    }, [isAnyElementFocused, props]);
 
     return (
         <ChipEditorField
-            ref={fieldRef}
-            key={`${props.value}-${props.tokens.join(',')}`}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={handleChange}
-            onSelect={onSelect}
-            onKeyDown={handleKeyDown}
-            onClick={onClick}
+            ref={fieldContainerRef}
+            style={{ ...style, flex: 1 }}
             onKeyUp={onKeyUp}
-            onFocus={onFocus}
+            onKeyDown={onKeyDown}
+            onMouseDown={onMouseDown}
+            onMouseUp={onMouseUp}
+            onInput={onInput}
         >
             {children}
+            {props.floatingControls}
         </ChipEditorField>
     )
 }

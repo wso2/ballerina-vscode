@@ -17,8 +17,8 @@
  */
 
 export enum InputMode {
-    TEXT = "Text",
-    EXP = "Expression"
+  TEXT = "Text",
+  EXP = "Expression"
 }
 
 export const INPUT_MODE_MAP = {
@@ -27,13 +27,13 @@ export const INPUT_MODE_MAP = {
 };
 
 export type ExpressionColumnOffset = {
-    startColumn: number;
-    endColumn: number;
+  startColumn: number;
+  endColumn: number;
 }
 
 export type ExpressionTokenPosition = {
-    lineNumber: number;
-    column: ExpressionColumnOffset;
+  lineNumber: number;
+  column: ExpressionColumnOffset;
 }
 
 export type Token = {
@@ -41,4 +41,21 @@ export type Token = {
   column: number;
   length: number;
   tokenType: 'variable'
+}
+
+export type ExpressionModel = {
+  id: string
+  value: string,
+  isToken: boolean,
+  startColumn: number,
+  startLine: number,
+  length: number,
+  type: 'variable' | 'function' | 'literal',
+  isFocused?: boolean
+  focusOffset?: number
+}
+
+export type CursorPosition = { 
+  start: number; 
+  end: number; 
 }
