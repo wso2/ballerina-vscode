@@ -230,6 +230,7 @@ export function Parameters(props: ParametersProps) {
                 ))}
             {editModel && editModel.httpParamType === "QUERY" &&
                 <ParamEditor
+                    isNew={isNew}
                     param={editModel}
                     onChange={onChangeParam}
                     onSave={onSaveParam}
@@ -259,6 +260,7 @@ export function Parameters(props: ParametersProps) {
                     ))}
                 {editModel && editModel.httpParamType === "HEADER" &&
                     <ParamEditor
+                        isNew={isNew}
                         param={editModel}
                         onChange={onChangeParam}
                         onSave={onSaveParam}
@@ -293,6 +295,7 @@ export function Parameters(props: ParametersProps) {
 
             {editModel && editModel.httpParamType === "PAYLOAD" &&
                 <ParamEditor
+                    isNew={isNew}
                     param={editModel}
                     onChange={onChangeParam}
                     onSave={onSaveParam}
