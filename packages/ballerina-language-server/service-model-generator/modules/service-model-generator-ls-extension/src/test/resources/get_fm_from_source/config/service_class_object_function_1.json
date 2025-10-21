@@ -89,7 +89,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -147,7 +148,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -200,11 +202,13 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     },
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"

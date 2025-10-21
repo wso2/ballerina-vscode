@@ -20,6 +20,8 @@ package io.ballerina.servicemodelgenerator.extension.util;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -133,6 +135,7 @@ public class ServiceModelUtils {
         target.setKind(source.getKind());
         updateValue(target.getType(), source.getType());
         updateValue(target.getName(), source.getName());
+        target.setIsGraphqlId(source.isGraphqlId());
     }
 
     public static void populateRequiredFunctionsForServiceType(Service service) {
@@ -489,5 +492,80 @@ public class ServiceModelUtils {
         }
         ModuleID id = module.get().id();
         return new ServiceMetadata(serviceType, serviceTypeIdentifier, id.orgName(), id.packageName(), id.moduleName());
+    }
+
+    /**
+     * Check if the given annotation attachment is a GraphQL ID annotation.
+     *
+     * @param annotAttach the annotation attachment symbol
+     * @return true if the annotation is a GraphQL ID annotation, false otherwise
+     */
+    public static boolean isGraphqlIdAnnotation(AnnotationAttachmentSymbol annotAttach) {
+        AnnotationSymbol annot = annotAttach.typeDescriptor();
+        return annot.getName().isPresent()
+                && annot.getName().get().equals("ID")
+                && annot.getModule().isPresent()
+                && annot.getModule().get().id().orgName().equals("ballerina")
+                && annot.getModule().get().id().moduleName().equals("graphql");
+    }
+
+    /**
+     * Check and set the GraphQL ID annotation on a parameter by examining its annotations.
+     *
+     * @param parameter the parameter model to update
+     * @param parameterNode the parameter syntax node
+     * @param semanticModel the semantic model to resolve annotations
+     */
+    public static void setGraphqlIdForParameter(Parameter parameter,
+                                                io.ballerina.compiler.syntax.tree.Node parameterNode,
+                                                SemanticModel semanticModel) {
+        if (semanticModel == null || parameter == null || parameterNode == null) {
+            return;
+        }
+
+        Optional<Symbol> symbol = semanticModel.symbol(parameterNode);
+        if (symbol.isEmpty() || !(symbol.get() instanceof
+                io.ballerina.compiler.api.symbols.ParameterSymbol paramSymbol)) {
+            return;
+        }
+
+        for (AnnotationAttachmentSymbol annotAttachment : paramSymbol.annotAttachments()) {
+            if (isGraphqlIdAnnotation(annotAttachment)) {
+                parameter.setIsGraphqlId(true);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Check and set the GraphQL ID annotation on a function return type.
+     *
+     * @param returnType the return type model to update
+     * @param functionNode the function definition node
+     * @param semanticModel the semantic model to resolve annotations
+     */
+    public static void setGraphqlIdForReturnType(FunctionReturnType returnType,
+                                                 io.ballerina.compiler.syntax.tree.FunctionDefinitionNode functionNode,
+                                                 SemanticModel semanticModel) {
+        if (semanticModel == null || returnType == null || functionNode == null) {
+            return;
+        }
+
+        Optional<Symbol> symbol = semanticModel.symbol(functionNode);
+        if (symbol.isEmpty() || !(symbol.get() instanceof
+                io.ballerina.compiler.api.symbols.FunctionSymbol functionSymbol)) {
+            return;
+        }
+
+        io.ballerina.compiler.api.symbols.FunctionTypeSymbol functionTypeSymbol =
+                functionSymbol.typeDescriptor();
+        functionTypeSymbol.returnTypeAnnotations().ifPresent(returnTypeAnnots -> {
+            for (AnnotationAttachmentSymbol annotAttachment : returnTypeAnnots.annotAttachments()) {
+                if (isGraphqlIdAnnotation(annotAttachment)) {
+                    returnType.setIsGraphqlId(true);
+                    break;
+                }
+            }
+        });
     }
 }
