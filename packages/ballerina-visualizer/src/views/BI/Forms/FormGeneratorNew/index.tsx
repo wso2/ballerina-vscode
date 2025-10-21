@@ -938,7 +938,7 @@ export function FormGeneratorNew(props: FormProps) {
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={editingTypeName || "PayloadType"}
                 editMode={!!editingTypeName}
-                modalTitle={editingTypeName ? "Edit Payload" : "Define Payload"}
+                modalTitle={"Define Payload"}
                 modalWidth={650}
                 modalHeight={600}
             />
