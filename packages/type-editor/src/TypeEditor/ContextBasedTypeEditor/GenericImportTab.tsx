@@ -261,9 +261,11 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 typeName: importTypeName
             });
 
-            const record = typesFromJson.types.find((t) => t.type.name === importTypeName);
+            // Since the LS issue where all types are created with first letter capital we cant carry exact string match.
+            // Therefore we are considering the last type to be the main records, and the rest are dependencies.
+            const record = typesFromJson.types[typesFromJson.types.length - 1];
             const otherRecords = typesFromJson.types
-                .filter((t) => t.type.name !== importTypeName)
+                .slice(0, -1)
                 .map((t) => t.type);
 
             if (otherRecords.length > 0) {
