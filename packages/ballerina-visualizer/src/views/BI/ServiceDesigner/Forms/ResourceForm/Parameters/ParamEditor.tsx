@@ -105,12 +105,12 @@ export interface ParamProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
-    isNewResource?: boolean;
+    isNew?: boolean;
     type?: "QUERY" | "HEADER" | "PAYLOAD" | "PATH";
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel, isNewResource, type } = props;
+    const { param, hideType = false, onChange, onSave, onCancel, isNew, type } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -194,7 +194,7 @@ export function ParamEditor(props: ParamProps) {
                     key: `type`,
                     label: 'Type',
                     type: "ENUM",
-                    advanced: true,
+                    advanced: isNew,
                     optional: false,
                     editable: true,
                     documentation: '',
@@ -235,7 +235,7 @@ export function ParamEditor(props: ParamProps) {
                 fields.push({
                     key: `name`,
                     label: 'Variable Name',
-                    advanced: true,
+                    advanced: isNew,
                     type: param.name.valueType,
                     optional: false,
                     editable: true,
@@ -248,7 +248,7 @@ export function ParamEditor(props: ParamProps) {
                     key: `type`,
                     label: 'Type',
                     type: "ENUM",
-                    advanced: true,
+                    advanced: isNew,
                     optional: false,
                     editable: true,
                     documentation: '',
@@ -293,10 +293,10 @@ export function ParamEditor(props: ParamProps) {
                 label: 'Default Value',
                 type: (param.defaultValue as PropertyModel).valueType,
                 optional: true,
-                advanced: true,
+                advanced: isNew,
                 editable: true,
                 documentation: '',
-                enabled: enableDefault || (param.defaultValue as PropertyModel)?.enabled,
+                enabled: true,
                 value: (param.defaultValue as PropertyModel)?.value,
                 valueTypeConstraint: ""
             });
