@@ -1,1 +1,0 @@
-{"age":{"operation":"DIRECT","targetType":"int","parameters":["person.age"]},"salary":{"operation":"DIRECT","targetType":"float","parameters":["person.salary"]},"isActive":{"operation":"DIRECT","targetType":"string","parameters":["person.isActive"]}}

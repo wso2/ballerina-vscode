@@ -86,8 +86,8 @@ import {
     UpdateConfigVariableRequestV2,
     GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
-    DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    DeleteConfigVariableRequestV2,
     JsonToTypeRequest,
     JsonToTypeResponse,
     ConfigVariableRequest,
@@ -107,7 +107,6 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
-    ProjectImports,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -165,7 +164,6 @@ export const addBreakpointToSource: NotificationType<BreakpointRequest> = { meth
 export const removeBreakpointFromSource: NotificationType<BreakpointRequest> = { method: `${_preFix}/removeBreakpointFromSource` };
 export const getBreakpointInfo: RequestType<void, CurrentBreakpointsResponse> = { method: `${_preFix}/getBreakpointInfo` };
 export const getExpressionDiagnostics: RequestType<ExpressionDiagnosticsRequest, ExpressionDiagnosticsResponse> = { method: `${_preFix}/getExpressionDiagnostics` };
-export const getAllImports: RequestType<void, ProjectImports> = { method: `${_preFix}/getAllImports` };
 export const formDidOpen: RequestType<FormDidOpenParams, void> = { method: `${_preFix}/formDidOpen` };
 export const formDidClose: RequestType<FormDidCloseParams, void> = { method: `${_preFix}/formDidClose` };
 export const getDesignModel: RequestType<void, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };

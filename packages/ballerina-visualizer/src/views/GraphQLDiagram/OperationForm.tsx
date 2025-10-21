@@ -183,7 +183,7 @@ export function OperationForm(props: OperationFormProps) {
             {
                 key: 'returnType',
                 label: model.returnType.metadata?.label || 'Return Type',
-                type: 'TYPE',
+                type: model.returnType.valueType || 'TYPE',
                 optional: model.returnType.optional,
                 enabled: model.returnType.enabled,
                 editable: model.returnType.editable,
@@ -191,6 +191,7 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
                 valueType: model.returnType.valueType,
+                properties: model.returnType.properties,
                 valueTypeConstraint: model.returnType?.valueTypeConstraint
             }
         );

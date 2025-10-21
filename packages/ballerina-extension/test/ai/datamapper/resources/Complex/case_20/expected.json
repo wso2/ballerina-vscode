@@ -1,1 +1,0 @@
-{"student": "from var personItem in AItem.person\n select {\n id: personItem.id,\nfirstName: personItem.firstName,\nlastName: personItem.lastName,\nage: (personItem.age).toString(),\ncourses: from var coursesItem in personItem.college.courses\n select {\n id: check int:fromString(coursesItem.id),\ncredits: check (coursesItem.credits).ensureType()\n}\n}"}
