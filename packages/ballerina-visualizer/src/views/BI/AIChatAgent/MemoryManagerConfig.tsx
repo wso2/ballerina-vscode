@@ -48,6 +48,20 @@ const Row = styled.div`
     justify-content: center;
 `;
 
+const WarningMessage = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    background-color: var(--vscode-inputValidation-warningBackground);
+    border: 1px solid var(--vscode-inputValidation-warningBorder);
+    border-radius: 4px;
+    color: var(--vscode-inputValidation-warningForeground);
+    font-size: 13px;
+    line-height: 1.4;
+`;
+
 interface MemoryConfigProps {
     memoryNode: FlowNode;
     agentNode: FlowNode;
@@ -391,6 +405,15 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                             containerSx={{ width: "100%" }}
                         />
                     </Row>
+                    {getCurrentMemoryType() === "MessageWindowChatMemory" && availableMemory.length > 1 && (
+                        <WarningMessage>
+                            <Codicon name="warning" />
+                            <div>
+                                <strong>Note:</strong> Message Window Chat Memory is deprecated and may
+                                not be supported in future versions. Please use <strong>Short Term Memory</strong> instead.
+                            </div>
+                        </WarningMessage>
+                    )}
                 </Container>
             )}
             {isLoading && (
