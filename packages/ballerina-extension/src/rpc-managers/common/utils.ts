@@ -20,7 +20,7 @@ import * as fs from 'fs';
 import path from "path";
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit, TomlValues } from "@wso2/ballerina-core";
+import { TextEdit, PackageTomlValues } from "@wso2/ballerina-core";
 import { parse } from "toml";
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -114,7 +114,7 @@ export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) 
     });
 }
 
-export async function getProjectTomlValues(projectPath: string): Promise<TomlValues> {
+export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues> {
     const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');

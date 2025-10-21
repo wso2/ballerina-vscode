@@ -46,7 +46,7 @@ import {
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     getCurrentProjectTomlValues,
-    TomlValues,
+    PackageTomlValues,
     selectFileOrFolderPath,
     showErrorMessage,
     isBallerinaWorkspace
@@ -113,7 +113,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
     }
 
-    getCurrentProjectTomlValues(): Promise<TomlValues> {
+    getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
         return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 
