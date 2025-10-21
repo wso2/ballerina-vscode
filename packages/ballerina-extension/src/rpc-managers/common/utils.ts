@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import * as os from 'os';
 import * as fs from 'fs';
 import path from "path";
 import { NodePosition } from "@wso2/syntax-tree";
