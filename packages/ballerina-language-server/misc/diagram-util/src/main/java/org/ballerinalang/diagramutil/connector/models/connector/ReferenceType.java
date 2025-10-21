@@ -443,12 +443,13 @@ public class ReferenceType {
                         if (!depType.name.equals(sym.getName().orElse(""))) {
                             return false;
                         }
-                        if (depType.moduleInfo != null) {
+                        ModuleInfo depModuleInfo = depType.moduleInfo;
+                        if (depModuleInfo != null) {
                             ModuleID symModuleId = getModuleID(sym);
                             if (symModuleId != null) {
-                                return depType.moduleInfo.orgName.equals(symModuleId.orgName()) &&
-                                       depType.moduleInfo.moduleName.equals(symModuleId.moduleName()) &&
-                                        depType.moduleInfo.version.equals(symModuleId.version());
+                                return depModuleInfo.orgName.equals(symModuleId.orgName()) &&
+                                        depModuleInfo.moduleName.equals(symModuleId.moduleName()) &&
+                                        depModuleInfo.version.equals(symModuleId.version());
                             }
                         }
                         return true;
