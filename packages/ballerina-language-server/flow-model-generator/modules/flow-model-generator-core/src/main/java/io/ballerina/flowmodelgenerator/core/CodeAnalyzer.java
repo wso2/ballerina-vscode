@@ -127,6 +127,7 @@ import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
@@ -1650,15 +1651,15 @@ public class CodeAnalyzer extends NodeVisitor {
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);
-        } else {
-            // If a node was identified (e.g., agent, connection), set the variable property on it
+        } else if (nodeBuilder instanceof AgentBuilder) {
+            // If an agent node was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
                     .metadata()
                         .label(AssignBuilder.VARIABLE_LABEL)
                         .description(AssignBuilder.VARIABLE_DOC)
                         .stepOut()
-                    .type(Property.ValueType.IDENTIFIER)
+                    .type(Property.ValueType.LV_EXPRESSION)
                     .value(variableName)
                     .editable()
                     .stepOut()
