@@ -56,10 +56,11 @@ public class Parameter {
     private boolean advanced;
     private String httpParamType;
     private boolean hidden;
+    private boolean isGraphqlId;
 
     public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, Value documentation,
                      boolean enabled, boolean editable, boolean optional, boolean advanced, String httpParamType,
-                     boolean hidden) {
+                     boolean hidden, boolean isGraphqlId) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
@@ -72,6 +73,7 @@ public class Parameter {
         this.advanced = advanced;
         this.httpParamType = httpParamType;
         this.hidden = hidden;
+        this.isGraphqlId = isGraphqlId;
     }
 
     public Parameter(Parameter parameter) {
@@ -87,6 +89,7 @@ public class Parameter {
         this.advanced = parameter.advanced;
         this.httpParamType = parameter.httpParamType;
         this.hidden = parameter.hidden;
+        this.isGraphqlId = parameter.isGraphqlId;
     }
 
     public MetaData getMetadata() {
@@ -194,6 +197,14 @@ public class Parameter {
 
     public boolean isHidden() {
         return hidden;
+    }
+
+    public boolean isGraphqlId() {
+        return isGraphqlId;
+    }
+
+    public void setIsGraphqlId(boolean isGraphqlId) {
+        this.isGraphqlId = isGraphqlId;
     }
 
     private static Value name(MetaData metadata) {
@@ -318,6 +329,7 @@ public class Parameter {
         private boolean advanced;
         private String httpParamType;
         private boolean hidden;
+        private boolean isGraphqlId;
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -379,9 +391,14 @@ public class Parameter {
             return this;
         }
 
+        public Builder isGraphqlId(boolean isGraphqlId) {
+            this.isGraphqlId = isGraphqlId;
+            return this;
+        }
+
         public Parameter build() {
             return new Parameter(metadata, kind, type, name, defaultValue, documentation, enabled, editable, optional,
-                    advanced, httpParamType, hidden);
+                    advanced, httpParamType, hidden, isGraphqlId);
         }
     }
 }

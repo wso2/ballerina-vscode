@@ -618,6 +618,7 @@ public final class Utils {
         if (Objects.nonNull(source.getResponses())) {
             target.setResponses(source.getResponses());
         }
+        target.setIsGraphqlId(source.isGraphqlId());
     }
 
     public static List<String> getAnnotationEdits(Service service) {
@@ -968,6 +969,11 @@ public final class Utils {
         if (Objects.nonNull(returnType)) {
             if (returnType.isEnabledWithValue()) {
                 builder.append(" returns ");
+                // Add GraphQL ID annotation for return type if isGraphqlId is true
+                if (returnType.isGraphqlId()) {
+                    builder.append("@graphql:ID ");
+                    imports.put("graphql", "ballerina/graphql");
+                }
                 String returnTypeStr = getValueString(returnType);
                 if (addError && !returnTypeStr.contains("error")) {
                     returnTypeStr = "error|" + returnTypeStr;
@@ -1019,6 +1025,11 @@ public final class Utils {
                         imports.putAll(paramType.getImports());
                     }
                     paramDef = String.format("%s %s", getValueString(paramType), getValueString(param.getName()));
+                }
+                // Add GraphQL ID annotation if isGraphqlId is true
+                if (param.isGraphqlId()) {
+                    paramDef = String.format("@graphql:ID %s", paramDef);
+                    imports.put("graphql", "ballerina/graphql");
                 }
                 if (Objects.nonNull(param.getHttpParamType()) && !param.getHttpParamType().equals("Query")) {
                     paramDef = String.format("@http:%s %s", param.getHttpParamType(), paramDef);

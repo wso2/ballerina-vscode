@@ -77,7 +77,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -109,7 +110,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -141,7 +143,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -190,7 +193,8 @@
         "optional": false,
         "advanced": false,
         "httpParamType": "QUERY",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       "header": {
         "metadata": {
@@ -237,7 +241,8 @@
         "optional": false,
         "advanced": false,
         "httpParamType": "Header",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       "payload": {
         "metadata": {
@@ -270,7 +275,8 @@
         "optional": false,
         "advanced": false,
         "httpParamType": "PAYLOAD",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     },
     "returnType": {
@@ -425,6 +431,7 @@
         }
       },
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return type",
         "description": "Return type of the function"
