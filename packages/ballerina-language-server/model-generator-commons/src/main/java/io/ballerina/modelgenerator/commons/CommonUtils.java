@@ -264,6 +264,19 @@ public class CommonUtils {
     }
 
     /**
+     * Converts a LineRange to a TextRange using the provided TextDocument.
+     *
+     * @param textDocument the text document
+     * @param lineRange the line range to convert
+     * @return the corresponding TextRange
+     */
+    public static TextRange toTextRange(TextDocument textDocument, LineRange lineRange) {
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        return TextRange.from(start, end - start);
+    }
+
+    /**
      * Convert the syntax-node line range into a lsp4j range.
      *
      * @param lineRange line range

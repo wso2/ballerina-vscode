@@ -390,6 +390,9 @@
     },
     {
       "label": "testVar",
+      "labelDetails": {
+        "detail": " int|string|float"
+      },
       "kind": "Variable",
       "detail": "int|string|float",
       "sortText": "BAB",

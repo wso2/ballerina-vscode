@@ -406,6 +406,9 @@
     },
     {
       "label": "myMap",
+      "labelDetails": {
+        "detail": " map<int>"
+      },
       "kind": "Variable",
       "detail": "map<int>",
       "sortText": "CB",
@@ -414,6 +417,9 @@
     },
     {
       "label": "p2",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "CB",
@@ -422,6 +428,9 @@
     },
     {
       "label": "bool",
+      "labelDetails": {
+        "detail": " boolean"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "BB",
@@ -430,6 +439,9 @@
     },
     {
       "label": "p3",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "CB",
@@ -438,6 +450,9 @@
     },
     {
       "label": "p1",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "CB",
@@ -446,6 +461,9 @@
     },
     {
       "label": "personList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "CB",
@@ -454,6 +472,9 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "AB",
@@ -470,6 +491,9 @@
     },
     {
       "label": "r",
+      "labelDetails": {
+        "detail": " recType"
+      },
       "kind": "Variable",
       "detail": "recType",
       "sortText": "CB",
@@ -486,6 +510,9 @@
     },
     {
       "label": "rank",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",

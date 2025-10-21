@@ -591,6 +591,10 @@
     },
     {
       "label": "param1",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -599,6 +603,9 @@
     },
     {
       "label": "response",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -607,6 +614,10 @@
     },
     {
       "label": "count",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",
@@ -642,6 +653,10 @@
     },
     {
       "label": "myClient",
+      "labelDetails": {
+        "detail": " MyClient",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "MyClient",
       "sortText": "AB",

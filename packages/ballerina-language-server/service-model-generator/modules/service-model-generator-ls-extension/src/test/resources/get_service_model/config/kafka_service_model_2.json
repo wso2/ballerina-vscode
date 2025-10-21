@@ -6,7 +6,7 @@
   "moduleName": "kafka",
   "response": {
     "service": {
-      "id": "10",
+      "id": "11",
       "name": "Kafka Event Handler",
       "type": "kafka",
       "displayName": "Kafka Event Handler",

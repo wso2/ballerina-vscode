@@ -144,7 +144,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
                 // Generate the flow design model
-                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel.get(), filePath);
+                ModelGenerator modelGenerator =
+                        new ModelGenerator(project, semanticModel.get(), filePath, workspaceManager);
                 response.setFlowDesignModel(
                         modelGenerator.getFlowModel(document.get(), request.lineRange(),
                                 dataMappingsDoc.orElse(null),
@@ -179,7 +180,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 Optional<Document> functionsDoc = getDocumentFromFile(projectPath, "functions.bal");
 
                 // Generate the flow design model
-                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel.get(), filePath);
+                ModelGenerator modelGenerator =
+                        new ModelGenerator(project, semanticModel.get(), filePath, workspaceManager);
                 JsonElement oldFlowModel =
                         modelGenerator.getFlowModel(document.get(), request.lineRange(),
                                 dataMappingsDoc.orElse(null),
@@ -226,7 +228,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 ModelGenerator suggestedModelGenerator =
                         new ModelGenerator(newProject, PackageUtil.getCompilation(newProject)
-                                .getSemanticModel(newDoc.module().moduleId()), filePath);
+                                .getSemanticModel(newDoc.module().moduleId()), filePath, workspaceManager);
                 JsonElement newFlowModel = suggestedModelGenerator.getFlowModel(newDoc,
                         endLineRange, newDataMappingsDoc.orElse(null), newFunctionsDoc.orElse(null));
 
@@ -411,7 +413,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
 
                 // Generate the flow design model
-                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath);
+                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
                 response.setFlowDesignModel(modelGenerator.getModuleNodes());
             } catch (Throwable e) {
                 response.setError(e);
@@ -434,7 +436,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
 
                 // Generate the flow design model
-                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath);
+                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
                 response.setFlowDesignModel(modelGenerator.getServiceFieldNodes(request.linePosition()));
             } catch (Throwable e) {
                 response.setError(e);

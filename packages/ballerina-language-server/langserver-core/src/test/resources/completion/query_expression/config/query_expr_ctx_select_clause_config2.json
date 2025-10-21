@@ -348,6 +348,9 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "AB",
@@ -371,6 +374,9 @@
     },
     {
       "label": "personList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "BB",
@@ -387,6 +393,9 @@
     },
     {
       "label": "outputPersonList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "BB",
@@ -403,6 +412,9 @@
     },
     {
       "label": "onConflictError",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "BB",
@@ -411,6 +423,9 @@
     },
     {
       "label": "newAge",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -438,6 +453,9 @@
     },
     {
       "label": "p3",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -446,6 +464,9 @@
     },
     {
       "label": "p1",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -454,6 +475,9 @@
     },
     {
       "label": "p2",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",

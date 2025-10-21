@@ -447,6 +447,10 @@
     },
     {
       "label": "b",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -463,6 +467,10 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -471,6 +479,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -524,6 +535,9 @@
     },
     {
       "label": "myStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",

@@ -10,7 +10,7 @@
     "offset": 0
   },
   "response": {
-    "id": "12",
+    "id": "13",
     "name": "GitHub Event Handler",
     "type": "trigger.github",
     "displayName": "GitHub Event Handler",
@@ -83,7 +83,7 @@
           "ProjectCardService"
         ],
         "enabled": true,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       }

@@ -617,6 +617,9 @@
     },
     {
       "label": "myStream",
+      "labelDetails": {
+        "detail": " stream<int>|error"
+      },
       "kind": "Variable",
       "detail": "stream<int>|error",
       "sortText": "AB",

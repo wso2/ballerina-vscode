@@ -407,6 +407,9 @@
     },
     {
       "label": "c1",
+      "labelDetails": {
+        "detail": " module1:TestClass1"
+      },
       "kind": "Variable",
       "detail": "module1:TestClass1",
       "sortText": "CB",

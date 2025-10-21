@@ -30,14 +30,14 @@ jobs:
         with:
           version: 2201.12.3
 
-      - name: Cache Ballerina dependencies
+      - name: Cache Ballerina dependencies (Ubuntu)
         uses: actions/cache@v4
         id: cache-ballerina
         with:
           path: /home/runner/.ballerina/repositories/
-          key: ${{ runner.os }}-ballerina-${{ hashFiles('**/gradle.properties') }}
+          key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-ballerina-
+            ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
 
       - name: Build with Gradle
         env:
@@ -72,14 +72,14 @@ jobs:
         with:
           version: 2201.12.3
 
-      - name: Cache Ballerina dependencies
+      - name: Cache Ballerina dependencies (Windows)
         uses: actions/cache@v4
         id: cache-ballerina
         with:
           path: C:\Users\runneradmin\.ballerina\repositories\
-          key: ${{ runner.os }}-ballerina-${{ hashFiles('**/gradle.properties') }}
+          key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-ballerina-
+            ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
 
       - name: Build with Gradle
         env:

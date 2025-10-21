@@ -399,6 +399,9 @@
     },
     {
       "label": "test",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
