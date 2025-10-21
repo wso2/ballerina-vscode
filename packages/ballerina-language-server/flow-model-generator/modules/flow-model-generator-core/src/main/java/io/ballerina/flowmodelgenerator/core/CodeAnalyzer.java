@@ -560,8 +560,7 @@ public class CodeAnalyzer extends NodeVisitor {
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
-
-        // TODO: If memory manager is null we should not define a default one here.
+        
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
             nodeBuilder.metadata().addData("memory",
