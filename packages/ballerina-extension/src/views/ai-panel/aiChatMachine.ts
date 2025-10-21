@@ -20,10 +20,10 @@
 import { createMachine, assign, interpret } from 'xstate';
 import { extension } from '../../BalExtensionContext';
 import * as crypto from 'crypto';
-import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task } from '@wso2/ballerina-core/lib/state-machine-types';
+import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task, TaskStatus } from '@wso2/ballerina-core/lib/state-machine-types';
 import { workspace } from 'vscode';
 import { GenerateCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
-import { generatDesign } from '../../features/ai/service/design/design';
+import { generateDesign } from '../../features/ai/service/design/design';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -69,6 +69,7 @@ const addChatMessage = (
 };
 
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
+    /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AwtmLQVAArqr4DEEA9vjB0CAN34BrYeWa0wnbgG0ADAF1EoAA79YuGrkEaQAD0QBmACxm6ZgJzKAbACZbTpwEYnZ97YA0IAE9EAHZg9zoADk8HZQBWW2DHC1iLAF9U-zRMHAJiUgpqeiYWfXwOLl4cbH5sOk0uGgAzGoBbOhkS+QqVdSQQbV19Qz7TBEtrO0cXN09vP0DECIdYuidl4KcLdwdgiPtY9MyMLDxCEjIqWjoAVU0IVjKFXgEhEXxxKToAVzu5J56jAM9AZ8EZRuMbPZnK4PF4fP4gghYhELHQoWYHLZYsEHO5YrEzIcQFkTrlzgUrrd7qVytweFUanUGs1sG0ftSuko1ICdMDhqBwVZIVMYbN4QsEDsIjZ4hYIqFgpZlMo0hlicccmd8pd6ABRYxgchfGkAFVQsAkfEEwjEkmEYANRpoYDNFoBfSBQ1BI3MQsm0JmcPmiKidAstgjtnD9lcZkcRJJmryF0KdH1huNbFdloZtXqtBZbQdGed2fdWl5XrBvomUOmsLmCMQ7mCqKx3nc3giUQcUWCCY1p2TFPoADECGAaF98FnzZaXjb3na6I0J1OhGXuR7KyDq2M-XXRUGm2NcZF4pYsRE1sjVUdskPyTq6OOhOvZxb6dhqnnma0V2u04unO5b9Du-ImDWwoBg24qIms0oWFM3hmBEKSdoSRL4PwEBwEYiaPtqhQ8oMu4+ggRAOCeRArJGdH0RGmH3qSWoplcACSEBYCRfLegKzadqs7jyrE7jbE42JiSe4ZOHQnZONetjXpiDjJAcaoEWSRFXMUDy0nxYGkRBoy9qs2IRHEBIOM4wS2GYJ67KiBK2C2qmxMomwEgOD5aWx9BPAASmAoi4GAADuPFVuR6E2FYOIRGYtmOHBiDxIh1lOIqqH2N2d7qj5rEjjcvw0k8kVkfxSK2GiUwWBYmVbBsYQnvEwR0A4ZguEhlnBPi7jeSxw7PumTofhI5XGYgyR0M5cTOMJUaOPZEpoTNaXXiiHU+FYA1Jk+qYAIJhaQNLXLAOAHeQUUVkZBmjDF4zxYlUIpQgwmyRYtm9rKdgdfiu2EX5L6ATOZTZhNd1TU4J4KeE8m9YlWzuHE-YaYOvlFQAil8cBemwZ04BDe4ojYnUeTsLm2B1jgnqhDjtZ1Sy-UpVNmEx+WDftOn8C09STpARPkSTbNOOTtk+NTVErfYdDKHY7j1XGiqdupzF7dperfjUguVQ9cW9s9yXBiEyhtciMRs-VN7xukqRAA */
     id: 'ballerina-ai-chat',
     initial: 'Idle',
     predictableActionArguments: true,
@@ -244,7 +245,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
                                     index === ctx.currentTaskIndex
-                                        ? { ...task, status: 'completed', result: event.data.result }
+                                        ? { ...task, status: TaskStatus.COMPLETED, result: event.data.result }
                                         : task
                                 ),
                                 updatedAt: Date.now(),
@@ -258,6 +259,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             ),
                     }),
                 },
+                //TODO: Why on error? Recheck TASKSTATUS
                 onError: {
                     target: 'AwaitingUserAction',
                     actions: assign({
@@ -271,7 +273,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                     index === ctx.currentTaskIndex
                                         ? {
                                             ...task,
-                                            status: 'failed',
+                                            status: TaskStatus.COMPLETED,
                                             error: event.data?.message || 'Task execution failed',
                                         }
                                         : task
@@ -350,7 +352,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
                                     index === ctx.currentTaskIndex
-                                        ? { ...task, result: event.data.result, status: 'completed' }
+                                        ? { ...task, result: event.data.result, status: TaskStatus.COMPLETED }
                                         : task
                                 ),
                                 updatedAt: Date.now(),
@@ -440,25 +442,7 @@ const createPlanService = async (context: AIChatMachineContext, event: any): Pro
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
     };
-    await generatDesign(requestBody);
-
-    const tasks: Task[] = [
-        {
-            id: generateId(),
-            description: 'Task 1: Analyze requirements',
-            status: 'pending',
-        },
-        {
-            id: generateId(),
-            description: 'Task 2: Design solution',
-            status: 'pending',
-        },
-        {
-            id: generateId(),
-            description: 'Task 3: Implement code',
-            status: 'pending',
-        },
-    ];
+    const tasks: Task[] = await generateDesign(requestBody);
 
     const plan: Plan = {
         id: generateId(),
