@@ -25,7 +25,16 @@ const spin = keyframes`
     to { transform: rotate(360deg); }
 `;
 
-const TodoContainer = styled.div`
+const flashHighlight = keyframes`
+    0% {
+        background-color: rgba(var(--vscode-list-hoverBackground-rgb, 128, 128, 128), 0.3);
+    }
+    100% {
+        background-color: transparent;
+    }
+`;
+
+const TodoContainer = styled.div<{ isNew?: boolean }>`
     background-color: transparent;
     border: none;
     border-radius: 0;
@@ -35,6 +44,8 @@ const TodoContainer = styled.div`
     font-size: 12px;
     color: var(--vscode-editor-foreground);
     min-height: 24px;
+    animation: ${(props: { isNew?: boolean }) =>
+        props.isNew ? `${flashHighlight} 3s ease-out 1` : 'none'};
 `;
 
 const TodoHeader = styled.div<{ clickable?: boolean }>`
@@ -159,6 +170,7 @@ const getStatusIcon = (status: string): { className: string; icon: string } => {
 
 const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     const [isExpanded, setIsExpanded] = useState(true);
+    const [isNew, setIsNew] = useState(true);
     const inProgressRef = useRef<HTMLDivElement>(null);
     const todoListRef = useRef<HTMLDivElement>(null);
     const scrollTimeoutRef = useRef<number | null>(null);
@@ -166,6 +178,14 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     const inProgressTask = tasks.find((t) => t.status === "in_progress");
     const allCompleted = completedCount === tasks.length;
     const hasInProgress = !!inProgressTask;
+
+    // Remove the "new" state after animation completes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsNew(false);
+        }, 3000); // 1.5s * 2 iterations = 3s
+        return () => clearTimeout(timer);
+    }, []);
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
@@ -223,7 +243,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     };
 
     return (
-        <TodoContainer>
+        <TodoContainer isNew={isNew}>
             <TodoHeader clickable onClick={toggleExpanded}>
                 <ChevronIcon expanded={isExpanded}>
                     <span className="codicon codicon-chevron-right"></span>
