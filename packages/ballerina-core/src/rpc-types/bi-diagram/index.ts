@@ -93,7 +93,9 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse
+    VerifyTypeDeleteResponse,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -160,6 +162,7 @@ export interface BIDiagramAPI {
     addBreakpointToSource: (params: BreakpointRequest) => void;
     removeBreakpointFromSource: (params: BreakpointRequest) => void;
     getBreakpointInfo: () => Promise<CurrentBreakpointsResponse>;
+    getFormDiagnostics: (params: FormDiagnosticsRequest) => Promise<FormDiagnosticsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     getAllImports: () => Promise<ProjectImports>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;

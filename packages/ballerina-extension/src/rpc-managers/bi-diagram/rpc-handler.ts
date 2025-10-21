@@ -72,6 +72,7 @@ import {
     getExpressionCompletions,
     getExpressionDiagnostics,
     getFlowModel,
+    getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
     getModuleNodes,
@@ -142,7 +143,8 @@ import {
     UpdateTypesRequest,
     verifyTypeDelete,
     VerifyTypeDeleteRequest,
-    VisibleTypesRequest
+    VisibleTypesRequest,
+    FormDiagnosticsRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -191,6 +193,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(addBreakpointToSource, (args: BreakpointRequest) => rpcManger.addBreakpointToSource(args));
     messenger.onNotification(removeBreakpointFromSource, (args: BreakpointRequest) => rpcManger.removeBreakpointFromSource(args));
     messenger.onRequest(getBreakpointInfo, () => rpcManger.getBreakpointInfo());
+    messenger.onRequest(getFormDiagnostics, (args: FormDiagnosticsRequest) => rpcManger.getFormDiagnostics(args));
     messenger.onRequest(getExpressionDiagnostics, (args: ExpressionDiagnosticsRequest) => rpcManger.getExpressionDiagnostics(args));
     messenger.onRequest(getAllImports, () => rpcManger.getAllImports());
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
