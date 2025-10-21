@@ -33,6 +33,10 @@ export const createHtmlRichText = (
     let currentChar = 0;
     let previousTokenEndOffset = 0;
 
+    if (tokenChunks.length === 1 && tokenChunks[0].every(val => val === 0)) {
+        return [<span>{value}</span>];
+    }
+
     for (let i = 0; i < tokenChunks.length; i++) {
         const chunk = tokenChunks[i];
         const deltaLine = chunk[0];

@@ -853,6 +853,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     }
 
+    const getExpressionTokens = async (expression: string): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+        })
+    }
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -861,6 +867,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,

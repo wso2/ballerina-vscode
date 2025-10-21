@@ -792,6 +792,12 @@ export function FormGeneratorNew(props: FormProps) {
         return await convertToFnSignature(signatureHelp);
     };
 
+    const getExpressionTokens = async (expression: string): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+        })
+    }
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -800,6 +806,9 @@ export function FormGeneratorNew(props: FormProps) {
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,

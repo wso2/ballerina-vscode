@@ -94,7 +94,8 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse
+    VerifyTypeDeleteResponse,
+    ExpressionTokensRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -195,3 +196,4 @@ export const generateOpenApiClient: RequestType<OpenAPIClientGenerationRequest, 
 export const getOpenApiGeneratedModules: RequestType<OpenAPIGeneratedModulesRequest, OpenAPIGeneratedModulesResponse> = { method: `${_preFix}/getOpenApiGeneratedModules` };
 export const deleteOpenApiGeneratedModules: RequestType<OpenAPIClientDeleteRequest, OpenAPIClientDeleteResponse> = { method: `${_preFix}/deleteOpenApiGeneratedModules` };
 export const openConfigToml: RequestType<OpenConfigTomlRequest, void> = { method: `${_preFix}/openConfigToml` };
+export const getExpressionTokens: RequestType<ExpressionTokensRequest, number[]> = { method: `${_preFix}/getExpressionTokens` };
