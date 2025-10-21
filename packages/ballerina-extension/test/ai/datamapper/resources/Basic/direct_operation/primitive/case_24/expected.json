@@ -1,1 +1,0 @@
-{"id":"(person.id).toString()","name":"check int:fromString(person.age)","courseId":"(course.id).toString()","courseTitle":"course.title"}

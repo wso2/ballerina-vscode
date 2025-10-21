@@ -45,9 +45,12 @@ import {
     BuildMode,
     ClassFieldModifierRequest,
     ComponentRequest,
+    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -83,7 +86,6 @@ import {
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
     ProjectComponentsResponse,
-    ProjectImports,
     ProjectRequest,
     ProjectStructureResponse,
     ReadmeContentRequest,
@@ -109,6 +111,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspacesResponse,
@@ -130,7 +134,6 @@ import {
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
-    getAllImports,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -186,13 +189,8 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse,
     verifyTypeDelete,
-    ConfigVariableRequest,
-    AddProjectToWorkspaceRequest,
+    AddProjectToWorkspaceRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -378,10 +376,6 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
         return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
-    }
-
-    getAllImports(): Promise<ProjectImports> {
-        return this._messenger.sendRequest(getAllImports, HOST_EXTENSION);
     }
 
     formDidOpen(params: FormDidOpenParams): Promise<void> {
