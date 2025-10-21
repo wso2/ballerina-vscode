@@ -63,7 +63,11 @@ export function getPropertyFromFormField(field: FormField): ExpressionProperty {
         placeholder: field.placeholder,
         valueTypeConstraint: field.valueTypeConstraint,
         codedata: field.codedata,
-        imports: field.imports
+        imports: field.imports,
+        diagnostics: {
+            hasDiagnostics: field.diagnostics?.length > 0 ? true : false,
+            diagnostics: field.diagnostics
+        }
     }
 }
 
