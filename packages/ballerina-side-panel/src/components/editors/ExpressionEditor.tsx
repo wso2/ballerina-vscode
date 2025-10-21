@@ -54,6 +54,7 @@ export type ContextAwareExpressionEditorProps = {
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
+    onBlur?: () => void | Promise<void>;
     autoFocus?: boolean;
     recordTypeField?: RecordTypeField;
     helperPaneZIndex?: number;
@@ -298,9 +299,9 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
             fileName={fileName}
             targetLineRange={targetLineRange}
             helperPaneZIndex={props.helperPaneZIndex}
-            {...props}
             {...form}
             {...expressionEditor}
+            {...props}
         />
     );
 };
@@ -341,6 +342,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
+    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
+
+    // Update formDiagnostics when field.diagnostics changes
+    useEffect(() => {
+        setFormDiagnostics(field.diagnostics);
+    }, [field.diagnostics]);
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
     const { targetLineRange: contextTargetLineRange, fileName: contextFileName } = useFormContext();
@@ -445,9 +452,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
 
     return (
-        <FieldProvider 
-        initialField={props.field} 
-        triggerCharacters={props.triggerCharacters}
+        <FieldProvider
+            initialField={props.field}
+            triggerCharacters={props.triggerCharacters}
         >
             <S.Container id={id}>
                 {showHeader && (
@@ -489,6 +496,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     if (updatedValue === value) {
                                         return;
                                     }
+
+                                    // clear field diagnostics
+                                    setFormDiagnostics([]);
+
 
                                 const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
                                 onChange(rawValue);
@@ -543,7 +554,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 placeholder={placeholder}
                                 helperPaneZIndex={helperPaneZIndex}
                             />
-                            {error && <ErrorBanner errorMsg={error.message.toString()} />}
+                            {error ?
+                                <ErrorBanner errorMsg={error.message.toString()} /> : 
+                                formDiagnostics && formDiagnostics.length > 0 && 
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                            }
                         </div>
                     )}
                 />
