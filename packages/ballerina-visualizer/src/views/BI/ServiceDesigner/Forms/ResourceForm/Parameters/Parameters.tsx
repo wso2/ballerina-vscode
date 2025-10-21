@@ -31,6 +31,7 @@ export interface ParametersProps {
     onChange: (parameters: ParameterModel[]) => void,
     schemas: ConfigProperties;
     readonly?: boolean;
+    pathName?: string;
     showPayload: boolean;
 }
 
@@ -65,7 +66,7 @@ const OptionalConfigContent = styled.div`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, schemas, showPayload } = props;
+    const { parameters, readonly, onChange, schemas, showPayload, pathName } = props;
 
     const queryModel = schemas["query"] as ParameterModel;
     const headerModel = schemas["header"] as ParameterModel;
@@ -196,6 +197,30 @@ export function Parameters(props: ParametersProps) {
             onChange(updatedParameters);
         }
     };
+
+    const generatePayloadName = () => {
+        if (pathName) {
+            // Remove leading/trailing slashes and split by slash
+            const pathSegments = pathName.replace(/^\/|\/$/g, '').split('/');
+            
+            // Filter out segments that contain brackets (parameters) and keep only valid segments
+            const validSegments = pathSegments.filter(segment => !segment.includes('[') && !segment.includes(']'));
+            
+            // Join with underscores and sanitize to only allow letters, numbers, and underscores
+            const sanitizedPath = validSegments
+                .join('_')
+                .replace(/[^a-zA-Z0-9_]/g, ''); // Remove any characters that are not letters, numbers, or underscores
+            
+            if (sanitizedPath) {
+                const newPayloadName = `${sanitizedPath}_payload`;
+                const capitalizedPath = newPayloadName.charAt(0).toUpperCase() + newPayloadName.slice(1);
+                return capitalizedPath;
+            } else {
+                return "PayloadType";
+            }
+        }
+        return "PayloadType";
+    }
 
     const onSaveParam = (param: ParameterModel) => {
         param.enabled = true;
@@ -375,7 +400,7 @@ export function Parameters(props: ParametersProps) {
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName={"PayloadType"}
+                initialTypeName={generatePayloadName()}
                 editMode={false}
                 modalTitle={"Define Payload"}
                 modalWidth={650}
