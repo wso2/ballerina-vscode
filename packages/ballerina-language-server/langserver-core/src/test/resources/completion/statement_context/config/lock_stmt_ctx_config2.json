@@ -399,6 +399,9 @@
     },
     {
       "label": "numberList",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "F",
@@ -407,6 +410,9 @@
     },
     {
       "label": "breakValue",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -423,6 +429,9 @@
     },
     {
       "label": "counter",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

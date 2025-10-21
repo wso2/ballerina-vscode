@@ -372,6 +372,9 @@
     },
     {
       "label": "entry",
+      "labelDetails": {
+        "detail": " [string, int]"
+      },
       "kind": "Variable",
       "detail": "[string, int]",
       "sortText": "AB",
@@ -414,6 +417,9 @@
     },
     {
       "label": "myMap",
+      "labelDetails": {
+        "detail": " map<int>"
+      },
       "kind": "Variable",
       "detail": "map<int>",
       "sortText": "CB",

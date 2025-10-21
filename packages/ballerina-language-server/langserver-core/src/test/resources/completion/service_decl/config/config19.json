@@ -386,6 +386,9 @@
     },
     {
       "label": "l1",
+      "labelDetails": {
+        "detail": " module1:Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "A",

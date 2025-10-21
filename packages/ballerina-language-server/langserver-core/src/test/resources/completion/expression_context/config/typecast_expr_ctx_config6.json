@@ -360,6 +360,9 @@
     },
     {
       "label": "value2",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -407,6 +410,9 @@
     },
     {
       "label": "value1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",

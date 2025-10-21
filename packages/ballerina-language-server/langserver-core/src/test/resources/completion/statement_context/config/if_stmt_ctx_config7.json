@@ -559,6 +559,9 @@
     },
     {
       "label": "testVar",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",

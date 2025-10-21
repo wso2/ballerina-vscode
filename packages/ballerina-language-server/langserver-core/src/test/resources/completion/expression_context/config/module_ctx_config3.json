@@ -372,6 +372,9 @@
     },
     {
       "label": "mod1:TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "B",
