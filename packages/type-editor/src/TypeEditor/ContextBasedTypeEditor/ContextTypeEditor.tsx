@@ -148,7 +148,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container style={{ height: '80vh', overflow: 'hidden' }} data-testid="type-editor-container">
+            <S.Container style={{ height: '525px', overflow: 'hidden' }} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : (
@@ -160,7 +160,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 icon: <Icon
                                     name="bi-import"
                                     sx={{ marginRight: '5px' }}
-                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
+                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center' }}
                                 />
                             },
                             {
@@ -178,7 +178,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 icon: <Icon
                                     name="bi-type"
                                     sx={{ marginRight: '5px' }}
-                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
+                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center' }}
                                 />
                             }
                         ]}
@@ -186,7 +186,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ padding: '10px', height: '100%', overflow: 'hidden' }}
                     >
-                        <div id="import" data-testid="import-tab" style={{ height: '100%' }}>
+                        <div id="import" data-testid="import-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                             <GenericImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -195,7 +195,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="create-from-scratch" data-testid="create-from-scratch-tab" style={{ height: '100%' }}>
+                        <div id="create-from-scratch" data-testid="create-from-scratch-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                             <ContextTypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -207,7 +207,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="browse-exisiting-types" data-testid="browse-exisiting-types-tab" style={{ height: '100%' }}>
+                        <div id="browse-exisiting-types" data-testid="browse-exisiting-types-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                             <BrowseTypesTab
                                 basicTypes={props.typeHelper.basicTypes}
                                 importedTypes={props.typeHelper.importedTypes}

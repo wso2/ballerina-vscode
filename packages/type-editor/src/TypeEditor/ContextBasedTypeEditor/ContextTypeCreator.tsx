@@ -574,7 +574,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                 )}
             </CategoryRow>
 
-           <div style={{overflow: 'auto', maxHeight: '70vh'}}>
+           <div style={{overflow: 'auto', height: '350px'}}>
              {/* {renderEditor()} */}
              <>
                         <SchemaRecordEditor

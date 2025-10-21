@@ -72,19 +72,13 @@ const TypesContainer = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    height: 40vh;
-    overflow: scroll;
 `;
 
 const CategoryTitle = styled(Typography)`
     color: var(--vscode-descriptionForeground);
     text-transform: uppercase;
-    font-size: 11px;
-    font-weight: 600;
     letter-spacing: 0.5px;
     margin-bottom: 8px;
-    padding-bottom: 10px;
 `;
 
 const TypeList = styled.div`
@@ -117,15 +111,8 @@ const TypeItem = styled.div`
 
 const TypeName = styled(Typography)`
     font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
-    font-weight: 500;
     color: var(--vscode-foreground);
     margin-bottom: 4px;
-`;
-
-const TypeDescription = styled(Typography)`
-    font-size: 12px;
-    color: var(--vscode-descriptionForeground);
 `;
 
 const Footer = styled.div`
@@ -135,7 +122,6 @@ const Footer = styled.div`
     justify-content: flex-end;
     align-items: center;
     padding-top: 16px;
-    border-top: 1px solid var(--vscode-panel-border);
     flex-shrink: 0;
 `;
 
@@ -154,6 +140,12 @@ const EmptyState = styled.div`
     padding: 20px;
     color: var(--vscode-descriptionForeground);
     flex: 1;
+`;
+
+const ScrollableSection = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    max-height: 280px
 `;
 
 interface BrowseTypesTabProps {
@@ -242,7 +234,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         return categories.map((category, categoryIndex) => (
             <CategorySection key={categoryIndex}>
                 {category.category && (
-                    <CategoryTitle variant="body3">{category.category}</CategoryTitle>
+                    <CategoryTitle variant="h5">{category.category}</CategoryTitle>
                 )}
                 <TypeList>
                     {category.items.map((item, itemIndex) => (
@@ -255,7 +247,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                                     : undefined
                             }}
                         >
-                            <TypeName variant="body2">{item.name}</TypeName>
+                            <TypeName variant="body3">{item.name}</TypeName>
                         </TypeItem>
                     ))}
                 </TypeList>
@@ -290,14 +282,14 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                             <ProgressRing />
                         </LoadingContainer>
                     ) : (
-                        <>
+                        <ScrollableSection>
                             {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
                             {(!basicTypes || basicTypes.length === 0) && (
                                 <EmptyState>
                                     <Typography variant="body3">No types found</Typography>
                                 </EmptyState>
                             )}
-                        </>
+                        </ScrollableSection>
                     )}
                 </TypesContainer>
             </ContentArea>

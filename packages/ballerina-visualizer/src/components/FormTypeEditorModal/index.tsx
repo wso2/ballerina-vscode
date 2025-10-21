@@ -305,7 +305,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}
                 >
-                    <div style={{ height: '80vh', overflow: 'hidden', paddingBottom: '20px' }}>
+                    <div style={{ height: '525px', overflow: 'hidden', paddingBottom: '20px' }}>
                         {loadingType && editMode && i === 0 ? (
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
                                 <ProgressRing />
