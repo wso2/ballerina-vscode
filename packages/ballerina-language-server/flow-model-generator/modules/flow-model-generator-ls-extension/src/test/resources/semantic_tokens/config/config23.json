@@ -1,5 +1,6 @@
 {
   "description": "Function call with complex field access argument",
+  "filePath": "main.bal",
   "expression": "fn(parent.field)",
   "expectedTokens": [
     {

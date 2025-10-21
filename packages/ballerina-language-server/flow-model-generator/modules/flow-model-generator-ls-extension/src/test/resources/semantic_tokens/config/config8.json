@@ -1,5 +1,6 @@
 {
   "description": "Variable with field access in addition expression",
+  "filePath": "main.bal",
   "expression": "myVar + parent.field1",
   "expectedTokens": [
     {

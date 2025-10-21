@@ -1,5 +1,6 @@
 {
   "description": "Function call with identifier and literal arguments",
+  "filePath": "main.bal",
   "expression": "fn(x, 1)",
   "expectedTokens": [
     {

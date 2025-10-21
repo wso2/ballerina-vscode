@@ -1,5 +1,6 @@
 {
   "description": "Function call with variable arguments using $ prefix",
+  "filePath": "main.bal",
   "expression": "fn($1, $2)",
   "expectedTokens": [
     {

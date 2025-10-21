@@ -1,5 +1,6 @@
 {
   "description": "Ternary conditional operation",
+  "filePath": "main.bal",
   "expression": "condition ? trueVal : falseVal",
   "expectedTokens": [
     {

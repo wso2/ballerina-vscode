@@ -23,6 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens.ExpressionTokenTypes;
 import io.ballerina.flowmodelgenerator.extension.request.ExpressionEditorSemanticTokensRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -52,8 +53,10 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
         // Validate token types before running test
         validateTokenTypes(testConfig.expectedTokens());
 
+        // Create request with filePath, position, and expression
+        String sourcePath = getSourcePath(testConfig.filePath());
         ExpressionEditorSemanticTokensRequest request =
-                new ExpressionEditorSemanticTokensRequest(testConfig.expression());
+                new ExpressionEditorSemanticTokensRequest(sourcePath, testConfig.position(), testConfig.expression());
         JsonObject response = getResponse(request);
 
         SemanticTokens actualSemanticTokens = gson.fromJson(response, SEMANTIC_TOKENS_TYPE);
@@ -64,10 +67,12 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
             List<ExpectedToken> actualReadable = convertFromSemanticTokens(actualSemanticTokens);
             TestConfig updatedConfig = new TestConfig(
                     testConfig.description(),
+                    testConfig.filePath(),
+                    testConfig.position(),
                     testConfig.expression(),
                     actualReadable
             );
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)%nExpected: %s%nActual: %s",
                     testConfig.description(), configJsonPath,
                     testConfig.expectedTokens(), actualReadable));
@@ -240,11 +245,15 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
      * Test configuration record with readable token format.
      *
      * @param description    Test description
+     * @param filePath       Path to the Ballerina source file
+     * @param position       Optional position for visible symbols
      * @param expression     Ballerina expression to analyze
      * @param expectedTokens Expected semantic tokens in readable format
      */
     private record TestConfig(
             String description,
+            String filePath,
+            LinePosition position,
             String expression,
             List<ExpectedToken> expectedTokens
     ) {

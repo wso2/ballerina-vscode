@@ -44,10 +44,12 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     private final List<SemanticToken> semanticTokens;
     private final Set<Long> seenPositions;
+    private final Set<String> validSymbolNames;
 
-    public SemanticTokenVisitor() {
+    public SemanticTokenVisitor(Set<String> validSymbolNames) {
         this.semanticTokens = new ArrayList<>();
         this.seenPositions = new HashSet<>();
+        this.validSymbolNames = validSymbolNames;
     }
 
     /**
@@ -73,6 +75,14 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(SimpleNameReferenceNode simpleNameReferenceNode) {
+        // Get the symbol name from the node
+        String symbolName = simpleNameReferenceNode.name().text();
+
+        // Check if the symbol name exists in the valid symbol names set
+        if (!validSymbolNames.contains(symbolName)) {
+            return;
+        }
+
         addSemanticToken(simpleNameReferenceNode, ExpressionTokenTypes.VARIABLE.getId());
     }
 

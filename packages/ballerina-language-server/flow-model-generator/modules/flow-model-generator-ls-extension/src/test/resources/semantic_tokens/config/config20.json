@@ -1,5 +1,6 @@
 {
   "description": "Record initialization with nested structure",
+  "filePath": "main.bal",
   "expression": "{field1: val, field2: {field1: \"text\", field2: parent.field1 }}",
   "expectedTokens": [
     {

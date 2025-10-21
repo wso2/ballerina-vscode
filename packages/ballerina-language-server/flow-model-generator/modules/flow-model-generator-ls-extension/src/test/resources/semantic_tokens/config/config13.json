@@ -1,6 +1,7 @@
 {
   "description": "Mapping constructor with variable values",
-  "expression": "{key1: val1, key2: val2}",
+  "filePath": "main.bal",
+  "expression": "{key1: var1, key2: var2}",
   "expectedTokens": [
     {
       "line": 0,

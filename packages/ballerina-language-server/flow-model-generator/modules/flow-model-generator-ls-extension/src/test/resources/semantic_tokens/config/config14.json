@@ -1,5 +1,6 @@
 {
   "description": "Optional field access",
+  "filePath": "main.bal",
   "expression": "parent?.field",
   "expectedTokens": [
     {

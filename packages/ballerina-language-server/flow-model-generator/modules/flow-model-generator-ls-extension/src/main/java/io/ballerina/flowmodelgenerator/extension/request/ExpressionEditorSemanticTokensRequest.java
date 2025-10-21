@@ -18,11 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.extension.request;
 
+import io.ballerina.tools.text.LinePosition;
+
 /**
  * Request for expression semantic tokens.
  *
- * @param expression Ballerina expression text to analyze
+ * @param filePath   The file path which contains the expression
+ * @param position   Optional position in the file to get visible symbols (if null, uses module symbols)
+ * @param expression The Ballerina expression text to analyze
  * @since 1.3.0
  */
-public record ExpressionEditorSemanticTokensRequest(String expression) {
+public record ExpressionEditorSemanticTokensRequest(String filePath, LinePosition position, String expression) {
 }

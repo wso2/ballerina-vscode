@@ -1,5 +1,6 @@
 {
   "description": "Field access expression",
+  "filePath": "main.bal",
   "expression": "parent.field",
   "expectedTokens": [
     {

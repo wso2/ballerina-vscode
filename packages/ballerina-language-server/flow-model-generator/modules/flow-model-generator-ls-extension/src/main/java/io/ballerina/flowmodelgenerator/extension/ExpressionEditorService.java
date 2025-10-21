@@ -65,8 +65,10 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
@@ -231,11 +233,31 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
     public CompletableFuture<SemanticTokens> semanticTokens(ExpressionEditorSemanticTokensRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // Get semantic model from workspace
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManagerProxy.get().loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManagerProxy.get().semanticModel(filePath);
+
+                // Get symbol names based on position
+                Set<String> symbolNames = new HashSet<>();
+                if (semanticModel.isPresent()) {
+                    if (request.position() != null) {
+                        // Position provided - get visible symbols at that position
+                        Optional<Document> document = this.workspaceManagerProxy.get().document(filePath);
+                        document.ifPresent(value -> semanticModel.get().visibleSymbols(value, request.position())
+                                .forEach(symbol -> symbol.getName().ifPresent(symbolNames::add)));
+                    } else {
+                        // No position - get module-level symbols
+                        semanticModel.get().moduleSymbols()
+                                .forEach(symbol -> symbol.getName().ifPresent(symbolNames::add));
+                    }
+                }
+
                 // Parse expression using NodeParser
                 ExpressionNode expressionNode = NodeParser.parseExpression(request.expression());
 
                 // Create visitor and generate tokens
-                SemanticTokenVisitor visitor = new SemanticTokenVisitor();
+                SemanticTokenVisitor visitor = new SemanticTokenVisitor(symbolNames);
                 return visitor.getSemanticTokens(expressionNode);
             } catch (Throwable e) {
                 // Return empty tokens on parse error

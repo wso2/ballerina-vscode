@@ -1,5 +1,6 @@
 {
   "description": "String template with variable and field access interpolations",
+  "filePath": "main.bal",
   "expression": "string `This is my variable ${myVar} and this is my field ${rec.field1}`",
   "expectedTokens": [
     {

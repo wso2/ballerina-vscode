@@ -1,5 +1,6 @@
 {
   "description": "Logical expressions with AND and OR",
+  "filePath": "main.bal",
   "expression": "a && b || c",
   "expectedTokens": [
     {

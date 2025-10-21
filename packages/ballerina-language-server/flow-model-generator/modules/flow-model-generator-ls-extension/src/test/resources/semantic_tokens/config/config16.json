@@ -1,5 +1,6 @@
 {
   "description": "Member access with variable index x[a]",
+  "filePath": "main.bal",
   "expression": "x[a]",
   "expectedTokens": [
     {

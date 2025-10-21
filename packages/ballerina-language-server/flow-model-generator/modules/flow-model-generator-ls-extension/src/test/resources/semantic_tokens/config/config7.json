@@ -1,5 +1,6 @@
 {
   "description": "Chained field access expression",
+  "filePath": "main.bal",
   "expression": "parent.field1.field2",
   "expectedTokens": [
     {

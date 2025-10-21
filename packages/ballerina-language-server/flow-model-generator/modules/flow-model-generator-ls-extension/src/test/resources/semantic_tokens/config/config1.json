@@ -1,5 +1,6 @@
 {
   "description": "Simple variable reference",
+  "filePath": "",
   "expression": "myVar",
   "expectedTokens": [
     {

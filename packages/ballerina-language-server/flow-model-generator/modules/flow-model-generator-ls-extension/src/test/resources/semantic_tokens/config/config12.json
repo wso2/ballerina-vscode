@@ -1,5 +1,6 @@
 {
   "description": "List constructor with variables",
+  "filePath": "main.bal",
   "expression": "[var1, var2, var3]",
   "expectedTokens": [
     {
