@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import path from "path";
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit, PackageTomlValues } from "@wso2/ballerina-core";
+import { TextEdit, PackageTomlValues, WorkspaceTomlValues } from "@wso2/ballerina-core";
 import { parse } from "toml";
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -123,6 +123,19 @@ export async function getProjectTomlValues(projectPath: string): Promise<Package
             return parse(tomlContent);
         } catch (error) {
             console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
+}
+
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues> {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
             return;
         }
     }
