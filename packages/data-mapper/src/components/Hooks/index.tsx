@@ -41,6 +41,7 @@ import {
 import { GAP_BETWEEN_INPUT_NODES, IO_NODE_DEFAULT_WIDTH, OFFSETS } from '../Diagram/utils/constants';
 import { InputDataImportNodeModel, OutputDataImportNodeModel } from '../Diagram/Node/DataImport/DataImportNode';
 import { excludeEmptyInputNodes, getErrorKind } from '../Diagram/utils/common-utils';
+import { IOType } from '@wso2/ballerina-core';
 
 export interface FieldCount {
     id: string;
@@ -127,7 +128,7 @@ export const useDiagramModel = (
     const context = nodes.find(node => node.context)?.context;
     const { model } = context ?? {};
     const mappings = model.mappings.map(mapping => mapping.expression).toString();
-    const subMappings = model?.subMappings?.map(mapping => mapping.id).toString();
+    const subMappings = model?.subMappings?.map(mapping => (mapping as IOType).id).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();

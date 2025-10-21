@@ -27,6 +27,7 @@ import {
     PropertyModel,
     ServiceClassModel,
     ServiceClassSourceRequest,
+    Type,
     UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -60,11 +61,12 @@ const LoadingContainer = styled.div`
 interface ServiceClassConfigProps {
     fileName: string;
     position: NodePosition;
+    type: Type;
 }
 
 // TODO: Need to support inclusion type configurable option
 export function ServiceClassConfig(props: ServiceClassConfigProps) {
-    const { fileName, position } = props;
+    const { fileName, position, type } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
@@ -194,6 +196,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                             position: serviceArtifact.position,
                             isGraphql: false,
                             documentUri: fileName,
+                            type: type,
                         }
                     });
             }
