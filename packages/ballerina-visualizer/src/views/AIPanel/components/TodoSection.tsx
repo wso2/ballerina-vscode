@@ -18,7 +18,7 @@
 
 import { keyframes } from "@emotion/css";
 import styled from "@emotion/styled";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const spin = keyframes`
     from { transform: rotate(0deg); }
@@ -32,24 +32,24 @@ const TodoContainer = styled.div`
     padding: 0;
     margin: 0;
     font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--vscode-editor-foreground);
-    min-height: 32px;
+    min-height: 24px;
 `;
 
 const TodoHeader = styled.div<{ clickable?: boolean }>`
     font-weight: 600;
-    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '12px'};
-    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '8px'};
+    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '6px'};
+    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '4px'};
     border-bottom: ${(props: { clickable?: boolean }) =>
         props.clickable ? 'none' : '1px solid var(--vscode-panel-border)'};
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     cursor: ${(props: { clickable?: boolean }) => props.clickable ? 'pointer' : 'default'};
     user-select: none;
-    padding: 4px;
-    border-radius: 4px;
+    padding: 2px;
+    border-radius: 3px;
 
     &:hover {
         background-color: ${(props: { clickable?: boolean }) =>
@@ -67,22 +67,24 @@ const ChevronIcon = styled.span<{ expanded: boolean }>`
 const MinimalTaskInfo = styled.span`
     color: var(--vscode-descriptionForeground);
     font-weight: 400;
-    font-size: 12px;
+    font-size: 11px;
     margin-left: 4px;
 `;
 
 const TodoList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
+    overflow-y: auto;
+    max-height: 200px;
 `;
 
 const TodoItem = styled.div<{ status: string }>`
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px;
-    border-radius: 4px;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 3px;
     background-color: ${(props: { status: string }) =>
         props.status === "completed"
             ? "var(--vscode-list-hoverBackground)"
@@ -96,9 +98,8 @@ const TodoIcon = styled.span<{ status: string }>`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
+    width: 16px;
+    height: 16px;
 
     &.pending {
         .codicon {
@@ -120,16 +121,17 @@ const TodoIcon = styled.span<{ status: string }>`
     }
 `;
 
-const TodoText = styled.div<{ status: string }>`
+const TodoText = styled.span<{ status: string }>`
     flex: 1;
     text-decoration: ${(props: { status: string }) =>
         props.status === "completed" ? "line-through" : "none"};
+    line-height: 16px;
 `;
 
 const TodoNumber = styled.span`
     color: var(--vscode-descriptionForeground);
     font-weight: 600;
-    margin-right: 4px;
+    margin-right: 2px;
 `;
 
 export interface Task {
@@ -157,6 +159,9 @@ const getStatusIcon = (status: string): { className: string; icon: string } => {
 
 const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     const [isExpanded, setIsExpanded] = useState(true);
+    const inProgressRef = useRef<HTMLDivElement>(null);
+    const todoListRef = useRef<HTMLDivElement>(null);
+    const scrollTimeoutRef = useRef<number | null>(null);
     const completedCount = tasks.filter((t) => t.status === "completed").length;
     const inProgressTask = tasks.find((t) => t.status === "in_progress");
     const allCompleted = completedCount === tasks.length;
@@ -165,6 +170,50 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
     };
+
+    // Function to scroll to in-progress task
+    const scrollToInProgress = () => {
+        if (inProgressRef.current) {
+            inProgressRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    };
+
+    // Auto-scroll to in-progress task
+    useEffect(() => {
+        if (isExpanded && hasInProgress) {
+            scrollToInProgress();
+        }
+    }, [isExpanded, inProgressTask?.id]);
+
+    // Handle user scroll - refocus after delay
+    useEffect(() => {
+        const todoList = todoListRef.current;
+        if (!todoList || !hasInProgress) return;
+
+        const handleScroll = () => {
+            // Clear existing timeout
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+
+            // Set new timeout to refocus after 3 seconds
+            scrollTimeoutRef.current = setTimeout(() => {
+                scrollToInProgress();
+            }, 3000);
+        };
+
+        todoList.addEventListener("scroll", handleScroll);
+
+        return () => {
+            todoList.removeEventListener("scroll", handleScroll);
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, [hasInProgress, inProgressTask?.id]);
 
     // Determine status text
     const getStatusText = () => {
@@ -195,9 +244,9 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
                     {message && (
                         <div
                             style={{
-                                marginTop: "12px",
-                                marginBottom: "12px",
-                                fontSize: "12px",
+                                marginTop: "6px",
+                                marginBottom: "6px",
+                                fontSize: "11px",
                                 color: "var(--vscode-descriptionForeground)",
                                 fontStyle: "italic",
                             }}
@@ -205,11 +254,16 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
                             {message}
                         </div>
                     )}
-                    <TodoList style={{ marginTop: "12px" }}>
+                    <TodoList style={{ marginTop: "6px" }} ref={todoListRef}>
                         {tasks.map((task, index) => {
                             const statusInfo = getStatusIcon(task.status);
+                            const isInProgress = task.status === "in_progress";
                             return (
-                                <TodoItem key={task.id} status={task.status}>
+                                <TodoItem
+                                    key={task.id}
+                                    status={task.status}
+                                    ref={isInProgress ? inProgressRef : null}
+                                >
                                     <TodoIcon status={task.status} className={statusInfo.className}>
                                         <span className={`codicon ${statusInfo.icon}`}></span>
                                     </TodoIcon>

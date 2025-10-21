@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const DialogOverlay = styled.div`
     position: fixed;
@@ -75,7 +75,7 @@ const TaskList = styled.div`
 
 const TaskItem = styled.div`
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
     padding: 8px;
     margin-bottom: 8px;
@@ -90,7 +90,7 @@ const TaskNumber = styled.span`
     flex-shrink: 0;
 `;
 
-const TaskDescription = styled.div`
+const TaskDescription = styled.span`
     flex: 1;
     color: var(--vscode-editor-foreground);
     line-height: 1.4;
@@ -204,6 +204,9 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
     const [dialogState, setDialogState] = useState<DialogState>("initial");
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const taskListRef = useRef<HTMLDivElement>(null);
+    const highlightedTaskRef = useRef<HTMLDivElement>(null);
+    const scrollTimeoutRef = useRef<number | null>(null);
 
     const handleApprove = () => {
         setIsSubmitting(true);
@@ -230,6 +233,50 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         setDialogState("initial");
         setComment("");
     };
+
+    // Function to scroll to highlighted task
+    const scrollToHighlightedTask = () => {
+        if (highlightedTaskRef.current) {
+            highlightedTaskRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    };
+
+    // Auto-scroll to highlighted task on mount
+    useEffect(() => {
+        if (taskId && highlightedTaskRef.current) {
+            scrollToHighlightedTask();
+        }
+    }, [taskId]);
+
+    // Handle user scroll - refocus after delay
+    useEffect(() => {
+        const taskList = taskListRef.current;
+        if (!taskList || !taskId) return;
+
+        const handleScroll = () => {
+            // Clear existing timeout
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+
+            // Set new timeout to refocus after 3 seconds
+            scrollTimeoutRef.current = setTimeout(() => {
+                scrollToHighlightedTask();
+            }, 3000);
+        };
+
+        taskList.addEventListener("scroll", handleScroll);
+
+        return () => {
+            taskList.removeEventListener("scroll", handleScroll);
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, [taskId]);
 
     const getDialogTitle = () => {
         if (approvalType === "plan") {
