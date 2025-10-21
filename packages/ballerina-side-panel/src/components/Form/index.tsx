@@ -508,8 +508,7 @@ export const Form = forwardRef((props: FormProps) => {
     }
 
     const handleOnBlur = async () => {
-        const data = getValues();   
-        onBlur && onBlur(data, dirtyFields);
+        onBlur?.(getValues(), dirtyFields);
     };
 
     // Expose a method to trigger the save
