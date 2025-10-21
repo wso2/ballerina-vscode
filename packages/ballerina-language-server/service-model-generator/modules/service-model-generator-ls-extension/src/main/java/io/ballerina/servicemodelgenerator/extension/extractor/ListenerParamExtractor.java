@@ -129,19 +129,29 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             return null;
         }
 
+        int positionalIndex = 0;
+        int targetArgIndex = -1;
+
+        if (parameterName.matches("arg\\d+")) {
+            try {
+                targetArgIndex = Integer.parseInt(parameterName.substring(3)) - 1; // arg1 -> index 0, arg2 -> index 1
+            } catch (NumberFormatException e) {
+                // Invalid parameter name format, ignore
+            }
+        }
+
         for (FunctionArgumentNode argument : arguments) {
             if (argument instanceof NamedArgumentNode namedArg) {
                 String argName = namedArg.argumentName().name().text();
                 if (argName.equals(parameterName)) {
                     return extractValueFromExpression(namedArg.expression());
                 }
-            } else if (argument instanceof PositionalArgumentNode positionalArg) {
-                // For positional arguments, we'd need to know the parameter order
-                // This could be enhanced based on specific listener types
-                String value = extractValueFromExpression(positionalArg.expression());
-                if (value != null && isLikelyParameterValue(parameterName, value)) {
-                    return value;
-                }
+            } else if (argument instanceof PositionalArgumentNode positionalArg && targetArgIndex == positionalIndex) {
+                return extractValueFromExpression(positionalArg.expression());
+            }
+
+            if (argument instanceof PositionalArgumentNode) {
+                positionalIndex++;
             }
         }
 
@@ -160,9 +170,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                                                String parameterName) {
         Optional<Symbol> symbol = semanticModel.symbol(nameRef);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol) {
-            // Try to find the listener variable declaration in the source
-            String variableName = nameRef.toSourceCode().trim();
-            return findListenerVariableParameter(variableName, parameterName, semanticModel);
+            return nameRef.toSourceCode().trim();
         }
 
         return null;
@@ -200,35 +208,5 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     private String extractFromMapping(MappingConstructorExpressionNode mapping) {
         // For now, return the raw mapping - could be enhanced to extract specific nested fields
         return mapping.toString().trim();
-    }
-
-    /**
-     * Finds a parameter value from a listener variable declaration.
-     *
-     * @param variableName The listener variable name
-     * @param parameterName The parameter name to find
-     * @param semanticModel The semantic model
-     * @return The parameter value or null
-     */
-    private String findListenerVariableParameter(String variableName, String parameterName, SemanticModel semanticModel) {
-        // For now, return null - this would require traversing the syntax tree to find the listener declaration
-        // This enhancement can be added by finding ListenerDeclarationNode with the matching variable name
-        // and then extracting parameters from its initializer expression
-        return null;
-    }
-
-    /**
-     * Heuristic to check if a value is likely for a specific parameter.
-     *
-     * @param parameterName The parameter name
-     * @param value The value to check
-     * @return true if the value seems appropriate for the parameter
-     */
-    private boolean isLikelyParameterValue(String parameterName, String value) {
-        return switch (parameterName.toLowerCase()) {
-            case "port" -> value.matches("\\d+") && Integer.parseInt(value) > 0 && Integer.parseInt(value) <= 65535;
-            case "host" -> value.contains(".") || value.equals("localhost") || value.equals("0.0.0.0");
-            default -> false;
-        };
     }
 }

@@ -76,10 +76,6 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
         return switch (parameterKey.toLowerCase()) {
             case "basepath", "base_path" -> extractBasePath(serviceNode);
             case "servicetype", "service_type" -> extractServiceType(serviceNode);
-            case "modulename", "module_name" -> context.moduleName();
-            case "orgname", "org_name" -> context.orgName();
-            case "host" -> extractHostFromContext(context);
-            case "protocol" -> extractProtocol(context);
             default -> null;
         };
     }
@@ -130,40 +126,5 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
         }
 
         return "Service"; // Default service type
-    }
-
-    /**
-     * Extracts host information from context or default.
-     *
-     * @param context The model context
-     * @return The host value
-     */
-    private String extractHostFromContext(ModelFromSourceContext context) {
-        // This could be enhanced to extract from listener configurations
-        // For now, return a default value
-        return "localhost";
-    }
-
-    /**
-     * Extracts protocol information from context.
-     *
-     * @param context The model context
-     * @return The protocol value
-     */
-    private String extractProtocol(ModelFromSourceContext context) {
-        if (context.moduleName() != null) {
-            return switch (context.moduleName().toLowerCase()) {
-                case "http" -> "HTTP";
-                case "https" -> "HTTPS";
-                case "graphql" -> "HTTP/GraphQL";
-                case "tcp" -> "TCP";
-                case "rabbitmq" -> "AMQP";
-                case "kafka" -> "Kafka";
-                case "mqtt" -> "MQTT";
-                default -> context.moduleName().toUpperCase();
-            };
-        }
-
-        return "Unknown";
     }
 }

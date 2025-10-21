@@ -209,7 +209,10 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "arg1", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
+      ]
     },
     {
       "name": "file",
@@ -961,7 +964,6 @@
         {"key": "host", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
         {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
       ]
-
     },
     {
       "name": "kafka",
@@ -1169,7 +1171,10 @@
             "ProjectCardService"
           ]
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "serviceType", "displayName": "Event Channel", "kind": "SERVICE_DESCRIPTION"}
+      ]
     },
     {
       "name": "ai",
