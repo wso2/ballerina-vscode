@@ -269,7 +269,7 @@ public class CommonUtils {
      * Converts a LineRange to a TextRange using the provided TextDocument.
      *
      * @param textDocument the text document
-     * @param lineRange the line range to convert
+     * @param lineRange    the line range to convert
      * @return the corresponding TextRange
      */
     public static TextRange toTextRange(TextDocument textDocument, LineRange lineRange) {
@@ -1053,8 +1053,7 @@ public class CommonUtils {
                 .map(TypeSymbol::getModule)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) ||
-                        BALLERINAX_ORG_NAME.equals(moduleId.id().orgName())) &&
+                .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName())) &&
                         AI.equals(moduleId.id().moduleName()));
     }
 
