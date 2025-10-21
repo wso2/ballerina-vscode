@@ -369,7 +369,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
             <InfoBanner>
                 <Codicon name="info" />
                 <InfoText variant="body3">
-                    Supports JSON and XML formats — just paste a Sample or upload a file
+                    Supports JSON and XML formats — just paste a Sample or Upload a file
                 </InfoText>
             </InfoBanner>
             <HeaderRow>
@@ -418,7 +418,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
             </ScrollableSection>
 
             {detectedFormat === DetectedFormat.JSON && (
-                <CategoryRow showBorder={true}>
+                <CategoryRow showBorder={false}>
                     <TextFieldWrapper>
                         <TextField
                             label="Type Name"

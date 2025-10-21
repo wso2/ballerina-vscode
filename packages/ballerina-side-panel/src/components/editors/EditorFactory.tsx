@@ -64,6 +64,7 @@ interface FormFieldEditorProps {
     newServerUrl?: string;
     mcpTools?: { name: string; description?: string }[];
     onToolsChange?: (selectedTools: string[]) => void;
+    isContextTypeEditorSupported?: boolean;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
@@ -81,6 +82,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         onIdentifierEditingStateChange,
         setSubComponentEnabled,
         handleNewTypeSelected,
+        isContextTypeEditorSupported,
         scopeFieldAddon,
         newServerUrl,
         openFormTypeEditor
@@ -136,6 +138,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 field={field}
                 openRecordEditor={openRecordEditor}
                 openFormTypeEditor={openFormTypeEditor}
+                isContextTypeEditorSupported={isContextTypeEditorSupported}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}
