@@ -94,7 +94,7 @@ public class ReferenceType {
         }
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
-        if (type.dependentTypes == null) {
+        if (type.dependentTypes == null && !type.dependentTypeKeys.isEmpty()) {
             type.dependentTypes = new HashMap<>();
             for (String dependentTypeKey : type.dependentTypeKeys) {
                 RefType dependentType = visitedTypeMap.get(dependentTypeKey);
