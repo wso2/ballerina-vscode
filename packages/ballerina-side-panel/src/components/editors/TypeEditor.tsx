@@ -119,7 +119,7 @@ export function TypeEditor(props: TypeEditorProps) {
     const [showDefaultCompletion, setShowDefaultCompletion] = useState<boolean>(false);
     const [focused, setFocused] = useState<boolean>(false);
     const [isTypeEditorHovered, setIsTypeEditorHovered] = useState<boolean>(false);
-    const [typeInputMode, setTypeInputMode] = useState<TypeInputMode>(TypeInputMode.GUIDED);
+    const [typeInputMode, setTypeInputMode] = useState<TypeInputMode>(isContextTypeEditorSupported ? TypeInputMode.GUIDED : undefined);
 
     const [isTypeHelperOpen, setIsTypeHelperOpen] = useState<boolean>(false);
 
@@ -293,7 +293,7 @@ export function TypeEditor(props: TypeEditorProps) {
                             ref={exprRef}
                             anchorRef={typeBrowserRef}
                             name={name}
-                            startAdornment={<EditorRibbon onClick={toggleTypeHelperPaneState} />}
+                            startAdornment={(!isContextTypeEditorSupported || (isContextTypeEditorSupported && typeInputMode === TypeInputMode.ADVANCED)) ? <EditorRibbon onClick={toggleTypeHelperPaneState} /> : undefined}
                             completions={types}
                             showDefaultCompletion={showDefaultCompletion}
                             getDefaultCompletion={() => getDefaultCompletion(value)}
