@@ -97,7 +97,10 @@
                 }
               },
               "sourceCode": "// final MockLlm model = new;\nfinal ai:Agent agent = check new (model = myModel,\n    systemPrompt = {role: \"Math tutor\", instructions: \"Help the students with their questions.\"},\n    tools = [set, sum, mutiply], agentType = ai:REACT_AGENT\n);",
-              "isNew": false
+              "isNew": false,
+              "data": {
+                "scope": "Global"
+              }
             }
           }
         },

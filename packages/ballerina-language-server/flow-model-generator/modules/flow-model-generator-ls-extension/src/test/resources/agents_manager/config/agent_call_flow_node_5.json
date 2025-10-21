@@ -113,7 +113,10 @@
                 }
               },
               "sourceCode": "self._AgentServiceAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n            model = self._AgentServiceModel,\n            tools = []\n        );",
-              "isNew": false
+              "isNew": false,
+              "data": {
+                "scope": "ServiceInit"
+              }
             }
           }
         },
