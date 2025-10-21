@@ -23,9 +23,11 @@ import {
     CheckBox,
     CheckBoxGroup,
     Codicon,
+    Divider,
     LinkButton,
     ProgressIndicator,
     SidePanelBody,
+    TextField,
     ThemeColors,
     Typography,
 } from "@wso2/ui-toolkit";
@@ -40,7 +42,8 @@ const OptionalConfigRow = styled.div`
     align-items: center;
     width: 100%;
     margin-bottom: 8px;
-    margin-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
 `;
 
 const OptionalConfigButtonContainer = styled.div`
@@ -53,6 +56,31 @@ const OptionalConfigButtonContainer = styled.div`
 const OptionalConfigContent = styled.div`
     margin-top: 16px;
     padding-left: 24px;
+`;
+
+const MessageConfigContainer = styled.div`
+    margin-bottom: 0;
+`;
+
+const MessageConfigTitle = styled.div`
+    margin-bottom: 12px;
+`;
+
+const MessageConfigSection = styled.div`
+    padding: 0;
+`;
+
+const MessageConfigContent = styled.div`
+    margin-top: 0;
+    padding-left: 0;
+`;
+
+const MessageTypeNameFieldContainer = styled.div`
+    margin-top: 12px;
+`;
+
+const PayloadSection = styled.div`
+    padding-top: 12px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -80,6 +108,7 @@ export function DatabindForm(props: DatabindFormProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
     const [showAdvancedParameters, setShowAdvancedParameters] = useState<boolean>(false);
+    const [showMessageTypeConfig, setShowMessageTypeConfig] = useState<boolean>(false);
 
     // State for payload editor
     const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
@@ -129,6 +158,28 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const handleHideAdvancedParameters = () => {
         setShowAdvancedParameters(false);
+    };
+
+    const handleShowMessageTypeConfig = () => {
+        setShowMessageTypeConfig(true);
+    };
+
+    const handleHideMessageTypeConfig = () => {
+        setShowMessageTypeConfig(false);
+    };
+
+    const handleMessageTypeNameChange = (value: string) => {
+        const updatedFunctionModel = {
+            ...functionModel,
+            properties: {
+                ...functionModel.properties,
+                wrapperTypeName: {
+                    ...functionModel.properties?.wrapperTypeName,
+                    value,
+                },
+            },
+        };
+        setFunctionModel(updatedFunctionModel);
     };
 
     // Payload editor handlers
@@ -206,41 +257,123 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const advancedParameters = functionModel.parameters?.filter((param) => param.kind !== "DATA_BINDING" && param.optional) || [];
 
+    // Get payload field name from properties, default to "Payload", and capitalize it
+    const rawPayloadFieldName = functionModel.properties?.payloadFieldName?.value || "Payload";
+    const payloadFieldName = rawPayloadFieldName.charAt(0).toUpperCase() + rawPayloadFieldName.slice(1);
+
+    // Get message type name value from properties
+    const messageTypeNameValue = functionModel.properties?.wrapperTypeName?.value || "";
+
     return (
         <>
             {(isLoading || isSaving) && <ProgressIndicator id="remote-loading-bar" />}
             <SidePanelBody>
                 <EditorContentColumn>
-                    {/* Payload Section */}
-                    <Typography sx={{ marginBlockEnd: 10 }} variant="h4">
-                        Payload
-                    </Typography>
-                    {!payloadParameter && !editModel && (
-                        <AddButtonWrapper>
-                            <LinkButton onClick={onAddPayloadClick}>
-                                <Codicon name="add" />
-                                Payload
-                            </LinkButton>
-                        </AddButtonWrapper>
-                    )}
-                    {payloadParameter && (
-                        <Parameters
-                            parameters={[payloadParameter]}
-                            onChange={handlePayloadParamChange}
-                            onEditClick={onEditPayloadClick}
-                            showPayload={true}
-                        />
-                    )}
+                    {/* Message Configuration Section */}
+                    <MessageConfigContainer>
+                        <MessageConfigTitle>
+                            <Typography sx={{ marginBlockEnd: 0 }} variant="h4">
+                                Message Configuration
+                            </Typography>
+                            <Divider />
+                        </MessageConfigTitle>
+                        <MessageConfigSection>
+                            <MessageConfigContent>
+                                <PayloadSection>
+                                    {/* Payload Section */}
+                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                        {payloadFieldName}
+                                    </Typography>
+                                    {!payloadParameter && !editModel && (
+                                        <AddButtonWrapper>
+                                            <LinkButton onClick={onAddPayloadClick}>
+                                                <Codicon name="add" />
+                                                {payloadFieldName}
+                                            </LinkButton>
+                                        </AddButtonWrapper>
+                                    )}
+                                    {payloadParameter && (
+                                        <Parameters
+                                            parameters={[payloadParameter]}
+                                            onChange={handlePayloadParamChange}
+                                            onEditClick={onEditPayloadClick}
+                                            showPayload={true}
+                                        />
+                                    )}
 
-                    {/* Payload Editor */}
-                    {editModel && editModel.kind === "DATA_BINDING" && (
-                        <ParamEditor
-                            param={editModel}
-                            onChange={onChangeParam}
-                            onSave={onSaveParam}
-                            onCancel={onParamEditCancel}
-                        />
-                    )}
+                                    {/* Payload Editor */}
+                                    {editModel && editModel.kind === "DATA_BINDING" && (
+                                        <ParamEditor
+                                            param={editModel}
+                                            onChange={onChangeParam}
+                                            onSave={onSaveParam}
+                                            onCancel={onParamEditCancel}
+                                        />
+                                    )}
+                                </PayloadSection>
+
+                                {/* Advanced Message Configurations Collapsible Section */}
+                                <OptionalConfigRow>
+                                    <span>Advanced Message Configurations</span>
+                                    <OptionalConfigButtonContainer>
+                                        {!showMessageTypeConfig && (
+                                            <LinkButton
+                                                onClick={handleShowMessageTypeConfig}
+                                                sx={{
+                                                    fontSize: 12,
+                                                    padding: 8,
+                                                    color: ThemeColors.PRIMARY,
+                                                    gap: 4,
+                                                    userSelect: "none",
+                                                }}
+                                            >
+                                                <Codicon
+                                                    name={"chevron-down"}
+                                                    iconSx={{ fontSize: 12 }}
+                                                    sx={{ height: 12 }}
+                                                />
+                                                Expand
+                                            </LinkButton>
+                                        )}
+                                        {showMessageTypeConfig && (
+                                            <LinkButton
+                                                onClick={handleHideMessageTypeConfig}
+                                                sx={{
+                                                    fontSize: 12,
+                                                    padding: 8,
+                                                    color: ThemeColors.PRIMARY,
+                                                    gap: 4,
+                                                    userSelect: "none",
+                                                }}
+                                            >
+                                                <Codicon
+                                                    name={"chevron-up"}
+                                                    iconSx={{ fontSize: 12 }}
+                                                    sx={{ height: 12 }}
+                                                />
+                                                Collapse
+                                            </LinkButton>
+                                        )}
+                                    </OptionalConfigButtonContainer>
+                                </OptionalConfigRow>
+                                {showMessageTypeConfig && (
+                                    <OptionalConfigContent>
+                                        <MessageTypeNameFieldContainer>
+                                            <TextField
+                                                label="Message Type Name"
+                                                value={messageTypeNameValue}
+                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMessageTypeNameChange(e.target.value)}
+                                                placeholder="Enter message type name"
+                                                errorMsg=""
+                                            />
+                                        </MessageTypeNameFieldContainer>
+                                    </OptionalConfigContent>
+                                )}
+                            </MessageConfigContent>
+                        </MessageConfigSection>
+                    </MessageConfigContainer>
+                    <Divider sx={{ margin: 0 }} />
+
 
                     {/* Advanced Parameters Section - Only show if there are additional parameters beyond the first */}
                     {advancedParameters.length > 0 && (
