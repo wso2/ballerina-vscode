@@ -26,15 +26,55 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
+`;
+
+const ContentArea = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     gap: 16px;
+    padding-bottom: 16px;
+`;
+
+const LabelText = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 4px;
+`;
+
+const SelectedTypeLabel = styled.div`
+    padding: 12px 16px;
+    border: 1px solid var(--vscode-editorIndentGuide-background);
+    border-radius: 4px;
+`;
+
+const SelectedTypeText = styled(Typography)`
+    font-family: var(--vscode-editor-font-family);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
 `;
 
 const SearchContainer = styled.div`
     width: 100%;
+    margin-bottom: 8px;
 `;
 
 const CategorySection = styled.div`
-    margin-top: 16px;
+    margin-top: 8px;
+`;
+
+const TypesContainer = styled.div`
+    border: 1px solid var(--vscode-editorIndentGuide-background);
+    border-radius: 4px;
+    padding: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 40vh;
+    overflow: scroll;
 `;
 
 const CategoryTitle = styled(Typography)`
@@ -51,21 +91,23 @@ const TypeList = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 50vh;
     overflow-y: auto;
+    flex: 1;
 `;
 
 const TypeItem = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 12px 16px;
+    padding: 10px 12px;
     background-color: var(--vscode-list-inactiveSelectionBackground);
-    border-radius: 4px;
+    border-radius: 3px;
     cursor: pointer;
     transition: background-color 0.15s ease;
+    border: 1px solid transparent;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
     }
 
     &:active {
@@ -92,24 +134,26 @@ const Footer = styled.div`
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    margin-top: auto;
     padding-top: 16px;
     border-top: 1px solid var(--vscode-panel-border);
+    flex-shrink: 0;
 `;
 
 const LoadingContainer = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px;
+    padding: 20px;
+    flex: 1;
 `;
 
 const EmptyState = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px;
+    padding: 20px;
     color: var(--vscode-descriptionForeground);
+    flex: 1;
 `;
 
 interface BrowseTypesTabProps {
@@ -118,8 +162,8 @@ interface BrowseTypesTabProps {
     loading?: boolean;
     onSearchTypeHelper: (searchText: string, isType?: boolean) => void;
     onTypeItemClick: (item: TypeHelperItem) => Promise<any>;
-    onClose: () => void;
     onTypeSelect: (type: Type) => void;
+    simpleType?: string;
 }
 
 export function BrowseTypesTab(props: BrowseTypesTabProps) {
@@ -129,13 +173,23 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         loading,
         onSearchTypeHelper,
         onTypeItemClick,
-        onClose,
-        onTypeSelect
+        onTypeSelect,
+        simpleType
     } = props;
 
     const [searchText, setSearchText] = useState<string>('');
     const [selectedType, setSelectedType] = useState<TypeHelperItem | null>(null);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
+
+    // Set initial selected type if simpleType is provided
+    useEffect(() => {
+        if (simpleType && !selectedType) {
+            setSelectedType({ 
+                name: simpleType, 
+                insertText: simpleType
+            } as unknown as TypeHelperItem);
+        }
+    }, [simpleType]);
 
     // Trigger search when component mounts
     useEffect(() => {
@@ -211,46 +265,44 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
 
     return (
         <Container>
-            {selectedType && (
-                <div style={{ marginTop: '16px' }}>
+            <ContentArea>
+                <SelectedTypeLabel>
                     <TextField
                         id="selected-type"
                         label="Selected Type"
-                        value={selectedType.name}
+                        value={selectedType?.name}
+                        placeholder="Select a type from the list below"
                         readOnly
                     />
-                </div>
-            )}
+                </SelectedTypeLabel>
 
-            <SearchContainer>
-                <TextField
-                    value={searchText}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="Search types..."
-                    autoFocus
-                />
-            </SearchContainer>
-
-            {loading ? (
-                <LoadingContainer>
-                    <ProgressRing />
-                </LoadingContainer>
-            ) : (
-                <>
-                    {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
-                    {/* {importedTypes && importedTypes.length > 0 && renderTypeItems(importedTypes)} */}
-                    {(!basicTypes || basicTypes.length === 0) && (
-                        <EmptyState>
-                            <Typography variant="body3">No types found</Typography>
-                        </EmptyState>
+                <TypesContainer>
+                    <SearchContainer>
+                        <TextField
+                            value={searchText}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            placeholder="Search types..."
+                            autoFocus
+                        />
+                    </SearchContainer>
+                    {loading ? (
+                        <LoadingContainer>
+                            <ProgressRing />
+                        </LoadingContainer>
+                    ) : (
+                        <>
+                            {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
+                            {(!basicTypes || basicTypes.length === 0) && (
+                                <EmptyState>
+                                    <Typography variant="body3">No types found</Typography>
+                                </EmptyState>
+                            )}
+                        </>
                     )}
-                </>
-            )}
+                </TypesContainer>
+            </ContentArea>
 
             <Footer>
-                <Button onClick={onClose} disabled={isSelecting}>
-                    Cancel
-                </Button>
                 <Button
                     onClick={handleSelectType}
                     disabled={!selectedType || isSelecting}

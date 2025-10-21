@@ -86,10 +86,12 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         type: undefined
     }]);
 
-    const defaultType = (): Type => {
+    const defaultType = (typeName?: string): Type => {
+        const typesname = typeName ? typeName : simpleType ? "MyType" : typeEditorState.newTypeValue || initialTypeName || "MyType";
+
         if (!isGraphql) {
             return {
-                name: typeEditorState.newTypeValue || initialTypeName || "MyType",
+                name: typesname,
                 editable: true,
                 metadata: {
                     label: "",
@@ -126,9 +128,11 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         setRefetchStates((prev) => [...prev, false]);
     };
 
-    const resetStack = () => {
+    const resetStack = (isSimpleType?: boolean) => {
+        const newDefault = defaultType(isSimpleType ? "MyType" : undefined);
+        
         setStack([{
-            type: defaultType(),
+            type: newDefault,
             isDirty: false
         }]);
     };
@@ -183,6 +187,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
     useEffect(() => {
         if (isOpen) {
             setTypeEditorState({ isOpen: true, newTypeValue: initialTypeName });
+            setSimpleType(undefined); // Reset simpleType on open
             
             // If in edit mode, fetch the existing type
             if (editMode && initialTypeName) {
@@ -194,6 +199,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         } else {
             setTypeEditorState({ isOpen: false, newTypeValue: "" });
             setExistingType(null);
+            setSimpleType(undefined); // Reset simpleType on close
         }
     }, [isOpen, initialTypeName, editMode]);
 
@@ -222,10 +228,10 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                     isDirty: false
                 }]);
             } else {
-                // If type not found, reset to default
-                console.warn(`Type "${typeName}" not found in ${filePath}`);
+                // If type not found, it's a simple type - reset to create new
+                console.warn(`Type "${typeName}" not found in ${filePath}, treating as simple type`);
                 setSimpleType(typeName);
-                resetStack();
+                resetStack(true); // Pass true to indicate it's a simple type
             }
         } catch (error) {
             console.error('Error fetching existing type:', error);
@@ -299,7 +305,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}
                 >
-                    <div style={{ padding: '0px 20px' }}>
+                    <div style={{ height: '80vh', overflow: 'hidden', paddingBottom: '20px' }}>
                         {loadingType && editMode && i === 0 ? (
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
                                 <ProgressRing />
@@ -320,7 +326,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                                 )}
                                 <FormTypeEditor
                                     type={editMode && i === 0 && existingType ? existingType : (peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType())}
-                                    newType={editMode && i === 0 ? false : (peekTypeStack() ? peekTypeStack().isDirty : false)}
+                                    newType={!editMode && i === 0 ? true : (peekTypeStack() ? peekTypeStack().isDirty : false)}
                                     newTypeValue={typeEditorState.newTypeValue}
                                     isPopupTypeForm={true}
                                     isGraphql={isGraphql}

@@ -95,7 +95,6 @@ export function Parameters(props: ParametersProps) {
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
     
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
-    const [editingTypeName, setEditingTypeName] = useState<string>("");
 
 
     const handleAdvanceParamToggle = () => {
@@ -147,21 +146,13 @@ export function Parameters(props: ParametersProps) {
         
         // Close the modal
         setIsTypeEditorOpen(false);
-        setEditingTypeName("");
     };
 
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
     };
 
-    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
-        setIsTypeEditorOpen(open);
-        if (typeName) {
-            setEditingTypeName(typeName);
-        } else {
-            setEditingTypeName("");
-        }
-    };
+
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(p => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value);
@@ -282,7 +273,6 @@ export function Parameters(props: ParametersProps) {
                     onChange={onChangeParam}
                     onSave={onSaveParam}
                     onCancel={onParamEditCancel}
-                    openFormTypeEditor={handleOpenFormTypeEditor}
                 />
             }
 
@@ -385,9 +375,9 @@ export function Parameters(props: ParametersProps) {
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName={editingTypeName || "PayloadType"}
-                editMode={!!editingTypeName}
-                modalTitle={editingTypeName ? "Edit Type" : "Define Payload"}
+                initialTypeName={"PayloadType"}
+                editMode={false}
+                modalTitle={"Define Payload"}
                 modalWidth={650}
                 modalHeight={600}
             />
