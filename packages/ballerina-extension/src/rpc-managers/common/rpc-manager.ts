@@ -35,7 +35,7 @@ import {
     RunExternalCommandResponse,
     ShowErrorMessageRequest,
     SyntaxTree,
-    TomlValues,
+    PackageTomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
@@ -244,7 +244,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
-    async getCurrentProjectTomlValues(): Promise<TomlValues> {
+    async getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
         return getProjectTomlValues(StateMachine.context().projectPath);
     }
 
