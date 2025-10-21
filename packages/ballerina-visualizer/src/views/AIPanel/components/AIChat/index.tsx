@@ -161,6 +161,7 @@ const AIChat: React.FC = () => {
         tasks: any[];
         taskId?: string;
         message?: string;
+        codeSegments?: any[];
     } | null>(null);
 
     // Top-level tasks state for the todo panel
@@ -445,11 +446,53 @@ const AIChat: React.FC = () => {
         } else if (type === "task_approval_request") {
             // Handle approval request from the backend
             console.log("[Approval] Received approval request:", response);
+
+            // Only extract code segments for completion approval (not plan approval)
+            const codeSegments: any[] = [];
+
+            if (response.approvalType === "completion") {
+                setMessages((currentMessages) => {
+                    console.log("[Approval] Total current messages:", currentMessages.length);
+
+                    const lastAssistantMessage = currentMessages
+                        .slice()
+                        .reverse()
+                        .find((msg: any) => msg.role === "Copilot");
+
+                    console.log("[Approval] Last Copilot message:", lastAssistantMessage ? "found" : "not found");
+
+                    if (lastAssistantMessage) {
+                        const segments = splitContent(lastAssistantMessage.content);
+                        console.log("[Approval] Found total segments:", segments.length);
+
+                        // Efficiently filter and map only Code segments using filter + map
+                        const extractedCodeSegments = segments
+                            .filter((segment) => segment.type === SegmentType.Code)
+                            .map((segment) => ({
+                                segmentText: segment.text.trim(),
+                                filePath: segment.fileName,
+                                language: segment.language,
+                            }));
+
+                        codeSegments.push(...extractedCodeSegments);
+                        console.log("[Approval] Extracted code segments:", codeSegments.length);
+                    }
+
+                    // Return unchanged messages
+                    return currentMessages;
+                });
+            }
+
+            console.log("[Approval] Approval type:", response.approvalType);
+            console.log("[Approval] Final code segments count:", codeSegments.length);
+
+            // Set approval request after extracting code segments
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
                 taskId: response.taskId,
                 message: response.message,
+                codeSegments: codeSegments.length > 0 ? codeSegments : undefined,
             });
         } else if (type === "intermediary_state") {
             const state = response.state;
@@ -2079,6 +2122,46 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
+    // Handle adding code to workspace from approval dialog
+    const handleAddCodeToWorkspaceFromApproval = async () => {
+        if (!approvalRequest || !approvalRequest.codeSegments || approvalRequest.codeSegments.length === 0) {
+            console.log("[Approval] No code segments to add");
+            return;
+        }
+
+        console.log("[Approval] Adding code segments to workspace:", approvalRequest.codeSegments);
+
+        // Get the command from the latest message
+        const lastAssistantMessage = messagesRef.current
+            .slice()
+            .reverse()
+            .find((msg: any) => msg.role === "assistant");
+
+        let command = "ai_design"; // default command
+        if (lastAssistantMessage) {
+            const segments = splitContent(lastAssistantMessage.content);
+            // Find the first code segment that has a command
+            const codeSegmentWithCommand = segments.find((s) => s.type === SegmentType.Code && s.command);
+            if (codeSegmentWithCommand && codeSegmentWithCommand.command) {
+                command = codeSegmentWithCommand.command;
+            }
+        }
+
+        // Create a dummy setState function since we don't need to track individual code section state
+        const dummySetIsCodeAdded = () => {};
+
+        try {
+            await handleAddAllCodeSegmentsToWorkspace(
+                approvalRequest.codeSegments,
+                dummySetIsCodeAdded,
+                command
+            );
+            console.log("[Approval] Successfully added code segments to workspace");
+        } catch (error) {
+            console.error("[Approval] Error adding code segments to workspace:", error);
+        }
+    };
+
     return (
         <>
             {!showSettings && (
@@ -2377,16 +2460,30 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
-            {approvalRequest && (
-                <ApprovalDialog
-                    approvalType={approvalRequest.approvalType}
-                    tasks={approvalRequest.tasks}
-                    taskId={approvalRequest.taskId}
-                    message={approvalRequest.message}
-                    onApprove={handleApprovalApprove}
-                    onReject={handleApprovalReject}
-                />
-            )}
+            {approvalRequest && (() => {
+                const shouldShowAddButton = approvalRequest.approvalType === "completion" && approvalRequest.codeSegments;
+                console.log("[ApprovalDialog Render]", {
+                    approvalType: approvalRequest.approvalType,
+                    hasCodeSegments: !!approvalRequest.codeSegments,
+                    codeSegmentsLength: approvalRequest.codeSegments?.length,
+                    shouldShowAddButton,
+                });
+                return (
+                    <ApprovalDialog
+                        approvalType={approvalRequest.approvalType}
+                        tasks={approvalRequest.tasks}
+                        taskId={approvalRequest.taskId}
+                        message={approvalRequest.message}
+                        onApprove={handleApprovalApprove}
+                        onReject={handleApprovalReject}
+                        onAddToWorkspace={
+                            shouldShowAddButton
+                                ? handleAddCodeToWorkspaceFromApproval
+                                : undefined
+                        }
+                    />
+                );
+            })()}
         </>
     );
 };

@@ -48,9 +48,9 @@ export const HeaderButtons = styled.div({
 export const TodoPanel = styled.div`
     max-height: 30vh;
     overflow-y: auto;
-    border-bottom: 2px solid var(--vscode-panel-border);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
     background-color: var(--vscode-editor-background);
-    padding: 12px 20px;
+    padding: 8px 12px;
     flex-shrink: 0;
 `;
 
