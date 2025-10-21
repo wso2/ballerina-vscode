@@ -48,6 +48,7 @@ interface TypeEditorProps {
     handleOnFieldFocus?: (key: string) => void;
     handleOnTypeChange?: (value?: string) => void;
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
+    isContextTypeEditorSupported?: boolean;
     autoFocus?: boolean;
 }
 
@@ -94,7 +95,7 @@ const getDefaultCompletion = (newType: string) => {
 }
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { field, openRecordEditor, openFormTypeEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
+    const { field, openRecordEditor, openFormTypeEditor, isContextTypeEditorSupported, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
     const { form, expressionEditor } = useFormContext();
     const { control } = form;
     const {
@@ -126,7 +127,7 @@ export function TypeEditor(props: TypeEditorProps) {
         setFocused(true);
         
         // In guided mode, open FormTypeEditor instead of TypeHelper
-        if (typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
+        if (isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
             openFormTypeEditor(true, value);
             return;
         }
@@ -179,7 +180,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
     const toggleTypeHelperPaneState = () => {
         // In guided mode, open FormTypeEditor
-        if (typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
+        if (isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
             const currentValue = form.getValues(field.key);
             openFormTypeEditor(true, currentValue);
             return;
@@ -265,7 +266,7 @@ export function TypeEditor(props: TypeEditorProps) {
                             </S.EditorMdContainer>
                         </div>
                         <div style={{ flexShrink: 0 }}>
-                            {(focused || isTypeEditorHovered) && openFormTypeEditor && (
+                            {(focused || isTypeEditorHovered) && isContextTypeEditorSupported && openFormTypeEditor && (
                                 <TypeModeSwitcher
                                     value={typeInputMode}
                                     onChange={handleModeChange}

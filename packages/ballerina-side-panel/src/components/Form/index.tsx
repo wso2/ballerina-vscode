@@ -772,6 +772,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         newServerUrl={newServerUrl}
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
+                                        isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
                                         openFormTypeEditor={openFormTypeEditor && ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))}
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}

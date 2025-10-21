@@ -98,10 +98,11 @@ export function ParamEditor(props: ParamProps) {
                 type: param.type.valueType,
                 optional: false,
                 editable: true,
-                documentation: param?.documentation?.metadata?.description || '',
+                documentation: param?.type?.metadata?.description || '',
                 enabled: param.type?.enabled,
                 value: param.type.value,
-                valueTypeConstraint: ""
+                valueTypeConstraint: "",
+                isContextTypeSupported: param?.httpParamType === "PAYLOAD"
             });
         }
 
