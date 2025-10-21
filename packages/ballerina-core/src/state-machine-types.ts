@@ -371,12 +371,29 @@ export interface ChatMessage {
     timestamp: number;
 }
 
+/**
+ * Task status enum
+ */
+export enum TaskStatus {
+    PENDING = "pending",
+    IN_PROGRESS = "in_progress",
+    COMPLETED = "completed"
+}
+
+export enum TaskTypes {
+    SERVICE_DESIGN = "service_design",
+    CONNECTIONS_INIT = "connections_init",
+    IMPLEMENTATION = "implementation"
+}
+
+/**
+ * Task interface representing a single implementation task
+ */
 export interface Task {
     id: string;
     description: string;
-    status: 'pending' | 'in-progress' | 'completed' | 'failed';
-    result?: string;
-    error?: string;
+    status: TaskStatus;
+    type : TaskTypes;
 }
 
 export interface Plan {

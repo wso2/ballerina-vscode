@@ -120,7 +120,7 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { generatDesign, generateDesignCore, resolveApproval } from "../../../src/features/ai/service/design/design";
+import { generateDesign, generateDesignCore, resolveApproval } from "../../../src/features/ai/service/design/design";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -1044,7 +1044,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateDesign(params: GenerateCodeRequest): Promise<boolean> {
-        await generatDesign(params);
+        await generateDesign(params);
         return true;
     }
 
