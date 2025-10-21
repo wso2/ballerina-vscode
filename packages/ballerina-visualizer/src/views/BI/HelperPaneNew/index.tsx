@@ -273,7 +273,7 @@ const HelperPaneNewEl = ({
         return unionTypes.includes(searchType);
     };
 
-    const defaultValue = getDefaultValue(Array.isArray(selectedType) ? selectedType[0] : selectedType);
+    const defaultValue = getDefaultValue(selectedType?.label);
 
     const allValueCreationOptions = [
         {

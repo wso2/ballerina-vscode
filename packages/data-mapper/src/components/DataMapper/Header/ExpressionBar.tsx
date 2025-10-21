@@ -211,18 +211,20 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         triggerCompletions(outputId, viewId, textFieldValue, cursorPosition);
     };
 
-    const handleBlur = async (e: any) => {
-        if (e.target.closest('[id^="recordfield-"]')) {
-            return;
-        }
-        await textFieldRef.current.saveExpression(textFieldValue);
-        resetExprBarFocus();
-    };
+    
 
     const handleCancel = () => {
         setTextFieldValue('');
         onCancel();
         resetExprBarFocus();
+    };
+
+    const handleBlur = async (e: any) => {
+        if (e.target.closest('[id^="recordfield-"]')) {
+            return;
+        }
+        await textFieldRef.current.saveExpression(textFieldValue);
+        handleCancel();
     };
 
     const inputProps: InputProps = {
