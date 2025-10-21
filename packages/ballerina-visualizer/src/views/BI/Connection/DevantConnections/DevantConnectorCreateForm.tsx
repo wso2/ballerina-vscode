@@ -151,7 +151,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
         }
     }, [schemas]);
 
-    const { data: componentConnections = [] } = useQuery({
+    const { data: componentConnections = [], isLoading: isLoadingComponentConnections } = useQuery({
         queryKey: [
             "componentConnections",
             { component: component?.metadata?.id, project: project?.id },
@@ -257,7 +257,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                     />
                 </FormStyles.Row>
                 <FormStyles.Footer>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
+                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection || isLoadingComponentConnections}>
                         {isCreatingConnection ? "Creating..." : "Create"}
                     </Button>
                 </FormStyles.Footer>

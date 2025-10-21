@@ -15,17 +15,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import {  FlowNode, PlatformExtAPI, UpdateConfigVariableRequestV2 } from "@wso2/ballerina-core";
-import { extensions, window } from "vscode";
+import { PlatformExtAPI, SyntaxTree } from "@wso2/ballerina-core";
+import { extensions, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { ComponentDisplayType, ComponentKind, ConnectionListItem, ContextItemEnriched, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq, getTypeForDisplayType, IWso2PlatformExtensionAPI, MarketplaceIdlResp, MarketplaceListResp } from "@wso2/wso2-platform-core";
+import {
+    ComponentDisplayType,
+    ComponentKind,
+    ConnectionListItem,
+    ContextItemEnriched,
+    GetConnectionsReq,
+    GetMarketplaceIdlReq,
+    GetMarketplaceListReq,
+    getTypeForDisplayType,
+    IWso2PlatformExtensionAPI,
+    MarketplaceIdlResp,
+    MarketplaceListResp,
+} from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
 import { CommonRpcManager } from "../common/rpc-manager";
+import Handlebars from "handlebars";
+import { CaptureBindingPattern, ModulePart } from "@wso2/syntax-tree";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     private async getPlatformExt() {
@@ -33,7 +48,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         if (!platformExt) {
             throw new Error("platform ext not installed");
         }
-        if(!platformExt.isActive){
+        if (!platformExt.isActive) {
             await platformExt.activate();
         }
         const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
@@ -75,7 +90,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             log(`Failed to invoke getDirectoryComponents: ${err}`);
         }
     }
-    
+
     async getMarketplaceIdl(params: GetMarketplaceIdlReq): Promise<MarketplaceIdlResp> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -100,31 +115,31 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             const createdConnection = await platformExt.createComponentConnection({
                 componentId: params.component.metadata?.id,
-            	name: params.params.name,
-            	orgId: params.org.id?.toString(),
-            	orgUuid: params.org.uuid,
-            	projectId: params.project.id,
-            	serviceSchemaId: params.params.schemaId,
-            	serviceId: params.marketplaceItem.serviceId,
-            	serviceVisibility: params.params.visibility!,
-            	componentType: getTypeForDisplayType(params.component?.spec?.type),
-            	componentPath: params.componentDir,
-            	generateCreds: params.component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
+                name: params.params.name,
+                orgId: params.org.id?.toString(),
+                orgUuid: params.org.uuid,
+                projectId: params.project.id,
+                serviceSchemaId: params.params.schemaId,
+                serviceId: params.marketplaceItem.serviceId,
+                serviceVisibility: params.params.visibility!,
+                componentType: getTypeForDisplayType(params.component?.spec?.type),
+                componentPath: params.componentDir,
+                generateCreds: params.component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
             });
 
             await platformExt.createConnectionConfig({
                 componentDir: params.componentDir,
                 marketplaceItem: params.marketplaceItem,
                 name: params.params.name,
-                visibility: params.params.visibility
+                visibility: params.params.visibility,
             });
 
             const serviceIdl = await platformExt.getMarketplaceIdl({
                 orgId: params.org.id?.toString(),
-                serviceId: params.marketplaceItem.serviceId
+                serviceId: params.marketplaceItem.serviceId,
             });
 
-            const choreoDir = path.join(params.componentDir, '.choreo');
+            const choreoDir = path.join(params.componentDir, ".choreo");
             if (!fs.existsSync(choreoDir)) {
                 fs.mkdirSync(choreoDir, { recursive: true });
             }
@@ -132,28 +147,32 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const moduleName = params.params.name.replace(/[_\-\s]/g, "");
             const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
 
-            if(serviceIdl?.idlType === "OpenAPI" && serviceIdl.content){
-                fs.writeFileSync(filePath, serviceIdl.content, 'utf8');
+            if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
+                fs.writeFileSync(filePath, serviceIdl.content, "utf8");
             } else {
-                window.showErrorMessage("Client creation for connection is only supported for REST APIs with valid openAPI spec");
+                window.showErrorMessage(
+                    "Client creation for connection is only supported for REST APIs with valid openAPI spec"
+                );
                 return "";
             }
 
             // Generate Bal client
             const diagram = new BiDiagramRpcManager();
-            const common = new CommonRpcManager();
+            // const common = new CommonRpcManager();
+            // const langClient = new LangClientRpcManager();
+
             await diagram.generateOpenApiClient({
                 module: moduleName,
                 openApiContractPath: filePath,
-                projectPath: params.componentDir
+                projectPath: params.componentDir,
             });
 
             // Update bal.toml with created connection reference
             const balTomlPath = path.join(params.componentDir, "Ballerina.toml");
-            if(fs.existsSync(balTomlPath)){
+            if (fs.existsSync(balTomlPath)) {
                 const fileContent = fs.readFileSync(balTomlPath, "utf-8");
                 const parsedToml: any = toml.parse(fileContent);
-                const matchingItem = parsedToml?.tool.openapi.find(item=>item.id === moduleName);
+                const matchingItem = parsedToml?.tool.openapi.find((item) => item.id === moduleName);
                 if (matchingItem) {
                     matchingItem.devantConnection = params.params?.name;
                 }
@@ -161,44 +180,87 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
             }
 
-            // add ballerina/os import
-            // following not working
-            // const updateImports = await diagram.updateImports({
-            //     filePath: path.join(StateMachine.context().projectUri, "config.bal"),
-            //     importStatement: "import ballerina/os;"
-            // })
-            // console.log("updateImports", updateImports)
+            const configFileUri = getConfigFileUri();
 
-            // create necessary config
-            const newConfigNode = await diagram.getConfigVariableNodeTemplate({isNew: true, isEnvVariable: true})
-
-            const newNode: FlowNode = {
-                ...newConfigNode?.flowNode,
-                codedata: { ...newConfigNode?.flowNode?.codedata, lineRange:{ "startLine":{"line":0,"offset":0},"endLine":{"line":0,"offset":0}} as any},
-                properties: {
-                    ...newConfigNode?.flowNode?.properties,
-                    // defaultValue: { ...newConfigNode?.flowNode?.properties?.defaultValue, value: `os:getEnv(\"new_env\")`, modified: true },
-                    defaultValue: { ...newConfigNode?.flowNode?.properties?.defaultValue, value: "?", modified: true },
-                    type: { ...newConfigNode?.flowNode?.properties?.type, value: "string", modified: true },
-                    variable: { ...newConfigNode?.flowNode?.properties?.variable, value: "connectionConfigName2", modified: true },
+            const connectionKeys =
+                createdConnection.configurations[Object.keys(createdConnection.configurations)?.[0]]?.entries;
+            const keys: Record<string, { keyname: string; envName: string }> = {};
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: configFileUri.toString() },
+            })) as SyntaxTree;
+            for (const entry in connectionKeys) {
+                let baseName = connectionKeys[entry].key?.toLowerCase();
+                let candidate = baseName;
+                let counter = 1;
+                while (
+                    (syntaxTree.syntaxTree as ModulePart)?.members?.some(
+                        (k) =>
+                            (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                            candidate
+                    )
+                ) {
+                    candidate = `${baseName}${counter}`;
+                    counter++;
                 }
+                keys[entry] = { keyname: candidate, envName: connectionKeys[entry].envVariableName };
             }
 
-            const tomValues = await common.getCurrentProjectTomlValues();
-
-            const req: UpdateConfigVariableRequestV2 = {
-                configVariable: newNode,
-                configFilePath: path.join(StateMachine.context().projectUri, "config.bal"),
-                packageName: `${tomValues?.package.org}/${tomValues?.package.name}`,
-                moduleName: "",
-            }
-
-            const resp = await diagram.updateConfigVariablesV2(req)
+            await addConfigurable(
+                configFileUri,
+                Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
+            );
 
             return "";
         } catch (err) {
-            window.showErrorMessage("Failed to created Devant connection")
+            window.showErrorMessage("Failed to created Devant connection");
             log(`Failed to invoke createDevantComponentConnection: ${err}`);
         }
     }
 }
+
+const getConfigFileUri = () => {
+    const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
+    const configBalFileUri = Uri.file(configBalFile);
+    if (!fs.existsSync(configBalFile)) {
+        // create new config.bal if it doesn't exist
+        fs.writeFileSync(configBalFile, "");
+    }
+    return configBalFileUri;
+};
+
+const addConfigurable = async (configBalFileUri: Uri, params: { configName: string; configEnvName: string }[]) => {
+    const configBalEdits = new WorkspaceEdit();
+
+    // if import doesn't exist, add it
+    const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+        documentIdentifier: { uri: configBalFileUri.toString() },
+    })) as SyntaxTree;
+    if (
+        !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes("import ballerina/os"))
+    ) {
+        const balOsImportTemplate = Templates.importBalOs();
+        configBalEdits.insert(configBalFileUri, new vscode.Position(0, 0), balOsImportTemplate);
+    }
+
+    for (const item of params) {
+        const newConfigTemplate = Templates.newEnvConfigurable({
+            CONFIG_NAME: item.configName,
+            CONFIG_ENV_NAME: item.configEnvName,
+        });
+        let newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+        configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), newConfigTemplate);
+    }
+
+    await workspace.applyEdit(configBalEdits);
+};
+
+const Templates = {
+    newEnvConfigurable: (params: { CONFIG_NAME: string; CONFIG_ENV_NAME: string }) => {
+        const template = Handlebars.compile(`string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`);
+        return template(params);
+    },
+    importBalOs: () => {
+        const template = Handlebars.compile(`import ballerina/os;\n`);
+        return template({});
+    },
+};
