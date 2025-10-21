@@ -211,6 +211,14 @@ type FormExpressionEditorBaseProps = {
     onSaveConfigurables?: (values: any) => void;
 }
 
+type ExpressionEditorRPCManager = {
+    getExpressionTokens: (id: string) => Promise<number[]>;
+}
+
+type ExpressionEditorFormProps = {
+    rpcManager: ExpressionEditorRPCManager;
+}
+
 type SanitizedExpressionEditorProps = {
     rawExpression?: (expression: string) => string; // original expression
     sanitizedExpression?: (expression: string) => string; // sanitized expression that will be rendered in the editor
@@ -221,6 +229,7 @@ export type FormExpressionEditorProps =
     FormTypeConditionalProps &
     FormHelperPaneConditionalProps &
     FormExpressionEditorBaseProps &
+    ExpressionEditorFormProps &
     SanitizedExpressionEditorProps;
 
 export type FormImports = {

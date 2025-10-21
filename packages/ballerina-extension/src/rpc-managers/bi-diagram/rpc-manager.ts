@@ -143,6 +143,8 @@ import {
     Item,
     Category,
     NodePosition,
+    ExpressionTokensRequest,
+    ExpressionTokensResponse,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -1559,6 +1561,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     console.log(">>> Error getting function node", error);
+                    resolve(undefined);
+                });
+        });
+    }
+
+    async getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
+        return new Promise((resolve) => {
+            StateMachine.langClient().getExpressionTokens(params)
+                .then((response) => {
+                    resolve(response?.data || []);
+                })
+                .catch((error) => {
+                    console.log(">>> Error getting expression tokens", error);
                     resolve(undefined);
                 });
         });

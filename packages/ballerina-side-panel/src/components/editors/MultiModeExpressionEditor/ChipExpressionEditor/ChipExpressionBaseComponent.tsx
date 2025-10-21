@@ -28,6 +28,8 @@ import { CompletionItem, getIcon, HelperPaneHeight, ThemeColors } from "@wso2/ui
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { useFormContext } from "../../../../context";
+import { debounce } from "lodash";
 
 export type ChipExpressionBaseComponentProps = {
     // tokens: Token[];
@@ -53,24 +55,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         top: 0,
         left: 0
     });
-    const [value, setValue] = React.useState<string>("val + 12 + foo(val, 14);\n" +
-        "bar( x, y + 5 ) + z.prop + 7\n" +
-        "compute( a, b, c ) * d / (e + 2)\n");
-    const [tokens, setTokens] = React.useState<number[]>([
-        0, 0, 3, 0, 0,
-        0, 15, 3, 2, 0,
-        0, 5, 2, 2, 0,
+    const [value, setValue] = React.useState<string>(" " + "val + 12");
+    const [tokens, setTokens] = React.useState<number[]>([])
 
-        1, 5, 1, 2, 0,
-        0, 3, 5, 2, 0,
-        0, 10, 6, 1, 0,
-
-        1, 9, 1, 2, 0,
-        0, 3, 1, 2, 0,
-        0, 3, 1, 2, 0,
-        0, 6, 1, 0, 0,
-        0, 5, 1, 0, 0,
-    ])
+    const { expressionEditor } = useFormContext();
+    const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
     const currentCursorPositionRef = React.useRef<{ start: number; end: number }>({ start: 0, end: 0 });
 
@@ -145,9 +134,9 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         const insertText = item.label || item.label;
         const { start, end } = currentCursorPositionRef.current;
 
-        const newValue = value.substring(0, start) + insertText + value.substring(end);
+        const newValue = value.substring(0, start) + " " + insertText + " " + value.substring(end);
 
-        const newCursorPosition = start + insertText.length;
+        const newCursorPosition = start + insertText.length + 2;
 
         setValue(newValue);
         currentCursorPositionRef.current = {
@@ -176,7 +165,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         setIsCompletionsOpen(false);
         setValue(newValue);
         setTokens([]);
-        //refetch tokens
         onChange(newValue, newCursorPosition);
     };
 
@@ -228,15 +216,39 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     useEffect(() => {
-        setCaretPosition(editorRef.current, cursorBeforeChangeRef.current.start);
-    }, [value]);
+        setCaretPosition(editorRef.current, currentCursorPositionRef.current.start);
+    }, [value, tokens]);
 
     useEffect(() => {
         setCaretPosition(editorRef.current, currentCursorPositionRef.current.start);
     }, [currentCursorPositionRef.current]);
 
     useEffect(() => {
-        if (completions.length === 0) return;
+        // use lodash debounce to avoid creating a new debounced fn on every render
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+        const fetchTokens = async (val: string) => {
+            const tokens = await expressionEditorRpcManager?.getExpressionTokens(val);
+            if (tokens) {
+                setTokens(tokens);
+            }
+        };
+
+        const debouncedFetch = debounce(fetchTokens, 300);
+
+        // trigger with current value
+        debouncedFetch(value);
+
+        return () => {
+            debouncedFetch.cancel?.();
+        };
+    }, [value, expressionEditorRpcManager]);
+
+    useEffect(() => {
+        if (completions.length === 0) {
+            setIsCompletionsOpen(false)
+            return;
+        };
         setIsCompletionsOpen(true);
         setIsHelperpaneOpen(false);
     }, [completions]);
@@ -316,9 +328,12 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     value={value}
                     tokens={tokens}
                     onChange={(newValue) => {
-                        handleSelectionChange();
-                        cursorBeforeChangeRef.current = { ...currentCursorPositionRef.current }; // Save cursor before change
-                        console.log("cursor correction", (newValue.length - value.length))
+                        cursorBeforeChangeRef.current = { ...currentCursorPositionRef.current }
+                        const cursorDelta = newValue.length - value.length;
+                        currentCursorPositionRef.current = {
+                            start: currentCursorPositionRef.current.start + cursorDelta,
+                            end: currentCursorPositionRef.current.end + cursorDelta
+                        }
                         const invalidTokensRange = getInvalidTokensRange(value, tokens, cursorBeforeChangeRef.current.start - (newValue.length - value.length));
                         const correctedTokens = handleErrorCorrection(invalidTokensRange, tokens, newValue.length - value.length);
                         console.log("Corrected Tokens: ", correctedTokens);
@@ -328,11 +343,9 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     }}
                     onSelect={handleSelectionChange}
                     onClick={(e) => {
-                        handleSelectionChange();
                         handleEditorClick(e);
                     }}
                     onKeyDown={handleKeyDown}
-                    onKeyUp={handleSelectionChange}
                 >
                     <TokenizedExpression
                         value={value}

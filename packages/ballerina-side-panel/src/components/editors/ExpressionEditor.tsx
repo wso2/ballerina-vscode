@@ -570,14 +570,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
                                     onChange(rawValue);
 
-                                    if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
-                                        getExpressionEditorDiagnostics(
-                                            (required ?? !field.optional) || rawValue !== '',
-                                            rawValue,
-                                            key,
-                                            getPropertyFromFormField(field)
-                                        );
-                                    }
+                                    // if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
+                                    //     getExpressionEditorDiagnostics(
+                                    //         (required ?? !field.optional) || rawValue !== '',
+                                    //         rawValue,
+                                    //         key,
+                                    //         getPropertyFromFormField(field)
+                                    //     );
+                                    // }
 
                                     // Check if the current character is a trigger character
                                     const triggerCharacter =

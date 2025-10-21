@@ -191,6 +191,8 @@ import {
     VerifyTypeDeleteResponse,
     verifyTypeDelete,
     ConfigVariableRequest,
+    getExpressionTokens,
+    ExpressionTokensRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -496,5 +498,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
         return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
+    }
+
+    getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
+        return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
     }
 }
