@@ -18,16 +18,17 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import FXButton from "./components/FxButton";
-import { Chip, ChipEditorContainer, ChipEditorField, ChipMenu, ChipMenuItem } from "./styles";
-import { Token } from "./types";
+import { Chip, ChipEditorContainer, ChipEditorField, ChipMenu, ChipMenuItem, Completions } from "./styles";
+import { ExpressionModel, Token } from "./types";
 import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "./constants";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
+import { FloatingButtonContainer } from "./styles";
+import { ExpressionToggleButton } from "./components/ExpressionToggleButton";
+import { DebugToggleButton } from "./components/DebugToggleButton";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { calculateMenuPosition, getAbsoluteColumnOffset, getInvalidTokensRange, handleErrorCorrection } from "./utils";
-import { CompletionItem, getIcon, HelperPaneHeight, ThemeColors } from "@wso2/ui-toolkit";
-import { createPortal } from "react-dom";
-import styled from "@emotion/styled";
-import { keyframes } from "@emotion/react";
+import { CompletionsItem } from "./components/CompletionsItem";
+import { calculateMenuPosition, getAbsoluteColumnOffset, getInvalidTokensRange, handleErrorCorrection, getTokenAtCursorPosition, getTextValueFromExpressionModel, createExpressionModelFromTokens } from "./utils";
+import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { debounce } from "lodash";
 
@@ -42,333 +43,327 @@ export type ChipExpressionBaseComponentProps = {
     ) => React.ReactNode;
     completions: CompletionItem[];
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    value: string;
 }
 
 export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentProps) => {
-    const { onTokenRemove, onTokenClick, getHelperPane, completions, onChange } = props;
-    const editorRef = React.useRef<HTMLDivElement>(null);
-    const cursorBeforeChangeRef = React.useRef<{ start: number; end: number }>({ start: 0, end: 0 });
+    console.log("#VALUE#", props.value);
+    const [expressionModel, setExpressionModel] = useState<ExpressionModel[]>([])
+    const [tokens, setTokens] = useState<number[]>([]);
+    const [cursorPosition, setCursorPosition] = useState<{ start: number, end: number }>();
+    const [currentExpressionModelElement, setCurrentExpressionModelElement] = useState<ExpressionModel | null>(null);
+    const [isRebuilding, setIsRebuilding] = useState<boolean>(false);
+    const pendingCaretRestoreRef = useRef<number | null>(null);
+
+    const fieldContainerRef = useRef<HTMLDivElement>(null);
+    const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
+    const [isExpressionActive, setIsExpressionActive] = useState(false);
+    const [isDebugActive, setIsDebugActive] = useState(false);
+
+    // Completions state
     const [selectedCompletionItem, setSelectedCompletionItem] = useState<number>(0);
-    const [isHelperpaneOpen, setIsHelperpaneOpen] = useState<boolean>(false);
     const [isCompletionsOpen, setIsCompletionsOpen] = useState<boolean>(false);
-    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({
-        top: 0,
-        left: 0
-    });
-    const [value, setValue] = React.useState<string>(" " + "val + 12");
-    const [tokens, setTokens] = React.useState<number[]>([])
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+    const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
-    const currentCursorPositionRef = React.useRef<{ start: number; end: number }>({ start: 0, end: 0 });
-
-    const handleSelectionChange = () => {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-
-        const range = selection.getRangeAt(0);
-
-        // Get the container element (ChipEditorField)
-        const container = range.commonAncestorContainer;
-        const root = container.nodeType === Node.TEXT_NODE
-            ? container.parentNode
-            : container;
-
-        // Calculate absolute position by traversing all text nodes
-        let absoluteStart = 0;
-        let absoluteEnd = 0;
-
-        const calculatePosition = (node: Node, targetNode: Node, targetOffset: number): number => {
-            let position = 0;
-
-            const traverse = (current: Node): boolean => {
-                if (current === targetNode) {
-                    position += targetOffset;
-                    return true;
-                }
-
-                if (current.nodeType === Node.TEXT_NODE) {
-                    position += current.textContent?.length || 0;
-                } else if (current.nodeType === Node.ELEMENT_NODE) {
-                    const element = current as Element;
-                    // Skip contentEditable="false" elements but count them as their text length
-                    if (element.getAttribute('contenteditable') === 'false') {
-                        position += current.textContent?.length || 0;
-                        return false;
-                    }
-
-                    for (let i = 0; i < current.childNodes.length; i++) {
-                        if (traverse(current.childNodes[i])) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            };
-
-            // Find the root editable container
-            let rootElement = node;
-            while (rootElement.parentNode && rootElement.parentNode.nodeType === Node.ELEMENT_NODE) {
-                const parent = rootElement.parentNode as Element;
-                if (parent.getAttribute('contenteditable') === 'true') {
-                    rootElement = parent;
-                } else {
-                    break;
-                }
-            }
-
-            traverse(rootElement);
-            return position;
+    // Helper function to get the last word before cursor
+    const getLastWordBeforeCursor = (text: string, cursorPos: number): { word: string; startPos: number } => {
+        let startPos = cursorPos;
+        while (startPos > 0 && /\w/.test(text[startPos - 1])) {
+            startPos--;
+        }
+        return {
+            word: text.substring(startPos, cursorPos),
+            startPos
         };
-
-        absoluteStart = calculatePosition(root, range.startContainer, range.startOffset);
-        absoluteEnd = calculatePosition(root, range.endContainer, range.endOffset);
-
-        currentCursorPositionRef.current = { start: absoluteStart, end: absoluteEnd };
-        console.log('Cursor position:', { start: absoluteStart, end: absoluteEnd });
     };
 
-    const handleCompletionSelect = async (item: CompletionItem) => {
-        console.log("completions select")
-        const insertText = item.label || item.label;
-        const { start, end } = currentCursorPositionRef.current;
+    // Handle completion selection
+    const handleCompletionSelect = (item: CompletionItem) => {
+        if (!cursorPosition || !fieldContainerRef.current) return;
 
-        const newValue = value.substring(0, start) + " " + insertText + " " + value.substring(end);
+        const textValue = getTextValueFromExpressionModel(expressionModel);
+        const { word, startPos } = getLastWordBeforeCursor(textValue, cursorPosition.start);
+        
+        // Replace the last word with the completion's insertText
+        const insertText = item.value || item.label;
+        const beforeText = textValue.substring(0, startPos);
+        const afterText = textValue.substring(cursorPosition.start);
+        const newValue = beforeText + insertText + afterText;
 
-        const newCursorPosition = start + insertText.length + 2;
+        console.log('Completion selected:', {
+            item: item.label,
+            insertText,
+            beforeText,
+            afterText,
+            newValue
+        });
 
-        setValue(newValue);
-        currentCursorPositionRef.current = {
+        // Rebuild expression model with new value
+        createExpressionModel(newValue);
+        
+        // Update cursor position to after the inserted text
+        const newCursorPosition = startPos + insertText.length;
+        setCursorPosition({
             start: newCursorPosition,
             end: newCursorPosition
-        };
+        });
+
+        // Close completions
         setIsCompletionsOpen(false);
-        setValue(newValue);
-        onChange(newValue, newCursorPosition);
+        setHasTypedSinceFocus(false);
+        
+        // Trigger onChange
+        props.onChange(newValue, newCursorPosition);
     };
 
-    const handleHelperValueChange = async (value: string) => {
-        console.log("completions select")
-        const insertText = value;
-        const { start, end } = currentCursorPositionRef.current;
+    // Handle keyboard navigation in completions
+    const handleCompletionKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (!isCompletionsOpen || props.completions.length === 0) return;
 
-        const newValue = value.substring(0, start) + insertText + value.substring(end);
-
-        const newCursorPosition = start + insertText.length;
-
-        setValue(newValue);
-        currentCursorPositionRef.current = {
-            start: newCursorPosition,
-            end: newCursorPosition
-        };
-        setIsCompletionsOpen(false);
-        setValue(newValue);
-        setTokens([]);
-        onChange(newValue, newCursorPosition);
-    };
-
-    const handleKeyDown = useCallback(async (event: React.KeyboardEvent) => {
-        switch (event.key) {
-            case "Enter":
-                if (completions?.length - 1 < selectedCompletionItem) return;
-                event.preventDefault();
-                await handleCompletionSelect(completions[selectedCompletionItem])
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setSelectedCompletionItem(prev => 
+                    prev < props.completions.length - 1 ? prev + 1 : prev
+                );
                 break;
-            case "ArrowUp":
-                event.preventDefault();
-                if (selectedCompletionItem <= 0) return;
-                setSelectedCompletionItem(selectedCompletionItem - 1)
+            case 'ArrowUp':
+                e.preventDefault();
+                setSelectedCompletionItem(prev => 
+                    prev > 0 ? prev - 1 : prev
+                );
                 break;
-            case "ArrowDown":
-                event.preventDefault();
-                if (completions.length - 1 <= selectedCompletionItem) return;
-                setSelectedCompletionItem(selectedCompletionItem + 1)
+            case 'Enter':
+                e.preventDefault();
+                if (selectedCompletionItem < props.completions.length) {
+                    handleCompletionSelect(props.completions[selectedCompletionItem]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setIsCompletionsOpen(false);
                 break;
             default:
                 break;
         }
-    }, [selectedCompletionItem, completions]);
+    }, [isCompletionsOpen, selectedCompletionItem, props.completions]);
 
-    function setCaretPosition(container: HTMLElement, charIndex: number) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        let remaining = charIndex;
 
-        // Use TreeWalker to find the text node at charIndex
-        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
-        while (walker.nextNode()) {
-            const node = walker.currentNode;
-            const nodeLength = node.textContent?.length ?? 0;
-
-            if (remaining <= nodeLength) {
-                // Found the node containing the target position
-                const range = document.createRange();
-                range.setStart(node, remaining);
-                range.collapse(true); // true = caret (not a selection)
-                selection.removeAllRanges();
-                selection.addRange(range);
-                return;
+    const handleExpressionChange = (updatedExpressionModel: ExpressionModel[], cursorDelta: number) => {
+        setExpressionModel(updatedExpressionModel);
+        const updatedValue = getTextValueFromExpressionModel(updatedExpressionModel);
+        props.onChange(updatedValue, cursorPosition?.start);
+        setCursorPosition(prev => {
+            if (!prev) return prev;
+            const newPosition = {
+                start: prev.start + cursorDelta,
+                end: prev.end + cursorDelta
+            };
+            
+            // Call onChange with the updated text value and cursor position
+            const updatedValue = getTextValueFromExpressionModel(updatedExpressionModel);
+            props.onChange(updatedValue, newPosition.start);
+            
+            return newPosition;
+        });
+        
+        // Mark that user has typed
+        setHasTypedSinceFocus(true);
+        
+        // Update completions position if typing
+        if (fieldContainerRef.current && isAnyElementFocused) {
+            const activeElement = document.activeElement as HTMLElement;
+            if (activeElement && activeElement.hasAttribute('contenteditable')) {
+                const rect = activeElement.getBoundingClientRect();
+                const containerRect = fieldContainerRef.current.getBoundingClientRect();
+                setMenuPosition({
+                    top: rect.bottom - containerRect.top + 4,
+                    left: rect.left - containerRect.left
+                });
             } else {
-                remaining -= nodeLength;
+                // Fallback: position below the expression field
+                const containerRect = fieldContainerRef.current.getBoundingClientRect();
+                setMenuPosition({
+                    top: containerRect.height + 4,
+                    left: 0
+                });
             }
         }
     }
 
     useEffect(() => {
-        setCaretPosition(editorRef.current, currentCursorPositionRef.current.start);
-    }, [value, tokens]);
+        // When tokens change, rebuild the expression model (preserving caret if available).
+        if (!tokens || tokens.length === 0) return;
+        void handleTriggerRebuild(props.value, cursorPosition?.start);
+    }, [tokens]);
+
+    const createExpressionModel = async (val: string) => {
+        if (tokens) {
+            const newExpressionModel = createExpressionModelFromTokens(val, tokens);
+            setExpressionModel(newExpressionModel);
+            
+            // Call onChange when expression model is created/updated
+            const currentPosition = cursorPosition?.start ?? 0;
+            props.onChange(val, currentPosition);
+        }
+    };
+
+    const handleTriggerRebuild = async (value: string, currentCaretPosition?: number) => {
+        // Rebuild the expression model when triggered (e.g., when "+" is typed)
+        // Preserve cursor position across the rebuild
+        const savedCursorPosition = currentCaretPosition ?? cursorPosition?.start ?? 0;
+        pendingCaretRestoreRef.current = savedCursorPosition;
+        setIsRebuilding(true);
+        
+        await createExpressionModel(value);
+        
+        setIsRebuilding(false);
+    };
+
+    // Use useLayoutEffect to restore caret immediately after DOM update, before paint
+    useEffect(() => {
+        if (!isRebuilding && pendingCaretRestoreRef.current !== null) {
+            const container = fieldContainerRef.current;
+            const savedPosition = pendingCaretRestoreRef.current;
+            
+            // Use requestAnimationFrame to ensure DOM is ready but execute before visible paint
+            requestAnimationFrame(() => {
+                if (container && savedPosition !== undefined) {
+                    restoreCaretPositionInContainer(container, savedPosition);
+                    pendingCaretRestoreRef.current = null;
+                }
+            });
+        }
+    }, [expressionModel, isRebuilding]);
 
     useEffect(() => {
-        setCaretPosition(editorRef.current, currentCursorPositionRef.current.start);
-    }, [currentCursorPositionRef.current]);
-
-    useEffect(() => {
-        // use lodash debounce to avoid creating a new debounced fn on every render
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-
-        const fetchTokens = async (val: string) => {
-            const tokens = await expressionEditorRpcManager?.getExpressionTokens(val);
-            if (tokens) {
-                setTokens(tokens);
+        const fetchTokens = async () => {
+            const fetchedTokens = await expressionEditorRpcManager?.getExpressionTokens(props.value);
+            if (fetchedTokens) {
+                setTokens(fetchedTokens);
             }
         };
+        fetchTokens();
+    }, []);
 
-        const debouncedFetch = debounce(fetchTokens, 300);
-
-        // trigger with current value
-        debouncedFetch(value);
-
-        return () => {
-            debouncedFetch.cancel?.();
-        };
-    }, [value, expressionEditorRpcManager]);
-
-    useEffect(() => {
-        if (completions.length === 0) {
-            setIsCompletionsOpen(false)
-            return;
-        };
-        setIsCompletionsOpen(true);
-        setIsHelperpaneOpen(false);
-    }, [completions]);
-
-    useEffect(() => {
-        if (!isHelperpaneOpen && !isCompletionsOpen) return;
-
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-            const isMenuClick = target.closest('[data-menu="chip-menu"]');
-            const isEditorClick = editorRef.current?.contains(target);
-
-            if (!isMenuClick && !isEditorClick) {
-                setIsHelperpaneOpen(false);
-                setIsCompletionsOpen(false);
+    const restoreCaretPositionInContainer = (container: HTMLElement, absolutePosition: number) => {
+        let remaining = absolutePosition;
+        const walker = document.createTreeWalker(
+            container,
+            NodeFilter.SHOW_TEXT,
+            null
+        );
+        
+        let textNode: Text | null = null;
+        let offset = 0;
+        let node = walker.nextNode() as Text | null;
+        
+        while (node) {
+            const nodeLength = node.textContent?.length || 0;
+            if (remaining <= nodeLength) {
+                textNode = node;
+                offset = remaining;
+                break;
             }
-        };
+            remaining -= nodeLength;
+            node = walker.nextNode() as Text | null;
+        }
+        
+        if (textNode) {
+            const range = document.createRange();
+            range.setStart(textNode, Math.min(offset, textNode.textContent?.length || 0));
+            range.collapse(true);
+            const selection = window.getSelection();
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // Focus the element containing the text node
+            let focusElement = textNode.parentElement;
+            while (focusElement && !focusElement.hasAttribute('contenteditable')) {
+                focusElement = focusElement.parentElement;
+            }
+            if (focusElement) {
+                focusElement.focus();
+            }
+        }
+    };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isHelperpaneOpen]);
+    useEffect(() => {
+        createExpressionModel(props.value);
+    }, [props.value]);
 
-    const handleChipClick = (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => {
-        const position = calculateMenuPosition(element, editorRef.current);
-        currentCursorPositionRef.current = {
-            start: absoluteOffset || 0,
-            end: absoluteOffset + value.length
-        };
-
-        if (position) {
-            setIsHelperpaneOpen(true);
+    // Show/hide completions based on completions array and typing state
+    useEffect(() => {
+        if (props.completions.length === 0) {
             setIsCompletionsOpen(false);
-            setMenuPosition(position);
+            return;
         }
-    };
-
-    const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            const containerRect = editorRef.current?.getBoundingClientRect();
-
-            if (containerRect && rect.width > 0 && rect.height > 0) {
-                // Valid text selection/cursor position
-                const menuWidth = 120;
-                let top = rect.bottom - containerRect.top + 4;
-                let left = rect.left - containerRect.left;
-
-                // Ensure menu doesn't go beyond the right edge
-                if (left + menuWidth > containerRect.width) {
-                    left = containerRect.width - menuWidth;
-                }
-                setIsHelperpaneOpen(true);
-                setIsCompletionsOpen(false);
-                setMenuPosition({ top, left });
-            } else if (editorRef.current) {
-                // Fallback to editor position if no valid range
-                const position = calculateMenuPosition(editorRef.current, editorRef.current);
-                if (position) {
-                    setIsHelperpaneOpen(true);
-                    setIsCompletionsOpen(false);
-                    setMenuPosition(position);
+        // Only show completions if user has typed after focusing
+        if (isAnyElementFocused && hasTypedSinceFocus) {
+            // Set position when completions are about to show
+            if (fieldContainerRef.current) {
+                const activeElement = document.activeElement as HTMLElement;
+                if (activeElement && activeElement.hasAttribute('contenteditable')) {
+                    const rect = activeElement.getBoundingClientRect();
+                    const containerRect = fieldContainerRef.current.getBoundingClientRect();
+                    setMenuPosition({
+                        top: rect.bottom - containerRect.top + 4,
+                        left: rect.left - containerRect.left
+                    });
+                } else {
+                    // Fallback: position below the expression field
+                    const containerRect = fieldContainerRef.current.getBoundingClientRect();
+                    setMenuPosition({
+                        top: containerRect.height + 4,
+                        left: 0
+                    });
                 }
             }
+            setIsCompletionsOpen(true);
+            setSelectedCompletionItem(0);
+        } else {
+            setIsCompletionsOpen(false);
         }
-    };
+    }, [props.completions, isAnyElementFocused, hasTypedSinceFocus]);
+
+    // Reset hasTypedSinceFocus when focus changes
+    useEffect(() => {
+        if (!isAnyElementFocused) {
+            setHasTypedSinceFocus(false);
+            setIsCompletionsOpen(false);
+        }
+    }, [isAnyElementFocused]);
+
 
     return (
         <>
             <ChipEditorContainer style={{ position: 'relative' }}>
                 <FXButton />
                 <AutoExpandingEditableDiv
-                    fieldRef={editorRef}
-                    value={value}
-                    tokens={tokens}
-                    onChange={(newValue) => {
-                        cursorBeforeChangeRef.current = { ...currentCursorPositionRef.current }
-                        const cursorDelta = newValue.length - value.length;
-                        currentCursorPositionRef.current = {
-                            start: currentCursorPositionRef.current.start + cursorDelta,
-                            end: currentCursorPositionRef.current.end + cursorDelta
-                        }
-                        const invalidTokensRange = getInvalidTokensRange(value, tokens, cursorBeforeChangeRef.current.start - (newValue.length - value.length));
-                        const correctedTokens = handleErrorCorrection(invalidTokensRange, tokens, newValue.length - value.length);
-                        console.log("Corrected Tokens: ", correctedTokens);
-                        setTokens(correctedTokens);
-                        setValue(newValue);
-                        onChange(newValue, currentCursorPositionRef.current.start);
-                    }}
-                    onSelect={handleSelectionChange}
-                    onClick={(e) => {
-                        handleEditorClick(e);
-                    }}
-                    onKeyDown={handleKeyDown}
+                    fieldContainerRef={fieldContainerRef}
+                    style={isRebuilding ? { caretColor: 'transparent' } : undefined}
+                    onFocusChange={(focused) => setIsAnyElementFocused(focused)}
+                    onKeyDown={handleCompletionKeyDown}
+                    floatingControls={
+                        <FloatingButtonContainer>
+                            <ExpressionToggleButton isActive={isExpressionActive} onToggle={() => setIsExpressionActive(v => !v)} />
+                            <DebugToggleButton isActive={isDebugActive} onToggle={() => setIsDebugActive(v => !v)} />
+                        </FloatingButtonContainer>
+                    }
                 >
                     <TokenizedExpression
-                        value={value}
-                        tokens={tokens}
-                        onChipClick={handleChipClick}
-
+                        expressionModel={expressionModel}
+                        onExpressionChange={handleExpressionChange}
+                        onTriggerRebuild={handleTriggerRebuild}
                     />
                 </AutoExpandingEditableDiv>
-                {isHelperpaneOpen && (
-                    <ChipMenu
-                        top={menuPosition.top}
-                        left={menuPosition.left}
-                        data-menu="chip-menu"
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        {getHelperPane && getHelperPane(
-                            value,
-                            handleHelperValueChange,
-                            '3/4'
-                        )}
-                    </ChipMenu>
-                )}
-                {isCompletionsOpen && (
+                 {isCompletionsOpen && (
                     <ChipMenu
                         top={menuPosition.top}
                         left={menuPosition.left}
@@ -376,132 +371,19 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <Completions>
-                            {completions.map((item, index) => (
+                            {props.completions.map((item, index) => (
                                 <CompletionsItem
+                                    key={`${item.label}-${index}`}
                                     item={item}
                                     isSelected={index === selectedCompletionItem}
+                                    onClick={() => handleCompletionSelect(item)}
+                                    onMouseEnter={() => setSelectedCompletionItem(index)}
                                 />
-                            ))}</Completions>
+                            ))}
+                        </Completions>
                     </ChipMenu>
                 )}
-            </ChipEditorContainer>
-            {/* 
-            {JSON.stringify(value)}
-            <div style={{ maxWidth: '300px' }}> {JSON.stringify(tokens)}</div> */}
-            {/* {JSON.stringify(completions)} */}
-            <pre>
-                {JSON.stringify(currentCursorPositionRef.current)}
-            </pre>
+            </ChipEditorContainer >
         </>
     )
 }
-
-const CompletionsadeInUp = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-`;
-export const COMPLETIONS_WIDTH = 300;
-const Completions = styled.div`
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
-    border: 1px solid ${ThemeColors.OUTLINE};
-    width: ${COMPLETIONS_WIDTH}px;
-    max-height: 300px;
-    overflow-y: auto;
-    position: absolute;
-    padding: 2px 0px;
-    border-radius: 3px;
-    top: 0;
-    left: 0;
-    z-index: 2001;
-    animation: ${CompletionsadeInUp} 0.3s ease forwards;
-`
-
-const DescriptionWrapper = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2001;
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
-    color: white;
-    width: fit-content;
-    height: fit-content;
-    padding: 4px 8px; 
-    border-radius: 2px;
-    border: 1px solid ${ThemeColors.OUTLINE};
-    font-size: 14px;
-    pointer-events: none; 
-    transform: translateX(-100%);
-`;
-
-interface CompletionsProps extends React.HTMLAttributes<HTMLDivElement> {
-    item: CompletionItem;
-    isSelected: boolean;
-}
-
-
-const CompletionsItem = (props: CompletionsProps) => {
-    const { item, ...divProps } = props;
-
-    const completionItemRef = useRef<HTMLDivElement>();
-
-    const getDescriptionOrigin = () => {
-        if (!completionItemRef.current) return {
-            top: 0, left: 0
-        }
-        const rect = completionItemRef.current.getBoundingClientRect();
-        return ({
-            left: rect.left,
-            top: rect.top
-        })
-    }
-    return (
-        <>
-            <CompletionsItemEl
-                ref={completionItemRef}
-                {...divProps}
-            >
-                <div style={{
-                    display: "flex",
-                    gap: "5px"
-                }}>
-                    {getIcon(item.kind)}
-                    {item.label}
-                </div>
-                <CompletionsTag> {item.tag} </CompletionsTag>
-            </CompletionsItemEl>
-            {props.isSelected && createPortal(
-                <DescriptionWrapper style={{ top: getDescriptionOrigin().top, left: getDescriptionOrigin().left }}>{item.description}</DescriptionWrapper>,
-                document.body
-            )}
-        </>
-    )
-}
-
-interface CompletionsItemElProps {
-    isSelected?: boolean;
-}
-const CompletionsItemEl = styled.div<CompletionsItemElProps>`
-    height: 25px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0px 5px;
-    align-items: center;
-    background-color: ${(props: CompletionsItemElProps) =>
-        props.isSelected
-            ? 'var(--vscode-list-activeSelectionBackground)'
-            : ThemeColors.SURFACE_BRIGHT};
-    &:hover {
-        background-color: ${ThemeColors.OUTLINE_VARIANT};
-        cursor: pointer;
-    }
-`;
-
-const CompletionsTag = styled.div`
-    color: ${ThemeColors.ON_SURFACE_VARIANT}
-`
