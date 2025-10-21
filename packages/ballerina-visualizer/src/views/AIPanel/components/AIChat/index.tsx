@@ -328,10 +328,7 @@ const AIChat: React.FC = () => {
                         // Show different indicator based on whether tasks exist
                         if (!activeTasks || activeTasks.length === 0) {
                             // Initial task creation
-                            newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
-                        } else {
-                            // Task update
-                            newMessages[newMessages.length - 1].content += `\n\n<toolcall>Updating tasks...</toolcall>`;
+                            newMessages[newMessages.length - 1].content += ` <toolcall>Planning...</toolcall>`;
                         }
                     }
                     return newMessages;
