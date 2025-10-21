@@ -137,7 +137,9 @@ import {
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspaceFolder,
-    WorkspacesResponse
+    WorkspacesResponse,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -1237,6 +1239,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             // No diagnostics, directly delete component
             return performDelete();
         }
+    }
+
+    async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return new Promise((resolve, reject) => {
+            console.log(">>> requesting form diagnostics from ls", params);
+            StateMachine.langClient()
+                .getFormDiagnostics(params)
+                .then((diagnostics) => {
+                    console.log(">>> form diagnostics response from ls", diagnostics);
+                    resolve(diagnostics);
+                })
+                .catch((error) => {
+                    reject("Error fetching form diagnostics from ls");
+                });
+        });
     }
 
     async getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
