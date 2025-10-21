@@ -23,13 +23,9 @@ import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse } from "@wso2/ballerina-core";
 import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../../TypeHelper";
 import { TypeHelperContext } from "../../Context";
-import { ImportTab } from "../Tabs/ImportTab";
-import { TypeCreatorTab } from "../Tabs/TypeCreatorTab";
 import { GenericImportTab } from "./GenericImportTab";
 import { ContextTypeCreatorTab } from "./ContextTypeCreator";
 import { BrowseTypesTab } from "./BrowseTypesTab";
-import { EditTypeView } from "./EditTypeView";
-import { SimpleTypeEditor } from "./SimpleTypeEditor";
 
 namespace S {
     export const Container = styled(SidePanelBody)`
@@ -101,7 +97,19 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
         return defaultType as unknown as Type;
     })();
 
-    const [activeTab, setActiveTab] = useState<string>("import");
+    // Determine initial tab based on edit mode
+    const getInitialTab = () => {
+        if (newType) {
+            return "import";
+        }
+        // For edit mode: if simple type, show browse tab; otherwise show create tab
+        if (simpleType) {
+            return "browse-exisiting-types";
+        }
+        return "create-from-scratch";
+    };
+
+    const [activeTab, setActiveTab] = useState<string>(getInitialTab());
 
 
     const onTypeSave = async (type: Type) => {
@@ -140,10 +148,10 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container style={{ height: '100%' }} data-testid="type-editor-container">
+            <S.Container style={{ height: '80vh', overflow: 'hidden' }} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
-                ) : newType ? (
+                ) : (
                     <TabPanel
                         views={[
                             {
@@ -157,7 +165,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                             },
                             {
                                 id: 'create-from-scratch',
-                                name: 'Create from scratch',
+                                name: 'Create Type Schema',
                                 icon: <Icon
                                     name="bi-edit"
                                     sx={{ marginRight: '5px' }}
@@ -166,7 +174,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                             },
                             {
                                 id: 'browse-exisiting-types',
-                                name: 'Browse existing types',
+                                name: 'Browse Existing Types',
                                 icon: <Icon
                                     name="bi-type"
                                     sx={{ marginRight: '5px' }}
@@ -176,9 +184,9 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         ]}
                         currentViewId={activeTab}
                         onViewChange={handleTabChange}
-                        childrenSx={{ padding: '10px' }}
+                        childrenSx={{ padding: '10px', height: '100%', overflow: 'hidden' }}
                     >
-                        <div id="import" data-testid="import-tab">
+                        <div id="import" data-testid="import-tab" style={{ height: '100%' }}>
                             <GenericImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -187,11 +195,11 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="create-from-scratch" data-testid="create-from-scratch-tab">
+                        <div id="create-from-scratch" data-testid="create-from-scratch-tab" style={{ height: '100%' }}>
                             <ContextTypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
-                                newType={newType}
+                                newType={simpleType ? true : newType}
                                 isGraphql={isGraphql}
                                 initialTypeKind={initialTypeKind}
                                 onTypeSave={onTypeSave}
@@ -199,48 +207,20 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 setIsSaving={setIsSaving}
                             />
                         </div>
-                        <div id="browse-exisiting-types" data-testid="browse-exisiting-types-tab">
+                        <div id="browse-exisiting-types" data-testid="browse-exisiting-types-tab" style={{ height: '100%' }}>
                             <BrowseTypesTab
                                 basicTypes={props.typeHelper.basicTypes}
                                 importedTypes={props.typeHelper.importedTypes}
                                 loading={props.typeHelper.loading}
                                 onSearchTypeHelper={props.typeHelper.onSearchTypeHelper}
                                 onTypeItemClick={props.typeHelper.onTypeItemClick}
-                                onClose={() => props.onSaveType(type)}
                                 onTypeSelect={props.onSaveType}
+                                simpleType={simpleType}
                             />
                         </div>
 
                     </TabPanel>
-                ) : (
-                    <>
-                        {simpleType ? (
-                            <div style={{ padding: '10px' }} data-testid="type-editor-content">
-                                <SimpleTypeEditor
-                                    typeName={simpleType}
-                                    basicTypes={props.typeHelper.basicTypes}
-                                    importedTypes={props.typeHelper.importedTypes}
-                                    onSearchTypeHelper={props.typeHelper.onSearchTypeHelper}
-                                    onTypeItemClick={props.typeHelper.onTypeItemClick}
-                                    onSave={props.onSaveType}
-                                />
-                            </div>
-                        ) : (
-                            <div style={{ padding: '10px' }} data-testid="type-editor-content">
-                                <EditTypeView
-                                    onTypeChange={props.onTypeChange}
-                                    editingType={type}
-                                    newType={newType}
-                                    isGraphql={isGraphql}
-                                    initialTypeKind={initialTypeKind}
-                                    onTypeSave={onTypeSave}
-                                    isSaving={isSaving}
-                                    setIsSaving={setIsSaving}
-                                />
-                            </div>
-                        )}
-                    </>
-                )}
+                )} 
             </S.Container>
         </TypeHelperContext.Provider>
     );

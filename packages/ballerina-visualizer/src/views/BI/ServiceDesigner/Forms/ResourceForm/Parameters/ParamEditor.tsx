@@ -37,11 +37,10 @@ export interface ParamProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
-    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel, openFormTypeEditor } = props;
+    const { param, hideType = false, onChange, onSave, onCancel } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
