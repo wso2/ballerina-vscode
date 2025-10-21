@@ -9,13 +9,12 @@ import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri,
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
-import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
-import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, getWorkspacePackageNames, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, filterPackagePaths, getOrgPackageName, UndoRedoManager } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { getWorkspaceTomlValues } from './rpc-managers/common/utils';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
@@ -778,17 +777,25 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
     const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
-        // TODO: Provide a quick pick to select the package to load the WSO2 Integrator
-        // if the user selects a package, then load the WSO2 Integrator for that package
-        // if the user cancels the selection, then load the WSO2 Integrator for the first package
-        const packages = getWorkspacePackageNames(workspaceURI);
+        // A workaround for supporting multiple packages in a workspace
+        // TODO: Once the artifacts API is updated to support multiple packages and the new API for detecting the
+        // most appropriate package to load the WSO2 Integrator is implemented, this workaround can be removed
+        // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
+        const workspaceTomlValues = await getWorkspaceTomlValues(workspaceURI.fsPath);
+
+        if (!workspaceTomlValues) {
+            return { isBI: false, projectPath: '' };
+        }
+
+        const packages = filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
+
         const userSelectedPackage = await window.showQuickPick(packages, {
             title: 'Select Package for WSO2 Integrator: BI',
             placeHolder: 'Choose a package from your workspace to load in BI mode',
             ignoreFocusOut: true
         });
 
-        const targetPackage = userSelectedPackage || getFirstWorkspacePackageName(workspaceURI);
+        const targetPackage = userSelectedPackage || packages[0];
 
         if (targetPackage) {
             const packagePath = path.join(workspaceURI.fsPath, targetPackage);
