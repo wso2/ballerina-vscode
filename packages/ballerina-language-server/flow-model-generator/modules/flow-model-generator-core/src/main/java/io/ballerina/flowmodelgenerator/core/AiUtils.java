@@ -197,6 +197,7 @@ public class AiUtils {
      * @param key         the property key
      * @param property    the existing property to copy from
      * @param customValue the custom value to use instead of the property's original value, or null to use original
+     * @param isHidden    whether to mark the property as hidden
      */
     public static void addPropertyFromTemplate(NodeBuilder nodeBuilder, String key, Property property,
                                                String customValue, boolean isHidden) {
