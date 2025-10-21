@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
@@ -41,6 +42,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -113,7 +115,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 getAnnotationAttachments(BALLERINA, GRAPHQL, OBJECT_METHOD);
         Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
         Function actualFuncModel = getGraphqlFunctionModelFromNode((FunctionDefinitionNode) context.node(),
-                annotations);
+                annotations, context.semanticModel());
         actualFuncModel.setEditable(true);
 
         if (actualFuncModel.getKind().equals(KIND_QUERY) || actualFuncModel.getKind().equals(KIND_SUBSCRIPTION)) {
@@ -175,7 +177,8 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
     }
 
     public static Function getGraphqlFunctionModelFromNode(FunctionDefinitionNode functionDefinitionNode,
-                                                           Map<String, Value> annotations) {
+                                                           Map<String, Value> annotations,
+                                                           SemanticModel semanticModel) {
         Function functionModel = getFunctionModel(functionDefinitionNode);
         annotations.forEach(functionModel::addProperty);
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
@@ -183,8 +186,10 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         if (returnTypeDesc.isPresent()) {
             FunctionReturnType returnType = functionModel.getReturnType();
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
+            // Check for GraphQL ID annotation on return type
+            ServiceModelUtils.setGraphqlIdForReturnType(returnType, functionDefinitionNode, semanticModel);
         }
-        updateGraphqlParameters(functionSignatureNode, functionModel);
+        updateGraphqlParameters(functionSignatureNode, functionModel, semanticModel);
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange(), GRAPHQL, BALLERINA));
         functionModel.setCanAddParameters(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
@@ -192,7 +197,8 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         return functionModel;
     }
 
-    public static Optional<Parameter> getGraphqlParameterModel(ParameterNode parameterNode) {
+    public static Optional<Parameter> getGraphqlParameterModel(ParameterNode parameterNode,
+                                                               SemanticModel semanticModel) {
         if (parameterNode instanceof RequiredParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
                 return Optional.empty();
@@ -200,6 +206,8 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
             String paramName = parameter.paramName().get().text().trim();
             Parameter parameterModel = createGraphqlParameter(paramName, KIND_REQUIRED,
                     parameter.typeName().toString().trim());
+            // Check for GraphQL ID annotation
+            ServiceModelUtils.setGraphqlIdForParameter(parameterModel, parameter, semanticModel);
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof DefaultableParameterNode parameter) {
             if (parameter.paramName().isEmpty()) {
@@ -212,6 +220,8 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
             defaultValue.setEnabled(true);
+            // Check for GraphQL ID annotation
+            ServiceModelUtils.setGraphqlIdForParameter(parameterModel, parameter, semanticModel);
             return Optional.of(parameterModel);
         }
         return Optional.empty();
@@ -226,18 +236,20 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
         return parameterModel;
     }
 
-    private static List<Parameter> getGraphqlParameterNodelList(FunctionSignatureNode functionSignatureNode) {
+    private static List<Parameter> getGraphqlParameterNodelList(FunctionSignatureNode functionSignatureNode,
+                                                                SemanticModel semanticModel) {
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
-            Optional<Parameter> parameterModel = getGraphqlParameterModel(parameterNode);
+            Optional<Parameter> parameterModel = getGraphqlParameterModel(parameterNode, semanticModel);
             parameterModel.ifPresent(parameterModels::add);
         });
         return parameterModels;
     }
 
-    private static void updateGraphqlParameters(FunctionSignatureNode functionSignatureNode, Function functionModel) {
-        List<Parameter> parameterModels = getGraphqlParameterNodelList(functionSignatureNode);
+    private static void updateGraphqlParameters(FunctionSignatureNode functionSignatureNode, Function functionModel,
+                                                SemanticModel semanticModel) {
+        List<Parameter> parameterModels = getGraphqlParameterNodelList(functionSignatureNode, semanticModel);
         for (Parameter parameterModel : parameterModels) {
             String paramName = parameterModel.getName().getValue();
             if ((paramName.equals(GRAPHQL_CONTEXT) || paramName.equals(GRAPHQL_FIELD)) && parameterModel.isEnabled()) {

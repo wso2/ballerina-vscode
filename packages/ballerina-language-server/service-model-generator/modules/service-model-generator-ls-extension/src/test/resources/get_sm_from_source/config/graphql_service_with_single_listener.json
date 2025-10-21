@@ -222,11 +222,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -363,7 +365,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -398,7 +401,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -456,7 +460,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -510,11 +515,13 @@
             "editable": false,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Field Type",
             "description": "The type of the field"
@@ -740,7 +747,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -775,7 +783,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -833,7 +842,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -891,7 +901,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -945,11 +956,13 @@
             "editable": false,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Field Type",
             "description": "The type of the field"
@@ -1176,7 +1189,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -1211,7 +1225,8 @@
             "editable": false,
             "optional": false,
             "advanced": true,
-            "hidden": true
+            "hidden": true,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -1265,11 +1280,13 @@
             "editable": false,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Field Type",
             "description": "The type of the field"
