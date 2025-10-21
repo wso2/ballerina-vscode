@@ -1175,6 +1175,18 @@ export interface Reference {
     range: Range;
 }
 
+export interface FormDiagnosticsRequest {
+    filePath: string;
+    flowNode: FlowNode | FunctionNode;
+    isConnector?: boolean;
+    isFunctionNodeUpdate?: boolean;
+}
+
+export interface FormDiagnosticsResponse {
+    flowNode?: FlowNode | FunctionNode;
+    diagnostics?: Diagnostic[];
+}
+
 export interface ExpressionDiagnosticsRequest {
     filePath: string;
     context: ExpressionEditorContext;
@@ -1899,6 +1911,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getComponentsFromContent: (params: ComponentsFromContent) => Promise<BallerinaProjectComponents>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     getVisibleTypes: (params: VisibleTypesRequest) => Promise<VisibleTypesResponse>;
+    getFormDiagnostics: (params: FormDiagnosticsRequest) => Promise<FormDiagnosticsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>
 
