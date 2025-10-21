@@ -25,7 +25,7 @@ import classnames from "classnames";
 import { LinkConnectorNode } from './LinkConnectorNode';
 import { useIntermediateNodeStyles } from '../../../styles';
 import { DiagnosticWidget } from '../../Diagnostic/DiagnosticWidget';
-import { renderDeleteButton, renderEditButton, renderIconButton, renderPortWidget } from './LinkConnectorWidgetComponents';
+import { renderDeleteButton, renderEditButton, renderIconButton, renderIndexingButton, renderPortWidget } from './LinkConnectorWidgetComponents';
 import { useDMExpressionBarStore } from "../../../../store/store";
 import { InputOutputPortModel } from "../../Port";
 
@@ -66,27 +66,28 @@ export function LinkConnectorNodeWidget(props: LinkConnectorNodeWidgetProps) {
     );
 
     return (!node.hidden && (
-            <div className={classes.root} data-testid={`link-connector-node-${node?.value}`}>
-                <div className={classes.header}>
-                    {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
-                    {renderIconButton(node)}
-                    {renderEditButton(onClickEdit, node?.value)}
-                    {deleteInProgress ? (
-                        loadingScreen
-                    ) : (
-                        renderDeleteButton(onClickDelete, node?.value)
-                    )}
-                    {diagnostic && (
-                        <DiagnosticWidget
-                            diagnostic={diagnostic}
-                            value={value}
-                            onClick={onClickEdit}
-                            btnSx={{ margin: "0 2px" }}
-                        />
-                    )}
-                    {renderPortWidget(engine, node.outPort, `${node?.value}-output`)}
-                </div>
+        <div className={classes.root} data-testid={`link-connector-node-${node?.value}`}>
+            <div className={classes.header}>
+                {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
+                {renderIconButton(node)}
+                {node.mapping.elementAccessIndex ?
+                    renderIndexingButton(onClickEdit, node) :
+                    renderEditButton(onClickEdit, node?.value)
+                }
+                {deleteInProgress ?
+                    loadingScreen :
+                    renderDeleteButton(onClickDelete, node?.value)
+                }
+                {diagnostic && (
+                    <DiagnosticWidget
+                        diagnostic={diagnostic}
+                        value={value}
+                        onClick={onClickEdit}
+                        btnSx={{ margin: "0 2px" }}
+                    />
+                )}
+                {renderPortWidget(engine, node.outPort, `${node?.value}-output`)}
             </div>
-        )
-    );
+        </div>
+    ));
 }

@@ -23,6 +23,7 @@ import {
     AddFunctionRequest,
     AddImportItemResponse,
     ArtifactData,
+    AvailableNode,
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     BIAvailableNodesRequest,
@@ -51,9 +52,11 @@ import {
     BallerinaProject,
     BreakpointRequest,
     BuildMode,
+    Category,
     ClassFieldModifierRequest,
     Command,
     ComponentRequest,
+    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
@@ -85,14 +88,14 @@ import {
     GetTypeResponse,
     GetTypesRequest,
     GetTypesResponse,
-    ImportStatement,
-    ImportStatements,
+    Item,
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
     LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
+    NodePosition,
     OpenAPIClientDeleteRequest,
     OpenAPIClientDeleteResponse,
     OpenAPIClientGenerationRequest,
@@ -100,7 +103,6 @@ import {
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
     ProjectComponentsResponse,
-    ProjectImports,
     ProjectRequest,
     ProjectStructureResponse,
     ReadmeContentRequest,
@@ -111,13 +113,11 @@ import {
     RenameIdentifierRequest,
     RenameRequest,
     SCOPE,
-    STModification,
     ServiceClassModelResponse,
     ServiceClassSourceRequest,
     SignatureHelpRequest,
     SignatureHelpResponse,
     SourceEditResponse,
-    SyntaxTree,
     TemplateId,
     TextEdit,
     UpdateConfigVariableRequest,
@@ -132,17 +132,12 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
-    VisibleTypesRequest,
-    VisibleTypesResponse,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
+    VisibleTypesRequest,
+    VisibleTypesResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    ConfigVariableRequest,
-    AvailableNode,
-    Item,
-    Category,
-    NodePosition,
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
 } from "@wso2/ballerina-core";
@@ -173,8 +168,8 @@ import { getCompleteSuggestions } from '../../utils/ai/completions';
 import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -1341,22 +1336,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getAllImports(): Promise<ProjectImports> {
-        const projectUri = StateMachine.context().projectUri;
-        const ballerinaFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
-        const imports: ImportStatements[] = [];
-
-        for (const file of ballerinaFiles) {
-            const fileContent = fs.readFileSync(file, "utf8");
-            const fileImports = await extractImports(fileContent, file);
-            imports.push(fileImports);
-        }
-        return {
-            projectPath: projectUri,
-            imports,
-        };
-    }
-
     async getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         console.log(">>> requesting parent functin definition", params);
         return new Promise((resolve) => {
@@ -2002,23 +1981,4 @@ export async function getBallerinaFiles(dir: string): Promise<string[]> {
         }
     }
     return files;
-}
-
-export async function extractImports(content: string, filePath: string): Promise<ImportStatements> {
-    const withoutSingleLineComments = content.replace(/\/\/.*$/gm, "");
-    const withoutComments = withoutSingleLineComments.replace(/\/\*[\s\S]*?\*\//g, "");
-
-    const importRegex = /import\s+([\w\.\/]+)(?:\s+as\s+([\w]+))?;/g;
-    const imports: ImportStatement[] = [];
-    let match;
-
-    while ((match = importRegex.exec(withoutComments)) !== null) {
-        const importStatement: ImportStatement = { moduleName: match[1] };
-        if (match[2]) {
-            importStatement.alias = match[2];
-        }
-        imports.push(importStatement);
-    }
-
-    return { filePath, statements: imports };
 }

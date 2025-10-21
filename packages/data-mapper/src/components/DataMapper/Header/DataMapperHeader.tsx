@@ -31,6 +31,7 @@ import { RefreshResetGroup } from "./RefreshResetGroup";
 
 export interface DataMapperHeaderProps {
     views: View[];
+    reusable?: boolean;
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
@@ -43,7 +44,7 @@ export interface DataMapperHeaderProps {
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, reusable, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -63,6 +64,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     {!hasEditDisabled && (
                         <HeaderBreadcrumb
                             views={views}
+                            reusable={reusable}
                             switchView={switchView}
                         />
                     )}
