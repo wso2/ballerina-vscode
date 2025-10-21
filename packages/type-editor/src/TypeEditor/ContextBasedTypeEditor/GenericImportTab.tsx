@@ -46,8 +46,8 @@ const Footer = styled.div`
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    margin-top: 8px;
-    width: 100%;
+    padding-top: 16px;
+    flex-shrink: 0;
 `;
 
 const InfoBanner = styled.div`
@@ -78,6 +78,12 @@ const Title = styled(Typography)`
 const UploadButtonWrapper = styled.div`
     display: flex;
     gap: 8px;
+`;
+
+const ScrollableSection = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
 `;
 
 enum DetectedFormat {
@@ -401,13 +407,15 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 </UploadButtonWrapper>
             </HeaderRow>
 
+            <ScrollableSection>
             <TextArea
-                rows={15}
+                rows={25}
                 value={content}
                 onChange={handleContentChange}
                 errorMsg={error}
                 placeholder="Paste JSON or XML here..."
             />
+            </ScrollableSection>
 
             {detectedFormat === DetectedFormat.JSON && (
                 <CategoryRow showBorder={true}>
