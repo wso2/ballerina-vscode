@@ -323,9 +323,9 @@ public class AgentCallBuilder extends CallBuilder {
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
 
-        // Escape backticks and backslashes to prevent injection
-        String escapedRole = role.replace("\\", "\\\\").replace("`", "\\`");
-        String escapedInstructions = instructions.replace("\\", "\\\\").replace("`", "\\`");
+        // Escape special characters to prevent injection in template strings
+        String escapedRole = AiUtils.escapeTemplateString(role);
+        String escapedInstructions = AiUtils.escapeTemplateString(instructions);
 
         String systemPromptValue =
                 "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";

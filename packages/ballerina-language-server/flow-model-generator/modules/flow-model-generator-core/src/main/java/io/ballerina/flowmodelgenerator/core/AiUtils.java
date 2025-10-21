@@ -605,4 +605,25 @@ public class AiUtils {
                 .symbol(Ai.AGENT_SYMBOL_NAME)
                 .build();
     }
+
+    /**
+     * Escapes special characters in a string to prevent injection attacks in template strings. This method handles
+     * backslashes, backticks, dollar signs, and control characters.
+     *
+     * @param input the string to escape
+     * @return the escaped string safe for use in template strings
+     */
+    public static String escapeTemplateString(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        return input
+                .replace("\\", "\\\\")     // Escape backslashes first
+                .replace("`", "\\`")       // Escape backticks (template string delimiter)
+                .replace("$", "\\$")       // Escape dollar signs (interpolation)
+                .replace("\n", "\\n")      // Escape newlines
+                .replace("\r", "\\r")      // Escape carriage returns
+                .replace("\t", "\\t");     // Escape tabs
+    }
 }
