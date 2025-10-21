@@ -330,9 +330,9 @@ export function TypeEditor(props: TypeEditorProps) {
                             onDefaultCompletionSelect={() => handleDefaultCompletionSelect(value)}
                             onFocus={() => handleFocus(value)}
                             enableExIcon={false}
-                            isHelperPaneOpen={typeInputMode === TypeInputMode.GUIDED ? false : isTypeHelperOpen}
-                            changeHelperPaneState={typeInputMode === TypeInputMode.GUIDED ? () => {} : handleChangeTypeHelperState}
-                            getHelperPane={typeInputMode === TypeInputMode.GUIDED ? () => null : handleGetTypeHelper}
+                            isHelperPaneOpen={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? false : isTypeHelperOpen}
+                            changeHelperPaneState={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => {} : handleChangeTypeHelperState}
+                            getHelperPane={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => null : handleGetTypeHelper}
                             helperPaneOrigin={typeHelperOrigin}
                             helperPaneHeight={typeHelperHeight}
                             onBlur={handleBlur}
