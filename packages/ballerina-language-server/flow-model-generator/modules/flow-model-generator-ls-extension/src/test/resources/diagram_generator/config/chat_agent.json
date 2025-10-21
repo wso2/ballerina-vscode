@@ -113,7 +113,10 @@
                 }
               },
               "sourceCode": "final ai:Agent _WorkflowAgentAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n    model = _WorkflowAgentModel,\n    tools = []\n);",
-              "isNew": false
+              "isNew": false,
+              "data": {
+                "scope": "Global"
+              }
             }
           }
         },
