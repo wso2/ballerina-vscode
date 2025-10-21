@@ -1,0 +1,37 @@
+{
+  "description": "Delete node",
+  "functionStart": {
+    "line": 5,
+    "offset": 4
+  },
+  "functionEnd": {
+    "line": 13,
+    "offset": 5
+  },
+  "nodeStart": {
+    "line": 6,
+    "offset": 8
+  },
+  "nodeEnd": {
+    "line": 12,
+    "offset": 9
+  },
+  "source": "delete_node8.bal",
+  "output": {
+    "delete_node8.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 8
+          },
+          "end": {
+            "line": 12,
+            "character": 9
+          }
+        },
+        "newText": "string name = \"World\";\n            return { message: \"Hello, \" + name  };"
+      }
+    ]
+  }
+}
