@@ -5,7 +5,7 @@
   "pkgName": "ai",
   "response": {
     "service": {
-      "id": "13",
+      "id": "14",
       "name": "AI Agent Service",
       "type": "ai",
       "displayName": "AI Agent Service",
