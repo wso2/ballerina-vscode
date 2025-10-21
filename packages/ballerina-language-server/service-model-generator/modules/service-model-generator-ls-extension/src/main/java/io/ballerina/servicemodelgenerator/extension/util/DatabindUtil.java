@@ -78,14 +78,6 @@ public final class DatabindUtil {
     private DatabindUtil() {
     }
 
-    /**
-     * Finds matching functions from both service model and source code.
-     *
-     * @param service      The service model containing functions
-     * @param functionName Name of the function to find
-     * @param serviceNode  The ServiceDeclarationNode from source
-     * @return FunctionMatch containing the matched functions, or null if target function not found
-     */
     public static FunctionMatch findMatchingFunctions(Service service, String functionName,
                                                       ServiceDeclarationNode serviceNode) {
         Function targetFunction = service.getFunctions().stream()
@@ -97,19 +89,17 @@ public final class DatabindUtil {
             return null;
         }
 
-        List<FunctionDefinitionNode> functionNodesInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> (FunctionDefinitionNode) member)
-                .toList();
-
         Function sourceFunction = null;
         FunctionDefinitionNode sourceFunctionNode = null;
-        for (FunctionDefinitionNode node : functionNodesInSource) {
-            Function func = getFunctionModel(node, Map.of());
-            if (func.getName().getValue().equals(functionName)) {
-                sourceFunction = func;
-                sourceFunctionNode = node;
-                break;
+
+        for (var node : serviceNode.members()) {
+            if (node instanceof FunctionDefinitionNode functionNode) {
+                Function func = getFunctionModel(functionNode, Map.of());
+                if (func.getName().getValue().equals(functionName)) {
+                    sourceFunction = func;
+                    sourceFunctionNode = functionNode;
+                    break;
+                }
             }
         }
 
@@ -456,7 +446,7 @@ public final class DatabindUtil {
         Parameter dataBindingParam = dataBindingParamOpt.get();
 
         if (!dataBindingParam.isEditable()) {
-            handleNonEditableDataBinding(function, context.functionNode(), isArray);
+            handleNonEditableDataBinding(function, context.functionNode());
             return Map.of();
         }
 
@@ -525,13 +515,8 @@ public final class DatabindUtil {
 
     /**
      * Handles non-editable databinding by preserving the source type.
-     *
-     * @param function     The function containing parameters
-     * @param functionNode The FunctionDefinitionNode from source
-     * @param isArray      Whether the parameter is array type
      */
-    private static void handleNonEditableDataBinding(Function function, FunctionDefinitionNode functionNode,
-                                                     boolean isArray) {
+    private static void handleNonEditableDataBinding(Function function, FunctionDefinitionNode functionNode) {
         Optional<Parameter> dataBindingParamOpt = findDataBindingParameter(function);
         Optional<Parameter> requiredParamOpt = findRequiredParameter(function);
 
@@ -671,9 +656,7 @@ public final class DatabindUtil {
      * @return A unique type name (e.g., "KafkaAnydataConsumer1", "RabbitMQAnydataMessage1")
      */
     private static String generateDataBindTypeName(UpdateModelContext context, String prefix) {
-        // If we have a semantic model and document, use the semantic approach
         if (context.semanticModel() != null && context.document() != null) {
-            // Get the line position for the function (or start of document if not available)
             LinePosition linePosition = context.functionNode() != null
                     ? context.functionNode().lineRange().startLine()
                     : LinePosition.from(0, 0);
@@ -681,12 +664,7 @@ public final class DatabindUtil {
             return Utils.generateTypeIdentifier(context.semanticModel(), context.document(),
                     linePosition, prefix);
         }
-
-        // Fallback: use semantic model if available, otherwise parse syntax tree
-        Project project = context.project() != null ? context.project() : context.document().module().project();
-        Document typesDocument = getTypesDocument(project, context.filePath());
-        int nextNumber = findNextDatabindNumber(context.semanticModel(), typesDocument, prefix);
-        return prefix + nextNumber;
+        return prefix;
     }
 
     /**
@@ -700,12 +678,10 @@ public final class DatabindUtil {
     private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode) {
         Set<String> imports = new HashSet<>();
 
-        // Extract org/module from baseType (e.g., "kafka:AnydataConsumerRecord" -> "kafka")
         if (baseType.contains(":")) {
             String moduleName = baseType.substring(0, baseType.indexOf(":"));
-            // Kafka -> ballerinax/kafka, RabbitMQ -> ballerinax/rabbitmq, etc.
             String org = "ballerinax";
-            String importModule = moduleName.toLowerCase();
+            String importModule = moduleName.toLowerCase(java.util.Locale.ENGLISH);
 
             if (!importExists(modulePartNode, org, importModule)) {
                 imports.add(getImportStmt(org, importModule));
@@ -733,7 +709,11 @@ public final class DatabindUtil {
                                                                          String payloadFieldName,
                                                                          boolean isArray) {
         Project project = context.project() != null ? context.project() : context.document().module().project();
-        Document typesDocument = getTypesDocument(project, context.filePath());
+        Document typesDocument = getTypesDocument(project);
+        if (typesDocument == null || typesDocument.syntaxTree() == null) {
+            return Map.of();
+        }
+
         String typeDefinition = generateTypeDefinition(typeName, baseType, dataBindingType, payloadFieldName);
 
         // Determine insertion point
@@ -770,13 +750,12 @@ public final class DatabindUtil {
     }
 
     /**
-     * Gets or finds the types.bal document in the project.
+     * Gets the types.bal document in the project.
      *
-     * @param project         The Ballerina project
-     * @param currentFilePath The current file path to determine the module
+     * @param project The Ballerina project
      * @return The types.bal Document
      */
-    private static Document getTypesDocument(Project project, String currentFilePath) {
+    private static Document getTypesDocument(Project project) {
         Module defaultModule = project.currentPackage().getDefaultModule();
 
         // Look for existing types.bal
@@ -787,43 +766,7 @@ public final class DatabindUtil {
             }
         }
 
-        // If types.bal doesn't exist, we need to return the first document as a placeholder
-        // In actual implementation, the LSP extension should create the file
-        // For now, return the first available document
-        return defaultModule.document(defaultModule.documentIds().iterator().next());
-    }
-
-    /**
-     * Finds the next available databind type number for a given prefix using semantic model.
-     *
-     * @param semanticModel The semantic model for resolution
-     * @param document      The document for accessing visible symbols
-     * @param prefix        The prefix for generated type names (e.g., "KafkaAnydataConsumer",
-     *                      "RabbitMQAnydataMessage")
-     * @return The next available number (starting from 1)
-     */
-    private static int findNextDatabindNumber(SemanticModel semanticModel, Document document, String prefix) {
-        int maxNumber = 0;
-
-        LinePosition startPosition = LinePosition.from(0, 0);
-        List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, startPosition);
-
-        for (Symbol symbol : visibleSymbols) {
-            if (symbol.getName().isPresent()) {
-                String typeName = symbol.getName().get();
-                if (typeName.startsWith(prefix)) {
-                    try {
-                        String numberPart = typeName.substring(prefix.length());
-                        int number = Integer.parseInt(numberPart);
-                        maxNumber = Math.max(maxNumber, number);
-                    } catch (NumberFormatException e) {
-                        // Ignore type names that don't follow the pattern
-                    }
-                }
-            }
-        }
-
-        return maxNumber + 1;
+        return null;
     }
 
     /**
@@ -837,7 +780,7 @@ public final class DatabindUtil {
      */
     private static String generateTypeDefinition(String typeName, String baseType, String dataBindingType,
                                                  String payloadFieldName) {
-        return String.format("type %s record {|\n    *%s;\n    %s %s;\n|};",
+        return String.format("type %s record {|%n    *%s;%n    %s %s;%n|};",
                 typeName, baseType, dataBindingType, payloadFieldName);
     }
 
@@ -918,15 +861,15 @@ public final class DatabindUtil {
             return Optional.empty();
         }
 
+        String[] parts = qualifiedName.split(":");
+        if (parts.length != 2) {
+            return Optional.empty();
+        }
+
+        String moduleAlias = parts[0];
+        String typeName = parts[1];
+
         try {
-            String[] parts = qualifiedName.split(":");
-            if (parts.length != 2) {
-                return Optional.empty();
-            }
-
-            String moduleAlias = parts[0];
-            String typeName = parts[1];
-
             // Get visible symbols at the beginning of the document to find module imports
             LinePosition startPosition = LinePosition.from(0, 0);
             List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, startPosition);
@@ -946,7 +889,7 @@ public final class DatabindUtil {
 
             io.ballerina.compiler.api.symbols.ModuleSymbol moduleSymbol = moduleSymbolOpt.get();
 
-            // Search for the type in the module's type definitions using stream-based approach
+            // Search for the type in the module's type definitions
             Optional<TypeSymbol> typeFromTypeDefs = moduleSymbol.typeDefinitions().stream()
                     .filter(typeDefSymbol -> typeDefSymbol.getName().isPresent() &&
                             typeDefSymbol.getName().get().equals(typeName))
@@ -964,8 +907,8 @@ public final class DatabindUtil {
                     .map(classSymbol -> (TypeSymbol) classSymbol)
                     .findFirst();
 
-        } catch (Exception e) {
-            // If resolution fails, return empty
+        } catch (NullPointerException | IllegalStateException e) {
+            // If semantic model operations fail due to null context or invalid state, return empty
         }
 
         return Optional.empty();
@@ -1008,7 +951,10 @@ public final class DatabindUtil {
                                                                          String payloadFieldName,
                                                                          String newTypeName) {
         Project project = context.project() != null ? context.project() : context.document().module().project();
-        Document typesDocument = getTypesDocument(project, context.filePath());
+        Document typesDocument = getTypesDocument(project);
+        if (typesDocument == null || typesDocument.syntaxTree() == null) {
+            return Map.of();
+        }
 
         // Find the existing type definition
         ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
