@@ -188,7 +188,10 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    verifyTypeDelete
+    verifyTypeDelete,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    getFormDiagnostics,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -366,6 +369,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getBreakpointInfo(): Promise<CurrentBreakpointsResponse> {
         return this._messenger.sendRequest(getBreakpointInfo, HOST_EXTENSION);
+    }
+
+    getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this._messenger.sendRequest(getFormDiagnostics, HOST_EXTENSION, params);
     }
 
     getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
