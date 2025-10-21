@@ -74,11 +74,10 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     const { rpcClient } = useRpcContext();
     const { openOverlay, closeTopOverlay } = usePanelOverlay();
 
-    // Available memory from the AI module
     const [availableMemory, setAvailableMemory] = useState<CodeData[]>([]);
-    // Currently selected/configured memory with full node details
     const [memoryNodeTemplate, setMemoryNodeTemplate] = useState<FlowNode>();
     const [memoryNode, setMemoryNode] = useState<FlowNode>();
+    const [selectedMemoryType, setSelectedMemoryType] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -230,6 +229,13 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 setMemoryNode(undefined);
                 setMemoryNodeTemplate(nodeTemplate);
             }
+
+            // Update the selected memory type and remove "ai:" prefix if present
+            let memoryType = memoryCodeData.object;
+            if (memoryType?.startsWith("ai:")) {
+                memoryType = memoryType.substring(3);
+            }
+            setSelectedMemoryType(memoryType);
         } catch (error) {
             console.error("Error loading memory template", error);
         } finally {
@@ -282,20 +288,6 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         }
     };
 
-    const getCurrentMemoryType = (): string => {
-        let memoryType = (
-            memoryNodeTemplate?.codedata?.object ||
-            ((agentNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
-            "Select a memory..."
-        );
-
-        // Remove "ai:" prefix if present
-        if (memoryType?.startsWith("ai:")) {
-            memoryType = memoryType.substring(3);
-        }
-
-        return memoryType;
-    };
 
     const handleStoreCreated = (createdNode: FlowNode) => {
         // Extract the store reference from the created node
@@ -396,16 +388,16 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                             id="agent-memory-dropdown"
                             items={availableMemory.map((memory) => ({
                                 value: memory.object,
-                                content: memory.object.replace(/([A-Z])/g, ' $1').trim(),
+                                content: memory.object.replace(/([A-Z])/g, ' $1').trim(), //  Convert camel case to words
                             }))}
                             label="Select Memory"
                             description="Available Memory"
                             onValueChange={handleMemoryChange}
-                            value={getCurrentMemoryType()}
+                            value={selectedMemoryType}
                             containerSx={{ width: "100%" }}
                         />
                     </Row>
-                    {getCurrentMemoryType() === "MessageWindowChatMemory" && availableMemory.length > 1 && (
+                    {selectedMemoryType === "MessageWindowChatMemory" && availableMemory.length > 1 && (
                         <WarningMessage>
                             <Codicon name="warning" />
                             <div>
