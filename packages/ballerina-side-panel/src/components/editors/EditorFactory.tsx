@@ -55,6 +55,7 @@ interface FormFieldEditorProps {
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
+    onBlur?: () => void | Promise<void>;
     autoFocus?: boolean;
     handleOnTypeChange?: () => void;
     recordTypeFields?: RecordTypeField[];
@@ -76,6 +77,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         openSubPanel,
         subPanelView,
         handleOnFieldFocus,
+        onBlur,
         autoFocus,
         handleOnTypeChange,
         recordTypeFields,
@@ -139,6 +141,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 openRecordEditor={openRecordEditor}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
+                onBlur={onBlur}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
 
@@ -164,6 +167,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 openSubPanel={openSubPanel}
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
+                onBlur={onBlur}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />

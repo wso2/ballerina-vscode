@@ -262,7 +262,9 @@ import {
     ServiceInitSourceRequest,
     DeleteSubMappingRequest,
     DeleteClauseRequest,
-    ClearTypeCacheResponse
+    ClearTypeCacheResponse,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -374,6 +376,7 @@ enum EXTENDED_APIS {
     BI_SIGNATURE_HELP = 'expressionEditor/signatureHelp',
     BI_VISIBLE_TYPES = 'expressionEditor/types',
     REFERENCES = 'textDocument/references',
+    BI_FORM_DIAGNOSTICS = 'flowDesignService/diagnostics',
     BI_EXPRESSION_DIAGNOSTICS = 'expressionEditor/diagnostics',
     BI_TRIGGER_MODELS = 'triggerDesignService/getTriggerModels',
     BI_TRIGGER_MODEL = 'triggerDesignService/getTriggerModel',
@@ -1136,6 +1139,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async addErrorHandler(params: BIModuleNodesRequest): Promise<BISourceCodeResponse> {
         return this.sendRequest(EXTENDED_APIS.BI_GEN_ERROR_HANDLER, params);
+    }
+    
+    async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this.sendRequest<FormDiagnosticsResponse>(EXTENDED_APIS.BI_FORM_DIAGNOSTICS, params);
     }
 
     async getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
