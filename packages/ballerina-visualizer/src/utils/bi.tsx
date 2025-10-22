@@ -408,6 +408,9 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             if (!activeNode) {
                 return "";
             }
+            if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
+                return `ai: Vector Knowledge Base`;
+            }
             if (
                 activeNode.codedata?.node === "REMOTE_ACTION_CALL" ||
                 activeNode.codedata?.node === "RESOURCE_ACTION_CALL"
