@@ -19,11 +19,11 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -49,18 +49,17 @@ public class SearchNodesTest extends AbstractLSTest {
                 testConfig.position(),
                 testConfig.queryMap()
         );
-         JsonArray response = getResponse(request).getAsJsonArray("output");
 
-         JsonArray jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("output");
+        JsonArray jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("output");
 
-         if (!jsonModel.equals(testConfig.output())) {
-             TestConfig updateConfig =
-                     new TestConfig(testConfig.source(), testConfig.description(), testConfig.position(),
-                             testConfig.queryMap(), jsonModel);
-             updateConfig(configJsonPath, updateConfig);
-             compareJsonElements(jsonModel, testConfig.output());
-             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
-         }
+        if (!jsonModel.equals(testConfig.output())) {
+            TestConfig updateConfig =
+                    new TestConfig(testConfig.source(), testConfig.description(), testConfig.position(),
+                            testConfig.queryMap(), jsonModel);
+//            updateConfig(configJsonPath, updateConfig);
+            compareJsonElements(jsonModel, testConfig.output());
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
+        }
     }
 
     @Override
@@ -87,8 +86,8 @@ public class SearchNodesTest extends AbstractLSTest {
      * @param queryMap    The query parameters
      * @param output      The expected output
      */
-     private record TestConfig(String source, String description, LinePosition position,
-                               Map<String, String> queryMap, JsonArray output) {
+    private record TestConfig(String source, String description, LinePosition position,
+                              Map<String, String> queryMap, JsonArray output) {
 
         public String description() {
             return description == null ? "" : description;

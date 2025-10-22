@@ -93,29 +93,6 @@ public class ModelGenerator {
     private final Project project;
     private final WorkspaceManager workspaceManager;
 
-    private static final Map<NodeKind, Set<SymbolKind>> NODE_KIND_TO_TARGET_KINDS = Map.ofEntries(
-            Map.entry(NodeKind.REMOTE_ACTION_CALL, Set.of(SymbolKind.METHOD)),
-            Map.entry(NodeKind.RESOURCE_ACTION_CALL, Set.of(SymbolKind.METHOD)),
-            Map.entry(NodeKind.AGENT_CALL, Set.of(SymbolKind.METHOD)),
-            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, Set.of(SymbolKind.METHOD)),
-            Map.entry(NodeKind.METHOD_CALL, Set.of(SymbolKind.METHOD)),
-            Map.entry(NodeKind.DATA_MAPPER_CALL, Set.of(SymbolKind.FUNCTION)),
-            Map.entry(NodeKind.NP_FUNCTION_CALL, Set.of(SymbolKind.FUNCTION)),
-            Map.entry(NodeKind.FUNCTION_CALL, Set.of(SymbolKind.FUNCTION)),
-            Map.entry(NodeKind.VARIABLE, Set.of(SymbolKind.VARIABLE)),
-            Map.entry(NodeKind.JSON_PAYLOAD, Set.of(SymbolKind.VARIABLE)),
-            Map.entry(NodeKind.AGENT, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.MODEL_PROVIDER, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.EMBEDDING_PROVIDER, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.VECTOR_STORE, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.DATA_LOADER, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.CHUNKER, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.CLASS_INIT, Set.of(SymbolKind.CLASS)),
-            Map.entry(NodeKind.NEW_CONNECTION, Set.of(SymbolKind.VARIABLE, SymbolKind.CLASS_FIELD)),
-            Map.entry(NodeKind.MCP_TOOLKIT, Set.of(SymbolKind.CLASS))
-    );
-
     public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
         this.semanticModel = model;
         this.filePath = filePath;
@@ -284,7 +261,6 @@ public class ModelGenerator {
      * @return List of FlowNodes that match the search criteria
      */
      public List<FlowNode> searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
-         List<FlowNode> connectionsList = new ArrayList<>();
          List<FlowNode> variablesList = new ArrayList<>();
 
          // 1. Get symbols based on position
@@ -298,54 +274,23 @@ public class ModelGenerator {
 
          // 3. Apply symbol-level filters first (exactMatch)
          List<Symbol> filteredSymbols = symbols.stream()
-                 .filter(symbol -> {
-                     // Filter by exactMatch if present
-                     if (exactMatchFilter != null && !exactMatchFilter.isEmpty()) {
-                         String symbolName = symbol.getName().orElse("");
-                         if (!symbolName.equals(exactMatchFilter)) {
-                             return false;
-                         }
-                     }
-
-                     // Filter by NodeKind if kind parameter is present
-                     if (kindFilter != null && !kindFilter.isEmpty()) {
-                         try {
-                             NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
-                             // Check if the symbol matches the required NodeKind based on the mapping
-                             if (!matchesNodeKind(symbol, requiredNodeKind)) {
-                                 return false;
-                             }
-                         } catch (IllegalArgumentException e) {
-                             // Invalid NodeKind - skip filtering (return true to include the symbol)
-                             // Actually, if the NodeKind is invalid, we should exclude all symbols
-                             return false;
-                         }
-                     }
-
-                     return true;
-                 })
+                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
+                 .filter(symbol -> exactMatchFilter == null || symbol.nameEquals(exactMatchFilter))
                  .toList();
 
          // 4. Convert symbols to FlowNodes (same as getModuleNodes)
          for (Symbol symbol : filteredSymbols) {
-             buildConnection(symbol).ifPresent(connectionsList::add);
-             if (symbol instanceof VariableSymbol) {
-                 buildVariables(symbol).ifPresent(variablesList::add);
-             }
+             buildFlowNode(symbol).ifPresent(variablesList::add);
          }
 
          // 5. Apply NodeKind filter if present (filter after conversion)
          if (kindFilter != null && !kindFilter.isEmpty()) {
              try {
                  NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
-                 connectionsList = connectionsList.stream()
-                         .filter(node -> node.codedata().node() == requiredNodeKind)
-                         .collect(java.util.stream.Collectors.toList());
                  variablesList = variablesList.stream()
                          .filter(node -> node.codedata().node() == requiredNodeKind)
                          .collect(java.util.stream.Collectors.toList());
              } catch (IllegalArgumentException e) {
-                 connectionsList.clear();
                  variablesList.clear();
              }
          }
@@ -356,12 +301,10 @@ public class ModelGenerator {
                          .map(property -> property.value().toString())
                          .orElse("")
          );
-         connectionsList.sort(comparator);
          variablesList.sort(comparator);
 
          // 7. Return combined list of connections and variables
          List<FlowNode> allNodes = new ArrayList<>();
-         allNodes.addAll(connectionsList);
          allNodes.addAll(variablesList);
          return allNodes;
      }
@@ -471,6 +414,82 @@ public class ModelGenerator {
         return connections.stream().findFirst();
     }
 
+    private Optional<FlowNode> buildFlowNode(Symbol symbol) {
+        Function<NonTerminalNode, NonTerminalNode> getStatementNode;
+        NonTerminalNode statementNode;
+        TypeSymbol typeSymbol;
+        String scope;
+        Document document;
+
+        switch (symbol.kind()) {
+            case VARIABLE -> {
+                getStatementNode = (NonTerminalNode node) -> node.parent().parent();
+                typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                scope = Property.GLOBAL_SCOPE;
+            }
+            case CLASS_FIELD -> {
+                getStatementNode = (NonTerminalNode node) -> node;
+                typeSymbol = ((ClassFieldSymbol) symbol).typeDescriptor();
+                scope = Property.SERVICE_SCOPE;
+            }
+            default -> {
+                return Optional.empty();
+            }
+        }
+
+        TypeSymbol typeDescriptorSymbol;
+        boolean shouldProcess = false;
+
+        try {
+            // Try connection path (TypeReferenceTypeSymbol cast)
+            typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            shouldProcess = isClassOrObject(typeDescriptorSymbol);
+        } catch (RuntimeException e) {
+            // TypeReferenceTypeSymbol cast failed, this is fine
+        }
+
+        if (!shouldProcess) {
+            // Try variable path with getRawType
+            try {
+                typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
+                shouldProcess = !isClassOrObject(typeDescriptorSymbol);
+            } catch (RuntimeException ignored) {
+                return Optional.empty();
+            }
+        }
+
+        if (!shouldProcess) {
+            return Optional.empty();
+        }
+
+        // Continue with common processing
+        try {
+            Location location = symbol.getLocation().orElseThrow();
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            document = project.currentPackage().getDefaultModule().document(documentId);
+            NonTerminalNode childNode =
+                    symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
+                            .orElseThrow();
+            statementNode = getStatementNode.apply(childNode);
+        } catch (RuntimeException ignored) {
+            return Optional.empty();
+        }
+
+        if (statementNode == null) {
+            return Optional.empty();
+        }
+
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
+        statementNode.accept(codeAnalyzer);
+        List<FlowNode> connections = codeAnalyzer.getFlowNodes();
+        return connections.stream().findFirst();
+    }
+
+
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
             if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)
@@ -482,14 +501,5 @@ public class ModelGenerator {
             return ((ObjectTypeSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT);
         }
         return false;
-    }
-
-    private boolean matchesNodeKind(Symbol symbol, NodeKind requiredNodeKind) {
-        Set<SymbolKind> expectedSymbolKinds = NODE_KIND_TO_TARGET_KINDS.get(requiredNodeKind);
-
-        if (expectedSymbolKinds == null) {
-            return false;
-        }
-        return expectedSymbolKinds.contains(symbol.kind());
     }
 }
