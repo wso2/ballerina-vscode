@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * Represents memory node in the flow model.
  *
- * @since 1.3.1
+ * @since 1.4.0
  */
 public class MemoryBuilder extends CallBuilder {
 
