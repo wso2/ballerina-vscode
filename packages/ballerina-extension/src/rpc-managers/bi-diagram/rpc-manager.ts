@@ -493,16 +493,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
-        console.log(">>> requesting bi available vector knowledge bases from ls", params);
+        console.log(">>> requesting bi available knowledge bases from ls", params);
         return new Promise((resolve) => {
             StateMachine.langClient()
                 .getAvailableVectorKnowledgeBases(params)
                 .then((model) => {
-                    console.log(">>> bi available vector knowledge bases from ls", model);
+                    console.log(">>> bi available knowledge bases from ls", model);
                     resolve(model);
                 })
                 .catch((error) => {
-                    console.log(">>> error fetching available vector knowledge bases from ls", error);
+                    console.log(">>> error fetching available knowledge bases from ls", error);
                     return new Promise((resolve) => {
                         resolve(undefined);
                     });

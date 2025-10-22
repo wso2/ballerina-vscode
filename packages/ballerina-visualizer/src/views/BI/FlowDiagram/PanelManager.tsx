@@ -63,7 +63,7 @@ export enum SidePanelView {
     DATA_LOADER_LIST = "DATA_LOADER_LIST",
     CHUNKERS = "CHUNKERS",
     CHUNKER_LIST = "CHUNKER_LIST",
-    VECTOR_KNOWLEDGE_BASE_LIST = "VECTOR_KNOWLEDGE_BASE_LIST",
+    KNOWLEDGE_BASE_LIST = "KNOWLEDGE_BASE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
@@ -439,16 +439,16 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
-            case SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST:
+            case SidePanelView.KNOWLEDGE_BASE_LIST:
                 return (
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
                         onAdd={onAddVectorKnowledgeBase}
-                        addButtonLabel={"Add Vector Knowledge Base"}
+                        addButtonLabel={"Add Knowledge Base"}
                         onClose={onClose}
-                        title={"Vector Knowledge Bases"}
-                        searchPlaceholder={"Search vector knowledge bases"}
+                        title={"Knowledge Bases"}
+                        searchPlaceholder={"Search knowledge bases"}
                         onSearchTextChange={(searchText) =>
                             onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
