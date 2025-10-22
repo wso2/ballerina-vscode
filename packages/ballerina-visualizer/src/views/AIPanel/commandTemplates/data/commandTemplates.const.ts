@@ -196,21 +196,21 @@ export const NATURAL_PROGRAMMING_TEMPLATES: TemplateDefinition[] = [
 // Suggested command templates are defined here.
 export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
-        type: 'command-template',
+        type: "command-template",
         command: Command.Code,
         templateId: TemplateId.Wildcard,
-        text: 'write a hello world http service',
+        text: "write a hello world http service",
     },
     {
-        type: 'command-template',
+        type: "command-template",
         command: Command.Design,
         templateId: TemplateId.Wildcard,
-        text: 'design an API for a task management system',
+        text: "design an API for a task management system",
     },
     {
-        type: 'command-template',
+        type: "command-template",
         command: Command.Ask,
         templateId: TemplateId.Wildcard,
-        text: 'how to write a concurrent application?',
+        text: "how to write a concurrent application?",
     },
 ];

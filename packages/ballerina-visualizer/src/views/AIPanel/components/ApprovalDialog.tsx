@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const DialogOverlay = styled.div`
     position: fixed;
@@ -75,7 +75,7 @@ const TaskList = styled.div`
 
 const TaskItem = styled.div`
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
     padding: 8px;
     margin-bottom: 8px;
@@ -90,7 +90,7 @@ const TaskNumber = styled.span`
     flex-shrink: 0;
 `;
 
-const TaskDescription = styled.div`
+const TaskDescription = styled.span`
     flex: 1;
     color: var(--vscode-editor-foreground);
     line-height: 1.4;
@@ -189,6 +189,7 @@ interface ApprovalDialogProps {
     message?: string;
     onApprove: (comment?: string) => void;
     onReject: (comment?: string) => void;
+    onAddToWorkspace?: () => void;
 }
 
 type DialogState = "initial" | "rejecting";
@@ -200,10 +201,22 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
     message,
     onApprove,
     onReject,
+    onAddToWorkspace,
 }) => {
     const [dialogState, setDialogState] = useState<DialogState>("initial");
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
+    const [hasAddedToWorkspace, setHasAddedToWorkspace] = useState(false);
+    const taskListRef = useRef<HTMLDivElement>(null);
+    const highlightedTaskRef = useRef<HTMLDivElement>(null);
+    const scrollTimeoutRef = useRef<number | null>(null);
+
+    console.log("[ApprovalDialog] Props:", {
+        approvalType,
+        hasAddToWorkspace: !!onAddToWorkspace,
+        taskCount: tasks.length,
+    });
 
     const handleApprove = () => {
         setIsSubmitting(true);
@@ -230,6 +243,65 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         setDialogState("initial");
         setComment("");
     };
+
+    const handleAddToWorkspace = async () => {
+        if (onAddToWorkspace && !hasAddedToWorkspace) {
+            setIsAddingToWorkspace(true);
+            try {
+                await onAddToWorkspace();
+                setHasAddedToWorkspace(true); // Disable button after successful addition
+            } catch (error) {
+                console.error("[ApprovalDialog] Error adding to workspace:", error);
+                // Don't set hasAddedToWorkspace on error, so user can retry
+            } finally {
+                setIsAddingToWorkspace(false);
+            }
+        }
+    };
+
+    // Function to scroll to highlighted task
+    const scrollToHighlightedTask = () => {
+        if (highlightedTaskRef.current) {
+            highlightedTaskRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    };
+
+    // Auto-scroll to highlighted task on mount
+    useEffect(() => {
+        if (taskId && highlightedTaskRef.current) {
+            scrollToHighlightedTask();
+        }
+    }, [taskId]);
+
+    // Handle user scroll - refocus after delay
+    useEffect(() => {
+        const taskList = taskListRef.current;
+        if (!taskList || !taskId) return;
+
+        const handleScroll = () => {
+            // Clear existing timeout
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+
+            // Set new timeout to refocus after 3 seconds
+            scrollTimeoutRef.current = setTimeout(() => {
+                scrollToHighlightedTask();
+            }, 3000);
+        };
+
+        taskList.addEventListener("scroll", handleScroll);
+
+        return () => {
+            taskList.removeEventListener("scroll", handleScroll);
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, [taskId]);
 
     const getDialogTitle = () => {
         if (approvalType === "plan") {
@@ -266,37 +338,39 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 
                 <DialogMessage>{getDialogMessage()}</DialogMessage>
 
-                <TaskList>
-                    {tasks.map((task, index) => (
-                        <TaskItem
-                            key={task.id}
-                            style={{
-                                backgroundColor:
-                                    task.id === taskId
+                <TaskList ref={taskListRef}>
+                    {tasks.map((task, index) => {
+                        const isHighlighted = task.id === taskId;
+                        return (
+                            <TaskItem
+                                key={task.id}
+                                ref={isHighlighted ? highlightedTaskRef : null}
+                                style={{
+                                    backgroundColor: isHighlighted
                                         ? "var(--vscode-list-focusBackground)"
                                         : "var(--vscode-textCodeBlock-background)",
-                                border:
-                                    task.id === taskId
+                                    border: isHighlighted
                                         ? "1px solid var(--vscode-focusBorder)"
                                         : "none",
-                            }}
-                        >
-                            <TaskNumber>{index + 1}.</TaskNumber>
-                            <TaskDescription>
-                                {task.description}
-                                {task.status === "completed" && (
-                                    <span
-                                        style={{
-                                            marginLeft: "8px",
-                                            color: "var(--vscode-testing-iconPassed)",
-                                        }}
-                                    >
-                                        <span className="codicon codicon-check"></span>
-                                    </span>
-                                )}
-                            </TaskDescription>
-                        </TaskItem>
-                    ))}
+                                }}
+                            >
+                                <TaskNumber>{index + 1}.</TaskNumber>
+                                <TaskDescription>
+                                    {task.description}
+                                    {task.status === "completed" && (
+                                        <span
+                                            style={{
+                                                marginLeft: "8px",
+                                                color: "var(--vscode-testing-iconPassed)",
+                                            }}
+                                        >
+                                            <span className="codicon codicon-check"></span>
+                                        </span>
+                                    )}
+                                </TaskDescription>
+                            </TaskItem>
+                        );
+                    })}
                 </TaskList>
 
                 {dialogState === "rejecting" && (
@@ -317,10 +391,24 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
                 <ButtonGroup>
                     {dialogState === "initial" ? (
                         <>
+                            {approvalType === "completion" && onAddToWorkspace && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleAddToWorkspace}
+                                    disabled={isSubmitting || isAddingToWorkspace || hasAddedToWorkspace}
+                                    style={{ marginRight: "auto" }}
+                                >
+                                    <span
+                                        className={`codicon ${hasAddedToWorkspace ? "codicon-check" : "codicon-cloud-download"}`}
+                                        style={{ marginRight: "6px" }}
+                                    ></span>
+                                    {isAddingToWorkspace ? "Adding..." : hasAddedToWorkspace ? "Added" : "Add to Workspace"}
+                                </Button>
+                            )}
                             <Button
                                 variant="secondary"
                                 onClick={handleRejectClick}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isAddingToWorkspace}
                             >
                                 <span className="codicon codicon-error" style={{ marginRight: "6px" }}></span>
                                 Reject
@@ -328,7 +416,7 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
                             <Button
                                 variant="primary"
                                 onClick={handleApprove}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isAddingToWorkspace}
                             >
                                 <span className="codicon codicon-check" style={{ marginRight: "6px" }}></span>
                                 Approve
