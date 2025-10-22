@@ -281,88 +281,90 @@ public class ModelGenerator {
      * @param document the document to search in
      * @param position the line position (nullable - if null, uses moduleSymbols, else visibleSymbols)
      * @param queryMap the map containing query parameters (kind, exactMatch)
-     * @return JSON representation of the flow model with matching nodes
+     * @return List of FlowNodes that match the search criteria
      */
-    public JsonElement searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
-        List<FlowNode> connectionsList = new ArrayList<>();
-        List<FlowNode> variablesList = new ArrayList<>();
+     public List<FlowNode> searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
+         List<FlowNode> connectionsList = new ArrayList<>();
+         List<FlowNode> variablesList = new ArrayList<>();
 
-        // 1. Get symbols based on position
-        List<Symbol> symbols = position != null
-                ? semanticModel.visibleSymbols(document, position)
-                : semanticModel.moduleSymbols();
+         // 1. Get symbols based on position
+         List<Symbol> symbols = position != null
+                 ? semanticModel.visibleSymbols(document, position)
+                 : semanticModel.moduleSymbols();
 
-        // 2. Extract filter parameters
-        String kindFilter = queryMap != null ? queryMap.get("kind") : null;
-        String exactMatchFilter = queryMap != null ? queryMap.get("exactMatch") : null;
+         // 2. Extract filter parameters
+         String kindFilter = queryMap != null ? queryMap.get("kind") : null;
+         String exactMatchFilter = queryMap != null ? queryMap.get("exactMatch") : null;
 
-        // 3. Apply symbol-level filters first (exactMatch)
-        List<Symbol> filteredSymbols = symbols.stream()
-                .filter(symbol -> {
-                    // Filter by exactMatch if present
-                    if (exactMatchFilter != null && !exactMatchFilter.isEmpty()) {
-                        String symbolName = symbol.getName().orElse("");
-                        if (!symbolName.equals(exactMatchFilter)) {
-                            return false;
-                        }
-                    }
+         // 3. Apply symbol-level filters first (exactMatch)
+         List<Symbol> filteredSymbols = symbols.stream()
+                 .filter(symbol -> {
+                     // Filter by exactMatch if present
+                     if (exactMatchFilter != null && !exactMatchFilter.isEmpty()) {
+                         String symbolName = symbol.getName().orElse("");
+                         if (!symbolName.equals(exactMatchFilter)) {
+                             return false;
+                         }
+                     }
 
-                    // Filter by NodeKind if kind parameter is present
-                    if (kindFilter != null && !kindFilter.isEmpty()) {
-                        try {
-                            NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
-                            // Check if the symbol matches the required NodeKind based on the mapping
-                            if (!matchesNodeKind(symbol, requiredNodeKind)) {
-                                return false;
-                            }
-                        } catch (IllegalArgumentException e) {
-                            // Invalid NodeKind - skip filtering (return true to include the symbol)
-                            // Actually, if the NodeKind is invalid, we should exclude all symbols
-                            return false;
-                        }
-                    }
+                     // Filter by NodeKind if kind parameter is present
+                     if (kindFilter != null && !kindFilter.isEmpty()) {
+                         try {
+                             NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                             // Check if the symbol matches the required NodeKind based on the mapping
+                             if (!matchesNodeKind(symbol, requiredNodeKind)) {
+                                 return false;
+                             }
+                         } catch (IllegalArgumentException e) {
+                             // Invalid NodeKind - skip filtering (return true to include the symbol)
+                             // Actually, if the NodeKind is invalid, we should exclude all symbols
+                             return false;
+                         }
+                     }
 
-                    return true;
-                })
-                .toList();
+                     return true;
+                 })
+                 .toList();
 
-        // 4. Convert symbols to FlowNodes (same as getModuleNodes)
-        for (Symbol symbol : filteredSymbols) {
-            buildConnection(symbol).ifPresent(connectionsList::add);
-            if (symbol instanceof VariableSymbol) {
-                buildVariables(symbol).ifPresent(variablesList::add);
-            }
-        }
+         // 4. Convert symbols to FlowNodes (same as getModuleNodes)
+         for (Symbol symbol : filteredSymbols) {
+             buildConnection(symbol).ifPresent(connectionsList::add);
+             if (symbol instanceof VariableSymbol) {
+                 buildVariables(symbol).ifPresent(variablesList::add);
+             }
+         }
 
-        // 5. Apply NodeKind filter if present (filter after conversion)
-        if (kindFilter != null && !kindFilter.isEmpty()) {
-            try {
-                NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
-                connectionsList = connectionsList.stream()
-                        .filter(node -> node.codedata().node() == requiredNodeKind)
-                        .collect(java.util.stream.Collectors.toList());
-                variablesList = variablesList.stream()
-                        .filter(node -> node.codedata().node() == requiredNodeKind)
-                        .collect(java.util.stream.Collectors.toList());
-            } catch (IllegalArgumentException e) {
-                connectionsList.clear();
-                variablesList.clear();
-            }
-        }
+         // 5. Apply NodeKind filter if present (filter after conversion)
+         if (kindFilter != null && !kindFilter.isEmpty()) {
+             try {
+                 NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                 connectionsList = connectionsList.stream()
+                         .filter(node -> node.codedata().node() == requiredNodeKind)
+                         .collect(java.util.stream.Collectors.toList());
+                 variablesList = variablesList.stream()
+                         .filter(node -> node.codedata().node() == requiredNodeKind)
+                         .collect(java.util.stream.Collectors.toList());
+             } catch (IllegalArgumentException e) {
+                 connectionsList.clear();
+                 variablesList.clear();
+             }
+         }
 
-        // 6. Sort results (same as getModuleNodes)
-        Comparator<FlowNode> comparator = Comparator.comparing(
-                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                        .map(property -> property.value().toString())
-                        .orElse("")
-        );
-        connectionsList.sort(comparator);
-        variablesList.sort(comparator);
+         // 6. Sort results (same as getModuleNodes)
+         Comparator<FlowNode> comparator = Comparator.comparing(
+                 node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                         .map(property -> property.value().toString())
+                         .orElse("")
+         );
+         connectionsList.sort(comparator);
+         variablesList.sort(comparator);
 
-        // 7. Return ExtendedDiagram
-        ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
-        return gson.toJsonTree(diagram);
-    }
+         // 7. Return combined list of connections and variables
+         List<FlowNode> allNodes = new ArrayList<>();
+         allNodes.addAll(connectionsList);
+         allNodes.addAll(variablesList);
+         return allNodes;
+     }
 
     /**
      * Builds a client from the given type symbol.

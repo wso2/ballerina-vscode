@@ -5,10 +5,5 @@
   "queryMap": {
     "kind": "INVALID_KIND"
   },
-  "flowModel": {
-    "fileName": "connections.bal",
-    "nodes": [],
-    "connections": [],
-    "variables": []
-  }
+  "output": []
 }

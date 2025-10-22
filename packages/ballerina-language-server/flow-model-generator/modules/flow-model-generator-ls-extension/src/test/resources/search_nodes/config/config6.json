@@ -5,10 +5,5 @@
   "queryMap": {
     "exactMatch": "nonExistentSymbol"
   },
-  "flowModel": {
-    "fileName": "connections.bal",
-    "nodes": [],
-    "connections": [],
-    "variables": []
-  }
+  "output": []
 }

@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
@@ -48,21 +49,18 @@ public class SearchNodesTest extends AbstractLSTest {
                 testConfig.position(),
                 testConfig.queryMap()
         );
-        JsonObject response = getResponse(request).getAsJsonObject("flowModel");
+         JsonArray response = getResponse(request).getAsJsonArray("output");
 
-        JsonObject jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("flowModel");
-        String balFileName = Path.of(jsonModel.getAsJsonPrimitive("fileName").getAsString()).getFileName().toString();
-        JsonObject modifiedDiagram = jsonModel.deepCopy();
-        modifiedDiagram.addProperty("fileName", balFileName);
+         JsonArray jsonModel = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("output");
 
-        if (!modifiedDiagram.equals(testConfig.flowModel())) {
-            TestConfig updateConfig =
-                    new TestConfig(testConfig.source(), testConfig.description(), testConfig.position(),
-                            testConfig.queryMap(), modifiedDiagram);
-            //            updateConfig(configJsonPath, updateConfig);
-            compareJsonElements(modifiedDiagram, testConfig.flowModel());
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
-        }
+         if (!jsonModel.equals(testConfig.output())) {
+             TestConfig updateConfig =
+                     new TestConfig(testConfig.source(), testConfig.description(), testConfig.position(),
+                             testConfig.queryMap(), jsonModel);
+             updateConfig(configJsonPath, updateConfig);
+             compareJsonElements(jsonModel, testConfig.output());
+             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
+         }
     }
 
     @Override
@@ -87,10 +85,10 @@ public class SearchNodesTest extends AbstractLSTest {
      * @param description The description of the test
      * @param position    The position in the file
      * @param queryMap    The query parameters
-     * @param flowModel   The expected output
+     * @param output      The expected output
      */
-    private record TestConfig(String source, String description, LinePosition position,
-                              Map<String, String> queryMap, JsonObject flowModel) {
+     private record TestConfig(String source, String description, LinePosition position,
+                               Map<String, String> queryMap, JsonArray output) {
 
         public String description() {
             return description == null ? "" : description;
