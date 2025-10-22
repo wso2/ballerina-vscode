@@ -484,7 +484,7 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                         notifyBreakpointChange();
 
                         // restart the fast-run
-                        getCurrentRoot().then(async (root) => {
+                        getCurrentProjectRoot().then(async (root) => {
                             const didStop = await stopRunFast(root);
                             if (didStop) {
                                 runFast(root, msg.body);
@@ -570,7 +570,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     async createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): Promise<DebugAdapterDescriptor> {
         // Check if the project contains errors(and fix the possible ones) before starting the debug session
         const langClient = extension.ballerinaExtInstance.langClient;
-        const projectRoot = await getCurrentRoot();
+        const projectRoot = await getCurrentProjectRoot();
         await cleanAndValidateProject(langClient, projectRoot);
 
         // Check if config generation is required before starting the debug session
@@ -665,7 +665,7 @@ class FastRunDebugAdapter extends LoggingDebugSession {
         });
         this.notificationHandler = notificationHandler;
         this.programArgs = (args as any).programArgs;
-        getCurrentRoot().then((root) => {
+        getCurrentProjectRoot().then((root) => {
             this.root = root;
             runFast(root, { programArgs: this.programArgs }).then((didRan) => {
                 response.success = didRan;
@@ -790,7 +790,14 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-async function getCurrentRoot(): Promise<string> {
+async function getCurrentProjectRoot(): Promise<string> {
+    // 1. Check if the project path is already set in the state machine context
+    let currentProjectRoot = StateMachine.context().projectPath;
+    if (currentProjectRoot) {
+        return currentProjectRoot;
+    }
+
+    // 2. Try to get the any open Ballerina files in the editor and determine the project root from there
     let file: string | undefined;
     try {
         file = getCurrentBallerinaFile();
@@ -798,19 +805,19 @@ async function getCurrentRoot(): Promise<string> {
         // ignore
     }
 
-    // If no Ballerina files are open, safe to assume that the workspace root is same as the package root in BI mode.
-    if (!file) {
-        const workspaceRoot = getWorkspaceRoot();
-        if (!workspaceRoot && StateMachine.context().isBI) {
-            throw new Error("Unable to determine the current workspace root.");
-        }
-        if (isBallerinaProject(workspaceRoot)) {
-            return workspaceRoot;
-        }
+    if (file) {
+        const currentProject = await getCurrentBallerinaProject(file);
+        return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
     }
 
-    const currentProject = await getCurrentBallerinaProject(file);
-    return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
+    // 3. Fallback to workspace root
+    const workspaceRoot = getWorkspaceRoot();
+    if (!workspaceRoot && StateMachine.context().isBI) {
+        throw new Error("Unable to determine the current workspace root.");
+    }
+    if (isBallerinaProject(workspaceRoot)) {
+        return workspaceRoot;
+    }
 }
 
 function getJavaCommand(): string {
