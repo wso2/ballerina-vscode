@@ -18,6 +18,7 @@
 
 import { UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ListenerModelRequest, ListenerModelResponse, ServiceModelRequest, ServiceModelResponse, ServiceModelFromCodeRequest, ServiceModelFromCodeResponse, HttpResourceModelRequest, HttpResourceModelResponse, FunctionSourceCodeRequest, ListenerSourceCodeRequest, ListenersRequest, ListenersResponse, ServiceSourceCodeRequest, ListenerModelFromCodeRequest, ListenerModelFromCodeResponse, TriggerModelsRequest, TriggerModelsResponse, FunctionModelRequest, FunctionModelResponse, ResourceReturnTypesRequest, FunctionFromSourceRequest, FunctionFromSourceResponse, ServiceModelInitResponse, ServiceInitSourceRequest, VisibleTypesResponse } from "../../interfaces/extended-lang-client";
+import { PayloadContext } from "../../interfaces/service";
 import {
     ExportOASRequest,
     ExportOASResponse,
@@ -44,4 +45,5 @@ export interface ServiceDesignerAPI {
     updateResourceSourceCode: (params: FunctionSourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     getServiceInitModel: (params: ServiceModelRequest) => Promise<ServiceModelInitResponse>;
     createServiceAndListener: (params: ServiceInitSourceRequest) => Promise<UpdatedArtifactsResponse>;
+    generateExamplePayloadJson: (params: PayloadContext) => Promise<object>;
 }

@@ -19,6 +19,7 @@
  */
 import { UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ListenerModelRequest, ListenerModelResponse, ServiceModelRequest, ServiceModelResponse, ServiceModelFromCodeRequest, ServiceModelFromCodeResponse, HttpResourceModelRequest, HttpResourceModelResponse, FunctionSourceCodeRequest, ListenerSourceCodeRequest, ListenersRequest, ListenersResponse, ServiceSourceCodeRequest, ListenerModelFromCodeRequest, ListenerModelFromCodeResponse, TriggerModelsRequest, TriggerModelsResponse, FunctionModelRequest, FunctionModelResponse, ResourceReturnTypesRequest, FunctionFromSourceRequest, FunctionFromSourceResponse, ServiceModelInitResponse, ServiceInitSourceRequest, VisibleTypesResponse } from "../../interfaces/extended-lang-client";
+import { PayloadContext } from "../../interfaces/service";
 import {
     ExportOASRequest,
     ExportOASResponse,
@@ -46,3 +47,4 @@ export const addFunctionSourceCode: RequestType<FunctionSourceCodeRequest, Updat
 export const updateResourceSourceCode: RequestType<FunctionSourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/updateResourceSourceCode` };
 export const getServiceInitModel: RequestType<ServiceModelRequest, ServiceModelInitResponse> = { method: `${_preFix}/getServiceInitModel` };
 export const createServiceAndListener: RequestType<ServiceInitSourceRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/createServiceAndListener` };
+export const generateExamplePayloadJson: RequestType<PayloadContext, object> = { method: `${_preFix}/generateExamplePayloadJson` };
