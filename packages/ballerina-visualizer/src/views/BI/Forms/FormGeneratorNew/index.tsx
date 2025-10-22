@@ -67,6 +67,7 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -158,6 +159,9 @@ export function FormGeneratorNew(props: FormProps) {
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
+
+    const { addModal, closeModal, popModal } = useModalStack();
+
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -247,8 +251,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
-                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+            if (matchedReferenceType.labelDetails.detail === "Structural Types"
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
             ) {
                 setValueTypeConstraints('');
@@ -256,6 +260,17 @@ export function FormGeneratorNew(props: FormProps) {
             }
         }
         setValueTypeConstraints(valueTypeConstraint);
+    }
+
+    const addPopupTester = (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => {
+        console.log("#AAA")
+        addModal(modal, id, title, height, width, onClose);
+    }
+
+    const popupManager = {
+        addPopup: addPopupTester,
+        removeLastPopup: popModal,
+        closePopup: closeModal
     }
 
     const defaultType = (): Type => {
@@ -846,6 +861,7 @@ export function FormGeneratorNew(props: FormProps) {
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
                     onCancelForm={onBack || onCancel}
+                    popupManager={popupManager}
                     submitText={submitText}
                     cancelText={cancelText}
                     onSubmit={handleSubmit}

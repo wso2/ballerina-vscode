@@ -16,8 +16,14 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ChipEditorField } from "../styles"
+import { useFormContext } from "../../../../../context";
+import { ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
+import { ContextMenuContainer, Completions, FloatingButtonContainer, ExpandedPopupContainer, COMPLETIONS_WIDTH } from "../styles";
+import { CompletionsItem } from "./CompletionsItem";
+import { FloatingToggleButton } from "./FloatingToggleButton";
+import { ExpandButton, GetHelperButton } from "./FloatingButtonIcons";
 
 export type AutoExpandingEditableDivProps = {
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
@@ -29,13 +35,56 @@ export type AutoExpandingEditableDivProps = {
     onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
     style?: React.CSSProperties;
     onFocusChange?: (isFocused: boolean) => void;
-    floatingControls?: React.ReactNode;
+    isExpanded?: boolean;
+    setIsExpanded?: (isExpanded: boolean) => void;
+    // Completions props
+    isCompletionsOpen?: boolean;
+    completions?: CompletionItem[];
+    selectedCompletionItem?: number;
+    menuPosition?: { top: number; left: number };
+    onCompletionSelect?: (item: CompletionItem) => void;
+    onCompletionHover?: (index: number) => void;
+    onCloseCompletions?: () => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
-    const { children, onKeyUp, onKeyDown, onMouseDown, onMouseUp, onInput, fieldContainerRef, style } = props;
+    const { children, onKeyUp, onKeyDown, onMouseDown, onMouseUp, onInput, fieldContainerRef, style, isExpanded, setIsExpanded } = props;
 
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
+
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const { popupManager } = useFormContext();
+
+    const renderCompletionsMenu = () => {
+        if (!props.isCompletionsOpen || !props.completions || !props.menuPosition) return null;
+
+        const menuWidth = COMPLETIONS_WIDTH; // Use the constant from styles
+        const viewportWidth = document.documentElement.clientWidth; // Use clientWidth to account for scrollbars
+        const adjustedLeft = Math.max(0, Math.min(props.menuPosition.left, viewportWidth - menuWidth - 10)); // Ensure menu stays within viewport bounds
+
+        return (
+            <ContextMenuContainer
+                ref={menuRef}
+                top={props.menuPosition.top}
+                left={adjustedLeft}
+                data-menu="chip-menu"
+                onMouseDown={(e) => e.preventDefault()}
+            >
+                <Completions>
+                    {props.completions.map((item, index) => (
+                        <CompletionsItem
+                            key={`${item.label}-${index}`}
+                            item={item}
+                            isSelected={index === props.selectedCompletionItem}
+                            onClick={() => props.onCompletionSelect?.(item)}
+                            onMouseEnter={() => props.onCompletionHover?.(index)}
+                        />
+                    ))}
+                </Completions>
+            </ContextMenuContainer>
+        );
+    };
 
     const checkFocusState = useCallback(() => {
         const container = fieldContainerRef?.current;
@@ -45,12 +94,12 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         }
 
         const activeElement = document.activeElement as HTMLElement;
-        
+
         // Check if focused element is within our container
         const isWithinContainer = container.contains(activeElement);
-        
+
         // Check if it's an editable span (contenteditable), a chip, or a floating toggle button
-        const isEditableOrChip = 
+        const isEditableOrChip =
             activeElement?.hasAttribute('contenteditable') ||
             activeElement?.getAttribute('data-chip') === 'true' ||
             activeElement?.hasAttribute('data-element-id') ||
@@ -85,20 +134,107 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         if (props.onFocusChange) {
             props.onFocusChange(isAnyElementFocused);
         }
-    }, [isAnyElementFocused, props]);
+    }, [isAnyElementFocused, props.onFocusChange]);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                props.onCloseCompletions?.();
+            }
+        };
+
+        if (props.isCompletionsOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [props.isCompletionsOpen, props.onCloseCompletions]);
+
+    useEffect(() => {
+        if (isExpanded) {
+            popupManager.closePopup("chip-expression-editor-expanded");
+            popupManager.addPopup(
+                <ExpandedPopupContainer style={style}>
+                    <ChipEditorField
+                        ref={fieldContainerRef}
+                        style={{
+                            ...style,
+                            flex: 1,
+                            position: 'absolute',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: ThemeColors.SURFACE_DIM_2
+                        }}
+                        onKeyUp={onKeyUp}
+                        onKeyDown={onKeyDown}
+                        onMouseDown={onMouseDown}
+                        onMouseUp={onMouseUp}
+                        onInput={onInput}
+                    >
+                        {children}
+                        <FloatingButtonContainer>
+
+
+                            <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
+                                <ExpandButton />
+                            </FloatingToggleButton>
+                            <FloatingToggleButton isActive={false} onClick={() => { }} title="Helper">
+                                <GetHelperButton />
+                            </FloatingToggleButton>
+                        </FloatingButtonContainer>
+                        {renderCompletionsMenu()}
+                    </ChipEditorField>
+                </ExpandedPopupContainer>,
+                "chip-expression-editor-expanded", "Expression Editor",
+                700, 800,
+                () => {
+                    setIsExpanded && setIsExpanded(false);
+                }
+            )
+        } else {
+            popupManager.closePopup("chip-expression-editor-expanded");
+        }
+    }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem])
 
     return (
-        <ChipEditorField
-            ref={fieldContainerRef}
-            style={{ ...style, flex: 1 }}
-            onKeyUp={onKeyUp}
-            onKeyDown={onKeyDown}
-            onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
-            onInput={onInput}
-        >
-            {children}
-            {props.floatingControls}
-        </ChipEditorField>
+        <>
+            {isExpanded ? (
+                <div
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+
+                    <span>Editing in expanded mode</span>
+                </div>
+            ) : (
+                <ChipEditorField
+                    ref={fieldContainerRef}
+                    style={{ ...style, flex: 1 }}
+                    onKeyUp={onKeyUp}
+                    onKeyDown={onKeyDown}
+                    onMouseDown={onMouseDown}
+                    onMouseUp={onMouseUp}
+                    onInput={onInput}
+                >
+                    {children}
+                    <FloatingButtonContainer>
+                        <FloatingToggleButton isActive={false} onClick={() => { }} title="Helper">
+                            <GetHelperButton />
+                        </FloatingToggleButton>
+                        <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
+                            <ExpandButton />
+                        </FloatingToggleButton>
+                    </FloatingButtonContainer>
+                    {renderCompletionsMenu()}
+                </ChipEditorField>
+            )}
+        </>
     )
 }

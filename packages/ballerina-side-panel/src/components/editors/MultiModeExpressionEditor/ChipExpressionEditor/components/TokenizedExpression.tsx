@@ -504,10 +504,11 @@ export const TextElement = (props: {
         const newValue = e.currentTarget.textContent || '';
         const oldValue = lastValueRef.current;
         
-        // Check if a "+" was just typed by comparing character counts
-        const oldPlusCount = (oldValue.match(/\+/g) || []).length;
-        const newPlusCount = (newValue.match(/\+/g) || []).length;
-        const wasPlusAdded = newPlusCount > oldPlusCount;
+        // Check if a trigger character (+, space, comma) was just typed by comparing character counts
+        const triggerChars = /[\s+,]/g;
+        const oldTriggerCount = (oldValue.match(triggerChars) || []).length;
+        const newTriggerCount = (newValue.match(triggerChars) || []).length;
+        const wasTriggerAdded = newTriggerCount > oldTriggerCount;
         
         // Update the last value ref
         lastValueRef.current = newValue;
@@ -521,8 +522,8 @@ export const TextElement = (props: {
         const cursorDelta = newValue.length - props.element.length;
         onExpressionChange(updatedExpressionModel, cursorDelta);
         
-        // If "+" was added, trigger expression model rebuild
-        if (wasPlusAdded && onTriggerRebuild) {
+        // If a trigger character was added, trigger expression model rebuild
+        if (wasTriggerAdded && onTriggerRebuild) {
             // Clear any existing timeout to prevent duplicate rebuilds
             if (rebuildTimeoutRef.current !== null) {
                 clearTimeout(rebuildTimeoutRef.current);

@@ -22,24 +22,24 @@ import { FloatingToggleButton as StyledButton } from "../styles";
 export type FloatingToggleButtonProps = {
     isActive: boolean;
     onClick: () => void;
-    label: string;
+    children: React.ReactNode;
     title?: string;
 };
 
-export const FloatingToggleButton: React.FC<FloatingToggleButtonProps> = ({ 
-    isActive, 
-    onClick, 
-    label,
-    title 
+export const FloatingToggleButton: React.FC<FloatingToggleButtonProps> = ({
+    isActive,
+    onClick,
+    children,
+    title
 }) => {
     return (
-        <StyledButton 
-            isActive={isActive} 
+        <StyledButton
+            isActive={isActive}
             onClick={onClick}
             title={title}
             aria-pressed={isActive}
         >
-            {label}
+            {children}
         </StyledButton>
     );
 };

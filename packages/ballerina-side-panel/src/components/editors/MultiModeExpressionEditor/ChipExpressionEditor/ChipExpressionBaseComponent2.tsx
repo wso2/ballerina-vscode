@@ -18,17 +18,14 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import FXButton from "./components/FxButton";
-import {  ChipEditorContainer } from "./styles";
+import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
-import { FloatingButtonContainer } from "./styles";
-import { ExpressionToggleButton } from "./components/ExpressionToggleButton";
-import { DebugToggleButton } from "./components/DebugToggleButton";
 import { TokenizedExpression } from "./components/TokenizedExpression";
 import { getAbsoluteCaretPosition, mapAbsoluteToModel, findNearestEditableIndex, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { ChipMenu, Completions } from "./styles";
+import { ContextMenuContainer, Completions } from "./styles";
 import { CompletionsItem } from "./components/CompletionsItem";
 
 export type ChipExpressionBaseComponentProps = {
@@ -52,6 +49,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const fieldContainerRef = useRef<HTMLDivElement>(null);
 
@@ -66,8 +64,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                     setTokens(filteredTokens);
                     if (!expressionModel) {
                         const exprModel = createExpressionModelFromTokens(props.value, filteredTokens);
-                        exprModel[0].isFocused = true;
-                        exprModel[0].focusOffset = exprModel[0].focusOffset;
                         setExpressionModel(exprModel);
                     }
                 })
@@ -80,6 +76,30 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         props.onChange(updatedValue, updatedValue.length);
         setExpressionModel(updatedModel);
         setHasTypedSinceFocus(true);
+    }
+
+    const handleTriggerRebuild = (value: string, caretPosition?: number) => {
+        const textValue = value;
+        let exprModel = createExpressionModelFromTokens(textValue, tokens);
+
+        // Map caretPosition into new model
+        if (caretPosition !== undefined) {
+            const mapped = mapAbsoluteToModel(exprModel, caretPosition);
+            if (mapped) {
+                const preferNext = true;
+                const editableIndex = findNearestEditableIndex(exprModel, mapped.index, preferNext);
+                if (editableIndex !== null) {
+                    const boundedOffset = Math.max(0, Math.min(exprModel[editableIndex].length, mapped.offset));
+                    exprModel = exprModel.map((m, i) => (
+                        i === editableIndex
+                            ? { ...m, isFocused: true, focusOffset: boundedOffset }
+                            : { ...m, isFocused: false }
+                    ));
+                }
+            }
+        }
+
+        setExpressionModel(exprModel);
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -164,7 +184,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         if (isAnyElementFocused && hasTypedSinceFocus) {
             calculateCompletionsMenuPosition(fieldContainerRef, setMenuPosition);
             setIsCompletionsOpen(true);
-            setSelectedCompletionItem(0);
+            setSelectedCompletionItem(-1);
         } else {
             setIsCompletionsOpen(false);
         }
@@ -187,43 +207,26 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                     handleKeyDown(e);
                     handleCompletionKeyDown(e);
                 }}
-                floatingControls={
-                    <FloatingButtonContainer>
-                        <ExpressionToggleButton isActive={false} onToggle={() => { }} />
-                        <DebugToggleButton isActive={false} onToggle={() => { }} />
-                    </FloatingButtonContainer>
-                }
+                isExpanded={isExpanded}
+                setIsExpanded={setIsExpanded}
+                isCompletionsOpen={isCompletionsOpen}
+                completions={props.completions}
+                selectedCompletionItem={selectedCompletionItem}
+                menuPosition={menuPosition}
+                onCompletionSelect={handleCompletionSelect}
+                onCompletionHover={setSelectedCompletionItem}
+                onCloseCompletions={() => setIsCompletionsOpen(false)}
             >
                 <TokenizedExpression
                     expressionModel={expressionModel || []}
                     onExpressionChange={handleExpressionChange}
-                    onTriggerRebuild={() => { }}
+                    onTriggerRebuild={handleTriggerRebuild}
                 />
             </AutoExpandingEditableDiv>
-            {isCompletionsOpen && (
-                <ChipMenu
-                    top={menuPosition.top}
-                    left={menuPosition.left}
-                    data-menu="chip-menu"
-                    onMouseDown={(e) => e.preventDefault()}
-                >
-                    <Completions>
-                        {props.completions.map((item, index) => (
-                            <CompletionsItem
-                                key={`${item.label}-${index}`}
-                                item={item}
-                                isSelected={index === selectedCompletionItem}
-                                onClick={() => handleCompletionSelect(item)}
-                                onMouseEnter={() => setSelectedCompletionItem(index)}
-                            />
-                        ))}
-                    </Completions>
-                </ChipMenu>
-            )}
         </ChipEditorContainer >
-            <pre>{JSON.stringify(tokens)}</pre>
+            {/* <pre>{JSON.stringify(tokens)}</pre>
             <pre>{JSON.stringify(expressionModel)}</pre>
-            <pre>{JSON.stringify(props.completions)}</pre>
+            <pre>{JSON.stringify(props.completions)}</pre> */}
         </>
     )
 }
