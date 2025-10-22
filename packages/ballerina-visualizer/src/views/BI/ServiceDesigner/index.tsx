@@ -44,7 +44,8 @@ import { FunctionForm } from "./Forms/FunctionForm";
 import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 import { McpToolForm } from "./Forms/McpToolForm";
-import { removeForwardSlashes } from "./utils";
+import { removeForwardSlashes, canDataBind } from "./utils";
+import { DatabindForm } from "./Forms/DatabindForm";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -1133,8 +1134,24 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 </PanelContainer>
                             )}
 
-                            {/* This is for editing a remote or resource function */}
-                            {functionModel && !isHttpService && !isMcpService && (
+                            {/* This is for adding or editing functions with data binding */}
+                            {functionModel && !isHttpService && !isMcpService && canDataBind(functionModel) && (
+                                <PanelContainer
+                                    title={"Message Handler Configuration"}
+                                    show={showForm}
+                                    onClose={handleNewFunctionClose}
+                                    width={400}
+                                >
+                                    <DatabindForm
+                                        model={functionModel}
+                                        onSave={handleFunctionSubmit}
+                                        onClose={handleNewFunctionClose}
+                                    />
+                                </PanelContainer>
+                            )}
+
+                            {/* This is for adding or editing functions */}
+                            {functionModel && !isHttpService && !isMcpService && !canDataBind(functionModel) && (
                                 <PanelContainer
                                     title={"Function Configuration"}
                                     show={showForm}
