@@ -37,21 +37,21 @@ import {
     ListenersRequest,
     ListenersResponse,
     OpenAPISpec,
+    PayloadContext,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     ResourceSourceCodeResponse,
     ServiceDesignerAPI,
+    ServiceInitSourceRequest,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
+    ServiceModelInitResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
+    SourceEditResponse,
     TriggerModelsRequest,
     TriggerModelsResponse,
     UpdatedArtifactsResponse,
-    ServiceModelInitResponse,
-    ServiceInitSourceRequest,
-    SourceEditResponse,
     VisibleTypesResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
@@ -61,6 +61,7 @@ import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+import { generateExamplePayload } from "../../features/ai/service/editor/payload-json/payload_json";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
@@ -475,5 +476,9 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 console.log(error);
             }
         });
+    }
+
+    async generateExamplePayloadJson(params: PayloadContext): Promise<object> {
+        return await generateExamplePayload(params);
     }
 }

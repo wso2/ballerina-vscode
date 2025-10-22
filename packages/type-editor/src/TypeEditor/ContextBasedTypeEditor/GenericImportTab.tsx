@@ -399,19 +399,10 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
             console.log("Generating sample JSON with context:", payloadContext);
 
-            // TODO: Call the API to generate sample JSON based on payload context
+            const generatedJsonObj = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadContext);
 
-
-            // Sample mock
-            const mockGeneratedJson = {
-                id: 1,
-                name: "Sample User",
-                email: "user@example.com",
-                age: 25,
-            };
-
-            // Populate the textarea with the generated JSON
-            const generatedJson = JSON.stringify(mockGeneratedJson, null, 2);
+            // // Populate the textarea with the generated JSON
+            const generatedJson = JSON.stringify(generatedJsonObj, null, 2);
 
             setContent(generatedJson);
 
