@@ -990,9 +990,8 @@ public class CommonUtils {
     }
 
     public static boolean isAiKnowledgeBase(Symbol symbol) {
-        Optional<ModuleSymbol> module = symbol.getModule();
-        return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
-                && symbol.getName().isPresent() && symbol.getName().get().equals(KNOWLEDGE_BASE_TYPE_NAME);
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, KNOWLEDGE_BASE_TYPE_NAME);
     }
 
     public static boolean isAiVectorStore(Symbol symbol) {
