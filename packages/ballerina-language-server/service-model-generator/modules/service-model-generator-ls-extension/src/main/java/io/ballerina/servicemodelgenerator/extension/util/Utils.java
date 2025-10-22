@@ -259,13 +259,30 @@ public final class Utils {
         }
     }
 
-    public static Optional<ExpressionNode> getListenerExpression(ServiceDeclarationNode serviceNode) {
+    /**
+     * Extracts the line range that encompasses all listener expressions in a service declaration.
+     *
+     * @param serviceNode the service declaration node containing listener expressions
+     * @return an {@link Optional} containing the {@link LineRange} that spans from the start
+     *         of the first listener expression to the end of the last listener expression,
+     *         or {@link Optional#empty()} if no listener expressions are found
+     */
+    public static Optional<LineRange> getListenerExpressionsLineRange(ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         if (expressions.isEmpty()) {
             return Optional.empty();
         }
-        ExpressionNode expressionNode = expressions.get(0);
-        return Optional.of(expressionNode);
+
+        int size = expressions.size();
+        LineRange firstExprLineRange = expressions.get(0).lineRange();
+        LineRange lastExprLineRange = expressions.get(size - 1).lineRange();
+
+        LineRange lineRange = LineRange.from(
+                firstExprLineRange.fileName(),
+                firstExprLineRange.startLine(),
+                lastExprLineRange.endLine());
+
+        return Optional.of(lineRange);
     }
 
     public static Optional<Symbol> getHttpServiceContractSym(SemanticModel semanticModel,
