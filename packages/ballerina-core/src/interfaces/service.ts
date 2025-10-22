@@ -148,6 +148,7 @@ export interface PropertyModel {
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;
     hidden?: boolean;
+    isGraphqlId?: boolean;
 }
 
 export interface ParameterModel extends PropertyModel {

@@ -20,7 +20,7 @@ import React, { useRef, useState } from 'react';
 import { Imports, Member, Type } from '@wso2/ballerina-core';
 import { Button, CheckBox, Codicon, TextField } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { typeToSource, defaultAnonymousRecordType } from './TypeUtil';
+import { typeToSource, defaultAnonymousRecordType, isGraphQLScalarType } from './TypeUtil';
 import { RecordEditor } from './RecordEditor';
 import { AdvancedOptions } from './AdvancedOptions';
 import { IdentifierField } from './IdentifierField';
@@ -35,6 +35,7 @@ interface FieldEditorProps {
     onFieldValidation: (isIdentifier: boolean, hasError: boolean) => void;
     onRecordValidation: (hasError: boolean) => void;
     onDelete: () => void;
+    isGraphql?: boolean;
 }
 
 const ButtonDeactivated = styled.div<{}>`
@@ -65,7 +66,7 @@ const CollapsibleSection = styled.div`
 `;
 
 export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
-    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation } = props;
+    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation, isGraphql } = props;
     const [panelOpened, setPanelOpened] = useState<boolean>(false);
     const recordEditorRef = useRef<{ addMember: () => void }>(null);
     const currentImports = useRef<Imports | undefined>();
@@ -197,6 +198,19 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                             );
                         }}
                     />
+                    {isGraphql && isGraphQLScalarType(member.type) &&
+                    <CheckBox
+                        sx={{ border: 'none', padding: '5px' }}
+                        label="Is GraphQL ID"
+                        checked={member.isGraphqlId || false}
+                        onChange={(checked: boolean) => {
+                            // Match the same pattern used in the working checkbox
+                            onChange({
+                                ...member,
+                                isGraphqlId: checked
+                            });
+                        }}
+                    />}
                 </CollapsibleSection>
             )}
             {isRecord(member.type) && typeof member.type !== 'string' && (
