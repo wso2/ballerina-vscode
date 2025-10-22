@@ -287,7 +287,6 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         if (stack.length === 1) {
             onTypeCreate(type);
             setTypeEditorState({ ...typeEditorState, isOpen: false });
-            onClose();
         } else {
             setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
         }
