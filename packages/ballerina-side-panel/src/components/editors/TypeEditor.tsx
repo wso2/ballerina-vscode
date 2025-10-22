@@ -50,6 +50,7 @@ interface TypeEditorProps {
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
     isContextTypeEditorSupported?: boolean;
     autoFocus?: boolean;
+    onBlur?: () => void | Promise<void>;
 }
 
 const Ribbon = styled.div({
@@ -145,6 +146,8 @@ export function TypeEditor(props: TypeEditorProps) {
         setShowDefaultCompletion(undefined);
         // Clean up memory
         cursorPositionRef.current = undefined;
+        // Trigger the on Blur from parent
+        await props.onBlur?.();
     };
 
     const handleCompletionSelect = async (value: string) => {
