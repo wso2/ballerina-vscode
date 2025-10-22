@@ -48,6 +48,7 @@ public class KnowledgeBaseBuilder extends CallBuilder {
     private static final String KNOWLEDGE_BASE_NAME_LABEL = "Knowledge Base Name";
     private static final String KNOWLEDGE_BASE_NAME_LABEL_DOC = "knowledge-base instance name";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
+    private static final String VECTOR_KNOWLEDGE_BASE_TYPE = "VectorKnowledgeBase";
 
     @Override
     public void setConcreteConstData() {
@@ -67,8 +68,12 @@ public class KnowledgeBaseBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        return sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable()
-                .token().keyword(SyntaxKind.NEW_KEYWORD).stepOut().functionParameters(sourceBuilder.flowNode,
+        sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable();
+        if (!sourceBuilder.flowNode.codedata().object().equals(VECTOR_KNOWLEDGE_BASE_TYPE)) {
+            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
+        }
+        return sourceBuilder.token().keyword(SyntaxKind.NEW_KEYWORD).stepOut()
+                .functionParameters(sourceBuilder.flowNode,
                         Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY, Property.SCOPE_KEY, Property.CHECK_ERROR_KEY))
                 .textEdit().acceptImport().build();
     }
