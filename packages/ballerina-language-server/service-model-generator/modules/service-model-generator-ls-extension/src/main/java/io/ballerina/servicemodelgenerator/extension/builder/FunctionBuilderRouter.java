@@ -84,7 +84,7 @@ public class FunctionBuilderRouter {
                                                           WorkspaceManager workspaceManager) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
         Project project = document != null ? document.module().project() : null;
-        AddModelContext context = new AddModelContext(null, function, null, project,
+        AddModelContext context = new AddModelContext(null, function, semanticModel, project,
                 workspaceManager, filePath, document, node);
         return functionBuilder.addModel(context);
     }
