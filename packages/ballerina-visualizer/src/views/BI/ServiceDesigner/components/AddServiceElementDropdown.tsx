@@ -61,10 +61,12 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                 buttonSx={{
                     appearance: 'none',
                     height: '28px',
-                    minHeight: '28px'
+                    minHeight: '28px',
+                    cursor: 'default',
+                    pointerEvents: 'none'
                 }}
                 optionButtonSx={{
-                    borderColor: 'var(--vscode-button-border)',
+                    borderLeft: "none",
                     height: '28px',
                     minHeight: '28px'
                 }}
