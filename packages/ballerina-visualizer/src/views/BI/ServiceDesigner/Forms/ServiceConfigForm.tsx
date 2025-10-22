@@ -30,7 +30,6 @@ import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
 const Container = styled.div`
     /* padding: 0 20px 20px; */
     max-width: 600px;
-    height: 100%;
     > div:last-child {
         /* padding: 20px 0; */
         > div:last-child {
@@ -78,9 +77,6 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-
-    const createTitle = `Provide the necessary configuration details for the ${serviceModel.name} to complete the setup.`;
-    const editTitle = `Update the configuration details for the ${serviceModel.name} as needed.`
 
     useEffect(() => {
         // Check if the service is HTTP protocol and any properties with choices
@@ -206,6 +202,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                 <FormGeneratorNew
                                     fileName={filePath}
                                     targetLineRange={targetLineRange}
+                                    nestedForm={true}
                                     fields={serviceFields}
                                     onBack={onBack}
                                     isSaving={isSaving}
@@ -230,6 +227,9 @@ function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in service.properties) {
         const expression = service.properties[key];
+        if (expression.valueType === "MULTIPLE_SELECT_LISTENER") {
+            continue
+        }
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
