@@ -94,7 +94,7 @@ public class ReferenceType {
         }
         RefType type = fromSemanticSymbol(typeSymbol, name, moduleId, typeDefSymbols);
 
-        if (type.dependentTypes == null) {
+        if (type.dependentTypes == null && !type.dependentTypeKeys.isEmpty()) {
             type.dependentTypes = new HashMap<>();
             for (String dependentTypeKey : type.dependentTypeKeys) {
                 RefType dependentType = visitedTypeMap.get(dependentTypeKey);
@@ -439,15 +439,29 @@ public class ReferenceType {
             String depTypeKey = entry.getKey();
             RefType depType = entry.getValue();
             Symbol depSymbol = typeDefSymbols.stream()
-                    .filter(sym -> depType.name.equals(sym.getName().orElse("")))
+                    .filter(sym -> {
+                        if (!depType.name.equals(sym.getName().orElse(""))) {
+                            return false;
+                        }
+                        ModuleInfo depModuleInfo = depType.moduleInfo;
+                        if (depModuleInfo != null) {
+                            ModuleID symModuleId = getModuleID(sym);
+                            if (symModuleId != null) {
+                                return depModuleInfo.orgName.equals(symModuleId.orgName()) &&
+                                        depModuleInfo.moduleName.equals(symModuleId.moduleName()) &&
+                                        depModuleInfo.version.equals(symModuleId.version());
+                            }
+                        }
+                        return true;
+                    })
                     .findFirst()
                     .orElse(null);
 
             if (depSymbol != null) {
                 TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
                 TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
-                String moduleId = typeDefSymbol.getModule().isPresent() ?
-                        typeDefSymbol.getModule().get().id().toString() : null;
+                String moduleId = typeDesc.getModule().isPresent() ?
+                        typeDesc.getModule().get().id().toString() : null;
                 String updatedHashCode = String.valueOf(Objects.hash(
                         moduleId,
                         typeDefSymbol.getName().orElse(""),
