@@ -747,6 +747,7 @@ export const Form = forwardRef((props: FormProps) => {
                             if (!preserveOrder && isPrioritizedField(field)) {
                                 return acc;
                             }
+                            console.log("Rendering field: ", field);
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             acc.push(

@@ -33,6 +33,7 @@ import {
     Typography,
     CompletionItem,
     Button,
+    CheckBox,
 } from "@wso2/ui-toolkit";
 import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
@@ -43,6 +44,29 @@ import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
 import { NodeProperties, PropertyModel } from "@wso2/ballerina-core";
+
+/**
+ * Check if a type is a GraphQL scalar type.
+ * Scalar types are primitive types that can be marked with @graphql:ID annotation.
+ * In Ballerina, these include: string, int, float, decimal, boolean
+ * Also handles optional types (e.g., "string?") by stripping the "?" suffix
+ */
+const isGraphQLScalarType = (type: string): boolean => {
+    // Remove optional marker and whitespace
+    const cleanType = type.trim().replace(/\?$/, '');
+
+    // List of Ballerina types that can be GraphQL scalars
+    const scalarTypes = [
+        'string',
+        'int',
+        'float',
+        'decimal',
+        'boolean',
+        'byte',
+    ];
+
+    return scalarTypes.includes(cleanType.toLowerCase());
+};
 
 interface ActionTypeEditorProps {
     field: FormField;
@@ -129,6 +153,8 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
     const [focused, setFocused] = useState<boolean>(false);
     const [isTypeOptional, setIsTypeOptional] = useState<boolean>(false);
     const [isCodeActionMenuOpen, setIsCodeActionMenuOpen] = useState<boolean>(false);
+    const [isGraphqlId, setIsGraphqlId] = useState<boolean>(field.isGraphqlId || false);
+    const [showGraphqlCheckbox, setShowGraphqlCheckbox] = useState<boolean>(false);
 
     const [isTypeHelperOpen, setIsTypeHelperOpen] = useState<boolean>(false);
 
@@ -336,11 +362,44 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
 
     // Initialize optional type state based on field value
     useEffect(() => {
-        if (field.value) {
-            const isOptional = checkTypeOptional(field.value);
+        const typeValue = typeof field.value === 'string' ? field.value : '';
+
+        if (typeValue) {
+            const isOptional = checkTypeOptional(typeValue);
             setIsTypeOptional(isOptional);
+
+            // Check if the type is a GraphQL scalar type to show/hide checkbox
+            const isScalar = isGraphQLScalarType(typeValue);
+            setShowGraphqlCheckbox(isScalar);
+
+            console.log("ActionTypeEditor - Type value:", typeValue, "Is scalar:", isScalar, "Show checkbox:", isScalar);
+        } else {
+            // If no value, hide the checkbox
+            setShowGraphqlCheckbox(false);
         }
     }, [field.value]);
+
+    // Initialize GraphQL ID state from field
+    useEffect(() => {
+        console.log("ActionTypeEditor - Initializing with field:", {
+            key: field.key,
+            type: field.type,
+            value: field.value,
+            isGraphqlId: field.isGraphqlId
+        });
+
+        if (field.isGraphqlId !== undefined) {
+            setIsGraphqlId(field.isGraphqlId);
+            console.log("ActionTypeEditor - Setting isGraphqlId from field:", field.isGraphqlId);
+        }
+    }, [field.isGraphqlId]);
+
+    // Update form value when checkbox changes
+    const handleGraphqlIdChange = (checked: boolean) => {
+        setIsGraphqlId(checked);
+        // Store the isGraphqlId value in a hidden form field
+        form.setValue(`${field.key}_isGraphqlId`, checked, { shouldValidate: false, shouldDirty: true });
+    };
 
     // Create code actions and menu items
     const createCodeActionsAndMenuItems = () => {
@@ -540,6 +599,22 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                     const isOptional = checkTypeOptional(updatedValue);
                                     setIsTypeOptional(isOptional);
 
+                                    // Check if the new type is a GraphQL scalar type
+                                    const isScalar = isGraphQLScalarType(updatedValue);
+                                    console.log("ActionTypeEditor - Type changed:", {
+                                        fieldKey: field.key,
+                                        updatedValue,
+                                        isScalar,
+                                        willShowCheckbox: isScalar
+                                    });
+                                    setShowGraphqlCheckbox(isScalar);
+
+                                    // If the type is not a scalar, reset the GraphQL ID checkbox
+                                    if (!isScalar) {
+                                        setIsGraphqlId(false);
+                                        form.setValue(`${field.key}_isGraphqlId`, false, { shouldValidate: false, shouldDirty: true });
+                                    }
+
                                     // Set show default completion
                                     const typeExists = referenceTypes.find((type) => type.label === updatedValue);
 
@@ -588,6 +663,27 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                 helperPaneZIndex={40001}
                             />
                             {error?.message && <ErrorBanner errorMsg={error.message.toString()} />}
+
+                            {/* GraphQL ID Checkbox - only shown for scalar types */}
+                            {(() => {
+                                console.log("ActionTypeEditor - Render checkbox decision:", {
+                                    showGraphqlCheckbox,
+                                    isGraphqlId,
+                                    fieldKey: field.key,
+                                    fieldValue: field.value,
+                                    currentValue: value
+                                });
+                                return showGraphqlCheckbox ? (
+                                    <div style={{ marginBottom: '8px', marginTop: '8px' }}>
+                                        <CheckBox
+                                            label="Is GraphQL ID"
+                                            checked={isGraphqlId}
+                                            onChange={(checked) => handleGraphqlIdChange(checked)}
+                                            data-testid="graphql-id-checkbox"
+                                        />
+                                    </div>
+                                ) : null;
+                            })()}
                         </div>
                     );
                 }}

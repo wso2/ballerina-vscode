@@ -176,3 +176,32 @@ export const isValidBallerinaIdentifier = (name: string): boolean => {
     const regex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
     return name.length > 0 && regex.test(name);
 };
+
+/**
+ * Check if a type is a GraphQL scalar type.
+ * Scalar types are primitive types that can be marked with @graphql:ID annotation.
+ * In Ballerina, these include: string, int, float, decimal, boolean
+ * Also handles optional types (e.g., "string?") by stripping the "?" suffix
+ */
+export const isGraphQLScalarType = (type: string | Type): boolean => {
+    // If type is an object (complex type), it's not a scalar
+    if (typeof type !== 'string') {
+        return false;
+    }
+
+    // Remove optional marker and whitespace
+    const cleanType = type.trim().replace(/\?$/, '');
+
+    // List of Ballerina types that can be GraphQL scalars
+    const scalarTypes = [
+        'string',
+        'int',
+        'float',
+        'decimal',
+        'boolean',
+        'byte',
+        // Also handle any custom scalar types that might be defined
+    ];
+
+    return scalarTypes.includes(cleanType.toLowerCase());
+};

@@ -59,6 +59,7 @@ export type FormField = {
     properties?: ConfigProperties;
     actionCallback?: () => void;
     onValueChange?: (value: string) => void;
+    isGraphqlId?: boolean;
 };
 
 export type ParameterValue = {
