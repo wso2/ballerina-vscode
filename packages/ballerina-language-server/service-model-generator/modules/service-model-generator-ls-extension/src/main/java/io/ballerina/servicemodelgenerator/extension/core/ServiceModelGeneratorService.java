@@ -22,13 +22,22 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
@@ -471,6 +480,114 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             }
             ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
             SemanticModel semanticModel = semanticModelOp.get();
+//
+//            // Debug: Try to resolve listener variable and extract constructor parameters
+//            System.out.println("Service expressions count: " + serviceNode.expressions().size());
+//            for (int i = 0; i < serviceNode.expressions().size(); i++) {
+//                ExpressionNode expr = serviceNode.expressions().get(i);
+//                System.out.println("Expression " + i + ": " + expr.getClass().getSimpleName() + " -> " + expr.toString().trim());
+//
+//                if (expr instanceof NameReferenceNode nameRef) {
+//                    System.out.println("  Found listener variable reference: " + nameRef.toString().trim());
+//
+//                    // Try to resolve the listener variable reference
+//                    Optional<Symbol> symbol = semanticModel.symbol(nameRef);
+//                    if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+//                        System.out.println("  Variable symbol resolved: " + variableSymbol.getName().orElse("unknown"));
+//
+//                        // Try to get the location of the variable declaration
+//                        var location = variableSymbol.getLocation();
+//                        if (location.isPresent()) {
+//                            System.out.println("  Declaration location: " + location.get().lineRange());
+//
+//                            // Try to find the listener declaration node
+//                            var syntaxTree = document.get().syntaxTree();
+//                            var textDocument = syntaxTree.textDocument();
+//                            var lineRange = location.get().lineRange();
+//
+//                            int start = textDocument.textPositionFrom(lineRange.startLine());
+//                            int end = textDocument.textPositionFrom(lineRange.endLine());
+//
+//                            ModulePartNode modulePartNode = syntaxTree.rootNode();
+//                            var foundNode = modulePartNode.findNode(io.ballerina.tools.text.TextRange.from(start, end - start), true);
+//
+//                            // Traverse up to find the ListenerDeclarationNode
+//                            Node current = foundNode;
+//                            while (current != null) {
+//                                if (current instanceof ListenerDeclarationNode listenerDeclarationNode) {
+//                                    System.out.println("  Found ListenerDeclarationNode: " + listenerDeclarationNode.variableName().text());
+//
+//                                    // Try to extract from initializer (both explicit and implicit new expressions)
+//                                    Node initializer = listenerDeclarationNode.initializer();
+//                                    if (initializer instanceof ExplicitNewExpressionNode explicitNew) {
+//                                        System.out.println("  Found explicit listener constructor with arguments:");
+//                                        var arguments = explicitNew.parenthesizedArgList().arguments();
+//                                        for (int j = 0; j < arguments.size(); j++) {
+//                                            FunctionArgumentNode arg = arguments.get(j);
+//                                            if (arg instanceof PositionalArgumentNode positionalArg) {
+//                                                String argValue = positionalArg.expression().toString().trim();
+//                                                System.out.println("    arg" + (j + 1) + ": " + argValue);
+//
+//                                                // Special case: if this is arg2 and looks like a port number
+//                                                if (j == 1 && argValue.matches("\\d+")) {
+//                                                    System.out.println("    >>> FOUND PORT: " + argValue + " <<<");
+//                                                }
+//                                            }
+//                                        }
+//                                    } else if (initializer instanceof ImplicitNewExpressionNode implicitNew) {
+//                                        System.out.println("  Found implicit listener constructor with arguments:");
+//                                        var parenthesizedArgList = implicitNew.parenthesizedArgList();
+//                                        if (parenthesizedArgList.isPresent()) {
+//                                            var arguments = parenthesizedArgList.get().arguments();
+//                                            for (int j = 0; j < arguments.size(); j++) {
+//                                                FunctionArgumentNode arg = arguments.get(j);
+//                                                if (arg instanceof PositionalArgumentNode positionalArg) {
+//                                                    String argValue = positionalArg.expression().toString().trim();
+//                                                    System.out.println("    arg" + (j + 1) + ": " + argValue);
+//
+//                                                    // Special case: if this is arg2 and looks like a port number
+//                                                    if (j == 1 && argValue.matches("\\d+")) {
+//                                                        System.out.println("    >>> FOUND PORT: " + argValue + " <<<");
+//                                                    }
+//                                                } else if (arg instanceof NamedArgumentNode namedArg) {
+//                                                    String argName = namedArg.argumentName().name().text();
+//                                                    String argValue = namedArg.expression().toString().trim();
+//                                                    System.out.println("    " + argName + ": " + argValue);
+//                                                }
+//                                            }
+//                                        } else {
+//                                            System.out.println("    No parenthesized argument list found");
+//                                        }
+//                                    } else {
+//                                        System.out.println("  Initializer is neither Explicit nor Implicit NewExpressionNode: " + (initializer != null ? initializer.getClass().getSimpleName() : "null"));
+//                                    }
+//                                    break;
+//                                }
+//                                current = current.parent();
+//                            }
+//
+//                            if (current == null) {
+//                                System.out.println("  Could not find ListenerDeclarationNode in parent traversal");
+//                            }
+//                        } else {
+//                            System.out.println("  Variable symbol has no location information");
+//                        }
+//                    } else {
+//                        System.out.println("  Could not resolve variable symbol or not a VariableSymbol");
+//                    }
+//                } else if (expr instanceof ExplicitNewExpressionNode explicitNew) {
+//                    System.out.println("  Found inline listener constructor");
+//                    var arguments = explicitNew.parenthesizedArgList().arguments();
+//                    for (int j = 0; j < arguments.size(); j++) {
+//                        FunctionArgumentNode arg = arguments.get(j);
+//                        if (arg instanceof PositionalArgumentNode positionalArg) {
+//                            String argValue = positionalArg.expression().toString().trim();
+//                            System.out.println("    arg" + (j + 1) + ": " + argValue);
+//                        }
+//                    }
+//                }
+//            }
+
             Service service = ServiceBuilderRouter.getServiceFromSource(serviceNode, project, semanticModel,
                     workspaceManager, request.filePath());
             return new ServiceFromSourceResponse(service);

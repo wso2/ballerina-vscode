@@ -1076,7 +1076,11 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "bootstrapServers", "displayName": "Bootstrap Servers", "kind": "LISTENER_PARAM"},
+        {"key": "topics", "displayName": "Topics", "kind": "LISTENER_PARAM"}
+      ]
     },
     {
       "name": "salesforce",
