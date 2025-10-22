@@ -191,13 +191,14 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [showAttachListenerModal, setShowAttachListenerModal] = useState<boolean>(false);
 
     const [tabView, setTabView] = useState<"service" | "listener">(props.listenerName ? "listener" : "service");
+    const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
     // Create ref map for accordion containers
     const accordionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-    
+
     // Create ref for service section
     const serviceRef = useRef<HTMLDivElement | null>(null);
-    
+
     // State to manage which accordion is expanded
     const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
 
@@ -207,6 +208,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const handleOnServiceSelect = () => {
         setTabView("service");
+        // Clear selected listener when service is selected
+        setSelectedListener(null);
         // Scroll to service section
         if (serviceRef.current) {
             serviceRef.current.scrollIntoView({
@@ -281,10 +284,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const handleOnListenerClick = (listenerId: string) => {
         // Make sure we're on the service tab to see accordions
         setTabView("service");
-        
+
+        // Set the selected listener for highlighting
+        setSelectedListener(listenerId);
+
         // Expand the clicked accordion
         setExpandedAccordion(listenerId);
-        
+
         // Scroll to the corresponding accordion container
         setTimeout(() => {
             const accordionElement = accordionRefs.current[listenerId];
@@ -320,7 +326,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                 onSelect={handleOnServiceSelect}
                                                 selectedId={serviceModel.name}
                                                 sx={{
-                                                    border: tabView === "service"
+                                                    border: tabView === "service" && !selectedListener
                                                         ? '1px solid var(--vscode-focusBorder)'
                                                         : 'none'
                                                 }}
@@ -328,7 +334,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                 <Typography
                                                     variant="body3"
                                                     sx={{
-                                                        fontWeight: tabView === "service"
+                                                        fontWeight: tabView === "service" && !selectedListener
                                                             ? 'bold' : 'normal'
                                                     }}
                                                 >{serviceModel.name}</Typography>
@@ -371,7 +377,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                     overflow: 'hidden',
                                                                     textOverflow: 'ellipsis',
                                                                     whiteSpace: 'nowrap',
-                                                                    boxSizing: 'border-box'
+                                                                    boxSizing: 'border-box',
+                                                                    border: selectedListener === listener.id
+                                                                        ? '1px solid var(--vscode-focusBorder)'
+                                                                        : 'none'
                                                                 }}
                                                                 selectedId={listener.id}
                                                             >
@@ -388,6 +397,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                 >
                                                                     <Typography
                                                                         variant="body3"
+                                                                        sx={{
+                                                                            fontWeight: selectedListener === listener.id
+                                                                                ? 'bold' : 'normal'
+                                                                        }}
                                                                     >
                                                                         {listener.name}
                                                                     </Typography>
@@ -436,7 +449,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                 <Divider />
                                                                 <Typography variant="h3" sx={{ marginLeft: '18px' }}>Attached Listeners</Typography>
                                                                 {listeners.map((listener) => (
-                                                                    <AccordionContainer 
+                                                                    <AccordionContainer
                                                                         key={listener.id}
                                                                         ref={(el) => {
                                                                             accordionRefs.current[listener.id] = el;
