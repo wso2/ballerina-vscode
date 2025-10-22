@@ -44,7 +44,9 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
+import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
+import { AutoCompleteEditor } from "./AutoCompleteEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -126,6 +128,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
+    } else if (field.type.toUpperCase() === "AUTOCOMPLETE") {
+        return <AutoCompleteEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable && props.mcpTools) {
@@ -161,7 +165,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
-    }  else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
+    } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor
@@ -210,6 +214,13 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
+    } else if (field.type === "CONDITIONAL_FIELDS" && field.editable) {
+        // Conditional fields is a group of fields which are conditionally shown based on a checkbox field
+        return (
+            <CheckBoxConditionalEditor
+                field={field}
             />
         );
     } else {

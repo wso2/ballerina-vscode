@@ -25,6 +25,7 @@ import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
+import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -165,6 +166,9 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
             } else if (data[val.key] !== undefined) {
                 val.value = data[val.key];
             }
+            if (val.key === "basePath") {
+                val.value = sanitizedHttpPath(data[val.key] as string);
+            }
             val.imports = getImportsForProperty(val.key, formImports);
         })
         const response = updateConfig(serviceFields, serviceModel);
@@ -222,10 +226,10 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
 
 export default ServiceConfigForm;
 
-function convertConfig(listener: ServiceModel): FormField[] {
+function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
-    for (const key in listener.properties) {
-        const expression = listener.properties[key];
+    for (const key in service.properties) {
+        const expression = service.properties[key];
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -246,22 +250,26 @@ function convertConfig(listener: ServiceModel): FormField[] {
             lineRange: expression?.codedata?.lineRange
         }
 
+        if (key === "basePath") {
+            formField.value = removeForwardSlashes(formField.value as string);
+        }
+
         formFields.push(formField);
     }
     return formFields;
 }
 
-function updateConfig(formFields: FormField[], listener: ServiceModel): ServiceModel {
+function updateConfig(formFields: FormField[], service: ServiceModel): ServiceModel {
     formFields.forEach(field => {
         const value = field.value;
         if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
-            listener.properties[field.key].values = value as string[];
+            service.properties[field.key].values = value as string[];
         } else {
-            listener.properties[field.key].value = value as string;
+            service.properties[field.key].value = value as string;
         }
         if (value && value.length > 0) {
-            listener.properties[field.key].enabled = true;
+            service.properties[field.key].enabled = true;
         }
     })
-    return listener;
+    return service;
 }

@@ -108,8 +108,8 @@ export function ListenerEditView(props: ListenerEditViewProps) {
 
     return (
         <View>
-            <TopNavigationBar />
-            <TitleBar title="Listener" subtitle="Configure Listener" />
+            {/* <TopNavigationBar />
+            <TitleBar title="Listener" subtitle="Configure Listener" /> */}
             <ViewContent padding>
                 {!listenerModel &&
                     <LoadingContainer>

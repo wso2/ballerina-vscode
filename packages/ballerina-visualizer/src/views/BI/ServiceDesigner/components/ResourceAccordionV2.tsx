@@ -132,6 +132,15 @@ const colors = {
     "HEAD": '#9012fe'
 }
 
+const ActionButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    & > vscode-button::part(control) {
+        padding: 4px 8px;
+    }
+`;
+
 
 export interface ResourceAccordionPropsV2 {
     resource: ProjectStructureArtifactResponse;
@@ -139,10 +148,12 @@ export interface ResourceAccordionPropsV2 {
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
     readOnly?: boolean;
+    methodName?: string;
+    isMcpTool?: boolean;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -169,6 +180,8 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
     const handleEditResource = async (e: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         e.stopPropagation(); // Stop the event propagation
         const functionModel = await getFunctionModel();
+        // HACK: Setting module name to 'mcp' to identify MCP tool functions
+        functionModel.function.codedata.moduleName = isMcpTool ? 'mcp' : undefined;
         onEditResource(functionModel.function);
     };
 
@@ -222,23 +235,17 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(resource.icon)}>
-                        {resource.icon.split("-")[0].toUpperCase()}
+                        {methodName ? methodName : resource.icon ? resource.icon.split("-")[0].toUpperCase() : "REMOTE"}
                     </MethodBox>
                     <MethodPath>{resource.name}</MethodPath>
                 </MethodSection>
                 <ButtonSection>
                     <>
-                        <Button appearance="icon" tooltip="Edit Resource" onClick={handleEditResource} disabled={readOnly}>
-                            <Icon
-                                name="editIcon"
-                                sx={{
-                                    marginTop: 3.5,
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
-                                }}
-                            />
-                        </Button>
-                        <Button appearance="icon" tooltip="Delete Resource" onClick={handleDeleteResource} disabled={readOnly}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
+                            <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                            Configure
+                        </ActionButton >
+                        <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
                             <Codicon
                                 name="trash"
                                 sx={{
@@ -246,7 +253,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                                     opacity: readOnly ? 0.5 : 1,
                                 }}
                             />
-                        </Button>
+                        </ActionButton >
                     </>
                 </ButtonSection>
 
@@ -260,7 +267,6 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
             />
-        </AccordionContainer>
+        </AccordionContainer >
     );
 };
-
