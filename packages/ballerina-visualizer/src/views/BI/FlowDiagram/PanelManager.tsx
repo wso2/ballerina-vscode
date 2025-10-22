@@ -31,8 +31,6 @@ import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
 import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
 import { ToolConfig } from "../AIChatAgent/ToolConfig";
-import { AgentConfig } from "../AIChatAgent/AgentConfig";
-import { NewAgent } from "../AIChatAgent/NewAgent";
 import { AddTool } from "../AIChatAgent/AddTool";
 import { AddMcpServer } from "../AIChatAgent/AddMcpServer";
 import { NewTool, NewToolSelectionMode } from "../AIChatAgent/NewTool";
@@ -255,16 +253,6 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
-            case SidePanelView.NEW_AGENT:
-                return (
-                    <NewAgent
-                        agentCallNode={selectedNode}
-                        fileName={fileName}
-                        lineRange={targetLineRange}
-                        onSave={onClose}
-                    />
-                );
-
             case SidePanelView.ADD_TOOL:
                 return (
                     <AddTool
@@ -333,9 +321,6 @@ export function PanelManager(props: PanelManagerProps) {
                     (tool) => tool.name === selectedClientName
                 );
                 return <ToolConfig agentCallNode={selectedNode} toolData={selectedTool} onSave={onClose} />;
-
-            case SidePanelView.AGENT_CONFIG:
-                return <AgentConfig agentCallNode={selectedNode} fileName={fileName} onSave={onClose} />;
 
             case SidePanelView.AGENT_MEMORY_MANAGER:
                 return <MemoryManagerConfig agentCallNode={selectedNode} onSave={onClose} />;
@@ -599,7 +584,6 @@ export function PanelManager(props: PanelManagerProps) {
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
-            case SidePanelView.NEW_AGENT:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;
