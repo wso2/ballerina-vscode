@@ -42,6 +42,7 @@
               "agentType": "ai:REACT_AGENT",
               "memory": "new ai:MessageWindowChatMemory(20)",
               "role": "\"Math tutor\"",
+              "scope": "Global",
               "model": "myModel",
               "tools": "[set, sum, mutiply]"
             },
@@ -53,28 +54,6 @@
               "name": "myModel",
               "path": "https://bcentral-packageicons.azureedge.net/images/agent_agent_0.1.0.png",
               "type": "AzureOpenAiProvider"
-            },
-            "agentCodedata": {
-              "node": "AGENT",
-              "org": "ballerinax",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "Agent",
-              "symbol": "init",
-              "version": "1.0.1",
-              "lineRange": {
-                "fileName": "agents.bal",
-                "startLine": {
-                  "line": 80,
-                  "offset": 0
-                },
-                "endLine": {
-                  "line": 82,
-                  "offset": 106
-                }
-              },
-              "sourceCode": "// final MockLlm model = new;\nfinal ai:Agent agent = check new (model = myModel,\n    systemPrompt = {role: \"Math tutor\", instructions: \"Help the students with their questions.\"},\n    tools = [set, sum, mutiply], agentType = ai:REACT_AGENT, memory = new ai:MessageWindowChatMemory(20));",
-              "isNew": false
             }
           }
         },
@@ -97,7 +76,34 @@
               "offset": 68
             }
           },
-          "sourceCode": "string result = check agent->run(\"What is the sum of 1 and 2?\");"
+          "sourceCode": "string result = check agent->run(\"What is the sum of 1 and 2?\");",
+          "data": {
+            "agentCodedata": {
+              "node": "AGENT",
+              "org": "ballerinax",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "Agent",
+              "symbol": "init",
+              "version": "1.0.1",
+              "lineRange": {
+                "fileName": "agents.bal",
+                "startLine": {
+                  "line": 80,
+                  "offset": 0
+                },
+                "endLine": {
+                  "line": 82,
+                  "offset": 106
+                }
+              },
+              "sourceCode": "// final MockLlm model = new;\nfinal ai:Agent agent = check new (model = myModel,\n    systemPrompt = {role: \"Math tutor\", instructions: \"Help the students with their questions.\"},\n    tools = [set, sum, mutiply], agentType = ai:REACT_AGENT, memory = new ai:MessageWindowChatMemory(20));",
+              "isNew": false,
+              "data": {
+                "scope": "Global"
+              }
+            }
+          }
         },
         "returning": false,
         "properties": {
@@ -275,6 +281,21 @@
             "editable": true,
             "advanced": true,
             "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": ""
+            }
           },
           "role": {
             "metadata": {
