@@ -309,11 +309,12 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 onChange(updatedValue);
                                 debouncedTypeEdit(updatedValue);
+                                field.onValueChange?.(updatedValue);
                                 cursorPositionRef.current = updatedCursorPosition;
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
-                                handleNewTypeSelected && handleNewTypeSelected(typeExists? typeExists : updatedValue)
+                                handleNewTypeSelected && handleNewTypeSelected(typeExists ? typeExists : updatedValue)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
                                     setShowDefaultCompletion(true);

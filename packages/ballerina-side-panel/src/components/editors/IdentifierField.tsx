@@ -62,6 +62,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(e);
         validateIdentifierName(e.target.value);
+        field.onValueChange?.(e.target.value as string);
     }
 
     return (
