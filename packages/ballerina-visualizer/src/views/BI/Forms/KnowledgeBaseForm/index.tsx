@@ -72,7 +72,7 @@ namespace S {
     `;
 }
 
-interface VectorKnowledgeBaseFormProps {
+interface KnowledgeBaseFormProps {
     fileName: string;
     node: FlowNode;
     targetLineRange: LineRange;
@@ -92,7 +92,7 @@ interface VectorKnowledgeBaseFormProps {
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
-export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
+export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
     const {
         fileName,
         node,
@@ -126,7 +126,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             .getBIDiagramRpcClient()
             .formDidOpen({ filePath: fileName })
             .then(() => {
-                console.log(">>> Vector Knowledge Base form opened");
+                console.log(">>> Knowledge Base form opened");
             });
     };
 
@@ -135,7 +135,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             .getBIDiagramRpcClient()
             .formDidClose({ filePath: fileName })
             .then(() => {
-                console.log(">>> Vector Knowledge Base form closed");
+                console.log(">>> Knowledge Base form closed");
             });
     };
 
@@ -232,4 +232,4 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     );
 }
 
-export default VectorKnowledgeBaseForm;
+export default KnowledgeBaseForm;
