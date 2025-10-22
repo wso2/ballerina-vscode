@@ -36,32 +36,33 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents vector knowledge base node in the flow model.
+ * Represents knowledge base node in the flow model.
  *
  * @since 1.1.0
  */
-public class VectorKnowledgeBaseBuilder extends CallBuilder {
-    public static final String LABEL = "Vector Knowledge Base";
-    public static final String DESCRIPTION = "Vector knowledge bases available in the integration";
+public class KnowledgeBaseBuilder extends CallBuilder {
 
-    private static final String VECTOR_KNOWLEDGE_BASE_NAME_LABEL = "Vector Knowledge Base Name";
-    private static final String VECTOR_KNOWLEDGE_BASE_NAME_LABEL_DOC = "Vector knowledge-base instance name";
+    public static final String LABEL = "Knowledge Base";
+    public static final String DESCRIPTION = "knowledge bases available in the integration";
+
+    private static final String KNOWLEDGE_BASE_NAME_LABEL = "Knowledge Base Name";
+    private static final String KNOWLEDGE_BASE_NAME_LABEL_DOC = "knowledge-base instance name";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL);
-        codedata().node(NodeKind.VECTOR_KNOWLEDGE_BASE);
+        codedata().node(NodeKind.KNOWLEDGE_BASE);
     }
 
     @Override
     protected NodeKind getFunctionNodeKind() {
-        return NodeKind.VECTOR_KNOWLEDGE_BASE;
+        return NodeKind.KNOWLEDGE_BASE;
     }
 
     @Override
     protected FunctionData.Kind getFunctionResultKind() {
-        return FunctionData.Kind.VECTOR_KNOWLEDGE_BASE;
+        return FunctionData.Kind.KNOWLEDGE_BASE;
     }
 
     @Override
@@ -80,7 +81,7 @@ public class VectorKnowledgeBaseBuilder extends CallBuilder {
 
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(codedata.object())
                 .name(codedata.symbol()).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
-                .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.VECTOR_KNOWLEDGE_BASE)
+                .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.KNOWLEDGE_BASE)
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())
@@ -91,8 +92,8 @@ public class VectorKnowledgeBaseBuilder extends CallBuilder {
                 .version(functionData.version());
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
-            setReturnTypeProperties(functionData, context, VECTOR_KNOWLEDGE_BASE_NAME_LABEL,
-                    VECTOR_KNOWLEDGE_BASE_NAME_LABEL_DOC, false);
+            setReturnTypeProperties(functionData, context, KNOWLEDGE_BASE_NAME_LABEL,
+                    KNOWLEDGE_BASE_NAME_LABEL_DOC, false);
         }
         setParameterProperties(functionData);
         properties().scope(Property.GLOBAL_SCOPE).checkError(true, CHECK_ERROR_DOC, false);

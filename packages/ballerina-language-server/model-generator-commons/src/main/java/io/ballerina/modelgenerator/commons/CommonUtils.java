@@ -95,7 +95,7 @@ public class CommonUtils {
     private static final String CENTRAL_ICON_URL = "https://bcentral-packageicons.azureedge.net/images/%s_%s_%s.png";
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
-    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+    private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
     private static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
     private static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
     private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
@@ -989,10 +989,10 @@ public class CommonUtils {
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 
-    public static boolean isAiVectorKnowledgeBase(Symbol symbol) {
+    public static boolean isAiKnowledgeBase(Symbol symbol) {
         Optional<ModuleSymbol> module = symbol.getModule();
         return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
-                && symbol.getName().isPresent() && symbol.getName().get().equals(VECTOR_KNOWLEDGE_BASE_TYPE_NAME);
+                && symbol.getName().isPresent() && symbol.getName().get().equals(KNOWLEDGE_BASE_TYPE_NAME);
     }
 
     public static boolean isAiVectorStore(Symbol symbol) {

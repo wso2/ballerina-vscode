@@ -846,10 +846,10 @@
             {
               "metadata": {
                 "label": "Vector Knowledge Base",
-                "description": "Vector knowledge bases available in the integration"
+                "description": "Knowledge bases available in the integration"
               },
               "codedata": {
-                "node": "VECTOR_KNOWLEDGE_BASES",
+                "node": "KNOWLEDGE_BASES",
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",

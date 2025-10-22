@@ -1,7 +1,7 @@
 {
   "source": "knowledge_base/connections.bal",
   "codedata": {
-    "node": "VECTOR_KNOWLEDGE_BASE",
+    "node": "KNOWLEDGE_BASE",
     "org": "ballerina",
     "module": "ai",
     "packageName": "ai",
@@ -18,7 +18,7 @@
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
       },
       "codedata": {
-        "node": "VECTOR_KNOWLEDGE_BASE",
+        "node": "KNOWLEDGE_BASE",
         "org": "ballerina",
         "module": "ai",
         "packageName": "ai",
