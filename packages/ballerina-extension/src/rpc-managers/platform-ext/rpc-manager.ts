@@ -41,6 +41,8 @@ import { StateMachine } from "../../stateMachine";
 import { CommonRpcManager } from "../common/rpc-manager";
 import Handlebars from "handlebars";
 import { CaptureBindingPattern, ModulePart } from "@wso2/syntax-tree";
+import * as yaml from 'js-yaml';
+import { OpenAPIDefinition } from "./types";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     private async getPlatformExt() {
@@ -144,12 +146,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 fs.mkdirSync(choreoDir, { recursive: true });
             }
 
-            const moduleName = params.params.name.replace(/[_\-\s]/g, "");
+            const moduleName = params.params.name.replace(/[_\-\s]/g, "")?.toLowerCase();
             const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
 
             if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
-                fs.writeFileSync(filePath, serviceIdl.content, "utf8");
+                const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content)
+                fs.writeFileSync(filePath, updatedDef, "utf8");
             } else {
+                // todo: show button to open up devant connection documentation UI
                 window.showErrorMessage(
                     "Client creation for connection is only supported for REST APIs with valid openAPI spec"
                 );
@@ -184,7 +188,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             const connectionKeys =
                 createdConnection.configurations[Object.keys(createdConnection.configurations)?.[0]]?.entries;
-            const keys: Record<string, { keyname: string; envName: string }> = {};
+
+            interface IkeyVal { keyname: string; envName: string }
+            interface Ikeys { ChoreoAPIKey?: IkeyVal, ServiceURL?: IkeyVal}
+            const keys: Ikeys = {}
             const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
                 documentIdentifier: { uri: configFileUri.toString() },
             })) as SyntaxTree;
@@ -210,6 +217,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
             );
 
+            if(keys?.ChoreoAPIKey && keys?.ServiceURL){
+                await addConnection(moduleName, {apiKeyVarName: keys?.ChoreoAPIKey?.keyname, svsUrlVarName: keys?.ServiceURL?.keyname})
+            }
+
             return "";
         } catch (err) {
             window.showErrorMessage("Failed to created Devant connection");
@@ -217,6 +228,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 }
+
 
 const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
@@ -241,26 +253,134 @@ const addConfigurable = async (configBalFileUri: Uri, params: { configName: stri
         const balOsImportTemplate = Templates.importBalOs();
         configBalEdits.insert(configBalFileUri, new vscode.Position(0, 0), balOsImportTemplate);
     }
+    
+    const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+    configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), Templates.emptyLine());
 
     for (const item of params) {
         const newConfigTemplate = Templates.newEnvConfigurable({
             CONFIG_NAME: item.configName,
             CONFIG_ENV_NAME: item.configEnvName,
         });
-        let newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
         configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), newConfigTemplate);
     }
 
     await workspace.applyEdit(configBalEdits);
 };
 
+const addConnection = async (moduleName: string, configs: {apiKeyVarName: string, svsUrlVarName: string}) => {
+    const packageName = StateMachine.context().package
+    const connectionBalFile = path.join(StateMachine.context().projectUri, "connections.bal");
+    const connectionBalFileUri = Uri.file(connectionBalFile);
+    if (!fs.existsSync(connectionBalFile)) {
+        // create new connections.bal if it doesn't exist
+        fs.writeFileSync(connectionBalFile, "");
+    }
+
+    const connBalEdits = new WorkspaceEdit();
+
+    // if import doesn't exist, add it
+    const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+        documentIdentifier: { uri: connectionBalFileUri.toString() },
+    })) as SyntaxTree;
+
+    if (
+        !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes(`import ${packageName}/${moduleName}`))
+    ) {
+        const connImportTemplate = Templates.importConnection({PACKAGE_NAME: packageName, MODULE_NAME: moduleName});
+        connBalEdits.insert(connectionBalFileUri, new vscode.Position(0, 0), connImportTemplate);
+    }
+
+    const newConnEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+    connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), Templates.emptyLine());
+
+    let baseName = `${moduleName}Client`;
+    let candidate = baseName;
+    let counter = 1;
+    while (
+        (syntaxTree.syntaxTree as ModulePart)?.members?.some(
+            (k) =>
+                (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                candidate
+        )
+    ) {
+        candidate = `${baseName}${counter}`;
+        counter++;
+    }
+
+    const newConnTemplate = Templates.newConnectionWithApiKey({
+        API_KEY_VAR_NAME: configs.apiKeyVarName,
+        CONNECTION_NAME: candidate,
+        MODULE_NAME: moduleName,
+        SERVICE_URL_VAR_NAME: configs.svsUrlVarName
+    });
+    connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
+
+    await workspace.applyEdit(connBalEdits);
+};
+
+export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
+    try {
+        const openApiDefinition = yaml.load(yamlString) as OpenAPIDefinition;
+        
+        if (!openApiDefinition) {
+            throw new Error('Invalid YAML: Unable to parse OpenAPI definition');
+        }
+        
+        if (!openApiDefinition.components) {
+            openApiDefinition.components = {};
+        }
+        
+        if (!openApiDefinition.components.securitySchemes) {
+            openApiDefinition.components.securitySchemes = {};
+        }
+        
+        openApiDefinition.components.securitySchemes.ApiKeyAuth = {
+            type: 'apiKey',
+            in: 'header',
+            name: 'Choreo-API-Key'
+        };
+
+        if(!openApiDefinition.security){
+            openApiDefinition.security = []
+        }
+
+        openApiDefinition.security.push({ApiKeyAuth: []})
+
+        if(openApiDefinition.paths){
+            for(const path in openApiDefinition.paths){
+                for(const method in openApiDefinition.paths[path]){
+                    if(openApiDefinition.paths[path]?.[method]?.security){
+                        openApiDefinition.paths[path]?.[method]?.security?.push({ApiKeyAuth: []})
+                    }
+                }
+            }
+        }
+        
+        return yaml.dump(openApiDefinition);
+    } catch (error) {
+        throw new Error(`Failed to process OpenAPI definition: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
 const Templates = {
+    emptyLine: () => {
+        const template = Handlebars.compile(`\n`);
+        return template({});
+    },
     newEnvConfigurable: (params: { CONFIG_NAME: string; CONFIG_ENV_NAME: string }) => {
-        const template = Handlebars.compile(`string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`);
+        const template = Handlebars.compile(`configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`);
         return template(params);
     },
     importBalOs: () => {
         const template = Handlebars.compile(`import ballerina/os;\n`);
         return template({});
+    },
+    importConnection: (params: { PACKAGE_NAME: string; MODULE_NAME: string }) => {
+        const template = Handlebars.compile(`import {{PACKAGE_NAME}}.{{MODULE_NAME}};\n`);
+        return template(params);
+    },
+    newConnectionWithApiKey: (params: { MODULE_NAME: string, CONNECTION_NAME: string; SERVICE_URL_VAR_NAME: string, API_KEY_VAR_NAME: string }) => {
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new ({Choreo\\-API\\-Key: ${params.API_KEY_VAR_NAME}}, ${params.SERVICE_URL_VAR_NAME});\n`;
     },
 };
