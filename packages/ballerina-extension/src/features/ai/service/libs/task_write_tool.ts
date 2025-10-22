@@ -96,7 +96,7 @@ This tool is STATELESS. Every call MUST include ALL tasks.
 
 ## USER APPROVAL REQUIRED:
 1. **Plan Approval**: User approves/rejects initial task list
-2. **Task Approval**: User approves/rejects each completed task
+2. **Task Completion Approval**: User approves/rejects each completed task before moving to the next
 
 ## CREATING TASKS (First Call):
 Send ALL tasks with status "pending", no IDs.
@@ -110,13 +110,13 @@ Example:
 ## UPDATING TASKS (Every Other Call):
 Send ALL tasks with IDs and updated statuses.
 
-Workflow per task:
+Workflow per task (after plan approval):
 1. Mark in_progress → Send ALL tasks
 2. Do the work immediately
 3. Mark completed → Send ALL tasks
-4. Wait for user approval
+4. Wait for user approval of the completed task
 5. If approved → Start next task (repeat from step 1)
-6. If rejected → Redo the task
+6. If rejected → Redo the task based on feedback
 
 Example (3 tasks total):
 Start task 1 - Send ALL:
@@ -143,8 +143,9 @@ Start task 2 - Send ALL:
 Rules:
 - Send ALL tasks every single call (tool will reject partial lists)
 - Only ONE task "in_progress" at a time
-- After approval, immediately start next task
-- Continue autonomously until all tasks done`,
+- After plan approval, start first task immediately
+- Wait for approval after each task completion before starting next
+- Continue autonomously through all tasks with approval checkpoints`,
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
@@ -188,16 +189,8 @@ Rules:
                         approvalType = "plan";
 
                         // Create promise and emit approval request
-                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve, reject) => {
+                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve) => {
                             pendingApprovalResolve = resolve;
-
-                            // Timeout after 5 minutes
-                            setTimeout(() => {
-                                if (pendingApprovalResolve) {
-                                    pendingApprovalResolve = null;
-                                    reject(new Error("Approval request timed out"));
-                                }
-                            }, 5 * 60 * 1000);
                         });
 
                         eventHandler({
@@ -207,12 +200,7 @@ Rules:
                             message: "Please review the implementation plan"
                         });
 
-                        try {
-                            approvalResult = await responsePromise;
-                        } catch (error) {
-                            console.error("[TaskWrite Tool] Approval failed:", error);
-                            approvalResult = { approved: false, comment: "Approval request failed" };
-                        }
+                        approvalResult = await responsePromise;
                     }
                     // Case 2: Task just completed (no in-progress tasks means agent finished work)
                     // If there's an in_progress task, the agent is just starting work - no approval needed
@@ -224,16 +212,8 @@ Rules:
                         approvedTaskId = lastCompletedTask.id;
 
                         // Create promise and emit approval request
-                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve, reject) => {
+                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve) => {
                             pendingApprovalResolve = resolve;
-
-                            // Timeout after 5 minutes
-                            setTimeout(() => {
-                                if (pendingApprovalResolve) {
-                                    pendingApprovalResolve = null;
-                                    reject(new Error("Approval request timed out"));
-                                }
-                            }, 5 * 60 * 1000);
                         });
 
                         eventHandler({
@@ -244,12 +224,7 @@ Rules:
                             message: `Please verify the completed work for: ${lastCompletedTask.description}`
                         });
 
-                        try {
-                            approvalResult = await responsePromise;
-                        } catch (error) {
-                            console.error("[TaskWrite Tool] Approval failed:", error);
-                            approvalResult = { approved: false, comment: "Approval request failed" };
-                        }
+                        approvalResult = await responsePromise;
                     } else if (inProgressTasks.length > 0) {
                         console.log(`[TaskWrite Tool] Task in progress, no approval needed: ${inProgressTasks[0].description}`);
                     }
