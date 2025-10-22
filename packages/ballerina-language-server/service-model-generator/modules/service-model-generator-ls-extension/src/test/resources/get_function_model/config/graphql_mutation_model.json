@@ -77,7 +77,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -112,7 +113,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -166,11 +168,13 @@
         "editable": false,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     },
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Field Type",
         "description": "The type of the field"

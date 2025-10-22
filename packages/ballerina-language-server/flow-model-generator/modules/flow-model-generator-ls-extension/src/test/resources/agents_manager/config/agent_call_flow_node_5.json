@@ -57,6 +57,7 @@
               "systemPrompt": "{role: \"\", instructions: string ``}",
               "instructions": "",
               "role": "\"\"",
+              "scope": "ServiceInit",
               "model": "self._AgentServiceModel",
               "tools": "[]"
             },
@@ -68,28 +69,6 @@
               "name": "_AgentServiceModel",
               "path": "https://bcentral-packageicons.azureedge.net/images/agent_agent_0.1.0.png",
               "type": "OpenAiProvider"
-            },
-            "agentCodedata": {
-              "node": "AGENT",
-              "org": "ballerinax",
-              "module": "ai",
-              "packageName": "ai",
-              "object": "Agent",
-              "symbol": "init",
-              "version": "1.0.1",
-              "lineRange": {
-                "fileName": "main.bal",
-                "startLine": {
-                  "line": 9,
-                  "offset": 8
-                },
-                "endLine": {
-                  "line": 12,
-                  "offset": 10
-                }
-              },
-              "sourceCode": "self._AgentServiceAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n            model = self._AgentServiceModel,\n            tools = []\n        );",
-              "isNew": false
             }
           }
         },
@@ -112,7 +91,34 @@
               "offset": 101
             }
           },
-          "sourceCode": "string stringResult = check self._AgentServiceAgent->run(request.message, request.sessionId);"
+          "sourceCode": "string stringResult = check self._AgentServiceAgent->run(request.message, request.sessionId);",
+          "data": {
+            "agentCodedata": {
+              "node": "AGENT",
+              "org": "ballerinax",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "Agent",
+              "symbol": "init",
+              "version": "1.0.1",
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 9,
+                  "offset": 8
+                },
+                "endLine": {
+                  "line": 12,
+                  "offset": 10
+                }
+              },
+              "sourceCode": "self._AgentServiceAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n            model = self._AgentServiceModel,\n            tools = []\n        );",
+              "isNew": false,
+              "data": {
+                "scope": "ServiceInit"
+              }
+            }
+          }
         },
         "returning": false,
         "properties": {
@@ -288,6 +294,21 @@
             "editable": true,
             "advanced": true,
             "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "ServiceInit",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": ""
+            }
           },
           "role": {
             "metadata": {

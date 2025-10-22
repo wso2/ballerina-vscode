@@ -210,7 +210,7 @@ public class AgentCallBuilder extends CallBuilder {
 
     private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode,
                                                  Path projectRoot) {
-        Object agentCodedataObj = agentCallNode.metadata().data().get(Constants.Ai.AGENT_CODEDATA);
+        Object agentCodedataObj = agentCallNode.codedata().data().get(Constants.Ai.AGENT_CODEDATA);
 
         if (agentCodedataObj == null) {
             return AiUtils.createDefaultTemplateContext(sourceBuilder,
@@ -323,9 +323,9 @@ public class AgentCallBuilder extends CallBuilder {
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
 
-        // Escape backticks and backslashes to prevent injection
-        String escapedRole = role.replace("\\", "\\\\").replace("`", "\\`");
-        String escapedInstructions = instructions.replace("\\", "\\\\").replace("`", "\\`");
+        // Escape special characters to prevent injection in template strings
+        String escapedRole = AiUtils.escapeTemplateString(role);
+        String escapedInstructions = AiUtils.escapeTemplateString(instructions);
 
         String systemPromptValue =
                 "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";
@@ -352,9 +352,18 @@ public class AgentCallBuilder extends CallBuilder {
         TextRange textRange = CommonUtils.toTextRange(textDocument, codedata.lineRange());
         NonTerminalNode syntaxNode = ((ModulePartNode) syntaxTree.rootNode()).findNode(textRange, true);
 
+        // Extract scope from the codedata, defaulting to LOCAL_SCOPE if not found
+        String scope = Property.LOCAL_SCOPE;
+        if (codedata.data() != null && codedata.data().containsKey(Property.SCOPE_KEY)) {
+            Object scopeValue = codedata.data().get(Property.SCOPE_KEY);
+            if (scopeValue != null) {
+                scope = scopeValue.toString();
+            }
+        }
+
         // Use CodeAnalyzer to analyze the syntax node and generate FlowNode
         Project project = document.module().project();
-        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE,
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope,
                 Map.of(), Map.of(), textDocument,
                 ModuleInfo.from(document.module().descriptor()), false,
                 agentTemplateContext.workspaceManager());

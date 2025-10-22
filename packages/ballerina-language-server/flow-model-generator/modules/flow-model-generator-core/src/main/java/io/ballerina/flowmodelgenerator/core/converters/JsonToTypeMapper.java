@@ -44,9 +44,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getExistingTypeNames;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getAndUpdateFieldNames;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getExistingTypeNames;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.ListOperationUtils.difference;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.ListOperationUtils.intersection;
 
