@@ -102,7 +102,7 @@ export function ParamEditor(props: ParamProps) {
                 enabled: param.type?.enabled,
                 value: param.type.value,
                 valueTypeConstraint: "",
-                isContextTypeSupported: param?.httpParamType === "PAYLOAD"
+                // isContextTypeSupported: param?.httpParamType === "PAYLOAD" // Enable this to support context typeEditor
             });
         }
 
