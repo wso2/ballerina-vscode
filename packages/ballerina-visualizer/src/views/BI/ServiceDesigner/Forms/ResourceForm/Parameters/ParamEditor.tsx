@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 import { Divider, Dropdown, Typography } from '@wso2/ui-toolkit';
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, ParameterModel, PropertyModel } from '@wso2/ballerina-core';
+import { LineRange, ParameterModel, PayloadContext, PropertyModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -107,6 +107,7 @@ export interface ParamProps {
     onCancel?: (param?: ParameterModel) => void;
     isNew?: boolean;
     type?: "QUERY" | "HEADER" | "PAYLOAD" | "PATH";
+    payloadContext?: PayloadContext;
 }
 
 export function ParamEditor(props: ParamProps) {

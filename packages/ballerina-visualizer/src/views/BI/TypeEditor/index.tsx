@@ -18,7 +18,7 @@
 
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { LineRange, Type } from '@wso2/ballerina-core';
+import { LineRange, PayloadContext, Type } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
@@ -51,11 +51,12 @@ type FormTypeEditorProps = {
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
     isContextTypeForm?: boolean;
+    payloadContext?: PayloadContext;
     simpleType?: string;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -248,6 +249,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
                         simpleType={simpleType}
+                        payloadContext={payloadContext}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
