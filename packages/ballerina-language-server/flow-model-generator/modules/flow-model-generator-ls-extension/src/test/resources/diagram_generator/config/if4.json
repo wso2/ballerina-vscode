@@ -183,11 +183,10 @@
               {
                 "id": "88679",
                 "metadata": {
-                  "label": "Stop",
-                  "description": "Stop the flow"
+                  "label": "Return"
                 },
                 "codedata": {
-                  "node": "STOP",
+                  "node": "RETURN",
                   "lineRange": {
                     "fileName": "if_node.bal",
                     "startLine": {
@@ -406,11 +405,10 @@
                                       {
                                         "id": "94023",
                                         "metadata": {
-                                          "label": "Stop",
-                                          "description": "Stop the flow"
+                                          "label": "Return"
                                         },
                                         "codedata": {
-                                          "node": "STOP",
+                                          "node": "RETURN",
                                           "lineRange": {
                                             "fileName": "if_node.bal",
                                             "startLine": {
@@ -504,11 +502,10 @@
                       {
                         "id": "98727",
                         "metadata": {
-                          "label": "Stop",
-                          "description": "Stop the flow"
+                          "label": "Return"
                         },
                         "codedata": {
-                          "node": "STOP",
+                          "node": "RETURN",
                           "lineRange": {
                             "fileName": "if_node.bal",
                             "startLine": {

@@ -186,11 +186,10 @@
               {
                 "id": "50855",
                 "metadata": {
-                  "label": "Stop",
-                  "description": "Stop the flow"
+                  "label": "Return"
                 },
                 "codedata": {
-                  "node": "STOP",
+                  "node": "RETURN",
                   "lineRange": {
                     "fileName": "lock.bal",
                     "startLine": {
