@@ -1957,7 +1957,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
 export function getRepoRoot(projectRoot: string): string | undefined {
     // traverse up the directory tree until .git directory is found
-    // TODO: Evaluate this with multi-project workspaces.
     const gitDir = path.join(projectRoot, ".git");
     if (fs.existsSync(gitDir)) {
         return projectRoot;

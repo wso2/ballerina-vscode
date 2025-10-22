@@ -12,9 +12,8 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, filterPackagePaths, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, filterPackagePaths, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getWorkspaceTomlValues } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
-import { getWorkspaceTomlValues } from './rpc-managers/common/utils';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
@@ -459,19 +458,21 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
+                const projectTomlValues = await getProjectTomlValues(context.projectPath);
+                const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
                         history.push({
                             location: {
                                 view: MACHINE_VIEW.Overview,
                                 documentUri: context.documentUri,
-                                package: context.package
+                                package: packageName || context.package
                             }
                         });
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
-                    view.location.package = context.package;
+                    view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -481,7 +482,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
-                            package: context.package,
+                            package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
@@ -788,17 +789,22 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         }
 
         const packages = filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
+        let targetPackage;
 
-        const userSelectedPackage = await window.showQuickPick(packages, {
-            title: 'Select Package for WSO2 Integrator: BI',
-            placeHolder: 'Choose a package from your workspace to load in BI mode',
-            ignoreFocusOut: true
-        });
-
-        const targetPackage = userSelectedPackage || packages[0];
+        if (packages.length > 1) {
+            targetPackage = await window.showQuickPick(packages, {
+                title: 'Select Package for WSO2 Integrator: BI',
+                placeHolder: 'Choose a package from your workspace to load in BI mode',
+                ignoreFocusOut: true
+            });
+        } else if (packages.length === 1) {
+            targetPackage = packages[0];
+        }
 
         if (targetPackage) {
-            const packagePath = path.join(workspaceURI.fsPath, targetPackage);
+            const packagePath = path.isAbsolute(targetPackage)
+                ? targetPackage
+                : path.join(workspaceURI.fsPath, targetPackage);
             const packageUri = Uri.file(packagePath);
             
             const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
