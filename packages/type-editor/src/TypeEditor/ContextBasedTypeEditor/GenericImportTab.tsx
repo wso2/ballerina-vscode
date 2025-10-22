@@ -398,20 +398,24 @@ export function GenericImportTab(props: GenericImportTabProps) {
             setError("");
 
             console.log("Generating sample JSON with context:", payloadContext);
+            let generatedJson: string;
+            try {
+                const generatedJsonObj = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadContext);
 
-            // TODO: Call the API to generate sample JSON based on payload context
-
-
-            // Sample mock
-            const mockGeneratedJson = {
-                id: 1,
-                name: "Sample User",
-                email: "user@example.com",
-                age: 25,
-            };
-
-            // Populate the textarea with the generated JSON
-            const generatedJson = JSON.stringify(mockGeneratedJson, null, 2);
+                // // Populate the textarea with the generated JSON
+                generatedJson = JSON.stringify(generatedJsonObj, null, 2);
+            } catch (error) {
+                console.error("Error during AI Example JSON generation:", error);
+                
+                // Use fallback mock data
+                const mockGeneratedJson = {
+                    id: 1,
+                    name: "Sample User",
+                    email: "user@example.com",
+                    age: 25,
+                };
+                generatedJson = JSON.stringify(mockGeneratedJson, null, 2);
+            }
 
             setContent(generatedJson);
 

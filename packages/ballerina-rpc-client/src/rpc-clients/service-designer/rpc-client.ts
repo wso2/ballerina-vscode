@@ -34,22 +34,27 @@ import {
     ListenerSourceCodeRequest,
     ListenersRequest,
     ListenersResponse,
+    PayloadContext,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     ServiceDesignerAPI,
+    ServiceInitSourceRequest,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
+    ServiceModelInitResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
     TriggerModelsRequest,
     TriggerModelsResponse,
     UpdatedArtifactsResponse,
+    VisibleTypesResponse,
     addFunctionSourceCode,
     addListenerSourceCode,
     addResourceSourceCode,
     addServiceSourceCode,
+    createServiceAndListener,
     exportOASFile,
+    generateExamplePayloadJson,
     getFunctionFromSource,
     getFunctionModel,
     getHttpResourceModel,
@@ -57,17 +62,13 @@ import {
     getListenerModelFromCode,
     getListeners,
     getResourceReturnTypes,
+    getServiceInitModel,
     getServiceModel,
     getServiceModelFromCode,
     getTriggerModels,
     updateListenerSourceCode,
     updateResourceSourceCode,
-    updateServiceSourceCode,
-    ServiceModelInitResponse,
-    getServiceInitModel,
-    ServiceInitSourceRequest,
-    createServiceAndListener,
-    VisibleTypesResponse
+    updateServiceSourceCode
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -157,5 +158,9 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     createServiceAndListener(params: ServiceInitSourceRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(createServiceAndListener, HOST_EXTENSION, params);
+    }
+
+    generateExamplePayloadJson(params: PayloadContext): Promise<object> {
+        return this._messenger.sendRequest(generateExamplePayloadJson, HOST_EXTENSION, params);
     }
 }
