@@ -54,8 +54,8 @@ const OptionalConfigButtonContainer = styled.div`
 `;
 
 const OptionalConfigContent = styled.div`
-    margin-top: 16px;
     padding-left: 24px;
+    margin-bottom: 12px;
 `;
 
 const MessageConfigContainer = styled.div`
@@ -282,13 +282,13 @@ export function DatabindForm(props: DatabindFormProps) {
                                 <PayloadSection>
                                     {/* Payload Section */}
                                     <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
-                                        {payloadFieldName}
+                                        {payloadFieldName} Schema
                                     </Typography>
                                     {!payloadParameter && !editModel && (
                                         <AddButtonWrapper>
                                             <LinkButton onClick={onAddPayloadClick}>
                                                 <Codicon name="add" />
-                                                {payloadFieldName}
+                                                Create Schema
                                             </LinkButton>
                                         </AddButtonWrapper>
                                     )}
@@ -308,6 +308,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                             onChange={onChangeParam}
                                             onSave={onSaveParam}
                                             onCancel={onParamEditCancel}
+                                            payloadFieldName={payloadFieldName}
                                         />
                                     )}
                                 </PayloadSection>
@@ -360,10 +361,10 @@ export function DatabindForm(props: DatabindFormProps) {
                                     <OptionalConfigContent>
                                         <MessageTypeNameFieldContainer>
                                             <TextField
-                                                label="Message Type Name"
+                                                label="Message Schema Name"
                                                 value={messageTypeNameValue}
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMessageTypeNameChange(e.target.value)}
-                                                placeholder="Enter message type name"
+                                                placeholder="Enter message schema name"
                                                 errorMsg=""
                                             />
                                         </MessageTypeNameFieldContainer>
@@ -439,6 +440,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                                         .replace(/ /g, "_");
                                                     handleParamChange([...functionModel.parameters]);
                                                 }}
+                                                sx={{ description: param.metadata.description, marginTop: 0 }}
                                             />
                                         ))}
                                     </CheckBoxGroup>
