@@ -372,6 +372,9 @@
     },
     {
       "label": "minLeaderAge",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -380,6 +383,9 @@
     },
     {
       "label": "memberB2",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -388,6 +394,9 @@
     },
     {
       "label": "memberB1",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -411,6 +420,9 @@
     },
     {
       "label": "memberList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "BB",
@@ -419,6 +431,9 @@
     },
     {
       "label": "leaderA",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -427,6 +442,9 @@
     },
     {
       "label": "leaderB",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -435,6 +453,9 @@
     },
     {
       "label": "minMemberAge",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -443,6 +464,9 @@
     },
     {
       "label": "member",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "AB",
@@ -451,6 +475,9 @@
     },
     {
       "label": "memberA1",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -470,6 +497,9 @@
     },
     {
       "label": "memberA2",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "BB",
@@ -486,6 +516,9 @@
     },
     {
       "label": "leader",
+      "labelDetails": {
+        "detail": " Person"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "AB",
@@ -494,6 +527,9 @@
     },
     {
       "label": "memberAge",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -502,6 +538,9 @@
     },
     {
       "label": "leaderList",
+      "labelDetails": {
+        "detail": " Person[]"
+      },
       "kind": "Variable",
       "detail": "Person[]",
       "sortText": "BB",

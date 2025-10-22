@@ -546,6 +546,10 @@
     },
     {
       "label": "rec",
+      "labelDetails": {
+        "detail": " TestRec",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "TestRec",
       "sortText": "B",

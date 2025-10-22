@@ -35,6 +35,7 @@
     "parameters": [],
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"

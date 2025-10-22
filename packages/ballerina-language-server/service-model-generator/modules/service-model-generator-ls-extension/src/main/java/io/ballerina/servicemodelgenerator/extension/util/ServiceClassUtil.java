@@ -151,7 +151,7 @@ public class ServiceClassUtil {
                     }
                     GraphqlFunctionBuilder gqlFunctionBuilder = new GraphqlFunctionBuilder();
                     ModelFromSourceContext gqlContext = new ModelFromSourceContext(functionDefinitionNode,
-                            null, null, null, Constants.GRAPHQL, null, null, GRAPHQL);
+                            null, semanticModel, null, Constants.GRAPHQL, null, null, GRAPHQL);
                     functions.add(gqlFunctionBuilder.getModelFromSource(gqlContext));
                 } else {
                     functions.add(buildMemberFunction(semanticModel, functionDefinitionNode, functionKind, context));
@@ -199,7 +199,8 @@ public class ServiceClassUtil {
         List<Parameter> parameterModels = new ArrayList<>();
         parameters.forEach(parameterNode -> {
             Optional<Parameter> parameterModel = context == ServiceClassContext.GRAPHQL_DIAGRAM ?
-                    getGraphqlParameterModel(parameterNode) : Utils.getParameterModel(parameterNode);
+                    getGraphqlParameterModel(parameterNode, semanticModel) :
+                    Utils.getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setParameters(parameterModels);

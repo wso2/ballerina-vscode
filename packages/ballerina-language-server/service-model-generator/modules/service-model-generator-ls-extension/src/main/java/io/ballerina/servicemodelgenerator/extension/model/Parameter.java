@@ -56,13 +56,14 @@ public class Parameter {
     private boolean editable;
     private boolean optional;
     private boolean advanced;
-    private String httpParamType;
     private boolean hidden;
+    private boolean isGraphqlId;
+    private String httpParamType;
     private Map<String, Value> properties;
 
     public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, Value documentation,
                      boolean enabled, boolean editable, boolean optional, boolean advanced, String httpParamType,
-                     boolean hidden, Map<String, Value> properties) {
+                     boolean hidden, Map<String, Value> properties, boolean isGraphqlId) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
@@ -76,6 +77,7 @@ public class Parameter {
         this.httpParamType = httpParamType;
         this.hidden = hidden;
         this.properties = properties;
+        this.isGraphqlId = isGraphqlId;
     }
 
     public Parameter(Parameter parameter) {
@@ -93,6 +95,7 @@ public class Parameter {
         this.hidden = parameter.hidden;
         this.headerName = parameter.headerName;
         this.properties = parameter.properties;
+        this.isGraphqlId = parameter.isGraphqlId;
     }
 
     public MetaData getMetadata() {
@@ -218,6 +221,14 @@ public class Parameter {
         this.properties = properties;
     }
 
+    public boolean isGraphqlId() {
+        return isGraphqlId;
+    }
+
+    public void setIsGraphqlId(boolean isGraphqlId) {
+        this.isGraphqlId = isGraphqlId;
+    }
+
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
@@ -338,9 +349,11 @@ public class Parameter {
         private boolean editable;
         private boolean optional;
         private boolean advanced;
-        private String httpParamType;
         private boolean hidden;
+        private boolean isGraphqlId;
+        private String httpParamType;
         private Map<String, Value> properties;
+
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -415,9 +428,14 @@ public class Parameter {
             return this;
         }
 
+        public Builder isGraphqlId(boolean isGraphqlId) {
+            this.isGraphqlId = isGraphqlId;
+            return this;
+        }
+
         public Parameter build() {
             return new Parameter(metadata, kind, type, name, defaultValue, documentation, enabled, editable, optional,
-                    advanced, httpParamType, hidden, properties);
+                    advanced, httpParamType, hidden, properties, isGraphqlId);
         }
     }
 }

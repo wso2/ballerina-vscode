@@ -119,12 +119,14 @@ import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
@@ -145,6 +147,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -158,7 +161,9 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,6 +204,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final DiagnosticHandler diagnosticHandler;
     private final boolean forceAssign;
     private final String connectionScope;
+    private final WorkspaceManager workspaceManager;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -219,7 +225,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
-                        TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign) {
+                        TextDocument textDocument, ModuleInfo moduleInfo,
+                        boolean forceAssign,
+                        WorkspaceManager workspaceManager) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -231,6 +239,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeList = new ArrayList<>();
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
+        this.workspaceManager = workspaceManager;
     }
 
     @Override
@@ -330,14 +339,10 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(ReturnStatementNode returnStatementNode) {
         Optional<ExpressionNode> optExpr = returnStatementNode.expression();
-        if (optExpr.isEmpty()) {
-            startNode(NodeKind.STOP, returnStatementNode);
-        } else {
-            ExpressionNode expr = optExpr.get();
-            startNode(NodeKind.RETURN, returnStatementNode)
-                    .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
-                    .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false);
-        }
+        NodeBuilder builder = startNode(NodeKind.RETURN, returnStatementNode);
+        optExpr.ifPresent(expr -> builder
+                .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
+                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false));
         nodeBuilder.returning();
         endNode(returnStatementNode);
     }
@@ -394,36 +399,53 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
             }
         } else {
-            for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
-                if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
-                    continue;
-                }
-                VariableSymbol variableSymbol = (VariableSymbol) moduleSymbol;
-                if (!variableSymbol.getName().orElseThrow().equals(expressionNode.toSourceCode())) {
-                    continue;
-                }
-                Optional<Location> optLocation = variableSymbol.getLocation();
-                if (optLocation.isEmpty()) {
-                    throw new IllegalStateException("Location not found for the variable symbol: " +
-                            variableSymbol);
-                }
-                NonTerminalNode parent = CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                        optLocation.get()).syntaxTree()).get().parent().parent();
-                if (parent.kind() != SyntaxKind.MODULE_VAR_DECL) {
-                    throw new IllegalStateException("Parent is not a module variable declaration: " + parent);
-                }
-                ModuleVariableDeclarationNode moduleVariableDeclarationNode =
-                        (ModuleVariableDeclarationNode) parent;
-                Optional<ExpressionNode> optInitializer = moduleVariableDeclarationNode.initializer();
-                if (optInitializer.isEmpty()) {
-                    throw new IllegalStateException("Initializer not found for the module variable declaration: " +
-                            moduleVariableDeclarationNode);
-                }
-                ImplicitNewExpressionNode newExpressionNode = getNewExpr(optInitializer.get());
+            Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
+            if (symbol.isEmpty()) {
+                throw new IllegalStateException("Symbol not found for the expression: " + expressionNode);
+            }
+            if (!(symbol.get() instanceof VariableSymbol variableSymbol)) {
+                throw new IllegalStateException("Expected a VariableSymbol but found: " +
+                        symbol.get().getClass().getSimpleName());
+            }
+            Optional<Location> optLocation = variableSymbol.getLocation();
+            if (optLocation.isEmpty()) {
+                throw new IllegalStateException("Location not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            Optional<NonTerminalNode> varNodeOpt =
+                    CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
+                            optLocation.get()).syntaxTree());
+            if (varNodeOpt.isEmpty()) {
+                throw new IllegalStateException("Variable node not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            NonTerminalNode varNode = varNodeOpt.get();
+            ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
+            if (initializerExpr != null) {
+                ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
                 genAgentData(newExpressionNode, classSymbol);
-                break;
             }
         }
+    }
+
+    private ExpressionNode getInitializerFromVariableNode(NonTerminalNode varNode) {
+        // Find the actual variable declaration node by traversing up the tree
+        NonTerminalNode currentNode = varNode;
+        while (currentNode != null) {
+            switch (currentNode.kind()) {
+                case MODULE_VAR_DECL -> {
+                    ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) currentNode;
+                    return moduleVarDecl.initializer().orElse(null);
+                }
+                case LOCAL_VAR_DECL -> {
+                    VariableDeclarationNode localVarDecl = (VariableDeclarationNode) currentNode;
+                    return localVarDecl.initializer().orElse(null);
+                }
+                default -> // Continue traversing up to find a variable declaration
+                        currentNode = currentNode.parent();
+            }
+        }
+        return null;
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
@@ -436,6 +458,8 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode modelArg = null;
         ExpressionNode systemPromptArg = null;
         ExpressionNode memory = null;
+
+        Map<String, String> agentData = new HashMap<>();
         for (FunctionArgumentNode arg : argList.get().arguments()) {
             if (arg.kind() == SyntaxKind.NAMED_ARG) {
                 NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
@@ -448,11 +472,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 } else if (namedArgumentNode.argumentName().name().text().equals("memory")) {
                     memory = namedArgumentNode.expression();
                 }
+                agentData.put(namedArgumentNode.argumentName().name().text(),
+                        namedArgumentNode.expression().toString().trim());
             }
-        }
-        if (toolsArg == null) {
-            throw new IllegalStateException("Tools argument not found for the new expression: " +
-                    newExpressionNode);
         }
         if (modelArg == null) {
             throw new IllegalStateException("Model argument not found for the new expression: " +
@@ -463,7 +485,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     newExpressionNode);
         }
 
-        if (toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+        if (toolsArg != null && toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             List<ToolData> toolsData = new ArrayList<>();
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
@@ -501,15 +523,23 @@ public class CodeAnalyzer extends NodeVisitor {
             MappingConstructorExpressionNode mappingCtrExprNode =
                     (MappingConstructorExpressionNode) systemPromptArg;
             SeparatedNodeList<MappingFieldNode> fields = mappingCtrExprNode.fields();
-            Map<String, String> agentData = new HashMap<>();
             for (MappingFieldNode field : fields) {
                 SyntaxKind kind = field.kind();
                 if (kind != SyntaxKind.SPECIFIC_FIELD) {
                     continue;
                 }
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) field;
-                agentData.put(specificFieldNode.fieldName().toString().trim(),
-                        specificFieldNode.valueExpr().orElseThrow().toSourceCode());
+                ExpressionNode valueExpr = specificFieldNode.valueExpr().orElseThrow();
+                String value;
+                if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+                    TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
+                    value = templateExpr.content().stream()
+                            .map(Node::toString)
+                            .collect(Collectors.joining());
+                } else {
+                    value = valueExpr.toString().trim();
+                }
+                agentData.put(specificFieldNode.fieldName().toString().trim(), value);
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
@@ -533,6 +563,43 @@ public class CodeAnalyzer extends NodeVisitor {
         if (modelUrl != null) {
             nodeBuilder.metadata().addData("model", modelUrl);
         }
+
+        // Find the agent variable declaration to get the correct line range and source code
+        NonTerminalNode statementNode = newExpressionNode.parent();
+        while (statementNode != null && statementNode.kind() != SyntaxKind.LOCAL_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.MODULE_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+            statementNode = statementNode.parent();
+        }
+
+        // Create agent codedata using the agent variable declaration
+        Optional<ModuleID> moduleId = classSymbol.getModule().map(ModuleSymbol::id);
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.AGENT)
+                .lineRange(statementNode != null ? statementNode.lineRange() : newExpressionNode.lineRange())
+                .object(Constants.Ai.AGENT_TYPE_NAME)
+                .org(moduleId.map(ModuleID::orgName).orElse(""))
+                .module(moduleId.map(ModuleID::moduleName).orElse(""))
+                .packageName(moduleId.map(ModuleID::packageName).orElse(""))
+                .symbol(Constants.Ai.AGENT_SYMBOL_NAME)
+                .sourceCode(statementNode != null ? statementNode.toSourceCode().strip() :
+                        newExpressionNode.toSourceCode().strip())
+                .version(moduleId.map(ModuleID::version).orElse(""))
+                .isNew(false)
+                .build();
+
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePathFromCodedata(codedata, project.sourceRoot());
+
+        NodeBuilder.TemplateContext context =
+                new NodeBuilder.TemplateContext(workspaceManager, agentFilePath,
+                        statementNode != null ? statementNode.lineRange().startLine() :
+                                newExpressionNode.lineRange().startLine(), codedata, null);
+
+        AgentCallBuilder.setAgentProperties(nodeBuilder, context, agentData);
+        AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
+
+        nodeBuilder.metadata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
     }
 
     private boolean isClassField(ExpressionNode expr) {

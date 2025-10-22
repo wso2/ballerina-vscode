@@ -752,6 +752,7 @@ public final class Utils {
         if (Objects.nonNull(source.getResponses())) {
             target.setResponses(source.getResponses());
         }
+        target.setIsGraphqlId(source.isGraphqlId());
     }
 
     public static List<String> getAnnotationEdits(Service service) {
@@ -1101,7 +1102,14 @@ public final class Utils {
         FunctionReturnType returnType = function.getReturnType();
         if (Objects.nonNull(returnType)) {
             if (returnType.isEnabledWithValue()) {
-                builder.append(" returns ").append(getValueString(returnType));
+                builder.append(" returns ");
+                // Add GraphQL ID annotation for return type if isGraphqlId is true
+                if (returnType.isGraphqlId()) {
+                    builder.append("@graphql:ID ");
+                    imports.put("graphql", "ballerina/graphql");
+                }
+                String returnTypeStr = getValueString(returnType);
+                builder.append(returnTypeStr);
                 if (Objects.nonNull(returnType.getImports())) {
                     imports.putAll(returnType.getImports());
                 }
@@ -1135,6 +1143,11 @@ public final class Utils {
                         imports.putAll(paramType.getImports());
                     }
                     paramDef = String.format("%s %s", getValueString(paramType), getValueString(param.getName()));
+                }
+                // Add GraphQL ID annotation if isGraphqlId is true
+                if (param.isGraphqlId()) {
+                    paramDef = String.format("@graphql:ID %s", paramDef);
+                    imports.put("graphql", "ballerina/graphql");
                 }
                 params.add(paramDef);
             }

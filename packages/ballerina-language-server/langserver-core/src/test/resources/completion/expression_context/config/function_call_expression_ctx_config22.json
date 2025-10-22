@@ -520,6 +520,9 @@
     },
     {
       "label": "myJson",
+      "labelDetails": {
+        "detail": " json"
+      },
       "kind": "Variable",
       "detail": "json",
       "sortText": "CD",

@@ -438,6 +438,10 @@
     },
     {
       "label": "x",
+      "labelDetails": {
+        "detail": " float",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "AB",
@@ -454,6 +458,9 @@
     },
     {
       "label": "x1",
+      "labelDetails": {
+        "detail": " float"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "AB",
@@ -462,6 +469,9 @@
     },
     {
       "label": "x2",
+      "labelDetails": {
+        "detail": " float"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "AB",

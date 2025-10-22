@@ -121,7 +121,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
             setResourceEditability(context, functionModel);
             return functionModel;
         }
-        Function functionModel = getObjectFunctionFromSource(SERVICE_DIAGRAM, funcDefNode);
+        Function functionModel = getObjectFunctionFromSource(SERVICE_DIAGRAM, funcDefNode, context.semanticModel());
         functionModel.setEditable(true);
         return functionModel;
     }

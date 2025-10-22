@@ -114,88 +114,72 @@
           }
         ]
       },
-      "configureListener": {
+      "spec": {
         "metadata": {
-          "label": "Listener Configuration",
-          "description": "Configure the HTTP listener for the service"
+          "label": "OpenAPI Specification",
+          "description": "Provide an OpenAPI specification to generate the resources"
         },
-        "value": "",
-        "valueType": "CHOICE",
-        "isType": false,
+        "codedata": {
+          "type": "OPENAPI"
+        },
         "placeholder": "",
+        "valueType": "FILE_SELECT",
+        "valueTypeConstraint": "string",
+        "value": "/Users/pasindufernando/Desktop/BI/Ballerina-Language-Server/ballerina-language-server/service-model-generator/modules/service-model-generator-ls-extension/src/test/resources/add_service_and_listener/source/sample1/openapi.yaml",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "serviceTypeName": {
+        "metadata": {
+          "label": "Service Type Name",
+          "description": "The name of the service contract type generated from the OpenAPI specification"
+        },
+        "codedata": {
+          "type": "SERVICE_BASEPATH"
+        },
+        "placeholder": "",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "WeatherAPI",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "Provide a port number for the listener"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_REQUIRED"
+        },
+        "placeholder": "8080",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "int",
+        "value": "9095",
         "items": [],
-        "choices": [
-          {
-            "metadata": {
-              "label": "Use Default Listener on Port 8080",
-              "description": "Use the default HTTP listener on port 8080"
-            },
-            "enabled": false,
-            "editable": true,
-            "value": "true",
-            "valueType": "FORM",
-            "isType": false,
-            "placeholder": "true",
-            "optional": false,
-            "advanced": false,
-            "properties": {}
-          },
-          {
-            "metadata": {
-              "label": "Configure Listener with Custom Port",
-              "description": "Configure a custom HTTP listener with a specific port"
-            },
-            "enabled": true,
-            "editable": true,
-            "value": "true",
-            "valueType": "FORM",
-            "isType": false,
-            "placeholder": "true",
-            "optional": false,
-            "advanced": false,
-            "properties": {
-              "port": {
-                "metadata": {
-                  "label": "Port",
-                  "description": "Provide a port number for the listener"
-                },
-                "codedata": {
-                  "argType": "LISTENER_PARAM_REQUIRED"
-                },
-                "placeholder": "8080",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "int",
-                "value": "9095",
-                "items": [],
-                "typeMembers": [],
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "listenerVarName": {
-                "metadata": {
-                  "label": "Listener Name",
-                  "description": "Provide a name for the listener being created"
-                },
-                "codedata": {
-                  "type": "LISTENER_VAR_NAME"
-                },
-                "placeholder": "httpListener",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "weatherListener",
-                "items": [],
-                "typeMembers": [],
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              }
-            }
-          }
-        ],
-        "properties": {},
+        "typeMembers": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "placeholder": "httpListener",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "weatherListener",
+        "items": [],
         "typeMembers": [],
         "enabled": true,
         "editable": true,
@@ -217,7 +201,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener http:Listener weatherListener = new (9095);\nservice WeatherAPI on weatherListener {\n\n\tresource function get albums (string[] _artists_, string? X\\-API\\-VERSION) returns album[]|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n\n\tresource function post albums (album payload) returns album|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n\n\tresource function get albums/[string _id] () returns album|MessageNotFound|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:NOT_FOUND;\n\t\t}\n\t}\n\n\tresource function get albums/[string id]/artist () returns album_aRTIST|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn http:BAD_REQUEST;\n\t\t}\n\t}\n}\n"
+        "newText": "\nlistener http:Listener weatherListener = new (9095);\nservice WeatherAPI on weatherListener {\n\n\tresource function get albums (string[] _artists_, string? X\\-API\\-VERSION) returns album[]|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn [];\n\t\t}\n\t}\n\n\tresource function post albums (album payload) returns album|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn {artist: (), _id: (), title: ()};\n\t\t}\n\t}\n\n\tresource function get albums/[string _id] () returns album|MessageNotFound|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn {artist: (), _id: (), title: ()};\n\t\t}\n\t}\n\n\tresource function get albums/[string id]/artist () returns album_aRTIST|ErrorPayloadBadRequest {\n\t\tdo {\n\t\t} on fail error e {\n\t\t\treturn {albums: (), name: (), id: ()};\n\t\t}\n\t}\n}\n"
       }
     ],
     "sample1/service_contract_WeatherAPI.bal": [

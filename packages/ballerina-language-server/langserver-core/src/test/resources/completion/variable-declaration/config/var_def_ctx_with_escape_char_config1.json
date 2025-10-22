@@ -419,6 +419,9 @@
     },
     {
       "label": "b",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -450,6 +453,9 @@
     },
     {
       "label": "a\\\\b",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

@@ -437,6 +437,9 @@
     },
     {
       "label": "obj1",
+      "labelDetails": {
+        "detail": " TestObject1"
+      },
       "kind": "Variable",
       "detail": "TestObject1",
       "sortText": "AB",

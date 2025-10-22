@@ -384,6 +384,10 @@
     },
     {
       "label": "proxyHost",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -400,6 +404,10 @@
     },
     {
       "label": "proxyPort",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -408,6 +416,9 @@
     },
     {
       "label": "self",
+      "labelDetails": {
+        "detail": " ProxyClient"
+      },
       "kind": "Variable",
       "detail": "ProxyClient",
       "sortText": "F",
