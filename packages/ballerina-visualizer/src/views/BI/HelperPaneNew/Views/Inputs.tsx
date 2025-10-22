@@ -135,7 +135,6 @@ export const Inputs = (props: InputsPageProps) => {
         });
     }, [targetLineRange])
 
-    console.log(">>> Inputs filteredCompletions: ", filteredCompletions);
     const dropdownItems = useMemo(() => {
         return filteredCompletions.filter(
             (completion) =>
