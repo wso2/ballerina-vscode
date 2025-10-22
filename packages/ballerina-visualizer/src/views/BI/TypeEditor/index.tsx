@@ -20,7 +20,7 @@ import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'reac
 import { debounce } from 'lodash';
 import { LineRange, Type } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
+import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
 import { filterOperators, filterTypes, getImportedTypes, getTypeBrowserTypes, getTypes } from './utils';
 import { useMutation } from '@tanstack/react-query';
@@ -47,13 +47,15 @@ type FormTypeEditorProps = {
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: () => void;
-    onSaveType: (type: Type) => void
+    onSaveType: (type: Type | string) => void
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
+    isContextTypeForm?: boolean;
+    simpleType?: string;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -93,8 +95,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
 
     useEffect(() => {
         if (refetchTypes && !prevRefetchRef.current) {
-            fetchedInitialTypes.current = false; 
-            handleSearchTypeHelper('', true); 
+            fetchedInitialTypes.current = false;
+            handleSearchTypeHelper('', true);
         }
         prevRefetchRef.current = refetchTypes;
     }, [refetchTypes]);
@@ -235,30 +237,56 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     return (
         <>
             {filePath && targetLineRange && (
-                <TypeEditor
-                    type={type}
-                    rpcClient={rpcClient}
-                    isPopupTypeForm={isPopupTypeForm}
-                    onTypeChange={onTypeChange}
-                    newType={newType}
-                    newTypeValue={newTypeValue}
-                    onSaveType={onSaveType}
-                    isGraphql={isGraphql}
-                    typeHelper={{
-                        loading,
-                        loadingTypeBrowser,
-                        referenceTypes: basicTypes,
-                        basicTypes: filteredBasicTypes,
-                        importedTypes,
-                        operators: filteredOperators,
-                        typeBrowserTypes: filteredTypeBrowserTypes,
-                        onSearchTypeHelper: handleSearchTypeHelper,
-                        onSearchTypeBrowser: handleSearchTypeBrowser,
-                        onTypeItemClick: handleTypeItemClick,
-                        onCloseCompletions: onCloseCompletions,
-                        onTypeCreate: handleTypeCreate
-                    }}
-                />
+                isContextTypeForm ?
+                    <ContextTypeEditor
+                        type={type}
+                        rpcClient={rpcClient}
+                        isPopupTypeForm={isPopupTypeForm}
+                        onTypeChange={onTypeChange}
+                        newType={newType}
+                        newTypeValue={newTypeValue}
+                        onSaveType={onSaveType}
+                        isGraphql={isGraphql}
+                        simpleType={simpleType}
+                        typeHelper={{
+                            loading,
+                            loadingTypeBrowser,
+                            referenceTypes: basicTypes,
+                            basicTypes: filteredBasicTypes,
+                            importedTypes,
+                            operators: filteredOperators,
+                            typeBrowserTypes: filteredTypeBrowserTypes,
+                            onSearchTypeHelper: handleSearchTypeHelper,
+                            onSearchTypeBrowser: handleSearchTypeBrowser,
+                            onTypeItemClick: handleTypeItemClick,
+                            onCloseCompletions: onCloseCompletions,
+                            onTypeCreate: handleTypeCreate
+                        }}
+                    /> :
+                    <TypeEditor
+                        type={type}
+                        rpcClient={rpcClient}
+                        isPopupTypeForm={isPopupTypeForm}
+                        onTypeChange={onTypeChange}
+                        newType={newType}
+                        newTypeValue={newTypeValue}
+                        onSaveType={onSaveType}
+                        isGraphql={isGraphql}
+                        typeHelper={{
+                            loading,
+                            loadingTypeBrowser,
+                            referenceTypes: basicTypes,
+                            basicTypes: filteredBasicTypes,
+                            importedTypes,
+                            operators: filteredOperators,
+                            typeBrowserTypes: filteredTypeBrowserTypes,
+                            onSearchTypeHelper: handleSearchTypeHelper,
+                            onSearchTypeBrowser: handleSearchTypeBrowser,
+                            onTypeItemClick: handleTypeItemClick,
+                            onCloseCompletions: onCloseCompletions,
+                            onTypeCreate: handleTypeCreate
+                        }}
+                    />
             )}
             {isAddingType && createPortal(
                 <>

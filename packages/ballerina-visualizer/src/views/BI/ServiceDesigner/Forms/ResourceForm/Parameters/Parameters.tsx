@@ -23,13 +23,15 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel } from '@wso2/ballerina-core';
+import { ConfigProperties, ParameterModel, Type } from '@wso2/ballerina-core';
+import { ContextBasedFormTypeEditor } from '../../../../../../components/ContextBasedFormTypeEditor';
 
 export interface ParametersProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void,
     schemas: ConfigProperties;
     readonly?: boolean;
+    pathName?: string;
     showPayload: boolean;
     isNewResource?: boolean;
 }
@@ -66,7 +68,7 @@ const OptionalConfigContent = styled.div`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, schemas, showPayload, isNewResource = false } = props;
+    const { parameters, readonly, onChange, schemas, showPayload, isNewResource = false, pathName } = props;
 
     const queryModel = schemas["query"] as ParameterModel;
     const headerModel = schemas["header"] as ParameterModel;
@@ -94,6 +96,8 @@ export function Parameters(props: ParametersProps) {
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
+
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
 
     const handleAdvanceParamToggle = () => {
@@ -130,11 +134,33 @@ export function Parameters(props: ParametersProps) {
     };
 
     const onAddPayloadClick = () => {
-        payloadModel.name.value = "payload";
-        payloadModel.type.value = "";
-        setIsNew(true);
-        setEditModel(payloadModel);
-        setEditingIndex(-1);
+        // Open FormTypeEditor modal instead of ParamEditor
+        setIsTypeEditorOpen(true);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        // When a type is created, set it as the payload type
+        const updatedPayloadModel = { ...payloadModel };
+        updatedPayloadModel.name.value = "payload";
+        updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
+        updatedPayloadModel.enabled = true;
+
+        // Check if we're editing an existing payload or adding a new one
+        const existingPayloadIndex = parameters.findIndex(p => p.httpParamType === "PAYLOAD");
+
+        if (existingPayloadIndex >= 0) {
+            // Update existing editing model
+            setEditModel(updatedPayloadModel);
+        } else {
+            // Add new payload parameter
+            onChange([...parameters, updatedPayloadModel]);
+        }
+        // Close the modal
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
     };
 
     const onDelete = (param: ParameterModel) => {
@@ -179,6 +205,30 @@ export function Parameters(props: ParametersProps) {
             onChange(updatedParameters);
         }
     };
+
+    const generatePayloadName = () => {
+        if (pathName) {
+            // Remove leading/trailing slashes and split by slash
+            const pathSegments = pathName.replace(/^\/|\/$/g, '').split('/');
+
+            // Filter out segments that contain brackets (parameters) and keep only valid segments
+            const validSegments = pathSegments.filter(segment => !segment.includes('[') && !segment.includes(']'));
+
+            // Join with underscores and sanitize to only allow letters, numbers, and underscores
+            const sanitizedPath = validSegments
+                .join('_')
+                .replace(/[^a-zA-Z0-9_]/g, ''); // Remove any characters that are not letters, numbers, or underscores
+
+            if (sanitizedPath) {
+                const newPayloadName = `${sanitizedPath}_payload`;
+                const capitalizedPath = newPayloadName.charAt(0).toUpperCase() + newPayloadName.slice(1);
+                return capitalizedPath;
+            } else {
+                return "PayloadType";
+            }
+        }
+        return "PayloadType";
+    }
 
     const onSaveParam = (param: ParameterModel) => {
         param.enabled = true;
@@ -308,7 +358,7 @@ export function Parameters(props: ParametersProps) {
                 <AddButtonWrapper >
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddPayloadClick)}>
                         <Codicon name="add" />
-                        <>Payload</>
+                        <>Define Payload</>
                     </LinkButton>
                 </AddButtonWrapper>
             }
@@ -401,6 +451,17 @@ export function Parameters(props: ParametersProps) {
             )}
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
+            {/* FormTypeEditor Modal for Add Payload */}
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={generatePayloadName()}
+                editMode={false}
+                modalTitle={"Define Payload"}
+                modalWidth={650}
+                modalHeight={600}
+            />
         </div >
     );
 }
