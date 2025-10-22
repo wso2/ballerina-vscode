@@ -67,6 +67,8 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         String enabledFunction = filterRabbitMqFunctions(service.getFunctions());
         if (enabledFunction != null) {
             addDataBindingParam(service, enabledFunction, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
+        } else {
+            addDataBindingParam(service, ON_MESSAGE, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
         }
         return service;
     }

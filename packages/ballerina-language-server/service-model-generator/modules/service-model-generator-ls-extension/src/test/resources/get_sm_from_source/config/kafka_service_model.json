@@ -292,7 +292,7 @@
         },
         "properties": {
           "wrapperTypeName": {
-            "value": "",
+            "value": "KafkaAnydataConsumer",
             "enabled": false,
             "editable": false,
             "optional": false,

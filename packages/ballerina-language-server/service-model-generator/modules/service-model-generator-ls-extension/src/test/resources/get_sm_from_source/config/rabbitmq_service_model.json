@@ -337,7 +337,7 @@
         },
         "properties": {
           "wrapperTypeName": {
-            "value": "",
+            "value": "RabbitMQAnydataMessage",
             "enabled": false,
             "editable": false,
             "optional": false,

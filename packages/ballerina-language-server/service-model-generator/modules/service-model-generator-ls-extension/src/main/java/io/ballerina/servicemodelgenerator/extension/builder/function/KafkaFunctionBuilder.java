@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.function;
 
+import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.DatabindUtil;
 import org.eclipse.lsp4j.TextEdit;
@@ -52,6 +53,18 @@ public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
         Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
         allEdits.putAll(databindEdits);
 
+        return allEdits;
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
+                context.function(), TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, true,
+                context.project(), context.semanticModel());
+
+        Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
+        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
+        allEdits.putAll(databindEdits);
         return allEdits;
     }
 

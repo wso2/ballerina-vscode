@@ -39,6 +39,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
@@ -48,6 +49,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
@@ -337,6 +339,9 @@ public final class DatabindUtil {
         );
 
         match.targetFunction().addParameter(dataBindingParam);
+        if (match.targetFunction().getCodedata() == null) {
+            match.targetFunction().setCodedata(new Codedata());
+        }
         match.targetFunction().getCodedata().setModuleName(service.getModuleName());
         match.targetFunction().addProperty(DATA_BINDING_PROPERTY,
                 new Value.ValueBuilder().value("true").build()
@@ -372,6 +377,72 @@ public final class DatabindUtil {
         match.targetFunction().addProperty(WRAPPER_TYPE_NAME_PROPERTY,
                 new Value.ValueBuilder().value(existingWrapperTypeName).build()
         );
+    }
+
+    /**
+     * Processes databinding for a function add operation. This method generates wrapper types and updates
+     * the function parameters when a DATA_BINDING parameter is enabled.
+     * Similar to processDatabindingUpdate but adapted for add operations where we don't have function nodes.
+     *
+     * @param function         The function model to process
+     * @param prefix           Type name prefix for generated wrapper types (e.g., "RabbitMQAnydataMessage")
+     * @param baseType         Base record type (e.g., "rabbitmq:AnydataMessage")
+     * @param payloadFieldName The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
+     * @param isArray          Whether the parameter is array type
+     * @param project          The Ballerina project for generating type names
+     * @param semanticModel    The semantic model for type resolution
+     * @return Map of file paths to TextEdit lists for types.bal, or empty if no changes needed
+     */
+    public static Map<String, List<TextEdit>> processDatabindingForAdd(Function function, String prefix,
+                                                                       String baseType, String payloadFieldName,
+                                                                       boolean isArray, Project project,
+                                                                       SemanticModel semanticModel) {
+        Optional<Parameter> dataBindingParamOpt = findDataBindingParameter(function);
+
+        if (dataBindingParamOpt.isEmpty()) {
+            return Map.of();
+        }
+
+        Parameter dataBindingParam = dataBindingParamOpt.get();
+        String newDataBindingType = dataBindingParam.getType().getValue();
+
+        if (newDataBindingType == null || newDataBindingType.isEmpty()) {
+            return Map.of();
+        }
+
+        // Check if a custom wrapper type name is provided via property
+        String customWrapperTypeName = null;
+        Value wrapperTypeNameProp = function.getProperty(WRAPPER_TYPE_NAME_PROPERTY);
+        if (wrapperTypeNameProp != null) {
+            String propValue = wrapperTypeNameProp.getValue();
+            if (propValue != null && !propValue.isEmpty()) {
+                customWrapperTypeName = propValue;
+            }
+        }
+
+        // For add operation, we always create a new type (no existing type to update)
+        String typeName;
+        if (customWrapperTypeName != null && !customWrapperTypeName.isEmpty()) {
+            // User provided a custom wrapper type name
+            typeName = customWrapperTypeName;
+        } else {
+            // Generate a new wrapper type name using the provided prefix
+            typeName = generateNewDataBindTypeName(project, semanticModel, null, prefix);
+        }
+
+        // Create the wrapper type definition in types.bal
+        Map<String, List<TextEdit>> typesEdits = createTypeDefinitionEditsForAdd(project, typeName, baseType,
+                newDataBindingType, payloadFieldName, isArray);
+
+        // Update the databind parameter's type value and the required parameter
+        updateFunctionParameters(function, dataBindingParam, typeName, isArray);
+
+        // Update the wrapper type name property
+        function.addProperty(WRAPPER_TYPE_NAME_PROPERTY,
+                new Value.ValueBuilder().value(typeName).build()
+        );
+
+        return typesEdits;
     }
 
     /**
@@ -445,6 +516,11 @@ public final class DatabindUtil {
             }
             return Map.of();
         }
+        // TODO: Go to parent from here and get the types.bal
+
+//        PathUtil.getBalaUriForPath(
+//        context.filePath()
+//        context.workspaceManager().document()
 
         Parameter dataBindingParam = dataBindingParamOpt.get();
 
@@ -817,6 +893,63 @@ public final class DatabindUtil {
         }
 
         return imports;
+    }
+
+    /**
+     * Creates TextEdits for adding a databind type definition to types.bal for add operations.
+     *
+     * @param project          The Ballerina project
+     * @param typeName         The name for the new type (e.g., "KafkaDatabind1")
+     * @param baseType         The base record type (e.g., "kafka:AnydataConsumerRecord")
+     * @param dataBindingType  The data binding field type (e.g., "Order")
+     * @param payloadFieldName The field name for the payload (e.g., "value" or "content")
+     * @param isArray          Whether the parameter is an array type
+     * @return Map of file paths to TextEdit lists
+     */
+    private static Map<String, List<TextEdit>> createTypeDefinitionEditsForAdd(Project project,
+                                                                                String typeName,
+                                                                                String baseType,
+                                                                                String dataBindingType,
+                                                                                String payloadFieldName,
+                                                                                boolean isArray) {
+        Document typesDocument = getTypesDocument(project);
+        if (typesDocument == null || typesDocument.syntaxTree() == null) {
+            return Map.of();
+        }
+
+        String typeDefinition = generateTypeDefinition(typeName, baseType, dataBindingType, payloadFieldName);
+
+        // Determine insertion point
+        ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
+        LinePosition insertPosition;
+
+        if (modulePartNode.members().isEmpty()) {
+            // Empty file, insert at the beginning
+            insertPosition = LinePosition.from(0, 0);
+        } else {
+            // Insert at the end of the file
+            Node lastMember = modulePartNode.members().get(modulePartNode.members().size() - 1);
+            insertPosition = lastMember.lineRange().endLine();
+        }
+
+        List<TextEdit> edits = new ArrayList<>();
+
+        // Extract and add required imports
+        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode);
+        if (!requiredImports.isEmpty()) {
+            String importsText = String.join("\n", requiredImports);
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
+        }
+
+        // Add the type definition
+        TextEdit typeEdit = new TextEdit(Utils.toRange(insertPosition),
+                (modulePartNode.members().isEmpty() ? "" : "\n\n") + typeDefinition);
+        edits.add(typeEdit);
+
+        // Construct the path to types.bal
+        String typesFilePath = project.sourceRoot().resolve("types.bal").toAbsolutePath().toString();
+
+        return Map.of(typesFilePath, edits);
     }
 
     /**
