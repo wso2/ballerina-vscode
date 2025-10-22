@@ -63,6 +63,7 @@ export enum SidePanelView {
     DATA_LOADER_LIST = "DATA_LOADER_LIST",
     CHUNKERS = "CHUNKERS",
     CHUNKER_LIST = "CHUNKER_LIST",
+    KNOWLEDGE_BASES = "KNOWLEDGE_BASES",
     KNOWLEDGE_BASE_LIST = "KNOWLEDGE_BASE_LIST",
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
@@ -452,6 +453,18 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.KNOWLEDGE_BASES:
+                return (
+                    <CardList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onClose={onClose}
+                        title={"Knowledge Bases"}
+                        searchPlaceholder={"Search knowledge bases"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
