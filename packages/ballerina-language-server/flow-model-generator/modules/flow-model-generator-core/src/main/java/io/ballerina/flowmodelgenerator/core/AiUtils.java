@@ -197,6 +197,7 @@ public class AiUtils {
      * @param key         the property key
      * @param property    the existing property to copy from
      * @param customValue the custom value to use instead of the property's original value, or null to use original
+     * @param isHidden    whether to mark the property as hidden
      */
     public static void addPropertyFromTemplate(NodeBuilder nodeBuilder, String key, Property property,
                                                String customValue, boolean isHidden) {
@@ -603,5 +604,26 @@ public class AiUtils {
                 .packageName(AI)
                 .symbol(Ai.AGENT_SYMBOL_NAME)
                 .build();
+    }
+
+    /**
+     * Escapes special characters in a string to prevent injection attacks in template strings. This method handles
+     * backslashes, backticks, dollar signs, and control characters.
+     *
+     * @param input the string to escape
+     * @return the escaped string safe for use in template strings
+     */
+    public static String escapeTemplateString(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        return input
+                .replace("\\", "\\\\")     // Escape backslashes first
+                .replace("`", "\\`")       // Escape backticks (template string delimiter)
+                .replace("$", "\\$")       // Escape dollar signs (interpolation)
+                .replace("\n", "\\n")      // Escape newlines
+                .replace("\r", "\\r")      // Escape carriage returns
+                .replace("\t", "\\t");     // Escape tabs
     }
 }

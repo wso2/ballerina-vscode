@@ -208,7 +208,6 @@ public class TypesManager {
             textEdits.add(new TextEdit(CommonUtils.toRange(node.lineRange()), codeSnippet));
         }
 
-
         addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits);
 
         return gson.toJsonTree(textEditsMap);
@@ -404,7 +403,7 @@ public class TypesManager {
                     addDependencyTypes(recordTypeSymbol.restTypeDescriptor().get(), references, skipParameters);
                 }
             }
-           case ARRAY -> addDependencyTypes(
+            case ARRAY -> addDependencyTypes(
                     ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(),
                     references,
                     skipParameters
@@ -551,7 +550,8 @@ public class TypesManager {
                 codedata.id(),
                 codedata.isNew(),
                 codedata.isGenerated(),
-                codedata.inferredReturnType()
+                codedata.inferredReturnType(),
+                codedata.data()
         );
     }
 

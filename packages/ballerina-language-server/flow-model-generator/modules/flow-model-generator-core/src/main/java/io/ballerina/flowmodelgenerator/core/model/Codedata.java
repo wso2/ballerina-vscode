@@ -21,6 +21,9 @@ package io.ballerina.flowmodelgenerator.core.model;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.tools.text.LineRange;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Represents the properties that uniquely identifies a node in the diagram.
  *
@@ -39,12 +42,13 @@ import io.ballerina.tools.text.LineRange;
  * @param isNew              Whether the component is a node template
  * @param isGenerated        The component is auto generated or not
  * @param inferredReturnType The inferred return type of the component if exists
+ * @param data               The additional data
  * @since 1.0.0
  */
 public record Codedata(NodeKind node, String org, String module, String packageName, String object, String symbol,
                        String version, LineRange lineRange, String sourceCode, String parentSymbol,
                        String resourcePath, Integer id, Boolean isNew, Boolean isGenerated,
-                       String inferredReturnType) {
+                       String inferredReturnType, Map<String, Object> data) {
 
     @Override
     public String toString() {
@@ -88,6 +92,7 @@ public record Codedata(NodeKind node, String org, String module, String packageN
         private Boolean isNew;
         private Boolean isGenerated;
         private String inferredReturnType;
+        private Map<String, Object> data;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -179,9 +184,30 @@ public record Codedata(NodeKind node, String org, String module, String packageN
             return this;
         }
 
+        public Builder<T> data(String key, Object value) {
+            if (data == null) {
+                data = new LinkedHashMap<>();
+            }
+            data.put(key, value);
+            return this;
+        }
+
+        public Builder<T> data(Map<String, Object> data) {
+            this.data = data;
+            return this;
+        }
+
+        public Builder<T> addData(String key, Object value) {
+            if (data == null) {
+                data = new LinkedHashMap<>();
+            }
+            data.put(key, value);
+            return this;
+        }
+
         public Codedata build() {
             return new Codedata(node, org, module, packageName, object, symbol, version, lineRange, sourceCode,
-                    parentSymbol, resourcePath, id, isNew, isGenerated, inferredReturnType);
+                    parentSymbol, resourcePath, id, isNew, isGenerated, inferredReturnType, data);
         }
     }
 }

@@ -1,0 +1,21 @@
+{
+  "description": "Mapping constructor with variable values",
+  "filePath": "main.bal",
+  "expression": "{key1: var1, key2: var2}",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 7,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 19,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}
