@@ -226,7 +226,7 @@ export function ResourceForm(props: ResourceFormProps) {
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
 							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 							<Divider sx={{ marginBottom: 30 }} />
-							<Tooltip content='Create more resources' containerSx={{ position: "fixed", width: "120px", marginLeft: 80 }}>
+							<Tooltip content='Keep creating more resources' containerSx={{ position: "fixed", width: "120px", marginLeft: 60 }}>
 								<CheckBoxGroup columns={2}>
 									<CheckBox label='Create More' checked={createMore} onChange={() => setCreateMore(!createMore)} />
 								</CheckBoxGroup>
