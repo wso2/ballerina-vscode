@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "2",
       "displayName": "GraphQL Service",
-      "description": "Create GraphQL service",
+      "description": "Create GraphQL service from scratch or by importing a GraphQL schema",
       "orgName": "ballerina",
       "packageName": "graphql",
       "moduleName": "graphql",
@@ -16,39 +16,97 @@
       "type": "graphql",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
       "properties": {
-        "basePath": {
+        "designApproach": {
           "metadata": {
-            "label": "Base Path",
-            "description": "The base path of the GraphQL service"
+            "label": "Contract",
+            "description": ""
           },
-          "codedata": {
-            "argType": "SERVICE_BASE_PATH"
-          },
-          "placeholder": "/graphql",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
-          "value": "/graphql",
-          "items": [],
-          "typeMembers": [],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "port": {
-          "metadata": {
-            "label": "Port",
-            "description": "The port on which the GraphQL service listens"
-          },
-          "codedata": {
-            "argType": "LISTENER_PARAM_REQUIRED"
-          },
-          "placeholder": "8080",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
-          "value": "8080",
-          "items": [],
-          "typeMembers": [],
+          "placeholder": "",
+          "valueType": "CHOICE",
+          "value": "",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Design From Scratch",
+                "description": "Design the service from scratch"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "basePath": {
+                  "metadata": {
+                    "label": "Base Path",
+                    "description": "The base path of the GraphQL service"
+                  },
+                  "codedata": {
+                    "type": "SERVICE_BASEPATH"
+                  },
+                  "placeholder": "/graphql",
+                  "valueType": "SERVICE_PATH",
+                  "valueTypeConstraint": "string",
+                  "value": "/graphql",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "port": {
+                  "metadata": {
+                    "label": "Port",
+                    "description": "The port on which the GraphQL service listens"
+                  },
+                  "codedata": {
+                    "type": "LISTENER_PARAM_REQUIRED"
+                  },
+                  "placeholder": "8080",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "int",
+                  "value": "8080",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Import GraphQL Schema",
+                "description": "Create the service from a GraphQL schema"
+              },
+              "placeholder": "true",
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "spec": {
+                  "metadata": {
+                    "label": "GraphQL Schema",
+                    "description": "Provide a GraphQL schema to generate the service"
+                  },
+                  "codedata": {
+                    "type": "GRAPHQL_SCHEMA"
+                  },
+                  "placeholder": "",
+                  "valueType": "FILE_SELECT",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

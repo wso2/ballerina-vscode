@@ -1,0 +1,131 @@
+{
+  "id": "2",
+  "displayName": "GraphQL Service",
+  "description": "Create GraphQL service from scratch or by importing a GraphQL schema",
+  "orgName": "ballerina",
+  "packageName": "graphql",
+  "moduleName": "graphql",
+  "version": "1.16.0",
+  "type": "graphql",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+  "properties": {
+    "designApproach": {
+      "metadata": {
+        "label": "Contract",
+        "description": ""
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "valueType": "CHOICE",
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "choices": [
+        {
+          "metadata": {
+            "label": "Design From Scratch",
+            "description": "Design the service from scratch"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "basePath": {
+              "metadata": {
+                "label": "Base Path",
+                "description": "The base path of the GraphQL service"
+              },
+              "value": "/graphql",
+              "valueType": "SERVICE_PATH",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "/graphql",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_BASEPATH"
+              }
+            },
+            "port": {
+              "metadata": {
+                "label": "Port",
+                "description": "The port on which the GraphQL service listens"
+              },
+              "value": "8080",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "int",
+              "isType": false,
+              "placeholder": "8080",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "LISTENER_PARAM_REQUIRED"
+              }
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "Import GraphQL Schema",
+            "description": "Create the service from a GraphQL schema"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "spec": {
+              "metadata": {
+                "label": "GraphQL Schema",
+                "description": "Provide a GraphQL schema to generate the service"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "FILE_SELECT",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "GRAPHQL_SCHEMA"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "listenerVarName": {
+      "metadata": {
+        "label": "Listener Name",
+        "description": "Provide a name for the listener being created"
+      },
+      "codedata": {
+        "type": "LISTENER_VAR_NAME"
+      },
+      "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "Global",
+      "value": "graphqlListener",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": true
+    }
+  }
+}

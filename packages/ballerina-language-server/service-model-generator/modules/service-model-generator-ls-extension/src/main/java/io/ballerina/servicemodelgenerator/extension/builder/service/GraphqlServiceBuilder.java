@@ -18,6 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
@@ -26,15 +28,23 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
@@ -51,6 +61,26 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServ
  * @since 1.2.0
  */
 public class GraphqlServiceBuilder extends AbstractServiceBuilder {
+
+    private static final String GRAPHQL_SERVICE_MODEL_LOCATION = "services/graphql.json";
+
+    @Override
+    public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
+        InputStream resourceStream = GraphqlServiceBuilder.class.getClassLoader()
+                .getResourceAsStream(GRAPHQL_SERVICE_MODEL_LOCATION);
+        if (resourceStream == null) {
+            return null;
+        }
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Value listenerNameProp = listenerNameProperty(context);
+            serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerNameProp.getValue());
+            return serviceInitModel;
+        } catch (IOException e) {
+            return null;
+        }
+    }
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
