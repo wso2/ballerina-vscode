@@ -961,8 +961,8 @@
       "readOnlyMetaData": [
         {"key": "autoAck", "displayName": "Auto Acknowledge", "kind": "ANNOTATION"},
         {"key": "queueName", "displayName": "Queue Name", "kind": "ANNOTATION"},
-        {"key": "host", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
-        {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
+        {"key": "arg1", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
+        {"key": "arg2", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
       ]
     },
     {

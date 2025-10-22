@@ -48,14 +48,8 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
                                             ModelFromSourceContext context) {
         Map<String, String> result = new HashMap<>();
 
-        // Determine annotation name based on module
-        String annotationName = getAnnotationNameForModule(context.moduleName());
-        if (annotationName == null) {
-            return result;
-        }
-
-        // Extract the parameter value from the annotation
-        String actualValue = extractAnnotationParameterValue(serviceNode, annotationName, metadataItem.metadataKey());
+        // Extract the parameter value from any annotation containing the parameter
+        String actualValue = extractAnnotationParameterValue(serviceNode, metadataItem.metadataKey());
         if (actualValue != null) {
             String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
                     ? metadataItem.displayName()
@@ -71,69 +65,39 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
         return ANNOTATION_KIND;
     }
 
-    /**
-     * Determines the annotation name to extract based on the module name.
-     *
-     * @param moduleName The module name (e.g., "rabbitmq", "asb", etc.)
-     * @return The annotation name to extract, or null if not supported
-     */
-    private String getAnnotationNameForModule(String moduleName) {
-        if (moduleName == null) {
-            return null;
-        }
-
-        return switch (moduleName) {
-            case "rabbitmq" -> "rabbitmq:ServiceConfig";
-            case "asb" -> "asb:ServiceConfig";
-            case "kafka" -> "kafka:ServiceConfig";
-            case "mqtt" -> "mqtt:ServiceConfig";
-            // Add more mappings as needed for other message broker modules
-            default -> null;
-        };
-    }
 
     /**
-     * Extracts a specific parameter value from an annotation.
+     * Extracts a specific parameter value from any annotation containing that parameter.
      *
      * @param serviceNode The service declaration node
-     * @param annotationName The annotation name to search for
      * @param parameterName The parameter name to extract
      * @return The parameter value as a string, or null if not found
      */
-    private String extractAnnotationParameterValue(ServiceDeclarationNode serviceNode, String annotationName,
-                                                  String parameterName) {
+    private String extractAnnotationParameterValue(ServiceDeclarationNode serviceNode, String parameterName) {
         Optional<MetadataNode> metadata = serviceNode.metadata();
         if (metadata.isEmpty()) {
             return null;
         }
 
-        // Find the specific annotation
-        Optional<AnnotationNode> targetAnnotation = metadata.get().annotations().stream()
-                .filter(annotation -> annotation.annotReference().toString().trim().equals(annotationName))
-                .findFirst();
+        // Search through all annotations for the parameter
+        for (AnnotationNode annotation : metadata.get().annotations()) {
+            Optional<MappingConstructorExpressionNode> mapExpr = annotation.annotValue();
+            if (mapExpr.isEmpty()) {
+                continue;
+            }
 
-        if (targetAnnotation.isEmpty()) {
-            return null;
+            // Find the specific parameter field in this annotation
+            Optional<SpecificFieldNode> parameterField = mapExpr.get().fields().stream()
+                    .filter(fieldNode -> fieldNode.kind().equals(SyntaxKind.SPECIFIC_FIELD))
+                    .map(fieldNode -> (SpecificFieldNode) fieldNode)
+                    .filter(fieldNode -> fieldNode.fieldName().toString().trim().equals(parameterName))
+                    .findFirst();
+
+            if (parameterField.isPresent()) {
+                return extractFieldValue(parameterField.get());
+            }
         }
-
-        // Extract annotation values
-        Optional<MappingConstructorExpressionNode> mapExpr = targetAnnotation.get().annotValue();
-        if (mapExpr.isEmpty()) {
-            return null;
-        }
-
-        // Find the specific parameter field
-        Optional<SpecificFieldNode> parameterField = mapExpr.get().fields().stream()
-                .filter(fieldNode -> fieldNode.kind().equals(SyntaxKind.SPECIFIC_FIELD))
-                .map(fieldNode -> (SpecificFieldNode) fieldNode)
-                .filter(fieldNode -> fieldNode.fieldName().toString().trim().equals(parameterName))
-                .findFirst();
-
-        if (parameterField.isEmpty()) {
-            return null;
-        }
-
-        return extractFieldValue(parameterField.get());
+        return null;
     }
 
     /**
