@@ -476,7 +476,8 @@ public final class HttpUtil {
 
     public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
                                                         Document document, List<String> newTypeDefinitions,
-                                                        Map<String, String> imports) {
+                                                        Map<String, String> importsForMainBal,
+                                                        Map<String, String> importsForTypesBal) {
         StringBuilder builder = new StringBuilder();
         List<String> functionAnnotations = getAnnotationEdits(function, new HashMap<>());
         if (!functionAnnotations.isEmpty()) {
@@ -497,8 +498,8 @@ public final class HttpUtil {
         // function identifier
         builder.append(getValueString(function.getName()));
         Set<String> visibleSymbols = getVisibleSymbols(semanticModel, document);
-        String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, imports, visibleSymbols,
-                true);
+        String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, importsForMainBal,
+                importsForTypesBal, visibleSymbols, true);
         builder.append(functionSignature);
 
         // function body
@@ -517,11 +518,13 @@ public final class HttpUtil {
     }
 
     public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
-                                                       Map<String, String> imports, Set<String> visibleSymbols,
+                                                       Map<String, String> importsForMainBal,
+                                                       Map<String, String> importsForTypesBal,
+                                                       Set<String> visibleSymbols,
                                                        boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
-                .append(generateParams(function.getParameters(), imports))
+                .append(generateParams(function.getParameters(), importsForMainBal))
                 .append(CLOSE_PAREN);
 
         int defaultStatusCode = function.getAccessor().getValue().trim().equalsIgnoreCase("post") ? 201 : 200;
@@ -532,8 +535,8 @@ public final class HttpUtil {
                     !returnType.getResponses().isEmpty()) {
                 List<String> responses = new ArrayList<>(returnType.getResponses().stream()
                         .filter(HttpResponse::isEnabled)
-                        .map(response -> HttpUtil.getStatusCodeResponse(
-                                response, newTypeDefinitions, imports, visibleSymbols, defaultStatusCode))
+                        .map(response -> HttpUtil.getStatusCodeResponse(response, newTypeDefinitions, importsForMainBal,
+                                importsForTypesBal, visibleSymbols, defaultStatusCode))
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
@@ -739,8 +742,10 @@ public final class HttpUtil {
     }
 
     public static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
-                                                Map<String, String> imports, Set<String> visibleSymbols,
-                                                int defaultStatusCode) {
+                                               Map<String, String> importsForMainBal,
+                                               Map<String, String> importsForTypesBal,
+                                               Set<String> visibleSymbols,
+                                               int defaultStatusCode) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
             String statusCode = response.getStatusCode().getValue();
@@ -748,7 +753,7 @@ public final class HttpUtil {
             if (Objects.isNull(statusCodeRes)) {
                 return response.getName().getValue();
             }
-            newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, imports));
+            newTypeDefinitions.add(getNewResponseTypeStr(statusCodeRes, response, importsForTypesBal));
             return response.getName().getValue();
         }
         boolean createNewType = false;
@@ -756,7 +761,7 @@ public final class HttpUtil {
         String body = "";
         if (Objects.nonNull(response.getBody()) && response.getBody().isEnabledWithValue()) {
             if (Objects.nonNull(response.getBody().getImports())) {
-                imports.putAll(response.getBody().getImports());
+                importsForMainBal.putAll(response.getBody().getImports());
             }
             body = response.getBody().getValue();
             if (Integer.parseInt(response.getStatusCode().getValue()) != defaultStatusCode) {
@@ -780,7 +785,7 @@ public final class HttpUtil {
                 return "error";
             }
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
-            return getRecordTypeDescriptor(statusCodeRes, response, imports);
+            return getRecordTypeDescriptor(statusCodeRes, response, importsForMainBal);
         }
 
         if (Objects.nonNull(body) && !body.isEmpty()) {
@@ -789,7 +794,7 @@ public final class HttpUtil {
 
         if (response.getType().isEnabledWithValue()) {
             if (Objects.nonNull(response.getType().getImports())) {
-                imports.putAll(response.getType().getImports());
+                importsForMainBal.putAll(response.getType().getImports());
             }
             return response.getType().getValue();
         }

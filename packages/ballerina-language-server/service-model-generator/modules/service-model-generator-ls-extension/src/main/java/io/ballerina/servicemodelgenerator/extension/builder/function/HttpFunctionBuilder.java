@@ -40,6 +40,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.Annotation;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -53,12 +54,15 @@ import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +82,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPES_BAL;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.generateHttpResourceDefinition;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.getHttpParamTypeAndSetHeaderName;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
@@ -250,15 +255,64 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) {
-        Map<String, String> imports = new HashMap<>();
+        Map<String, List<TextEdit>> textEditsMap = new HashMap<>();
+        Map<String, String> importsForMainBal = new HashMap<>();
+        Map<String, String> importsForTypesBal = new HashMap<>();
         List<String> newTypeDefinitions = new ArrayList<>();
+
         String functionNode = NEW_LINE_WITH_TAB + generateHttpResourceDefinition(context.function(),
-                context.semanticModel(), context.document(), newTypeDefinitions, imports)
+                context.semanticModel(), context.document(), newTypeDefinitions, importsForMainBal, importsForTypesBal)
                 .replace(NEW_LINE, NEW_LINE_WITH_TAB) + NEW_LINE;
 
+        List<TextEdit> mainBalTextEdits = new ArrayList<>();
+        textEditsMap.put(context.filePath(), mainBalTextEdits);
+
+        ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
+        NodeList<Node> members = serviceDeclarationNode.members();
+        LineRange functionLineRange = members.isEmpty() ? serviceDeclarationNode.openBraceToken().lineRange() :
+                members.get(members.size() - 1).lineRange();
+        mainBalTextEdits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
+
+        addImportsEdits(context.document(), importsForMainBal, mainBalTextEdits);
+
+        handleTypesBalFile(context.filePath(), context.workspaceManager(), importsForTypesBal,
+                newTypeDefinitions, textEditsMap);
+        return textEditsMap;
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        FunctionDefinitionNode functionDefinitionNode = context.functionNode();
+
+        Map<String, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> mainBalTextEdits = new ArrayList<>();
+        textEditsMap.put(context.filePath(), mainBalTextEdits);
+
+        Utils.addFunctionAnnotationTextEdits(context.function(), functionDefinitionNode, mainBalTextEdits,
+                new HashMap<>());
+
+        updateFunctionName(context, functionDefinitionNode, mainBalTextEdits);
+        updateResourcePath(context, functionDefinitionNode, mainBalTextEdits);
+
+        Map<String, String> importsForMainBal = new HashMap<>();
+        Map<String, String> importsForTypesBal = new HashMap<>();
+        List<String> newTypeDefinitions = new ArrayList<>();
+
+        updateFunctionSignature(context, newTypeDefinitions, importsForMainBal, importsForTypesBal,
+                functionDefinitionNode, mainBalTextEdits);
+
+        addImportsEdits(context.document(), importsForMainBal, mainBalTextEdits);
+
+        handleTypesBalFile(context.filePath(), context.workspaceManager(), importsForTypesBal,
+                newTypeDefinitions, textEditsMap);
+        return textEditsMap;
+    }
+
+    private void addImportsEdits(Document document, Map<String, String> importsMap, List<TextEdit> textEdits) {
         List<String> importStmts = new ArrayList<>();
-        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        imports.values().forEach(moduleId -> {
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+
+        importsMap.values().forEach(moduleId -> {
             String[] importParts = moduleId.split("/");
             String orgName = importParts[0];
             String moduleName = importParts[1].split(":")[0];
@@ -267,81 +321,102 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
             }
         });
 
-        List<TextEdit> edits = new ArrayList<>();
         if (!importStmts.isEmpty()) {
             String importsStmts = String.join(NEW_LINE, importStmts);
-            edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+            textEdits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
         }
-
-        ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
-        NodeList<Node> members = serviceDeclarationNode.members();
-        LineRange functionLineRange = members.isEmpty() ? serviceDeclarationNode.openBraceToken().lineRange() :
-                members.get(members.size() - 1).lineRange();
-        edits.add(new TextEdit(Utils.toRange(functionLineRange.endLine()), functionNode));
-
-        if (!newTypeDefinitions.isEmpty()) {
-            String newTypeDefinition = String.join(TWO_NEW_LINES, newTypeDefinitions);
-            edits.add(new TextEdit(Utils.toRange(serviceDeclarationNode.lineRange().endLine()), newTypeDefinition));
-        }
-        return Map.of(context.filePath(), edits);
     }
 
-    @Override
-    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        List<TextEdit> edits = new ArrayList<>();
-        FunctionDefinitionNode functionDefinitionNode = context.functionNode();
-        Utils.addFunctionAnnotationTextEdits(context.function(), functionDefinitionNode, edits, new HashMap<>());
-
-        String functionName = functionDefinitionNode.functionName().text().trim();
-        LineRange nameRange = functionDefinitionNode.functionName().lineRange();
-        String newFunctionName = context.function().getName().getValue();
-
-        if (!functionName.equals(context.function().getAccessor().getValue())) {
-            edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
+    private void handleTypesBalFile(String filePath, WorkspaceManager workspaceManager,
+                                    Map<String, String> importsForTypesBal, List<String> newTypeDefinitions,
+                                    Map<String, List<TextEdit>> textEditsMap) {
+        if (newTypeDefinitions.isEmpty()) {
+            return;
         }
 
+        Path parent = Path.of(filePath).getParent();
+        if (parent == null) {
+            return;
+        }
+
+        Path typesBalPath = parent.resolve(TYPES_BAL);
+        List<TextEdit> typesBalTextEdits = new ArrayList<>();
+        textEditsMap.put(typesBalPath.toString(), typesBalTextEdits);
+
+        importsForTypesBal.put(HTTP, "ballerina/http:2.13.0");
+        LinePosition position = handleTypesBalImports(typesBalPath, workspaceManager);
+        String newTypeDefinition = String.join(TWO_NEW_LINES, newTypeDefinitions);
+        typesBalTextEdits.add(new TextEdit(Utils.toRange(position), newTypeDefinition));
+
+        addTypesBalImports(importsForTypesBal, typesBalTextEdits, typesBalPath, workspaceManager);
+    }
+
+    private LinePosition handleTypesBalImports(Path typesBalPath, WorkspaceManager workspaceManager) {
+        if (Files.exists(typesBalPath)) {
+            Optional<Document> document = workspaceManager.document(typesBalPath);
+            if (document.isPresent()) {
+                ModulePartNode typeBalRootNode = document.get().syntaxTree().rootNode();
+                return typeBalRootNode.lineRange().endLine();
+            }
+        }
+        return LinePosition.from(0, 0);
+    }
+
+    private void addTypesBalImports(Map<String, String> importsForTypesBal, List<TextEdit> typesBalTextEdits,
+                                    Path typesBalPath, WorkspaceManager workspaceManager) {
+        if (Files.exists(typesBalPath)) {
+            Optional<Document> document = workspaceManager.document(typesBalPath);
+            if (document.isPresent()) {
+                addImportsEdits(document.get(), importsForTypesBal, typesBalTextEdits);
+                return;
+            }
+        }
+        List<String> typesBalImports = new ArrayList<>();
+        importsForTypesBal.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            typesBalImports.add(getImportStmt(orgName, moduleName));
+        });
+        if (!typesBalImports.isEmpty()) {
+            String importsStmts = String.join(NEW_LINE, typesBalImports);
+            typesBalTextEdits.add(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), importsStmts));
+        }
+    }
+
+    private void updateFunctionName(UpdateModelContext context, FunctionDefinitionNode functionDefinitionNode,
+                                    List<TextEdit> mainBalTextEdits) {
+        String functionName = functionDefinitionNode.functionName().text().trim();
+        LineRange nameRange = functionDefinitionNode.functionName().lineRange();
+
+        if (!functionName.equals(context.function().getAccessor().getValue())) {
+            mainBalTextEdits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
+        }
+    }
+
+    private void updateResourcePath(UpdateModelContext context, FunctionDefinitionNode functionDefinitionNode,
+                                    List<TextEdit> mainBalTextEdits) {
         NodeList<Node> path = functionDefinitionNode.relativeResourcePath();
+        String newFunctionName = context.function().getName().getValue();
+
         if (Objects.nonNull(path) && !newFunctionName.equals(getPath(path))) {
             LinePosition startPos = path.get(0).lineRange().startLine();
             LinePosition endPos = path.get(path.size() - 1).lineRange().endLine();
             LineRange lineRange = context.function().getCodedata().getLineRange();
             LineRange pathLineRange = LineRange.from(lineRange.fileName(), startPos, endPos);
             TextEdit pathEdit = new TextEdit(Utils.toRange(pathLineRange), newFunctionName);
-            edits.add(pathEdit);
+            mainBalTextEdits.add(pathEdit);
         }
+    }
 
-
-        Map<String, String> imports = new HashMap<>();
-        List<String> newStatusCodeTypesDef = new ArrayList<>();
+    private void updateFunctionSignature(UpdateModelContext context, List<String> newTypeDefinitions,
+                                         Map<String, String> importsForMainBal, Map<String, String> importsForTypesBal,
+                                         FunctionDefinitionNode functionDefinitionNode,
+                                         List<TextEdit> mainBalTextEdits) {
         Set<String> visibleSymbols = getVisibleSymbols(context.semanticModel(), context.document());
-        String functionSignature = HttpUtil.generateHttpResourceSignature(context.function(), newStatusCodeTypesDef,
-                imports, visibleSymbols, false);
-
-        List<String> importStmts = new ArrayList<>();
-        ModulePartNode rootNode = context.document().syntaxTree().rootNode();
-        imports.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
-            }
-        });
-
-        if (!importStmts.isEmpty()) {
-            String importsStmt = String.join(NEW_LINE, importStmts);
-            edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmt));
-        }
-
+        String functionSignature = HttpUtil.generateHttpResourceSignature(context.function(), newTypeDefinitions,
+                importsForMainBal, importsForTypesBal, visibleSymbols, false);
         LineRange signatureRange = functionDefinitionNode.functionSignature().lineRange();
-        edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
-
-        if (!newStatusCodeTypesDef.isEmpty() &&
-                functionDefinitionNode.parent() instanceof ServiceDeclarationNode serviceNode) {
-            String statusCodeResEdits = String.join(TWO_NEW_LINES, newStatusCodeTypesDef);
-            edits.add(new TextEdit(Utils.toRange(serviceNode.closeBraceToken().lineRange().endLine()),
-                    NEW_LINE + statusCodeResEdits));
-        }
-        return Map.of(context.filePath(), edits);
+        mainBalTextEdits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
     }
 }

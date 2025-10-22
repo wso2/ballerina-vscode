@@ -428,7 +428,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                     return new CommonSourceResponse();
                 }
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(HTTP,
-                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
+                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node,
+                        this.workspaceManager);
                 return new CommonSourceResponse(textEdits);
             } catch (Exception e) {
                 return new CommonSourceResponse(e);
@@ -611,7 +612,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 String moduleName = (codedata != null && codedata.getModuleName() != null) ? codedata.getModuleName() :
                         DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.addFunction(moduleName,
-                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node);
+                        request.function(), request.filePath(), semanticModelOp.get(), document.get(), node,
+                        this.workspaceManager);
                 return new CommonSourceResponse(textEdits);
             } catch (Exception e) {
                 return new CommonSourceResponse(e);
@@ -654,7 +656,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 String moduleName = codedata.getModuleName() != null ? codedata.getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
-                        request.filePath(), document.get(), functionDefinitionNode, semanticModelOp.get());
+                        request.filePath(), document.get(), functionDefinitionNode, semanticModelOp.get(),
+                        this.workspaceManager);
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);

@@ -238,6 +238,8 @@ public class Constants {
     public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
     public static final String EMPTY_ARRAY = "[]";
 
+    public static final String TYPES_BAL = "types.bal";
+
     private Constants() {
     }
 }

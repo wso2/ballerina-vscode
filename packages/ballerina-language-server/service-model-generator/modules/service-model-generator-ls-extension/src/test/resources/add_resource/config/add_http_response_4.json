@@ -200,9 +200,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       },
       "header": {
         "metadata": {
@@ -258,9 +258,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "Header"
       },
       "payload": {
         "metadata": {
@@ -292,9 +292,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
       }
     },
     "returnType": {
@@ -628,6 +628,34 @@
     }
   },
   "output": {
+    "types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/http;\n"
+      }
+    ],
     "http_service.bal": [
       {
         "range": {
@@ -641,19 +669,6 @@
           }
         },
         "newText": "\n\tresource function get ok() returns error|HttpOK|HttpCreated|HttpAccepted {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 12,
-            "character": 1
-          },
-          "end": {
-            "line": 12,
-            "character": 1
-          }
-        },
-        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};"
       }
     ]
   }

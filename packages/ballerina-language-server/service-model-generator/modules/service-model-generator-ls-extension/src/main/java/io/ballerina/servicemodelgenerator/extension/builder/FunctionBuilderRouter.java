@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.HashMap;
@@ -78,20 +79,22 @@ public class FunctionBuilderRouter {
 
     public static Map<String, List<TextEdit>> addFunction(String moduleName, Function function, String filePath,
                                                           SemanticModel semanticModel, Document document,
-                                                          NonTerminalNode node) throws Exception {
+                                                          NonTerminalNode node,
+                                                          WorkspaceManager workspaceManager) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        AddModelContext context = new AddModelContext(null, function, semanticModel, null, null,
-                filePath, document, node);
+        AddModelContext context = new AddModelContext(null, function, semanticModel, null,
+                workspaceManager, filePath, document, node);
         return functionBuilder.addModel(context);
     }
 
     public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
                                                              Document document, FunctionDefinitionNode functionNode,
-                                                             SemanticModel semanticModel)
+                                                             SemanticModel semanticModel,
+                                                             WorkspaceManager workspaceManager)
             throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null, null,
-                filePath, document, null, functionNode);
+        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null,
+                workspaceManager, filePath, document, null, functionNode);
         return functionBuilder.updateModel(context);
     }
 
