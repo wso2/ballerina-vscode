@@ -28,7 +28,7 @@ import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "toml";
 import { buildProjectArtifactsStructure } from "./project-artifacts";
-import { getProjectTomlValues } from "../rpc-managers/common/utils";
+import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";

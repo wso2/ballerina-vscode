@@ -114,29 +114,3 @@ export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) 
         }
     });
 }
-
-export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues> {
-    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaTomlPath)) {
-        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        try {
-            return parse(tomlContent);
-        } catch (error) {
-            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
-            return;
-        }
-    }
-}
-
-export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues> {
-    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaTomlPath)) {
-        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        try {
-            return parse(tomlContent);
-        } catch (error) {
-            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
-            return;
-        }
-    }
-}

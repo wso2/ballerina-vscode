@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import { SCOPE } from '@wso2/ballerina-core';
+import { PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse } from 'toml';
 
 export enum VERSION {
     BETA = 'beta',
@@ -218,6 +219,32 @@ export function getOrgPackageName(projectPath: string): { orgName: string, packa
     } catch (error) {
         console.error(`Error reading Ballerina.toml: ${error}`);
         return { orgName: '', packageName: '' };
+    }
+}
+
+export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues> {
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
+}
+
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues> {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
+            return;
+        }
     }
 }
 

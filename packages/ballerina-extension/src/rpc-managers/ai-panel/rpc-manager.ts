@@ -187,21 +187,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        // TODO: Ensure this is working for multi-project workspaces.
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+        const projectPath = StateMachine.context().projectPath;
         // Check if workspaceFolderPath is a Ballerina project
         // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        let balFilePath = path.join(workspaceFolderPath, req.filePath);
+        let balFilePath = path.join(projectPath, req.filePath);
 
         const directory = path.dirname(balFilePath);
         if (!fs.existsSync(directory)) {
@@ -217,36 +211,26 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
         return new Promise(async (resolve) => {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                throw new Error("No workspaces found.");
-            }
-
-            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-            const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+            const projectPath = StateMachine.context().projectPath;
+            const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
             if (!fs.existsSync(ballerinaProjectFile)) {
                 throw new Error("Not a Ballerina project.");
             }
 
-            const balFilePath = path.join(workspaceFolderPath, req.filePath);
+            const balFilePath = path.join(projectPath, req.filePath);
             const content = fs.promises.readFile(balFilePath, 'utf-8');
             resolve(content);
         });
     }
 
     async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const projectPath = StateMachine.context().projectPath;
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        const balFilePath = path.join(workspaceFolderPath, req.filePath);
+        const balFilePath = path.join(projectPath, req.filePath);
         if (fs.existsSync(balFilePath)) {
             try {
                 fs.unlinkSync(balFilePath);
@@ -262,18 +246,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFileExists(req: GetFromFileRequest): Promise<boolean> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const projectPath = StateMachine.context().projectPath;
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        const balFilePath = path.join(workspaceFolderPath, req.filePath);
+        const balFilePath = path.join(projectPath, req.filePath);
         if (fs.existsSync(balFilePath)) {
             return true;
         }
@@ -675,18 +654,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                throw new Error("No workspaces found.");
-            }
+            const projectPath = StateMachine.context().projectPath; 
 
-            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-
-            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {
                 throw new Error("Not a Ballerina project.");
             }
-            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            await addToIntegration(projectPath, params.fileChanges);
             updateView();
             return true;
         } catch (error) {
