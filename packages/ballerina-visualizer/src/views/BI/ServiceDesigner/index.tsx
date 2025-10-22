@@ -517,27 +517,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleFunctionDelete = async (model: FunctionModel) => {
-        if (model.kind === "REMOTE") {
-            model.enabled = false;
-            await handleResourceSubmit(model);
-        } else {
-            console.log("Deleting Resource Model:", model);
-            const targetPosition: NodePosition = {
-                startLine: model.codedata.lineRange.startLine.line,
-                startColumn: model.codedata.lineRange.startLine.offset,
-                endLine: model.codedata.lineRange.endLine.line,
-                endColumn: model.codedata.lineRange.endLine.offset,
-            };
-            const component: ComponentInfo = {
-                name: model.name.value,
-                filePath: model.codedata.lineRange.fileName,
-                startLine: targetPosition.startLine,
-                startColumn: targetPosition.startColumn,
-                endLine: targetPosition.endLine,
-                endColumn: targetPosition.endColumn,
-            };
-            await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
-        }
+        console.log("Deleting Resource Model:", model);
+        const targetPosition: NodePosition = {
+            startLine: model.codedata.lineRange.startLine.line,
+            startColumn: model.codedata.lineRange.startLine.offset,
+            endLine: model.codedata.lineRange.endLine.line,
+            endColumn: model.codedata.lineRange.endLine.offset,
+        };
+        const component: ComponentInfo = {
+            name: model.name.value,
+            filePath: model.codedata.lineRange.fileName,
+            startLine: targetPosition.startLine,
+            startColumn: targetPosition.startColumn,
+            endLine: targetPosition.endLine,
+            endColumn: targetPosition.endColumn,
+        };
+        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
     };
 
     const handleResourceSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
