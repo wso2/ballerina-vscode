@@ -85,7 +85,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -117,7 +118,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -149,7 +151,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -216,8 +219,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "HEADER",
         "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER",
         "properties": {
           "annotHeader": {
             "codedata": {
@@ -298,8 +302,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "HEADER",
         "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER",
         "properties": {
           "annotHeader": {
             "codedata": {
@@ -380,8 +385,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "HEADER",
         "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER",
         "properties": {
           "annotHeader": {
             "codedata": {
@@ -443,8 +449,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       },
       "header": {
         "metadata": {
@@ -500,8 +507,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "HEADER",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER"
       },
       "payload": {
         "metadata": {
@@ -533,8 +541,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
       }
     },
     "returnType": {
@@ -682,6 +691,7 @@
         }
       },
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return type",
         "description": "Return type of the function"
