@@ -26,6 +26,7 @@ import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import styled from "@emotion/styled"
 import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 
 type InputsPageProps = {
     fileName: string;
@@ -105,7 +106,8 @@ type BreadCrumbStep = {
 export const Inputs = (props: InputsPageProps) => {
     const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
         label: "Inputs",
         replaceText: ""
@@ -114,12 +116,23 @@ export const Inputs = (props: InputsPageProps) => {
     const { field, triggerCharacters } = useFieldContext();
 
     useEffect(() => {
+        setIsLoading(true);
         const triggerCharacter =
             currentValue.length > 0
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
                 : undefined;
 
-        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
+        // Only apply minimum loading time if we don't have any completions yet
+        const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
+        const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+        Promise.all([
+            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            minLoadingTime
+        ]).finally(() => {
+            setIsLoading(false);
+            setShowContent(true);
+        });
     }, [targetLineRange])
 
     console.log(">>> Inputs filteredCompletions: ", filteredCompletions);
@@ -207,12 +220,18 @@ export const Inputs = (props: InputsPageProps) => {
             </div>
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
-                {isLoading ? (
+                {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
                 ) : (
-                    <ExpandableList>
-                        <ExpandableListItems />
-                    </ExpandableList>
+                    <>
+                        {filteredDropDownItems.length === 0 ? (
+                            <EmptyItemsPlaceHolder message="No inputs found" />
+                        ) : (
+                            <ExpandableList>
+                                <ExpandableListItems />
+                            </ExpandableList>
+                        )}
+                    </>
                 )}
             </ScrollableContainer>
         </div>

@@ -32,6 +32,7 @@ import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 
 type VariablesPageProps = {
     fileName: string;
@@ -118,7 +119,8 @@ export const Variables = (props: VariablesPageProps) => {
     const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
@@ -134,12 +136,23 @@ export const Variables = (props: VariablesPageProps) => {
     }, []);
 
     useEffect(() => {
+        setIsLoading(true);
         const triggerCharacter =
             currentValue.length > 0
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
                 : undefined;
 
-        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
+        // Only apply minimum loading time if we don't have any completions yet
+        const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
+        const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+        Promise.all([
+            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            minLoadingTime
+        ]).finally(() => {
+            setIsLoading(false);
+            setShowContent(true);
+        });
     }, [targetLineRange])
 
     const getProjectInfo = async () => {
@@ -358,12 +371,18 @@ export const Variables = (props: VariablesPageProps) => {
             </div>
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
-                {isLoading ? (
+                {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
                 ) : (
-                    <ExpandableList>
-                        <ExpandableListItems />
-                    </ExpandableList>
+                    <>
+                        {filteredDropDownItems.length === 0 ? (
+                            <EmptyItemsPlaceHolder message="No variables found" />
+                        ) : (
+                            <ExpandableList>
+                                <ExpandableListItems />
+                            </ExpandableList>
+                        )}
+                    </>
                 )}
             </ScrollableContainer>
 

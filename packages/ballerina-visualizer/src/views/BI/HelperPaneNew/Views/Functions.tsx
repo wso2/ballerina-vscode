@@ -63,7 +63,8 @@ export const FunctionsPage = ({
     const firstRender = useRef<boolean>(true);
     const [searchValue, setSearchValue] = useState<string>('');
     const [isLibraryBrowserOpen, setIsLibraryBrowserOpen] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
@@ -78,32 +79,42 @@ export const FunctionsPage = ({
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
             setIsLoading(true);
-            rpcClient
-                .getBIDiagramRpcClient()
-                .search({
-                    position: targetLineRange,
-                    filePath: fileName,
-                    queryMap: {
-                        q: searchText.trim(),
-                        limit: 12,
-                        offset: 0,
-                        ...(!!includeAvailableFunctions && { includeAvailableFunctions })
-                    },
-                    searchKind: "FUNCTION"
-                })
-                .then((response) => {
-                    if (response.categories?.length) {
-                        if (!!includeAvailableFunctions) {
-                            setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
-                        } else {
-                            setFunctionInfo(convertToHelperPaneFunction(response.categories));
+            
+            // Only apply minimum loading time if we don't have any function info yet
+            const shouldShowMinLoader = !functionInfo && !showContent;
+            const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+            Promise.all([
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .search({
+                        position: targetLineRange,
+                        filePath: fileName,
+                        queryMap: {
+                            q: searchText.trim(),
+                            limit: 12,
+                            offset: 0,
+                            ...(!!includeAvailableFunctions && { includeAvailableFunctions })
+                        },
+                        searchKind: "FUNCTION"
+                    })
+                    .then((response) => {
+                        if (response.categories?.length) {
+                            if (!!includeAvailableFunctions) {
+                                setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
+                            } else {
+                                setFunctionInfo(convertToHelperPaneFunction(response.categories));
+                            }
                         }
-                    }
-                    console.log(response);
-                })
-                .then(() => setIsLoading(false));
+                        console.log(response);
+                    }),
+                minLoadingTime
+            ]).finally(() => {
+                setIsLoading(false);
+                setShowContent(true);
+            });
         }, 150),
-        [rpcClient, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, functionInfo, showContent]
     );
 
     const fetchFunctionInfo = useCallback(
@@ -203,13 +214,13 @@ export const FunctionsPage = ({
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
-                    isLoading ? (
+                    isLoading || !showContent ? (
                         <HelperPaneCustom.Loader />
                     ) : (
                         <>
                             {
                                 !functionInfo || !functionInfo.category || functionInfo.category.length === 0 ? (
-                                    <EmptyItemsPlaceHolder />
+                                    <EmptyItemsPlaceHolder message="No functions found" />
                                 ) : (
                                     functionInfo.category.map((category) => {
                                         if (!category.subCategory) {

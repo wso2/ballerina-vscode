@@ -28,6 +28,8 @@ import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
+import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
+import { HelperPaneCustom } from "@wso2/ui-toolkit";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -65,6 +67,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const [packageInfo, setPackageInfo] = useState<TomlPackage>();
     const [isImportEnv, setIsImportEnv] = useState<boolean>(false);
     const [projectPathUri, setProjectPathUri] = useState<string>();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
 
     const { addModal, closeModal } = useModalStack();
 
@@ -110,16 +114,28 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         let data: ConfigVariablesState = {};
         let errorMsg: string = '';
 
-        await rpcClient
-            .getBIDiagramRpcClient()
-            .getConfigVariablesV2({
-                includeLibraries: false,
-                projectPath: projectPathUri
-            })
-            .then((variables) => {
-                data = (variables as any).configVariables;
-                errorMsg = (variables as any).errorMsg;
-            });
+        setIsLoading(true);
+        
+        // Only apply minimum loading time if we don't have any config variables yet
+        const shouldShowMinLoader = Object.keys(configVariables).length === 0 && !showContent;
+        const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+        await Promise.all([
+            rpcClient
+                .getBIDiagramRpcClient()
+                .getConfigVariablesV2({
+                    includeLibraries: false,
+                    projectPath: projectPathUri
+                })
+                .then((variables) => {
+                    data = (variables as any).configVariables;
+                    errorMsg = (variables as any).errorMsg;
+                }),
+            minLoadingTime
+        ]).finally(() => {
+            setIsLoading(false);
+            setShowContent(true);
+        });
 
         setConfigVariables(data);
         setErrorMessage(errorMsg);
@@ -182,56 +198,68 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             overflow: "hidden"
         }}>
             <ScrollableContainer style={{ margin: '8px 0px' }}>
-                {translateToArrayFormat(configVariables)
-                    .filter(category =>
-                        Array.isArray(category.items) &&
-                        category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
-                    )
-                    .map(category => (
-                        <div >
-                            {category.items
-                                .filter(subCategory => subCategory.items && subCategory.items.length > 0)
-                                .map(subCategory => (
-                                    <div key={subCategory.name}>
-                                        {subCategory.name !== '' ? (
-                                            <ExpandableList.Section
-                                                key={subCategory.name}
-                                                title={subCategory.name}
-                                                level={0}
-                                            >
-                                                <div style={{ marginTop: '10px' }}>
-                                                    {subCategory.items.map((item: ConfigVariable) => (
-                                                        <SlidingPaneNavContainer
-                                                            key={item.id}
-                                                            onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
-                                                        >
-                                                            <ExpandableList.Item
+                {isLoading || !showContent ? (
+                    <HelperPaneCustom.Loader />
+                ) : (
+                    <>
+                        {translateToArrayFormat(configVariables).length === 0 ? (
+                            <EmptyItemsPlaceHolder message="No configurables found" />
+                        ) : (
+                            <>
+                                {translateToArrayFormat(configVariables)
+                                    .filter(category =>
+                                        Array.isArray(category.items) &&
+                                        category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
+                                    )
+                                    .map(category => (
+                                        <div >
+                                            {category.items
+                                                .filter(subCategory => subCategory.items && subCategory.items.length > 0)
+                                                .map(subCategory => (
+                                                    <div key={subCategory.name}>
+                                                        {subCategory.name !== '' ? (
+                                                            <ExpandableList.Section
+                                                                key={subCategory.name}
+                                                                title={subCategory.name}
+                                                                level={0}
                                                             >
-                                                                {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
-                                                                {item?.properties?.variable?.value as ReactNode}
-                                                            </ExpandableList.Item>
-                                                        </SlidingPaneNavContainer>
-                                                    ))}
-                                                </div>
-                                            </ExpandableList.Section>
-                                        ) : (
-                                            <div>
-                                                {subCategory.items.map((item: ConfigVariable) => (
-                                                    <SlidingPaneNavContainer key={item.id}
-                                                        onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
-                                                        <ExpandableList.Item
-                                                        >
-                                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
-                                                            {item?.properties?.variable?.value as ReactNode}
-                                                        </ExpandableList.Item>
-                                                    </SlidingPaneNavContainer>
+                                                                <div style={{ marginTop: '10px' }}>
+                                                                    {subCategory.items.map((item: ConfigVariable) => (
+                                                                        <SlidingPaneNavContainer
+                                                                            key={item.id}
+                                                                            onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                                        >
+                                                                            <ExpandableList.Item
+                                                                            >
+                                                                                {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                                {item?.properties?.variable?.value as ReactNode}
+                                                                            </ExpandableList.Item>
+                                                                        </SlidingPaneNavContainer>
+                                                                    ))}
+                                                                </div>
+                                                            </ExpandableList.Section>
+                                                        ) : (
+                                                            <div>
+                                                                {subCategory.items.map((item: ConfigVariable) => (
+                                                                    <SlidingPaneNavContainer key={item.id}
+                                                                        onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
+                                                                        <ExpandableList.Item
+                                                                        >
+                                                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                            {item?.properties?.variable?.value as ReactNode}
+                                                                        </ExpandableList.Item>
+                                                                    </SlidingPaneNavContainer>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                        </div>
-                    ))}
+                                        </div>
+                                    ))}
+                            </>
+                        )}
+                    </>
+                )}
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
