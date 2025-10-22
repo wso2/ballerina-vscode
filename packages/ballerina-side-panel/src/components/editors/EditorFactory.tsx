@@ -192,7 +192,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type !== "IDENTIFIER" && !field.editable) {
         return <ReadonlyField field={field} />;
     } else if (field.type === "IDENTIFIER" && field.editable) {
-        return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
+        return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} onBlur={onBlur} />;
     } else if (field.type === "SERVICE_PATH" || field.type === "ACTION_PATH") {
         return <PathEditor field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
     } else if (!field.items && field.type === "ACTION_EXPRESSION") {
