@@ -391,7 +391,7 @@ const HelperPaneNewEl = ({
                                 >
                                     <ExpandableList.Item>
                                         <TitleContainer>
-                                            {getHelperPaneIcon(HelperPaneIconType.SETTINGS)}
+                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
                                             <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                 Configurables
                                             </Typography>
