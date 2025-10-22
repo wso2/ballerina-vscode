@@ -25,6 +25,7 @@ export const ChipEditorField = styled.div`
     font-family: monospace;
     font-size: 12px;
     min-height: ${CHIP_EXPRESSION_EDITOR_HEIGHT}px;
+    height: 100%;
     width: 100%;
     padding: 2px 8px;
     background-color: ${ThemeColors.OUTLINE_VARIANT};
@@ -37,7 +38,7 @@ export const ChipEditorField = styled.div`
 
 export const ChipEditorContainer = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
@@ -64,9 +65,11 @@ export const Chip = styled.div`
     &:active {
         box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.8);
     }
-`
+`;
 
-export const ChipMenu = styled.div<{ top: number; left: number }>`
+export const COMPLETIONS_WIDTH = 300;
+
+export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
     position: absolute;
     top: ${props => props.top}px;
     left: ${props => props.left}px;
@@ -76,6 +79,8 @@ export const ChipMenu = styled.div<{ top: number; left: number }>`
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     min-width: 120px;
+    width: ${COMPLETIONS_WIDTH}px;
+    overflow: hidden;
 `;
 
 export const ChipMenuItem = styled.div`
@@ -146,19 +151,15 @@ const CompletionsadeInUp = keyframes`
     }
 `;
 
-export const COMPLETIONS_WIDTH = 300;
-
 export const Completions = styled.div`
     background-color: ${ThemeColors.SURFACE_BRIGHT};
     border: 1px solid ${ThemeColors.OUTLINE};
-    width: ${COMPLETIONS_WIDTH}px;
+    width: 100%;
     max-height: 300px;
     overflow-y: auto;
-    position: absolute;
+    position: static;
     padding: 2px 0px;
     border-radius: 3px;
-    top: 0;
-    left: 0;
     z-index: 2001;
     animation: ${CompletionsadeInUp} 0.3s ease forwards;
 `
@@ -219,7 +220,7 @@ export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
     height: 16px;
     border: 1px solid ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE};
     border-radius: 2px;
-    background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_DIM};
+    background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
     color: ${props => props.isActive ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
     cursor: pointer;
     display: flex;
@@ -227,23 +228,39 @@ export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
     justify-content: center;
     font-size: 9px;
     font-weight: 600;
-    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease, transform 0.1s ease;
     outline: none;
     padding: 0;
-    box-shadow: ${props => props.isActive ? `0 0 0 1px ${ThemeColors.PRIMARY}` : 'none'};
+    box-shadow: ${props => props.isActive ? `0 0 0 1px ${ThemeColors.PRIMARY}` : '0 1px 2px rgba(0, 0, 0, 0.15)'};
 
     &:hover {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_DIM};
+        background-color: ${props => props.isActive ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_CONTAINER};
         border-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT};
+        transform: scale(1.05);
+        
+        svg {
+            color: ${ThemeColors.PRIMARY}cc;
+        }
     }
 
     &:active {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_DIM};
+        background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
     }
 
     &:focus-visible {
         outline: 1px solid ${ThemeColors.PRIMARY};
         outline-offset: 2px;
     }
+`;
+
+export const ExpandedPopupContainer = styled.div`
+    flex: 1;
+    position: absolute;
+    width: 765px;
+    padding: 50px 10px 10px 10px;
+    height: 85%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `;
 

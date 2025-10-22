@@ -179,16 +179,24 @@ export const calculateCompletionsMenuPosition = (
         if (activeElement && activeElement.hasAttribute('contenteditable')) {
             const rect = activeElement.getBoundingClientRect();
             const containerRect = fieldContainerRef.current.getBoundingClientRect();
+            // Align the right edge of the menu with the right edge of the editable span
+            const menuWidth = 300; // Use the same width as defined in styles
+            let left = rect.right - containerRect.left - menuWidth;
+
+            // Ensure the menu doesn't go beyond the left edge of the container
+            left = Math.max(0, left);
+
             setMenuPosition({
                 top: rect.bottom - containerRect.top + 4,
-                left: rect.left - containerRect.left
+                left: left
             });
         } else {
-            // Fallback: position below the expression field
+            // Fallback: position below the expression field, aligned to the right
             const containerRect = fieldContainerRef.current.getBoundingClientRect();
+            const menuWidth = 300;
             setMenuPosition({
                 top: containerRect.height + 4,
-                left: 0
+                left: Math.max(0, containerRect.width - menuWidth)
             });
         }
     }
@@ -560,14 +568,15 @@ export const handleCompletionNavigation = (
         case 'ArrowUp':
             e.preventDefault();
             setSelectedCompletionItem(prev => 
-                prev > 0 ? prev - 1 : prev
+                prev > 0 ? prev - 1 : -1
             );
             break;
         case 'Enter':
-            e.preventDefault();
-            if (selectedCompletionItem < completionsLength) {
+            if (selectedCompletionItem >= 0 && selectedCompletionItem < completionsLength) {
+                e.preventDefault();
                 handleCompletionSelect(completions[selectedCompletionItem]);
             }
+            // If selectedCompletionItem is -1, don't prevent default, allow normal Enter behavior
             break;
         case 'Escape':
             e.preventDefault();

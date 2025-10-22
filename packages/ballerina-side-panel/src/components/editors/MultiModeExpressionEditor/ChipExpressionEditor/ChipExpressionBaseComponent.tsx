@@ -18,19 +18,14 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import FXButton from "./components/FxButton";
-import { Chip, ChipEditorContainer, ChipEditorField, ChipMenu, ChipMenuItem, Completions } from "./styles";
-import { ExpressionModel, Token } from "./types";
-import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "./constants";
+import {  ChipEditorContainer,ContextMenuContainer, Completions } from "./styles";
+import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
-import { FloatingButtonContainer } from "./styles";
-import { ExpressionToggleButton } from "./components/ExpressionToggleButton";
-import { DebugToggleButton } from "./components/DebugToggleButton";
 import { TokenizedExpression } from "./components/TokenizedExpression";
 import { CompletionsItem } from "./components/CompletionsItem";
-import { calculateMenuPosition, getAbsoluteColumnOffset, getInvalidTokensRange, handleErrorCorrection, getTokenAtCursorPosition, getTextValueFromExpressionModel, createExpressionModelFromTokens } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { debounce } from "lodash";
+import { createExpressionModelFromTokens, getTextValueFromExpressionModel } from "./utils";
 
 export type ChipExpressionBaseComponentProps = {
     // tokens: Token[];
@@ -350,12 +345,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     style={isRebuilding ? { caretColor: 'transparent' } : undefined}
                     onFocusChange={(focused) => setIsAnyElementFocused(focused)}
                     onKeyDown={handleCompletionKeyDown}
-                    floatingControls={
-                        <FloatingButtonContainer>
-                            <ExpressionToggleButton isActive={isExpressionActive} onToggle={() => setIsExpressionActive(v => !v)} />
-                            <DebugToggleButton isActive={isDebugActive} onToggle={() => setIsDebugActive(v => !v)} />
-                        </FloatingButtonContainer>
-                    }
                 >
                     <TokenizedExpression
                         expressionModel={expressionModel}
@@ -364,7 +353,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     />
                 </AutoExpandingEditableDiv>
                  {isCompletionsOpen && (
-                    <ChipMenu
+                    <ContextMenuContainer
                         top={menuPosition.top}
                         left={menuPosition.left}
                         data-menu="chip-menu"
@@ -381,7 +370,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                                 />
                             ))}
                         </Completions>
-                    </ChipMenu>
+                    </ContextMenuContainer>
                 )}
             </ChipEditorContainer >
         </>

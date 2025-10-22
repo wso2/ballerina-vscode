@@ -37,8 +37,9 @@ export const ExpressionToggleButton: React.FC<ExpressionToggleButtonProps> = ({
         <FloatingToggleButton
             isActive={isActive}
             onClick={handleClick}
-            label="E"
             title="Expression Mode"
-        />
+        >
+            E
+        </FloatingToggleButton>
     );
 };

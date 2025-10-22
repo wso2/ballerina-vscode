@@ -37,8 +37,9 @@ export const DebugToggleButton: React.FC<DebugToggleButtonProps> = ({
         <FloatingToggleButton
             isActive={isActive}
             onClick={handleClick}
-            label="D"
             title="Debug Mode"
-        />
+        >
+            D
+        </FloatingToggleButton>
     );
 };
