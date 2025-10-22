@@ -107,6 +107,7 @@ enum DetectedFormat {
     JSON = "JSON",
     XML = "XML",
     UNKNOWN = "UNKNOWN",
+    EMPTY = "EMPTY"
 }
 
 interface GenericImportTabProps {
@@ -130,7 +131,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
     const [content, setContent] = useState<string>("");
-    const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>(DetectedFormat.UNKNOWN);
+    const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>(DetectedFormat.EMPTY);
     const [importTypeName, setImportTypeName] = useState<string>(type.name);
     const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
     const [nameError, setNameError] = useState<string>("");
@@ -143,12 +144,18 @@ export function GenericImportTab(props: GenericImportTabProps) {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
         }
+        if (detectedFormat === DetectedFormat.EMPTY) {
+            setError("");
+        }
+        if (detectedFormat === DetectedFormat.UNKNOWN) {
+            setError("Invalid format. Please ensure the content is valid JSON or XML.");
+        }
     }, [type, detectedFormat, importTypeName]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
         if (!value || value.trim() === "") {
-            return DetectedFormat.UNKNOWN;
+            return DetectedFormat.EMPTY;
         }
 
         const trimmed = value.trim();
@@ -158,9 +165,11 @@ export function GenericImportTab(props: GenericImportTabProps) {
             (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
             try {
                 JSON.parse(trimmed);
+                setError("");
                 return DetectedFormat.JSON;
             } catch (e) {
                 // Not valid JSON, continue checking
+                setError("Invalid JSON format");
             }
         }
 
@@ -171,10 +180,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 const doc = parser.parseFromString(trimmed, "text/xml");
                 // Check if parsing produced an error node
                 if (doc.getElementsByTagName("parsererror").length === 0) {
+                    setError("");
                     return DetectedFormat.XML;
                 }
             } catch (e) {
                 // Not valid XML
+                setError("Invalid XML format");
             }
         }
 
@@ -257,9 +268,6 @@ export function GenericImportTab(props: GenericImportTabProps) {
         // Detect format
         const format = detectFormat(newContent);
         setDetectedFormat(format);
-
-        // Clear errors
-        setError("");
     };
 
     const handleFileUpload = (fileContent: string) => {
@@ -268,7 +276,6 @@ export function GenericImportTab(props: GenericImportTabProps) {
         // Auto-detect format from uploaded file content
         const format = detectFormat(fileContent);
         setDetectedFormat(format);
-        setError("");
     };
 
     const importAsJson = async () => {
@@ -406,7 +413,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 generatedJson = JSON.stringify(generatedJsonObj, null, 2);
             } catch (error) {
                 console.error("Error during AI Example JSON generation:", error);
-                
+
                 // Use fallback mock data
                 const mockGeneratedJson = {
                     id: 1,
