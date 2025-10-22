@@ -452,7 +452,6 @@ public class ServiceModelUtils {
         valueBuilder.setCodedata(new Codedata("READONLY"))
                 .value(props)
                 .valueType("SINGLE_SELECT")
-                .setValueTypeConstraint("boolean")
                 .setPlaceholder("false")
                 .optional(false)
                 .setAdvanced(false)
