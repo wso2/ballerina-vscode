@@ -47,6 +47,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.Diagram;
 import io.ballerina.flowmodelgenerator.core.model.ExtendedDiagram;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -91,6 +92,29 @@ public class ModelGenerator {
     private final Gson gson;
     private final Project project;
     private final WorkspaceManager workspaceManager;
+
+    private static final Map<NodeKind, SymbolKind> NODE_KIND_TO_TARGET_KIND = Map.ofEntries(
+            Map.entry(NodeKind.REMOTE_ACTION_CALL, SymbolKind.METHOD),
+            Map.entry(NodeKind.RESOURCE_ACTION_CALL, SymbolKind.METHOD),
+            Map.entry(NodeKind.AGENT_CALL, SymbolKind.METHOD),
+            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, SymbolKind.METHOD),
+            Map.entry(NodeKind.METHOD_CALL, SymbolKind.METHOD),
+            Map.entry(NodeKind.DATA_MAPPER_CALL, SymbolKind.FUNCTION),
+            Map.entry(NodeKind.NP_FUNCTION_CALL, SymbolKind.FUNCTION),
+            Map.entry(NodeKind.FUNCTION_CALL, SymbolKind.FUNCTION),
+            Map.entry(NodeKind.VARIABLE, SymbolKind.VARIABLE),
+            Map.entry(NodeKind.JSON_PAYLOAD, SymbolKind.VARIABLE),
+            Map.entry(NodeKind.AGENT, SymbolKind.CLASS),
+            Map.entry(NodeKind.MODEL_PROVIDER, SymbolKind.CLASS),
+            Map.entry(NodeKind.EMBEDDING_PROVIDER, SymbolKind.CLASS),
+            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE, SymbolKind.CLASS),
+            Map.entry(NodeKind.VECTOR_STORE, SymbolKind.CLASS),
+            Map.entry(NodeKind.DATA_LOADER, SymbolKind.CLASS),
+            Map.entry(NodeKind.CHUNKER, SymbolKind.CLASS),
+            Map.entry(NodeKind.CLASS_INIT, SymbolKind.CLASS),
+            Map.entry(NodeKind.NEW_CONNECTION, SymbolKind.CLASS),
+            Map.entry(NodeKind.MCP_TOOLKIT, SymbolKind.CLASS)
+    );
 
     public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
         this.semanticModel = model;
@@ -252,6 +276,79 @@ public class ModelGenerator {
     }
 
     /**
+     * Search semantic model symbols with given configurations and convert them to FlowNodes.
+     *
+     * @param document the document to search in
+     * @param position the line position (nullable - if null, uses moduleSymbols, else visibleSymbols)
+     * @param queryMap the map containing query parameters (kind, exactMatch)
+     * @return JSON representation of the flow model with matching nodes
+     */
+    public JsonElement searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
+        List<FlowNode> connectionsList = new ArrayList<>();
+        List<FlowNode> variablesList = new ArrayList<>();
+
+        // 1. Get symbols based on position
+        List<Symbol> symbols = position != null
+                ? semanticModel.visibleSymbols(document, position)
+                : semanticModel.moduleSymbols();
+
+        // 2. Extract filter parameters
+        String kindFilter = queryMap != null ? queryMap.get("kind") : null;
+        String exactMatchFilter = queryMap != null ? queryMap.get("exactMatch") : null;
+
+        // 3. Apply symbol-level filters first (exactMatch)
+        List<Symbol> filteredSymbols = symbols.stream()
+                .filter(symbol -> {
+                    // Filter by exactMatch if present
+                    if (exactMatchFilter != null && !exactMatchFilter.isEmpty()) {
+                        String symbolName = symbol.getName().orElse("");
+                        if (!symbolName.equals(exactMatchFilter)) {
+                            return false;
+                        }
+                    }
+
+                    // Filter by NodeKind if kind parameter is present
+                    if (kindFilter != null && !kindFilter.isEmpty()) {
+                        try {
+                            NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                            // Check if the symbol matches the required NodeKind based on the mapping
+                            if (!matchesNodeKind(symbol, requiredNodeKind)) {
+                                return false;
+                            }
+                        } catch (IllegalArgumentException e) {
+                            // Invalid NodeKind - skip filtering (return true to include the symbol)
+                            // Actually, if the NodeKind is invalid, we should exclude all symbols
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .toList();
+
+        // 4. Convert symbols to FlowNodes (same as getModuleNodes)
+        for (Symbol symbol : filteredSymbols) {
+            buildConnection(symbol).ifPresent(connectionsList::add);
+            if (symbol instanceof VariableSymbol) {
+                buildVariables(symbol).ifPresent(variablesList::add);
+            }
+        }
+
+// 5. Sort results (same as getModuleNodes)
+        Comparator<FlowNode> comparator = Comparator.comparing(
+                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                        .map(property -> property.value().toString())
+                        .orElse("")
+        );
+        connectionsList.sort(comparator);
+        variablesList.sort(comparator);
+
+        // 7. Return ExtendedDiagram
+        ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
+        return gson.toJsonTree(diagram);
+    }
+
+    /**
      * Builds a client from the given type symbol.
      *
      * @return the client if the type symbol is a client, otherwise empty
@@ -367,5 +464,18 @@ public class ModelGenerator {
             return ((ObjectTypeSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT);
         }
         return false;
+    }
+
+    private boolean matchesNodeKind(Symbol symbol, NodeKind requiredNodeKind) {
+        // Get the expected SymbolKind for the required NodeKind from the mapping
+        SymbolKind expectedSymbolKind = NODE_KIND_TO_TARGET_KIND.get(requiredNodeKind);
+
+        // If there's no mapping for the required NodeKind, return false
+        if (expectedSymbolKind == null) {
+            return false;
+        }
+
+        // Check if the symbol's kind matches the expected SymbolKind
+        return symbol.kind() == expectedSymbolKind;
     }
 }

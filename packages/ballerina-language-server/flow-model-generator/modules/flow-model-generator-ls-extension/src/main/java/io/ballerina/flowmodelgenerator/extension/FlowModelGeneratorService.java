@@ -52,6 +52,7 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelSuggestedGener
 import io.ballerina.flowmodelgenerator.extension.request.FlowNodeDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FunctionDefinitionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.OpenAPIServiceGenerationRequest;
+import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ServiceFieldNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SuggestedComponentRequest;
@@ -625,11 +626,37 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 .exceptionally(throwable -> {
                     FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
                     response.setError(throwable);
-                    return response;
-                });
-    }
+             return response;
+         });
+     }
 
-    @JsonRequest
+     @JsonRequest
+     public CompletableFuture<FlowModelGeneratorResponse> searchNodes(SearchNodesRequest request) {
+         return CompletableFuture.supplyAsync(() -> {
+             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
+             try {
+                 Path filePath = Path.of(request.filePath());
+                 WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+
+                 // Obtain the semantic model and the document
+                 Project project = workspaceManager.loadProject(filePath);
+                 SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+                 Optional<Document> document = workspaceManager.document(filePath);
+                 if (document.isEmpty()) {
+                     return response;
+                 }
+
+                 // Generate the flow nodes based on search criteria
+                 ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
+                 response.setFlowDesignModel(modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+             } catch (Throwable e) {
+                 response.setError(e);
+             }
+             return response;
+         });
+     }
+
+     @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> search(SearchRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();
