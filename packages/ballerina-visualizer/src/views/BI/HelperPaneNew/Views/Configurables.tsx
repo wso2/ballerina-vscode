@@ -21,13 +21,13 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReactNode, useEffect, useState } from "react";
 import ExpandableList from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { COMPLETION_ITEM_KIND, Divider, getIcon, ThemeColors } from "@wso2/ui-toolkit";
+import { Divider } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
-import DynamicModal from "../../../../components/Modal";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -207,7 +207,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         >
                                                             <ExpandableList.Item
                                                             >
-                                                                {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                                                                {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
                                                                 {item?.properties?.variable?.value as ReactNode}
                                                             </ExpandableList.Item>
                                                         </SlidingPaneNavContainer>
@@ -221,7 +221,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
                                                         <ExpandableList.Item
                                                         >
-                                                            {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
                                                             {item?.properties?.variable?.value as ReactNode}
                                                         </ExpandableList.Item>
                                                     </SlidingPaneNavContainer>
