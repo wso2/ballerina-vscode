@@ -41,9 +41,6 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
-import io.ballerina.projects.directory.BuildProject;
-import io.ballerina.projects.directory.ProjectLoader;
-import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -139,8 +136,8 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
      */
     private final Map<Path, Lock> projectLockMap;
     /**
-     * The build options are used when compiling the project for the LS change events. The build options can be
-     * changed based on the flags set in the client.
+     * The build options are used when compiling the project for the LS change events. The build options can be changed
+     * based on the flags set in the client.
      */
     private BuildOptions buildOptions;
 
@@ -1439,8 +1436,8 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         }
 
         // Check for workspace project first (before package-level detection)
-        Path workspaceRoot = findWorkspaceRoot(path);
-        if (workspaceRoot != null) {
+        Optional<Path> workspaceRootOpt = BallerinaCompilerApi.getInstance().findWorkspaceRoot(path);
+        if (workspaceRootOpt.isPresent()) {
             // For workspace projects, return the package root (not workspace root) as the project root
             // This ensures each package in the workspace is cached separately
             // The actual workspace will be loaded in createProject() and the correct package extracted
@@ -1454,45 +1451,6 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
             return new ImmutablePair<>(ProjectKind.BUILD_PROJECT, ProjectPaths.packageRoot(path));
         }
         return new ImmutablePair<>(ProjectKind.BALA_PROJECT, ProjectPaths.packageRoot(path));
-    }
-
-    /**
-     * Find the workspace root directory by traversing upwards from the given path.
-     * A workspace is identified by a Ballerina.toml file containing a [workspace] section.
-     *
-     * @param path The file path to start searching from
-     * @return The workspace root path, or null if not in a workspace
-     */
-    private Path findWorkspaceRoot(Path path) {
-        Path current = path.toAbsolutePath();
-
-        // Traverse upwards to find workspace root
-        while (current != null && current.getParent() != null) {
-            Path tomlPath = current.resolve(ProjectConstants.BALLERINA_TOML);
-            if (Files.exists(tomlPath) && isWorkspaceToml(tomlPath)) {
-                return current;
-            }
-            current = current.getParent();
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if a Ballerina.toml file defines a workspace (contains [workspace] section).
-     *
-     * @param tomlPath Path to the Ballerina.toml file
-     * @return true if the file contains a [workspace] section, false otherwise
-     */
-    private boolean isWorkspaceToml(Path tomlPath) {
-        try {
-            String content = Files.readString(tomlPath);
-            // Simple check for [workspace] section
-            // This could be improved with proper TOML parsing if needed
-            return content.contains("[workspace]");
-        } catch (IOException e) {
-            return false;
-        }
     }
 
     private Optional<ProjectContext> projectContext(Path projectRoot) {
@@ -1511,9 +1469,10 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         Pair<ProjectKind, Path> projectKindAndProjectRootPair = computeProjectKindAndProjectRoot(filePath);
         ProjectKind projectKind = projectKindAndProjectRootPair.getLeft();
         Path projectRoot = projectKindAndProjectRootPair.getRight();
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
         try {
             // Use ProjectLoader to load the project - it auto-detects the project type including workspaces
-            Project project = ProjectLoader.load(filePath, buildOptions).project();
+            Project project = compilerApi.loadProject(filePath, buildOptions);
 
             // TODO: Remove this once https://github.com/ballerina-platform/ballerina-lang/issues/43972 is resolved
             // Save the dependencies.toml to resolve the inconsistencies issue in the subsequent builds
@@ -1522,23 +1481,24 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
                         .setOffline(CommonUtil.COMPILE_OFFLINE)
                         .setSticky(false)
                         .build();
-                project = ProjectLoader.load(projectRoot, newOptions).project();
+                project = compilerApi.loadProject(filePath, newOptions);
             }
 
             // Handle workspace projects - extract the specific package from the workspace
-            if (project.kind().equals(ProjectKind.WORKSPACE_PROJECT)) {
-                WorkspaceProject workspaceProject = (WorkspaceProject) project;
-                List<BuildProject> topologicallySortedList = workspaceProject.getResolution().dependencyGraph()
-                        .toTopologicallySortedList();
-                BuildProject targetProject = null;
-                // Add all workspace packages to sourceRootToProject
-                for (BuildProject buildProject : topologicallySortedList) {
-                    Path buildProjectRoot = buildProject.sourceRoot();
-                    sourceRootToProject.put(buildProjectRoot, ProjectContext.from(buildProject));
-                    if (buildProjectRoot.equals(projectRoot)) {
-                        targetProject = buildProject;
+            if (compilerApi.isWorkspaceProject(project)) {
+                // Get all workspace packages in topological order
+                List<Project> workspacePackages = compilerApi.getWorkspacePackagesInOrder(project);
+
+                // Add all packages to cache and find the target package
+                Project targetProject = null;
+                for (Project workspacePackage : workspacePackages) {
+                    Path packageRoot = workspacePackage.sourceRoot();
+                    sourceRootToProject.put(packageRoot, ProjectContext.from(workspacePackage));
+                    if (packageRoot.equals(projectRoot)) {
+                        targetProject = workspacePackage;
                     }
                 }
+
                 if (targetProject == null) {
                     throw new ProjectException("Project not found in the workspace: " + projectRoot);
                 }

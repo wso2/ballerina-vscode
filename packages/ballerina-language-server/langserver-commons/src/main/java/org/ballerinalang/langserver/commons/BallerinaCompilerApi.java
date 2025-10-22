@@ -23,13 +23,20 @@ import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectEnvironmentBuilder;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.util.RepoUtils;
 
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 /**
@@ -68,22 +75,40 @@ public abstract class BallerinaCompilerApi {
         Version bestMatchVersion = null;
         BallerinaCompilerApi bestMatch = null;
         BallerinaCompilerApi defaultMatch = null;
-        for (BallerinaCompilerApi service : serviceLoader) {
-            String serviceVersionString = service.getVersion();
-            Version serviceVersion = Version.valueOf(serviceVersionString);
 
-            // Check if this service version is <= current version
-            if (serviceVersion.lessThanOrEqualTo(currentVersion)) {
-                // Keep track of the highest version that's still <= current version
-                if (bestMatch == null || serviceVersion.greaterThan(bestMatchVersion)) {
-                    bestMatch = service;
-                    bestMatchVersion = serviceVersion;
+        Iterator<BallerinaCompilerApi> serviceIterator = serviceLoader.iterator();
+        while (true) {
+            try {
+                // The ServiceConfigurationError can be thrown by hasNext() or next()
+                // if the service class is not found or cannot be instantiated.
+                if (!serviceIterator.hasNext()) {
+                    break;
                 }
-            }
+                BallerinaCompilerApi service = serviceIterator.next();
 
-            // Keep track of default version service as fallback
-            if (defaultMatch == null && DEFAULT_VERSION.equals(serviceVersionString)) {
-                defaultMatch = service;
+                if (service == null) {
+                    continue;
+                }
+
+                String serviceVersionString = service.getVersion();
+                Version serviceVersion = Version.valueOf(serviceVersionString);
+
+                // Check if this service version is <= current version
+                if (serviceVersion.lessThanOrEqualTo(currentVersion)) {
+                    // Keep track of the highest version that's still <= current version
+                    if (bestMatch == null || serviceVersion.greaterThan(bestMatchVersion)) {
+                        bestMatch = service;
+                        bestMatchVersion = serviceVersion;
+                    }
+                }
+
+                // Keep track of default version service as fallback
+                if (defaultMatch == null && DEFAULT_VERSION.equals(serviceVersionString)) {
+                    defaultMatch = service;
+                }
+            } catch (ServiceConfigurationError e) {
+                // Skip services that fail to load (e.g., missing constructor, initialization errors)
+                // and continue with the next service
             }
         }
 
@@ -162,4 +187,92 @@ public abstract class BallerinaCompilerApi {
      * @return An Optional containing the TypeSymbol if found.
      */
     public abstract Optional<TypeSymbol> getType(Types types, Document document, String typeName);
+
+    /**
+     * Gets the workspace project from a package project if it belongs to a workspace.
+     * <p>
+     * When a package is part of a workspace, this returns the workspace project. This feature is available from
+     * Ballerina version 2201.13.0 onwards.
+     *
+     * @param project The package project.
+     * @return An Optional containing the workspace project if the package belongs to a workspace.
+     */
+    public abstract Optional<Project> getWorkspaceProject(Project project);
+
+    /**
+     * Checks if the given project is a workspace project.
+     * <p>
+     * A workspace project is a multi-package project with a [workspace] section in Ballerina.toml. This feature is
+     * available from Ballerina version 2201.13.0 onwards.
+     *
+     * @param project The project to check.
+     * @return {@code true} if the project is a workspace project, {@code false} otherwise.
+     */
+    public abstract boolean isWorkspaceProject(Project project);
+
+    /**
+     * Gets all dependent packages in a workspace for a given package.
+     * <p>
+     * This returns all packages that depend on the given package within its workspace, which is useful for collecting
+     * diagnostics across the entire workspace dependency graph.
+     *
+     * @param workspaceProject The workspace project.
+     * @param packageProject   The package project within the workspace.
+     * @return A collection of dependent projects, or empty if not in a workspace.
+     */
+    public abstract Collection<Project> getWorkspaceDependents(Project workspaceProject, Project packageProject);
+
+    /**
+     * Gets all workspace packages in topological order.
+     * <p>
+     * This ensures packages are processed in dependency order, with dependencies before dependents.
+     *
+     * @param project The workspace project.
+     * @return A list of projects in topological order, or empty if not a workspace project.
+     */
+    public abstract List<Project> getWorkspacePackagesInOrder(Project project);
+
+    /**
+     * Finds the workspace root directory by traversing up from the given path.
+     * <p>
+     * This searches for a Ballerina.toml file with a [workspace] section.
+     *
+     * @param path The starting path to search from.
+     * @return An Optional containing the workspace root path if found.
+     */
+    public abstract Optional<Path> findWorkspaceRoot(Path path);
+
+    /**
+     * Loads a project from the given path using the appropriate ProjectLoader API.
+     * <p>
+     * The API changed from {@code ProjectLoader.loadProject()} to {@code ProjectLoader.load().project()} in Ballerina
+     * 2201.13.0. This method abstracts that difference.
+     *
+     * @param path The path to the project root.
+     * @return The loaded project.
+     */
+    public abstract Project loadProject(Path path);
+
+    /**
+     * Loads a project from the given path with build options.
+     * <p>
+     * The API signature changed between versions. This method abstracts that difference.
+     *
+     * @param path         The path to the project root.
+     * @param buildOptions The build options.
+     * @return The loaded project.
+     */
+    public abstract Project loadProject(Path path, BuildOptions buildOptions);
+
+    /**
+     * Loads a project from the given path with custom project environment builder.
+     * <p>
+     * The API changed from {@code ProjectLoader.loadProject()} to {@code ProjectLoader.load().project()} in Ballerina
+     * 2201.13.0. This method abstracts that difference.
+     *
+     * @param path               The path to the project root.
+     * @param environmentBuilder The project environment builder.
+     * @return The loaded project.
+     */
+    public abstract Project loadProject(Path path, ProjectEnvironmentBuilder environmentBuilder);
 }

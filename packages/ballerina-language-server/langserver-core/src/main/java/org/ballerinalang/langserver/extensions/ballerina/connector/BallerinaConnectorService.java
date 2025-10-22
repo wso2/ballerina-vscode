@@ -49,6 +49,7 @@ import org.ballerinalang.diagramutil.DiagramUtil;
 import org.ballerinalang.diagramutil.connector.generator.ConnectorGenerator;
 import org.ballerinalang.diagramutil.connector.models.connector.Connector;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -262,7 +263,7 @@ public class BallerinaConnectorService implements ExtendedLanguageServerService 
                 Path balaPath = resolveBalaPath(request.getOrg(), request.getModule(), request.getVersion());
                 ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
                 defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-                Project balaProject = ProjectLoader.loadProject(balaPath, defaultBuilder);
+                Project balaProject = BallerinaCompilerApi.getInstance().loadProject(balaPath, defaultBuilder);
                 ModuleId moduleId = balaProject.currentPackage().moduleIds().stream().findFirst().get();
                 Module module = balaProject.currentPackage().module(moduleId);
                 PackageCompilation packageCompilation = balaProject.currentPackage().getCompilation();
