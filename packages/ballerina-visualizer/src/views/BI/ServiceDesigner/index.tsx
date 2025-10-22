@@ -206,7 +206,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
     const [enabledHandlers, setEnabledHandlers] = useState<FunctionModel[]>([]);
     const [unusedHandlers, setUnusedHandlers] = useState<FunctionModel[]>([]);
-
+    const [selectedHandler, setSelectedHandler] = useState<FunctionModel>(undefined);
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
 
@@ -474,6 +474,23 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setShowFunctionConfigForm(true);
     };
 
+    const onHandlerSelected = (handler: FunctionModel) => {
+        // Check if this handler is databindable
+        if (canDataBind(handler)) {
+            // For databindable functions, show DatabindForm for configuration
+            setSelectedHandler(handler);
+            setFunctionModel(handler);
+            setShowForm(true);
+            // Close the FunctionConfigForm to show the DatabindForm instead
+            setShowFunctionConfigForm(false);
+        } else {
+            // For regular functions, immediately add without showing a form
+            handler.enabled = true;
+            setShowFunctionConfigForm(false);
+            handleFunctionSubmit(handler);
+        }
+    };
+
     const onSelectAddInitFunction = async () => {
         setIsNew(false);
         const lsResponse = await rpcClient.getServiceDesignerRpcClient().getFunctionModel({
@@ -508,6 +525,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleNewFunctionClose = () => {
         setShowForm(false);
+        // If a handler was selected, also close the FunctionConfigForm
+        if (selectedHandler) {
+            setShowFunctionConfigForm(false);
+            setSelectedHandler(undefined);
+        }
     };
 
     const handleFunctionEdit = (value: FunctionModel) => {
@@ -1138,6 +1160,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 >
                                     <DatabindForm
                                         model={functionModel}
+                                        isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
                                     />
@@ -1171,6 +1194,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         serviceModel={serviceModel}
                                         onSubmit={handleFunctionSubmit}
+                                        onSelect={onHandlerSelected}
                                         onBack={handleFunctionConfigClose}
                                     />
                                 </PanelContainer>

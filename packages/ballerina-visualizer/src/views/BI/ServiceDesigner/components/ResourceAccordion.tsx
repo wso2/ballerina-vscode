@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { Button, Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { FunctionModel } from '@wso2/ballerina-core';
+import { canDataBind } from '../utils';
 
 
 type ContainerProps = {
@@ -191,8 +192,9 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                     <ButtonSection>
                         <>
                             {onEditResource! && (
-                                <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
-                                    <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                                <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!functionModel.editable && !canDataBind(functionModel)}>
+                                    <Icon isCodicon={true} name="settings-gear" sx={{
+                                         marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
                                     Configure
                                 </ActionButton >
                             )}

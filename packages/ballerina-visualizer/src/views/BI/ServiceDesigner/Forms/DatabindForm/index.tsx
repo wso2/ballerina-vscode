@@ -189,7 +189,7 @@ export function DatabindForm(props: DatabindFormProps) {
     const generatePayloadTypeName = (): string => {
         const rawPayloadFieldName = functionModel.properties?.payloadFieldName?.value || "Payload";
         const capitalizedName = rawPayloadFieldName.charAt(0).toUpperCase() + rawPayloadFieldName.slice(1);
-        return `${capitalizedName}Type`;
+        return `${capitalizedName}Schema`;
     };
 
     const handleTypeCreated = (type: Type | string) => {
@@ -342,7 +342,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                 </PayloadSection>
 
                                 {/* Advanced Message Configurations Collapsible Section */}
-                                <OptionalConfigRow>
+                                {/* <OptionalConfigRow>
                                     <span>Advanced Message Configurations</span>
                                     <OptionalConfigButtonContainer>
                                         {!showMessageTypeConfig && (
@@ -397,7 +397,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                             />
                                         </MessageTypeNameFieldContainer>
                                     </OptionalConfigContent>
-                                )}
+                                )} */}
                             </MessageConfigContent>
                         </MessageConfigSection>
                     </MessageConfigContainer>
