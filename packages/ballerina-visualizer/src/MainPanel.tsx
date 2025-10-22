@@ -65,7 +65,6 @@ import { TypeDiagram } from "./views/TypeDiagram";
 import { Overview as OverviewBI } from "./views/BI/Overview/index";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
-import { ServiceWizard } from "./views/BI/ServiceDesigner/ServiceWizard";
 import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
 import { ListenerEditView } from "./views/BI/ServiceDesigner/ListenerEditView";
 import { ServiceClassDesigner } from "./views/BI/ServiceClassEditor/ServiceClassDesigner";
@@ -451,9 +450,6 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AIChatAgentWizard:
                         setViewComponent(<AIChatAgentWizard />);
                         break;
-                    // case MACHINE_VIEW.BIServiceWizard:
-                    //     setViewComponent(<ServiceWizard type={value.serviceType} />);
-                    //     break;
                     case MACHINE_VIEW.BIServiceWizard:
                         setViewComponent(<ServiceCreationView orgName={value?.artifactInfo.org} packageName={value?.artifactInfo.packageName} moduleName={value?.artifactInfo.moduleName} version={value?.artifactInfo.version} />);
                         break;
