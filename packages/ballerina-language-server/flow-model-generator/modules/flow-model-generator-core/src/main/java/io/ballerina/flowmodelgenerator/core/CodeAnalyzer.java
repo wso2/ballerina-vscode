@@ -339,14 +339,10 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(ReturnStatementNode returnStatementNode) {
         Optional<ExpressionNode> optExpr = returnStatementNode.expression();
-        if (optExpr.isEmpty()) {
-            startNode(NodeKind.STOP, returnStatementNode);
-        } else {
-            ExpressionNode expr = optExpr.get();
-            startNode(NodeKind.RETURN, returnStatementNode)
-                    .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
-                    .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false);
-        }
+        NodeBuilder builder = startNode(NodeKind.RETURN, returnStatementNode);
+        optExpr.ifPresent(expr -> builder
+                .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
+                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false));
         nodeBuilder.returning();
         endNode(returnStatementNode);
     }
