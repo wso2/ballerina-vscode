@@ -1,0 +1,13 @@
+{
+  "source": "agent.bal",
+  "description": "Filter AGENT nodes by name _salesAgentAgent",
+  "position": {
+    "line": 17,
+    "offset": 0
+  },
+  "queryMap": {
+    "kind": "AGENT",
+    "exactMatch": "_salesAgentAgent"
+  },
+  "output": []
+}

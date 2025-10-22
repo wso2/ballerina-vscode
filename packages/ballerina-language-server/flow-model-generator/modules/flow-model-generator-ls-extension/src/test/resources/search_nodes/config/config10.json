@@ -1,0 +1,8 @@
+{
+  "source": "agent.bal",
+  "description": "Filter MODEL_PROVIDER nodes only",
+  "queryMap": {
+    "kind": "MODEL_PROVIDER"
+  },
+  "output": []
+}
