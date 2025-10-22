@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder.PAYLOAD_FIELD_NAME;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder.TYPE_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 
 /**
@@ -37,7 +38,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
 public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "rabbitmq:AnydataMessage";
-    private static final String TYPE_PREFIX = "RabbitMQAnydataMessage";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {

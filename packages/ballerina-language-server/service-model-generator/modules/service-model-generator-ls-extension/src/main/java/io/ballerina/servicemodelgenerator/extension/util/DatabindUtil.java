@@ -311,9 +311,10 @@ public final class DatabindUtil {
      * @param functionName     Name of the function to add the data binding parameter to
      * @param context          ModelFromSourceContext to access the source node
      * @param payloadFieldName The field name to look up (e.g., "value" for Kafka, "content" for RabbitMQ)
+     * @param prefix           Type name prefix for generated wrapper types (e.g., "KafkaDataBind", "RabbitMQDataBind")
      */
     public static void addDataBindingParam(Service service, String functionName, ModelFromSourceContext context,
-                                           String payloadFieldName) {
+                                           String payloadFieldName, String prefix) {
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
 
         FunctionMatch match = findMatchingFunctions(service, functionName, serviceNode);
@@ -347,29 +348,24 @@ public final class DatabindUtil {
 
         // Extract existing wrapper type name from function node if it exists
         String existingWrapperTypeName = "";
-        if (match.sourceFunctionNode() != null && context.semanticModel() != null) {
+        if (match.sourceFunctionNode() != null && context.semanticModel() != null && context.project() != null) {
             String paramName = dataBindingParam.getName().getValue();
-            // Use the service node's module to get the document for semantic model context
-            Optional<Document> documentOpt = Optional.empty();
-            if (context.project() != null) {
-                Module module = context.project().currentPackage().getDefaultModule();
-                if (module != null) {
-                    for (DocumentId docId : module.documentIds()) {
-                        Document doc = module.document(docId);
-                        // Find the document that contains the service
-                        documentOpt = Optional.of(doc);
-                        break;
-                    }
-                }
-            }
+            // Get the main.bal document for semantic model context
+            Document mainDocument = getDocumentByName(context.project(), "main.bal");
 
-            if (documentOpt.isPresent()) {
+            if (mainDocument != null) {
                 String extractedTypeName = extractExistingDatabindTypeName(match.sourceFunctionNode(), paramName,
-                        context.semanticModel(), documentOpt.get(), "");
+                        context.semanticModel(), mainDocument, "");
                 if (extractedTypeName != null) {
                     existingWrapperTypeName = extractedTypeName;
                 }
             }
+        }
+
+        if (existingWrapperTypeName.isEmpty() && context.project() != null && context.semanticModel() != null) {
+            // Generate a new wrapper type name using the provided prefix
+            existingWrapperTypeName = generateNewDataBindTypeName(context.project(), context.semanticModel(),
+                    match.sourceFunctionNode(), prefix);
         }
 
         // Add wrapperTypeName property with existing value or empty if new
@@ -440,6 +436,13 @@ public final class DatabindUtil {
         Optional<Parameter> dataBindingParamOpt = findDataBindingParameter(function);
 
         if (dataBindingParamOpt.isEmpty()) {
+            // Check if there's a disabled data binding parameter (deletion case)
+            Optional<Parameter> disabledDataBindingParam = function.getParameters().stream()
+                    .filter(param -> DATA_BINDING.equals(param.getKind()) && !param.isEnabled())
+                    .findFirst();
+            if (disabledDataBindingParam.isPresent()) {
+                return handleDataBindingDeletion(context, function, disabledDataBindingParam.get(), baseType);
+            }
             return Map.of();
         }
 
@@ -497,7 +500,8 @@ public final class DatabindUtil {
                     newDataBindingType, payloadFieldName);
         } else {
             // Create new type
-            typeName = generateDataBindTypeName(context, prefix);
+            typeName = generateNewDataBindTypeName(context.project(), context.semanticModel(),
+                    context.functionNode(), prefix);
             typesEdits = createTypeDefinitionEdits(context, typeName, baseType,
                     newDataBindingType, payloadFieldName, isArray);
         }
@@ -537,6 +541,120 @@ public final class DatabindUtil {
         }
 
         dataBindingParam.setEnabled(false);
+    }
+
+    /**
+     * Handles data binding deletion by removing the wrapper type if it's not used elsewhere.
+     *
+     * @param context                  The UpdateModelContext
+     * @param function                 The function containing the data binding
+     * @param disabledDataBindingParam The disabled data binding parameter
+     * @param baseType                 The base event type (for reference checking)
+     * @return Map of TextEdits to delete the type, or empty if type is still in use
+     */
+    private static Map<String, List<TextEdit>> handleDataBindingDeletion(UpdateModelContext context,
+                                                                         Function function,
+                                                                         Parameter disabledDataBindingParam,
+                                                                         String baseType) {
+        if (context.functionNode() == null || context.semanticModel() == null || context.document() == null) {
+            return Map.of();
+        }
+
+        String paramName = disabledDataBindingParam.getName().getValue();
+        String wrapperTypeName = extractExistingDatabindTypeName(context.functionNode(), paramName,
+                context.semanticModel(), context.document(), baseType);
+
+        if (wrapperTypeName == null || wrapperTypeName.isEmpty()) {
+            return Map.of();
+        }
+
+        // Check if the wrapper type is used elsewhere
+        if (isTypeUsedElsewhere(context, wrapperTypeName)) {
+            return Map.of();
+        }
+
+        // Type is not used elsewhere, delete it from types.bal
+        return deleteTypeDefinition(context, wrapperTypeName);
+    }
+
+    /**
+     * Checks if a type is used elsewhere in the codebase using semantic model references.
+     *
+     * @param context  The UpdateModelContext
+     * @param typeName The type name to check
+     * @return true if the type is referenced elsewhere, false otherwise
+     */
+    private static boolean isTypeUsedElsewhere(UpdateModelContext context, String typeName) {
+        if (context.semanticModel() == null) {
+            return true;
+        }
+
+        try {
+            LinePosition typePosition = context.functionNode() != null
+                    ? context.functionNode().lineRange().startLine()
+                    : LinePosition.from(0, 0);
+
+            // Get all visible symbols to find the type
+            List<Symbol> visibleSymbols = context.semanticModel()
+                    .visibleSymbols(context.document(), typePosition);
+
+            for (Symbol symbol : visibleSymbols) {
+                if (symbol.getName().isPresent() && symbol.getName().get().equals(typeName)) {
+                    // Found the type symbol, now check its references
+                    List<?> references = context.semanticModel().references(symbol);
+
+                    // If there are more than 1 reference (the type definition itself), it's used elsewhere
+                    if (references.size() > 2) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // If we can't determine references, assume it's used (safe default)
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Deletes a type definition from types.bal.
+     *
+     * @param context  The UpdateModelContext
+     * @param typeName The name of the type to delete
+     * @return Map of TextEdits to perform the deletion
+     */
+    private static Map<String, List<TextEdit>> deleteTypeDefinition(UpdateModelContext context, String typeName) {
+        Project project = context.project() != null ? context.project() : context.document().module().project();
+        Document typesDocument = getTypesDocument(project);
+        if (typesDocument == null || typesDocument.syntaxTree() == null) {
+            return Map.of();
+        }
+
+        ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
+        TypeDefinitionNode typeDefToDelete = null;
+
+        // Find the type definition to delete
+        for (Node member : modulePartNode.members()) {
+            if (member instanceof TypeDefinitionNode typeDefNode) {
+                if (typeDefNode.typeName().text().equals(typeName)) {
+                    typeDefToDelete = typeDefNode;
+                    break;
+                }
+            }
+        }
+
+        if (typeDefToDelete == null) {
+            return Map.of();
+        }
+
+        // Create TextEdit to delete the type definition
+        List<TextEdit> edits = new ArrayList<>();
+        TextEdit deleteEdit = new TextEdit(Utils.toRange(typeDefToDelete.lineRange()), "");
+        edits.add(deleteEdit);
+
+        String typesFilePath = project.sourceRoot().resolve("types.bal").toAbsolutePath().toString();
+        return Map.of(typesFilePath, edits);
     }
 
     /**
@@ -649,22 +767,32 @@ public final class DatabindUtil {
     }
 
     /**
-     * Generates a unique databind type name for the given prefix using semantic model.
+     * Generates a new unique databind type name for the given prefix using semantic model.
+     * This method generates a type name without requiring a full UpdateModelContext.
      *
-     * @param context The UpdateModelContext containing project and document information
-     * @param prefix  The prefix for generated type names (e.g., "KafkaAnydataConsumer", "RabbitMQAnydataMessage")
-     * @return A unique type name (e.g., "KafkaAnydataConsumer1", "RabbitMQAnydataMessage1")
+     * @param project       The Ballerina project
+     * @param semanticModel The semantic model for generating unique identifiers
+     * @param functionNode  The function definition node for line position reference
+     * @param prefix        The prefix for generated type names (e.g., "KafkaDataBind", "RabbitMQDataBind")
+     * @return A unique type name (e.g., "KafkaDataBind1", "RabbitMQDataBind1")
      */
-    private static String generateDataBindTypeName(UpdateModelContext context, String prefix) {
-        if (context.semanticModel() != null && context.document() != null) {
-            LinePosition linePosition = context.functionNode() != null
-                    ? context.functionNode().lineRange().startLine()
-                    : LinePosition.from(0, 0);
-
-            return Utils.generateTypeIdentifier(context.semanticModel(), context.document(),
-                    linePosition, prefix);
+    private static String generateNewDataBindTypeName(Project project, SemanticModel semanticModel,
+                                                      FunctionDefinitionNode functionNode, String prefix) {
+        if (project == null || semanticModel == null) {
+            return prefix;
         }
-        return prefix;
+
+        // Get main.bal document for generating the type identifier
+        Document mainDocument = getDocumentByName(project, "main.bal");
+        if (mainDocument == null) {
+            return prefix;
+        }
+
+        LinePosition linePosition = functionNode != null
+                ? functionNode.lineRange().startLine()
+                : LinePosition.from(0, 0);
+
+        return Utils.generateTypeIdentifier(semanticModel, mainDocument, linePosition, prefix);
     }
 
     /**
@@ -750,23 +878,33 @@ public final class DatabindUtil {
     }
 
     /**
+     * Gets a document from the project by filename.
+     *
+     * @param project  The Ballerina project
+     * @param fileName The name of the document to retrieve (e.g., "main.bal", "types.bal")
+     * @return The Document if found, or null otherwise
+     */
+    private static Document getDocumentByName(Project project, String fileName) {
+        Module defaultModule = project.currentPackage().getDefaultModule();
+
+        for (DocumentId documentId : defaultModule.documentIds()) {
+            Document document = defaultModule.document(documentId);
+            if (document.name().equals(fileName)) {
+                return document;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Gets the types.bal document in the project.
      *
      * @param project The Ballerina project
      * @return The types.bal Document
      */
     private static Document getTypesDocument(Project project) {
-        Module defaultModule = project.currentPackage().getDefaultModule();
-
-        // Look for existing types.bal
-        for (DocumentId documentId : defaultModule.documentIds()) {
-            Document document = defaultModule.document(documentId);
-            if (document.name().equals("types.bal")) {
-                return document;
-            }
-        }
-
-        return null;
+        return getDocumentByName(project, "types.bal");
     }
 
     /**

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder.PAYLOAD_FIELD_NAME;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder.TYPE_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 
 /**
@@ -37,7 +38,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "kafka:AnydataConsumerRecord";
-    private static final String TYPE_PREFIX = "KafkaAnydataConsumer";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
