@@ -715,7 +715,7 @@ export const Form = forwardRef((props: FormProps) => {
 
     const handleOnSaveClick = async () => {
         setSavingButton('save');
-        const isValidForm = await handleFormValidation();
+        const isValidForm = onFormValidation ? await handleFormValidation() : true;
         if (isValidForm) {
             handleSubmit(handleOnSave)();
         }
