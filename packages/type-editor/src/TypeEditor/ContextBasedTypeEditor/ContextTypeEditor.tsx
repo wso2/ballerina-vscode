@@ -20,7 +20,7 @@ import React, { useState } from "react";
 import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
-import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse } from "@wso2/ballerina-core";
+import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse, PayloadContext } from "@wso2/ballerina-core";
 import { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from "../../TypeHelper";
 import { TypeHelperContext } from "../../Context";
 import { GenericImportTab } from "./GenericImportTab";
@@ -53,6 +53,7 @@ interface ContextTypeEditorProps {
     isPopupTypeForm: boolean;
     simpleType?: string;
     isGraphql?: boolean;
+    payloadContext?: PayloadContext;
     typeHelper: {
         loading?: boolean;
         loadingTypeBrowser?: boolean;
@@ -71,7 +72,7 @@ interface ContextTypeEditorProps {
 
 
 export function ContextTypeEditor(props: ContextTypeEditorProps) {
-    const { isGraphql, newType, isPopupTypeForm, simpleType } = props;
+    const { isGraphql, newType, isPopupTypeForm, simpleType, payloadContext } = props;
 
     const [initialTypeKind] = useState<TypeNodeKind>(() =>
         (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
@@ -200,6 +201,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isSaving={isSaving}
                                 isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
+                                payloadContext={payloadContext}
                             />
                         </S.TabContainer>
                         <S.TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">

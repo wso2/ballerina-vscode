@@ -23,7 +23,7 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel, Type } from '@wso2/ballerina-core';
+import { ConfigProperties, ParameterModel, PayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
 import { ContextBasedFormTypeEditor } from '../../../../../../components/ContextBasedFormTypeEditor';
 
 export interface ParametersProps {
@@ -34,6 +34,7 @@ export interface ParametersProps {
     pathName?: string;
     showPayload: boolean;
     isNewResource?: boolean;
+    payloadContext?: PayloadContext;
 }
 
 const AddButtonWrapper = styled.div`
@@ -68,7 +69,7 @@ const OptionalConfigContent = styled.div`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, readonly, onChange, schemas, showPayload, isNewResource = false, pathName } = props;
+    const { parameters, readonly, onChange, schemas, showPayload, isNewResource = false, pathName, payloadContext } = props;
 
     const queryModel = schemas["query"] as ParameterModel;
     const headerModel = schemas["header"] as ParameterModel;
@@ -262,6 +263,19 @@ export function Parameters(props: ParametersProps) {
             "Caller": "Access information about the caller/client making the request. This provides context about the service caller, including authentication details, caller identity, and caller-specific metadata. Use this for authorization and logging purposes."
         };
         return descriptions[label] || "Use this input to configure advanced parameters.";
+    };
+
+    // Helper function to collect parameter details for payload context
+    const getParameterDetails = () => {
+        const queryParams = normalParameters.filter(p => p.httpParamType === "QUERY");
+        if (queryParams.length > 0) {
+            return queryParams.map(param => ({
+                name: param.name?.value || '',
+                type: param.type?.value || '',
+                defaulValue: (param.defaultValue as PropertyModel)?.value || ''
+            }));
+        }
+        return [];
     };
 
     return (
@@ -459,6 +473,10 @@ export function Parameters(props: ParametersProps) {
                 initialTypeName={generatePayloadName()}
                 editMode={false}
                 modalTitle={"Define Payload"}
+                payloadContext={{
+                    ...payloadContext,
+                    paramDetails: getParameterDetails()
+                }}
                 modalWidth={650}
                 modalHeight={600}
             />

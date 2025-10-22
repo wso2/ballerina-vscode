@@ -17,10 +17,10 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton } from "@wso2/ui-toolkit";
+import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences } from "@wso2/ballerina-core";
+import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
 
@@ -86,6 +86,23 @@ const ScrollableSection = styled.div`
     max-height: 350px;
 `;
 
+const LoaderOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    border-radius: 4px;
+    z-index: 10;
+`;
+
 enum DetectedFormat {
     JSON = "JSON",
     XML = "XML",
@@ -98,6 +115,7 @@ interface GenericImportTabProps {
     isSaving: boolean;
     setIsSaving: (isSaving: boolean) => void;
     isPopupTypeForm: boolean;
+    payloadContext?: PayloadContext;
 }
 
 export function GenericImportTab(props: GenericImportTabProps) {
@@ -106,7 +124,8 @@ export function GenericImportTab(props: GenericImportTabProps) {
         onTypeSave,
         isSaving,
         setIsSaving,
-        isPopupTypeForm
+        isPopupTypeForm,
+        payloadContext
     } = props;
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -116,6 +135,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
     const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
     const [nameError, setNameError] = useState<string>("");
     const [error, setError] = useState<string>("");
+    const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
     const { rpcClient } = useRpcContext();
 
@@ -366,6 +386,49 @@ export function GenericImportTab(props: GenericImportTabProps) {
         reader.readAsText(file);
     };
 
+    const generateSampleJson = async () => {
+        if (!payloadContext) {
+            console.error("No payload context available for JSON generation");
+            return;
+        }
+
+        try {
+            // Set loading state for generation
+            setIsGenerating(true);
+            setError("");
+
+            console.log("Generating sample JSON with context:", payloadContext);
+
+            // TODO: Call the API to generate sample JSON based on payload context
+
+
+            // Sample mock
+            const mockGeneratedJson = {
+                id: 1,
+                name: "Sample User",
+                email: "user@example.com",
+                age: 25,
+            };
+
+            // Populate the textarea with the generated JSON
+            const generatedJson = JSON.stringify(mockGeneratedJson, null, 2);
+
+            setContent(generatedJson);
+
+            // Auto-detect format for the generated content
+            const format = detectFormat(generatedJson);
+            setDetectedFormat(format);
+
+            console.log("Generated JSON:", generatedJson);
+
+        } catch (err) {
+            console.error("Error generating sample JSON:", err);
+            setError("Failed to generate sample JSON. Please try again.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <>
             <InfoBanner>
@@ -410,14 +473,25 @@ export function GenericImportTab(props: GenericImportTabProps) {
             </HeaderRow>
 
             <ScrollableSection>
+
                 <div style={{ position: 'relative' }}>
                     <TextArea
                         rows={15}
                         value={content}
                         onChange={handleContentChange}
                         errorMsg={error}
+                        placeholder={!payloadContext ? "Paste JSON or XML here..." : ""}
                     />
-                    {!content && (
+                    {/* Loading overlay for generation */}
+                    {isGenerating && (
+                        <LoaderOverlay>
+                            <ProgressRing />
+                            <Typography variant="body3" sx={{ color: 'var(--vscode-foreground)' }}>
+                                Generating sample JSON...
+                            </Typography>
+                        </LoaderOverlay>
+                    )}
+                    {!content && payloadContext && !isGenerating && (
                         <div style={{
                             position: 'absolute',
                             top: '50%',
@@ -437,7 +511,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 Or
                             </Typography>
                             <LinkButton
-                                onClick={() => {/* TODO: Implement generate sample JSON */ }}
+                                onClick={() => generateSampleJson()}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',

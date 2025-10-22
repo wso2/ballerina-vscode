@@ -1104,6 +1104,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
+                                        payloadContext={{
+                                            serviceName: serviceModel.name || '',
+                                            serviceBasePath: serviceModel.properties?.basePath?.value || '',
+                                        }}
                                     />
                                 </PanelContainer>
                             )}
@@ -1121,6 +1125,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
+                                        payloadContext={{
+                                            serviceName: serviceModel.name || '',
+                                            serviceBasePath: serviceModel.properties?.basePath?.value || '',
+                                        }}
                                     />
                                 </PanelContainer>
                             )}
