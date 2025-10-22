@@ -107,6 +107,21 @@ export interface StatusCodeResponse extends PropertyModel {
     mediaType: PropertyModel;
 }
 
+export interface PayloadContext {
+    serviceName: string;
+    serviceBasePath: string;
+    resourceBasePath?: string;
+    resourceMethod?: string;
+    resourceDocumentation?:string;
+    paramDetails?:ParamDetails[];
+}
+
+export interface ParamDetails {
+    name: string;
+    type: string;
+    defaulValue?: string;
+}
+
 interface MetaData {
     label: string;
     description: string;

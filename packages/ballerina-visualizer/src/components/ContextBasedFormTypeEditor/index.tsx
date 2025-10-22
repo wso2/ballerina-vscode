@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Type } from '@wso2/ballerina-core';
+import { PayloadContext, Type } from '@wso2/ballerina-core';
 import { EditorContext, StackItem } from '@wso2/type-editor';
 import DynamicModal from '../Modal';
 import { FormTypeEditor } from '../../views/BI/TypeEditor';
@@ -57,6 +57,7 @@ interface ContextBasedFormTypeEditorProps {
     modalTitle?: string;
     modalWidth?: number;
     modalHeight?: number;
+    payloadContext?: PayloadContext;
     editMode?: boolean; // If true, load existing type for editing instead of creating new
 }
 
@@ -70,6 +71,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         modalTitle = "Create New Type",
         modalWidth = 650,
         modalHeight = 600,
+        payloadContext,
         editMode = false
     } = props;
 
@@ -339,6 +341,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                                     getNewTypeCreateForm={getNewTypeCreateForm}
                                     refetchTypes={refetchStates[i]}
                                     isContextTypeForm={i === 0}
+                                    payloadContext={payloadContext}
                                     simpleType={simpleType}
                                 />
                             </>
