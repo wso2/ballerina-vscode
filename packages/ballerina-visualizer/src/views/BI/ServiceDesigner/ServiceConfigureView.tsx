@@ -192,12 +192,30 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [tabView, setTabView] = useState<"service" | "listener">(props.listenerName ? "listener" : "service");
 
+    // Create ref map for accordion containers
+    const accordionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    
+    // Create ref for service section
+    const serviceRef = useRef<HTMLDivElement | null>(null);
+    
+    // State to manage which accordion is expanded
+    const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
+
     useEffect(() => {
         fetchService(props.position);
     }, [props.position]);
 
     const handleOnServiceSelect = () => {
         setTabView("service");
+        // Scroll to service section
+        if (serviceRef.current) {
+            serviceRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        // Clear any expanded accordion when switching to service view
+        setExpandedAccordion(null);
     };
 
     const fetchService = (targetPosition: NodePosition) => {
@@ -258,6 +276,25 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
         await fetchService(updatedArtifact.position);
+    }
+
+    const handleOnListenerClick = (listenerId: string) => {
+        // Make sure we're on the service tab to see accordions
+        setTabView("service");
+        
+        // Expand the clicked accordion
+        setExpandedAccordion(listenerId);
+        
+        // Scroll to the corresponding accordion container
+        setTimeout(() => {
+            const accordionElement = accordionRefs.current[listenerId];
+            if (accordionElement) {
+                accordionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }, 100); // Small delay to ensure tab switch and DOM update
     }
 
     return (
@@ -342,10 +379,11 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                     style={{
                                                                         display: 'flex',
                                                                         height: '22px',
-                                                                        alignItems: 'center'
+                                                                        alignItems: 'center',
+                                                                        cursor: 'pointer'
                                                                     }}
                                                                     onClick={(e) => {
-                                                                        e.stopPropagation();
+                                                                        handleOnListenerClick(listener.id);
                                                                     }}
                                                                 >
                                                                     <Typography
@@ -393,15 +431,20 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             </LoadingContainer>
                                                         )}
                                                         {tabView === "service" && serviceModel && (
-                                                            <>
+                                                            <div ref={serviceRef}>
                                                                 <ServiceEditView filePath={props.filePath} position={props.position} />
                                                                 <Divider />
                                                                 <Typography variant="h3" sx={{ marginLeft: '18px' }}>Attached Listeners</Typography>
                                                                 {listeners.map((listener) => (
-                                                                    <AccordionContainer key={listener.id}>
+                                                                    <AccordionContainer 
+                                                                        key={listener.id}
+                                                                        ref={(el) => {
+                                                                            accordionRefs.current[listener.id] = el;
+                                                                        }}
+                                                                    >
                                                                         <Accordion
                                                                             header={`${listener.name.charAt(0).toUpperCase() + listener.name.slice(1)} Configuration`}
-                                                                            isExpanded={false}
+                                                                            isExpanded={expandedAccordion === listener.id}
                                                                         >
                                                                             <div>
                                                                                 {/* Add detach button to the listener configuration */}
@@ -437,7 +480,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         attachedListeners={listeners.map(listener => listener.name)}
                                                                     />
                                                                 </DynamicModal>
-                                                            </>
+                                                            </div>
                                                         )}
                                                     </>
                                                 </Container >
