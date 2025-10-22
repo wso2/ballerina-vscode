@@ -136,7 +136,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 openRecordEditor={openRecordEditor}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
-                onBlur={onBlur}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
 
@@ -149,6 +148,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 openRecordEditor={openRecordEditor}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
+                onBlur={onBlur}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
 
