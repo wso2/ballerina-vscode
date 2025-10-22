@@ -93,27 +93,27 @@ public class ModelGenerator {
     private final Project project;
     private final WorkspaceManager workspaceManager;
 
-    private static final Map<NodeKind, SymbolKind> NODE_KIND_TO_TARGET_KIND = Map.ofEntries(
-            Map.entry(NodeKind.REMOTE_ACTION_CALL, SymbolKind.METHOD),
-            Map.entry(NodeKind.RESOURCE_ACTION_CALL, SymbolKind.METHOD),
-            Map.entry(NodeKind.AGENT_CALL, SymbolKind.METHOD),
-            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, SymbolKind.METHOD),
-            Map.entry(NodeKind.METHOD_CALL, SymbolKind.METHOD),
-            Map.entry(NodeKind.DATA_MAPPER_CALL, SymbolKind.FUNCTION),
-            Map.entry(NodeKind.NP_FUNCTION_CALL, SymbolKind.FUNCTION),
-            Map.entry(NodeKind.FUNCTION_CALL, SymbolKind.FUNCTION),
-            Map.entry(NodeKind.VARIABLE, SymbolKind.VARIABLE),
-            Map.entry(NodeKind.JSON_PAYLOAD, SymbolKind.VARIABLE),
-            Map.entry(NodeKind.AGENT, SymbolKind.CLASS),
-            Map.entry(NodeKind.MODEL_PROVIDER, SymbolKind.CLASS),
-            Map.entry(NodeKind.EMBEDDING_PROVIDER, SymbolKind.CLASS),
-            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE, SymbolKind.CLASS),
-            Map.entry(NodeKind.VECTOR_STORE, SymbolKind.CLASS),
-            Map.entry(NodeKind.DATA_LOADER, SymbolKind.CLASS),
-            Map.entry(NodeKind.CHUNKER, SymbolKind.CLASS),
-            Map.entry(NodeKind.CLASS_INIT, SymbolKind.CLASS),
-            Map.entry(NodeKind.NEW_CONNECTION, SymbolKind.CLASS),
-            Map.entry(NodeKind.MCP_TOOLKIT, SymbolKind.CLASS)
+    private static final Map<NodeKind, Set<SymbolKind>> NODE_KIND_TO_TARGET_KINDS = Map.ofEntries(
+            Map.entry(NodeKind.REMOTE_ACTION_CALL, Set.of(SymbolKind.METHOD)),
+            Map.entry(NodeKind.RESOURCE_ACTION_CALL, Set.of(SymbolKind.METHOD)),
+            Map.entry(NodeKind.AGENT_CALL, Set.of(SymbolKind.METHOD)),
+            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, Set.of(SymbolKind.METHOD)),
+            Map.entry(NodeKind.METHOD_CALL, Set.of(SymbolKind.METHOD)),
+            Map.entry(NodeKind.DATA_MAPPER_CALL, Set.of(SymbolKind.FUNCTION)),
+            Map.entry(NodeKind.NP_FUNCTION_CALL, Set.of(SymbolKind.FUNCTION)),
+            Map.entry(NodeKind.FUNCTION_CALL, Set.of(SymbolKind.FUNCTION)),
+            Map.entry(NodeKind.VARIABLE, Set.of(SymbolKind.VARIABLE)),
+            Map.entry(NodeKind.JSON_PAYLOAD, Set.of(SymbolKind.VARIABLE)),
+            Map.entry(NodeKind.AGENT, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.MODEL_PROVIDER, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.EMBEDDING_PROVIDER, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.VECTOR_KNOWLEDGE_BASE, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.VECTOR_STORE, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.DATA_LOADER, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.CHUNKER, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.CLASS_INIT, Set.of(SymbolKind.CLASS)),
+            Map.entry(NodeKind.NEW_CONNECTION, Set.of(SymbolKind.VARIABLE, SymbolKind.CLASS_FIELD)),
+            Map.entry(NodeKind.MCP_TOOLKIT, Set.of(SymbolKind.CLASS))
     );
 
     public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
@@ -334,7 +334,23 @@ public class ModelGenerator {
             }
         }
 
-// 5. Sort results (same as getModuleNodes)
+        // 5. Apply NodeKind filter if present (filter after conversion)
+        if (kindFilter != null && !kindFilter.isEmpty()) {
+            try {
+                NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                connectionsList = connectionsList.stream()
+                        .filter(node -> node.codedata().node() == requiredNodeKind)
+                        .collect(java.util.stream.Collectors.toList());
+                variablesList = variablesList.stream()
+                        .filter(node -> node.codedata().node() == requiredNodeKind)
+                        .collect(java.util.stream.Collectors.toList());
+            } catch (IllegalArgumentException e) {
+                connectionsList.clear();
+                variablesList.clear();
+            }
+        }
+
+        // 6. Sort results (same as getModuleNodes)
         Comparator<FlowNode> comparator = Comparator.comparing(
                 node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
                         .map(property -> property.value().toString())
@@ -467,15 +483,11 @@ public class ModelGenerator {
     }
 
     private boolean matchesNodeKind(Symbol symbol, NodeKind requiredNodeKind) {
-        // Get the expected SymbolKind for the required NodeKind from the mapping
-        SymbolKind expectedSymbolKind = NODE_KIND_TO_TARGET_KIND.get(requiredNodeKind);
+        Set<SymbolKind> expectedSymbolKinds = NODE_KIND_TO_TARGET_KINDS.get(requiredNodeKind);
 
-        // If there's no mapping for the required NodeKind, return false
-        if (expectedSymbolKind == null) {
+        if (expectedSymbolKinds == null) {
             return false;
         }
-
-        // Check if the symbol's kind matches the expected SymbolKind
-        return symbol.kind() == expectedSymbolKind;
+        return expectedSymbolKinds.contains(symbol.kind());
     }
 }
