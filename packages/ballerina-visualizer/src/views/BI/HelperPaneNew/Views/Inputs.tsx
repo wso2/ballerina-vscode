@@ -20,11 +20,12 @@ import { ExpandableList } from "../Components/ExpandableList"
 import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import styled from "@emotion/styled"
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
 
 type InputsPageProps = {
     fileName: string;
@@ -68,7 +69,7 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
                 </InputsMoreIconContainer>}
         >
             <ExpandableList.Item>
-                {getIcon(item.kind)}
+                {getHelperPaneIcon(HelperPaneIconType.INPUT)}
                 <Typography
                     variant="body3"
                     sx={{

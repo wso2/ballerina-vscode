@@ -21,8 +21,8 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
-import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
@@ -34,6 +34,7 @@ import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './Utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
+import { HelperPaneIconType, getHelperPaneIcon } from './Utils/iconUtils';
 
 const MAX_MENU_ITEM_COUNT = 5;
 
@@ -336,7 +337,7 @@ const HelperPaneNewEl = ({
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={openRecordConfigView}>
                                             <ExpandableList.Item>
-                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                     Create value
                                                 </Typography>
@@ -351,7 +352,7 @@ const HelperPaneNewEl = ({
                                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
                                                 >
                                                     <ExpandableList.Item>
-                                                        {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                             Create Value
                                                         </Typography>
@@ -365,7 +366,7 @@ const HelperPaneNewEl = ({
                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
                                 >
                                     <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Variable)}
+                                        {getHelperPaneIcon(HelperPaneIconType.INPUT)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Inputs
                                         </Typography>
@@ -377,7 +378,7 @@ const HelperPaneNewEl = ({
                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
                                 >
                                     <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Variable)}
+                                        {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Variables
                                         </Typography>
@@ -390,7 +391,7 @@ const HelperPaneNewEl = ({
                                 >
                                     <ExpandableList.Item>
                                         <TitleContainer>
-                                            {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                                            {getHelperPaneIcon(HelperPaneIconType.SETTINGS)}
                                             <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                 Configurables
                                             </Typography>
@@ -403,7 +404,7 @@ const HelperPaneNewEl = ({
                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 4) }}
                                 >
                                     <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Functions
                                         </Typography>

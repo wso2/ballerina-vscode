@@ -21,7 +21,7 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
@@ -31,6 +31,7 @@ import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
 
 type VariablesPageProps = {
     fileName: string;
@@ -80,7 +81,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                 </VariablesMoreIconContainer>}
         >
             <ExpandableList.Item>
-                {getIcon(item.kind)}
+                {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
                 <Typography
                     variant="body3"
                     sx={{
@@ -367,7 +368,7 @@ export const Variables = (props: VariablesPageProps) => {
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            {isInModal ? null : <div style={{ padding: '3px' }}><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
+            {isInModal ? null : <div><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
         </div>
     )
 }

@@ -25,17 +25,17 @@ import { CompletionInsertText, FunctionKind, LineRange } from "@wso2/ballerina-c
 import { useMutation } from "@tanstack/react-query";
 import { ExpandableList } from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { COMPLETION_ITEM_KIND, CompletionItem, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
+import { CompletionItem, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
 import { Divider, SearchBox } from "@wso2/ui-toolkit";
 import { LibraryBrowser } from "../../HelperPane/LibraryBrowser";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
-import DynamicModal from "../../../../components/Modal";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -226,7 +226,7 @@ export const FunctionsPage = ({
                                                                     <ExpandableList.Item
                                                                         key={item.label}
                                                                     >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
                                                                     </ExpandableList.Item>
                                                                 </SlidingPaneNavContainer>
@@ -252,7 +252,7 @@ export const FunctionsPage = ({
                                                                     <ExpandableList.Item
                                                                         key={item.label}
                                                                     >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
                                                                     </ExpandableList.Item>
                                                                 </SlidingPaneNavContainer>
@@ -270,10 +270,9 @@ export const FunctionsPage = ({
                 }
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
-            <div style={{padding: '0px'}}>
+            <div>
                 <FooterButtons onClick={handleNewFunctionClick} startIcon='add' title="New Function" />
                 <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
-
             </div>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser
