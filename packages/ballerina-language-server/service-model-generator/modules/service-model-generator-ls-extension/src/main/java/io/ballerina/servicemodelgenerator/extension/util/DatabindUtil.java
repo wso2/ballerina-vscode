@@ -49,7 +49,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
-import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
@@ -380,9 +379,9 @@ public final class DatabindUtil {
     }
 
     /**
-     * Processes databinding for a function add operation. This method generates wrapper types and updates
-     * the function parameters when a DATA_BINDING parameter is enabled.
-     * Similar to processDatabindingUpdate but adapted for add operations where we don't have function nodes.
+     * Processes databinding for a function add operation. This method generates wrapper types and updates the function
+     * parameters when a DATA_BINDING parameter is enabled. Similar to processDatabindingUpdate but adapted for add
+     * operations where we don't have function nodes.
      *
      * @param function         The function model to process
      * @param prefix           Type name prefix for generated wrapper types (e.g., "RabbitMQAnydataMessage")
@@ -665,29 +664,24 @@ public final class DatabindUtil {
             return true;
         }
 
-        try {
-            LinePosition typePosition = context.functionNode() != null
-                    ? context.functionNode().lineRange().startLine()
-                    : LinePosition.from(0, 0);
+        LinePosition typePosition = context.functionNode() != null
+                ? context.functionNode().lineRange().startLine()
+                : LinePosition.from(0, 0);
 
-            // Get all visible symbols to find the type
-            List<Symbol> visibleSymbols = context.semanticModel()
-                    .visibleSymbols(context.document(), typePosition);
+        // Get all visible symbols to find the type
+        List<Symbol> visibleSymbols = context.semanticModel()
+                .visibleSymbols(context.document(), typePosition);
 
-            for (Symbol symbol : visibleSymbols) {
-                if (symbol.getName().isPresent() && symbol.getName().get().equals(typeName)) {
-                    // Found the type symbol, now check its references
-                    List<?> references = context.semanticModel().references(symbol);
+        for (Symbol symbol : visibleSymbols) {
+            if (symbol.getName().isPresent() && symbol.getName().get().equals(typeName)) {
+                // Found the type symbol, now check its references
+                List<?> references = context.semanticModel().references(symbol);
 
-                    // If there are more than 1 reference (the type definition itself), it's used elsewhere
-                    if (references.size() > 2) {
-                        return true;
-                    }
+                // If there are more than 1 reference (the type definition itself), it's used elsewhere
+                if (references.size() > 2) {
+                    return true;
                 }
             }
-        } catch (Exception e) {
-            // If we can't determine references, assume it's used (safe default)
-            return true;
         }
 
         return false;
@@ -843,8 +837,8 @@ public final class DatabindUtil {
     }
 
     /**
-     * Generates a new unique databind type name for the given prefix using semantic model.
-     * This method generates a type name without requiring a full UpdateModelContext.
+     * Generates a new unique databind type name for the given prefix using semantic model. This method generates a type
+     * name without requiring a full UpdateModelContext.
      *
      * @param project       The Ballerina project
      * @param semanticModel The semantic model for generating unique identifiers
@@ -907,11 +901,11 @@ public final class DatabindUtil {
      * @return Map of file paths to TextEdit lists
      */
     private static Map<String, List<TextEdit>> createTypeDefinitionEditsForAdd(Project project,
-                                                                                String typeName,
-                                                                                String baseType,
-                                                                                String dataBindingType,
-                                                                                String payloadFieldName,
-                                                                                boolean isArray) {
+                                                                               String typeName,
+                                                                               String baseType,
+                                                                               String dataBindingType,
+                                                                               String payloadFieldName,
+                                                                               boolean isArray) {
         Document typesDocument = getTypesDocument(project);
         if (typesDocument == null || typesDocument.syntaxTree() == null) {
             return Map.of();
