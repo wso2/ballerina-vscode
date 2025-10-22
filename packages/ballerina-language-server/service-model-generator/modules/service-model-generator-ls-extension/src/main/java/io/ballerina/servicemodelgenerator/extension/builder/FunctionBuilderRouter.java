@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
@@ -78,15 +79,17 @@ public class FunctionBuilderRouter {
     public static Map<String, List<TextEdit>> addFunction(String moduleName, Function function, String filePath,
                                                           Document document, NonTerminalNode node) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        AddModelContext context = new AddModelContext(null, function, null, null, null, filePath, document, node);
+        Project project = document != null ? document.module().project() : null;
+        AddModelContext context = new AddModelContext(null, function, null, project, null, filePath, document, node);
         return functionBuilder.addModel(context);
     }
 
     public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
-                                                             Document document, FunctionDefinitionNode functionNode)
+                                                             Document document, FunctionDefinitionNode functionNode,
+                                                             SemanticModel semanticModel)
             throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        UpdateModelContext context = new UpdateModelContext(null, function, null, null, null, filePath,
+        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null, null, filePath,
                 document, null, functionNode);
         return functionBuilder.updateModel(context);
     }

@@ -24,7 +24,49 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
+      {
+        "metadata": {
+          "label": "Data Binding",
+          "description": "Data binding parameter"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "valueType": "TYPE",
+          "value": "Order",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "message",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      },
       {
         "metadata": {
           "label": "message",
@@ -68,6 +110,13 @@
           "placeholder": "",
           "valueType": "EXPRESSION",
           "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "valueType": "STRING",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -127,37 +176,16 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": false,
-        "hidden": false
-      },
-      {
-        "metadata": {
-          "label": "Data Binding",
-          "description": "Data binding parameter"
-        },
-        "kind": "DATA_BINDING",
-        "type": {
-          "valueType": "TYPE",
-          "value": "Order",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "valueType": "IDENTIFIER",
-          "value": "message",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "enabled": false,
-        "editable": true,
-        "optional": false,
         "advanced": false,
         "hidden": false
       }
@@ -195,6 +223,20 @@
       "moduleName": "rabbitmq"
     },
     "properties": {
+      "wrapperTypeName": {
+        "value": "RabbitMQAnydataMessage1",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "payloadFieldName": {
+        "value": "content",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
       "canDataBind": {
         "value": "true",
         "enabled": false,
@@ -214,7 +256,7 @@
           },
           "end": {
             "line": 5,
-            "character": 103
+            "character": 101
           }
         },
         "newText": "(rabbitmq:AnydataMessage message, rabbitmq:Caller caller) returns error? "

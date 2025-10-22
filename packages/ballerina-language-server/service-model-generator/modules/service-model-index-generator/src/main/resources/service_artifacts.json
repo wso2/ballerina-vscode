@@ -989,9 +989,9 @@
               "enable": 1,
               "parameters": [
                 {
-                  "name": "records",
-                  "label": "Consumer records",
-                  "description": "The records received for Kafka topic(s)",
+                  "name": "messages",
+                  "label": "Consumer messages",
+                  "description": "The messages received for Kafka topic(s)",
                   "kind": "REQUIRED",
                   "type": "kafka:AnydataConsumerRecord[]",
                   "defaultValue": "",
