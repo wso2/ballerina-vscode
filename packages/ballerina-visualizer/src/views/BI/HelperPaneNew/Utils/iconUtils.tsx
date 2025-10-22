@@ -26,7 +26,6 @@ export enum HelperPaneIconType {
     INPUT = "input",
     CONFIGURABLE = "configurable",
     VALUE = "value",
-    SETTINGS = "settings",
 }
 
 const ICON_NAME_MAP: Record<HelperPaneIconType, string> = {
@@ -35,7 +34,6 @@ const ICON_NAME_MAP: Record<HelperPaneIconType, string> = {
     [HelperPaneIconType.INPUT]: "bi-input",
     [HelperPaneIconType.CONFIGURABLE]: "bi-settings",
     [HelperPaneIconType.VALUE]: "bi-code",
-    [HelperPaneIconType.SETTINGS]: "bi-key",
 };
 
 export const getHelperPaneIcon = (
