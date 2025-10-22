@@ -594,7 +594,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
-            if (!defaultMemoryManagerName.isEmpty()) {
+            if (defaultMemoryManagerName != null && !defaultMemoryManagerName.isEmpty()) {
                 nodeBuilder.metadata().addData("memory",
                         new MemoryManagerData(defaultMemoryManagerName, "10"));
             }
