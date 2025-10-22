@@ -410,13 +410,52 @@ export function GenericImportTab(props: GenericImportTabProps) {
             </HeaderRow>
 
             <ScrollableSection>
-                <TextArea
-                    rows={15}
-                    value={content}
-                    onChange={handleContentChange}
-                    errorMsg={error}
-                    placeholder="Paste JSON or XML here..."
-                />
+                <div style={{ position: 'relative' }}>
+                    <TextArea
+                        rows={15}
+                        value={content}
+                        onChange={handleContentChange}
+                        errorMsg={error}
+                    />
+                    {!content && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '16px',
+                            pointerEvents: 'none',
+                            zIndex: 1
+                        }}>
+                            <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                                Paste JSON or XML here...
+                            </Typography>
+                            <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                                Or
+                            </Typography>
+                            <LinkButton
+                                onClick={() => {/* TODO: Implement generate sample JSON */ }}
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--vscode-textLink-foreground)',
+                                    padding: '8px 16px',
+                                    fontSize: '13px',
+                                    borderRadius: '4px',
+                                    pointerEvents: 'auto'
+                                }}
+                            >
+                                <Codicon name="wand" sx={{ fontSize: '14px' }} />
+                                Generate Sample JSON
+                            </LinkButton>
+                        </div>
+                    )}
+                </div>
             </ScrollableSection>
 
             {detectedFormat === DetectedFormat.JSON && (
