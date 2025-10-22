@@ -496,15 +496,10 @@ export const Form = forwardRef((props: FormProps) => {
 
     const handleFormValidation = async (): Promise<boolean> => {
         setIsValidatingForm(true);
-        if (onFormValidation) {
-            const data = getValues();
-            const validationResult = await onFormValidation(data, dirtyFields);
-            setIsValidatingForm(false);
-            return validationResult;
-        } else {
-            setIsValidatingForm(false);
-            return false;
-        }
+        const data = getValues();
+        const validationResult = await onFormValidation(data, dirtyFields);
+        setIsValidatingForm(false);
+        return validationResult;
     }
 
     const handleOnBlur = async () => {
@@ -715,7 +710,7 @@ export const Form = forwardRef((props: FormProps) => {
 
     const handleOnSaveClick = async () => {
         setSavingButton('save');
-        const isValidForm = await handleFormValidation();
+        const isValidForm = onFormValidation ? await handleFormValidation() : true;
         if (isValidForm) {
             handleSubmit(handleOnSave)();
         }
