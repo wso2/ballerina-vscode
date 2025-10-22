@@ -67,6 +67,7 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -166,6 +167,36 @@ export function FormGeneratorNew(props: FormProps) {
         type: undefined
     }]);
 
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
+
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
+        setIsTypeEditorOpen(open);
+        if (typeName) {
+            setEditingTypeName(typeName);
+        } else {
+            setEditingTypeName("");
+        }
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+        if (type) {
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            setFields(fields.map((field) => {
+                if (field.key === 'type') {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            }));
+        }
+    };
+
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
         setRefetchStates((prev) => [...prev, false]);
@@ -249,8 +280,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
-                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+            if (matchedReferenceType.labelDetails.detail === "Structural Types"
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
             ) {
                 setValueTypeConstraints('');
@@ -766,7 +797,7 @@ export function FormGeneratorNew(props: FormProps) {
         })
     }
 
-    const onSaveType = (type: Type) => {
+    const onSaveType = () => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -839,6 +870,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     onCancelForm={onBack || onCancel}
                     submitText={submitText}
                     cancelText={cancelText}
@@ -901,6 +933,16 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "PayloadType"}
+                editMode={!!editingTypeName}
+                modalTitle={"Define Payload"}
+                modalWidth={650}
+                modalHeight={600}
+            />
         </EditorContext.Provider>
     );
 }

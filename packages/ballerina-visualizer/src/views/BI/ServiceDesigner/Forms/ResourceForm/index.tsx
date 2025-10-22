@@ -173,7 +173,7 @@ export function ResourceForm(props: ResourceFormProps) {
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
 						onError={onResourcePathError} />
 					<Divider />
-					<Parameters showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
+					<Parameters showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} pathName={functionModel?.name?.value}/>
 					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
 					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 					<ActionButtons
@@ -222,7 +222,7 @@ export function ResourceForm(props: ResourceFormProps) {
 						<SidePanelBody>
 							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} />
 							<Divider />
-							<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} />
+							<Parameters isNewResource={true} showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} parameters={functionModel.parameters} onChange={handleParamChange} schemas={functionModel.schema} pathName={functionModel?.name?.value}/>
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
 							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 							<Divider sx={{ marginBottom: 30 }} />

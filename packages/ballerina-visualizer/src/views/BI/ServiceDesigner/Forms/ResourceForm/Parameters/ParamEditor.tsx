@@ -277,11 +277,12 @@ export function ParamEditor(props: ParamProps) {
                     type: param.type.valueType,
                     optional: false,
                     editable: true,
-                    documentation: '',
+                    documentation: param?.type?.metadata?.description || '',
                     enabled: param.type?.enabled,
                     value: param.type.value || "json",
                     defaultValue: "json",
-                    valueTypeConstraint: ""
+                    valueTypeConstraint: "",
+                    // isContextTypeSupported: true // Enable this to support context typeEditor
                 });
                 break;
         }

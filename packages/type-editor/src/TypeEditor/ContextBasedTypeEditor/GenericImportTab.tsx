@@ -1,0 +1,452 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton } from "@wso2/ui-toolkit";
+import styled from "@emotion/styled";
+import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences } from "@wso2/ballerina-core";
+import { debounce } from "lodash";
+import { Utils, URI } from "vscode-uri";
+
+const CategoryRow = styled.div<{ showBorder?: boolean }>`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin-top: 8px;
+    padding-bottom: 14px;
+    border-bottom: ${({ showBorder }) => (showBorder ? `1px solid var(--vscode-welcomePage-tileBorder)` : "none")};
+`;
+
+const TextFieldWrapper = styled.div`
+    flex: 1;
+`;
+
+const Footer = styled.div`
+    display: flex;
+    gap: 8px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 16px;
+    flex-shrink: 0;
+`;
+
+const InfoBanner = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: var(--vscode-textCodeBlock-background);
+    border-radius: 4px;
+    margin-bottom: 20px;
+`;
+
+const InfoText = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+`;
+
+const HeaderRow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const Title = styled(Typography)`
+    font-weight: 500;
+`;
+
+const UploadButtonWrapper = styled.div`
+    display: flex;
+    gap: 8px;
+`;
+
+const ScrollableSection = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
+`;
+
+enum DetectedFormat {
+    JSON = "JSON",
+    XML = "XML",
+    UNKNOWN = "UNKNOWN",
+}
+
+interface GenericImportTabProps {
+    type: Type;
+    onTypeSave: (type: Type) => void;
+    isSaving: boolean;
+    setIsSaving: (isSaving: boolean) => void;
+    isPopupTypeForm: boolean;
+}
+
+export function GenericImportTab(props: GenericImportTabProps) {
+    const {
+        type,
+        onTypeSave,
+        isSaving,
+        setIsSaving,
+        isPopupTypeForm
+    } = props;
+
+    const nameInputRef = useRef<HTMLInputElement | null>(null);
+    const [content, setContent] = useState<string>("");
+    const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>(DetectedFormat.UNKNOWN);
+    const [importTypeName, setImportTypeName] = useState<string>(type.name);
+    const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
+    const [nameError, setNameError] = useState<string>("");
+    const [error, setError] = useState<string>("");
+
+    const { rpcClient } = useRpcContext();
+
+    useEffect(() => {
+        if (detectedFormat === DetectedFormat.JSON) {
+            validateTypeName(importTypeName);
+        }
+    }, [type, detectedFormat, importTypeName]);
+
+    // Auto-detect format based on content
+    const detectFormat = (value: string): DetectedFormat => {
+        if (!value || value.trim() === "") {
+            return DetectedFormat.UNKNOWN;
+        }
+
+        const trimmed = value.trim();
+
+        // Try to detect JSON
+        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+            (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+            try {
+                JSON.parse(trimmed);
+                return DetectedFormat.JSON;
+            } catch (e) {
+                // Not valid JSON, continue checking
+            }
+        }
+
+        // Try to detect XML
+        if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(trimmed, "text/xml");
+                // Check if parsing produced an error node
+                if (doc.getElementsByTagName("parsererror").length === 0) {
+                    return DetectedFormat.XML;
+                }
+            } catch (e) {
+                // Not valid XML
+            }
+        }
+
+        return DetectedFormat.UNKNOWN;
+    };
+
+    const validateTypeName = useCallback(debounce(async (value: string) => {
+        const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
+
+        const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+            filePath: Utils.joinPath(URI.file(projectUri), 'types.bal').fsPath
+        });
+
+        const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+            filePath: type?.codedata?.lineRange?.fileName || "types.bal",
+            context: {
+                expression: value,
+                startLine: {
+                    line: type?.codedata?.lineRange?.startLine?.line ?? endPosition.line,
+                    offset: type?.codedata?.lineRange?.startLine?.offset ?? endPosition.offset
+                },
+                offset: 0,
+                lineOffset: 0,
+                codedata: {
+                    node: "VARIABLE",
+                    lineRange: {
+                        startLine: {
+                            line: type?.codedata?.lineRange?.startLine?.line ?? endPosition.line,
+                            offset: type?.codedata?.lineRange?.startLine?.offset ?? endPosition.offset
+                        },
+                        endLine: {
+                            line: type?.codedata?.lineRange?.endLine?.line ?? endPosition.line,
+                            offset: type?.codedata?.lineRange?.endLine?.offset ?? endPosition.offset
+                        },
+                        fileName: type?.codedata?.lineRange?.fileName
+                    },
+                },
+                property: type?.properties["name"] ?
+                    {
+                        ...type.properties["name"],
+                        valueTypeConstraint: "Global"
+                    } :
+                    {
+                        metadata: {
+                            label: "",
+                            description: "",
+                        },
+                        valueType: "IDENTIFIER",
+                        value: "",
+                        valueTypeConstraint: "Global",
+                        optional: false,
+                        editable: true
+                    }
+            }
+        });
+
+
+        if (response && response.diagnostics && response.diagnostics.length > 0) {
+            setNameError(response.diagnostics[0].message);
+            setIsTypeNameValid(false);
+        } else {
+            setNameError("");
+            setIsTypeNameValid(true);
+        }
+    }, 250), [rpcClient, type]);
+
+    const handleOnBlur = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        await validateTypeName(e.target.value);
+    };
+
+    const handleNameChange = async (value: string) => {
+        setImportTypeName(value);
+        await validateTypeName(value);
+    };
+
+    const handleContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newContent = event.target.value;
+        setContent(newContent);
+
+        // Detect format
+        const format = detectFormat(newContent);
+        setDetectedFormat(format);
+
+        // Clear errors
+        setError("");
+    };
+
+    const handleFileUpload = (fileContent: string) => {
+        setContent(fileContent);
+
+        // Auto-detect format from uploaded file content
+        const format = detectFormat(fileContent);
+        setDetectedFormat(format);
+        setError("");
+    };
+
+    const importAsJson = async () => {
+        setIsSaving(true);
+        setError("");
+
+        try {
+            const typesFromJson: JsonToTypeResponse = await rpcClient.getBIDiagramRpcClient().getTypeFromJson({
+                jsonString: content,
+                typeName: importTypeName
+            });
+
+            // Since the LS issue where all types are created with first letter capital we cant carry exact string match.
+            // Therefore we are considering the last type to be the main records, and the rest are dependencies.
+            const record = typesFromJson.types[typesFromJson.types.length - 1];
+            const otherRecords = typesFromJson.types
+                .slice(0, -1)
+                .map((t) => t.type);
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+
+                if (!isPopupTypeForm) {
+                    await rpcClient.getVisualizerRpcClient().openView(
+                        { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                    );
+                }
+            }
+
+            if (record) {
+                await onTypeSave(record.type);
+            }
+        } catch (err) {
+            setError("Could not import JSON as type.");
+            console.error("Error importing JSON as type:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const importAsXml = async () => {
+        setIsSaving(true);
+        setError("");
+
+        try {
+            const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
+                xmlValue: content,
+                prefix: ""
+            });
+
+            const lastRecord = resp.types[resp.types.length - 1];
+            const otherRecords = resp.types
+                .filter((t) => t.type.name !== lastRecord.type.name)
+                .map((t) => t.type);
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+
+                if (!isPopupTypeForm) {
+                    await rpcClient.getVisualizerRpcClient().openView(
+                        { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                    );
+                }
+            }
+
+            if (lastRecord) {
+                await onTypeSave(lastRecord.type);
+            }
+        } catch (err) {
+            setError("Failed to import XML as type.");
+            console.error("Error importing XML as type:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleImport = async () => {
+        if (detectedFormat === DetectedFormat.JSON) {
+            await importAsJson();
+        } else if (detectedFormat === DetectedFormat.XML) {
+            await importAsXml();
+        }
+    };
+
+    const isImportDisabled = () => {
+        if (!content.trim()) return true;
+        if (detectedFormat === DetectedFormat.UNKNOWN) return true;
+        if (detectedFormat === DetectedFormat.JSON && (!importTypeName.trim() || !isTypeNameValid)) return true;
+        if (isSaving) return true;
+        return false;
+    };
+
+    // Create a hidden file input ref for the upload button
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const content = event.target?.result as string;
+            handleFileUpload(content);
+        };
+        reader.readAsText(file);
+    };
+
+    return (
+        <>
+            <InfoBanner>
+                <Codicon name="info" />
+                <InfoText variant="body3">
+                    Supports JSON and XML formats — just paste a Sample or Upload a file
+                </InfoText>
+            </InfoBanner>
+            <HeaderRow>
+                <Title variant="h4" sx={{ margin: '0px' }}>Sample data</Title>
+                <UploadButtonWrapper>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept=".json,.xml"
+                        style={{ display: 'none' }}
+                    />
+                    <LinkButton
+                        onClick={handleUploadClick}
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            backgroundColor: 'transparent',
+                            border: '1px solid var(--vscode-textLink-foreground)',
+                            color: 'var(--vscode-textLink-foreground)',
+                            padding: '6px 12px',
+                            fontSize: '13px'
+                        }}
+                    >
+                        <Icon
+                            name="bi-import"
+                            iconSx={{ fontSize: "15px" }}
+                            sx={{ marginRight: "5px" }}
+                        />
+                        <Typography variant="body3">
+                            Upload File
+                        </Typography>
+                    </LinkButton>
+                </UploadButtonWrapper>
+            </HeaderRow>
+
+            <ScrollableSection>
+                <TextArea
+                    rows={15}
+                    value={content}
+                    onChange={handleContentChange}
+                    errorMsg={error}
+                    placeholder="Paste JSON or XML here..."
+                />
+            </ScrollableSection>
+
+            {detectedFormat === DetectedFormat.JSON && (
+                <CategoryRow showBorder={false}>
+                    <TextFieldWrapper>
+                        <TextField
+                            label="Type Name"
+                            value={importTypeName}
+                            errorMsg={nameError}
+                            onBlur={handleOnBlur}
+                            onChange={(e) => handleNameChange(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleNameChange((e.target as HTMLInputElement).value);
+                                }
+                            }}
+                            onFocus={(e) => {
+                                e.target.select();
+                                validateTypeName(e.target.value);
+                            }}
+                            ref={nameInputRef}
+                        />
+                    </TextFieldWrapper>
+                </CategoryRow>
+            )}
+            <Footer>
+                <Button onClick={handleImport} disabled={isImportDisabled()}>
+                    {isSaving ? <Typography variant="progress">Importing...</Typography> : "Import Type"}
+                </Button>
+            </Footer>
+        </>
+    );
+}

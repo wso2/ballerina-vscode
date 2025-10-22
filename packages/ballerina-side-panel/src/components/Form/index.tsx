@@ -356,6 +356,7 @@ export interface FormProps {
     hideSaveButton?: boolean; // Option to hide the save button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
+    openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -396,7 +397,8 @@ export const Form = forwardRef((props: FormProps) => {
         injectedComponents,
         hideSaveButton = false,
         onValidityChange,
-        changeOptionalFieldTitle = undefined
+        changeOptionalFieldTitle = undefined,
+        openFormTypeEditor
     } = props;
 
     const {
@@ -810,6 +812,11 @@ export const Form = forwardRef((props: FormProps) => {
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
                                         onBlur={handleOnBlur}
+                                        isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                        openFormTypeEditor={
+                                            openFormTypeEditor &&
+                                            ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                        }
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
