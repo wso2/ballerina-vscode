@@ -1,0 +1,6 @@
+{
+  "description": "Simple string literal",
+  "filePath": "main.bal",
+  "expression": "\"xyz\"",
+  "expectedTokens": []
+}
