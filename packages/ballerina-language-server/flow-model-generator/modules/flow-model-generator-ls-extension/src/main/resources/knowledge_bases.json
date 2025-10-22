@@ -29,9 +29,9 @@
           "codedata": {
             "node": "KNOWLEDGE_BASE",
             "org": "ballerinax",
-            "module": "ai.azure.search.knowledgebase",
-            "packageName": "ai.azure.search.knowledgebase",
-            "object": "AzureSearchKnowledgeBase",
+            "module": "ai.azure",
+            "packageName": "ai.azure",
+            "object": "AzureAiSearchKnowledgeBase",
             "symbol": "init",
             "flags": 1
           },
