@@ -1,0 +1,14 @@
+{
+  "description": "XML template with variable interpolation",
+  "filePath": "main.bal",
+  "expression": "xml `<book>${title}</book>`",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 13,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

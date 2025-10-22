@@ -1,0 +1,21 @@
+{
+  "description": "Function call with named arguments",
+  "filePath": "main.bal",
+  "expression": "fn(value1, age = value2)",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 3,
+      "length": 6,
+      "type": 2,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 11,
+      "length": 12,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

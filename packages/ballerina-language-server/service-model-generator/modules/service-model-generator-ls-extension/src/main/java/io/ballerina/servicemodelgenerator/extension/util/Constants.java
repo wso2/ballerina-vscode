@@ -237,6 +237,8 @@ public class Constants {
     public static final String DATA_BINDING_PROPERTY = "canDataBind";
     public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
     public static final String EMPTY_ARRAY = "[]";
+    public static final String PAYLOAD_FIELD_NAME_PROPERTY = "payloadFieldName";
+    public static final String WRAPPER_TYPE_NAME_PROPERTY = "wrapperTypeName";
 
     public static final String TYPES_BAL = "types.bal";
 

@@ -48,10 +48,12 @@ module io.ballerina.flow.model.generator {
     exports io.ballerina.flowmodelgenerator.core.utils;
     exports io.ballerina.flowmodelgenerator.core.model;
     exports io.ballerina.flowmodelgenerator.core.converters;
+    exports io.ballerina.flowmodelgenerator.core.converters.exception;
     exports io.ballerina.flowmodelgenerator.core.expressioneditor;
     exports io.ballerina.flowmodelgenerator.core.expressioneditor.services;
     exports io.ballerina.flowmodelgenerator.core.search;
     exports io.ballerina.flowmodelgenerator.core.type;
     exports io.ballerina.flowmodelgenerator.core.diagnostics;
     exports io.ballerina.flowmodelgenerator.core.analyzers.function;
+    exports io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
 }

@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
@@ -82,7 +83,8 @@ public class FunctionBuilderRouter {
                                                           NonTerminalNode node,
                                                           WorkspaceManager workspaceManager) throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        AddModelContext context = new AddModelContext(null, function, semanticModel, null,
+        Project project = document != null ? document.module().project() : null;
+        AddModelContext context = new AddModelContext(null, function, null, project,
                 workspaceManager, filePath, document, node);
         return functionBuilder.addModel(context);
     }
