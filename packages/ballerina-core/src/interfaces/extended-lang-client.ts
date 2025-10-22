@@ -1086,6 +1086,10 @@ export interface ExpressionCompletionItem {
     insertText: string;
     insertTextFormat: number;
     additionalTextEdits?: TextEdit[];
+    labelDetails?: {
+        description?: string;
+        detail: string;
+    };
 }
 
 export type ExpressionCompletionsResponse = ExpressionCompletionItem[];
