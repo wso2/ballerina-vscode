@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { FunctionModel, ParameterModel } from "@wso2/ballerina-core";
+import { FunctionModel, ParameterModel, Type } from "@wso2/ballerina-core";
 import {
     ActionButtons,
     CheckBox,
@@ -34,6 +34,7 @@ import {
 import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
+import { ContextBasedFormTypeEditor } from "../../../../../components/ContextBasedFormTypeEditor";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -115,6 +116,9 @@ export function DatabindForm(props: DatabindFormProps) {
     const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
+    // State for type editor modal
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+
 
     const handleParamChange = (params: ParameterModel[]) => {
         const updatedFunctionModel = {
@@ -182,17 +186,41 @@ export function DatabindForm(props: DatabindFormProps) {
         setFunctionModel(updatedFunctionModel);
     };
 
-    // Payload editor handlers
-    const onAddPayloadClick = () => {
-        // Find the DATA_BINDING parameter in the parameter list
+    const generatePayloadTypeName = (): string => {
+        const rawPayloadFieldName = functionModel.properties?.payloadFieldName?.value || "Payload";
+        const capitalizedName = rawPayloadFieldName.charAt(0).toUpperCase() + rawPayloadFieldName.slice(1);
+        return `${capitalizedName}Type`;
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        // When a type is created, set it as the payload type
         const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
         if (payloadParam) {
-            // Find its index
+            const updatedPayloadModel = { ...payloadParam };
+            updatedPayloadModel.name.value = "payload";
+            updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
+            updatedPayloadModel.enabled = true;
+
+            // Find the index of the payload parameter
             const index = functionModel.parameters.findIndex(param => param.kind === "DATA_BINDING");
-            setEditingIndex(index);
-            setIsNew(false);
-            setEditModel(payloadParam);
+            if (index >= 0) {
+                const updatedParameters = [...functionModel.parameters];
+                updatedParameters[index] = updatedPayloadModel;
+                handleParamChange(updatedParameters);
+            }
         }
+        // Close the modal
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+    };
+
+    // Payload editor handlers
+    const onAddPayloadClick = () => {
+        // Open FormTypeEditor modal instead of ParamEditor
+        setIsTypeEditorOpen(true);
     };
 
     const onEditPayloadClick = (param: ParameterModel) => {
@@ -288,7 +316,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                         <AddButtonWrapper>
                                             <LinkButton onClick={onAddPayloadClick}>
                                                 <Codicon name="add" />
-                                                Create Schema
+                                                Define Schema
                                             </LinkButton>
                                         </AddButtonWrapper>
                                     )}
@@ -466,6 +494,18 @@ export function DatabindForm(props: DatabindFormProps) {
                     sx={{ justifyContent: "flex-end" }}
                 />
             </SidePanelBody>
+
+            {/* FormTypeEditor Modal for Add Payload */}
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={generatePayloadTypeName()}
+                editMode={false}
+                modalTitle={"Define " + payloadFieldName + " Schema"}
+                modalWidth={650}
+                modalHeight={600}
+            />
         </>
     );
 }
