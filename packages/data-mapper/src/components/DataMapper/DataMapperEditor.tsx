@@ -124,6 +124,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const {
         modelState,
         name,
+        reusable,
         applyModifications,
         onClose,
         onRefresh,
@@ -327,6 +328,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 {model && (
                     <DataMapperHeader
                         views={views}
+                        reusable={reusable}
                         switchView={switchView}
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
