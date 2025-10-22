@@ -282,7 +282,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
             }
 
             if (record) {
-               await onTypeSave(record.type);
+                await onTypeSave(record.type);
             }
         } catch (err) {
             setError("Could not import JSON as type.");
@@ -386,9 +386,9 @@ export function GenericImportTab(props: GenericImportTabProps) {
                     />
                     <LinkButton
                         onClick={handleUploadClick}
-                        sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '4px',
                             backgroundColor: 'transparent',
                             border: '1px solid var(--vscode-textLink-foreground)',
@@ -410,13 +410,13 @@ export function GenericImportTab(props: GenericImportTabProps) {
             </HeaderRow>
 
             <ScrollableSection>
-            <TextArea
-                rows={25}
-                value={content}
-                onChange={handleContentChange}
-                errorMsg={error}
-                placeholder="Paste JSON or XML here..."
-            />
+                <TextArea
+                    rows={25}
+                    value={content}
+                    onChange={handleContentChange}
+                    errorMsg={error}
+                    placeholder="Paste JSON or XML here..."
+                />
             </ScrollableSection>
 
             {detectedFormat === DetectedFormat.JSON && (
