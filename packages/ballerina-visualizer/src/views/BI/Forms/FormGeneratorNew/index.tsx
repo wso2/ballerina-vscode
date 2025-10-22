@@ -67,7 +67,7 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
-import { ContextBasedFormTypeEditor } from "../../../../components/FormTypeEditorModal";
+import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -167,10 +167,8 @@ export function FormGeneratorNew(props: FormProps) {
         type: undefined
     }]);
 
-
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
     const [editingTypeName, setEditingTypeName] = useState<string>("");
-
 
     const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
         setIsTypeEditorOpen(open);
@@ -282,8 +280,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
-                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+            if (matchedReferenceType.labelDetails.detail === "Structural Types"
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
             ) {
                 setValueTypeConstraints('');

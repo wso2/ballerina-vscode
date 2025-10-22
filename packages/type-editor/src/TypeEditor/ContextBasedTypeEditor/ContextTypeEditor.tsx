@@ -33,6 +33,13 @@ namespace S {
         flex-direction: column;
         padding: 0px;
     `;
+
+    export const TabContainer = styled.div`
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    `;
 }
 
 interface ContextTypeEditorProps {
@@ -186,7 +193,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ padding: '10px', height: '100%', overflow: 'hidden' }}
                     >
-                        <div id="import" data-testid="import-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <S.TabContainer id="import" data-testid="import-tab">
                             <GenericImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -194,8 +201,8 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
                             />
-                        </div>
-                        <div id="create-from-scratch" data-testid="create-from-scratch-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        </S.TabContainer>
+                        <S.TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">
                             <ContextTypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -206,8 +213,8 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isSaving={isSaving}
                                 setIsSaving={setIsSaving}
                             />
-                        </div>
-                        <div id="browse-exisiting-types" data-testid="browse-exisiting-types-tab" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        </S.TabContainer>
+                        <S.TabContainer id="browse-exisiting-types" data-testid="browse-exisiting-types-tab">
                             <BrowseTypesTab
                                 basicTypes={props.typeHelper.basicTypes}
                                 importedTypes={props.typeHelper.importedTypes}
@@ -217,10 +224,9 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 onTypeSelect={props.onSaveType}
                                 simpleType={simpleType}
                             />
-                        </div>
-
+                        </S.TabContainer>
                     </TabPanel>
-                )} 
+                )}
             </S.Container>
         </TypeHelperContext.Provider>
     );

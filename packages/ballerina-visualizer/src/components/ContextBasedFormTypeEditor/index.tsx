@@ -79,7 +79,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
     const [loadingType, setLoadingType] = useState<boolean>(false);
     const [existingType, setExistingType] = useState<Type | null>(null);
     const [simpleType, setSimpleType] = useState<string>(undefined);
-    
+
     // Stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -130,7 +130,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
 
     const resetStack = (isSimpleType?: boolean) => {
         const newDefault = defaultType(isSimpleType ? "MyType" : undefined);
-        
+
         setStack([{
             type: newDefault,
             isDirty: false
@@ -188,7 +188,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         if (isOpen) {
             setTypeEditorState({ isOpen: true, newTypeValue: initialTypeName });
             setSimpleType(undefined); // Reset simpleType on open
-            
+
             // If in edit mode, fetch the existing type
             if (editMode && initialTypeName) {
                 fetchExistingType(initialTypeName);
@@ -209,17 +209,17 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
             // Get the project path and construct the types.bal file path
             const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
             const filePath = `${projectUri}/types.bal`;
-            
+
             // Fetch all types from the file
             const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({
                 filePath: filePath
             });
 
             console.log("typesResponse", typesResponse);
-            
+
             // Find the specific type by name
             const foundType = typesResponse.types.find((type: Type) => type.name === typeName);
-            
+
             if (foundType) {
                 setExistingType(foundType);
                 // Update stack with the existing type
@@ -282,7 +282,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
             setRefetchForCurrentModal(true);
             popTypeStack();
         }
-        
+
         // If this is the last item in stack, call onTypeCreate and close
         if (stack.length === 1) {
             onTypeCreate(type);
@@ -324,7 +324,11 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                                     </BreadcrumbContainer>
                                 )}
                                 <FormTypeEditor
-                                    type={editMode && i === 0 && existingType ? existingType : (peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType())}
+                                    type={
+                                        editMode && i === 0 && existingType ?
+                                            existingType :
+                                            (peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType())
+                                    }
                                     newType={!editMode && i === 0 ? true : (peekTypeStack() ? peekTypeStack().isDirty : false)}
                                     newTypeValue={typeEditorState.newTypeValue}
                                     isPopupTypeForm={true}

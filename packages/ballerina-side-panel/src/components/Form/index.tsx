@@ -813,7 +813,10 @@ export const Form = forwardRef((props: FormProps) => {
                                         onToolsChange={onToolsChange}
                                         onBlur={handleOnBlur}
                                         isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
-                                        openFormTypeEditor={openFormTypeEditor && ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))}
+                                        openFormTypeEditor={
+                                            openFormTypeEditor &&
+                                            ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                        }
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>

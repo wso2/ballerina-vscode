@@ -96,7 +96,14 @@ const getDefaultCompletion = (newType: string) => {
 }
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { field, openRecordEditor, openFormTypeEditor, isContextTypeEditorSupported, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
+    const { field,
+        openRecordEditor,
+        openFormTypeEditor,
+        isContextTypeEditorSupported,
+        handleOnFieldFocus,
+        handleOnTypeChange, autoFocus,
+        handleNewTypeSelected
+    } = props;
     const { form, expressionEditor } = useFormContext();
     const { control } = form;
     const {
@@ -126,13 +133,13 @@ export function TypeEditor(props: TypeEditorProps) {
 
     const handleFocus = async (value: string) => {
         setFocused(true);
-        
+
         // In guided mode, open FormTypeEditor instead of TypeHelper
         if (isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
             openFormTypeEditor(true, value);
             return;
         }
-        
+
         // Trigger actions on focus
         await onFocus?.();
         await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string);
@@ -188,7 +195,7 @@ export function TypeEditor(props: TypeEditorProps) {
             openFormTypeEditor(true, currentValue);
             return;
         }
-        
+
         if (!isTypeHelperOpen) {
             exprRef.current?.focus();
         } else {
@@ -259,7 +266,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 <S.Label>{field.label}</S.Label>
                                 {!field.optional && <RequiredFormInput />}
                                 {field.valueTypeConstraint && (
-                                    <S.Type style={{marginLeft: '5px'}} isVisible={focused} title={field.valueTypeConstraint as string}>
+                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
                                         {sanitizeType(field.valueTypeConstraint as string)}
                                     </S.Type>
                                 )}
@@ -296,7 +303,12 @@ export function TypeEditor(props: TypeEditorProps) {
                             ref={exprRef}
                             anchorRef={typeBrowserRef}
                             name={name}
-                            startAdornment={(!isContextTypeEditorSupported || (isContextTypeEditorSupported && typeInputMode === TypeInputMode.ADVANCED)) ? <EditorRibbon onClick={toggleTypeHelperPaneState} /> : undefined}
+                            startAdornment={
+                                (!isContextTypeEditorSupported || (isContextTypeEditorSupported
+                                    && typeInputMode === TypeInputMode.ADVANCED)) ?
+                                    <EditorRibbon onClick={toggleTypeHelperPaneState} /> :
+                                    undefined
+                            }
                             completions={types}
                             showDefaultCompletion={showDefaultCompletion}
                             getDefaultCompletion={() => getDefaultCompletion(value)}
@@ -335,7 +347,7 @@ export function TypeEditor(props: TypeEditorProps) {
                             onFocus={() => handleFocus(value)}
                             enableExIcon={false}
                             isHelperPaneOpen={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? false : isTypeHelperOpen}
-                            changeHelperPaneState={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => {} : handleChangeTypeHelperState}
+                            changeHelperPaneState={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => { } : handleChangeTypeHelperState}
                             getHelperPane={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => null : handleGetTypeHelper}
                             helperPaneOrigin={typeHelperOrigin}
                             helperPaneHeight={typeHelperHeight}

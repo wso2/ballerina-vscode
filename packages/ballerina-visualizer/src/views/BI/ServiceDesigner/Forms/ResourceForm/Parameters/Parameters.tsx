@@ -24,7 +24,7 @@ import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
 import { ConfigProperties, ParameterModel, Type } from '@wso2/ballerina-core';
-import { ContextBasedFormTypeEditor } from '../../../../../../components/FormTypeEditorModal';
+import { ContextBasedFormTypeEditor } from '../../../../../../components/ContextBasedFormTypeEditor';
 
 export interface ParametersProps {
     parameters: ParameterModel[];
@@ -96,7 +96,7 @@ export function Parameters(props: ParametersProps) {
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     const [showAdvanced, setShowAdvanced] = useState<boolean>(advancedEnabledParameters.length > 0);
-    
+
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
 
@@ -144,10 +144,10 @@ export function Parameters(props: ParametersProps) {
         updatedPayloadModel.name.value = "payload";
         updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
         updatedPayloadModel.enabled = true;
-        
+
         // Check if we're editing an existing payload or adding a new one
         const existingPayloadIndex = parameters.findIndex(p => p.httpParamType === "PAYLOAD");
-        
+
         if (existingPayloadIndex >= 0) {
             // Update existing editing model
             setEditModel(updatedPayloadModel);
@@ -155,7 +155,6 @@ export function Parameters(props: ParametersProps) {
             // Add new payload parameter
             onChange([...parameters, updatedPayloadModel]);
         }
-        
         // Close the modal
         setIsTypeEditorOpen(false);
     };
@@ -163,8 +162,6 @@ export function Parameters(props: ParametersProps) {
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
     };
-
-
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(p => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value);
@@ -213,15 +210,15 @@ export function Parameters(props: ParametersProps) {
         if (pathName) {
             // Remove leading/trailing slashes and split by slash
             const pathSegments = pathName.replace(/^\/|\/$/g, '').split('/');
-            
+
             // Filter out segments that contain brackets (parameters) and keep only valid segments
             const validSegments = pathSegments.filter(segment => !segment.includes('[') && !segment.includes(']'));
-            
+
             // Join with underscores and sanitize to only allow letters, numbers, and underscores
             const sanitizedPath = validSegments
                 .join('_')
                 .replace(/[^a-zA-Z0-9_]/g, ''); // Remove any characters that are not letters, numbers, or underscores
-            
+
             if (sanitizedPath) {
                 const newPayloadName = `${sanitizedPath}_payload`;
                 const capitalizedPath = newPayloadName.charAt(0).toUpperCase() + newPayloadName.slice(1);
