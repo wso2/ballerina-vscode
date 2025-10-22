@@ -165,13 +165,19 @@ export const Variables = (props: VariablesPageProps) => {
             },
         );
     };
-    const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
-    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const dropdownItems =
-        currentValue.length > 0
-            ? fields.concat(methods)
-            : fields;
+    const dropdownItems = useMemo(() => {
+        const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
+        
+        return filteredCompletions.filter(
+            (completion) =>
+                (completion.kind === "field" || completion.kind === "variable") &&
+                completion.label !== "self" &&
+                !excludedDescriptions.some(desc => 
+                    completion.labelDetails?.description?.includes(desc)
+                )
+        );
+    }, [filteredCompletions]);
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
