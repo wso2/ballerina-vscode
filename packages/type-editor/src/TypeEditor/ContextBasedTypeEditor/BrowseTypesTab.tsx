@@ -38,24 +38,6 @@ const ContentArea = styled.div`
     padding-bottom: 16px;
 `;
 
-const LabelText = styled(Typography)`
-    color: var(--vscode-descriptionForeground);
-    margin-bottom: 4px;
-`;
-
-const SelectedTypeLabel = styled.div`
-    padding: 12px 16px;
-    border: 1px solid var(--vscode-editorIndentGuide-background);
-    border-radius: 4px;
-`;
-
-const SelectedTypeText = styled(Typography)`
-    font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-`;
-
 const SearchContainer = styled.div`
     width: 100%;
     margin-bottom: 8px;
@@ -176,8 +158,8 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     // Set initial selected type if simpleType is provided
     useEffect(() => {
         if (simpleType && !selectedType) {
-            setSelectedType({ 
-                name: simpleType, 
+            setSelectedType({
+                name: simpleType,
                 insertText: simpleType
             } as unknown as TypeHelperItem);
         }
@@ -231,7 +213,52 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
             return null;
         }
 
-        return categories.map((category, categoryIndex) => (
+        // Filter out unwanted categories
+        const filteredCategories = categories.filter(category =>
+            category.category !== 'Used Variable Types' &&
+            category.category !== 'Behaviour Types' &&
+            category.category !== 'Error Types' &&
+            category.category !== 'Other Types'
+        );
+
+        // Define the desired order and update sortText
+        const categoryOrder = {
+            'Primitive Types': '0',
+            'Data Types': '1',
+            'User-Defined': '2',
+            'Structural Types': '3'
+        };
+
+        // Update sortText based on the desired order
+        const categoriesWithUpdatedSortText = filteredCategories.map(category => {
+            const sortText = categoryOrder[category.category as keyof typeof categoryOrder] || '99';
+
+            return {
+                ...category,
+                sortText
+            };
+        });
+
+        // Sort categories based on sortText
+        const sortedCategories = categoriesWithUpdatedSortText.sort((a, b) => {
+            return (a.sortText || '99').localeCompare(b.sortText || '99');
+        });
+
+        // TODO: we need this removed from the LS
+        // Filter out "record" from Structural Types
+        const processedCategories = sortedCategories.map(category => {
+            if (category.category === 'Structural Types') {
+                return {
+                    ...category,
+                    items: category.items.filter(item =>
+                        item.name.toLowerCase() !== 'record'
+                    )
+                };
+            }
+            return category;
+        });
+
+        return processedCategories.map((category, categoryIndex) => (
             <CategorySection key={categoryIndex}>
                 {category.category && (
                     <CategoryTitle variant="h5">{category.category}</CategoryTitle>
@@ -247,7 +274,16 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                                     : undefined
                             }}
                         >
-                            <TypeName variant="body3">{item.name}</TypeName>
+                            <TypeName
+                                variant="body3"
+                                sx={{
+                                    color: selectedType?.name === item.name
+                                        ? 'var(--vscode-list-activeSelectionForeground)'
+                                        : undefined
+                                }}
+                            >
+                                {item.name}
+                            </TypeName>
                         </TypeItem>
                     ))}
                 </TypeList>
@@ -258,15 +294,13 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     return (
         <Container>
             <ContentArea>
-                <SelectedTypeLabel>
-                    <TextField
-                        id="selected-type"
-                        label="Selected Type"
-                        value={selectedType?.name}
-                        placeholder="Select a type from the list below"
-                        readOnly
-                    />
-                </SelectedTypeLabel>
+                <TextField
+                    id="selected-type"
+                    label="Type"
+                    value={selectedType?.name}
+                    placeholder="Select a type from the list below"
+                    readOnly
+                />
 
                 <TypesContainer>
                     <SearchContainer>
