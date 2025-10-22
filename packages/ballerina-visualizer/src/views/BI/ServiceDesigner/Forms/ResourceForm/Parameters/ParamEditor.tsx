@@ -376,7 +376,6 @@ export function ParamEditor(props: ParamProps) {
                         nestedForm={true}
                         helperPaneSide='left'
                         preserveFieldOrder={true}
-
                     />
                 }
 
