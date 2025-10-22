@@ -411,7 +411,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
             <ScrollableSection>
                 <TextArea
-                    rows={25}
+                    rows={15}
                     value={content}
                     onChange={handleContentChange}
                     errorMsg={error}
