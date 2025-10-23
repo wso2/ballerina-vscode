@@ -110,5 +110,15 @@
       "messaging",
       "event"
     ]
+  },
+  "12": {
+    "name": "solace",
+    "orgName": "ballerinax",
+    "packageName": "solace",
+    "keywords": [
+      "solace",
+      "messaging",
+      "event"
+    ]
   }
 }
