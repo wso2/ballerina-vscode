@@ -56,8 +56,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DB_KIND_OPTIONAL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_ACCESSOR_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPE_SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
@@ -65,6 +70,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
@@ -147,7 +153,7 @@ public class ServiceModelUtils {
         String serviceTypeName = Objects.nonNull(service.getServiceType()) ? service.getServiceType().getValue()
                 : "Service";
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceTypeName)
-                .forEach(function -> service.getFunctions().add(getFunction(function)));
+                .forEach(function -> service.getFunctions().add(getFunctionFromServiceTypeFunction(function)));
     }
 
     public static List<Function> getRequiredFunctionsForServiceType(ServiceInitModel model) {
@@ -156,113 +162,193 @@ public class ServiceModelUtils {
         return ServiceDatabaseManager.getInstance()
                 .getMatchingServiceTypeFunctions(packageId, serviceTypeName)
                 .stream()
-                .map(ServiceModelUtils::getFunction)
+                .map(ServiceModelUtils::getFunctionFromServiceTypeFunction)
                 .toList();
     }
 
-    public static Function getFunction(ServiceTypeFunction function) {
+    /**
+     * Creates a Function model from a ServiceTypeFunction database record.
+     * This method transforms database function metadata into a complete Function model
+     * with all necessary parameters, return types, and configuration values.
+     *
+     * @param function the ServiceTypeFunction containing database metadata for the function
+     * @return a fully configured Function model ready for code generation
+     * @throws IllegalArgumentException if the function parameter is null
+     */
+    public static Function getFunctionFromServiceTypeFunction(ServiceTypeFunction function) {
 
-        List<Parameter> parameters = new ArrayList<>();
-        for (ServiceTypeFunction.ServiceTypeFunctionParameter parameter : function.parameters()) {
-            parameters.add(getParameter(parameter));
-        }
-
-        Value.ValueBuilder functionName = new Value.ValueBuilder();
-        functionName
-                .metadata(function.name(), function.description())
-                .setCodedata(new Codedata("FUNCTION_NAME"))
-                .value(function.name())
-                .valueType(VALUE_TYPE_IDENTIFIER)
-                .setValueTypeConstraint("string")
-                .setPlaceholder(function.name())
-                .enabled(true);
-
-        Value.ValueBuilder returnValue = new Value.ValueBuilder();
-        returnValue
-                .metadata("Return Type", "The return type of the function")
-                .value(function.returnType())
-                .valueType("TYPE")
-                .setPlaceholder(function.returnType())
-                .editable(function.returnTypeEditable() == 1)
-                .enabled(true)
-                .optional(true);
-
-        FunctionReturnType functionReturnType = new FunctionReturnType(returnValue.build());
-        functionReturnType.setHasError(function.returnError() == 1);
+        List<Parameter> parameters = createFunctionParameters(function.parameters());
+        Value functionName = createFunctionNameValue(function);
+        FunctionReturnType functionReturnType = createFunctionReturnType(function);
 
         Function.FunctionBuilder functionBuilder = new Function.FunctionBuilder();
         functionBuilder
                 .setMetadata(new MetaData(function.name(), function.description()))
                 .kind(function.kind())
-                .enabled(function.enable() == 1)
-                .editable(true)
-                .name(functionName.build())
+                .name(functionName)
                 .returnType(functionReturnType)
-                .parameters(parameters);
+                .parameters(parameters)
+                .enabled(function.enable() == 1)
+                .editable(true);
 
-        if (function.kind().equals(KIND_RESOURCE)) {
-            Value.ValueBuilder accessor = new Value.ValueBuilder()
-                    .metadata("Accessor", "The accessor of the resource function")
-                    .setCodedata(new Codedata("ACCESSOR"))
-                    .value(function.accessor())
-                    .valueType(VALUE_TYPE_IDENTIFIER)
-                    .setValueTypeConstraint("string")
-                    .setPlaceholder(function.accessor())
-                    .enabled(true);
-            functionBuilder.accessor(accessor.build());
-            functionBuilder.kind(KIND_RESOURCE);
-        } else if (function.kind().equals(KIND_REMOTE)) {
-            functionBuilder.kind(KIND_REMOTE);
-        }
+        configureAccessorForResourceFunction(functionBuilder, function);
 
         return functionBuilder.build();
     }
 
-    private static Parameter getParameter(ServiceTypeFunction.ServiceTypeFunctionParameter parameter) {
-        Value.ValueBuilder parameterName = new Value.ValueBuilder();
-        parameterName
+    /**
+     * Creates a Value object representing the function name with appropriate metadata and constraints.
+     *
+     * @param function the ServiceTypeFunction containing function name and description
+     * @return a configured Value object for the function name
+     */
+    private static Value createFunctionNameValue(ServiceTypeFunction function) {
+        return new Value.ValueBuilder()
+                .metadata(function.name(), function.description())
+                .value(function.name())
+                .valueType(VALUE_TYPE_IDENTIFIER)
+                .setPlaceholder(function.name())
+                .enabled(true)
+                .build();
+    }
+
+    /**
+     * Creates a FunctionReturnType model from ServiceTypeFunction return type metadata.
+     *
+     * @param function the ServiceTypeFunction containing return type information
+     * @return a configured FunctionReturnType with error handling capabilities
+     */
+    private static FunctionReturnType createFunctionReturnType(ServiceTypeFunction function) {
+        Value returnValue = new Value.ValueBuilder()
+                .setMetadata(FUNCTION_RETURN_TYPE_METADATA)
+                .value(function.returnType())
+                .valueType(VALUE_TYPE_TYPE)
+                .setPlaceholder(function.returnType())
+                .editable(function.returnTypeEditable() == 1)
+                .enabled(true)
+                .optional(true)
+                .build();
+
+        FunctionReturnType functionReturnType = new FunctionReturnType(returnValue);
+        functionReturnType.setHasError(function.returnError() == 1);
+
+        return functionReturnType;
+    }
+
+    /**
+     * Configures the accessor for resource functions. Only applies to functions with KIND_RESOURCE.
+     *
+     * @param functionBuilder the Function.FunctionBuilder to configure
+     * @param function the ServiceTypeFunction containing accessor information
+     */
+    private static void configureAccessorForResourceFunction(Function.FunctionBuilder functionBuilder,
+                                                             ServiceTypeFunction function) {
+        if (KIND_RESOURCE.equals(function.kind())) {
+            Value accessor = new Value.ValueBuilder()
+                    .setMetadata(FUNCTION_ACCESSOR_METADATA)
+                    .value(function.accessor())
+                    .valueType(VALUE_TYPE_IDENTIFIER)
+                    .setPlaceholder(function.accessor())
+                    .enabled(true)
+                    .build();
+            functionBuilder.accessor(accessor);
+            functionBuilder.kind(KIND_RESOURCE);
+        } else if (KIND_REMOTE.equals(function.kind())) {
+            functionBuilder.kind(KIND_REMOTE);
+        }
+    }
+
+    /**
+     * Creates a list of Parameter models from ServiceTypeFunction parameter metadata.
+     *
+     * @param functionParameters the list of ServiceTypeFunctionParameter containing parameter metadata
+     * @return a list of Parameter models configured with types, names, and default values
+     */
+    private static List<Parameter> createFunctionParameters(
+            List<ServiceTypeFunction.ServiceTypeFunctionParameter> functionParameters) {
+        return new ArrayList<>(functionParameters.stream()
+                .map(ServiceModelUtils::createParameterFromServiceTypeParameter)
+                .toList());
+    }
+
+    /**
+     * Creates a Parameter model from a ServiceTypeFunctionParameter database record.
+     * Configures parameter name, type, default value, and editability settings.
+     *
+     * @param parameter the ServiceTypeFunctionParameter containing parameter metadata
+     * @return a fully configured Parameter model
+     * @throws IllegalArgumentException if the parameter is null
+     */
+    private static Parameter createParameterFromServiceTypeParameter(
+            ServiceTypeFunction.ServiceTypeFunctionParameter parameter) {
+
+        Value parameterName = createParameterNameValue(parameter);
+        Value parameterType = createParameterTypeValue(parameter);
+        Value parameterDefaultValue = createParameterDefaultValue(parameter);
+
+        return new Parameter.Builder()
+                .metadata(new MetaData(parameter.name(), parameter.description()))
+                .kind(parameter.kind())
+                .type(parameterType)
+                .name(parameterName)
+                .defaultValue(parameterDefaultValue)
+                .optional(parameter.kind().equals(DB_KIND_OPTIONAL))
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    /**
+     * Creates a Value object for parameter name with appropriate metadata and constraints.
+     *
+     * @param parameter the ServiceTypeFunctionParameter containing name information
+     * @return a configured Value object for the parameter name
+     */
+    private static Value createParameterNameValue(ServiceTypeFunction.ServiceTypeFunctionParameter parameter) {
+        return new Value.ValueBuilder()
                 .setMetadata(new MetaData(parameter.name(), parameter.description()))
-                .setCodedata(new Codedata("PARAMETER_NAME"))
                 .value(parameter.name())
-                .valueType("IDENTIFIER")
+                .valueType(VALUE_TYPE_IDENTIFIER)
                 .setPlaceholder(parameter.name())
+                .editable(parameter.nameEditable() == 1)
                 .enabled(true)
-                .editable(parameter.nameEditable() == 1);
+                .build();
+    }
 
-        Value.ValueBuilder parameterType = new Value.ValueBuilder();
-        parameterType
-                .setMetadata(new MetaData("Type", "The type of the parameter"))
+    /**
+     * Creates a Value object for parameter type with appropriate metadata and constraints.
+     *
+     * @param parameter the ServiceTypeFunctionParameter containing type information
+     * @return a configured Value object for the parameter type
+     */
+    private static Value createParameterTypeValue(ServiceTypeFunction.ServiceTypeFunctionParameter parameter) {
+        return new Value.ValueBuilder()
+                .setMetadata(PARAMETER_TYPE_METADATA)
                 .value(parameter.type())
-                .valueType("TYPE")
+                .valueType(VALUE_TYPE_TYPE)
                 .setPlaceholder(parameter.type())
-                .enabled(true)
                 .editable(parameter.typeEditable() == 1)
-                .optional(true);
+                .enabled(true)
+                .optional(true)
+                .build();
+    }
 
-        Value.ValueBuilder parameterDefaultValue = new Value.ValueBuilder();
-        parameterDefaultValue
-                .setMetadata(new MetaData("Default Value", "The default value of the parameter"))
+    /**
+     * Creates a Value object for parameter default value with appropriate metadata and constraints.
+     *
+     * @param parameter the ServiceTypeFunctionParameter containing default value information
+     * @return a configured Value object for the parameter default value
+     */
+    private static Value createParameterDefaultValue(ServiceTypeFunction.ServiceTypeFunctionParameter parameter) {
+        return new Value.ValueBuilder()
+                .setMetadata(PARAMETER_DEFAULT_VALUE_METADATA)
                 .value(parameter.defaultValue())
-                .valueType("EXPRESSION")
+                .valueType(VALUE_TYPE_EXPRESSION)
                 .setPlaceholder(parameter.defaultValue())
                 .enabled(true)
                 .editable(true)
-                .optional(true);
-
-        Parameter.Builder parameterBuilder = new Parameter.Builder();
-        parameterBuilder
-                .metadata(new MetaData(parameter.name(), parameter.description()))
-                .kind(parameter.kind())
-                .type(parameterType.build())
-                .name(parameterName.build())
-                .defaultValue(parameterDefaultValue.build())
-                .enabled(true)
-                .editable(true)
-                .optional(parameter.kind().equals("OPTIONAL"))
-                .advanced(false)
-                .httpParamType(null);
-
-        return parameterBuilder.build();
+                .optional(true)
+                .build();
     }
 
     public static Value getTypeDescriptorProperty(ServiceDeclaration template, int packageId) {

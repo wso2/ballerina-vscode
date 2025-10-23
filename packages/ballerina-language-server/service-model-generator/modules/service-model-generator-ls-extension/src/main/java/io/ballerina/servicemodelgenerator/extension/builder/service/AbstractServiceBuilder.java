@@ -87,7 +87,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
@@ -405,33 +405,106 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = getServiceTypeIdentifier(context.serviceType());
-        Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
-        if (service.isEmpty()) {
+
+        Service serviceModel = createBaseServiceModel(context);
+        if (Objects.isNull(serviceModel)) {
             return null;
         }
-        Service serviceModel = service.get();
-        int packageId = Integer.parseInt(serviceModel.getId());
-        ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
-        serviceModel.getServiceType().setValue(serviceType);
-        serviceModel.getServiceType().setEditable(false);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
+        populateServiceModelFromSource(serviceModel, serviceNode, context);
+
+        return serviceModel;
+    }
+
+    /**
+     * Creates the base service model from the service template.
+     *
+     * @param context the model context
+     * @return the base service model or null if template not found
+     */
+    private Service createBaseServiceModel(ModelFromSourceContext context) {
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
+        Optional<Service> serviceTemplate = ServiceBuilderRouter.getModelTemplate(
+                context.orgName(), context.moduleName());
+
+        if (serviceTemplate.isEmpty()) {
+            return null;
+        }
+
+        Service serviceModel = serviceTemplate.get();
+        populateServiceTypeFunctions(serviceModel, serviceType);
+        configureServiceType(serviceModel, serviceType);
+
+        return serviceModel;
+    }
+
+    /**
+     * Populates the service model with information extracted from the source.
+     *
+     * @param serviceModel the service model to populate
+     * @param serviceNode the service declaration node from source
+     * @param context the model context
+     */
+    private void populateServiceModelFromSource(Service serviceModel, ServiceDeclarationNode serviceNode,
+                                                ModelFromSourceContext context) {
         extractServicePathInfo(serviceNode, serviceModel);
 
-        List<Function> functionsInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, Map.of()))
-                .toList();
-
+        List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
         updateServiceInfoNew(serviceModel, functionsInSource);
-        serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
+
+        // Set code metadata
+        Codedata codedata = new Codedata.Builder()
+                .setLineRange(serviceNode.lineRange())
+                .setOrgName(context.orgName())
+                .setPackageName(context.packageName())
+                .setModuleName(context.moduleName())
+                .build();
+        serviceModel.setCodedata(codedata);
+
+        // Populate additional service properties
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
-        return serviceModel;
+    }
+
+    /**
+     * Configures the service type property in the service model.
+     *
+     * @param serviceModel the service model
+     * @param serviceType the service type identifier
+     */
+    private void configureServiceType(Service serviceModel, String serviceType) {
+        serviceModel.getServiceType().setValue(serviceType);
+        serviceModel.getServiceType().setEditable(false);
+    }
+
+    /**
+     * Populates the service model with functions from the service type definition.
+     *
+     * @param serviceModel the service model
+     * @param serviceType the service type identifier
+     */
+    private void populateServiceTypeFunctions(Service serviceModel, String serviceType) {
+        int packageId = Integer.parseInt(serviceModel.getId());
+        ServiceDatabaseManager.getInstance()
+                .getMatchingServiceTypeFunctions(packageId, serviceType)
+                .forEach(funInDb -> serviceModel.getFunctions().add(getFunctionFromServiceTypeFunction(funInDb)));
+    }
+
+    /**
+     * Extracts function definitions from the service declaration node.
+     *
+     * @param serviceNode the service declaration node
+     * @return list of Function models extracted from the source
+     */
+    private List<Function> extractFunctionsFromSource(ServiceDeclarationNode serviceNode) {
+        return serviceNode.members().stream()
+                .filter(FunctionDefinitionNode.class::isInstance)
+                .map(FunctionDefinitionNode.class::cast)
+                .map(member -> getFunctionModel(member, Map.of()))
+                .toList();
     }
 
     /**

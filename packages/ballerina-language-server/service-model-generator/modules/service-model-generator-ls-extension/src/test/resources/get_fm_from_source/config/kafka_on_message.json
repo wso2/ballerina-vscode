@@ -25,12 +25,8 @@
         "label": "onConsumerRecord",
         "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
       },
-      "codedata": {
-        "type": "FUNCTION_NAME"
-      },
       "placeholder": "onConsumerRecord",
       "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "string",
       "value": "onConsumerRecord",
       "enabled": true,
       "editable": false,
