@@ -1456,7 +1456,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .updateType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> update type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update');
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update', params.type.name);
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching types from ls", error);

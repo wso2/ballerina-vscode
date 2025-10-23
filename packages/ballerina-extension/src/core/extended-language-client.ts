@@ -258,6 +258,8 @@ import {
     onMigrationToolStateChanged,
     onMigrationToolLogs,
     GetMigrationToolsResponse,
+    ServiceModelInitResponse,
+    ServiceInitSourceRequest,
     DeleteSubMappingRequest,
     DeleteClauseRequest,
     ClearTypeCacheResponse,
@@ -400,6 +402,8 @@ enum EXTENDED_APIS {
     BI_SERVICE_UPDATE_LISTENER = 'serviceDesign/updateListener',
     BI_SERVICE_GET_LISTENER_SOURCE = 'serviceDesign/getListenerFromSource',
     BI_SERVICE_GET_SERVICE = 'serviceDesign/getServiceModel',
+    BI_SERVICE_GET_SERVICE_INIT = 'serviceDesign/getServiceInitModel',
+    BI_SERVICE_CREATE_SERVICE_AND_LISTENER = 'serviceDesign/addServiceAndListener',
     BI_SERVICE_GET_FUNCTION = 'serviceDesign/getFunctionModel',
     BI_SERVICE_ADD_SERVICE = 'serviceDesign/addService',
     BI_SERVICE_UPDATE_SERVICE = 'serviceDesign/updateService',
@@ -1177,6 +1181,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<ServiceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_SERVICE, params);
     }
 
+    async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return this.sendRequest<ServiceModelInitResponse>(EXTENDED_APIS.BI_SERVICE_GET_SERVICE_INIT, params);
+    }
+
+    async createServiceAndListener(params: ServiceInitSourceRequest): Promise<SourceEditResponse> {
+        return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_SERVICE_CREATE_SERVICE_AND_LISTENER, params);
+    }
+
     async getFunctionModel(params: FunctionModelRequest): Promise<FunctionModelResponse> {
         return this.sendRequest<FunctionModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_FUNCTION, params);
     }
@@ -1217,8 +1229,8 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<HttpResourceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE, params);
     }
 
-    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
-        return this.sendRequest<ResourceReturnTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
+        return this.sendRequest<VisibleTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
     }
 
     async addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<ResourceSourceCodeResponse> {
