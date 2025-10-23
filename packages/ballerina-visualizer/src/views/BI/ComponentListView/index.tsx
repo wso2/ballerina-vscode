@@ -74,7 +74,7 @@ export function ComponentListView(props: ComponentListViewProps) {
                 <Container>
                     <AddPanel>
                         <AutomationPanel scope={scope} />
-                        <AIAgentPanel scope={scope} />
+                        <AIAgentPanel scope={scope} triggers={triggers} />
                         <IntegrationAPIPanel scope={scope} />
                         <EventIntegrationPanel triggers={triggers} scope={scope} />
                         <FileIntegrationPanel triggers={triggers} scope={scope} />

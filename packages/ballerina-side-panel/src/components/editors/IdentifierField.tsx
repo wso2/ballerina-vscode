@@ -70,6 +70,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
         setFormDiagnostics([]);
         onChange(e);
         validateIdentifierName(e.target.value);
+        field.onValueChange?.(e.target.value as string);
     }
 
     return (

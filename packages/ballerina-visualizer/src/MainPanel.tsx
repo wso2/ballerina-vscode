@@ -65,7 +65,6 @@ import { TypeDiagram } from "./views/TypeDiagram";
 import { Overview as OverviewBI } from "./views/BI/Overview/index";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
-import { ServiceWizard } from "./views/BI/ServiceDesigner/ServiceWizard";
 import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
 import { ListenerEditView } from "./views/BI/ServiceDesigner/ListenerEditView";
 import { ServiceClassDesigner } from "./views/BI/ServiceClassEditor/ServiceClassDesigner";
@@ -76,7 +75,9 @@ import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
+import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
+import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 
 const globalStyles = css`
     *,
@@ -450,7 +451,7 @@ const MainPanel = () => {
                         setViewComponent(<AIChatAgentWizard />);
                         break;
                     case MACHINE_VIEW.BIServiceWizard:
-                        setViewComponent(<ServiceWizard type={value.serviceType} />);
+                        setViewComponent(<ServiceCreationView orgName={value?.artifactInfo.org} packageName={value?.artifactInfo.packageName} moduleName={value?.artifactInfo.moduleName} version={value?.artifactInfo.version} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
@@ -463,7 +464,7 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.BIServiceConfigView:
-                        setViewComponent(<ServiceEditView filePath={value.documentUri} position={value?.position} />);
+                        setViewComponent(<ServiceConfigureView filePath={value.documentUri} position={value?.position} listenerName={value?.identifier} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
