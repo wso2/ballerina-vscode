@@ -90,6 +90,8 @@ public class AiUtils {
     private static final String VERSION = "version";
     private static final String INIT_METHOD = "init";
 
+    public static final String MEMORY_DEFAULT_VALUE = "10";
+
     static {
         versionToFeatures.put("1.0.0",
                 Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, VECTOR_KNOWLEDGE_BASES));

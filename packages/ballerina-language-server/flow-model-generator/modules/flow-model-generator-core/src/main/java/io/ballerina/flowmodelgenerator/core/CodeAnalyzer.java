@@ -596,7 +596,7 @@ public class CodeAnalyzer extends NodeVisitor {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
             if (!defaultMemoryManagerName.isEmpty()) {
                 nodeBuilder.metadata().addData("memory",
-                        new MemoryManagerData(defaultMemoryManagerName, "10"));
+                        new MemoryManagerData(defaultMemoryManagerName, AiUtils.MEMORY_DEFAULT_VALUE));
             }
         } else if (memory.kind() == SyntaxKind.EXPLICIT_NEW_EXPRESSION) {
             ExplicitNewExpressionNode newExpr = (ExplicitNewExpressionNode) memory;
@@ -611,7 +611,7 @@ public class CodeAnalyzer extends NodeVisitor {
             Optional<TypeSymbol> optSymbolType = semanticModel.typeOf(memory);
             optSymbolType.ifPresent(typeSymbol -> nodeBuilder.metadata()
                     .addData("memory",
-                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"), "10")));
+                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"), AiUtils.MEMORY_DEFAULT_VALUE)));
         }
 
         ModelData modelUrl = getModelIconUrl(modelArg);
