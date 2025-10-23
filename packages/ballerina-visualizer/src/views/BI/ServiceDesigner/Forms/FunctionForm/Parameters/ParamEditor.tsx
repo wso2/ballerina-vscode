@@ -26,7 +26,7 @@ import { TypeBrowser } from '../../../components/TypeBrowser/TypeBrowser';
 import { PARAM_TYPES } from '../../../definitions';
 import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 
-const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "Header" }];
+const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "HEADER" }];
 
 export interface ParamProps {
     param: ParameterModel;
@@ -40,7 +40,7 @@ export function ParamEditor(props: ParamProps) {
     const { param, hideType = false, onChange, onSave, onCancel } = props;
 
     const handleOnSelect = (value: string) => {
-        onChange({ ...param, httpParamType: value as "QUERY" | "Header" | "PAYLOAD" });
+        onChange({ ...param, httpParamType: value as "QUERY" | "HEADER" | "PAYLOAD" });
     };
 
     const handleTypeChange = (value: string) => {

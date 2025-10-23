@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
 import { Icon } from '@wso2/ui-toolkit';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EVENT_TYPE, MACHINE_VIEW, SCOPE } from '@wso2/ballerina-core';
@@ -29,16 +28,26 @@ interface IntegrationAPIPanelProps {
     scope: SCOPE;
 };
 
+interface ServiceModel {
+    orgName: string;
+    packageName: string;
+    moduleName: string;
+}
+
 export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
     const { rpcClient } = useRpcContext();
     const isDisabled = props.scope && (props.scope !== SCOPE.INTEGRATION_AS_API && props.scope !== SCOPE.ANY);
 
-    const handleClick = async (serviceType: string) => {
+    const handleClick = async (model: ServiceModel) => {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceWizard,
-                serviceType: serviceType,
+                artifactInfo: {
+                    org: model.orgName,
+                    packageName: model.packageName,
+                    moduleName: model.moduleName,
+                }
             },
         });
     };
@@ -58,7 +67,11 @@ export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
                         icon={<Icon name="bi-globe" />}
                         title="HTTP Service"
                         // description="Handle web requests and responses."
-                        onClick={() => handleClick("http")}
+                        onClick={() => handleClick({
+                            orgName: "ballerina",
+                            packageName: "http",
+                            moduleName: "http"
+                        })}
                         disabled={isDisabled}
                         tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                     />
@@ -68,7 +81,11 @@ export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
                         icon={<Icon name="bi-graphql" sx={{ color: "#e535ab" }} />}
                         title="GraphQL Service"
                         // description="Flexible and efficient data queries."
-                        onClick={() => handleClick("graphql")}
+                        onClick={() => handleClick({
+                            orgName: "ballerina",
+                            packageName: "graphql",
+                            moduleName: "graphql"
+                        })}
                         disabled={isDisabled}
                         tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                         isBeta
@@ -79,7 +96,11 @@ export function IntegrationAPIPanel(props: IntegrationAPIPanelProps) {
                         icon={<Icon name="bi-tcp" />}
                         title="TCP Service"
                         // description="Process connection oriented messages."
-                        onClick={() => handleClick("tcp")}
+                        onClick={() => handleClick({
+                            orgName: "ballerina",
+                            packageName: "tcp",
+                            moduleName: "tcp"
+                        })}
                         disabled={isDisabled}
                         tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                         isBeta
