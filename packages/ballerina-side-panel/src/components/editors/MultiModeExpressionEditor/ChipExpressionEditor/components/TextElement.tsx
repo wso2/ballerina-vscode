@@ -120,6 +120,18 @@ export const TextElement = (props: {
         }
     };
 
+    const handleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
+        if (!onExpressionChange || !props.expressionModel) return;
+        const updatedModel = props.expressionModel.map((element, index)=>{
+            if (index === props.index) {
+                return { ...element, isFocused: true, focusOffset: getCaretOffsetWithin(e.currentTarget) };
+            } else {
+                return { ...element, isFocused: false, focusOffset: undefined };
+            }
+        })
+        onExpressionChange(updatedModel, 0);
+    }
+
     useLayoutEffect(() => {
         const host = spanRef.current;
         const pending = pendingCaretOffsetRef.current;
@@ -155,6 +167,7 @@ export const TextElement = (props: {
             ref={spanRef}
             data-element-id={props.element.id}
             onInput={handleInput}
+            onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             contentEditable
             suppressContentEditableWarning>{props.element.value}
