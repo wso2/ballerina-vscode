@@ -790,7 +790,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     )}
                                     {readonlyProperties.size > 0 && (
                                         <MetadataRow>
-                                            <MetadataLabel>Service Details:</MetadataLabel>
                                             {Array.from(readonlyProperties).map(prop => (
                                                 <PropertyInline key={prop.label}>
                                                     <Icon

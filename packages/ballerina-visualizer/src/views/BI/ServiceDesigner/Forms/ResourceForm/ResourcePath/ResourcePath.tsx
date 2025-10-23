@@ -259,6 +259,7 @@ export function ResourcePath(props: ResourcePathProps) {
 						onSave={onSaveParam}
 						onCancel={onParamEditCancel}
 						type="PATH"
+						isNew={true}
 					/>
 				) : (
 					<AddButtonWrapper>
