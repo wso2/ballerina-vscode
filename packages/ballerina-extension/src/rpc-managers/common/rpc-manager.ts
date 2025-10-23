@@ -46,8 +46,8 @@ import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
-import { checkIsBallerinaWorkspace, goToSource } from "../../utils";
-import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getProjectTomlValues, getUpdatedSource } from "./utils";
+import { checkIsBallerinaWorkspace, getProjectTomlValues, goToSource } from "../../utils";
+import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
 import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
@@ -254,6 +254,6 @@ export class CommonRpcManager implements CommonRPCAPI {
             throw new Error("No workspaces found.");
         }
         const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        return checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
+        return await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
     }
 }

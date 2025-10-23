@@ -57,18 +57,15 @@ export async function buildProjectArtifactsStructure(
     let projectName = "";
     if (workspace) {
         projectName = workspace.name;
-
-        // Get the project name from the ballerina.toml file
-        const commonRpcManager = new CommonRpcManager();
-        const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-        if (tomlValues && tomlValues.package.title) {
-            projectName = tomlValues.package.title;
-        }
     } else {
         // Project defined within a Ballerina workspace
         projectName = path.basename(projectPath);
-
-        // TODO: Get the project name from the package Ballerina.toml file
+    }
+    // Get the project name from the ballerina.toml file
+    const commonRpcManager = new CommonRpcManager();
+    const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
+    if (tomlValues && tomlValues.package.title) {
+        projectName = tomlValues.package.title;
     }
 
     result.projectName = projectName;

@@ -2346,13 +2346,15 @@ export class BallerinaExtension {
     public setPersistStatusContext(textEditor: TextEditor) {
         if (textEditor?.document) {
             const fileUri: Uri = textEditor.document.uri;
-            if (checkIsPersistModelFile(fileUri)) {
-                this.isPersist = true;
-                commands.executeCommand('setContext', 'isPersistModelActive', true);
-                return;
-            } else {
-                this.isPersist = false;
-            }
+            checkIsPersistModelFile(fileUri).then(isPersistModelFile => {
+                if (isPersistModelFile) {
+                    this.isPersist = true;
+                    commands.executeCommand('setContext', 'isPersistModelActive', true);
+                    return;
+                } else {
+                    this.isPersist = false;
+                }
+            });
         }
         commands.executeCommand('setContext', 'isPersistModelActive', false);
     }

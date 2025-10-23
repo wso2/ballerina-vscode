@@ -9,12 +9,10 @@ import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri,
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
-import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
-import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, getFirstWorkspacePackageName, getOrgPackageName, getWorkspacePackageNames, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, filterPackagePaths, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getWorkspaceTomlValues } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 export interface ProjectMetadata {
@@ -204,8 +202,9 @@ const stateMachine = createMachine<MachineContext>(
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
                             addType: (context, event) => event.viewLocation?.addType,
-                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
-                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                            artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
                         })
                     }
                 }
@@ -279,8 +278,9 @@ const stateMachine = createMachine<MachineContext>(
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
                                     addType: (context, event) => event.viewLocation?.addType,
-                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
-                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                    artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
                                 })
                             },
                             VIEW_UPDATE: {
@@ -460,19 +460,21 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
+                const projectTomlValues = await getProjectTomlValues(context.projectPath);
+                const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
                         history.push({
                             location: {
                                 view: MACHINE_VIEW.Overview,
                                 documentUri: context.documentUri,
-                                package: context.package
+                                package: packageName || context.package
                             }
                         });
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
-                    view.location.package = context.package;
+                    view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -482,7 +484,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
-                            package: context.package,
+                            package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
@@ -775,23 +777,36 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
 }
 
 async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
-    const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
+    const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
-        // TODO: Provide a quick pick to select the package to load the WSO2 Integrator
-        // if the user selects a package, then load the WSO2 Integrator for that package
-        // if the user cancels the selection, then load the WSO2 Integrator for the first package
-        const packages = getWorkspacePackageNames(workspaceURI);
-        const userSelectedPackage = await window.showQuickPick(packages, {
-            title: 'Select Package for WSO2 Integrator: BI',
-            placeHolder: 'Choose a package from your workspace to load in BI mode',
-            ignoreFocusOut: true
-        });
+        // A workaround for supporting multiple packages in a workspace
+        // TODO: Once the artifacts API is updated to support multiple packages and the new API for detecting the
+        // most appropriate package to load the WSO2 Integrator is implemented, this workaround can be removed
+        // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
+        const workspaceTomlValues = await getWorkspaceTomlValues(workspaceURI.fsPath);
 
-        const targetPackage = userSelectedPackage || getFirstWorkspacePackageName(workspaceURI);
+        if (!workspaceTomlValues) {
+            return { isBI: false, projectPath: '' };
+        }
+
+        const packages = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
+        let targetPackage;
+
+        if (packages.length > 1) {
+            targetPackage = await window.showQuickPick(packages, {
+                title: 'Select Package for WSO2 Integrator: BI',
+                placeHolder: 'Choose a package from your workspace to load in BI mode',
+                ignoreFocusOut: true
+            });
+        } else if (packages.length === 1) {
+            targetPackage = packages[0];
+        }
 
         if (targetPackage) {
-            const packagePath = path.join(workspaceURI.fsPath, targetPackage);
+            const packagePath = path.isAbsolute(targetPackage)
+                ? targetPackage
+                : path.join(workspaceURI.fsPath, targetPackage);
             const packageUri = Uri.file(packagePath);
             
             const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
