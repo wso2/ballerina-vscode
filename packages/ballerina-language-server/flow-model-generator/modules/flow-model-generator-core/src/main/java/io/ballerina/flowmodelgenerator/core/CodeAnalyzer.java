@@ -611,7 +611,8 @@ public class CodeAnalyzer extends NodeVisitor {
             Optional<TypeSymbol> optSymbolType = semanticModel.typeOf(memory);
             optSymbolType.ifPresent(typeSymbol -> nodeBuilder.metadata()
                     .addData("memory",
-                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"), AiUtils.MEMORY_DEFAULT_VALUE)));
+                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"),
+                                    AiUtils.MEMORY_DEFAULT_VALUE)));
         }
 
         ModelData modelUrl = getModelIconUrl(modelArg);
