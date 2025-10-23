@@ -396,8 +396,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
-            params.filePath = StateMachine.context().projectUri;
-            params.context = "HTTP_STATUS_CODE";
+            params.filePath = params.filePath || context.projectUri;
             try {
                 const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
