@@ -499,10 +499,7 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
-    const labelDetails = {
-        description,
-        detail: completion.detail,
-    };
+    const labelDetails = completion.labelDetails;
 
     return {
         tag,
