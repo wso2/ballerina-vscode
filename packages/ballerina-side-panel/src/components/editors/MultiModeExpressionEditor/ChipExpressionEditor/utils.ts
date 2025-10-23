@@ -424,9 +424,11 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
     let offset = 0;
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
     let current: Node | null = walker.nextNode();
+    console.log("CU", current)
     while (current) {
         if (current === range.startContainer) {
             offset += range.startOffset;
+            console.log("final offset", offset);
             break;
         } else {
             offset += (current.textContent || '').length;
@@ -896,48 +898,112 @@ export const handleKeyDownInTextElement = (
 ) => {
     if (!host) return;
 
+    console.log("Handling keydown in text element", e.key);
     const caretOffset = getCaretOffsetWithin(host);
+    console.log("caretOffset", caretOffset);
     const textLength = host.textContent?.length || 0;
 
     // Backspace at the beginning of current span
     if (e.key === 'Backspace' && caretOffset === 0) {
         const prevElement = findPreviousElement(expressionModel, index);
+        console.log("Backspace at start, prevElement:", prevElement);
         if (prevElement) {
             e.preventDefault();
             e.stopPropagation();
 
             if (prevElement.element.isToken) {
+                console.log("Previous element is a chip/token, deleting it");
+                // Find the text element before the chip BEFORE deleting
+                const elementBeforeChipIndex = prevElement.index - 1;
+                const elementBeforeChip = elementBeforeChipIndex >= 0 ? expressionModel[elementBeforeChipIndex] : null;
+                console.log("Element before chip:", elementBeforeChip);
+                
                 // Delete the entire chip from expression model
                 const updatedExpressionModel = expressionModel.filter((_, idx) => idx !== prevElement.index);
-                if (onExpressionChange) {
-                    onExpressionChange(updatedExpressionModel, 0);
+                console.log("Updated model after deleting chip:", updatedExpressionModel);
+                
+                if (elementBeforeChip && !elementBeforeChip.isToken) {
+                    // Focus on the end of the text element before the chip
+                    const spanBeforeChip = document.querySelector(`[${DATA_ELEMENT_ID_ATTRIBUTE}="${elementBeforeChip.id}"]`) as HTMLSpanElement;
+                    console.log("Span before chip found:", !!spanBeforeChip);
+                    
+                    if (spanBeforeChip) {
+                        // Update focus state in the model
+                        const modelWithFocus = updatedExpressionModel.map((el) => {
+                            if (el.id === elementBeforeChip.id) {
+                                return { ...el, isFocused: true, focusOffset: el.length };
+                            }
+                            return { ...el, isFocused: false };
+                        });
+                        
+                        console.log("Calling onExpressionChange with model with focus");
+                        if (onExpressionChange) {
+                            onExpressionChange(modelWithFocus, 0);
+                        }
+                        
+                        setTimeout(() => {
+                            spanBeforeChip.focus();
+                            setCaretPosition(spanBeforeChip, elementBeforeChip.length);
+                        }, 0);
+                    } else {
+                        // Fallback: if span not found, just update model and keep focus on current
+                        console.log("Span not found, using fallback");
+                        if (onExpressionChange) {
+                            onExpressionChange(updatedExpressionModel, 0);
+                        }
+                        setTimeout(() => {
+                            host.focus();
+                            setCaretPosition(host, 0);
+                        }, 0);
+                    }
+                } else {
+                    // No text element before chip, keep focus on current span
+                    console.log("No text element before chip, keeping focus on current");
+                    if (onExpressionChange) {
+                        onExpressionChange(updatedExpressionModel, 0);
+                    }
+                    setTimeout(() => {
+                        host.focus();
+                        setCaretPosition(host, 0);
+                    }, 0);
                 }
-                // Keep focus on current span
-                setTimeout(() => {
-                    host.focus();
-                    setCaretPosition(host, 0);
-                }, 0);
             } else {
                 // Delete the last character from the previous editable span
                 const prevSpan = document.querySelector(`[${DATA_ELEMENT_ID_ATTRIBUTE}="${prevElement.element.id}"]`) as HTMLSpanElement;
                 if (prevSpan && prevElement.element.value.length > 0) {
                     const newValue = prevElement.element.value.slice(0, -1);
-                    const updatedExpressionModel = [...expressionModel];
-                    updatedExpressionModel[prevElement.index] = {
-                        ...prevElement.element,
-                        value: newValue,
-                        length: newValue.length
-                    };
+                    const newLength = newValue.length;
+                    const updatedExpressionModel = expressionModel.map((el, idx) => {
+                        if (idx === prevElement.index) {
+                            return {
+                                ...prevElement.element,
+                                value: newValue,
+                                length: newLength,
+                                isFocused: true,
+                                focusOffset: newLength
+                            };
+                        }
+                        return { ...el, isFocused: false };
+                    });
                     if (onExpressionChange) {
                         onExpressionChange(updatedExpressionModel, -1);
                     }
                     // Move focus to previous span at the end
                     setTimeout(() => {
                         prevSpan.focus();
-                        setCaretPosition(prevSpan, newValue.length);
+                        setCaretPosition(prevSpan, newLength);
                     }, 0);
                 } else if (prevSpan && prevElement.element.value.length === 0) {
                     // If previous span is empty, just move focus there
+                    const updatedExpressionModel = expressionModel.map((el, idx) => {
+                        if (idx === prevElement.index) {
+                            return { ...el, isFocused: true, focusOffset: 0 };
+                        }
+                        return { ...el, isFocused: false };
+                    });
+                    if (onExpressionChange) {
+                        onExpressionChange(updatedExpressionModel, 0);
+                    }
                     setTimeout(() => {
                         prevSpan.focus();
                         setCaretPosition(prevSpan, 0);
@@ -1008,13 +1074,36 @@ export const handleKeyDownInTextElement = (
     // Left arrow key at the beginning of current span
     if (e.key === 'ArrowLeft' && caretOffset === 0) {
         const prevSpan = findPreviousEditableSpan(expressionModel, index, host);
+        console.log("Left arrow pressed at start, prevSpan found:", !!prevSpan);
         if (prevSpan) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Get the corresponding element from the expression model
+            const prevElementId = prevSpan.getAttribute(DATA_ELEMENT_ID_ATTRIBUTE);
+            console.log("prevElementId:", prevElementId);
+            const prevElement = prevElementId ? expressionModel.find(el => el.id === prevElementId) : null;
+            console.log("prevElement from model:", prevElement);
+            
+            // Use the length from the expression model instead of DOM textContent for accuracy
+            const prevLength = prevElement ? prevElement.length : (prevSpan.textContent?.length || 0);
+            console.log("Setting caret to position:", prevLength, "in element with value:", prevElement?.value);
+            
+            // Update the expression model to mark the previous element as focused at the end position
+            // BEFORE we focus the element, so that when focus events fire, the model is already correct
+            if (onExpressionChange && prevElement) {
+                const updatedExpressionModel = expressionModel.map((el) => {
+                    if (el.id === prevElementId) {
+                        return { ...el, isFocused: true, focusOffset: prevLength };
+                    }
+                    return { ...el, isFocused: false };
+                });
+                onExpressionChange(updatedExpressionModel, 0);
+            }
+            
             // Use setTimeout to ensure the DOM is ready
             setTimeout(() => {
                 prevSpan.focus();
-                const prevLength = prevSpan.textContent?.length || 0;
                 setCaretPosition(prevSpan, prevLength);
             }, 0);
         }
