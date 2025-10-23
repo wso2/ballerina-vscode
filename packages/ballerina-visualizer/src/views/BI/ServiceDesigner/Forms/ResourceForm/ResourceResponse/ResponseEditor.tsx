@@ -59,14 +59,8 @@ export function ResponseEditor(props: ParamProps) {
     const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
-            const mappedResponseCodes: ResponseCode[] = res.map((item: any) => ({
-                category: item.labelDetails?.description || "",
-                label: item.label || "",
-                type: item.detail || "",
-                statusCode: item.labelDetails?.detail || "",
-            }));
-            setResponseCodes(mappedResponseCodes);
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {            
+            setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
             });
