@@ -36,7 +36,7 @@ import {
     View,
     ViewContent,
     Typography,
-    Icon,
+    Codicon,
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { GraphqlServiceEditor } from "./GraphqlServiceEditor";
@@ -399,8 +399,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         }
                         actions={
                             <ActionButton appearance="secondary" onClick={handleServiceEdit} data-testid="edit-service-btn">
-                                <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                                Edit
+                                <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
                             </ActionButton>
                         }
                     />
