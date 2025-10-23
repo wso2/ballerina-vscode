@@ -310,6 +310,19 @@ public class CodeAnalyzer extends NodeVisitor {
                     .type(objectFieldNode.typeName(), true)
                     .data(objectFieldNode.fieldName(), false, new HashSet<>());
             endNode(objectFieldNode);
+        } else {
+            // No inline expression - try to find initialization in init method
+            Optional<Symbol> fieldSymbol = semanticModel.symbol(objectFieldNode.fieldName());
+            if (fieldSymbol.isPresent() && fieldSymbol.get().kind() == SymbolKind.CLASS_FIELD) {
+                Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
+                if (initExpr.isPresent()) {
+                    initExpr.get().accept(this);
+                    nodeBuilder.properties()
+                            .type(objectFieldNode.typeName(), true)
+                            .data(objectFieldNode.fieldName(), false, new HashSet<>());
+                    endNode(objectFieldNode);
+                }
+            }
         }
     }
 
@@ -385,24 +398,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 return;
             }
 
-            // Get all references to this field
-            List<Location> references = semanticModel.references(fieldSymbol.get());
-
-            // Find the assignment in the init method
-            for (Location location : references) {
-                ModulePartNode modulePartNode = CommonUtils.getDocument(project, location).syntaxTree().rootNode();
-                NonTerminalNode node = modulePartNode.findNode(location.textRange());
-
-                // Check if this reference is part of an assignment statement
-                if (node.parent() instanceof AssignmentStatementNode assignmentStmt) {
-                    FunctionDefinitionNode parentFunc = getParentFunction(assignmentStmt);
-                    if (parentFunc != null && parentFunc.functionName().text().equals("init")) {
-                        ImplicitNewExpressionNode newExpr = getNewExpr(assignmentStmt.expression());
-                        agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
-                        genAgentData(newExpr, classSymbol, agentData);
-                        break;
-                    }
-                }
+            // Find the initialization expression for the field
+            Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
+            if (initExpr.isPresent()) {
+                ImplicitNewExpressionNode newExpr = getNewExpr(initExpr.get());
+                agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                genAgentData(newExpr, classSymbol, agentData);
             }
         } else {
             Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
@@ -464,6 +465,33 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
         return null;
+    }
+
+    /**
+     * Finds the initialization expression for a field by searching through its references.
+     * Currently looks for assignments in the init method.
+     *
+     * @param fieldSymbol The field symbol to find initialization for
+     * @return Optional containing the initialization expression if found, empty otherwise
+     */
+    private Optional<ExpressionNode> findFieldInitExpression(Symbol fieldSymbol) {
+        // Get all references to this field
+        List<Location> references = semanticModel.references(fieldSymbol);
+
+        // Find the assignment in the init method
+        for (Location location : references) {
+            ModulePartNode modulePartNode = CommonUtils.getDocument(project, location).syntaxTree().rootNode();
+            NonTerminalNode node = modulePartNode.findNode(location.textRange());
+
+            // Check if this reference is part of an assignment statement
+            if (node.parent() instanceof AssignmentStatementNode assignmentStmt) {
+                FunctionDefinitionNode parentFunc = getParentFunction(assignmentStmt);
+                if (parentFunc != null && parentFunc.functionName().text().equals("init")) {
+                    return Optional.of(assignmentStmt.expression());
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol,
@@ -2410,7 +2438,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     protected void visitSyntaxNode(Node node) {
-        // SKip visiting the child node of non-overridden nodes
+        // Skip visiting the child nodes of non-overridden methods.
     }
 
     private void genCommentNode(CommentMetadata comment) {
