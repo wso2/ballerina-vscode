@@ -407,7 +407,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Inputs Page */}
-                    <SlidingPane name="INPUTS" paneWidth={rect.width}>
+                    <SlidingPane name="INPUTS" paneWidth={300}>
                         <SlidingPaneHeader>
                             Inputs
                         </SlidingPaneHeader>

@@ -418,14 +418,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
     };
 
-    const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
-        if (node && targetLineRange) {
-            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
-            const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
-            initForm(nodeWithDiagnostics);
-        }
-    };
-
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
         // Create updated node with new line range
@@ -1011,9 +1003,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (type?.labelDetails?.description !== "Record") {
             if (type.labelDetails.detail === "Structural Types"
                 || type.labelDetails.detail === "Behaviour Types"
-            if (type.labelDetails.detail === "Structural Types"
-                || type.labelDetails.detail === "Behaviour Types"
-                || isTypeExcludedFromValueTypeConstraint(type.label)
             ) {
                 setValueTypeConstraints('');
             }
