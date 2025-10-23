@@ -7,7 +7,7 @@
       "items": [
         {
           "metadata": {
-            "label": "In Memory Short Term Memory Store",
+            "label": "In-Memory Short Term Memory Store",
             "description": "Provides an in-memory chat message store."
           },
           "codedata": {
