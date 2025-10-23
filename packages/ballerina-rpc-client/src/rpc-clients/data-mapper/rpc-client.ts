@@ -54,7 +54,6 @@ import {
     deleteClause,
     deleteMapping,
     deleteSubMapping,
-    getAllDataMapperSource,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -135,10 +134,6 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getSubMappingCodedata(params: GetSubMappingCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
-    }
-
-    getAllDataMapperSource(params: AllDataMapperSourceRequest): Promise<DataMapperSourceResponse> {
-        return this._messenger.sendRequest(getAllDataMapperSource, HOST_EXTENSION, params);
     }
 
     getProperty(params: PropertyRequest): Promise<PropertyResponse> {
