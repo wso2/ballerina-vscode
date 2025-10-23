@@ -30,7 +30,6 @@ import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.environment.PackageRepository;

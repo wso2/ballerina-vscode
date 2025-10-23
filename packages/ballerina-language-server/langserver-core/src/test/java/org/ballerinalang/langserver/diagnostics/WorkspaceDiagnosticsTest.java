@@ -137,14 +137,6 @@ public class WorkspaceDiagnosticsTest {
                 .filter(d -> d.getSeverity().toString().equals("Error"))
                 .count();
 
-        // Debug: Print projB diagnostics
-        System.out.println("=== projB Diagnostics (with error) ===");
-        projBDiagnostics.forEach((file, diags) -> {
-            System.out.println("File: " + file);
-            diags.forEach(d -> System.out.println("  " + d.getSeverity() + ": " + d.getMessage()));
-        });
-        System.out.println("projB errors before fix: " + projBErrorsBefore);
-
         Assert.assertTrue(projBErrorsBefore > 0, "projB should have syntax error");
 
         // Now fix projB by reverting to correct content
@@ -168,15 +160,7 @@ public class WorkspaceDiagnosticsTest {
                 .flatMap(List::stream)
                 .filter(d -> d.getSeverity().toString().equals("Error"))
                 .count();
-
-        // Debug: Print diagnostics after fix
-        System.out.println("=== projB Diagnostics (after fix) ===");
-        projBDiagnosticsAfterFix.forEach((file, diags) -> {
-            System.out.println("File: " + file);
-            diags.forEach(d -> System.out.println("  " + d.getSeverity() + ": " + d.getMessage()));
-        });
-        System.out.println("projB errors after fix: " + projBErrorsAfter);
-
+        
         // After fixing projB, syntax errors should be cleared
         Assert.assertTrue(projBErrorsAfter < projBErrorsBefore,
                 "Fixing projB should clear syntax errors");
