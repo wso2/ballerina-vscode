@@ -41,7 +41,7 @@ namespace S {
         flex-direction: row;
         align-items: center;
         gap: 5px;
-        padding: 5px;
+        padding: 12px;
         border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
         border-radius: 5px;
         height: 36px;
@@ -174,12 +174,12 @@ export function ResourceForm(props: ResourceFormProps) {
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
 						onError={onResourcePathError} />
 					<Divider />
-					<Parameters 
-						showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} 
-						parameters={functionModel.parameters} 
-						onChange={handleParamChange} 
-						schemas={functionModel.schema} 
-						pathName={functionModel?.name?.value} 
+					<Parameters
+						showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")}
+						parameters={functionModel.parameters}
+						onChange={handleParamChange}
+						schemas={functionModel.schema}
+						pathName={functionModel?.name?.value}
 						payloadContext={{
 							...payloadContext,
 							resourceBasePath: functionModel?.name?.value || '',
@@ -206,15 +206,13 @@ export function ResourceForm(props: ResourceFormProps) {
 				<SidePanelBody>
 					{/* Render HTTP Methods as components using S.Component and S.Grid */}
 					<div style={{ marginBottom: "16px" }}>
-						<div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "8px" }}>HTTP Methods</div>
-						<S.Grid columns={2}>
+						<S.Grid columns={1}>
 							{verbs.map((method: PropertyModel, idx: number) => (
 								<S.Component
 									key={method.value || idx}
 									enabled={true}
 									onClick={() => setResourceMethod(method.value)}
 								>
-									<S.IconContainer>{<Icon name='globe' isCodicon={true} />}</S.IconContainer>
 									<S.ComponentTitle>
 										{method.value}
 									</S.ComponentTitle>
@@ -235,13 +233,13 @@ export function ResourceForm(props: ResourceFormProps) {
 						<SidePanelBody>
 							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} />
 							<Divider />
-							<Parameters 
-								isNewResource={true} 
-								showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} 
-								parameters={functionModel.parameters} 
-								onChange={handleParamChange} 
-								schemas={functionModel.schema} 
-								pathName={functionModel?.name?.value} 
+							<Parameters
+								isNewResource={true}
+								showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")}
+								parameters={functionModel.parameters}
+								onChange={handleParamChange}
+								schemas={functionModel.schema}
+								pathName={functionModel?.name?.value}
 								payloadContext={{
 									...payloadContext,
 									resourceBasePath: functionModel?.name?.value || '',

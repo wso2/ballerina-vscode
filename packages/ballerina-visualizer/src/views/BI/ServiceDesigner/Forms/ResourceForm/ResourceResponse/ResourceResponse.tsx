@@ -61,7 +61,9 @@ export function ResourceResponse(props: ResourceParamProps) {
         param.name.metadata = schema.name.metadata;
         param.headers.metadata = schema.headers.metadata;
         param.type.metadata = schema.type.metadata;
-        param.mediaType.metadata = schema.mediaType.metadata;
+        if (param.mediaType?.metadata) {
+            param.mediaType.metadata = schema.mediaType.metadata;
+        }
         setEditModel(param);
     };
 

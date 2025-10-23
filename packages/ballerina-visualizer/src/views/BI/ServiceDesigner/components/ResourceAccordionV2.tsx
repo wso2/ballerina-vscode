@@ -240,8 +240,14 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 <ButtonSection>
                     <>
                         <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
-                            <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                            Configure
+                            <Codicon
+                                name="settings-gear"
+                                sx={{
+                                    cursor: readOnly ? "not-allowed" : "pointer",
+                                    opacity: readOnly ? 0.5 : 1,
+                                    width: "16px",
+                                }}
+                            />
                         </ActionButton >
                         <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
                             <Codicon
@@ -249,6 +255,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                                 sx={{
                                     cursor: readOnly ? "not-allowed" : "pointer",
                                     opacity: readOnly ? 0.5 : 1,
+                                    width: "16px",
                                 }}
                             />
                         </ActionButton >
