@@ -190,7 +190,6 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [showAttachListenerModal, setShowAttachListenerModal] = useState<boolean>(false);
 
-    const [tabView, setTabView] = useState<"service" | "listener">(props.listenerName ? "listener" : "service");
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
     // Create ref map for accordion containers
@@ -206,8 +205,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         fetchService(props.position);
     }, [props.position]);
 
+    useEffect(() => {
+        if (props.listenerName) {
+            handleOnListenerClick(props.listenerName);
+        }
+    }, [props.listenerName]);
+
     const handleOnServiceSelect = () => {
-        setTabView("service");
         // Clear selected listener when service is selected
         setSelectedListener(null);
         // Scroll to service section
@@ -255,6 +259,20 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                         const listenerItem = listeners?.find((l) => l.name === listener);
                         if (listenerItem) {
                             listenersToSet.push(listenerItem);
+                        } else {
+                            const property = listenerProperty[listener];
+                            listenersToSet.push({
+                                id: listener,
+                                name: listener,
+                                path: props.filePath,
+                                type: "TYPE",
+                                position: {
+                                    startLine: property.codedata.lineRange.startLine.line,
+                                    startColumn: property.codedata.lineRange.startLine.offset,
+                                    endLine: property.codedata.lineRange.endLine.line,
+                                    endColumn: property.codedata.lineRange.endLine.offset,
+                                },
+                            });
                         }
                     });
                     setListeners(listenersToSet);
@@ -282,9 +300,6 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     }
 
     const handleOnListenerClick = (listenerId: string) => {
-        // Make sure we're on the service tab to see accordions
-        setTabView("service");
-
         // Set the selected listener for highlighting
         setSelectedListener(listenerId);
 
@@ -326,7 +341,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                 onSelect={handleOnServiceSelect}
                                                 selectedId={serviceModel.name}
                                                 sx={{
-                                                    border: tabView === "service" && !selectedListener
+                                                    border: !selectedListener
                                                         ? '1px solid var(--vscode-focusBorder)'
                                                         : 'none'
                                                 }}
@@ -334,7 +349,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                 <Typography
                                                     variant="body3"
                                                     sx={{
-                                                        fontWeight: tabView === "service" && !selectedListener
+                                                        fontWeight: !selectedListener
                                                             ? 'bold' : 'normal'
                                                     }}
                                                 >{serviceModel.name}</Typography>
@@ -433,17 +448,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                 </div>
                                                 <Container>
                                                     <>
-                                                        {tabView === "service" && !serviceModel && (
+                                                        {!serviceModel && (
                                                             <LoadingContainer>
                                                                 <LoadingRing message="Loading service..." />
                                                             </LoadingContainer>
                                                         )}
-                                                        {tabView === "listener" && (
-                                                            <LoadingContainer>
-                                                                <LoadingRing message="Loading listener..." />
-                                                            </LoadingContainer>
-                                                        )}
-                                                        {tabView === "service" && serviceModel && (
+                                                        {serviceModel && (
                                                             <div ref={serviceRef}>
                                                                 <ServiceEditView filePath={props.filePath} position={props.position} />
                                                                 <Divider />
@@ -456,7 +466,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         }}
                                                                     >
                                                                         <Accordion
-                                                                            header={`${listener.name.charAt(0).toUpperCase() + listener.name.slice(1)} Configuration`}
+                                                                            header={`${listener.name} Configuration`}
                                                                             isExpanded={expandedAccordion === listener.id}
                                                                         >
                                                                             <div>
@@ -482,7 +492,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                     title="Attach Listener"
                                                                     anchorRef={undefined}
                                                                     width={420}
-                                                                    height={600}
+                                                                    height={450}
                                                                     openState={showAttachListenerModal}
                                                                     setOpenState={setShowAttachListenerModal}
                                                                 >
@@ -679,6 +689,16 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                         <S.LoadingContainer>
                             <ProgressRing />
                             <Typography variant="h3" sx={{ marginTop: '16px' }}>Loading...</Typography>
+                        </S.LoadingContainer>
+                    )}
+
+
+                    {!isLoading && existingListeners.length === 0 && (
+                        <S.LoadingContainer>
+                            <Typography variant="h4" sx={{ marginTop: '16px', textAlign: 'center' }}>No existing listeners found</Typography>
+                            <LinkButton sx={{ marginTop: '10px' }} onClick={() => {
+                                handleTabChange("new");
+                            }}> <Codicon name="add" /> Create New Listener</LinkButton>
                         </S.LoadingContainer>
                     )}
 
