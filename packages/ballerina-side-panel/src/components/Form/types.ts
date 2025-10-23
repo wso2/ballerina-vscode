@@ -53,12 +53,13 @@ export type FormField = {
     enabled: boolean;
     lineRange?: LineRange;
     metadata?: Metadata;
+    isContextTypeSupported?: boolean;
     codedata?: { [key: string]: any };
     imports?: { [key: string]: string };
     actionLabel?: string | JSX.Element;
     properties?: ConfigProperties;
     actionCallback?: () => void;
-    onValueChange?: (value: string) => void;
+    onValueChange?: (value: any) => void;
 };
 
 export type ParameterValue = {

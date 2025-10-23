@@ -36,7 +36,7 @@ import {
     View,
     ViewContent,
     Typography,
-    Icon,
+    Codicon,
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { GraphqlServiceEditor } from "./GraphqlServiceEditor";
@@ -50,6 +50,7 @@ import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../components/Modal";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
 import React from "react";
+import { removeForwardSlashes } from "../BI/ServiceDesigner/utils";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -393,13 +394,12 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         title="GraphQL"
                         subtitleElement={
                             <SubTitleWrapper>
-                                <Path>{graphqlTypeModel?.type.name}</Path>
+                                <Path>{removeForwardSlashes(graphqlTypeModel?.type.name)}</Path>
                             </SubTitleWrapper>
                         }
                         actions={
                             <ActionButton appearance="secondary" onClick={handleServiceEdit} data-testid="edit-service-btn">
-                                <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                                Edit
+                                <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
                             </ActionButton>
                         }
                     />
