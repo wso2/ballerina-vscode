@@ -26,7 +26,7 @@ interface OperationFormProps {
     model: FunctionModel;
     filePath: string;
     lineRange: LineRange;
-    isGraphqlView: boolean;
+    isGraphqlView?: boolean;
     isServiceClass?: boolean;
     onSave: (model: FunctionModel) => void;
     onClose: () => void;
