@@ -1,5 +1,0 @@
-{
-    "id": "person.id",
-    "name": "person.name",
-    "course": "{\n courseId: person.courseId \n}"
-}

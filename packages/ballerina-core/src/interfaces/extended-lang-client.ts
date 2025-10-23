@@ -30,7 +30,6 @@ import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceMode
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
-import { Attachment, DataMappingRecord, ImportInfo } from "../rpc-types/ai-panel/interfaces";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
@@ -306,6 +305,7 @@ export interface DataMapperBase {
     varName?: string;
     targetField?: string;
     position?: LinePosition;
+    customFunctionsFilePath?: string;
 }
 
 export interface DataMapperSourceRequest extends DataMapperBase {
@@ -318,13 +318,7 @@ export interface AllDataMapperSourceRequest extends DataMapperBase {
 }
 
 export interface ExtendedDataMapperMetadata extends DataMapperMetadata {
-    mappingsModel: ExpandedDMModel;
-}
-
-export interface MetadataWithAttachments {
-    metadata: ExtendedDataMapperMetadata;
-    attachments?: Attachment[];
-    useTemporaryFile?: boolean;
+    mappingsModel: DMModel;
 }
 
 export interface VisualizableFieldsRequest {
@@ -342,20 +336,6 @@ export interface DataMapperSourceResponse {
     };
     error?: string;
     userAborted?: boolean;
-}
-
-export interface CreateTempFileRequest {
-    inputs: DataMappingRecord[];
-    output: DataMappingRecord;
-    functionName: string;
-    inputNames: string[];
-    imports: ImportInfo[];
-}
-
-export interface DatamapperModelContext {
-    documentUri?: string;
-    identifier?: string;
-    dataMapperMetadata?: any;
 }
 
 export interface ExpandModelOptions {
@@ -376,6 +356,7 @@ export interface ExpandedDMModelResponse {
     success: boolean;
     error?: string;
 }
+
 export interface ProcessTypeReferenceRequest {
     ref: string;
     fieldId: string;
@@ -468,6 +449,10 @@ export interface MapWithFnRequest {
     varName?: string;
     targetField: string;
     subMappingName?: string;
+}
+
+export interface ClearTypeCacheResponse {
+    success: boolean;
 }
 
 export interface GetDataMapperCodedataRequest {
@@ -1169,6 +1154,18 @@ export interface ReferenceLSRequest {
 export interface Reference {
     uri: string;
     range: Range;
+}
+
+export interface FormDiagnosticsRequest {
+    filePath: string;
+    flowNode: FlowNode | FunctionNode;
+    isConnector?: boolean;
+    isFunctionNodeUpdate?: boolean;
+}
+
+export interface FormDiagnosticsResponse {
+    flowNode?: FlowNode | FunctionNode;
+    diagnostics?: Diagnostic[];
 }
 
 export interface ExpressionDiagnosticsRequest {
@@ -1891,6 +1888,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getComponentsFromContent: (params: ComponentsFromContent) => Promise<BallerinaProjectComponents>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     getVisibleTypes: (params: VisibleTypesRequest) => Promise<VisibleTypesResponse>;
+    getFormDiagnostics: (params: FormDiagnosticsRequest) => Promise<FormDiagnosticsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>
 

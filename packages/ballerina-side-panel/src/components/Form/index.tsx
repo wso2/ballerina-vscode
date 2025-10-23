@@ -319,6 +319,8 @@ export interface FormProps {
     projectPath?: string;
     selectedNode?: NodeKind;
     onSubmit?: (data: FormValues, dirtyFields?: any) => void;
+    onBlur?: (data: FormValues, dirtyFields?: any) => void;
+    onFormValidation?: (data: FormValues, dirtyFields?: any) => Promise<boolean>;
     isSaving?: boolean;
     openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
     openView?: (filePath: string, position: NodePosition) => void;
@@ -364,6 +366,8 @@ export const Form = forwardRef((props: FormProps) => {
         cancelText,
         actionButton,
         onSubmit,
+        onBlur,
+        onFormValidation,
         isSaving,
         onCancelForm,
         oneTimeForm,
@@ -418,6 +422,7 @@ export const Form = forwardRef((props: FormProps) => {
 
     const [isUserConcert, setIsUserConcert] = useState(false);
     const [savingButton, setSavingButton] = useState<string | null>(null);
+    const [isValidatingForm, setIsValidatingForm] = useState(false);
 
 
     useEffect(() => {
@@ -487,6 +492,18 @@ export const Form = forwardRef((props: FormProps) => {
     const handleOnSave = (data: FormValues) => {
         console.log(">>> saved form fields", { data });
         onSubmit && onSubmit(data, dirtyFields);
+    };
+
+    const handleFormValidation = async (): Promise<boolean> => {
+        setIsValidatingForm(true);
+        const data = getValues();
+        const validationResult = await onFormValidation(data, dirtyFields);
+        setIsValidatingForm(false);
+        return validationResult;
+    }
+
+    const handleOnBlur = async () => {
+        onBlur?.(getValues(), dirtyFields);
     };
 
     // Expose a method to trigger the save
@@ -593,42 +610,49 @@ export const Form = forwardRef((props: FormProps) => {
     const firstEditableFieldIndex = formFields.findIndex((field) => field.editable !== false);
 
     const isValid = useMemo(() => {
-        if (!diagnosticsInfo) {
-            return true;
-        }
+        let hasDiagnostics: boolean = false;
 
-        let hasDiagnostics: boolean = true;
-        for (const diagnosticsInfoItem of diagnosticsInfo) {
-            const key = diagnosticsInfoItem.key;
-            if (!key) {
-                continue;
-            }
-
-            let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
-            if (diagnostics.length === 0) {
-                clearErrors(key);
-                continue;
-            } else {
-                // Filter the BCE2066 diagnostics
-                diagnostics = diagnostics.filter(
-                    (d) => d.code !== "BCE2066" || d.message !== "incompatible types: expected 'any', found 'error'"
-                );
-
-                const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
-                setError(key, { type: "validate", message: diagnosticsMessage });
-
-                // If the severity is not ERROR, don't invalidate
-                const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
-                if (hasErrorDiagnostics) {
-                    hasDiagnostics = false;
-                } else {
+        // Check diagnostics from diagnosticsInfo state
+        if (diagnosticsInfo) {
+            for (const diagnosticsInfoItem of diagnosticsInfo) {
+                const key = diagnosticsInfoItem.key;
+                if (!key) {
                     continue;
+                }
+
+                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                if (diagnostics.length === 0) {
+                    clearErrors(key);
+                    continue;
+                } else {
+                    // Filter the BCE2066 diagnostics
+                    diagnostics = diagnostics.filter(
+                        (d) => d.code !== "BCE2066" || d.message !== "incompatible types: expected 'any', found 'error'"
+                    );
+
+                    const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
+                    setError(key, { type: "validate", message: diagnosticsMessage });
+
+                    // If the severity is not ERROR, don't invalidate
+                    const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
+                    if (hasErrorDiagnostics) {
+                        hasDiagnostics = true;
+                    } else {
+                        continue;
+                    }
                 }
             }
         }
 
-        return hasDiagnostics;
-    }, [diagnosticsInfo]);
+        // Check diagnostics directly from formFields
+        for (const field of formFields) {
+            if (field.diagnostics && field.diagnostics.length > 0) {
+                hasDiagnostics = true;
+            }
+        }
+
+        return !hasDiagnostics;
+    }, [diagnosticsInfo, formFields]);
 
     // Call onValidityChange when form validity changes
     useEffect(() => {
@@ -648,8 +672,8 @@ export const Form = forwardRef((props: FormProps) => {
     };
 
     const disableSaveButton =
-        !isValid || isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || Object.keys(errors).length > 0;
+        isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -684,9 +708,12 @@ export const Form = forwardRef((props: FormProps) => {
         })();
     };
 
-    const handleOnSaveClick = () => {
+    const handleOnSaveClick = async () => {
         setSavingButton('save');
-        handleSubmit(handleOnSave)();
+        const isValidForm = onFormValidation ? await handleFormValidation() : true;
+        if (isValidForm) {
+            handleSubmit(handleOnSave)();
+        }
     };
 
     return (
@@ -770,6 +797,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         newServerUrl={newServerUrl}
                                         mcpTools={mcpTools}
                                         onToolsChange={onToolsChange}
+                                        onBlur={handleOnBlur}
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
@@ -837,6 +865,7 @@ export const Form = forwardRef((props: FormProps) => {
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                             handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
                                         />
                                     </S.Row>
                                 );
@@ -853,6 +882,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                onBlur={handleOnBlur}
                             />
                         )}
                         {typeField && !isInferredReturnType && (
@@ -867,6 +897,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                 handleNewTypeSelected={handleNewTypeSelected}
+                                onBlur={handleOnBlur}
 
                             />
                         )}
@@ -879,6 +910,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                     handleNewTypeSelected={handleNewTypeSelected}
                                     handleOnTypeChange={handleOnTypeChange}
+                                    onBlur={handleOnBlur}
                                 />
                                 {typeField && (
                                     <TypeHelperText
@@ -921,9 +953,13 @@ export const Form = forwardRef((props: FormProps) => {
                             onClick={handleOnSaveClick}
                             disabled={disableSaveButton || isSaving}
                         >
-                            {isSaving && savingButton === 'save' ? (
+                            {isValidatingForm ? (
+                                <Typography variant="progress">Validating...</Typography>
+                            ) : isSaving && savingButton === 'save' ? (
                                 <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : submitText || "Save"}
+                            ) : (
+                                submitText || "Save"
+                            )}
                         </Button>
                     </S.Footer>
                 )}

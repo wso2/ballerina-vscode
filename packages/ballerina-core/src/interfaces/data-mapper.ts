@@ -104,29 +104,33 @@ export interface Mapping {
     isQueryExpression?: boolean;
     isFunctionCall?: boolean;
     functionRange?: LineRange;
+    functionContent?: string;
+    elementAccessIndex?: string[];
 }
 
 export interface ExpandedDMModel {
     inputs: IOType[];
     output: IOType;
-    subMappings?: IOType[];
+    subMappings?: IOType[] | Mapping[];
     mappings: Mapping[];
     source: string;
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface DMModel {
     inputs: IORoot[];
     output: IORoot;
-    subMappings?: IORoot[];
+    subMappings?: IORoot[] | Mapping[];
     refs: Record<string, RecordType | EnumType>;
     mappings: Mapping[];
     view: string;
     query?: Query;
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface ModelState {
@@ -156,6 +160,7 @@ export interface IOTypeField {
     displayName?: string;
     member?: IOTypeField;
     members?: IOTypeField[];
+    fields?: IOTypeField[];
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
