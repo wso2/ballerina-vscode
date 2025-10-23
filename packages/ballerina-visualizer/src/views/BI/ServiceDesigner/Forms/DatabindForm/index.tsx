@@ -119,6 +119,11 @@ export function DatabindForm(props: DatabindFormProps) {
     // State for type editor modal
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
+    // Reset form state when model prop changes
+    useEffect(() => {
+        setFunctionModel(model);
+    }, [model]);
+
 
     const handleParamChange = (params: ParameterModel[]) => {
         const updatedFunctionModel = {
@@ -135,17 +140,18 @@ export function DatabindForm(props: DatabindFormProps) {
 
         if (dataBindingParam && !isInNewParams) {
             // Instead of deleting, disable the DATA_BINDING parameter and enable the first parameter
-            dataBindingParam.enabled = false;
-
-            // Enable the first parameter (the REQUIRED one)
-            if (functionModel.parameters && functionModel.parameters.length > 0) {
-                const firstParam = functionModel.parameters[0];
-                if (firstParam.kind === "REQUIRED") {
-                    firstParam.enabled = true;
+            // Create a new array to avoid mutating the original
+            const updatedParams = functionModel.parameters.map((p) => {
+                if (p.kind === "DATA_BINDING") {
+                    return { ...p, enabled: false };
                 }
-            }
+                if (p.kind === "REQUIRED" && !isInNewParams) {
+                    return { ...p, enabled: true };
+                }
+                return p;
+            });
 
-            handleParamChange([...functionModel.parameters]);
+            handleParamChange(updatedParams);
         } else {
             // Normal parameter change
             handleParamChange(params);
@@ -154,6 +160,10 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const handleSave = () => {
         onSave(functionModel);
+    };
+
+    const handleCancel = () => {
+        onClose();
     };
 
     const handleShowAdvancedParameters = () => {
@@ -462,11 +472,23 @@ export function DatabindForm(props: DatabindFormProps) {
                                                 }
                                                 checked={param.enabled}
                                                 onChange={(checked) => {
-                                                    param.enabled = checked;
-                                                    param.name.value = param.metadata.label
-                                                        .toLowerCase()
-                                                        .replace(/ /g, "_");
-                                                    handleParamChange([...functionModel.parameters]);
+                                                    // Create a new array with updated parameters to avoid mutating parent state
+                                                    const updatedParameters = functionModel.parameters.map((p) => {
+                                                        if (p.metadata.label === param.metadata.label && p.name.value === param.name.value) {
+                                                            return {
+                                                                ...p,
+                                                                enabled: checked,
+                                                                name: {
+                                                                    ...p.name,
+                                                                    value: param.metadata.label
+                                                                        .toLowerCase()
+                                                                        .replace(/ /g, "_")
+                                                                }
+                                                            };
+                                                        }
+                                                        return p;
+                                                    });
+                                                    handleParamChange(updatedParameters);
                                                 }}
                                                 sx={{ description: param.metadata.description, marginTop: 0 }}
                                             />
@@ -487,7 +509,7 @@ export function DatabindForm(props: DatabindFormProps) {
                     }}
                     secondaryButton={{
                         text: "Cancel",
-                        onClick: onClose,
+                        onClick: handleCancel,
                         tooltip: "Cancel",
                         disabled: isSaving,
                     }}
