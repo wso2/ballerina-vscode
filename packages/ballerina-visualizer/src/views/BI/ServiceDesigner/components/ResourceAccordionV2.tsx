@@ -180,8 +180,6 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
     const handleEditResource = async (e: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         e.stopPropagation(); // Stop the event propagation
         const functionModel = await getFunctionModel();
-        // HACK: Setting module name to 'mcp' to identify MCP tool functions
-        functionModel.function.codedata.moduleName = isMcpTool ? 'mcp' : undefined;
         onEditResource(functionModel.function);
     };
 
