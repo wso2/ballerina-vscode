@@ -59,8 +59,7 @@ public final class KafkaFunctionBuilder extends AbstractFunctionBuilder {
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
         Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
-                context.function(), TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, true,
-                context.project(), context.semanticModel());
+                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, true);
 
         Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
         Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);

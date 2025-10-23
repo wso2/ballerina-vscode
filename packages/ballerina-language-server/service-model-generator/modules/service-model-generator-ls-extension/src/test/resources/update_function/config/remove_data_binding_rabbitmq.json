@@ -1,5 +1,5 @@
 {
-  "filePath": "rabbitmq_service_with_databind.bal",
+  "filePath": "rabbitmq_databind/main.bal",
   "description": "Remove data binding from rabbitmq event handler",
   "function": {
     "metadata": {
@@ -65,7 +65,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -126,7 +127,8 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -187,11 +189,13 @@
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "returnType": {
       "hasError": true,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
@@ -247,7 +251,7 @@
     }
   },
   "output": {
-    "rabbitmq_service_with_databind.bal": [
+    "rabbitmq_databind/main.bal": [
       {
         "range": {
           "start": {

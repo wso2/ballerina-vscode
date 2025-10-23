@@ -1,12 +1,12 @@
 {
-  "filePath": "sample11/kafka.bal",
+  "filePath": "sample11/main.bal",
   "description": "Test the generation of service model for a Kafka service with data binding parameter",
   "start": {
-    "line": 4,
+    "line": 5,
     "offset": 0
   },
   "end": {
-    "line": 11,
+    "line": 12,
     "offset": 0
   },
   "response": {
@@ -56,13 +56,13 @@
           "kafkaListener": {
             "codedata": {
               "lineRange": {
-                "fileName": "kafka.bal",
+                "fileName": "main.bal",
                 "startLine": {
-                  "line": 4,
+                  "line": 5,
                   "offset": 11
                 },
                 "endLine": {
-                  "line": 4,
+                  "line": 5,
                   "offset": 24
                 }
               }
@@ -102,13 +102,13 @@
     },
     "codedata": {
       "lineRange": {
-        "fileName": "kafka.bal",
+        "fileName": "main.bal",
         "startLine": {
-          "line": 4,
+          "line": 5,
           "offset": 0
         },
         "endLine": {
-          "line": 11,
+          "line": 12,
           "offset": 1
         }
       }
@@ -299,13 +299,13 @@
         "canAddParameters": false,
         "codedata": {
           "lineRange": {
-            "fileName": "kafka.bal",
+            "fileName": "main.bal",
             "startLine": {
-              "line": 5,
+              "line": 6,
               "offset": 4
             },
             "endLine": {
-              "line": 10,
+              "line": 11,
               "offset": 5
             }
           },
