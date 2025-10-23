@@ -402,6 +402,14 @@ public class McpToolKitBuilder extends NodeBuilder {
                 .mapToObj(c -> Character.isJavaIdentifierPart(c) ? String.valueOf((char) c) : "_")
                 .collect(Collectors.joining());
 
+        // Strip leading and trailing underscores that came from invalid characters
+        methodName = methodName.replaceAll("^_+|_+$", "");
+
+        // Check if the result is empty after stripping
+        if (methodName.isEmpty()) {
+            methodName = "_";
+        }
+
         // Then check if we need a leading underscore
         if (!Character.isJavaIdentifierStart(methodName.charAt(0))) {
             methodName = "_" + methodName;
