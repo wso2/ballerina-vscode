@@ -26,6 +26,7 @@ import { CompletionsItem } from "./components/CompletionsItem";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { createExpressionModelFromTokens, getTextValueFromExpressionModel } from "./utils";
+import { CHIP_MENU_VALUE } from './constants';
 
 export type ChipExpressionBaseComponentProps = {
     // tokens: Token[];
@@ -356,7 +357,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     <ContextMenuContainer
                         top={menuPosition.top}
                         left={menuPosition.left}
-                        data-menu="chip-menu"
+                        data-menu={CHIP_MENU_VALUE}
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <Completions>
