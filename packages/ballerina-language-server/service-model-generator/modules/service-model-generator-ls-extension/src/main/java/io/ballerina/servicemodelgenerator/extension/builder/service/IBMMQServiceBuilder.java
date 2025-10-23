@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
@@ -586,6 +587,21 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         }
 
         return Map.of(context.filePath(), allEdits);
+    }
+
+    @Override
+    public Service getModelFromSource(ModelFromSourceContext context) {
+        Service service = super.getModelFromSource(context);
+
+        // Find onError function and set it as optional and editable
+        service.getFunctions().stream()
+                .filter(func -> "onError".equals(func.getName().getValue()))
+                .findFirst().ifPresent(onErrorFunction -> {
+                    onErrorFunction.setOptional(true);
+                    onErrorFunction.setEditable(true);
+                });
+
+        return service;
     }
 
     @Override
