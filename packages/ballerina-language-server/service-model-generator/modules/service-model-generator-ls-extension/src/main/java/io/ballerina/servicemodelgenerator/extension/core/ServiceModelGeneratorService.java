@@ -23,9 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
@@ -122,8 +120,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAUL
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.processListenerNode;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.expectsTriggerByName;
@@ -522,38 +520,23 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
+
                 Project project = this.workspaceManager.loadProject(filePath);
                 Package currentPackage = project.currentPackage();
                 Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
-                ModuleId moduleId = module.moduleId();
-                SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage)
+                        .getSemanticModel(module.moduleId());
+
+                Optional<Document> documentOpt = this.workspaceManager.document(filePath);
+                if (documentOpt.isEmpty()) {
                     return new ListenerFromSourceResponse();
                 }
-                NonTerminalNode node = findNonTerminalNode(request.codedata(), document.get());
-                if (node instanceof ListenerDeclarationNode listenerNode) {
-                    Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(listenerNode,
-                            request.codedata().getOrgName(), semanticModel);
-                    if (listenerModelOp.isEmpty()) {
-                        return new ListenerFromSourceResponse();
-                    }
-                    Listener listenerModel = listenerModelOp.get();
-                    listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
-                    return new ListenerFromSourceResponse(listenerModel);
-                } else if (node instanceof ExplicitNewExpressionNode newExpressionNode) {
-                    Optional<Listener> listenerModelOp = ListenerUtil.getListenerFromSource(
-                            newExpressionNode, request.codedata().getOrgName(), semanticModel);
-                    if (listenerModelOp.isEmpty()) {
-                        return new ListenerFromSourceResponse();
-                    }
-                    Listener listenerModel = listenerModelOp.get();
-                    listenerModel.getProperties().remove(VARIABLE_NAME_KEY);
-                    listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
-                    return new ListenerFromSourceResponse(listenerModel);
-                }
 
-                return new ListenerFromSourceResponse();
+                Document document = documentOpt.get();
+                NonTerminalNode node = findNonTerminalNode(request.codedata(), document);
+                String orgName = request.codedata().getOrgName();
+
+                return processListenerNode(node, orgName, semanticModel);
             } catch (Exception e) {
                 return new ListenerFromSourceResponse(e);
             }
