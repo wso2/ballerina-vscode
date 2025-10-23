@@ -72,6 +72,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FLAG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_STRING;
@@ -250,6 +251,42 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 .editable(true)
                 .build());
 
+        topicProps.put("subscriberName", new Value.ValueBuilder()
+                .metadata("Subscriber Name", "The name to be used for the subscription.")
+                .value("")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        List<Object> consumerTypeOptions = List.of(
+                "Durable",
+                "Shared"
+        );
+
+        topicProps.put("durable", new Value.ValueBuilder()
+                .metadata("Durable Subscriber", "Persist subscription when disconnected.")
+                .value(false)
+                .valueType(VALUE_TYPE_FLAG)
+                .setValueTypeConstraint("BOOLEAN")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        topicProps.put("shared", new Value.ValueBuilder()
+                .metadata("Shared Consumer", "Allow multiple consumers to process messages.")
+                .value(false)
+                .valueType(VALUE_TYPE_FLAG)
+                .setValueTypeConstraint("BOOLEAN")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
         Value topicChoice = new Value.ValueBuilder()
                 .metadata(LABEL_TOPIC, DESC_TOPIC)
                 .value(BOOLEAN_TRUE)
@@ -339,6 +376,27 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             Value topicName = properties.get(PROPERTY_TOPIC_NAME);
             if (topicName != null && topicName.getValue() != null) {
                 configParams.add(TOPIC_NAME_PARAM + topicName.getValue());
+            }
+
+            Value subscriberName = properties.get("subscriberName");
+            if (subscriberName != null && subscriberName.getValue() != null) {
+                configParams.add("subscriberName" + COLON_SEPARATOR + subscriberName.getValue());
+            }
+
+            Value durableProp = properties.get("durable");
+            Value sharedProp = properties.get("shared");
+
+            boolean isDurable = durableProp != null && Boolean.parseBoolean(durableProp.getValue());
+            boolean isShared = sharedProp != null && Boolean.parseBoolean(sharedProp.getValue());
+
+            if (isDurable && isShared) {
+                configParams.add("consumerType" + COLON_SEPARATOR + "\"SHARED_DURABLE\"");
+            } else if (isDurable) {
+                configParams.add("consumerType" + COLON_SEPARATOR + "\"DURABLE\"");
+            } else if (isShared) {
+                configParams.add("consumerType" + COLON_SEPARATOR + "\"SHARED\"");
+            } else {
+                configParams.add("consumerType" + COLON_SEPARATOR + "\"DEFAULT\"");
             }
         }
 
