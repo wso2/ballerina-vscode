@@ -122,6 +122,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAUL
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.addServiceClassDocTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
@@ -547,6 +548,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                         return new ListenerFromSourceResponse();
                     }
                     Listener listenerModel = listenerModelOp.get();
+                    listenerModel.getProperties().remove(VARIABLE_NAME_KEY);
                     listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
                     return new ListenerFromSourceResponse(listenerModel);
                 }

@@ -23,22 +23,6 @@
       "listenerProtocol": "http",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
       "properties": {
-        "variableNameKey": {
-          "metadata": {
-            "label": "Name",
-            "description": "The name of the listener"
-          },
-          "codedata": {
-            "type": "LISTENER_VAR_NAME"
-          },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
-          "value": "",
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
         "port": {
           "metadata": {
             "label": "port",
