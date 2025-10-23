@@ -69,7 +69,7 @@ const CheckBoxGroup = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding-left:5px
+    padding-left: 5px;
 `;
 
 export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
