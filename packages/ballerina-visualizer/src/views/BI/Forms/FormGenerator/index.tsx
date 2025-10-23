@@ -940,8 +940,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         importsCodedataRef.current = null;
     };
 
-    const onSaveType = (type: Type) => {
-        handleValueTypeConstChange(type.name);
+    const onSaveType = (type: Type | string) => {
+        handleValueTypeConstChange(typeof type === 'string' ? type : (type as Type).name);
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();

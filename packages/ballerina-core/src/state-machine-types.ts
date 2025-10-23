@@ -138,7 +138,17 @@ export interface VisualizerLocation {
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    moduleName?: string;
+    version?: string;
     dataMapperMetadata?: DataMapperMetadata;
+    artifactInfo?: ArtifactInfo;
+}
+
+export interface ArtifactInfo {
+    org?: string;
+    packageName?: string;
+    moduleName?: string;
+    version?: string;
 }
 
 export interface ArtifactData {
