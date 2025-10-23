@@ -52,7 +52,12 @@ export function AutoCompleteEditor(props: AutoCompleteEditorProps) {
                 setValue(field.key, val);
                 field.onValueChange?.(val);
             }}
-            sx={{ marginRight: "-4px" }}
+            sx={{
+                marginRight: "-4px",
+                "& [id='dropdown-container']": {
+                    width: "292px",
+                }
+            }}
         />
     );
 }
