@@ -50,7 +50,7 @@ public class MemoryBuilder extends CallBuilder {
 
     private static final String MEMORY_NAME_LABEL = "Memory Name";
     private static final String MEMORY_NAME_LABEL_DOC = "Name of the memory instance";
-    private static final String MESSAGE_WINDOW_CHAT_MEMORY_OBJ = "MessageWindowChatMemory";
+    private static final String MESSAGE_WINDOW_CHAT_MEMORY_CLASS = "MessageWindowChatMemory";
 
     @Override
     public void setConcreteConstData() {
@@ -93,7 +93,7 @@ public class MemoryBuilder extends CallBuilder {
                     false);
         }
         setParameterProperties(functionData);
-        if (!codedata.object().equals(MESSAGE_WINDOW_CHAT_MEMORY_OBJ)) {
+        if (!codedata.object().equals(MESSAGE_WINDOW_CHAT_MEMORY_CLASS)) {
             properties().checkError(true, Property.CHECK_ERROR_DOC, false);
         }
     }
@@ -104,7 +104,7 @@ public class MemoryBuilder extends CallBuilder {
 
         // Conditionally add check keyword based on the property
         if (FlowNodeUtil.hasCheckKeyFlagSet(sourceBuilder.flowNode) &&
-                !sourceBuilder.flowNode.codedata().object().equals(MESSAGE_WINDOW_CHAT_MEMORY_OBJ)) {
+                !sourceBuilder.flowNode.codedata().object().equals(MESSAGE_WINDOW_CHAT_MEMORY_CLASS)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
