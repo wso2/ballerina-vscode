@@ -18,6 +18,7 @@
 
 import React from "react";
 import { FloatingToggleButton as StyledButton } from "../styles";
+import { ARIA_PRESSED_ATTRIBUTE } from '../constants';
 
 export type FloatingToggleButtonProps = {
     isActive: boolean;
@@ -37,7 +38,7 @@ export const FloatingToggleButton: React.FC<FloatingToggleButtonProps> = ({
             isActive={isActive}
             onClick={onClick}
             title={title}
-            aria-pressed={isActive}
+            {...{[ARIA_PRESSED_ATTRIBUTE]: isActive}}
         >
             {children}
         </StyledButton>

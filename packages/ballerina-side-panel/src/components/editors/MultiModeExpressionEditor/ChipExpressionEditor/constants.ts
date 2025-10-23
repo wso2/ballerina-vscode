@@ -17,3 +17,13 @@
  */
 
 export const CHIP_EXPRESSION_EDITOR_HEIGHT = 26;
+
+// Data attributes
+export const DATA_CHIP_ATTRIBUTE = 'data-chip';
+export const DATA_MENU_ATTRIBUTE = 'data-menu';
+export const DATA_ELEMENT_ID_ATTRIBUTE = 'data-element-id';
+export const ARIA_PRESSED_ATTRIBUTE = 'aria-pressed';
+
+// Attribute values
+export const CHIP_MENU_VALUE = 'chip-menu';
+export const CHIP_TRUE_VALUE = 'true';

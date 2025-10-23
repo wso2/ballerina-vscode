@@ -24,6 +24,7 @@ import { ContextMenuContainer, Completions, FloatingButtonContainer, ExpandedPop
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
 import { ExpandButton, GetHelperButton } from "./FloatingButtonIcons";
+import { DATA_CHIP_ATTRIBUTE, DATA_MENU_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
 
 export type AutoExpandingEditableDivProps = {
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
@@ -48,7 +49,17 @@ export type AutoExpandingEditableDivProps = {
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
-    const { children, onKeyUp, onKeyDown, onMouseDown, onMouseUp, onInput, fieldContainerRef, style, isExpanded, setIsExpanded } = props;
+    const { 
+        children, 
+        onKeyUp, 
+        onKeyDown, 
+        onMouseDown, 
+        onMouseUp, 
+        onInput, 
+        fieldContainerRef, 
+        style, 
+        isExpanded, 
+        setIsExpanded } = props;
 
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
 
@@ -68,7 +79,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 ref={menuRef}
                 top={props.menuPosition.top}
                 left={adjustedLeft}
-                data-menu="chip-menu"
+                data-menu={CHIP_MENU_VALUE}
                 onMouseDown={(e) => e.preventDefault()}
             >
                 <Completions>
@@ -101,32 +112,22 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         // Check if it's an editable span (contenteditable), a chip, or a floating toggle button
         const isEditableOrChip =
             activeElement?.hasAttribute('contenteditable') ||
-            activeElement?.getAttribute('data-chip') === 'true' ||
-            activeElement?.hasAttribute('data-element-id') ||
-            activeElement?.getAttribute('aria-pressed') !== null; // Floating toggle buttons
+            activeElement?.getAttribute(DATA_CHIP_ATTRIBUTE) === CHIP_TRUE_VALUE ||
+            activeElement?.hasAttribute(DATA_ELEMENT_ID_ATTRIBUTE) ||
+            activeElement?.getAttribute(ARIA_PRESSED_ATTRIBUTE) !== null; // Floating toggle buttons
 
         setIsAnyElementFocused(isWithinContainer && isEditableOrChip);
     }, [fieldContainerRef]);
 
     useEffect(() => {
-        const handleFocusIn = () => {
+        const handleFocusChange = () => {
             checkFocusState();
         };
-
-        const handleFocusOut = () => {
-            // Small delay to allow focus to move to buttons if needed
-            setTimeout(checkFocusState, 10);
-        };
-
-        document.addEventListener('focusin', handleFocusIn);
-        document.addEventListener('focusout', handleFocusOut);
-
-        // Initial check
+        document.addEventListener('focusin', handleFocusChange);
         checkFocusState();
 
         return () => {
-            document.removeEventListener('focusin', handleFocusIn);
-            document.removeEventListener('focusout', handleFocusOut);
+            document.removeEventListener('focusin', handleFocusChange);
         };
     }, [checkFocusState]);
 
@@ -167,11 +168,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                             height: '100%',
                             backgroundColor: ThemeColors.SURFACE_DIM_2
                         }}
-                        onKeyUp={onKeyUp}
                         onKeyDown={onKeyDown}
-                        onMouseDown={onMouseDown}
-                        onMouseUp={onMouseUp}
-                        onInput={onInput}
                     >
                         {children}
                         <FloatingButtonContainer>

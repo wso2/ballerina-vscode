@@ -22,11 +22,9 @@ import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { getAbsoluteCaretPosition, mapAbsoluteToModel, findNearestEditableIndex, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition } from "./utils";
+import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { ContextMenuContainer, Completions } from "./styles";
-import { CompletionsItem } from "./components/CompletionsItem";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -56,25 +54,38 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
+    const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
+        const response = await expressionEditorRpcManager?.getExpressionTokens(value);
+        return filterTokens(response || []);
+    }, [expressionEditorRpcManager]);
+
     useEffect(() => {
-        const fetchTokens = async () => {
-            expressionEditorRpcManager?.getExpressionTokens(props.value)
-                .then((response) => {
-                    const filteredTokens = filterTokens(response);
-                    setTokens(filteredTokens);
-                    if (!expressionModel) {
-                        const exprModel = createExpressionModelFromTokens(props.value, filteredTokens);
-                        setExpressionModel(exprModel);
-                    }
-                })
-        }
-        fetchTokens();
-    }, [props.value]);
+        const fetchInitialTokens = async () => {
+            const filteredTokens = await fetchUpdatedFilteredTokens(props.value);
+            setTokens(filteredTokens);
+
+            //fetch and recreate model on props.value change 
+            //only when expressionModel is not set
+            //which means this is the initial load of the expression editor
+            //never recreate the expression model on props.value 
+            //it will recreate the model on every keystroke
+            //since we are using onChange to update the props.value on keystrokes
+            if (!expressionModel) {
+                const exprModel = createExpressionModelFromTokens(props.value, filteredTokens);
+                setExpressionModel(exprModel);
+            }
+        };
+        fetchInitialTokens();
+    }, [props.value, fetchUpdatedFilteredTokens]);
 
     const handleExpressionChange = (updatedModel: ExpressionModel[]) => {
         const updatedValue = getTextValueFromExpressionModel(updatedModel);
         props.onChange(updatedValue, updatedValue.length);
+        
         setExpressionModel(updatedModel);
+
+        // Mark that user has typed since focus
+        // this reset to false each time user focus editable element
         setHasTypedSinceFocus(true);
     }
 
@@ -85,26 +96,14 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         // Map caretPosition into new model
         if (caretPosition !== undefined) {
             const mapped = mapAbsoluteToModel(exprModel, caretPosition);
-            if (mapped) {
-                const preferNext = true;
-                const editableIndex = findNearestEditableIndex(exprModel, mapped.index, preferNext);
-                if (editableIndex !== null) {
-                    const boundedOffset = Math.max(0, Math.min(exprModel[editableIndex].length, mapped.offset));
-                    exprModel = exprModel.map((m, i) => (
-                        i === editableIndex
-                            ? { ...m, isFocused: true, focusOffset: boundedOffset }
-                            : { ...m, isFocused: false }
-                    ));
-                }
-            }
+            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
         }
 
         setExpressionModel(exprModel);
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === '+') {
-            // Capture absolute caret before rebuilding
             const absolutePos = getAbsoluteCaretPosition(expressionModel);
 
             const textValue = getTextValueFromExpressionModel(expressionModel || []);
@@ -112,50 +111,27 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
             // Map absolute position into new model and set focus flags
             const mapped = mapAbsoluteToModel(exprModel, absolutePos);
-            if (mapped) {
-                const preferNext = true;
-                const editableIndex = findNearestEditableIndex(exprModel, mapped.index, preferNext);
-                if (editableIndex !== null) {
-                    const boundedOffset = Math.max(0, Math.min(exprModel[editableIndex].length, mapped.offset));
-                    exprModel = exprModel.map((m, i) => (
-                        i === editableIndex
-                            ? { ...m, isFocused: true, focusOffset: boundedOffset }
-                            : { ...m, isFocused: false }
-                    ));
-                }
-            }
-
+            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
             setExpressionModel(exprModel);
         }
     }
 
-    const handleCompletionSelect = (item: CompletionItem) => {
+    const handleCompletionSelect = async (item: CompletionItem) => {
         const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
-        const result = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value || item.label);
+        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value || item.label);
 
-        if (result) {
-            const { updatedModel, updatedValue } = result;
-            props.onChange(updatedValue, updatedValue.length);
-            const absolutePos = getAbsoluteCaretPosition(updatedModel) + (item.value || item.label).length;
+        if (updatedExpressionModelInfo) {
+            const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
 
             const textValue = getTextValueFromExpressionModel(updatedModel || []);
-            let exprModel = createExpressionModelFromTokens(textValue, tokens);
+            const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
+
+            let exprModel = createExpressionModelFromTokens(textValue, updatedTokens);
 
             // Map absolute position into new model and set focus flags
-            const mapped = mapAbsoluteToModel(exprModel, absolutePos);
-            if (mapped) {
-                const preferNext = true;
-                const editableIndex = findNearestEditableIndex(exprModel, mapped.index, preferNext);
-                if (editableIndex !== null) {
-                    const boundedOffset = Math.max(0, Math.min(exprModel[editableIndex].length, mapped.offset));
-                    exprModel = exprModel.map((m, i) => (
-                        i === editableIndex
-                            ? { ...m, isFocused: true, focusOffset: boundedOffset }
-                            : { ...m, isFocused: false }
-                    ));
-                }
-            }
-
+            const mapped = mapAbsoluteToModel(exprModel, newCursorPosition);
+            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
+            props.onChange(updatedValue, newCursorPosition);
             setExpressionModel(exprModel);
         }
 
@@ -175,6 +151,13 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             props.completions
         );
     }, [isCompletionsOpen, selectedCompletionItem, props.completions]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+        handleEditorKeyDown(e);
+        if (isCompletionsOpen) {
+            handleCompletionKeyDown(e);
+        }
+    }, [isCompletionsOpen, handleCompletionKeyDown]);
 
     useEffect(() => {
         if (props.completions.length === 0) {
@@ -203,10 +186,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             <AutoExpandingEditableDiv
                 fieldContainerRef={fieldContainerRef}
                 onFocusChange={(focused) => setIsAnyElementFocused(focused)}
-                onKeyDown={(e) => {
-                    handleKeyDown(e);
-                    handleCompletionKeyDown(e);
-                }}
+                onKeyDown={handleKeyDown}
                 isExpanded={isExpanded}
                 setIsExpanded={setIsExpanded}
                 isCompletionsOpen={isCompletionsOpen}

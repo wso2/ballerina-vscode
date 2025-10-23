@@ -18,6 +18,7 @@
 
 import React, { useRef } from "react";
 import { Chip } from "../styles";
+import { CHIP_TRUE_VALUE } from '../constants';
 
 export type ChipProps = {
     type: 'variable' | 'property' | 'parameter';
@@ -42,10 +43,10 @@ export const ChipComponent = (props: ChipProps) => {
     };
 
     if (type === 'variable') {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
     } else if (type === 'property') {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
     } else {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip="true">{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
     }
 }
