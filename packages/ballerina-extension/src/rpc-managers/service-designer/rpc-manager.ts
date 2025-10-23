@@ -423,7 +423,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectDir = path.join(StateMachine.context().projectPath);
                 const targetFile = path.join(projectDir, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
@@ -439,7 +439,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectDir = path.join(StateMachine.context().projectPath);
                 const targetFile = path.join(projectDir, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;

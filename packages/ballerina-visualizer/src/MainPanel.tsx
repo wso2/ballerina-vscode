@@ -564,7 +564,7 @@ const MainPanel = () => {
                             <ServiceFunctionForm
                                 position={value?.position}
                                 currentFilePath={value.documentUri}
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                             />
                         );
                         break;

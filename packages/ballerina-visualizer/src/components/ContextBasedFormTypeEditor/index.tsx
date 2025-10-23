@@ -24,6 +24,7 @@ import DynamicModal from '../Modal';
 import { FormTypeEditor } from '../../views/BI/TypeEditor';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ProgressRing } from '@wso2/ui-toolkit';
+import { URI, Utils } from 'vscode-uri';
 
 const BreadcrumbContainer = styled.div`
     display: flex;
@@ -209,8 +210,8 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
         setLoadingType(true);
         try {
             // Get the project path and construct the types.bal file path
-            const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
-            const filePath = `${projectUri}/types.bal`;
+            const projectPath = await rpcClient.getVisualizerLocation().then((res) => res.projectPath);
+            const filePath = Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath;
 
             // Fetch all types from the file
             const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({
