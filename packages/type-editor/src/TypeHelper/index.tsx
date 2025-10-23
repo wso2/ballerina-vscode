@@ -39,7 +39,7 @@ export type TypeHelperItem = {
     name: string;
     insertText: string;
     sortText?: string;
-    type: CompletionItemKind;
+    type?: CompletionItemKind;
     codedata?: CodeData;
     kind?: FunctionKind;
     labelDetails?: {
