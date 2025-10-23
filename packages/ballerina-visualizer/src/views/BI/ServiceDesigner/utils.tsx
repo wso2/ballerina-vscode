@@ -70,7 +70,7 @@ export function sanitizedHttpPath(value: string): string {
 }
 
 export function removeForwardSlashes(value: string): string {
-    return value.replace(/\\/g, '');
+    return value?.replace(/\\/g, '');
 }
 
 export function canDataBind(functionModel: FunctionModel): boolean {
