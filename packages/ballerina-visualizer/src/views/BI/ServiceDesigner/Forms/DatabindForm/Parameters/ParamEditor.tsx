@@ -30,10 +30,11 @@ export interface ParamProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
+    payloadFieldName?: string;
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, onChange, onSave, onCancel } = props;
+    const { param, onChange, onSave, onCancel, payloadFieldName = "Payload" } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -110,7 +111,7 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Payload Configuration</Typography>
+            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Schema Configuration</Typography>
             <Divider />
             {filePath && targetLineRange && (
                 <FormGeneratorNew

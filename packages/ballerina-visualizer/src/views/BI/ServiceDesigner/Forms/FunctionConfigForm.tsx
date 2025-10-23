@@ -26,13 +26,14 @@ import { EditorContentColumn } from "../styles";
 interface FunctionConfigFormProps {
     serviceModel: ServiceModel;
     onSubmit?: (model: FunctionModel) => void;
+    onSelect?: (model: FunctionModel) => void;
     onBack?: () => void;
     isSaving: boolean;
 }
 
 export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
-    const { serviceModel, onSubmit, onBack, isSaving } = props;
+    const { serviceModel, onSubmit, onSelect, onBack, isSaving } = props;
 
     const nonEnabledFunctions = serviceModel.functions.filter(func => !func.enabled);
     const [selectedFunctionName, setSelectedFunctionName] = useState<string | undefined>(
@@ -41,7 +42,16 @@ export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
     const handleOnSelect = (functionName: string) => {
         setSelectedFunctionName(functionName);
-        handleConfigSave();
+        const selectedFunction = serviceModel.functions.find(func => func.name.value === functionName);
+        if (selectedFunction) {
+            // If onSelect is provided, call it instead of onSubmit
+            if (onSelect) {
+                onSelect(selectedFunction);
+            } else {
+                // Fallback to old behavior if onSelect is not provided
+                handleConfigSave();
+            }
+        }
     };
 
     const handleConfigSave = () => {
