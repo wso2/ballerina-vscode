@@ -75,6 +75,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
@@ -92,6 +93,14 @@ public class ModelGenerator {
     private final Gson gson;
     private final Project project;
     private final WorkspaceManager workspaceManager;
+
+    private static final Comparator<FlowNode> FLOW_NODE_COMPARATOR = Comparator.comparing(
+            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                    .map(property -> property.value().toString())
+                    .orElse("")
+    );
+    private static final String NODE_KIND_FILTER = "kind";
+    private static final String EXACT_MATCH_FILTER = "exactMatch";
 
     public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
         this.semanticModel = model;
@@ -260,54 +269,44 @@ public class ModelGenerator {
      * @param queryMap the map containing query parameters (kind, exactMatch)
      * @return List of FlowNodes that match the search criteria
      */
-     public List<FlowNode> searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
-         List<FlowNode> variablesList = new ArrayList<>();
+    public List<FlowNode> searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
+        // Get symbols based on position
+        List<Symbol> symbols = position != null
+                ? semanticModel.visibleSymbols(document, position)
+                : semanticModel.moduleSymbols();
 
-         // 1. Get symbols based on position
-         List<Symbol> symbols = position != null
-                 ? semanticModel.visibleSymbols(document, position)
-                 : semanticModel.moduleSymbols();
+        // Extract filter parameters
+        String kindFilter = queryMap != null ? queryMap.get(NODE_KIND_FILTER) : null;
+        String exactMatchFilter = queryMap != null ? queryMap.get(EXACT_MATCH_FILTER) : null;
 
-         // 2. Extract filter parameters
-         String kindFilter = queryMap != null ? queryMap.get("kind") : null;
-         String exactMatchFilter = queryMap != null ? queryMap.get("exactMatch") : null;
+        // Apply symbol-level filters first (exactMatch)
+        Stream<Symbol> stream = symbols.stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
+                .sorted();
+        if (exactMatchFilter != null) {
+            stream = stream.filter(symbol -> symbol.nameEquals(exactMatchFilter));
+        }
+        List<Symbol> filteredSymbols = stream.toList();
 
-         // 3. Apply symbol-level filters first (exactMatch)
-         List<Symbol> filteredSymbols = symbols.stream()
-                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
-                 .filter(symbol -> exactMatchFilter == null || symbol.nameEquals(exactMatchFilter))
-                 .toList();
+        // Convert symbols to FlowNodes
+        List<FlowNode> flowNodesList = new ArrayList<>();
+        for (Symbol symbol : filteredSymbols) {
+            buildFlowNode(symbol).ifPresent(flowNodesList::add);
+        }
 
-         // 4. Convert symbols to FlowNodes (same as getModuleNodes)
-         for (Symbol symbol : filteredSymbols) {
-             buildFlowNode(symbol).ifPresent(variablesList::add);
-         }
-
-         // 5. Apply NodeKind filter if present (filter after conversion)
-         if (kindFilter != null && !kindFilter.isEmpty()) {
-             try {
-                 NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
-                 variablesList = variablesList.stream()
-                         .filter(node -> node.codedata().node() == requiredNodeKind)
-                         .collect(java.util.stream.Collectors.toList());
-             } catch (IllegalArgumentException e) {
-                 variablesList.clear();
-             }
-         }
-
-         // 6. Sort results (same as getModuleNodes)
-         Comparator<FlowNode> comparator = Comparator.comparing(
-                 node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                         .map(property -> property.value().toString())
-                         .orElse("")
-         );
-         variablesList.sort(comparator);
-
-         // 7. Return combined list of connections and variables
-         List<FlowNode> allNodes = new ArrayList<>();
-         allNodes.addAll(variablesList);
-         return allNodes;
-     }
+        // Apply NodeKind filter if present
+        if (kindFilter != null && !kindFilter.isEmpty()) {
+            try {
+                NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                flowNodesList = flowNodesList.stream()
+                        .filter(node -> node.codedata().node() == requiredNodeKind)
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                flowNodesList.clear();
+            }
+        }
+        return flowNodesList;
+    }
 
     /**
      * Builds a client from the given type symbol.
@@ -485,8 +484,7 @@ public class ModelGenerator {
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
                 workspaceManager);
         statementNode.accept(codeAnalyzer);
-        List<FlowNode> connections = codeAnalyzer.getFlowNodes();
-        return connections.stream().findFirst();
+        return codeAnalyzer.getFlowNodes().stream().findFirst();
     }
 
 
