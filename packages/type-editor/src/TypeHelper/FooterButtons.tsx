@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import React from "react";
 import { Icon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from '@emotion/styled';
 
