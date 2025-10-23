@@ -132,6 +132,7 @@ const ListenerBadge = styled.div`
 `;
 
 const PropertyInline = styled.div`
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -793,37 +794,40 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             {/* Service Metadata - Compact View */}
                             {(listeners.length > 0 || readonlyProperties.size > 0) && (
                                 <ServiceMetadataContainer>
-                                    {listeners.length > 0 && (
-                                        <MetadataRow>
-                                            <MetadataLabel>Listeners:</MetadataLabel>
-                                            {listeners.map((listener, index) => (
-                                                <ListenerBadge
-                                                    key={`${index}-listener`}
-                                                    onClick={() => handleOpenListener(listener)}
-                                                >
-                                                    <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
-                                                    {listener.includes(":") ? getReadableListenerName(listener) : listener}
-                                                </ListenerBadge>
-                                            ))}
-                                        </MetadataRow>
-                                    )}
-                                    {readonlyProperties.size > 0 && (
-                                        <MetadataRow>
-                                            {Array.from(readonlyProperties).map(prop => (
-                                                <PropertyInline key={prop.label}>
-                                                    <Icon
-                                                        name={findIcon(prop.label)}
-                                                        isCodicon
-                                                        sx={{ fontSize: 11, opacity: 0.7 }}
-                                                    />
-                                                    <PropertyKey>{prop.label}:</PropertyKey>
-                                                    <PropertyValue>
-                                                        {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
-                                                    </PropertyValue>
-                                                </PropertyInline>
-                                            ))}
-                                        </MetadataRow>
-                                    )}
+                                    <MetadataRow>
+                                        {listeners.length > 0 && (
+                                            <>
+                                                {listeners.map((listener, index) => (
+                                                    <PropertyInline key={`${index}-listener`} onClick={() => handleOpenListener(listener)}>
+                                                        <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
+                                                        <PropertyKey>Listener:</PropertyKey>
+                                                        <PropertyValue>
+                                                            {listener.includes(":") ? getReadableListenerName(listener) : listener}
+                                                        </PropertyValue>
+                                                    </PropertyInline>
+                                                ))}
+                                            </>
+                                        )}
+                                        {readonlyProperties.size > 0 && (
+                                            <>
+                                                {
+                                                    Array.from(readonlyProperties).map(prop => (
+                                                        <PropertyInline key={prop.label} onClick={handleServiceEdit}>
+                                                            <Icon
+                                                                name={findIcon(prop.label)}
+                                                                isCodicon
+                                                                sx={{ fontSize: 11, opacity: 0.7 }}
+                                                            />
+                                                            <PropertyKey>{prop.label}:</PropertyKey>
+                                                            <PropertyValue>
+                                                                {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
+                                                            </PropertyValue>
+                                                        </PropertyInline>
+                                                    ))
+                                                }
+                                            </>
+                                        )}
+                                    </MetadataRow>
 
                                     {/* {resources?.
                                         filter((func) => func.name === "init")
