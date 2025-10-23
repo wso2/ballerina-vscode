@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { generateText } from "ai";
+import { generateText, stepCountIs } from "ai";
 import { BACKEND_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../libs/libs";
@@ -75,13 +75,13 @@ interface DocChunk {
 const tools = {
     extract_learn_pages: tool({
         description: "Retrieves information about Ballerina language concepts, features, tools, and implementation details from the Ballerina Learn Pages. This includes guidance on syntax, usage, best practices, and examples for addressing various use cases.",
-        parameters: z.object({
+        inputSchema: z.object({
             query: z.string().describe("A question or query requiring information about Ballerina language concepts, features, tools, best practices, or practical use cases related to implementing solutions using the language.")
         })
     }),
     extract_central_api_docs: tool({
         description: "Retrieves technical details about Ballerina libraries, modules, clients, functions, type definitions, parameters, return types, and records.",
-        parameters: z.object({
+        inputSchema: z.object({
             query: z.string().describe("A question or query requiring information about Ballerina libraries, including clients, functions, constructors, type definitions, parameters, and return types")
         })
     })
@@ -173,7 +173,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
         
         // Build system message
         const systemMessage = buildLlmMessage(docChunks, documentationContext, centralContext);
-        
+
         // Get final response from Claude
         const finalResponse = await getFinalResponseFromClaude(systemMessage, question);
         
@@ -220,7 +220,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
 async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
     const { text, toolCalls } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         tools: tools,
         messages: [
             {
@@ -228,14 +228,14 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
                 content: question
             }
         ],
-        maxSteps: 1, // Limit to one step to get tool calls only
+        stopWhen: stepCountIs(1), // Limit to one step to get tool calls only
         abortSignal: AIPanelAbortController.getInstance().signal
     });
     
     if (toolCalls && toolCalls.length > 0) {
         return toolCalls.map(toolCall => ({
             name: toolCall.toolName,
-            input: toolCall.args
+            input: toolCall.input
         }));
     }
     
@@ -245,7 +245,7 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
 async function getFinalResponseFromClaude(systemMessage: string, question: string): Promise<string> {
     const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         system: systemMessage,
         messages: [
             {

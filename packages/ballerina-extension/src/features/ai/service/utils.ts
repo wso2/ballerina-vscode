@@ -27,23 +27,26 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFiles,
+    SourceFile,
     TestGeneratorIntermediaryState,
+    ToolCall,
+    ToolResult,
     Command,
     DocumentationGeneratorIntermediaryState
 } from "@wso2/ballerina-core";
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
 import { RPCLayer } from "../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { GenerationType } from "./libs/libs";
 import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
-export function populateHistory(chatHistory: ChatEntry[]): CoreMessage[] {
+export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
     if (!chatHistory || chatHistory.length === 0) {
         return [];
     }
 
-    const messages: CoreMessage[] = [];
+    const messages: ModelMessage[] = [];
     for (const history of chatHistory) {
         // Map actor to role, defaulting to "user" if not "assistant"
         const role: MessageRole = history.actor === "assistant" ? "assistant" : "user";
@@ -125,7 +128,7 @@ ${resourceContent}`;
     const readmeContent = readmeFiles[0];
 
     return `${prompt}
-Readme Contents: 
+Readme Contents:
 ${readmeContent}`;
 }
 
@@ -188,6 +191,31 @@ export function sendIntermidateStateNotification(intermediaryState: TestGenerato
     const msg: IntermidaryState = {
         type: "intermediary_state",
         state: intermediaryState,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolCallNotification(toolName: string): void {
+    const msg: ToolCall = {
+        type: "tool_call",
+        toolName: toolName,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolResultNotification(toolName: string, toolOutput: any): void {
+    const msg: ToolResult = {
+        type: "tool_result",
+        toolName: toolName,
+        toolOutput: toolOutput,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void {
+    const msg: ChatNotify = {
+        type: "generated_sources",
+        fileArray: fileArray,
     };
     sendAIPanelNotification(msg);
 }
