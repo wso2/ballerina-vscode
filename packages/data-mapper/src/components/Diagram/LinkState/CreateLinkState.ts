@@ -65,7 +65,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 							if (recordFieldElement) {
 								const fieldId = (recordFieldElement.id.split("-"))[1] + ".IN";
 								const portModel = (element as any).getPort(fieldId) as InputOutputPortModel;
-								if (portModel && !isQueryHeaderPort(portModel)) {
+								if (portModel) {
 									element = portModel;
 								}
 							}
