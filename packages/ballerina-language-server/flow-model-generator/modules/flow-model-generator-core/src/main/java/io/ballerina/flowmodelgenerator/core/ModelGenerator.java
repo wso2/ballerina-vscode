@@ -282,7 +282,7 @@ public class ModelGenerator {
         // Apply symbol-level filters first (exactMatch)
         Stream<Symbol> stream = symbols.stream()
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
-                .sorted();
+                .sorted(Comparator.comparing(symbol -> symbol.getName().orElse("")));
         if (exactMatchFilter != null) {
             stream = stream.filter(symbol -> symbol.nameEquals(exactMatchFilter));
         }
@@ -443,7 +443,7 @@ public class ModelGenerator {
             // Try connection path (TypeReferenceTypeSymbol cast)
             typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
             shouldProcess = isClassOrObject(typeDescriptorSymbol);
-        } catch (RuntimeException e) {
+        } catch (ClassCastException e) {
             // TypeReferenceTypeSymbol cast failed, this is fine
         }
 

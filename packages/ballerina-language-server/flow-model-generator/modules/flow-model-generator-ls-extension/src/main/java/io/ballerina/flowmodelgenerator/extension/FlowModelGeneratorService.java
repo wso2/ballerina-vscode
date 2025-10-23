@@ -631,31 +631,31 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
          });
      }
 
-     @JsonRequest
-      public CompletableFuture<SearchNodesResponse> searchNodes(SearchNodesRequest request) {
-          return CompletableFuture.supplyAsync(() -> {
-              SearchNodesResponse response = new SearchNodesResponse();
-              try {
-                  Path filePath = Path.of(request.filePath());
-                  WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+    @JsonRequest
+    public CompletableFuture<SearchNodesResponse> searchNodes(SearchNodesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            SearchNodesResponse response = new SearchNodesResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
-                  // Obtain the semantic model and the document
-                  Project project = workspaceManager.loadProject(filePath);
-                  SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
-                  Optional<Document> document = workspaceManager.document(filePath);
-                  if (document.isEmpty()) {
-                      return response;
-                  }
+                // Obtain the semantic model and the document
+                Project project = workspaceManager.loadProject(filePath);
+                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
 
-                  // Generate the flow nodes based on search criteria
-                  ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
-                  response.setOutput(modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
-              } catch (Throwable e) {
-                  response.setError(e);
-              }
-              return response;
-          });
-      }
+                // Generate the flow nodes based on search criteria
+                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
+                response.setOutput(modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
 
      @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> search(SearchRequest request) {
