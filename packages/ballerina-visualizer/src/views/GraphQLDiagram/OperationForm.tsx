@@ -60,7 +60,7 @@ export function OperationForm(props: OperationFormProps) {
 
     const getFunctionParametersList = (params: Parameter[]) => {
         const paramList: ParameterModel[] = [];
-        const paramFields = convertSchemaToFormFields(model.schema, isGraphqlView);
+        const paramFields = convertSchemaToFormFields(model.schema);
 
         params.forEach(param => {
             // Find matching field configurations from schema
@@ -179,7 +179,7 @@ export function OperationForm(props: OperationFormProps) {
                 value: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
                 paramManagerProps: {
                     paramValues: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
-                    formFields: convertSchemaToFormFields(model.schema, isGraphqlView),
+                    formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
                 valueTypeConstraint: ''
@@ -280,7 +280,7 @@ export function OperationForm(props: OperationFormProps) {
     );
 }
 
-export function convertSchemaToFormFields(schema: ConfigProperties, isGraphqlView?: boolean): FormField[] {
+export function convertSchemaToFormFields(schema: ConfigProperties): FormField[] {
     const formFields: FormField[] = [];
 
     // Get the parameter configuration if it exists
@@ -291,7 +291,7 @@ export function convertSchemaToFormFields(schema: ConfigProperties, isGraphqlVie
             if (parameterConfig.hasOwnProperty(key)) {
                 const parameter = parameterConfig[key];
                 if (parameter.metadata && parameter.metadata.label) {
-                    const formField = convertParameterToFormField(key, parameter as ParameterModel, isGraphqlView);
+                    const formField = convertParameterToFormField(key, parameter as ParameterModel);
                     formFields.push(formField);
                 }
             }
@@ -301,7 +301,7 @@ export function convertSchemaToFormFields(schema: ConfigProperties, isGraphqlVie
     return formFields;
 }
 
-export function convertParameterToFormField(key: string, param: ParameterModel, isGraphqlView?: boolean): FormField {
+export function convertParameterToFormField(key: string, param: ParameterModel): FormField {
 
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,

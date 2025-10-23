@@ -420,8 +420,6 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
             // Check if the type is a GraphQL scalar type to show/hide checkbox
             const isScalar = isGraphQLScalarType(typeValue);
             setShowGraphqlCheckbox(isScalar);
-
-            console.log("ActionTypeEditor - Type value:", typeValue, "Is scalar:", isScalar, "Show checkbox:", isScalar);
         } else {
             // If no value, hide the checkbox
             setShowGraphqlCheckbox(false);
@@ -430,16 +428,8 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
 
     // Initialize GraphQL ID state from field
     useEffect(() => {
-        console.log("ActionTypeEditor - Initializing with field:", {
-            key: field.key,
-            type: field.type,
-            value: field.value,
-            isGraphqlId: field.isGraphqlId
-        });
-
         if (field.isGraphqlId !== undefined) {
             setIsGraphqlId(field.isGraphqlId);
-            console.log("ActionTypeEditor - Setting isGraphqlId from field:", field.isGraphqlId);
         }
     }, [field.isGraphqlId]);
 
