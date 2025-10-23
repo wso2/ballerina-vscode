@@ -161,13 +161,15 @@ export function ResponseEditor(props: ParamProps) {
                     setNewFields([...updatedFields]);
                 }
             });
-            fields.push({
-                ...convertPropertyToFormField(res.mediaType),
-                type: "AUTOCOMPLETE",
-                items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
-                key: `mediaType`,
-                defaultValue: res.mediaType.value,
-            });
+            if (res.mediaType) {
+                fields.push({
+                    ...convertPropertyToFormField(res.mediaType),
+                    type: "AUTOCOMPLETE",
+                    items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
+                    key: `mediaType`,
+                    defaultValue: res.mediaType.value,
+                });
+            }
             fields.push({
                 ...convertPropertyToFormField(res.headers, defaultItems),
                 key: `headers`,

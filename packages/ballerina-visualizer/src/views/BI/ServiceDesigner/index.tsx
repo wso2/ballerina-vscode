@@ -91,7 +91,7 @@ const ActionGroup = styled.div`
 `;
 
 const ServiceMetadataContainer = styled.div`
-    padding: 12px 15px;
+    padding: 12px 25px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
     display: flex;
     flex-direction: column;
@@ -813,11 +813,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 {
                                                     Array.from(readonlyProperties).map(prop => (
                                                         <PropertyInline key={prop.label} onClick={handleServiceEdit}>
-                                                            <Icon
-                                                                name={findIcon(prop.label)}
-                                                                isCodicon
-                                                                sx={{ fontSize: 11, opacity: 0.7 }}
-                                                            />
                                                             <PropertyKey>{prop.label}:</PropertyKey>
                                                             <PropertyValue>
                                                                 {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
@@ -895,27 +890,28 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 )}
                                             </ActionGroup>
                                         </SectionHeader>
-                                        <FunctionsContainer>
-                                            {resources
-                                                .filter((resource) => {
-                                                    const search = searchValue.toLowerCase();
-                                                    const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
-                                                    const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
-                                                    return nameMatch || iconMatch;
-                                                })
-                                                .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
-                                                .map((resource, index) => (
-                                                    <ResourceAccordionV2
-                                                        key={`${index}-${resource.name}`}
-                                                        resource={resource}
-                                                        readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                                        onEditResource={handleFunctionEdit}
-                                                        onDeleteResource={handleFunctionDelete}
-                                                        onResourceImplement={handleOpenDiagram}
-                                                    />
-                                                ))}
-                                        </FunctionsContainer>
-
+                                        {resourcesCount > 0 && (
+                                            <FunctionsContainer>
+                                                {resources
+                                                    .filter((resource) => {
+                                                        const search = searchValue.toLowerCase();
+                                                        const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                                        const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                                        return nameMatch || iconMatch;
+                                                    })
+                                                    .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
+                                                    .map((resource, index) => (
+                                                        <ResourceAccordionV2
+                                                            key={`${index}-${resource.name}`}
+                                                            resource={resource}
+                                                            readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                            onEditResource={handleFunctionEdit}
+                                                            onDeleteResource={handleFunctionDelete}
+                                                            onResourceImplement={handleOpenDiagram}
+                                                        />
+                                                    ))}
+                                            </FunctionsContainer>
+                                        )}
                                         {resourcesCount === 0 && (
                                             <EmptyReadmeContainer>
                                                 <Description variant="body2">
@@ -1116,7 +1112,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             {/* This is for adding a http resource */}
                             {functionModel && isHttpService && functionModel.kind === "RESOURCE" && isNew && (
                                 <PanelContainer
-                                    title={"New Resource Configuration"}
+                                    title={"Select HTTP Method to Add"}
                                     show={showForm}
                                     onClose={handleNewFunctionClose}
                                     width={400}
