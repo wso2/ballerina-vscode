@@ -114,11 +114,14 @@ export const TextElement = (props: {
     const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
         if (!onExpressionChange) return;
 
+        if (!props.expressionModel) return;
+
+
         const host = spanRef.current;
         if (host) {
             pendingCaretOffsetRef.current = getCaretOffsetWithin(host);
         }
-        const newValue = e.currentTarget.textContent || '';
+        let newValue = e.currentTarget.textContent || '';
         const oldValue = lastValueRef.current;
 
         // Check if a trigger character (+, space, comma) was just typed by comparing character counts
@@ -130,12 +133,20 @@ export const TextElement = (props: {
         lastValueRef.current = newValue;
 
         const updatedExpressionModel = [...props.expressionModel];
+        if (props.index > 0) {
+            const previousModelElement = props.expressionModel[props.index - 1];
+            if (previousModelElement.isToken && !newValue.startsWith(" ")) {
+                newValue = " " + newValue;
+            }
+        }
+        const cursorDelta = newValue.length - props.element.length;
         updatedExpressionModel[props.index] = {
             ...props.element,
             value: newValue,
-            length: newValue.length
+            length: newValue.length,
+            isFocused: true,
+            focusOffset: props.element.focusOffset + cursorDelta
         };
-        const cursorDelta = newValue.length - props.element.length;
         onExpressionChange(updatedExpressionModel, cursorDelta);
 
         if (wasTriggerAdded && debouncedTriggerRebuild) {
@@ -148,7 +159,7 @@ export const TextElement = (props: {
 
     const handleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
         if (!onExpressionChange || !props.expressionModel) return;
-        const updatedModel = props.expressionModel.map((element, index)=>{
+        const updatedModel = props.expressionModel.map((element, index) => {
             if (index === props.index) {
                 return { ...element, isFocused: true, focusOffset: getCaretOffsetWithin(e.currentTarget) };
             } else {
