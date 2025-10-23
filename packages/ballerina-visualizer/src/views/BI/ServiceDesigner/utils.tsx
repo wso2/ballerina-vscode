@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ResponseCode } from '@wso2/ballerina-core';
+import { FunctionModel, ResponseCode, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 
 export enum HTTP_METHOD {
     "GET" = "GET",
@@ -43,23 +43,36 @@ export function getDefaultResponse(httpMethod: HTTP_METHOD): string {
     }
 }
 
-export function getTitleFromStatusCodeAndType(responseCodes: ResponseCode[], statusCode: string, type: string): string {
-    let responseCode: ResponseCode | undefined;
+export function getTitleFromStatusCodeAndType(responseCodes: VisibleTypesResponse, statusCode: string, type: string): string {
+    let responseCode: VisibleTypeItem | undefined;
 
     if (statusCode && type) {
         // If both statusCode and type are provided, find by both
-        responseCode = responseCodes.find(res => res.statusCode === statusCode && res.type === type);
+        responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode && res.detail === type);
         // If not found with both, fallback to statusCode only
         if (!responseCode) {
-            responseCode = responseCodes.find(res => res.statusCode === statusCode);
+            responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode);
         }
     } else if (statusCode) {
         // If only statusCode is provided, find by statusCode only
-        responseCode = responseCodes.find(res => res.statusCode === statusCode);
+        responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode);
     } else if (type) {
         // If only type is provided, find by type only
-        responseCode = responseCodes.find(res => res.type === type);
+        responseCode = responseCodes.find(res => res.detail === type);
     }
 
-    return responseCode ? `${responseCode.statusCode} - ${responseCode.label}` : "";
+    return responseCode ? `${responseCode.labelDetails.detail} - ${responseCode.label}` : "";
+}
+
+
+export function sanitizedHttpPath(value: string): string {
+    return removeForwardSlashes(value).replace(/-/g, '\\-').replace(/\./g, '\\.');
+}
+
+export function removeForwardSlashes(value: string): string {
+    return value?.replace(/\\/g, '');
+}
+
+export function canDataBind(functionModel: FunctionModel): boolean {
+    return functionModel.properties?.canDataBind?.value === "true";
 }
