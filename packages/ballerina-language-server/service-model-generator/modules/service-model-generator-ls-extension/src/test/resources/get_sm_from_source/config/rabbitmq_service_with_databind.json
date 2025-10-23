@@ -56,13 +56,13 @@
           "rabbitmqListener": {
             "codedata": {
               "lineRange": {
-                "fileName": "rabbitmq.bal",
+                "fileName": "main.bal",
                 "startLine": {
-                  "line": 4,
+                  "line": 16,
                   "offset": 23
                 },
                 "endLine": {
-                  "line": 4,
+                  "line": 16,
                   "offset": 39
                 }
               }

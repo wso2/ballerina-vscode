@@ -56,13 +56,13 @@
           "kafkaListener": {
             "codedata": {
               "lineRange": {
-                "fileName": "kafka.bal",
+                "fileName": "main.bal",
                 "startLine": {
-                  "line": 4,
+                  "line": 5,
                   "offset": 11
                 },
                 "endLine": {
-                  "line": 4,
+                  "line": 5,
                   "offset": 24
                 }
               }
