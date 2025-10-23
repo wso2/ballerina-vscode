@@ -23,7 +23,9 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
@@ -227,21 +229,24 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<CommonSourceResponse> addListener(ListenerSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                List<TextEdit> edits = new ArrayList<>();
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
+
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (document.isEmpty()) {
                     return new CommonSourceResponse();
                 }
+
                 ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
-                LineRange lineRange = modulePartNode.lineRange();
                 Listener listener = request.listener();
+
+                List<TextEdit> edits = new ArrayList<>();
+                LineRange lineRange = modulePartNode.lineRange();
                 if (!importExists(modulePartNode, listener.getOrgName(), listener.getModuleName())) {
                     String importText = getImportStmt(listener.getOrgName(), listener.getModuleName());
                     edits.add(new TextEdit(Utils.toRange(lineRange.startLine()), importText));
                 }
-                String listenerDeclaration = listener.getDeclaration();
+                String listenerDeclaration = listener.getListenerDeclaration();
                 edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), NEW_LINE + listenerDeclaration));
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
@@ -692,23 +697,24 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     public CompletableFuture<CommonSourceResponse> updateListener(ListenerModifierRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                List<TextEdit> edits = new ArrayList<>();
-                Listener listener = request.listener();
                 Path filePath = Path.of(request.filePath());
+                Listener listener = request.listener();
+
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (document.isEmpty()) {
                     return new CommonSourceResponse();
                 }
-                LineRange lineRange = listener.getCodedata().getLineRange();
+
                 NonTerminalNode node = findNonTerminalNode(listener.getCodedata(), document.get());
-                if (node.kind() != SyntaxKind.LISTENER_DECLARATION) {
+                if (!(node instanceof ListenerDeclarationNode) && !(node instanceof ExplicitNewExpressionNode)) {
                     return new CommonSourceResponse();
                 }
-                String listenerDeclaration = listener.getDeclaration();
+
+                LineRange lineRange = listener.getCodedata().getLineRange();
+                String listenerDeclaration = listener.getListenerDefinition();
                 TextEdit basePathEdit = new TextEdit(Utils.toRange(lineRange), listenerDeclaration);
-                edits.add(basePathEdit);
-                return new CommonSourceResponse(Map.of(request.filePath(), edits));
+                return new CommonSourceResponse(Map.of(request.filePath(), List.of(basePathEdit)));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
