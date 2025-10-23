@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useMemo } from 'react';
 
-import { Breadcrumbs, Codicon } from '@wso2/ui-toolkit';
+import { Breadcrumbs, Codicon, Icon } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 import { View } from "../Views/DataMapperView";
 import { extractLastPartFromLabel } from './utils';
@@ -27,7 +27,9 @@ const useStyles = () => {
     const baseStyle = {
         color: "inherit",
         fontFamily: "var(--vscode-editor-font-family)",
-        fontSize: "13px"
+        fontSize: "13px",
+        display: "flex",
+        gap: "4px"
     };
 
     return {
@@ -45,13 +47,46 @@ const useStyles = () => {
     };
 };
 
+interface LinkContentProps {
+    label: string;
+    isRootView?: boolean;
+    isSubMapping?: boolean;
+    isReusable?: boolean;
+}
+
+function LinkContent(props: LinkContentProps) {
+    const { label, isRootView, isSubMapping, isReusable } = props;
+    return (
+        isRootView ? (
+            <>
+            {isReusable ? (
+                <Icon name="function-icon" tooltip="Data Mapper Function" />
+            ) : (
+                <Codicon name="symbol-variable" tooltip="Variable" />
+            )}
+            {label}
+            </>
+        ) : (
+            <>
+                {isSubMapping ? (
+                    <Icon name="bi-dm-submapping" tooltip="SubMapping" />
+                ) : (
+                    <Icon name="bi-dm-query" tooltip="Query" />
+                )}
+                {label}
+            </>
+        )
+    );
+}
+
 export interface HeaderBreadcrumbProps {
     views: View[];
+    reusable?: boolean;
     switchView: (index: number) => void;
 }
 
 export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
-    const { views, switchView } = props;
+    const { views, reusable, switchView } = props;
     const classes = useStyles();
 
     const [activeLink, links] = useMemo(() => {
@@ -64,7 +99,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
 
             const selectedLink = (
                 <div className={classes.active}>
-                    {isRootView ? label : `${label}:${isFocusedOnSubMappingRoot ? "SubMapping" : "Query"}`}
+                    <LinkContent label={label} isRootView={isRootView} isSubMapping={isFocusedOnSubMappingRoot} isReusable={reusable} />
                 </div>
             );
 
@@ -80,7 +115,7 @@ export default function HeaderBreadcrumb(props: HeaderBreadcrumbProps) {
                             className={classes.link}
                             data-testid={`dm-header-breadcrumb-${index}`}
                         >
-                            {isRootView ? label : `${label}:${view.subMappingInfo ? "SubMapping" : "Query"}`}
+                            <LinkContent label={label} isRootView={isRootView} isSubMapping={!!view.subMappingInfo} isReusable={reusable} />
                         </a>
                     );
                 })

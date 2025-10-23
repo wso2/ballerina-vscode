@@ -58,6 +58,7 @@ export type ContextAwareExpressionEditorProps = {
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
+    onBlur?: () => void | Promise<void>;
     autoFocus?: boolean;
     recordTypeField?: RecordTypeField;
     helperPaneZIndex?: number;
@@ -295,9 +296,9 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
             fileName={fileName}
             targetLineRange={targetLineRange}
             helperPaneZIndex={props.helperPaneZIndex}
-            {...props}
             {...form}
             {...expressionEditor}
+            {...props}
         />
     );
 };
@@ -342,6 +343,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
+    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
+
+    // Update formDiagnostics when field.diagnostics changes
+    useEffect(() => {
+        setFormDiagnostics(field.diagnostics);
+    }, [field.diagnostics]);
 
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
@@ -394,9 +401,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
         if (newInputMode === InputMode.TEXT
             && typeof initialFieldValue.current === 'string'
-            && !(initialFieldValue.current.trim().startsWith("\"") 
-                    && initialFieldValue.current.trim().endsWith("\"")
-                )
+            && initialFieldValue.current.trim() !== ''
+            && !(initialFieldValue.current.trim().startsWith("\"")
+                && initialFieldValue.current.trim().endsWith("\"")
+            )
         ) {
             setInputMode(InputMode.EXP)
         }
@@ -567,17 +575,19 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         return;
                                     }
 
+                                    // clear field diagnostics
+                                    setFormDiagnostics([]); 
                                     const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                    
                                     onChange(rawValue);
-
-                                    // if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
-                                    //     getExpressionEditorDiagnostics(
-                                    //         (required ?? !field.optional) || rawValue !== '',
-                                    //         rawValue,
-                                    //         key,
-                                    //         getPropertyFromFormField(field)
-                                    //     );
-                                    // }
+                                    if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
+                                        getExpressionEditorDiagnostics(
+                                            (required ?? !field.optional) || rawValue !== '',
+                                            rawValue,
+                                            key,
+                                            getPropertyFromFormField(field)
+                                        );
+                                    }
 
                                     // Check if the current character is a trigger character
                                     const triggerCharacter =
@@ -619,7 +629,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 anchorRef={anchorRef}
                                 onToggleHelperPane={toggleHelperPaneState}
                             />
-                            {error && <ErrorBanner errorMsg={error.message.toString()} />}
+                            {error ?
+                                <ErrorBanner errorMsg={error.message.toString()} /> : 
+                                formDiagnostics && formDiagnostics.length > 0 && 
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                            }
                         </div>
                     )}
                 />

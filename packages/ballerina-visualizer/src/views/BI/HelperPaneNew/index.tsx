@@ -20,8 +20,9 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordSourceGenRequest, RecordSourceGenResponse, RecordTypeField, TypeField } from '@wso2/ballerina-core';
-import { COMPLETION_ITEM_KIND, CompletionItem, FormExpressionEditorRef, getIcon, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
+import { Inputs } from './Views/Inputs';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
@@ -33,8 +34,9 @@ import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './Utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
+import { HelperPaneIconType, getHelperPaneIcon } from './Utils/iconUtils';
 
-const MAX_MENU_ITEM_COUNT = 4;
+const MAX_MENU_ITEM_COUNT = 5;
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -93,13 +95,12 @@ const HelperPaneNewEl = ({
     handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
-    const paneRef = useRef<HTMLDivElement>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = valueTypeConstraint ? 4 : 3
+    const currentMenuItemCount = valueTypeConstraint ? 5 : 4
 
-    const { addModal, closeModal } = useModalStack()
+    const { addModal } = useModalStack()
 
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -211,19 +212,6 @@ const HelperPaneNewEl = ({
         return isItemSelected(currentCount, itemIndex) ? ThemeColors.SURFACE_DIM_2 : "transparent";
     }
 
-    const handleModalChange = async (updatedModel: TypeField[]) => {
-        const request: RecordSourceGenRequest = {
-            filePath: fileName,
-            type: updatedModel[0]
-        }
-        const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
-        console.log(">>> recordSourceResponse", recordSourceResponse);
-
-        if (recordSourceResponse.recordValue !== undefined) {
-            const content = recordSourceResponse.recordValue;
-            handleChange(content, true);
-        }
-    }
 
     // Scroll selected item into view when selection changes
     useEffect(() => {
@@ -319,7 +307,7 @@ const HelperPaneNewEl = ({
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={openRecordConfigView}>
                                             <ExpandableList.Item>
-                                                {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                     Create value
                                                 </Typography>
@@ -334,7 +322,7 @@ const HelperPaneNewEl = ({
                                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
                                                 >
                                                     <ExpandableList.Item>
-                                                        {getIcon(COMPLETION_ITEM_KIND.Value)}
+                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                             Create Value
                                                         </Typography>
@@ -343,25 +331,37 @@ const HelperPaneNewEl = ({
                                             )}</>
                                 )}
                                 <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[2] = el}
+                                    to="INPUTS"
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
+                                >
+                                    <ExpandableList.Item>
+                                        {getHelperPaneIcon(HelperPaneIconType.INPUT)}
+                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                            Inputs
+                                        </Typography>
+                                    </ExpandableList.Item>
+                                </SlidingPaneNavContainer>
+                                <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[1] = el}
                                     to="VARIABLES"
                                     sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
                                 >
                                     <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Variable)}
+                                        {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Variables
                                         </Typography>
                                     </ExpandableList.Item>
-                                </SlidingPaneNavContainer>
+                                </SlidingPaneNavContainer>                                
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[2] = el}
+                                    ref={el => menuItemRefs.current[3] = el}
                                     to="CONFIGURABLES"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
                                 >
                                     <ExpandableList.Item>
                                         <TitleContainer>
-                                            {getIcon(COMPLETION_ITEM_KIND.Constant)}
+                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
                                             <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                 Configurables
                                             </Typography>
@@ -369,12 +369,12 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[3] = el}
+                                    ref={el => menuItemRefs.current[4] = el}
                                     to="FUNCTIONS"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
+                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 4) }}
                                 >
                                     <ExpandableList.Item>
-                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Functions
                                         </Typography>
@@ -403,6 +403,38 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
                             onClose={onClose}
+                        />
+                    </SlidingPane>
+
+                    {/* Inputs Page */}
+                    <SlidingPane name="INPUTS" paneWidth={rect.width}>
+                        <SlidingPaneHeader>
+                            Inputs
+                        </SlidingPaneHeader>
+                        <Inputs
+                            anchorRef={anchorRef}
+                            fileName={fileName}
+                            onChange={handleChange}
+                            targetLineRange={targetLineRange}
+                            filteredCompletions={filteredCompletions}
+                            currentValue={currentValue}
+                            handleRetrieveCompletions={handleRetrieveCompletions}
+                        />
+                    </SlidingPane>
+
+                    {/* Inputs Page */}
+                    <SlidingPane name="INPUTS" paneWidth={300}>
+                        <SlidingPaneHeader>
+                            Inputs
+                        </SlidingPaneHeader>
+                        <Inputs
+                            anchorRef={anchorRef}
+                            fileName={fileName}
+                            onChange={handleChange}
+                            targetLineRange={targetLineRange}
+                            filteredCompletions={filteredCompletions}
+                            currentValue={currentValue}
+                            handleRetrieveCompletions={handleRetrieveCompletions}
                         />
                     </SlidingPane>
 

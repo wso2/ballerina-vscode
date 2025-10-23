@@ -116,7 +116,7 @@ export const fetchConnectionForNode = async (
     const targetPropertyValue = propertyKey ? targetNode.properties?.[propertyKey as keyof typeof targetNode.properties]?.value : undefined;
 
     const connection = connections.find((node: FlowNode) =>
-        node.properties.variable?.value === targetPropertyValue
+        node.properties.variable?.value === targetPropertyValue.toString().trim()
     );
 
     if (!connection)

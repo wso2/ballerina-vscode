@@ -45,9 +45,12 @@ import {
     BuildMode,
     ClassFieldModifierRequest,
     ComponentRequest,
+    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -83,7 +86,6 @@ import {
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
     ProjectComponentsResponse,
-    ProjectImports,
     ProjectRequest,
     ProjectStructureResponse,
     ReadmeContentRequest,
@@ -109,6 +111,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspacesResponse,
@@ -129,7 +133,6 @@ import {
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
-    getAllImports,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -185,12 +188,10 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse,
     verifyTypeDelete,
-    ConfigVariableRequest,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    getFormDiagnostics,
     getExpressionTokens,
     ExpressionTokensRequest,
 } from "@wso2/ballerina-core";
@@ -372,12 +373,12 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(getBreakpointInfo, HOST_EXTENSION);
     }
 
-    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
-        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
+    getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this._messenger.sendRequest(getFormDiagnostics, HOST_EXTENSION, params);
     }
 
-    getAllImports(): Promise<ProjectImports> {
-        return this._messenger.sendRequest(getAllImports, HOST_EXTENSION);
+    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
+        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
     }
 
     formDidOpen(params: FormDidOpenParams): Promise<void> {
