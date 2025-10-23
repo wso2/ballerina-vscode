@@ -30,7 +30,6 @@ import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.projects.BallerinaToml;
 import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
-import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -67,7 +66,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.IBM_MQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
@@ -80,6 +78,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_STRING;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.CALLER_PARAM_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.addCallerParameter;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
@@ -94,12 +95,14 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
  */
 public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
+    private static final String IBM_MQ = "IBM_MQ";
     private static final String PROPERTY_DESTINATION = "destination";
     private static final String PROPERTY_SESSION_ACK_MODE = "sessionAckMode";
     private static final String PROPERTY_QUEUE_NAME = "queueName";
     private static final String PROPERTY_TOPIC_NAME = "topicName";
     private static final String TYPE_IBM_MQ_SERVICE_CONFIG = "ibmmq:ServiceConfig";
     private static final String SERVICE_TYPE = "ibmmq:Service";
+    private static final String CALLER_TYPE = "ibmmq:Caller";
     private static final String LISTENER_TYPE = "Listener";
 
     // Display labels
@@ -163,13 +166,17 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
     // Function and parameter names
     private static final String ON_MESSAGE_FUNCTION_NAME = "onMessage";
-    private static final String CALLER_PARAM_NAME = "caller";
 
     // IBM MQ Platform dependency constants
     private static final String IBM_MQ_CLIENT_GROUP_ID = "com.ibm.mq";
     private static final String IBM_MQ_CLIENT_ARTIFACT_ID = "com.ibm.mq.allclient";
     private static final String IBM_MQ_CLIENT_VERSION = "9.4.1.0";
     private static final String PLATFORM_JAVA21_DEPENDENCY = "platform.java21.dependency";
+
+    // Listener configuration property keys
+    private static final String[] LISTENER_CONFIG_KEYS = {
+            KEY_LISTENER_VAR_NAME, "name", "host", "port", "channel"
+    };
 
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
@@ -185,27 +192,11 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 context.semanticModel(), context.project());
 
         if (!listeners.isEmpty()) {
-            // Remove listener configuration properties
-            Value listenerVarNameProperty = properties.remove(KEY_LISTENER_VAR_NAME);
-            Value name = properties.remove("name");
-            Value host = properties.remove("host");
-            Value port = properties.remove("port");
-            Value channel = properties.remove("channel");
-
-            // Build choice between existing and new listener
-            Value createNewListenerChoice =
-                    buildCreateNewListenerChoice(listenerVarNameProperty, name, host, port, channel);
-            Value useExistingListenerChoice = buildUseExistingListenerChoice(listeners);
-
-            Value choicesProperty = new Value.ValueBuilder()
-                    .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
-                    .value(true)
-                    .valueType(VALUE_TYPE_CHOICE)
-                    .enabled(true)
-                    .editable(true)
-                    .setAdvanced(true)
-                    .build();
-            choicesProperty.setChoices(List.of(useExistingListenerChoice, createNewListenerChoice));
+            Map<String, Value> listenerProps = new LinkedHashMap<>();
+            for (String key : LISTENER_CONFIG_KEYS) {
+                listenerProps.put(key, properties.remove(key));
+            }
+            Value choicesProperty = buildListenerChoice(listenerProps, listeners, IBM_MQ);
             properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
         }
 
@@ -332,51 +323,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         });
 
         return allEdits;
-    }
-
-    private Value buildCreateNewListenerChoice(Value listenerVarNameProperty, Value name, Value host,
-                                               Value port, Value channel) {
-        Map<String, Value> newListenerProps = new LinkedHashMap<>();
-        newListenerProps.put("name", name);
-        newListenerProps.put("host", host);
-        newListenerProps.put("port", port);
-        newListenerProps.put("channel", channel);
-        newListenerProps.put(KEY_LISTENER_VAR_NAME, listenerVarNameProperty);
-        return new Value.ValueBuilder()
-                .metadata("Create New Listener", "Create a new IBM MQ listener")
-                .value("true")
-                .valueType(VALUE_TYPE_FORM)
-                .enabled(false)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(newListenerProps)
-                .build();
-    }
-
-    private Value buildUseExistingListenerChoice(Set<String> listeners) {
-        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
-        List<String> items = listeners.stream().toList();
-        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
-        Value existingListenerOptions = new Value.ValueBuilder()
-                .metadata("Select Listener", "Select from the existing IBM MQ listeners")
-                .value(items.getFirst())
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setItems(itemsAsObject)
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .build();
-        existingListenerProps.put(KEY_EXISTING_LISTENER, existingListenerOptions);
-
-        return new Value.ValueBuilder()
-                .metadata("Use Existing Listener", "Use Existing Listener")
-                .value("true")
-                .valueType(VALUE_TYPE_FORM)
-                .enabled(false)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(existingListenerProps)
-                .build();
     }
 
     private Value buildDestinationChoice() {
@@ -595,36 +541,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         updateCallerParameterForAckMode(onMessageFunction, ackMode);
     }
 
-    private void addCallerParameter(Function onMessageFunction) {
-        // Create caller parameter: ibmmq:Caller caller
-        Value callerType = new Value.ValueBuilder()
-                .value("ibmmq:Caller")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .enabled(true)
-                .editable(false)
-                .build();
-
-        Value callerName = new Value.ValueBuilder()
-                .value(CALLER_PARAM_NAME)
-                .valueType(VALUE_TYPE_STRING)
-                .enabled(true)
-                .editable(false)
-                .build();
-
-        Parameter callerParameter = new Parameter.Builder()
-                .metadata(new MetaData("Caller", "IBM MQ caller object for message acknowledgment"))
-                .kind("OPTIONAL")
-                .type(callerType)
-                .name(callerName)
-                .enabled(true)
-                .editable(false)
-                .optional(true)
-                .build();
-
-        // Add caller parameter as the second parameter (after message parameter)
-        onMessageFunction.getParameters().add(1, callerParameter);
-    }
-
     private String extractAcknowledgmentMode(MappingConstructorExpressionNode mappingNode) {
         // Parse the mapping constructor to find the sessionAckMode field
         for (MappingFieldNode field : mappingNode.fields()) {
@@ -751,7 +667,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             return;
         }
 
-        // Find the caller parameter
         Parameter callerParam = onMessageFunction.getParameters().stream()
                 .filter(param -> CALLER_PARAM_NAME.equals(param.getName().getValue()))
                 .findFirst()
@@ -760,17 +675,14 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         AcknowledgmentMode mode = AcknowledgmentMode.fromString(ackMode);
 
         if (mode == AcknowledgmentMode.AUTO_ACKNOWLEDGE) {
-            // If AUTO_ACKNOWLEDGE, disable the caller parameter if it exists
             if (callerParam != null) {
                 callerParam.setEnabled(false);
             }
         } else {
-            // For other modes (CLIENT_ACKNOWLEDGE, DUPS_OK_ACKNOWLEDGE, SESSION_TRANSACTED),
-            // enable the caller parameter if it exists, or create it if it doesn't
             if (callerParam != null) {
                 callerParam.setEnabled(true);
             } else {
-                addCallerParameter(onMessageFunction);
+                addCallerParameter(onMessageFunction, CALLER_TYPE, IBM_MQ);
             }
         }
     }
@@ -862,9 +774,7 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         return Map.of();
     }
 
-    private record DependencyCheckResult(boolean exists, boolean correctVersion, TomlKeyValueNode versionNode) {
-
-    }
+    private record DependencyCheckResult(boolean exists, boolean correctVersion, TomlKeyValueNode versionNode) { }
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
