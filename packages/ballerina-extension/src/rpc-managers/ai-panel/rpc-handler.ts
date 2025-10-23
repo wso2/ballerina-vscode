@@ -71,6 +71,7 @@ import {
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
+    isUserAuthenticated,
     markAlertShown,
     MetadataWithAttachments,
     openChatWindowWithCommand,
@@ -116,10 +117,10 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
-    messenger.onRequest(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());
-    messenger.onRequest(generateContextTypes, (args: ProcessContextTypeCreationRequest) => rpcManger.generateContextTypes(args));
-    messenger.onRequest(generateMappingCode, (args: ProcessMappingParametersRequest) => rpcManger.generateMappingCode(args));
-    messenger.onRequest(generateInlineMappingCode, (args: MetadataWithAttachments) => rpcManger.generateInlineMappingCode(args));
+    messenger.onNotification(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());
+    messenger.onNotification(generateContextTypes, (args: ProcessContextTypeCreationRequest) => rpcManger.generateContextTypes(args));
+    messenger.onNotification(generateMappingCode, (args: ProcessMappingParametersRequest) => rpcManger.generateMappingCode(args));
+    messenger.onNotification(generateInlineMappingCode, (args: MetadataWithAttachments) => rpcManger.generateInlineMappingCode(args));
     messenger.onRequest(getGeneratedTests, (args: TestGenerationRequest) => rpcManger.getGeneratedTests(args));
     messenger.onRequest(getTestDiagnostics, (args: TestGenerationResponse) => rpcManger.getTestDiagnostics(args));
     messenger.onRequest(getServiceSourceForName, (args: string) => rpcManger.getServiceSourceForName(args));
@@ -155,4 +156,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
     messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
+    messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
 }
