@@ -924,6 +924,22 @@ export type BISearchResponse = {
     categories: Category[];
 }
 
+export type BISearchNodesRequest = {
+    filePath: string;
+    position?: LinePosition;
+    queryMap?: SearchNodesQueryParams;
+}
+
+export type BISearchNodesResponse = {
+    output: FlowNode[];
+    error: string;
+}
+
+export type SearchNodesQueryParams = {
+    kind?: SearchKind;
+    exactMatch?: string;
+}
+
 export type BIGetEnclosedFunctionRequest = {
     filePath: string;
     position: LinePosition;

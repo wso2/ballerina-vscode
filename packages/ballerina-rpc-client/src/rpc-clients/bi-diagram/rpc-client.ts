@@ -38,6 +38,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -180,6 +182,7 @@ import {
     renameIdentifier,
     runProject,
     search,
+    searchNodes,
     updateClassField,
     updateConfigVariables,
     updateConfigVariablesV2,
@@ -469,6 +472,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     search(params: BISearchRequest): Promise<BISearchResponse> {
         return this._messenger.sendRequest(search, HOST_EXTENSION, params);
+    }
+
+    searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return this._messenger.sendRequest(searchNodes, HOST_EXTENSION, params);
     }
 
     getRecordNames(): Promise<RecordsInWorkspaceMentions> {
