@@ -124,6 +124,22 @@ export function DatabindForm(props: DatabindFormProps) {
         setFunctionModel(model);
     }, [model]);
 
+    // TODO: Should come from BE
+    const parameterDescriptionMap: Record<string, string> = {
+        "rabbitmq-caller": "Enable this to manually acknowledge or reject received messages in your RabbitMQ service.",
+        "kafka-caller": "Enable this to access the Kafka caller in your service for manual offset management and partition operations.",
+    };
+
+    /**
+     * Gets the description of a parameter by its name and module
+     * @param parameterName - The name of the parameter to find
+     * @returns The parameter description or empty string if not found
+     */
+    const getParameterDescription = (parameterName: string): string => {
+        const moduleName = functionModel?.codedata?.moduleName || "";
+        const key = `${moduleName}-${parameterName}`.toLowerCase();
+        return parameterDescriptionMap[key] || "";
+    };
 
     const handleParamChange = (params: ParameterModel[]) => {
         const updatedFunctionModel = {
@@ -490,7 +506,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                                     });
                                                     handleParamChange(updatedParameters);
                                                 }}
-                                                sx={{ description: param.metadata.description, marginTop: 0 }}
+                                                sx={{ description: getParameterDescription(param.name.value), marginTop: 0 }}
                                             />
                                         ))}
                                     </CheckBoxGroup>
