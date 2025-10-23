@@ -257,7 +257,7 @@ public class CodeAnalyzer extends NodeVisitor {
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
         }
 
-        if (isAgentMethodCall(methodCallExpressionNode.expression())) {
+        if (isAiMethodCall(methodCallExpressionNode.expression())) {
             handleConnectionExpr(methodCallExpressionNode.expression());
         }
 
@@ -569,7 +569,7 @@ public class CodeAnalyzer extends NodeVisitor {
         return keyValues;
     }
 
-    private boolean isAgentMethodCall(ExpressionNode expressionNode) {
+    private boolean isAiMethodCall(ExpressionNode expressionNode) {
 
         if (expressionNode instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
             // Check if agent is defined at service scope
@@ -580,7 +580,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (fieldSymbol.isPresent() && fieldSymbol.get() instanceof ClassFieldSymbol classFieldSymbol) {
                     TypeSymbol rawType = CommonUtils.getRawType(classFieldSymbol.typeDescriptor());
                     if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
-                        return CommonUtils.isAgentClass(objectTypeSymbol);
+                        return CommonUtils.isAgentClass(objectTypeSymbol) ||
+                                CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
                     }
                 }
             }
@@ -590,7 +591,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
             if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
-                return CommonUtils.isAgentClass(objectTypeSymbol);
+                return CommonUtils.isAgentClass(objectTypeSymbol) ||
+                        CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
             }
         }
 
