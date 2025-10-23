@@ -23,6 +23,7 @@ import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
+import { ContentBody } from "./ContextTypeEditor";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -442,48 +443,48 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     return (
         <>
-            <InfoBanner>
-                <Codicon name="info" />
-                <InfoText variant="body3">
-                    Supports JSON and XML formats — just paste a Sample or Upload a file
-                </InfoText>
-            </InfoBanner>
-            <HeaderRow>
-                <Title variant="h4" sx={{ margin: '0px' }}>Sample data</Title>
-                <UploadButtonWrapper>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        accept=".json,.xml"
-                        style={{ display: 'none' }}
-                    />
-                    <LinkButton
-                        onClick={handleUploadClick}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            backgroundColor: 'transparent',
-                            border: '1px solid var(--vscode-textLink-foreground)',
-                            color: 'var(--vscode-textLink-foreground)',
-                            padding: '6px 12px',
-                            fontSize: '13px'
-                        }}
-                    >
-                        <Icon
-                            name="bi-import"
-                            iconSx={{ fontSize: "15px" }}
-                            sx={{ marginRight: "5px" }}
+            <ContentBody>
+                <InfoBanner>
+                    <Codicon name="info" />
+                    <InfoText variant="body3">
+                        Supports JSON and XML formats — just paste a Sample or Upload a file
+                    </InfoText>
+                </InfoBanner>
+                <HeaderRow>
+                    <Title variant="h4" sx={{ margin: '0px' }}>Sample data</Title>
+                    <UploadButtonWrapper>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            accept=".json,.xml"
+                            style={{ display: 'none' }}
                         />
-                        <Typography variant="body3">
-                            Upload File
-                        </Typography>
-                    </LinkButton>
-                </UploadButtonWrapper>
-            </HeaderRow>
+                        <LinkButton
+                            onClick={handleUploadClick}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                backgroundColor: 'transparent',
+                                border: '1px solid var(--vscode-textLink-foreground)',
+                                color: 'var(--vscode-textLink-foreground)',
+                                padding: '6px 12px',
+                                fontSize: '13px'
+                            }}
+                        >
+                            <Icon
+                                name="bi-import"
+                                iconSx={{ fontSize: "15px" }}
+                                sx={{ marginRight: "5px" }}
+                            />
+                            <Typography variant="body3">
+                                Upload File
+                            </Typography>
+                        </LinkButton>
+                    </UploadButtonWrapper>
+                </HeaderRow>
 
-            <ScrollableSection>
 
                 <div style={{ position: 'relative' }}>
                     <TextArea
@@ -541,31 +542,31 @@ export function GenericImportTab(props: GenericImportTabProps) {
                         </div>
                     )}
                 </div>
-            </ScrollableSection>
 
-            {detectedFormat === DetectedFormat.JSON && (
-                <CategoryRow showBorder={false}>
-                    <TextFieldWrapper>
-                        <TextField
-                            label="Type Name"
-                            value={importTypeName}
-                            errorMsg={nameError}
-                            onBlur={handleOnBlur}
-                            onChange={(e) => handleNameChange(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleNameChange((e.target as HTMLInputElement).value);
-                                }
-                            }}
-                            onFocus={(e) => {
-                                e.target.select();
-                                validateTypeName(e.target.value);
-                            }}
-                            ref={nameInputRef}
-                        />
-                    </TextFieldWrapper>
-                </CategoryRow>
-            )}
+                {detectedFormat === DetectedFormat.JSON && (
+                    <CategoryRow showBorder={false}>
+                        <TextFieldWrapper>
+                            <TextField
+                                label="Type Name"
+                                value={importTypeName}
+                                errorMsg={nameError}
+                                onBlur={handleOnBlur}
+                                onChange={(e) => handleNameChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleNameChange((e.target as HTMLInputElement).value);
+                                    }
+                                }}
+                                onFocus={(e) => {
+                                    e.target.select();
+                                    validateTypeName(e.target.value);
+                                }}
+                                ref={nameInputRef}
+                            />
+                        </TextFieldWrapper>
+                    </CategoryRow>
+                )}
+            </ContentBody>
             <Footer>
                 <Button onClick={handleImport} disabled={isImportDisabled()}>
                     {isSaving ? <Typography variant="progress">Importing...</Typography> : "Import Type"}
