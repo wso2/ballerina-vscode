@@ -142,13 +142,10 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             <ActionTypeEditor
                 field={field}
                 openRecordEditor={openRecordEditor}
-                openFormTypeEditor={openFormTypeEditor}
-                isContextTypeEditorSupported={isContextTypeEditorSupported}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
-
             />
         );
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
@@ -156,6 +153,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             <TypeEditor
                 field={field}
                 openRecordEditor={openRecordEditor}
+                openFormTypeEditor={openFormTypeEditor}
+                isContextTypeEditorSupported={isContextTypeEditorSupported}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 onBlur={onBlur}
