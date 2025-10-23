@@ -201,6 +201,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     // State to manage which accordion is expanded
     const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
 
+    const [listenerType, setListenerType] = useState<"SINGLE" | "MULTIPLE">("MULTIPLE");
+    const [haveServiceConfigs, setHaveServiceConfigs] = useState<boolean>(true);
+
     useEffect(() => {
         fetchService(props.position);
     }, [props.position]);
@@ -240,11 +243,35 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     setServiceModel(res.service);
                     // Set the service listeners
                     setServiceListeners(res.service);
+                    // Find the listener type
+                    findListenerType(res.service);
                 });
         } catch (error) {
             console.log("Error fetching service model: ", error);
         }
     };
+
+    const findListenerType = (service: ServiceModel) => {
+        let listenerType = "MULTIPLE";
+        for (const key in service.properties) {
+            const expression = service.properties[key];
+            if (expression.valueType === "MULTIPLE_SELECT_LISTENER") {
+                listenerType = "MULTIPLE";
+                break;
+            }
+            if (expression.valueType === "SINGLE_SELECT_LISTENER") {
+                listenerType = "SINGLE";
+                // Check if the number of properties where enabled === true is equal to 1 and assuming the listener property is the only property that is enabled
+                const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
+                if (enabledCount === 1) {
+                    setHaveServiceConfigs(false);
+                }
+                break;
+            }
+        }
+        console.log("Listener type: ", listenerType);
+        setListenerType(listenerType as "SINGLE" | "MULTIPLE");
+    }
 
     const setServiceListeners = (service: ServiceModel) => {
         rpcClient
@@ -455,7 +482,52 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                         )}
                                                         {serviceModel && (
                                                             <div ref={serviceRef}>
-                                                                <ServiceEditView filePath={props.filePath} position={props.position} />
+
+                                                                {haveServiceConfigs && (
+                                                                    <ServiceEditView filePath={props.filePath} position={props.position} />
+                                                                )}
+                                                                {!haveServiceConfigs && (
+                                                                    // Set a message to the user that the service doesn't have any configurations
+                                                                    <div style={{
+                                                                        width: '570px',
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        margin: '30px 0'
+                                                                    }}>
+                                                                        <Codicon
+                                                                            name="info"
+                                                                            sx={{
+                                                                                fontSize: "36px",
+                                                                                color: "var(--vscode-infoForeground)",
+                                                                                marginBottom: "12px"
+                                                                            }}
+                                                                        />
+                                                                        <Typography
+                                                                            variant="h4"
+                                                                            sx={{
+                                                                                marginBottom: '6px',
+                                                                                color: "var(--vscode-infoForeground)",
+                                                                                fontWeight: 500,
+                                                                                textAlign: 'center'
+                                                                            }}
+                                                                        >
+                                                                            No Configurations Found
+                                                                        </Typography>
+                                                                        <Typography
+                                                                            variant="body2"
+                                                                            sx={{
+                                                                                color: "var(--vscode-descriptionForeground)",
+                                                                                textAlign: "center",
+                                                                                maxWidth: 380
+                                                                            }}
+                                                                        >
+                                                                            This service does not have any additional configurations to customize.
+                                                                        </Typography>
+                                                                    </div>
+
+                                                                )}
                                                                 <Divider />
                                                                 <Typography variant="h3" sx={{ marginLeft: '18px' }}>Attached Listeners</Typography>
                                                                 {listeners.map((listener) => (
@@ -470,10 +542,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                             isExpanded={expandedAccordion === listener.id}
                                                                         >
                                                                             <div>
-                                                                                {/* Add detach button to the listener configuration */}
-                                                                                <Button appearance="secondary" sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
-                                                                                    handleOnDetachListener(listener.name);
-                                                                                }}> <Codicon name="trash" sx={{ marginRight: '5px' }} /> Detach listener</Button>
+                                                                                {/* Add detach button to the listener configuration only if there are more than one listener attached */}
+                                                                                {listeners.length > 1 && (
+                                                                                    <Button appearance="secondary" sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
+                                                                                        handleOnDetachListener(listener.name);
+                                                                                    }}> <Codicon name="trash" sx={{ marginRight: '5px' }} /> Detach listener</Button>
+                                                                                )}
                                                                                 <ServiceConfigureListenerEditView
                                                                                     filePath={listener.path}
                                                                                     position={listener.position}
@@ -482,10 +556,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         </Accordion>
                                                                     </AccordionContainer>
                                                                 ))}
-                                                                {/* Add a button to attach a new listener and when clicked, open a new modal to select a listener */}
-                                                                <LinkButton sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
-                                                                    setShowAttachListenerModal(true);
-                                                                }}> <Codicon name="add" /> Attach Listener</LinkButton>
+                                                                {/* Add a button to attach a new listener and when clicked, open a new modal to select a listener if multiple listener are allowed */}
+                                                                {listenerType === "MULTIPLE" && (
+                                                                    <LinkButton sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
+                                                                        setShowAttachListenerModal(true);
+                                                                    }}> <Codicon name="add" /> Attach Listener</LinkButton>
+                                                                )}
 
                                                                 <DynamicModal
                                                                     key="attach-listener-modal"

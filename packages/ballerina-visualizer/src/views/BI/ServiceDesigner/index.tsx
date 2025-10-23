@@ -350,11 +350,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         //     value: ADD_REUSABLE_FUNCTION
         // });
 
-        options.push({
-            title: "Export OpenAPI Spec",
-            description: "Export the OpenAPI spec for the service",
-            value: EXPORT_OAS
-        });
+        if (service.moduleName === "http") {
+            options.push({
+                title: "Export OpenAPI Spec",
+                description: "Export the OpenAPI spec for the service",
+                value: EXPORT_OAS
+            });
+        }
 
         setDropdownOptions(options);
     }
