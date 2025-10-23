@@ -188,7 +188,7 @@ export const calculateCompletionsMenuPosition = (
             left = Math.max(0, left);
 
             setMenuPosition({
-                top: rect.bottom - containerRect.top + 4,
+                top: rect.bottom - containerRect.top + 20,
                 left: left
             });
         } else {
@@ -196,10 +196,12 @@ export const calculateCompletionsMenuPosition = (
             const containerRect = fieldContainerRef.current.getBoundingClientRect();
             const menuWidth = 300;
             setMenuPosition({
-                top: containerRect.height + 4,
+                top: containerRect.top + containerRect.height,
                 left: Math.max(0, containerRect.width - menuWidth)
             });
         }
+    } else {
+        setMenuPosition(prev => ({ ...prev, top: 500 }));
     }
 };
 
@@ -560,6 +562,40 @@ export const updateExpressionModelWithCompletion = (
     return { updatedModel, updatedValue, newCursorPosition };
 };
 
+export const updateExpressionModelWithHelperValue = (
+    expressionModel: ExpressionModel[] | undefined,
+    absoluteCaretPosition: number,
+    helperValue: string
+): { updatedModel: ExpressionModel[]; updatedValue: string; newCursorPosition: number } | null => {
+    if (!expressionModel) return null;
+
+    const mapped = mapAbsoluteToModel(expressionModel, absoluteCaretPosition);
+
+    if (!mapped) return null;
+
+    const { index, offset } = mapped;
+    const elementAboutToModify = expressionModel[index];
+
+    console.log("mapped", elementAboutToModify);
+
+    if (!elementAboutToModify || typeof elementAboutToModify.value !== 'string') return null;
+
+    const updatedText = helperValue;
+
+    // Calculate new cursor position: sum of lengths before this element + position after completion
+    let sumOfCharsBefore = 0;
+    for (let i = 0; i < index; i++) {
+        sumOfCharsBefore += expressionModel[i].length;
+    }
+
+    const updatedModel = expressionModel.map((el, i) =>
+        i === index ? { ...el, value: updatedText, length: updatedText.length } : el
+    );
+
+    const updatedValue = getTextValueFromExpressionModel(updatedModel);
+    return { updatedModel, updatedValue, newCursorPosition: 0 };
+};
+
 export const handleCompletionNavigation = (
     e: React.KeyboardEvent,
     completionsLength: number,
@@ -739,14 +775,14 @@ export const setCaretPosition = (el: HTMLElement, position: number) => {
     if (!el.firstChild) {
         el.appendChild(document.createTextNode(""));
     }
-    
+
     // Walk through all text nodes to find the right position
     let remaining = Math.max(0, position);
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
     let textNode: Text | null = null;
     let posInNode = 0;
     let node = walker.nextNode() as Text | null;
-    
+
     while (node) {
         const len = node.textContent ? node.textContent.length : 0;
         if (remaining <= len) {
@@ -757,7 +793,7 @@ export const setCaretPosition = (el: HTMLElement, position: number) => {
         remaining -= len;
         node = walker.nextNode() as Text | null;
     }
-    
+
     if (!textNode) {
         // Fallback to last text node if position is beyond content
         const last = el.lastChild;
@@ -769,7 +805,7 @@ export const setCaretPosition = (el: HTMLElement, position: number) => {
             posInNode = 0;
         }
     }
-    
+
     const range = document.createRange();
     range.setStart(textNode, Math.max(0, Math.min(posInNode, (textNode.textContent || "").length)));
     range.collapse(true);
@@ -808,7 +844,7 @@ export const handleKeyDownInTextElement = (
         if (prevElement) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (prevElement.element.isToken) {
                 // Delete the entire chip from expression model
                 const updatedExpressionModel = expressionModel.filter((_, idx) => idx !== prevElement.index);
@@ -857,7 +893,7 @@ export const handleKeyDownInTextElement = (
         if (nextElement) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (nextElement.element.isToken) {
                 // Delete the entire chip from expression model
                 const updatedExpressionModel = expressionModel.filter((_, idx) => idx !== nextElement.index);

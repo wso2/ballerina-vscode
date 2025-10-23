@@ -25,10 +25,11 @@ export type ChipProps = {
     text: string;
     onClick?: (element: HTMLElement) => void;
     onBlur?: () => void;
+    dataElementId?: string; // Add dataElementId prop
 }
 
 export const ChipComponent = (props: ChipProps) => {
-    const { type, text, onClick, onBlur } = props;
+    const { type, text, onClick, onBlur, dataElementId } = props; // Destructure dataElementId
     const chipRef = useRef<HTMLDivElement>(null);
 
     const handleClick = (e: React.MouseEvent) => {
@@ -43,10 +44,10 @@ export const ChipComponent = (props: ChipProps) => {
     };
 
     if (type === 'variable') {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
     } else if (type === 'property') {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
     } else {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE}>{text}</Chip>;
+        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
     }
 }
