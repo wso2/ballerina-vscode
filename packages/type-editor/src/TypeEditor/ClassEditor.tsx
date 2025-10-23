@@ -398,7 +398,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
 
                             {isGraphql && isGraphQLScalarType(func.returnType) &&
                                 <CheckBox
-                                    label="Is GraphQL ID (Return Type)"
+                                    label="ID Type"
                                     checked={func.isGraphqlId || false}
                                     onChange={() => updateFunction(index, { isGraphqlId: !func.isGraphqlId })}
                                     disabled={false}
@@ -465,7 +465,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                                     />
                                     {isGraphql && isGraphQLScalarType(parameterForm.type) &&
                                         <CheckBox
-                                            label="Is GraphQL ID"
+                                            label="ID Type"
                                             checked={parameterForm.isGraphqlId || false}
                                             onChange={() => setParameterForm(prev => ({ ...prev, isGraphqlId: !prev.isGraphqlId }))}
                                             disabled={false}

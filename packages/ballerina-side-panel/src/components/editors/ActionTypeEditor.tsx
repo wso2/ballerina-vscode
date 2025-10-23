@@ -45,27 +45,51 @@ import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
 import { NodeProperties, PropertyModel } from "@wso2/ballerina-core";
 
-/**
- * Check if a type is a GraphQL scalar type.
- * Scalar types are primitive types that can be marked with @graphql:ID annotation.
- * In Ballerina, these include: string, int, float, decimal, boolean
- * Also handles optional types (e.g., "string?") by stripping the "?" suffix
- */
 const isGraphQLScalarType = (type: string): boolean => {
-    // Remove optional marker and whitespace
-    const cleanType = type.trim().replace(/\?$/, '');
-
-    // List of Ballerina types that can be GraphQL scalars
     const scalarTypes = [
         'string',
         'int',
         'float',
-        'decimal',
-        'boolean',
-        'byte',
+        'decimal'
     ];
 
-    return scalarTypes.includes(cleanType.toLowerCase());
+    const isScalarOrArrayOfScalar = (t: string): boolean => {
+        let cleanType = t.trim().replace(/\?$/, '');
+
+        if (cleanType.endsWith('[]')) {
+            const baseType = cleanType.slice(0, -2).trim();
+            return isScalarOrArrayOfScalar(baseType);
+        }
+
+        if (cleanType.startsWith('(') && cleanType.endsWith(')')) {
+            cleanType = cleanType.slice(1, -1).trim();
+            if (cleanType.includes('|')) {
+                const unionParts = cleanType.split('|').map(part => part.trim());
+                return unionParts.every(part => isScalarOrArrayOfScalar(part));
+            }
+        }
+
+        return scalarTypes.includes(cleanType.toLowerCase());
+    };
+
+    let cleanType = type.trim().replace(/\?$/, '');
+
+    if (cleanType.endsWith('[]') && cleanType.includes('(') && cleanType.includes('|')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    if (cleanType.includes('|')) {
+        const unionParts = cleanType.split('|').map(part => part.trim());
+        return unionParts.every(part => isScalarOrArrayOfScalar(part));
+    }
+
+    if (cleanType.endsWith('[]')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    return isScalarOrArrayOfScalar(cleanType);
 };
 
 interface ActionTypeEditorProps {
@@ -97,6 +121,31 @@ const codiconStyles = {
     color: 'var(--vscode-editorLightBulb-foreground)',
     marginRight: '2px'
 }
+
+const CheckBoxLabel = styled.div`
+    font-family: var(--font-family);
+    color: var(--vscode-editor-foreground);
+    text-align: left;
+`;
+
+const CheckBoxDescription = styled.div`
+    font-family: var(--font-family);
+    color: var(--vscode-list-deemphasizedForeground);
+    text-align: left;
+`;
+
+const CheckBoxLabelGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+`;
+
+const CheckBoxBoxGroup = styled.div`
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: flex-start;
+`;
 
 const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     return (
@@ -601,12 +650,6 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
 
                                     // Check if the new type is a GraphQL scalar type
                                     const isScalar = isGraphQLScalarType(updatedValue);
-                                    console.log("ActionTypeEditor - Type changed:", {
-                                        fieldKey: field.key,
-                                        updatedValue,
-                                        isScalar,
-                                        willShowCheckbox: isScalar
-                                    });
                                     setShowGraphqlCheckbox(isScalar);
 
                                     // If the type is not a scalar, reset the GraphQL ID checkbox
@@ -665,25 +708,25 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                             {error?.message && <ErrorBanner errorMsg={error.message.toString()} />}
 
                             {/* GraphQL ID Checkbox - only shown for scalar types */}
-                            {(() => {
-                                console.log("ActionTypeEditor - Render checkbox decision:", {
-                                    showGraphqlCheckbox,
-                                    isGraphqlId,
-                                    fieldKey: field.key,
-                                    fieldValue: field.value,
-                                    currentValue: value
-                                });
-                                return showGraphqlCheckbox ? (
+                            {showGraphqlCheckbox ? (
                                     <div style={{ marginBottom: '8px', marginTop: '8px' }}>
-                                        <CheckBox
-                                            label="Is GraphQL ID"
-                                            checked={isGraphqlId}
-                                            onChange={(checked) => handleGraphqlIdChange(checked)}
-                                            data-testid="graphql-id-checkbox"
-                                        />
+                                        <CheckBoxBoxGroup>
+                                            <CheckBox
+                                                label=""
+                                                checked={isGraphqlId}
+                                                onChange={(checked) => handleGraphqlIdChange(checked)}
+                                                data-testid="graphql-id-checkbox"
+                                            />
+                                            <CheckBoxLabelGroup>
+                                                <CheckBoxLabel>ID Type</CheckBoxLabel>
+                                                <CheckBoxDescription>
+                                                    Mark this field as a GraphQL ID type
+                                                </CheckBoxDescription>
+                                            </CheckBoxLabelGroup>
+                                        </CheckBoxBoxGroup>
                                     </div>
-                                ) : null;
-                            })()}
+                                ) : null
+                            }
                         </div>
                     );
                 }}
