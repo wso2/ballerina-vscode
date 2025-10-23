@@ -325,7 +325,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node.codedata.node === "IF") {
             return;
         }
-        initForm();
+        initForm(node);
         handleFormOpen();
 
         return () => {
@@ -351,7 +351,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             });
     };
 
-    const initForm = () => {
+    const initForm = (node: FlowNode) => {
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
@@ -379,18 +379,20 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
-        const recordTypeFields = Object.entries(formProperties)
-            .filter(([_, property]) =>
-                property.typeMembers &&
-                property.typeMembers.some(member => member.kind === "RECORD_TYPE")
-            )
-            .map(([key, property]) => ({
-                key,
-                property,
-                recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
-            }));
+        if (recordTypeFields?.length === 0) {
+            const recordTypeFields = Object.entries(formProperties)
+                .filter(([_, property]) =>
+                    property.typeMembers &&
+                    property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                )
+                .map(([key, property]) => ({
+                    key,
+                    property,
+                    recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                }));
 
-        setRecordTypeFields(recordTypeFields);
+            setRecordTypeFields(recordTypeFields);
+        }
 
         // get node properties
         const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
@@ -403,7 +405,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const dataMapperMode = data["openInDataMapper"] ? DataMapperDisplayMode.VIEW : DataMapperDisplayMode.NONE;
-            onSubmit( updatedNode, dataMapperMode, formImports);
+            onSubmit(updatedNode, dataMapperMode, formImports);
+        }
+    };
+
+    const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
+        if (node && targetLineRange) {
+            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
+            initForm(nodeWithDiagnostics);
         }
     };
 
@@ -631,6 +641,40 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
 
         return await convertToFnSignature(signatureHelp);
+    };
+
+    const getFormWithDiagnostics = async (node: FlowNode): Promise<FlowNode | null> => {
+        try {
+            // Update node with new line range only for creation forms (not edit forms)
+            const nodeToProcess = props.editForm
+                ? node
+                : createNodeWithUpdatedLineRange(node, targetLineRange);
+            const response = await rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
+                flowNode: nodeToProcess,
+                filePath: fileName
+            });
+
+            if (response.flowNode) {
+                return response.flowNode as FlowNode;
+            }
+            return node;
+        } catch (error) {
+            console.error(">>> Error getting form diagnostics", error);
+            return null;
+        }
+    };
+
+    const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
+        if (node && targetLineRange) {
+            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
+            initForm(nodeWithDiagnostics);
+
+            if (nodeWithDiagnostics?.diagnostics?.hasDiagnostics) {
+                return false
+            }
+        }
+        return true;
     };
 
     const handleExpressionFormDiagnostics = useCallback(
@@ -942,8 +986,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description !== "Record") {
-            if (type.labelDetails.detail === "Structural Types" 
-                || type.labelDetails.detail === "Behaviour Types" 
+            if (type.labelDetails.detail === "Structural Types"
+                || type.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(type.label)
             ) {
                 setValueTypeConstraints('');
@@ -1214,6 +1258,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
                     onSubmit={handleOnSubmit}
+                    onBlur={handleOnBlur}
                     openView={handleOpenView}
                     openSubPanel={openSubPanel}
                     subPanelView={subPanelView}
@@ -1221,6 +1266,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     targetLineRange={targetLineRange}
                     fileName={fileName}
                     isSaving={showProgressIndicator}
+                    onFormValidation={handleFormValidation}
                     submitText={submitText}
                     updatedExpressionField={updatedExpressionField}
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
@@ -1290,6 +1336,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
                     onSubmit={handleOnSubmit}
+                    onBlur={handleOnBlur}
                     openView={handleOpenView}
                     openSubPanel={openSubPanel}
                     subPanelView={subPanelView}
@@ -1297,6 +1344,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     targetLineRange={targetLineRange}
                     fileName={fileName}
                     isSaving={showProgressIndicator}
+                    onFormValidation={handleFormValidation}
                     submitText={submitText}
                     updatedExpressionField={updatedExpressionField}
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
@@ -1351,7 +1399,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             isGraphql={isGraphql}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
-                            onTypeCreate={() => {}}
+                            onTypeCreate={() => { }}
                             getNewTypeCreateForm={getNewTypeCreateForm}
                             refetchTypes={refetchStates[i]}
                         />

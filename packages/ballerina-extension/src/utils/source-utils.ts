@@ -19,9 +19,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { workspace } from 'vscode';
-import { Uri, Position } from 'vscode';
-import { ArtifactData, EVENT_TYPE, LinePosition, MACHINE_VIEW, ProjectStructureArtifactResponse, STModification, SyntaxTree, TextEdit } from '@wso2/ballerina-core';
-import path from 'path';
+import { Uri } from 'vscode';
+import { ArtifactData, EVENT_TYPE, MACHINE_VIEW, ProjectStructureArtifactResponse, STModification, TextEdit } from '@wso2/ballerina-core';
 import { openView, StateMachine, undoRedoManager } from '../stateMachine';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './project-artifacts-handler';
 import { existsSync, writeFileSync } from 'fs';
@@ -39,7 +38,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
-        undoRedoManager.startBatchOperation();
+        undoRedoManager?.startBatchOperation();
         const modificationRequests: Record<string, { filePath: string; modifications: STModification[] }> = {};
         for (const [key, value] of Object.entries(updateSourceCodeRequest.textEdits)) {
             const fileUri = key.startsWith("file:") ? Uri.parse(key) : Uri.file(key);
@@ -70,7 +69,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             // Get the before content of the file by using the workspace api
             const document = await workspace.openTextDocument(fileUri);
             const beforeContent = document.getText();
-            undoRedoManager.addFileToBatch(fileUri.fsPath, beforeContent, beforeContent);
+            undoRedoManager?.addFileToBatch(fileUri.fsPath, beforeContent, beforeContent);
 
             if (edits && edits.length > 0) {
                 const modificationList: STModification[] = [];
@@ -140,10 +139,10 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                         ),
                         formattedSource.newText
                     );
-                    undoRedoManager.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
+                    undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
                 }
             }
-            undoRedoManager.commitBatchOperation(description ? description : (artifactData ? `Change in ${artifactData?.artifactType} ${artifactData?.identifier}` : "Update Source Code"));
+            undoRedoManager?.commitBatchOperation(description ? description : (artifactData ? `Change in ${artifactData?.artifactType} ${artifactData?.identifier}` : "Update Source Code"));
 
             // Apply all formatted changes at once
             await workspace.applyEdit(formattedWorkspaceEdit);
@@ -198,7 +197,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
         }
     } catch (error) {
         StateMachine.setReadyMode();
-        undoRedoManager.cancelBatchOperation();
+        undoRedoManager?.cancelBatchOperation();
         console.log(">>> error updating source", error);
         throw error;
     }
@@ -211,7 +210,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[]) {
     const newArtifact = response.find(artifact => artifact.isNew);
     const stateContext = StateMachine.context().view;
-    if (newArtifact.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
+    if (newArtifact?.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
     } else {
         notifyCurrentWebview();

@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -190,7 +190,8 @@ export type ChatNotify =
     | ToolCall
     | ToolResult
     | EvalsToolResult
-    | UsageMetricsEvent;
+    | UsageMetricsEvent
+    | GeneratedSourcesEvent;
 
 export interface ChatStart {
     type: "start";
@@ -254,6 +255,11 @@ export interface UsageMetricsEvent {
         cacheReadInputTokens: number;
         outputTokens: number;
     };
+}
+
+export interface GeneratedSourcesEvent {
+    type: "generated_sources";
+    fileArray: SourceFile[];
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
