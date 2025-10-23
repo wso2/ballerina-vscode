@@ -62,6 +62,9 @@ public class CommonUtils {
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
     private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
+    private static final String WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
+    private static final String WSO2_EMBEDDING_PROVIDER = "Wso2EmbeddingProvider";
+    private static final String WSO2_ICON_SUFFIX = "?wso2_icon";
 
     private static final Map<String, ConnectionKind> CONNECTION_KIND_MAP = Map.of(
             "Agent", ConnectionKind.AGENT,
@@ -113,7 +116,15 @@ public class CommonUtils {
      * @return the icon URL or null if the module symbol is not present
      */
     public static String generateIcon(TypeSymbol typeSymbol) {
-        return typeSymbol.getModule().map(moduleSymbol -> generateIcon(moduleSymbol.id())).orElse(null);
+        String typeName = getTypeName(typeSymbol);
+        String iconUrl = typeSymbol.getModule().map(moduleSymbol ->
+                generateIcon(moduleSymbol.id())).orElse(null);
+
+        if (iconUrl != null && (WSO2_MODEL_PROVIDER.equals(typeName) || WSO2_EMBEDDING_PROVIDER.equals(typeName))) {
+            return iconUrl + WSO2_ICON_SUFFIX;
+        }
+
+        return iconUrl;
     }
 
     public static String generateUUID() {
