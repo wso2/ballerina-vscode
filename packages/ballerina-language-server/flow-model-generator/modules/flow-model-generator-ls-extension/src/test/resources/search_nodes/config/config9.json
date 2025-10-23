@@ -15,7 +15,7 @@
       "metadata": {
         "label": "Agent",
         "description": "Represents an agent.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.4.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.0.png"
       },
       "codedata": {
         "node": "AGENT",
@@ -58,7 +58,7 @@
           "typeMembers": [
             {
               "type": "SystemPrompt",
-              "packageInfo": "ballerina:ai:1.5.4",
+              "packageInfo": "ballerina:ai:1.6.0",
               "packageName": "ai",
               "kind": "RECORD_TYPE",
               "selected": true
@@ -86,7 +86,7 @@
           "typeMembers": [
             {
               "type": "ModelProvider",
-              "packageInfo": "ballerina:ai:1.5.4",
+              "packageInfo": "ballerina:ai:1.6.0",
               "packageName": "ai",
               "kind": "OBJECT_TYPE",
               "selected": false
@@ -186,7 +186,7 @@
         "memory": {
           "metadata": {
             "label": "Memory",
-            "description": "The memory used by the agent to store and manage conversation history"
+            "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
           },
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "ai:Memory|()",
@@ -202,7 +202,7 @@
           "typeMembers": [
             {
               "type": "Memory",
-              "packageInfo": "ballerina:ai:1.5.4",
+              "packageInfo": "ballerina:ai:1.6.0",
               "packageName": "ai",
               "kind": "OBJECT_TYPE",
               "selected": false
