@@ -178,8 +178,9 @@ export function ResponseEditor(props: ParamProps) {
                 type: "FLAG",
                 label: "Make this response reusable",
                 documentation: "Check this option to make this response reusable",
-                onValueChange: (value: boolean) => {
-                    if (value) {
+                onValueChange: (value: string) => {
+                    const boolValue = value === "true";
+                    if (boolValue) {
                         // When checked, add the name field after the checkbox
                         const nameField: FormField = {
                             ...convertPropertyToFormField(res.name),
