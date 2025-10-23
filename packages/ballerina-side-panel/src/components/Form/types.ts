@@ -139,7 +139,8 @@ type FormTypeConditionalProps = {
         value: string,
         cursorPosition: number,
         fetchReferenceTypes: boolean,
-        valueTypeConstraint: string
+        valueTypeConstraint: string,
+        fieldKey?: string
     ) => Promise<void>;
     getTypeHelper: (
         fieldKey: string,

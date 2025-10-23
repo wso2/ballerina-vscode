@@ -323,7 +323,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
         setFocused(true);
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string);
+        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -675,7 +675,8 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                         updatedValue,
                                         updatedCursorPosition,
                                         false,
-                                        field.valueTypeConstraint as string
+                                        field.valueTypeConstraint as string,
+                                        field.key
                                     );
                                 }}
                                 onCompletionSelect={handleCompletionSelect}
