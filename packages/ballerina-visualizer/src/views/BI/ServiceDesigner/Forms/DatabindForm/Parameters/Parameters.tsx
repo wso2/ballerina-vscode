@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import styled from "@emotion/styled";
+import styled, { CSSObject } from "@emotion/styled";
 import { ParameterModel } from "@wso2/ballerina-core";
 import { Codicon } from "@wso2/ui-toolkit";
 import {
@@ -24,7 +24,6 @@ import {
     ContentSection,
     DeleteIconWrapper,
     EditIconWrapper,
-    HeaderLabel,
     disabledHeaderLabel,
     headerLabelStyles,
 } from "../../../styles";
@@ -60,6 +59,17 @@ const ParamType = styled.span`
     padding: 2px 8px;
     letter-spacing: 0.1px;
     width: 60px;
+`;
+
+const HeaderLabel = styled.div<CSSObject>`
+    display: flex;
+    background: var(--vscode-editor-background);
+    border: 1px solid ${(props: { haveErrors: boolean; }) => props.haveErrors ? "red" : "var(--vscode-dropdown-border)"};
+    margin: 8px 0;
+    display: flex;
+    width: 100%;
+    height: 32px;
+    align-items: center;
 `;
 
 const ParamDefault = styled.span`
