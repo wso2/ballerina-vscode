@@ -142,7 +142,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string);
+        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -339,7 +339,8 @@ export function TypeEditor(props: TypeEditorProps) {
                                     updatedValue,
                                     updatedCursorPosition,
                                     false,
-                                    field.valueTypeConstraint as string
+                                    field.valueTypeConstraint as string,
+                                    field.key
                                 );
                             }}
                             onCompletionSelect={handleCompletionSelect}
