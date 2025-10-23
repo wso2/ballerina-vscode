@@ -439,8 +439,10 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
 export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): number => {
     if (!model || model.length === 0) return 0;
     const active = document.activeElement as HTMLElement | null;
+    console.log("active element", active);
     if (!active) return 0;
     const elementId = active.getAttribute('data-element-id');
+    console.log("active element id", elementId);
     if (!elementId) return 0;
     const idx = model.findIndex(m => m.id === elementId);
     if (idx < 0) return 0;
@@ -457,6 +459,7 @@ export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): 
 };
 
 export const mapAbsoluteToModel = (model: ExpressionModel[], absolutePos: number): { index: number; offset: number } | null => {
+    console.log("MODEL", model)
     if (!model || model.length === 0) return null;
     let sum = 0;
     for (let i = 0; i < model.length; i++) {
@@ -562,7 +565,7 @@ export const updateExpressionModelWithCompletion = (
     return { updatedModel, updatedValue, newCursorPosition };
 };
 
-export const updateExpressionModelWithHelperValue = (
+export const updateExpressionModelWithHelper = (
     expressionModel: ExpressionModel[] | undefined,
     absoluteCaretPosition: number,
     helperValue: string
@@ -576,6 +579,64 @@ export const updateExpressionModelWithHelperValue = (
     const { index, offset } = mapped;
     const elementAboutToModify = expressionModel[index];
 
+    if (!elementAboutToModify || typeof elementAboutToModify.value !== 'string') return null;
+
+    const textBeforeCaret = elementAboutToModify.value.substring(0, offset);
+    const textAfterCaret = elementAboutToModify.value.substring(offset);
+
+    const updatedText =
+        textBeforeCaret +
+        helperValue +
+        textAfterCaret;
+
+    // Calculate new cursor position: sum of lengths before this element + position after completion
+    let sumOfCharsBefore = 0;
+    for (let i = 0; i < index; i++) {
+        sumOfCharsBefore += expressionModel[i].length;
+    }
+    const newCursorPosition = sumOfCharsBefore + helperValue.length;
+
+    const updatedModel = expressionModel.map((el, i) =>
+        i === index ? { ...el, value: updatedText, length: updatedText.length } : el
+    );
+
+    const updatedValue = getTextValueFromExpressionModel(updatedModel);
+    return { updatedModel, updatedValue, newCursorPosition };
+};
+
+export const updateExpressionModelWithHelperValue = (
+    expressionModel: ExpressionModel[] | undefined,
+    absoluteCaretPosition: number,
+    helperValue: string
+): { updatedModel: ExpressionModel[]; updatedValue: string; newCursorPosition: number } | null => {
+    console.log("#QWE")
+    if (!expressionModel) return null;
+    let initializedModel = []
+    if (expressionModel.length === 0) {
+        initializedModel = [{
+            id: "1",
+            value: "",
+            isToken: false,
+            startColumn: 0,
+            startLine: 0,
+            length: 0,
+            type: 'literal',
+            isFocused: false,
+            focusOffset: 0
+        }]
+    }
+    else {
+        initializedModel = expressionModel
+    }
+
+    const mapped = mapAbsoluteToModel(initializedModel, absoluteCaretPosition);
+    console.log("BEFOREMAP", mapped)
+
+    if (!mapped) return null;
+
+    const { index, offset } = mapped;
+    const elementAboutToModify = initializedModel[index];
+
     console.log("mapped", elementAboutToModify);
 
     if (!elementAboutToModify || typeof elementAboutToModify.value !== 'string') return null;
@@ -585,10 +646,10 @@ export const updateExpressionModelWithHelperValue = (
     // Calculate new cursor position: sum of lengths before this element + position after completion
     let sumOfCharsBefore = 0;
     for (let i = 0; i < index; i++) {
-        sumOfCharsBefore += expressionModel[i].length;
+        sumOfCharsBefore += initializedModel[i].length;
     }
 
-    const updatedModel = expressionModel.map((el, i) =>
+    const updatedModel = initializedModel.map((el, i) =>
         i === index ? { ...el, value: updatedText, length: updatedText.length } : el
     );
 
