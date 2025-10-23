@@ -304,7 +304,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
 
-    const handleEdit = (fileUri?: string) => {
+    const handleEdit = (fileUri?: string, position?: NodePosition) => {
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
