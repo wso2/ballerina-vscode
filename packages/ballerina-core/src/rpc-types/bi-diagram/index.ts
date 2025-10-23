@@ -95,7 +95,9 @@ import {
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     FormDiagnosticsRequest,
-    FormDiagnosticsResponse
+    FormDiagnosticsResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -187,6 +189,7 @@ export interface BIDiagramAPI {
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
     getEndOfFile: (params: EndOfFileRequest) => Promise<LinePosition>;
     search: (params: BISearchRequest) => Promise<BISearchResponse>;
+    searchNodes: (params: BISearchNodesRequest) => Promise<BISearchNodesResponse>;
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;
     getDevantMetadata: () => Promise<DevantMetadata | undefined>;
