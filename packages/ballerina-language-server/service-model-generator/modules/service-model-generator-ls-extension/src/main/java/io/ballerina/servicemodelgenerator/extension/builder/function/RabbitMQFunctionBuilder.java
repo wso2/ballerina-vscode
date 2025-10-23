@@ -53,9 +53,9 @@ public final class RabbitMQFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
-                context.function(), TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false,
-                context.project(), context.semanticModel());
+        Map<String, List<TextEdit>> databindEdits =
+                DatabindUtil.processDatabindingForAdd(context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME,
+                        false);
 
         Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
         Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);

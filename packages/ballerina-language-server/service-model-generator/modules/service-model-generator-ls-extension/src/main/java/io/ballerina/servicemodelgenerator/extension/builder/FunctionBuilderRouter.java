@@ -91,12 +91,13 @@ public class FunctionBuilderRouter {
 
     public static Map<String, List<TextEdit>> updateFunction(String moduleName, Function function, String filePath,
                                                              Document document, FunctionDefinitionNode functionNode,
-                                                             SemanticModel semanticModel,
+                                                             SemanticModel semanticModel, Project project,
                                                              WorkspaceManager workspaceManager)
             throws Exception {
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
-        UpdateModelContext context = new UpdateModelContext(null, function, semanticModel, null,
-                workspaceManager, filePath, document, null, functionNode);
+        UpdateModelContext context =
+                new UpdateModelContext(null, function, semanticModel, project, workspaceManager, filePath,
+                        document, null, functionNode);
         return functionBuilder.updateModel(context);
     }
 
@@ -104,7 +105,7 @@ public class FunctionBuilderRouter {
         ModelFromSourceContext context;
         if (functionNode.parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
             ServiceMetadata metadata = deriveServiceType(serviceDeclarationNode, semanticModel);
-            context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
+            context = new ModelFromSourceContext(functionNode, null, semanticModel, null, "",
                     metadata.serviceTypeIdentifier(), metadata.orgName(), metadata.packageName(),
                     metadata.moduleName());
             NodeBuilder<Function> functionBuilder = getFunctionBuilder(metadata.moduleName());
@@ -115,8 +116,8 @@ public class FunctionBuilderRouter {
             codedata.setModuleName(metadata.moduleName());
             return function;
         }
-        context = new ModelFromSourceContext(functionNode, null, semanticModel, null,
-                    moduleName, null, null, moduleName);
+        context = new ModelFromSourceContext(functionNode, null, semanticModel, null, "",
+                moduleName, null, null, moduleName);
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(context.moduleName());
         return functionBuilder.getModelFromSource(context);
     }
