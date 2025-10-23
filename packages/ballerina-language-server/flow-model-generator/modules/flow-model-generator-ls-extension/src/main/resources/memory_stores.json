@@ -20,22 +20,6 @@
             "flags": 1
           },
           "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "MSSQL Short Term Memory Store",
-            "description": "Provides an MSSQL-backed chat message store."
-          },
-          "codedata": {
-            "node": "MEMORY_STORE",
-            "org": "ballerinax",
-            "module": "ai.mssql",
-            "packageName": "ai.mssql",
-            "object": "ShortTermMemoryStore",
-            "symbol": "init",
-            "flags": 1
-          },
-          "enabled": true
         }
       ]
     }
