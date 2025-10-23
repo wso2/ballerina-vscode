@@ -79,17 +79,13 @@ public abstract class BallerinaCompilerApi {
         Iterator<BallerinaCompilerApi> serviceIterator = serviceLoader.iterator();
         while (true) {
             try {
-                // The ServiceConfigurationError can be thrown by hasNext() or next()
-                // if the service class is not found or cannot be instantiated.
+                // The ServiceConfigurationError can be thrown if the service class cannot be instantiated.
                 if (!serviceIterator.hasNext()) {
                     break;
                 }
                 BallerinaCompilerApi service = serviceIterator.next();
 
-                if (service == null) {
-                    continue;
-                }
-
+                // Fetch the version of this service implementation
                 String serviceVersionString = service.getVersion();
                 Version serviceVersion = Version.valueOf(serviceVersionString);
 
@@ -201,9 +197,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Checks if the given project is a workspace project.
-     * <p>
-     * A workspace project is a multi-package project with a [workspace] section in Ballerina.toml. This feature is
-     * available from Ballerina version 2201.13.0 onwards.
      *
      * @param project The project to check.
      * @return {@code true} if the project is a workspace project, {@code false} otherwise.
@@ -244,9 +237,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Loads a project from the given path using the appropriate ProjectLoader API.
-     * <p>
-     * The API changed from {@code ProjectLoader.loadProject()} to {@code ProjectLoader.load().project()} in Ballerina
-     * 2201.13.0. This method abstracts that difference.
      *
      * @param path The path to the project root.
      * @return The loaded project.
@@ -266,9 +256,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Loads a project from the given path with custom project environment builder.
-     * <p>
-     * The API changed from {@code ProjectLoader.loadProject()} to {@code ProjectLoader.load().project()} in Ballerina
-     * 2201.13.0. This method abstracts that difference.
      *
      * @param path               The path to the project root.
      * @param environmentBuilder The project environment builder.
