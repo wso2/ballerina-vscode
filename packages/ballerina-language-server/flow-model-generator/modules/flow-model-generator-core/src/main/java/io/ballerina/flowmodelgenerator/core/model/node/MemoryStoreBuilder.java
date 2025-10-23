@@ -46,7 +46,7 @@ public class MemoryStoreBuilder extends CallBuilder {
 
     private static final String MEMORY_STORE_NAME_LABEL = "Memory Store Name";
     private static final String MEMORY_STORE_NAME_LABEL_DOC = "Name of the memory store";
-    private static final String MESSAGE_WINDOW_CHAT_MEMORY_OBJ = "MessageWindowChatMemory";
+    private static final String MESSAGE_WINDOW_CHAT_MEMORY_CLASS = "MessageWindowChatMemory";
 
     @Override
     public void setConcreteConstData() {
@@ -89,7 +89,7 @@ public class MemoryStoreBuilder extends CallBuilder {
                     false);
         }
         setParameterProperties(functionData);
-        if (!codedata.object().equals(MESSAGE_WINDOW_CHAT_MEMORY_OBJ)) {
+        if (!codedata.object().equals(MESSAGE_WINDOW_CHAT_MEMORY_CLASS)) {
             properties().checkError(true, Property.CHECK_ERROR_DOC, false);
         }
     }
