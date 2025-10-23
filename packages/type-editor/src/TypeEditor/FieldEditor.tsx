@@ -148,7 +148,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
 
     return (
         <>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'start', justifyContent: 'space-between' }}>
                 <ExpandIconButton
                     data-testid={`field-expand-btn`}
                     appearance="icon"
@@ -156,21 +156,25 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 >
                     <Codicon name={panelOpened ? "chevron-down" : "chevron-right"} />
                 </ExpandIconButton>
-                <IdentifierField
-                    value={member.name}
-                    onChange={handleNameChange}
-                    rootType={type}
-                    onValidationError={(hasError) => onFieldValidation(true, hasError)}
-                />
-                <TypeField
-                    type={member.type}
-                    memberName={typeToSource(member.type)}
-                    onChange={handleTypeChange}
-                    onUpdateImports={handleUpdateImports}
-                    onValidationError={(hasError) => onFieldValidation(false, hasError)}
-                    rootType={type}
-                    isAnonymousRecord={isRecord(member.type)}
-                />
+                <div style={{ width: '100%' }}>
+                    <IdentifierField
+                        value={member.name}
+                        onChange={handleNameChange}
+                        rootType={type}
+                        onValidationError={(hasError) => onFieldValidation(true, hasError)}
+                    />
+                </div>
+                <div style={{ width: '100%' }}>
+                    <TypeField
+                        type={member.type}
+                        memberName={typeToSource(member.type)}
+                        onChange={handleTypeChange}
+                        onUpdateImports={handleUpdateImports}
+                        onValidationError={(hasError) => onFieldValidation(false, hasError)}
+                        rootType={type}
+                        isAnonymousRecord={isRecord(member.type)}
+                    />
+                </div>
                 <div style={{ display: 'flex', gap: '1px' }}>
                     {isRecord(member.type) &&
                         <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()} tooltip='Add Field'>

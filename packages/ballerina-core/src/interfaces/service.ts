@@ -104,6 +104,22 @@ export interface StatusCodeResponse extends PropertyModel {
     name: PropertyModel;
     type: PropertyModel;
     headers: PropertyModel;
+    mediaType: PropertyModel;
+}
+
+export interface PayloadContext {
+    serviceName: string;
+    serviceBasePath: string;
+    resourceBasePath?: string;
+    resourceMethod?: string;
+    resourceDocumentation?:string;
+    paramDetails?:ParamDetails[];
+}
+
+export interface ParamDetails {
+    name: string;
+    type: string;
+    defaulValue?: string;
 }
 
 interface MetaData {
@@ -144,7 +160,7 @@ export interface PropertyModel {
     properties?: ConfigProperties;
     addNewButton?: boolean;
     typeMembers?: PropertyTypeMemberInfo[];
-    httpParamType?: "QUERY" | "Header" | "PAYLOAD";
+    httpParamType?: "QUERY" | "HEADER" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;
     hidden?: boolean;
@@ -152,9 +168,10 @@ export interface PropertyModel {
 }
 
 export interface ParameterModel extends PropertyModel {
-    kind?: "REQUIRED" | "OPTIONAL",
+    kind?: "REQUIRED" | "OPTIONAL" | "DATA_BINDING";
     type?: PropertyModel;
     name?: PropertyModel;
+    headerName?: PropertyModel;
     documentation?: PropertyModel;
 }
 
@@ -162,3 +179,17 @@ export interface ParameterModel extends PropertyModel {
 export interface ConfigProperties {
     [key: string]: PropertyModel | ParameterModel;
 }
+
+export interface ServiceInitModel {
+    id: string;
+    displayName: string;
+    description: string;
+    orgName: string;
+    packageName: string;
+    moduleName: string;
+    version: string;
+    type: string;
+    icon: string;
+    properties: { [key: string]: PropertyModel };
+}
+
