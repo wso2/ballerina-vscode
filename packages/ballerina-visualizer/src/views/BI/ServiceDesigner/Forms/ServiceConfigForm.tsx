@@ -227,7 +227,7 @@ function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in service.properties) {
         const expression = service.properties[key];
-        if (expression.valueType === "MULTIPLE_SELECT_LISTENER") {
+        if (expression.valueType === "MULTIPLE_SELECT_LISTENER" || expression.valueType === "SINGLE_SELECT_LISTENER") {
             continue
         }
         const formField: FormField = {
