@@ -11,7 +11,7 @@
   },
   "output": [
     {
-      "id": "38848",
+      "id": "42976",
       "metadata": {
         "label": "Agent",
         "description": "Represents an agent.",
@@ -26,15 +26,15 @@
         "lineRange": {
           "fileName": "agent.bal",
           "startLine": {
-            "line": 7,
-            "offset": 4
+            "line": 11,
+            "offset": 8
           },
           "endLine": {
-            "line": 7,
-            "offset": 36
+            "line": 13,
+            "offset": 10
           }
         },
-        "sourceCode": "final ai:Agent _salesAgentAgent;"
+        "sourceCode": "self._salesAgentAgent = check new (\n            systemPrompt = {role: \"\", instructions: string ``}, model = self._salesAgentModel, tools = []\n        );"
       },
       "returning": false,
       "properties": {
@@ -235,50 +235,23 @@
             "description": "Scope of the connection, Global or Local"
           },
           "valueType": "ENUM",
-          "value": "Service",
+          "value": "ServiceInit",
           "optional": false,
           "editable": true,
           "advanced": true,
           "hidden": true
         },
-        "type": {
+        "variable": {
           "metadata": {
-            "label": "Variable Type",
-            "description": "Type of the variable"
+            "label": "Variable",
+            "description": "Name of the variable/field"
           },
-          "valueType": "TYPE",
-          "value": "ai:Agent",
-          "placeholder": "var",
+          "valueType": "LV_EXPRESSION",
+          "value": "self._salesAgentAgent",
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false,
-          "codedata": {}
-        },
-        "variable": {
-          "metadata": {
-            "label": "Variable Name",
-            "description": "Name of the variable"
-          },
-          "valueType": "IDENTIFIER",
-          "value": "_salesAgentAgent",
-          "optional": false,
-          "editable": false,
-          "advanced": false,
-          "hidden": false,
-          "codedata": {
-            "lineRange": {
-              "fileName": "agent.bal",
-              "startLine": {
-                "line": 7,
-                "offset": 19
-              },
-              "endLine": {
-                "line": 7,
-                "offset": 35
-              }
-            }
-          }
+          "hidden": false
         }
       },
       "diagnostics": {

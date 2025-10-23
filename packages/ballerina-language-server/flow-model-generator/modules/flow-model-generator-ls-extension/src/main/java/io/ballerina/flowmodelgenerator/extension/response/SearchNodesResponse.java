@@ -18,9 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-import io.ballerina.flowmodelgenerator.core.model.FlowNode;
-
-import java.util.List;
+import com.google.gson.JsonArray;
 
 /**
  * Represents the response for the searchNodes API, containing a list of FlowNodes.
@@ -29,13 +27,13 @@ import java.util.List;
  */
 public class SearchNodesResponse extends AbstractFlowModelResponse {
 
-    private List<FlowNode> output;
+    private JsonArray output;
 
-    public void setOutput(List<FlowNode> output) {
+    public void setOutput(JsonArray output) {
         this.output = output;
     }
 
-    public List<FlowNode> output() {
+    public JsonArray output() {
         return output;
     }
 }
