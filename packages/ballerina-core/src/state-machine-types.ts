@@ -335,30 +335,30 @@ export type AIMachineSendableEvent =
 
 export type AIChatMachineStateValue =
     | 'Idle'
-    | 'CreatingPlan'
+    | 'Initiating'
+    | 'GeneratingPlan'
     | 'PlanReview'
-    | 'UpdatingPlan'
+    | 'ApprovedPlan'
     | 'ExecutingTask'
-    | 'AwaitingUserAction'
-    | 'FinetuningTask'
-    | 'QuestioningUser'
+    | 'TaskReview'
+    | 'ApprovedTask'
+    | 'RejectedTask'
     | 'Completed'
+    | 'PartiallyCompleted'
     | 'Error';
 
 export enum AIChatMachineEventType {
     SUBMIT_PROMPT = 'SUBMIT_PROMPT',
-    PLAN_CREATED = 'PLAN_CREATED',
-    EDIT_TASK = 'EDIT_TASK',
-    UPDATE_PLAN_WITH_PROMPT = 'UPDATE_PLAN_WITH_PROMPT',
-    FINALIZE_PLAN = 'FINALIZE_PLAN',
-    TASK_COMPLETED = 'TASK_COMPLETED',
-    CONTINUE_TO_NEXT = 'CONTINUE_TO_NEXT',
-    FINETUNE_TASK = 'FINETUNE_TASK',
-    FINETUNE_COMPLETED = 'FINETUNE_COMPLETED',
-    ASK_QUESTION = 'ASK_QUESTION',
-    ANSWER_QUESTION = 'ANSWER_QUESTION',
-    ALL_TASKS_COMPLETED = 'ALL_TASKS_COMPLETED',
     RESET = 'RESET',
+    PLANNING_STARTED = 'PLANNING_STARTED',
+    PLAN_GENERATED = 'PLAN_GENERATED',
+    APPROVE_PLAN = 'APPROVE_PLAN',
+    REJECT_PLAN = 'REJECT_PLAN',
+    START_TASK_EXECUTION = 'START_TASK_EXECUTION',
+    TASK_COMPLETED = 'TASK_COMPLETED',
+    FINISH_EXECUTION = 'FINISH_EXECUTION',
+    APPROVE_TASK = 'APPROVE_TASK',
+    REJECT_TASK = 'REJECT_TASK',
     RESTORE_STATE = 'RESTORE_STATE',
     ERROR = 'ERROR',
     RETRY = 'RETRY',
@@ -377,7 +377,9 @@ export interface ChatMessage {
 export enum TaskStatus {
     PENDING = "pending",
     IN_PROGRESS = "in_progress",
-    COMPLETED = "completed"
+    REVIEW = "review",
+    DONE = "done",
+    REJECTED = "rejected"
 }
 
 export enum TaskTypes {
@@ -410,6 +412,10 @@ export interface Question {
     timestamp: number;
 }
 
+export interface UserApproval {
+    comment?: string;
+}
+
 export interface AIChatMachineContext {
     initialPrompt?: string;
     chatHistory: ChatMessage[];
@@ -419,21 +425,20 @@ export interface AIChatMachineContext {
     errorMessage?: string;
     sessionId?: string;
     projectId?: string;
+    currentApproval?: UserApproval;
 }
 
 export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string } }
-    | { type: AIChatMachineEventType.PLAN_CREATED; payload: { plan: Plan } }
-    | { type: AIChatMachineEventType.EDIT_TASK; payload: { taskId: string; description: string } }
-    | { type: AIChatMachineEventType.UPDATE_PLAN_WITH_PROMPT; payload: { prompt: string } }
-    | { type: AIChatMachineEventType.FINALIZE_PLAN }
-    | { type: AIChatMachineEventType.TASK_COMPLETED; payload: { result: string } }
-    | { type: AIChatMachineEventType.CONTINUE_TO_NEXT }
-    | { type: AIChatMachineEventType.FINETUNE_TASK; payload: { instructions: string } }
-    | { type: AIChatMachineEventType.FINETUNE_COMPLETED; payload: { result: string } }
-    | { type: AIChatMachineEventType.ASK_QUESTION; payload: { question: Question } }
-    | { type: AIChatMachineEventType.ANSWER_QUESTION; payload: { answer: string } }
-    | { type: AIChatMachineEventType.ALL_TASKS_COMPLETED }
+    | { type: AIChatMachineEventType.PLANNING_STARTED }
+    | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
+    | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
+    | { type: AIChatMachineEventType.REJECT_PLAN; payload: { comment?: string } }
+    | { type: AIChatMachineEventType.START_TASK_EXECUTION }
+    | { type: AIChatMachineEventType.TASK_COMPLETED }
+    | { type: AIChatMachineEventType.FINISH_EXECUTION }
+    | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
+    | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
     | { type: AIChatMachineEventType.ERROR; payload: { message: string } }

@@ -179,7 +179,7 @@ const Button = styled.button<{ variant?: "primary" | "secondary" }>`
 export interface Task {
     id: string;
     description: string;
-    status: "pending" | "in_progress" | "completed";
+    status: "pending" | "in_progress" | "review" | "done" | "rejected";
 }
 
 interface ApprovalDialogProps {
@@ -357,7 +357,7 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
                                 <TaskNumber>{index + 1}.</TaskNumber>
                                 <TaskDescription>
                                     {task.description}
-                                    {task.status === "completed" && (
+                                    {task.status === "done" && (
                                         <span
                                             style={{
                                                 marginLeft: "8px",
@@ -365,6 +365,26 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
                                             }}
                                         >
                                             <span className="codicon codicon-check"></span>
+                                        </span>
+                                    )}
+                                    {task.status === "review" && (
+                                        <span
+                                            style={{
+                                                marginLeft: "8px",
+                                                color: "var(--vscode-descriptionForeground)",
+                                            }}
+                                        >
+                                            <span className="codicon codicon-eye"></span>
+                                        </span>
+                                    )}
+                                    {task.status === "in_progress" && (
+                                        <span
+                                            style={{
+                                                marginLeft: "8px",
+                                                color: "var(--vscode-progressBar-background)",
+                                            }}
+                                        >
+                                            <span className="codicon codicon-sync codicon-modifier-spin"></span>
                                         </span>
                                     )}
                                 </TaskDescription>

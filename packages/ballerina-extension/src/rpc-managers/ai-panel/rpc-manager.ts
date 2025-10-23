@@ -67,7 +67,6 @@ import {
     RequirementSpecification,
     SourceFile,
     SubmitFeedbackRequest,
-    SubmitTaskApprovalRequest,
     SyntaxTree,
     TemplateId,
     TestGenerationMentions,
@@ -120,7 +119,7 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { generateDesign, generateDesignCore, resolveApproval } from "../../../src/features/ai/service/design/design";
+import { generateDesign, generateDesignCore } from "../../../src/features/ai/service/design/design";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -1046,17 +1045,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async generateDesign(params: GenerateCodeRequest): Promise<boolean> {
         await generateDesign(params);
         return true;
-    }
-
-    submitTaskApproval(request: SubmitTaskApprovalRequest): void {
-        // This method is called from the webview when user approves/rejects
-        // It resolves the pending approval promise in the design service
-        console.log(`[RPC Manager] Received approval response: ${request.approved ? 'approved' : 'rejected'}`);
-
-        resolveApproval({
-            approved: request.approved,
-            comment: request.comment
-        });
     }
 }
 
