@@ -1,6 +1,6 @@
 {
   "description": "No results search test for memory managers",
-  "kind": "MEMORY_MANAGER",
+  "kind": "MEMORY",
   "source": "empty.bal",
   "queryMap": {
     "q": "xyz123"
@@ -8,7 +8,7 @@
   "categories": [
     {
       "metadata": {
-        "label": "Memory Managers"
+        "label": "Memory"
       },
       "items": []
     }

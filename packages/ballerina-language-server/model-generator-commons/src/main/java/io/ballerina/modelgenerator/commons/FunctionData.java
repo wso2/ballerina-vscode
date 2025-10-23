@@ -136,6 +136,8 @@ public class FunctionData {
         FUNCTION,
         CONNECTOR,
         MODEL_PROVIDER,
+        MEMORY,
+        MEMORY_STORE,
         EMBEDDING_PROVIDER,
         VECTOR_STORE,
         VECTOR_KNOWLEDGE_BASE,
@@ -148,6 +150,8 @@ public class FunctionData {
 
         private static final Set<Kind> AI_CLASS_KINDS = EnumSet.of(
                 FunctionData.Kind.MODEL_PROVIDER,
+                FunctionData.Kind.MEMORY,
+                FunctionData.Kind.MEMORY_STORE,
                 FunctionData.Kind.EMBEDDING_PROVIDER,
                 FunctionData.Kind.VECTOR_STORE,
                 FunctionData.Kind.DATA_LOADER,

@@ -184,6 +184,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
@@ -592,8 +594,10 @@ public class CodeAnalyzer extends NodeVisitor {
 
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
-            nodeBuilder.metadata().addData("memory",
-                    new MemoryManagerData(defaultMemoryManagerName, "10"));
+            if (!defaultMemoryManagerName.isEmpty()) {
+                nodeBuilder.metadata().addData("memory",
+                        new MemoryManagerData(defaultMemoryManagerName, AiUtils.MEMORY_DEFAULT_VALUE));
+            }
         } else if (memory.kind() == SyntaxKind.EXPLICIT_NEW_EXPRESSION) {
             ExplicitNewExpressionNode newExpr = (ExplicitNewExpressionNode) memory;
             SeparatedNodeList<FunctionArgumentNode> arguments = newExpr.parenthesizedArgList().arguments();
@@ -603,6 +607,12 @@ public class CodeAnalyzer extends NodeVisitor {
             }
             nodeBuilder.metadata().addData("memory",
                     new MemoryManagerData(newExpr.typeDescriptor().toSourceCode(), size));
+        } else if (memory.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+            Optional<TypeSymbol> optSymbolType = semanticModel.typeOf(memory);
+            optSymbolType.ifPresent(typeSymbol -> nodeBuilder.metadata()
+                    .addData("memory",
+                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"),
+                                    AiUtils.MEMORY_DEFAULT_VALUE)));
         }
 
         ModelData modelUrl = getModelIconUrl(modelArg);
@@ -1508,6 +1518,12 @@ public class CodeAnalyzer extends NodeVisitor {
         if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
             return NodeKind.MCP_TOOLKIT;
         }
+        if (isAiMemory(classSymbol)) {
+            return NodeKind.MEMORY;
+        }
+        if (isAiMemoryStore(classSymbol)) {
+            return NodeKind.MEMORY_STORE;
+        }
         return null;
     }
 
@@ -1518,7 +1534,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 CommonUtils::isAiVectorKnowledgeBase, FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
                 CommonUtils::isAiVectorStore, FunctionData.Kind.VECTOR_STORE,
                 CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
-                CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER
+                CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER,
+                CommonUtils::isAiMemory, FunctionData.Kind.MEMORY,
+                CommonUtils::isAiMemoryStore, FunctionData.Kind.MEMORY_STORE
         );
 
         return kindMappings.entrySet().stream().filter(entry -> entry.getKey().test(classSymbol))

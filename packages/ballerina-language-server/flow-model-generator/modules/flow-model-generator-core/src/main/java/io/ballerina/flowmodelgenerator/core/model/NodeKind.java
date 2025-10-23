@@ -93,5 +93,7 @@ public enum NodeKind {
     DATA_LOADERS,
     DATA_LOADER,
     CHUNKERS,
-    CHUNKER
+    CHUNKER,
+    MEMORY,
+    MEMORY_STORE
 }
