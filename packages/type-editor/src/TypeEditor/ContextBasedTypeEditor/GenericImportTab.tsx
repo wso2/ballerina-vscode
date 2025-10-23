@@ -23,6 +23,7 @@ import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
+import { ContentBody } from "./ContextTypeEditor";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -107,6 +108,7 @@ enum DetectedFormat {
     JSON = "JSON",
     XML = "XML",
     UNKNOWN = "UNKNOWN",
+    EMPTY = "EMPTY"
 }
 
 interface GenericImportTabProps {
@@ -130,7 +132,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
     const [content, setContent] = useState<string>("");
-    const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>(DetectedFormat.UNKNOWN);
+    const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>(DetectedFormat.EMPTY);
     const [importTypeName, setImportTypeName] = useState<string>(type.name);
     const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
     const [nameError, setNameError] = useState<string>("");
@@ -143,12 +145,18 @@ export function GenericImportTab(props: GenericImportTabProps) {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
         }
+        if (detectedFormat === DetectedFormat.EMPTY) {
+            setError("");
+        }
+        if (detectedFormat === DetectedFormat.UNKNOWN) {
+            setError("Invalid format. Please ensure the content is valid JSON or XML.");
+        }
     }, [type, detectedFormat, importTypeName]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
         if (!value || value.trim() === "") {
-            return DetectedFormat.UNKNOWN;
+            return DetectedFormat.EMPTY;
         }
 
         const trimmed = value.trim();
@@ -158,9 +166,11 @@ export function GenericImportTab(props: GenericImportTabProps) {
             (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
             try {
                 JSON.parse(trimmed);
+                setError("");
                 return DetectedFormat.JSON;
             } catch (e) {
                 // Not valid JSON, continue checking
+                setError("Invalid JSON format");
             }
         }
 
@@ -171,10 +181,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 const doc = parser.parseFromString(trimmed, "text/xml");
                 // Check if parsing produced an error node
                 if (doc.getElementsByTagName("parsererror").length === 0) {
+                    setError("");
                     return DetectedFormat.XML;
                 }
             } catch (e) {
                 // Not valid XML
+                setError("Invalid XML format");
             }
         }
 
@@ -257,9 +269,6 @@ export function GenericImportTab(props: GenericImportTabProps) {
         // Detect format
         const format = detectFormat(newContent);
         setDetectedFormat(format);
-
-        // Clear errors
-        setError("");
     };
 
     const handleFileUpload = (fileContent: string) => {
@@ -268,7 +277,6 @@ export function GenericImportTab(props: GenericImportTabProps) {
         // Auto-detect format from uploaded file content
         const format = detectFormat(fileContent);
         setDetectedFormat(format);
-        setError("");
     };
 
     const importAsJson = async () => {
@@ -406,7 +414,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 generatedJson = JSON.stringify(generatedJsonObj, null, 2);
             } catch (error) {
                 console.error("Error during AI Example JSON generation:", error);
-                
+
                 // Use fallback mock data
                 const mockGeneratedJson = {
                     id: 1,
@@ -435,48 +443,48 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     return (
         <>
-            <InfoBanner>
-                <Codicon name="info" />
-                <InfoText variant="body3">
-                    Supports JSON and XML formats — just paste a Sample or Upload a file
-                </InfoText>
-            </InfoBanner>
-            <HeaderRow>
-                <Title variant="h4" sx={{ margin: '0px' }}>Sample data</Title>
-                <UploadButtonWrapper>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        accept=".json,.xml"
-                        style={{ display: 'none' }}
-                    />
-                    <LinkButton
-                        onClick={handleUploadClick}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            backgroundColor: 'transparent',
-                            border: '1px solid var(--vscode-textLink-foreground)',
-                            color: 'var(--vscode-textLink-foreground)',
-                            padding: '6px 12px',
-                            fontSize: '13px'
-                        }}
-                    >
-                        <Icon
-                            name="bi-import"
-                            iconSx={{ fontSize: "15px" }}
-                            sx={{ marginRight: "5px" }}
+            <ContentBody>
+                <InfoBanner>
+                    <Codicon name="info" />
+                    <InfoText variant="body3">
+                        Supports JSON and XML formats — just paste a Sample or Upload a file
+                    </InfoText>
+                </InfoBanner>
+                <HeaderRow>
+                    <Title variant="h4" sx={{ margin: '0px' }}>Sample data</Title>
+                    <UploadButtonWrapper>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            accept=".json,.xml"
+                            style={{ display: 'none' }}
                         />
-                        <Typography variant="body3">
-                            Upload File
-                        </Typography>
-                    </LinkButton>
-                </UploadButtonWrapper>
-            </HeaderRow>
+                        <LinkButton
+                            onClick={handleUploadClick}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                backgroundColor: 'transparent',
+                                border: '1px solid var(--vscode-textLink-foreground)',
+                                color: 'var(--vscode-textLink-foreground)',
+                                padding: '6px 12px',
+                                fontSize: '13px'
+                            }}
+                        >
+                            <Icon
+                                name="bi-import"
+                                iconSx={{ fontSize: "15px" }}
+                                sx={{ marginRight: "5px" }}
+                            />
+                            <Typography variant="body3">
+                                Upload File
+                            </Typography>
+                        </LinkButton>
+                    </UploadButtonWrapper>
+                </HeaderRow>
 
-            <ScrollableSection>
 
                 <div style={{ position: 'relative' }}>
                     <TextArea
@@ -534,31 +542,31 @@ export function GenericImportTab(props: GenericImportTabProps) {
                         </div>
                     )}
                 </div>
-            </ScrollableSection>
 
-            {detectedFormat === DetectedFormat.JSON && (
-                <CategoryRow showBorder={false}>
-                    <TextFieldWrapper>
-                        <TextField
-                            label="Type Name"
-                            value={importTypeName}
-                            errorMsg={nameError}
-                            onBlur={handleOnBlur}
-                            onChange={(e) => handleNameChange(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleNameChange((e.target as HTMLInputElement).value);
-                                }
-                            }}
-                            onFocus={(e) => {
-                                e.target.select();
-                                validateTypeName(e.target.value);
-                            }}
-                            ref={nameInputRef}
-                        />
-                    </TextFieldWrapper>
-                </CategoryRow>
-            )}
+                {detectedFormat === DetectedFormat.JSON && (
+                    <CategoryRow showBorder={false}>
+                        <TextFieldWrapper>
+                            <TextField
+                                label="Type Name"
+                                value={importTypeName}
+                                errorMsg={nameError}
+                                onBlur={handleOnBlur}
+                                onChange={(e) => handleNameChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleNameChange((e.target as HTMLInputElement).value);
+                                    }
+                                }}
+                                onFocus={(e) => {
+                                    e.target.select();
+                                    validateTypeName(e.target.value);
+                                }}
+                                ref={nameInputRef}
+                            />
+                        </TextFieldWrapper>
+                    </CategoryRow>
+                )}
+            </ContentBody>
             <Footer>
                 <Button onClick={handleImport} disabled={isImportDisabled()}>
                     {isSaving ? <Typography variant="progress">Importing...</Typography> : "Import Type"}

@@ -31,6 +31,7 @@ import { debounce } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { EditorContext } from "../Contexts/TypeEditorContext";
 import { SchemaRecordEditor } from "./SchemaRecordEditor";
+import { ContentBody, Footer } from "./ContextTypeEditor";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -39,19 +40,8 @@ const CategoryRow = styled.div<{ showBorder?: boolean }>`
     align-items: flex-start;
     gap: 12px;
     width: 100%;
-    margin-top: 8px;
     padding-bottom: 14px;
     border-bottom: ${({ showBorder }) => (showBorder ? `1px solid var(--vscode-welcomePage-tileBorder)` : "none")};
-`;
-
-const Footer = styled.div<{}>`
-    display: flex;
-    gap: 8px;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 8px;
-    width: 100%;
 `;
 
 const InputWrapper = styled.div`
@@ -443,13 +433,13 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
             case TypeKind.UNION:
                 return (
                     <>
-                    <UnionEditor
-                        type={type}
-                        onChange={handleSetType}
-                        rpcClient={rpcClient}
-                        onValidationError={handleValidationError}
-                    />
-                    <AdvancedOptions type={type} onChange={handleSetType} />
+                        <UnionEditor
+                            type={type}
+                            onChange={handleSetType}
+                            rpcClient={rpcClient}
+                            onValidationError={handleValidationError}
+                        />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             case TypeKind.CLASS:
@@ -464,12 +454,12 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
             case TypeKind.ARRAY:
                 return (
                     <>
-                    <ArrayEditor
-                        type={type}
-                        onChange={handleSetType}
-                        onValidationError={handleValidationError}
-                    />
-                    <AdvancedOptions type={type} onChange={handleSetType} />
+                        <ArrayEditor
+                            type={type}
+                            onChange={handleSetType}
+                            onValidationError={handleValidationError}
+                        />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             default:
@@ -479,8 +469,9 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
 
     return (
         <>
-            <CategoryRow>
-                {/* {isNewType && (
+            <ContentBody>
+                <CategoryRow>
+                    {/* {isNewType && (
                     <Dropdown
                         id="type-selector"
                         data-testid="type-kind-dropdown"
@@ -493,90 +484,90 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                         onChange={(e) => handleTypeKindChange(e.target.value)}
                     />
                 )} */}
-                {!isNewType && !isEditing && !type.properties["name"]?.editable && (
-                    <InputWrapper>
+                    {!isNewType && !isEditing && !type.properties["name"]?.editable && (
+                        <InputWrapper>
+                            <TextFieldWrapper>
+                                <TextField
+                                    id={type.name}
+                                    data-testid="type-name-display"
+                                    name={type.name}
+                                    value={type.name}
+                                    label={type?.properties["name"]?.metadata?.label}
+                                    required={!type?.properties["name"]?.optional}
+                                    description={type?.properties["name"]?.metadata?.description}
+                                    readOnly={!type.properties["name"]?.editable}
+                                />
+                            </TextFieldWrapper>
+                            <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
+                                <Icon name="bi-edit" sx={{ width: 18, height: 18, fontSize: 18 }} />
+                            </EditButton>
+                        </InputWrapper>
+                    )}
+                    {isEditing && (
+                        <>
+                            <EditableRow>
+                                <EditRow>
+                                    <TextFieldWrapper>
+                                        <TextField
+                                            id={type.name}
+                                            label={type.properties["name"]?.metadata.label}
+                                            value={tempName}
+                                            errorMsg={nameError}
+                                            onBlur={handleOnBlur}
+                                            onFocus={handleOnFieldFocus}
+                                            onChange={(e) => handleOnTypeNameUpdate(e.target.value)}
+                                            description={type.properties["name"]?.metadata.description}
+                                            required={!type.properties["name"]?.optional}
+                                            autoFocus
+                                        />
+                                    </TextFieldWrapper>
+                                    <ButtonGroup>
+                                        <StyledButton
+                                            appearance="secondary"
+                                            onClick={cancelEditing}
+                                            disabled={isSaving}
+                                        >
+                                            Cancel
+                                        </StyledButton>
+                                        <StyledButton
+                                            appearance="primary"
+                                            onClick={editTypeName}
+                                            disabled={!isTypeNameValid || !tempName || isSaving}
+                                        >
+                                            {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
+                                        </StyledButton>
+                                    </ButtonGroup>
+                                </EditRow>
+
+                                <WarningText variant="body3">
+                                    Note: Renaming will update all references across the project
+                                </WarningText>
+                            </EditableRow>
+                        </>
+                    )}
+                    {isNewType && (
                         <TextFieldWrapper>
                             <TextField
-                                id={type.name}
-                                data-testid="type-name-display"
-                                name={type.name}
+                                label="Name"
                                 value={type.name}
-                                label={type?.properties["name"]?.metadata?.label}
-                                required={!type?.properties["name"]?.optional}
-                                description={type?.properties["name"]?.metadata?.description}
-                                readOnly={!type.properties["name"]?.editable}
+                                errorMsg={nameError}
+                                onBlur={handleOnBlur}
+                                onChange={(e) => handleOnTypeNameChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleOnTypeNameChange((e.target as HTMLInputElement).value);
+                                    }
+                                }}
+                                onFocus={(e) => { e.target.select(); validateTypeName(e.target.value) }}
+                                ref={nameInputRef}
                             />
                         </TextFieldWrapper>
-                        <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
-                            <Icon name="bi-edit" sx={{ width: 18, height: 18, fontSize: 18 }} />
-                        </EditButton>
-                    </InputWrapper>
-                )}
-                {isEditing && (
+                    )}
+                </CategoryRow>
+
+                <div style={{ overflow: 'auto', height: '350px' }}>
+                    {/* {renderEditor()} */}
                     <>
-                        <EditableRow>
-                            <EditRow>
-                                <TextFieldWrapper>
-                                    <TextField
-                                        id={type.name}
-                                        label={type.properties["name"]?.metadata.label}
-                                        value={tempName}
-                                        errorMsg={nameError}
-                                        onBlur={handleOnBlur}
-                                        onFocus={handleOnFieldFocus}
-                                        onChange={(e) => handleOnTypeNameUpdate(e.target.value)}
-                                        description={type.properties["name"]?.metadata.description}
-                                        required={!type.properties["name"]?.optional}
-                                        autoFocus
-                                    />
-                                </TextFieldWrapper>
-                                <ButtonGroup>
-                                    <StyledButton
-                                        appearance="secondary"
-                                        onClick={cancelEditing}
-                                        disabled={isSaving}
-                                    >
-                                        Cancel
-                                    </StyledButton>
-                                    <StyledButton
-                                        appearance="primary"
-                                        onClick={editTypeName}
-                                        disabled={!isTypeNameValid || !tempName || isSaving}
-                                    >
-                                        {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
-                                    </StyledButton>
-                                </ButtonGroup>
-                            </EditRow>
-
-                            <WarningText variant="body3">
-                                Note: Renaming will update all references across the project
-                            </WarningText>
-                        </EditableRow>
-                    </>
-                )}
-                {isNewType && (
-                    <TextFieldWrapper>
-                        <TextField
-                            label="Name"
-                            value={type.name}
-                            errorMsg={nameError}
-                            onBlur={handleOnBlur}
-                            onChange={(e) => handleOnTypeNameChange(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleOnTypeNameChange((e.target as HTMLInputElement).value);
-                                }
-                            }}
-                            onFocus={(e) => { e.target.select(); validateTypeName(e.target.value) }}
-                            ref={nameInputRef}
-                        />
-                    </TextFieldWrapper>
-                )}
-            </CategoryRow>
-
-           <div style={{overflow: 'auto', height: '350px'}}>
-             {/* {renderEditor()} */}
-             <>
                         <SchemaRecordEditor
                             type={type}
                             isAnonymous={false}
@@ -588,7 +579,8 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                         <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
 
-           </div>
+                </div>
+            </ContentBody>
             <Footer>
                 <Button
                     data-testid="type-create-save"

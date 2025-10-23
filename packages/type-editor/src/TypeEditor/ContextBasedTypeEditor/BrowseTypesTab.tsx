@@ -21,22 +21,8 @@ import styled from '@emotion/styled';
 import { Button, TextField, Typography, ProgressRing } from '@wso2/ui-toolkit';
 import { TypeHelperCategory, TypeHelperItem } from '../../TypeHelper';
 import { Type } from '@wso2/ballerina-core';
+import { ContentBody, Footer } from './ContextTypeEditor';
 
-const Container = styled.div`
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-`;
-
-const ContentArea = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    gap: 16px;
-    padding-bottom: 16px;
-`;
 
 const SearchContainer = styled.div`
     width: 100%;
@@ -54,6 +40,8 @@ const TypesContainer = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 380px;
+    margin-top: 8px;
 `;
 
 const CategoryTitle = styled(Typography)`
@@ -97,16 +85,6 @@ const TypeName = styled(Typography)`
     margin-bottom: 4px;
 `;
 
-const Footer = styled.div`
-    display: flex;
-    gap: 8px;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    padding-top: 16px;
-    flex-shrink: 0;
-`;
-
 const LoadingContainer = styled.div`
     display: flex;
     justify-content: center;
@@ -127,7 +105,7 @@ const EmptyState = styled.div`
 const ScrollableSection = styled.div`
     flex: 1;
     overflow-y: auto;
-    max-height: 280px
+    max-height: 320px
 `;
 
 interface BrowseTypesTabProps {
@@ -292,8 +270,8 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     };
 
     return (
-        <Container>
-            <ContentArea>
+        <>
+            <ContentBody>
                 <TextField
                     id="selected-type"
                     label="Type"
@@ -326,7 +304,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                         </ScrollableSection>
                     )}
                 </TypesContainer>
-            </ContentArea>
+            </ContentBody>
 
             <Footer>
                 <Button
@@ -336,7 +314,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                     {isSelecting ? <Typography variant="progress">Selecting...</Typography> : 'Select Type'}
                 </Button>
             </Footer>
-        </Container>
+        </>
     );
 }
 
