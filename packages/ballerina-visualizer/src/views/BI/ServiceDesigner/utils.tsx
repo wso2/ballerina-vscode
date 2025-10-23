@@ -76,3 +76,11 @@ export function removeForwardSlashes(value: string): string {
 export function canDataBind(functionModel: FunctionModel): boolean {
     return functionModel.properties?.canDataBind?.value === "true";
 }
+
+export function getReadableListenerName(name: string) {
+    // Examples names: new http:Listener(8090);, new mcp:Listener("mcp://localhost:8090")
+    // Convert the name to human readable name like "HTTP Listener" or "MCP Listener" etc..
+    const match = name.match(/new\s+([a-zA-Z0-9_]+):Listener/i);
+    const listenerType = match ? match[1] : "Unknown";
+    return `${listenerType.charAt(0).toUpperCase() + listenerType.slice(1)} Listener`;
+}

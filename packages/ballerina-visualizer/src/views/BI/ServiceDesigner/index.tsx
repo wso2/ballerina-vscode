@@ -44,7 +44,7 @@ import { FunctionForm } from "./Forms/FunctionForm";
 import { ResourceForm } from "./Forms/ResourceForm";
 import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPanel";
 import { McpToolForm } from "./Forms/McpToolForm";
-import { removeForwardSlashes, canDataBind } from "./utils";
+import { removeForwardSlashes, canDataBind, getReadableListenerName } from "./utils";
 import { DatabindForm } from "./Forms/DatabindForm";
 
 const LoadingContainer = styled.div`
@@ -802,7 +802,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     onClick={() => handleOpenListener(listener)}
                                                 >
                                                     <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
-                                                    {listener}
+                                                    {listener.includes(":") ? getReadableListenerName(listener) : listener}
                                                 </ListenerBadge>
                                             ))}
                                         </MetadataRow>
