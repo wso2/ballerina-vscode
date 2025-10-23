@@ -19,44 +19,32 @@
 import { ExpandableList } from "../Components/ExpandableList"
 import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
-import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
+import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { useEffect, useMemo, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
-import FooterButtons from "../Components/FooterButtons"
-import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
-import { FormSubmitOptions } from "../../FlowDiagram"
-import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
-import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 
-type VariablesPageProps = {
+type InputsPageProps = {
     fileName: string;
-    debouncedRetrieveCompletions?: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
-    selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
-    recordTypeField?: RecordTypeField;
-    isInModal?: boolean;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
-    onClose?: () => void;
 }
 
-type VariableItemProps = {
+type InputItemProps = {
     item: CompletionItem;
     onItemSelect: (value: string) => void;
     onMoreIconClick: (value: string) => void;
 }
 
-const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
+const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -69,7 +57,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                 maxHeight: isHovered ? "none" : "32px"
             }}
             endIcon={
-                <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
+                <InputsMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
                     event.stopPropagation();
                     onMoreIconClick(item.label);
                 }}>
@@ -79,10 +67,10 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                         </VariableTypeIndicator>
                     </Tooltip>
                     <Codicon name="chevron-right" />
-                </VariablesMoreIconContainer>}
+                </InputsMoreIconContainer>}
         >
             <ExpandableList.Item>
-                {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
+                {getHelperPaneIcon(HelperPaneIconType.INPUT)}
                 <Typography
                     variant="body3"
                     sx={{
@@ -100,7 +88,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
     );
 };
 
-const VariablesMoreIconContainer = styled.div`
+const InputsMoreIconContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -115,25 +103,17 @@ type BreadCrumbStep = {
     replaceText: string
 }
 
-export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
+export const Inputs = (props: InputsPageProps) => {
+    const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
-    const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const newNodeNameRef = useRef<string>("");
-    const [projectPathUri, setProjectPathUri] = useState<string>();
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
-        label: "Variables",
+        label: "Inputs",
         replaceText: ""
     }]);
-    const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
-
-    useEffect(() => {
-        getProjectInfo()
-    }, []);
 
     useEffect(() => {
         setIsLoading(true);
@@ -155,41 +135,11 @@ export const Variables = (props: VariablesPageProps) => {
         });
     }, [targetLineRange])
 
-    const getProjectInfo = async () => {
-        const projectPath = await rpcClient.getVisualizerLocation();
-        setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
-    }
-
-    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
-        newNodeNameRef.current = "";
-        // Safely extract the variable name as a string, fallback to empty string if not available
-        const varName = typeof updatedNode?.properties?.variable?.value === "string"
-            ? updatedNode.properties.variable.value
-            : "";
-        newNodeNameRef.current = varName;
-        handleOnFormSubmit?.(
-            updatedNode,
-            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
-            {
-                closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
-                    onClose()
-                    closeModal(POPUP_IDS.VARIABLE);
-                    onChange(newNodeNameRef.current, false, true);
-                }
-            },
-        );
-    };
-
     const dropdownItems = useMemo(() => {
-        const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
-        
         return filteredCompletions.filter(
             (completion) =>
-                (completion.kind === "field" || completion.kind === "variable") &&
-                completion.label !== "self" &&
-                !excludedDescriptions.some(desc => 
-                    completion.labelDetails?.description?.includes(desc)
-                )
+            completion.kind === "variable" &&
+            completion.labelDetails?.description?.includes("Parameter")
         );
     }, [filteredCompletions]);
 
@@ -208,23 +158,7 @@ export const Variables = (props: VariablesPageProps) => {
         onChange(value, false);
     }
 
-    const handleAddNewVariable = () => {
-        addModal(
-            <FormGenerator
-                fileName={fileName}
-                node={selectedNode}
-                connections={[]}
-                targetLineRange={targetLineRange}
-                projectPath={projectPathUri}
-                editForm={false}
-                onSubmit={handleSubmit}
-                showProgressIndicator={false}
-                resetUpdatedExpressionField={() => { }}
-                isInModal={true}
-            />, POPUP_IDS.VARIABLE, "New Variable", 600);
-        onClose && onClose();
-    }
-    const handleVariablesMoreIconClick = (value: string) => {
+    const handleInputsMoreIconClick = (value: string) => {
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
             replaceText: currentValue + value
@@ -246,103 +180,17 @@ export const Variables = (props: VariablesPageProps) => {
             <>
                 {
                     filteredDropDownItems.map((item) => (
-                        <VariableItem
+                        <InputItem
                             key={item.label}
                             item={item}
                             onItemSelect={handleItemSelect}
-                            onMoreIconClick={handleVariablesMoreIconClick}
+                            onMoreIconClick={handleInputsMoreIconClick}
                         />
                     ))
                 }
             </>
         )
     }
-
-
-    const getTypeDef = () => {
-        return (
-            {
-                metadata: {
-                    label: "Type",
-                    description: "Type of the variable",
-                },
-                valueType: "TYPE",
-                value: selectedType?.label,
-                placeholder: "var",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            }
-        )
-
-    }
-
-
-    const selectedNode: FlowNode = {
-        codedata: {
-            node: 'VARIABLE',
-            isNew: true,
-        },
-        flags: 0,
-        id: "31",
-        metadata: {
-            label: 'Declare Variable',
-            description: 'New variable with type'
-        },
-        properties: {
-            variable: {
-                metadata: {
-                    label: "Name",
-                    description: "Name of the variable",
-                },
-                valueType: "IDENTIFIER",
-                value: "var1",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            },
-            type: getTypeDef(),
-            expression: {
-                metadata: {
-                    label: "Expression",
-                    description: "Expression of the variable",
-                },
-                valueType: "ACTION_OR_EXPRESSION",
-                value: "",
-                optional: true,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            },
-        },
-        returning: false,
-        branches: []
-    };
-
-    const findNodeWithName = (node: FlowNode, name: string) => {
-        return node?.properties?.variable?.value === name;
-    }
-
-    const searchNodes = (nodes: FlowNode[], name: string): FlowNode | undefined => {
-        for (const node of nodes) {
-            if (findNodeWithName(node, name)) {
-                return node;
-            }
-            if (node.branches && node.branches.length > 0) {
-                for (const branch of node.branches) {
-                    if (branch.children && branch.children.length > 0) {
-                        const foundNode = searchNodes(branch.children, name);
-                        if (foundNode) {
-                            return foundNode;
-                        }
-                    }
-                }
-            }
-        }
-        return undefined;
-    };
 
     return (
         <div style={{
@@ -376,7 +224,7 @@ export const Variables = (props: VariablesPageProps) => {
                 ) : (
                     <>
                         {filteredDropDownItems.length === 0 ? (
-                            <EmptyItemsPlaceHolder message="No variables found" />
+                            <EmptyItemsPlaceHolder message="No inputs found" />
                         ) : (
                             <ExpandableList>
                                 <ExpandableListItems />
@@ -385,9 +233,6 @@ export const Variables = (props: VariablesPageProps) => {
                     </>
                 )}
             </ScrollableContainer>
-
-            <Divider sx={{ margin: "0px" }} />
-            {isInModal ? null : <div><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
         </div>
     )
 }
