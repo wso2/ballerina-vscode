@@ -53,7 +53,6 @@ const ParamType = styled.span`
     border-radius: 4px;
     padding: 2px 8px;
     letter-spacing: 0.1px;
-    width: 60px;
 `;
 
 const ParamDefault = styled.span`
