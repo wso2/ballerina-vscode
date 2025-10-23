@@ -50,8 +50,9 @@ export const ContentSection = styled.div<CSSObject>`
     display: flex;
     flex-direction: row;
     width: 100%;
+    justify-content: space-between;
     ${(props: any) => props.justifyEnd && `
-        justify-content: space-between;
+        justify-content: flex-end;
         margin-right: 20px;
     `}
 `;
@@ -62,7 +63,6 @@ export const EditIconWrapper = styled.div<CSSObject>`
     width: 14px;
     margin-top: 16px;
     margin-bottom: 13px;
-    margin-left: 10px;
     color: var(--vscode-statusBarItem-remoteBackground);
 `;
 
@@ -100,7 +100,6 @@ export const IconTextWrapper = styled.div<CSSObject>`
 export const headerLabelStyles = cx(css`
     display: flex;
     align-items: center;
-    width: 320px;
     cursor: pointer;
     margin-left: 12px;
     line-height: 14px;
@@ -116,7 +115,6 @@ export const OptionLabel = styled.div<CSSObject>`
 export const disabledHeaderLabel = cx(css`
     display: flex;
     align-items: center;
-    width: 320px;
     margin-left: 12px;
     line-height: 14px;
 `);
@@ -137,7 +135,7 @@ export const ActionIconWrapper = styled.div<CSSObject>`
     align-items: center;
     cursor: pointer;
     height: 14px;
-    width: 14px;
+    margin-right: 10px;
 `;
 
 export const ParamContainer = styled.div<CSSObject>`

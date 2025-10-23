@@ -37,18 +37,22 @@ import {
     ListenersRequest,
     ListenersResponse,
     OpenAPISpec,
+    PayloadContext,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     ResourceSourceCodeResponse,
     ServiceDesignerAPI,
+    ServiceInitSourceRequest,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
+    ServiceModelInitResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
+    SourceEditResponse,
     TriggerModelsRequest,
     TriggerModelsResponse,
-    UpdatedArtifactsResponse
+    UpdatedArtifactsResponse,
+    VisibleTypesResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -57,6 +61,7 @@ import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+import { generateExamplePayload } from "../../features/ai/service/editor/payload-json/payload_json";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
@@ -388,13 +393,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         }
     }
 
-    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             params.filePath = StateMachine.context().projectUri;
             params.context = "HTTP_STATUS_CODE";
             try {
-                const res: ResourceReturnTypesResponse = await context.langClient.getResourceReturnTypes(params);
+                const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
             } catch (error) {
                 console.log(">>> error fetching resource return types", error);
@@ -412,5 +417,68 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 console.log(">>> error fetching function model", error);
             }
         });
+    }
+
+    async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const projectDir = path.join(StateMachine.context().projectUri);
+                const targetFile = path.join(projectDir, `main.bal`);
+                this.ensureFileExists(targetFile);
+                params.filePath = targetFile;
+                const res: ServiceModelInitResponse = await context.langClient.getServiceInitModel(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async createServiceAndListener(params: ServiceInitSourceRequest): Promise<UpdatedArtifactsResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const projectDir = path.join(StateMachine.context().projectUri);
+                const targetFile = path.join(projectDir, `main.bal`);
+                this.ensureFileExists(targetFile);
+                params.filePath = targetFile;
+                const identifiers = [];
+                for (let property in params.serviceInitModel.properties) {
+                    const value = params.serviceInitModel.properties[property].value 
+                    || params.serviceInitModel.properties[property].values?.at(0);
+                    if (value) {
+                        identifiers.push(value);
+                    }
+                    if (params.serviceInitModel.properties[property].choices) {
+                        params.serviceInitModel.properties[property].choices.forEach(choice => {
+                            if (choice.properties) {
+                                Object.keys(choice.properties).forEach(subProperty => {
+                                    const subPropertyValue = choice.properties[subProperty].value;
+                                    if (subPropertyValue) {
+                                        identifiers.push(subPropertyValue);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+                const res: SourceEditResponse = await context.langClient.createServiceAndListener(params);
+
+                const edits = { textEdits: res.textEdits, resolveMissingDependencies: false };
+
+                const artifacts = await updateSourceCode(edits, { artifactType: DIRECTORY_MAP.SERVICE });
+                let result: UpdatedArtifactsResponse = {
+                    artifacts: artifacts
+                };
+                resolve(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async generateExamplePayloadJson(params: PayloadContext): Promise<object> {
+        return await generateExamplePayload(params);
     }
 }
