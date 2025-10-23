@@ -17,6 +17,7 @@
  */
 
 import { HistoryEntry } from "../../history";
+import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
 import { AddToUndoStackRequest, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
 
@@ -33,4 +34,5 @@ export interface VisualizerAPI {
     undoRedoState: () => Promise<UndoRedoStateResponse>;
     joinProjectPath: (segments: string | string[]) => Promise<string>;
     getThemeKind: () => Promise<ColorThemeKind>;
+    updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
 }
