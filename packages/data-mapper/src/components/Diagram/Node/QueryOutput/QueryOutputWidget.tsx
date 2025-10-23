@@ -113,10 +113,10 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	return (
 		<>
-			<TreeContainer data-testid={`${id}-H-node`} onContextMenu={onRightClick}>
+			<TreeContainer data-testid={`${id}.#-node`} onContextMenu={onRightClick}>
 				<TreeHeader
 					isSelected={portState !== PortState.Unselected}
-					id={"recordfield-" + id + "-H"}
+					id={"recordfield-" + id + ".#"}
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
 				>
