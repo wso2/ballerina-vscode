@@ -22,9 +22,10 @@ import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel } from "./utils";
+import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
+import { DATA_ELEMENT_ID_ATTRIBUTE } from "./constants"; // Import the constant
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -47,7 +48,10 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
+    const [isEditableSpanFocused, setIsEditableSpanFocused] = useState(false);
+    const [chipClicked, setChipClicked] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isHelperPaneOpen, setIsHelperPaneOpen] = useState(false);
 
     const fieldContainerRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +85,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const handleExpressionChange = (updatedModel: ExpressionModel[]) => {
         const updatedValue = getTextValueFromExpressionModel(updatedModel);
         props.onChange(updatedValue, updatedValue.length);
-        
+
         setExpressionModel(updatedModel);
 
         // Mark that user has typed since focus
@@ -138,6 +142,29 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         setIsCompletionsOpen(false);
     };
 
+    const handleHelperPaneValueChange = async (value: string) => {
+        const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
+        console.log("absoluteCaretPosition", absoluteCaretPosition);
+        const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value);
+
+        if (updatedExpressionModelInfo) {
+            const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
+
+            const textValue = getTextValueFromExpressionModel(updatedModel || []);
+            const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
+
+            let exprModel = createExpressionModelFromTokens(textValue, updatedTokens);
+
+            // Map absolute position into new model and set focus flags
+            const mapped = mapAbsoluteToModel(exprModel, newCursorPosition);
+            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
+            props.onChange(updatedValue, newCursorPosition);
+            setExpressionModel(exprModel);
+        }
+
+        setIsHelperPaneOpen(false);
+    };
+
     const handleCompletionKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (!isCompletionsOpen || props.completions.length === 0) return;
 
@@ -177,18 +204,80 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         if (!isAnyElementFocused) {
             setHasTypedSinceFocus(false);
             setIsCompletionsOpen(false);
+            setIsHelperPaneOpen(false);
+            setChipClicked(false);
+        } else if ((isEditableSpanFocused || chipClicked) && !hasTypedSinceFocus) {
+            // Show HelperPane when focused on editable span or chip was clicked, and hasn't typed yet
+            console.log('Setting HelperPane open: editable span focused or chip clicked, and not typed yet');
+            calculateCompletionsMenuPosition(fieldContainerRef, setMenuPosition);
+            setIsHelperPaneOpen(true);
         }
-    }, [isAnyElementFocused]);
+    }, [isAnyElementFocused, isEditableSpanFocused, chipClicked, hasTypedSinceFocus]);
+
+    useEffect(() => {
+        // Hide HelperPane when user starts typing
+        if (hasTypedSinceFocus) {
+            setIsHelperPaneOpen(false);
+            setChipClicked(false); // Reset chip clicked state when typing starts
+        }
+    }, [hasTypedSinceFocus]);
+
+    useEffect(() => {
+        // Hide HelperPane when completions are open
+        if (isCompletionsOpen) {
+            setIsHelperPaneOpen(false);
+        }
+    }, [isCompletionsOpen]);
+
+    const handleChipClick = useCallback((element: HTMLElement, value: string, type: string, absoluteOffset?: number) => {
+        console.log('Chip clicked:', value, type);
+        setChipClicked(true);
+
+        // Retrieve the data-element-id attribute
+        const chipId = element.getAttribute(DATA_ELEMENT_ID_ATTRIBUTE);
+        if (chipId && expressionModel) {
+            // Find the corresponding expressionModel element
+            const updatedExpressionModel = expressionModel.map(model => {
+                if (model.id === chipId) {
+                    return { ...model, isFocused: true, offset: model.length - 1 };
+                }
+                return { ...model, isFocused: false }; // Reset focus for other elements
+            });
+
+            setExpressionModel(updatedExpressionModel);
+        }
+
+        calculateCompletionsMenuPosition(fieldContainerRef, setMenuPosition);
+        setIsHelperPaneOpen(true);
+    }, [expressionModel]);
+
+    const handleChipBlur = useCallback(() => {
+        console.log('Chip blurred');
+        // Don't close HelperPane on chip blur - let focus change handle it
+    }, []);
+
+    const toggleHelperPane = useCallback(() => {
+        setIsHelperPaneOpen(prev => !prev);
+    }, []);
+
+    useEffect(() => {
+        console.log('HelperPane open state:', isHelperPaneOpen, 'chipClicked:', chipClicked);
+    }, [isHelperPaneOpen, chipClicked]);
 
     return (
         <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative' }}>
             <FXButton />
             <AutoExpandingEditableDiv
                 fieldContainerRef={fieldContainerRef}
-                onFocusChange={(focused) => setIsAnyElementFocused(focused)}
+                onFocusChange={(focused, isEditableSpan) => {
+                    console.log('Focus change:', focused, 'isEditableSpan:', isEditableSpan, 'hasTypedSinceFocus:', hasTypedSinceFocus);
+                    setIsAnyElementFocused(focused);
+                    setIsEditableSpanFocused(isEditableSpan);
+                }}
                 onKeyDown={handleKeyDown}
                 isExpanded={isExpanded}
                 setIsExpanded={setIsExpanded}
+                handleHelperPaneValueChange={handleHelperPaneValueChange}
                 isCompletionsOpen={isCompletionsOpen}
                 completions={props.completions}
                 selectedCompletionItem={selectedCompletionItem}
@@ -196,17 +285,24 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 onCompletionSelect={handleCompletionSelect}
                 onCompletionHover={setSelectedCompletionItem}
                 onCloseCompletions={() => setIsCompletionsOpen(false)}
+                getHelperPane={props.getHelperPane}
+                isHelperPaneOpen={isHelperPaneOpen}
+                onHelperPaneClose={() => setIsHelperPaneOpen(false)}
+                onToggleHelperPane={toggleHelperPane}
             >
                 <TokenizedExpression
                     expressionModel={expressionModel || []}
                     onExpressionChange={handleExpressionChange}
                     onTriggerRebuild={handleTriggerRebuild}
+                    onChipClick={handleChipClick}
+                    onChipBlur={handleChipBlur}
                 />
             </AutoExpandingEditableDiv>
         </ChipEditorContainer >
             {/* <pre>{JSON.stringify(tokens)}</pre>
-            <pre>{JSON.stringify(expressionModel)}</pre>
+           
             <pre>{JSON.stringify(props.completions)}</pre> */}
+            <pre>{JSON.stringify(expressionModel, null, 2)}</pre>
         </>
     )
 }

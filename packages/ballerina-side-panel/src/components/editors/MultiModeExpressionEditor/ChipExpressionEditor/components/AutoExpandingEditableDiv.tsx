@@ -19,12 +19,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ChipEditorField } from "../styles"
 import { useFormContext } from "../../../../../context";
-import { ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
+import { ThemeColors, CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, ExpandedPopupContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
 import { ExpandButton, GetHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_MENU_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
+import { getTextValueFromExpressionModel } from "../utils";
 
 export type AutoExpandingEditableDivProps = {
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
@@ -35,7 +36,7 @@ export type AutoExpandingEditableDivProps = {
     onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
     onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
     style?: React.CSSProperties;
-    onFocusChange?: (isFocused: boolean) => void;
+    onFocusChange?: (isFocused: boolean, isEditableSpan: boolean) => void;
     isExpanded?: boolean;
     setIsExpanded?: (isExpanded: boolean) => void;
     // Completions props
@@ -46,19 +47,29 @@ export type AutoExpandingEditableDivProps = {
     onCompletionSelect?: (item: CompletionItem) => void;
     onCompletionHover?: (index: number) => void;
     onCloseCompletions?: () => void;
+    //helperpane
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, updatedCursorPosition: number) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode
+    isHelperPaneOpen?: boolean;
+    onHelperPaneClose?: () => void;
+    onToggleHelperPane?: () => void;
+    handleHelperPaneValueChange?: (value: string) => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
-    const { 
-        children, 
-        onKeyUp, 
-        onKeyDown, 
-        onMouseDown, 
-        onMouseUp, 
-        onInput, 
-        fieldContainerRef, 
-        style, 
-        isExpanded, 
+    const {
+        children,
+        onKeyUp,
+        onKeyDown,
+        onMouseDown,
+        onMouseUp,
+        onInput,
+        fieldContainerRef,
+        style,
+        isExpanded,
         setIsExpanded } = props;
 
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
@@ -97,6 +108,29 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         );
     };
 
+    const renderHelperPane = () => {
+        if (!props.getHelperPane || !props.isHelperPaneOpen) return null;
+
+        const menuWidth = COMPLETIONS_WIDTH; 
+        const viewportWidth = document.documentElement.clientWidth; 
+        const adjustedLeft = Math.max(0, Math.min(props.menuPosition.left, viewportWidth - menuWidth - 10));
+        return (
+            <ContextMenuContainer
+                ref={menuRef}
+                top={props.menuPosition.top}
+                left={adjustedLeft}
+                data-menu={CHIP_MENU_VALUE}
+                onMouseDown={(e) => e.preventDefault()}
+            >
+               {props.getHelperPane(
+                    "var",
+                    props.handleHelperPaneValueChange ? props.handleHelperPaneValueChange : () => {},
+                    "3/4"
+               )}
+            </ContextMenuContainer>
+        );
+    };
+
     const checkFocusState = useCallback(() => {
         const container = fieldContainerRef?.current;
         if (!container) {
@@ -116,8 +150,16 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             activeElement?.hasAttribute(DATA_ELEMENT_ID_ATTRIBUTE) ||
             activeElement?.getAttribute(ARIA_PRESSED_ATTRIBUTE) !== null; // Floating toggle buttons
 
-        setIsAnyElementFocused(isWithinContainer && isEditableOrChip);
-    }, [fieldContainerRef]);
+        const isEditableSpan = activeElement?.hasAttribute('contenteditable');
+
+        const newFocusState = isWithinContainer && isEditableOrChip;
+        console.log('Focus check:', { activeElement: activeElement?.tagName, isWithinContainer, isEditableOrChip, isEditableSpan, newFocusState });
+        setIsAnyElementFocused(newFocusState);
+        
+        if (props.onFocusChange) {
+            props.onFocusChange(newFocusState, isEditableSpan);
+        }
+    }, [fieldContainerRef, props.onFocusChange]);
 
     useEffect(() => {
         const handleFocusChange = () => {
@@ -132,26 +174,21 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     }, [checkFocusState]);
 
     useEffect(() => {
-        if (props.onFocusChange) {
-            props.onFocusChange(isAnyElementFocused);
-        }
-    }, [isAnyElementFocused, props.onFocusChange]);
-
-    useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
                 props.onCloseCompletions?.();
+                props.onHelperPaneClose?.();
             }
         };
 
-        if (props.isCompletionsOpen) {
+        if (props.isCompletionsOpen || props.isHelperPaneOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [props.isCompletionsOpen, props.onCloseCompletions]);
+    }, [props.isCompletionsOpen, props.isHelperPaneOpen, props.onCloseCompletions, props.onHelperPaneClose]);
 
     useEffect(() => {
         if (isExpanded) {
@@ -177,7 +214,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                             <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
                                 <ExpandButton />
                             </FloatingToggleButton>
-                            <FloatingToggleButton isActive={false} onClick={() => { }} title="Helper">
+                            <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
                                 <GetHelperButton />
                             </FloatingToggleButton>
                         </FloatingButtonContainer>
@@ -193,7 +230,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         } else {
             popupManager.closePopup("chip-expression-editor-expanded");
         }
-    }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem])
+    }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem, props.isHelperPaneOpen])
 
     return (
         <>
@@ -222,7 +259,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 >
                     {children}
                     <FloatingButtonContainer>
-                        <FloatingToggleButton isActive={false} onClick={() => { }} title="Helper">
+                        <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
                             <GetHelperButton />
                         </FloatingToggleButton>
                         <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
@@ -230,6 +267,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                         </FloatingToggleButton>
                     </FloatingButtonContainer>
                     {renderCompletionsMenu()}
+                    {renderHelperPane()}
                 </ChipEditorField>
             )}
         </>

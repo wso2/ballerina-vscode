@@ -36,7 +36,8 @@ export const getTokenChip = (
     type: string,
     absoluteOffset?: number,
     onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void,
-    onChipBlur?: () => void
+    onChipBlur?: () => void,
+    chipId?: string
 ): ReactNode => {
     const handleClick = (element: HTMLElement) => {
         console.log(`Clicked on ${type}: ${value}`);
@@ -54,13 +55,13 @@ export const getTokenChip = (
 
     switch (type) {
         case "variable":
-            return <ChipComponent type="variable" text={value} onClick={handleClick} onBlur={handleBlur} />;
+            return <ChipComponent type="variable" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} />;
         case "parameter":
-            return <ChipComponent type="parameter" text={value} onClick={handleClick} onBlur={handleBlur} />;
+            return <ChipComponent type="parameter" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} />;
         case "property":
-            return <ChipComponent type="property" text={value} onClick={handleClick} onBlur={handleBlur} />;
+            return <ChipComponent type="property" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} />;
         default:
-            return <ChipComponent type="property" text={value} onClick={handleClick} onBlur={handleBlur} />;
+            return <ChipComponent type="property" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} />;
     }
 }
 
@@ -96,7 +97,8 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                                     'variable',
                                     undefined,
                                     props.onChipClick,
-                                    props.onChipBlur
+                                    props.onChipBlur,
+                                    element.id
                                 )}
                             </React.Fragment>
                         );
