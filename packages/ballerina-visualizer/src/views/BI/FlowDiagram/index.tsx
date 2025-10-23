@@ -85,7 +85,7 @@ export interface BIFlowDiagramProps {
     breakpointState?: boolean;
     syntaxTree?: STNode;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
     onSave?: () => void;
 }
 
@@ -470,7 +470,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             const parentMetadata = model.flowModel.nodes.find(
                                 (node) => node.codedata.node === "EVENT_START"
                             )?.metadata.data as ParentMetadata | undefined;
-                            onReady(model.flowModel.fileName, parentMetadata);
+
+                            // Get visualizer location and pass position to onReady
+                            rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
+                                console.log(">>> Visualizer location", location?.position);
+                                onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                            });
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
@@ -486,7 +491,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .finally(() => {
                         setShowProgressIndicator(false);
                         setShowProgressSpinner(false);
-                        onReady(undefined);
+                        onReady(undefined, undefined, undefined);
                         if (hasDraft) {
                             completeDraft();
                         }
