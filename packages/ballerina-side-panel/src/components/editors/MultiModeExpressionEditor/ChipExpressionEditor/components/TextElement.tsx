@@ -43,6 +43,7 @@ export const TextElement = (props: {
     }, [onTriggerRebuild]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+        console.log("called this")
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
     };
 
