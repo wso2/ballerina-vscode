@@ -397,12 +397,15 @@ public class McpToolKitBuilder extends NodeBuilder {
         }
         String methodName = sb.toString();
 
-        if (!Character.isJavaIdentifierStart(methodName.charAt(0))) {
-            methodName = "_" + methodName;
-        }
+        // Replace invalid characters with underscores first
         methodName = methodName.chars()
                 .mapToObj(c -> Character.isJavaIdentifierPart(c) ? String.valueOf((char) c) : "_")
                 .collect(Collectors.joining());
+
+        // Then check if we need a leading underscore
+        if (!Character.isJavaIdentifierStart(methodName.charAt(0))) {
+            methodName = "_" + methodName;
+        }
 
         if (SyntaxInfo.isKeyword(methodName) || predefinedMembers.contains(methodName)) {
             methodName = "'" + methodName;
