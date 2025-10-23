@@ -1,1 +1,0 @@
-{"items": "from var ItemItem in tr.Items.Item\n select {\n date: tr.Timestamp,\nproduct_id: ItemItem.ProductId,\nquantity: ItemItem.Quantity,\ntotal: tr.TotalAmount\n}"}

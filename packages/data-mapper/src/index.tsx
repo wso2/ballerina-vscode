@@ -62,6 +62,7 @@ export interface ExpressionBarProps {
 export interface DataMapperEditorProps {
     modelState: ModelState;
     name: string;
+    reusable?: boolean;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
