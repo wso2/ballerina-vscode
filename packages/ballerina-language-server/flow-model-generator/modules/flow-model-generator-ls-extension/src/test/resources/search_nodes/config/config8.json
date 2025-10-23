@@ -1,0 +1,167 @@
+{
+  "source": "proj/main.bal",
+  "description": "Position-based with kind=VARIABLE filter",
+  "position": {
+    "line": 5,
+    "offset": 5
+  },
+  "queryMap": {
+    "kind": "VARIABLE"
+  },
+  "output": [
+    {
+      "id": "36732",
+      "metadata": {
+        "label": "Declare Variable",
+        "description": "Assign a value to a variable"
+      },
+      "codedata": {
+        "node": "VARIABLE",
+        "lineRange": {
+          "fileName": "connections.bal",
+          "startLine": {
+            "line": 5,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 5,
+            "offset": 28
+          }
+        },
+        "sourceCode": "string configValue = \"test\";"
+      },
+      "returning": false,
+      "properties": {
+        "expression": {
+          "metadata": {
+            "label": "Expression",
+            "description": "Initialize with value"
+          },
+          "valueType": "ACTION_OR_EXPRESSION",
+          "value": "\"test\"",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "variable": {
+          "metadata": {
+            "label": "Name",
+            "description": "Name of the variable"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "configValue",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "lineRange": {
+              "fileName": "connections.bal",
+              "startLine": {
+                "line": 5,
+                "offset": 7
+              },
+              "endLine": {
+                "line": 5,
+                "offset": 18
+              }
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "placeholder": "var",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {}
+        }
+      },
+      "flags": 0
+    },
+    {
+      "id": "37717",
+      "metadata": {
+        "label": "Declare Variable",
+        "description": "Assign a value to a variable"
+      },
+      "codedata": {
+        "node": "VARIABLE",
+        "lineRange": {
+          "fileName": "connections.bal",
+          "startLine": {
+            "line": 6,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 6,
+            "offset": 21
+          }
+        },
+        "sourceCode": "int numberValue = 42;"
+      },
+      "returning": false,
+      "properties": {
+        "expression": {
+          "metadata": {
+            "label": "Expression",
+            "description": "Initialize with value"
+          },
+          "valueType": "ACTION_OR_EXPRESSION",
+          "value": "42",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "variable": {
+          "metadata": {
+            "label": "Name",
+            "description": "Name of the variable"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "numberValue",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "lineRange": {
+              "fileName": "connections.bal",
+              "startLine": {
+                "line": 6,
+                "offset": 4
+              },
+              "endLine": {
+                "line": 6,
+                "offset": 15
+              }
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "int",
+          "placeholder": "var",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {}
+        }
+      },
+      "flags": 0
+    }
+  ]
+}
