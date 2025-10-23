@@ -47,6 +47,31 @@ export const TextElement = (props: {
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
     };
 
+    const updateFocusOffset = (host: HTMLSpanElement) => {
+        if (!onExpressionChange) return;
+        const offset = getCaretOffsetWithin(host);
+        const updatedModel = props.expressionModel.map((el, i) =>
+            i === props.index
+                ? { ...el, isFocused: true, focusOffset: offset }
+                : { ...el, isFocused: false, focusOffset: undefined }
+        );
+        onExpressionChange(updatedModel, 0);
+    };
+
+    const handleKeyUp = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+        const host = spanRef.current;
+        if (!host) return;
+        // Sync caret after navigation keys or any keyup
+        updateFocusOffset(host);
+    };
+
+    const handleMouseUp = (e: React.MouseEvent<HTMLSpanElement>) => {
+        const host = spanRef.current;
+        if (!host) return;
+        // Sync caret after mouse placement
+        updateFocusOffset(host);
+    };
+
     const restoreCaret = (el: HTMLSpanElement, offset: number) => {
         if (!el.firstChild) {
             el.appendChild(document.createTextNode(""));
@@ -169,6 +194,8 @@ export const TextElement = (props: {
             data-element-id={props.element.id}
             onInput={handleInput}
             onFocus={handleFocus}
+            onKeyUp={handleKeyUp}
+            onMouseUp={handleMouseUp}
             onKeyDown={handleKeyDown}
             contentEditable
             suppressContentEditableWarning>{props.element.value}

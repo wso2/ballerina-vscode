@@ -460,6 +460,25 @@ export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): 
     return sumOfChars + carrotOffsetInSelectedSpan;
 };
 
+export const getAbsoluteCaretPositionFromModel = (expressionModel: ExpressionModel[]): number => {
+    console.log("Expression Model:", expressionModel);
+    if (!expressionModel || expressionModel.length === 0) return 0;
+
+    let absolutePosition = 0;
+
+    for (const element of expressionModel) {
+        if (element.isFocused) {
+            // Add the focusOffset to the cumulative length of previous elements
+            absolutePosition += element.focusOffset ?? 0;
+            break;
+        }
+        // Add the length of the current element to the cumulative position
+        absolutePosition += element.length;
+    }
+
+    return absolutePosition;
+};
+
 export const mapAbsoluteToModel = (model: ExpressionModel[], absolutePos: number): { index: number; offset: number } | null => {
     console.log("MODEL", model)
     if (!model || model.length === 0) return null;
@@ -609,7 +628,8 @@ export const updateExpressionModelWithHelper = (
 export const updateExpressionModelWithHelperValue = (
     expressionModel: ExpressionModel[] | undefined,
     absoluteCaretPosition: number,
-    helperValue: string
+    helperValue: string,
+    replaceEntireToken: boolean = false
 ): { updatedModel: ExpressionModel[]; updatedValue: string; newCursorPosition: number } | null => {
     console.log("#QWE")
     if (!expressionModel) return null;
@@ -643,7 +663,15 @@ export const updateExpressionModelWithHelperValue = (
 
     if (!elementAboutToModify || typeof elementAboutToModify.value !== 'string') return null;
 
-    const updatedText = helperValue;
+    let updatedText = '';
+    if (replaceEntireToken) {
+        updatedText = helperValue;
+    }
+    else {
+        const textBeforeCaret = elementAboutToModify.value.substring(0, offset);
+        const textAfterCaret = elementAboutToModify.value.substring(offset);
+        updatedText = textBeforeCaret + helperValue + textAfterCaret;
+    }
 
     // Calculate new cursor position: sum of lengths before this element + position after completion
     let sumOfCharsBefore = 0;

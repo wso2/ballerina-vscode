@@ -75,6 +75,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
 
     const menuRef = useRef<HTMLDivElement>(null);
+    const lastFocusStateRef = useRef<{ focused: boolean; isEditable: boolean }>({ focused: false, isEditable: false });
 
     const { popupManager } = useFormContext();
 
@@ -153,13 +154,19 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         const isEditableSpan = activeElement?.hasAttribute('contenteditable');
 
         const newFocusState = isWithinContainer && isEditableOrChip;
-        console.log('Focus check:', { activeElement: activeElement?.tagName, isWithinContainer, isEditableOrChip, isEditableSpan, newFocusState });
-        setIsAnyElementFocused(newFocusState);
         
-        if (props.onFocusChange) {
-            props.onFocusChange(newFocusState, isEditableSpan);
+        // Only update and call callback if the state actually changed
+        const lastState = lastFocusStateRef.current;
+        if (lastState.focused !== newFocusState || lastState.isEditable !== isEditableSpan) {
+            console.log('Focus check:', { activeElement: activeElement?.tagName, isWithinContainer, isEditableOrChip, isEditableSpan, newFocusState });
+            setIsAnyElementFocused(newFocusState);
+            lastFocusStateRef.current = { focused: newFocusState, isEditable: isEditableSpan };
+            
+            if (props.onFocusChange) {
+                props.onFocusChange(newFocusState, isEditableSpan);
+            }
         }
-    }, [fieldContainerRef, props.onFocusChange]);
+    }, [fieldContainerRef]); // Remove props.onFocusChange from dependencies
 
     useEffect(() => {
         const handleFocusChange = () => {

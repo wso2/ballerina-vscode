@@ -22,7 +22,7 @@ import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue } from "./utils";
+import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue, getAbsoluteCaretPositionFromModel } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE } from "./constants"; // Import the constant
@@ -143,6 +143,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     };
 
     const handleHelperPaneValueChange = async (value: string) => {
+        console.log("ChipCLICKED", chipClicked);
         if (chipClicked) {
             let absoluteCaretPosition = 0;
             for (let i = 0; i < expressionModel?.length; i++) {
@@ -152,7 +153,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 }
                 absoluteCaretPosition += expressionModel ? expressionModel[i].value.length : 0;
             }
-            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value);
+            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value, true);
 
             if (updatedExpressionModelInfo) {
                 const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
@@ -171,7 +172,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         }
         else {
             console.log("#QAS")
-            const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
+            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(expressionModel);
             console.log("absoluteCaretPosition", absoluteCaretPosition)
             const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value);
             console.log("#HA", updatedExpressionModelInfo)
@@ -279,6 +280,19 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         setIsHelperPaneOpen(true);
     }, [expressionModel]);
 
+    const handleChipFocus = useCallback((element: HTMLElement, value: string, type: string, absoluteOffset?: number) => {
+        const chipId = element.getAttribute(DATA_ELEMENT_ID_ATTRIBUTE);
+        if (chipId && expressionModel) {
+            const updatedExpressionModel = expressionModel.map(model => {
+                if (model.id === chipId) {
+                    return { ...model, isFocused: true, focusOffset: 0 };
+                }
+                return { ...model, isFocused: false, focusOffset: undefined };
+            });
+            setExpressionModel(updatedExpressionModel);
+        }
+    }, [expressionModel]);
+
     const handleChipBlur = useCallback(() => {
         console.log('Chip blurred');
         // Don't close HelperPane on chip blur - let focus change handle it
@@ -301,6 +315,11 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                     console.log('Focus change:', focused, 'isEditableSpan:', isEditableSpan, 'hasTypedSinceFocus:', hasTypedSinceFocus);
                     setIsAnyElementFocused(focused);
                     setIsEditableSpanFocused(isEditableSpan);
+                    // If focus left the editor, clear model focus flags
+                    if (!focused && expressionModel) {
+                        const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
+                        setExpressionModel(cleared);
+                    }
                 }}
                 onKeyDown={handleKeyDown}
                 isExpanded={isExpanded}
@@ -323,6 +342,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                     onExpressionChange={handleExpressionChange}
                     onTriggerRebuild={handleTriggerRebuild}
                     onChipClick={handleChipClick}
+                    onChipFocus={handleChipFocus}
                     onChipBlur={handleChipBlur}
                 />
             </AutoExpandingEditableDiv>
