@@ -15,29 +15,55 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
-import { Icon } from '@wso2/ui-toolkit';
-import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { EVENT_TYPE, MACHINE_VIEW, SCOPE } from '@wso2/ballerina-core';
 
-import { CardGrid, PanelViewMore, Title, TitleWrapper } from './styles';
-import { BodyText } from '../../styles';
-import ButtonCard from '../../../components/ButtonCard';
-import { OutOfScopeComponentTooltip } from './componentListUtils';
+import { Icon } from "@wso2/ui-toolkit";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import {
+    DIRECTORY_MAP,
+    EVENT_TYPE,
+    MACHINE_VIEW,
+    SCOPE,
+    ServiceModel,
+    TriggerModelsResponse,
+} from "@wso2/ballerina-core";
+
+import { CardGrid, PanelViewMore, Title, TitleWrapper } from "./styles";
+import { BodyText } from "../../styles";
+import ButtonCard from "../../../components/ButtonCard";
+import { isBetaModule, OutOfScopeComponentTooltip } from "./componentListUtils";
+import { RelativeLoader } from "../../../components/RelativeLoader";
+import { getEntryNodeIcon } from "./EventIntegrationPanel";
 
 interface AIAgentPanelProps {
     scope: SCOPE;
-};
+    triggers: TriggerModelsResponse;
+}
 
 export function AIAgentPanel(props: AIAgentPanelProps) {
     const { rpcClient } = useRpcContext();
-    const isDisabled = props.scope && (props.scope !== SCOPE.AI_AGENT && props.scope !== SCOPE.ANY);
+    const isDisabled = props.scope && props.scope !== SCOPE.AI_AGENT && props.scope !== SCOPE.ANY;
+
+    const handleMcpClick = async (key: DIRECTORY_MAP, model: ServiceModel) => {
+        console.log(">>>>> Model: ", model);
+        await rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIServiceWizard,
+                artifactInfo: {
+                    org: model.orgName,
+                    packageName: model.packageName,
+                    moduleName: model.moduleName,
+                    version: model.version,
+                },
+            },
+        });
+    };
 
     const handleClick = async () => {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.AIChatAgentWizard
+                view: MACHINE_VIEW.AIChatAgentWizard,
             },
         });
     };
@@ -45,8 +71,8 @@ export function AIAgentPanel(props: AIAgentPanelProps) {
     return (
         <PanelViewMore disabled={isDisabled}>
             <TitleWrapper>
-                <Title variant="h2">AI Agent</Title>
-                <BodyText>Create an agent that you can chat with or use as an API.</BodyText>
+                <Title variant="h2">AI Integration</Title>
+                <BodyText>Create an integration that connects your system with AI capabilities.</BodyText>
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
@@ -57,7 +83,26 @@ export function AIAgentPanel(props: AIAgentPanelProps) {
                     disabled={isDisabled}
                     tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                 />
+                {props.triggers.local.length === 0 && <RelativeLoader />}
+                {props.triggers.local
+                    .filter((t) => t.type === "mcp")
+                    .map((item, index) => {
+                        return (
+                            <ButtonCard
+                                id={`trigger-${item.moduleName.replace(/\./g, "-")}`}
+                                key={item.id}
+                                title={item.name}
+                                icon={getEntryNodeIcon(item)}
+                                onClick={() => {
+                                    handleMcpClick(DIRECTORY_MAP.SERVICE, item);
+                                }}
+                                disabled={isDisabled}
+                                tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
+                                isBeta={isBetaModule(item.moduleName)}
+                            />
+                        );
+                    })}
             </CardGrid>
         </PanelViewMore>
     );
-};
+}

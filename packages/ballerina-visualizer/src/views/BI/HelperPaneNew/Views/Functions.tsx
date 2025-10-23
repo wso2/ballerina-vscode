@@ -25,17 +25,17 @@ import { CompletionInsertText, FunctionKind, LineRange } from "@wso2/ballerina-c
 import { useMutation } from "@tanstack/react-query";
 import { ExpandableList } from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { COMPLETION_ITEM_KIND, CompletionItem, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
+import { CompletionItem, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
 import { Divider, SearchBox } from "@wso2/ui-toolkit";
 import { LibraryBrowser } from "../../HelperPane/LibraryBrowser";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
-import DynamicModal from "../../../../components/Modal";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -63,7 +63,8 @@ export const FunctionsPage = ({
     const firstRender = useRef<boolean>(true);
     const [searchValue, setSearchValue] = useState<string>('');
     const [isLibraryBrowserOpen, setIsLibraryBrowserOpen] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
@@ -78,32 +79,42 @@ export const FunctionsPage = ({
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
             setIsLoading(true);
-            rpcClient
-                .getBIDiagramRpcClient()
-                .search({
-                    position: targetLineRange,
-                    filePath: fileName,
-                    queryMap: {
-                        q: searchText.trim(),
-                        limit: 12,
-                        offset: 0,
-                        ...(!!includeAvailableFunctions && { includeAvailableFunctions })
-                    },
-                    searchKind: "FUNCTION"
-                })
-                .then((response) => {
-                    if (response.categories?.length) {
-                        if (!!includeAvailableFunctions) {
-                            setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
-                        } else {
-                            setFunctionInfo(convertToHelperPaneFunction(response.categories));
+            
+            // Only apply minimum loading time if we don't have any function info yet
+            const shouldShowMinLoader = !functionInfo && !showContent;
+            const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+            Promise.all([
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .search({
+                        position: targetLineRange,
+                        filePath: fileName,
+                        queryMap: {
+                            q: searchText.trim(),
+                            limit: 12,
+                            offset: 0,
+                            ...(!!includeAvailableFunctions && { includeAvailableFunctions })
+                        },
+                        searchKind: "FUNCTION"
+                    })
+                    .then((response) => {
+                        if (response.categories?.length) {
+                            if (!!includeAvailableFunctions) {
+                                setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
+                            } else {
+                                setFunctionInfo(convertToHelperPaneFunction(response.categories));
+                            }
                         }
-                    }
-                    console.log(response);
-                })
-                .then(() => setIsLoading(false));
+                        console.log(response);
+                    }),
+                minLoadingTime
+            ]).finally(() => {
+                setIsLoading(false);
+                setShowContent(true);
+            });
         }, 150),
-        [rpcClient, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, functionInfo, showContent]
     );
 
     const fetchFunctionInfo = useCallback(
@@ -203,13 +214,13 @@ export const FunctionsPage = ({
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
-                    isLoading ? (
+                    isLoading || !showContent ? (
                         <HelperPaneCustom.Loader />
                     ) : (
                         <>
                             {
                                 !functionInfo || !functionInfo.category || functionInfo.category.length === 0 ? (
-                                    <EmptyItemsPlaceHolder />
+                                    <EmptyItemsPlaceHolder message="No functions found" />
                                 ) : (
                                     functionInfo.category.map((category) => {
                                         if (!category.subCategory) {
@@ -226,7 +237,7 @@ export const FunctionsPage = ({
                                                                     <ExpandableList.Item
                                                                         key={item.label}
                                                                     >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
                                                                     </ExpandableList.Item>
                                                                 </SlidingPaneNavContainer>
@@ -252,7 +263,7 @@ export const FunctionsPage = ({
                                                                     <ExpandableList.Item
                                                                         key={item.label}
                                                                     >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
                                                                     </ExpandableList.Item>
                                                                 </SlidingPaneNavContainer>
@@ -270,10 +281,9 @@ export const FunctionsPage = ({
                 }
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
-            <div style={{padding: '0px'}}>
+            <div>
                 <FooterButtons onClick={handleNewFunctionClick} startIcon='add' title="New Function" />
                 <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
-
             </div>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser

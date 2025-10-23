@@ -36,12 +36,17 @@ export function FileIntegrationPanel(props: FileIntegrationPanelProps) {
 
     const isDisabled = props.scope && (props.scope !== SCOPE.FILE_INTEGRATION && props.scope !== SCOPE.ANY);
 
-    const handleOnSelect = async (trigger: ServiceModel) => {
+    const handleOnSelect = async (model: ServiceModel) => {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceWizard,
-                serviceType: trigger.moduleName,
+                artifactInfo: {
+                    org: model.orgName,
+                    packageName: model.packageName,
+                    moduleName: model.moduleName,
+                    version: model.version
+                }
             },
         });
     };
