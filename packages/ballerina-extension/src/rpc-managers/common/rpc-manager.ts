@@ -254,6 +254,6 @@ export class CommonRpcManager implements CommonRPCAPI {
             throw new Error("No workspaces found.");
         }
         const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        return checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
+        return await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
     }
 }

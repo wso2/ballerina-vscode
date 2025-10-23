@@ -39,7 +39,7 @@ import {
 } from "./constants";
 import { isError, isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
-import { OLD_BACKEND_URL } from '../ai/utils';
+import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
 import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
@@ -722,21 +722,4 @@ export async function addConfigFile(configPath: string, isNaturalFunctionsAvaila
             }
         }
     );
-}
-
-async function isBallerinaProjectAsync(rootPath: string): Promise<boolean> {
-    try {
-        if (!fs.existsSync(rootPath)) {
-            return false;
-        }
-
-        const files = fs.readdirSync(rootPath);
-        return files.some(file =>
-            file.toLowerCase() === 'ballerina.toml' ||
-            file.toLowerCase().endsWith('.bal')
-        );
-    } catch (error) {
-        console.error(`Error checking Ballerina project: ${error}`);
-        return false;
-    }
 }

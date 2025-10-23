@@ -775,7 +775,7 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
 }
 
 async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
-    const isBallerinaWorkspace = checkIsBallerinaWorkspace(workspaceURI);
+    const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
         // A workaround for supporting multiple packages in a workspace
@@ -788,7 +788,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
             return { isBI: false, projectPath: '' };
         }
 
-        const packages = filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
+        const packages = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
         let targetPackage;
 
         if (packages.length > 1) {
