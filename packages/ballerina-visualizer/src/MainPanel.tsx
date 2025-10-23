@@ -78,6 +78,7 @@ import { ImportIntegration } from "./views/BI/ImportIntegration";
 import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
 import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
+import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 
 const globalStyles = css`
     *,
