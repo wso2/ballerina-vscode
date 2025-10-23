@@ -285,7 +285,11 @@ public class ModelGenerator {
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
                 .sorted(Comparator.comparing(symbol -> symbol.getName().orElse("")));
         if (exactMatchFilter != null) {
-            stream = stream.filter(symbol -> symbol.nameEquals(exactMatchFilter));
+            // Strip "self." prefix if present for class field matching
+            String fieldName = exactMatchFilter.startsWith("self.")
+                    ? exactMatchFilter.substring(5)
+                    : exactMatchFilter;
+            stream = stream.filter(symbol -> symbol.nameEquals(fieldName));
         }
         List<Symbol> filteredSymbols = stream.toList();
 
@@ -428,8 +432,60 @@ public class ModelGenerator {
                 scope = Property.GLOBAL_SCOPE;
             }
             case CLASS_FIELD -> {
+                ClassFieldSymbol classFieldSymbol = (ClassFieldSymbol) symbol;
+                typeSymbol = classFieldSymbol.typeDescriptor();
+
+                // Check if the field is initialized in init() function
+                Optional<NonTerminalNode> initAssignment = getInitAssignmentNode(classFieldSymbol);
+                if (initAssignment.isPresent()) {
+                    // Field is initialized in init() - use the assignment statement node
+                    scope = Property.SERVICE_INIT_SCOPE;
+                    statementNode = initAssignment.get();
+
+                    // Get the document for the assignment
+                    try {
+                        Location location = classFieldSymbol.getLocation().orElseThrow();
+                        DocumentId documentId = project.documentId(
+                                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                                        project.sourceRoot().resolve(location.lineRange().fileName()));
+                        document = project.currentPackage().getDefaultModule().document(documentId);
+                    } catch (RuntimeException ignored) {
+                        return Optional.empty();
+                    }
+
+                    // Process and return early
+                    TypeSymbol typeDescriptorSymbol;
+                    boolean shouldProcess = false;
+
+                    try {
+                        typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+                        shouldProcess = isClassOrObject(typeDescriptorSymbol);
+                    } catch (ClassCastException e) {
+                        // TypeReferenceTypeSymbol cast failed, this is fine
+                    }
+
+                    if (!shouldProcess) {
+                        try {
+                            typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
+                            shouldProcess = !isClassOrObject(typeDescriptorSymbol);
+                        } catch (RuntimeException ignored) {
+                            return Optional.empty();
+                        }
+                    }
+
+                    if (!shouldProcess) {
+                        return Optional.empty();
+                    }
+
+                    CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                            document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                            workspaceManager);
+                    statementNode.accept(codeAnalyzer);
+                    return codeAnalyzer.getFlowNodes().stream().findFirst();
+                }
+
+                // Not initialized in init() - use the field declaration
                 getStatementNode = (NonTerminalNode node) -> node;
-                typeSymbol = ((ClassFieldSymbol) symbol).typeDescriptor();
                 scope = Property.SERVICE_SCOPE;
             }
             default -> {
@@ -488,6 +544,66 @@ public class ModelGenerator {
         return codeAnalyzer.getFlowNodes().stream().findFirst();
     }
 
+
+    /**
+     * Gets the assignment statement node if a ClassFieldSymbol is initialized in an init() function.
+     *
+     * @param classFieldSymbol the class field symbol to check
+     * @return Optional containing the assignment statement node if initialized in init(), empty otherwise
+     */
+    private Optional<NonTerminalNode> getInitAssignmentNode(ClassFieldSymbol classFieldSymbol) {
+        try {
+            // If the field has a default value at declaration, it's not initialized in init()
+            if (classFieldSymbol.hasDefaultValue()) {
+                return Optional.empty();
+            }
+
+            // Get all references to this field
+            List<Location> references = semanticModel.references(classFieldSymbol);
+
+            for (Location location : references) {
+                try {
+                    DocumentId documentId = project.documentId(
+                            project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                                    project.sourceRoot().resolve(location.lineRange().fileName()));
+                    Document document = project.currentPackage().getDefaultModule().document(documentId);
+                    NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
+
+                    // Check if this reference is within an assignment statement
+                    NonTerminalNode current = node;
+                    while (current != null && current.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+                        current = current.parent();
+                    }
+
+                    if (current == null || current.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+                        continue;
+                    }
+
+                    NonTerminalNode assignmentNode = current;
+
+                    // Now check if this assignment is within an init() function
+                    current = current.parent();
+                    while (current != null && current.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                        current = current.parent();
+                    }
+
+                    if (current != null && current.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                        FunctionDefinitionNode functionNode = (FunctionDefinitionNode) current;
+                        if (functionNode.functionName().text().equals("init")) {
+                            return Optional.of(assignmentNode);
+                        }
+                    }
+                } catch (RuntimeException ignored) {
+                    // Continue to next reference
+                }
+            }
+
+            return Optional.empty();
+        } catch (RuntimeException e) {
+            // If we can't determine, return empty
+            return Optional.empty();
+        }
+    }
 
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
