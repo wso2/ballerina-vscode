@@ -32,7 +32,9 @@ import {
     OpenViewRequest,
     redo,
     undo,
-    undoRedoState
+    undoRedoState,
+    updateCurrentArtifactLocation,
+    UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { VisualizerRpcManager } from "./rpc-manager";
@@ -51,4 +53,5 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(undoRedoState, () => rpcManger.undoRedoState());
     messenger.onRequest(joinProjectPath, (args: string | string[]) => rpcManger.joinProjectPath(args));
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());
+    messenger.onRequest(updateCurrentArtifactLocation, (args: UpdatedArtifactsResponse) => rpcManger.updateCurrentArtifactLocation(args));
 }
