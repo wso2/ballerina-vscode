@@ -29,7 +29,6 @@ import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
-import io.ballerina.projects.util.ProjectConstants;
 import org.ballerinalang.annotation.JavaSPIService;
 
 import java.io.IOException;
@@ -98,22 +97,6 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
         List<BuildProject> buildProjects = workspaceProject.getResolution().dependencyGraph()
                 .toTopologicallySortedList();
         return new java.util.ArrayList<>(buildProjects);
-    }
-
-    @Override
-    public Optional<Path> findWorkspaceRoot(Path path) {
-        Path current = path.toAbsolutePath();
-
-        // Traverse upwards to find workspace root
-        while (current != null && current.getParent() != null) {
-            Path tomlPath = current.resolve(ProjectConstants.BALLERINA_TOML);
-            if (Files.exists(tomlPath) && isWorkspaceToml(tomlPath)) {
-                return Optional.of(current);
-            }
-            current = current.getParent();
-        }
-
-        return Optional.empty();
     }
 
     /**

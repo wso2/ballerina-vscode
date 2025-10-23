@@ -101,11 +101,6 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     }
 
     @Override
-    public Optional<Path> findWorkspaceRoot(Path path) {
-        return Optional.empty();
-    }
-
-    @Override
     public Project loadProject(Path path) {
         return ProjectLoader.loadProject(path);
     }

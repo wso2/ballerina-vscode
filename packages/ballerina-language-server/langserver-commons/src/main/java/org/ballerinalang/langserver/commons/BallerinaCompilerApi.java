@@ -226,16 +226,6 @@ public abstract class BallerinaCompilerApi {
     public abstract List<Project> getWorkspacePackagesInOrder(Project project);
 
     /**
-     * Finds the workspace root directory by traversing up from the given path.
-     * <p>
-     * This searches for a Ballerina.toml file with a [workspace] section.
-     *
-     * @param path The starting path to search from.
-     * @return An Optional containing the workspace root path if found.
-     */
-    public abstract Optional<Path> findWorkspaceRoot(Path path);
-
-    /**
      * Loads a project from the given path using the appropriate ProjectLoader API.
      *
      * @param path The path to the project root.

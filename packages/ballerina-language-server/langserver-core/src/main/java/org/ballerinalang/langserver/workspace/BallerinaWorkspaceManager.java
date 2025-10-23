@@ -1436,7 +1436,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         }
 
         // Check for workspace project first (before package-level detection)
-        Optional<Path> workspaceRootOpt = BallerinaCompilerApi.getInstance().findWorkspaceRoot(path);
+        Optional<Path> workspaceRootOpt = ProjectPaths.workspaceRoot(path);
         if (workspaceRootOpt.isPresent()) {
             // For workspace projects, return the package root (not workspace root) as the project root
             // This ensures each package in the workspace is cached separately
