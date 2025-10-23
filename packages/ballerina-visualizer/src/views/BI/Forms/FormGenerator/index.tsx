@@ -665,7 +665,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
-        return true;
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
@@ -675,6 +674,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 return false
             }
         }
+        return true;
     };
 
     const handleExpressionFormDiagnostics = useCallback(
