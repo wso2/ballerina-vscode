@@ -21,7 +21,7 @@ import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
@@ -31,6 +31,8 @@ import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
+import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 
 type VariablesPageProps = {
     fileName: string;
@@ -80,7 +82,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
                 </VariablesMoreIconContainer>}
         >
             <ExpandableList.Item>
-                {getIcon(item.kind)}
+                {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
                 <Typography
                     variant="body3"
                     sx={{
@@ -117,7 +119,8 @@ export const Variables = (props: VariablesPageProps) => {
     const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
@@ -133,12 +136,23 @@ export const Variables = (props: VariablesPageProps) => {
     }, []);
 
     useEffect(() => {
+        setIsLoading(true);
         const triggerCharacter =
             currentValue.length > 0
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
                 : undefined;
 
-        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
+        // Only apply minimum loading time if we don't have any completions yet
+        const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
+        const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+        Promise.all([
+            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            minLoadingTime
+        ]).finally(() => {
+            setIsLoading(false);
+            setShowContent(true);
+        });
     }, [targetLineRange])
 
     const getProjectInfo = async () => {
@@ -165,13 +179,19 @@ export const Variables = (props: VariablesPageProps) => {
             },
         );
     };
-    const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
-    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const dropdownItems =
-        currentValue.length > 0
-            ? fields.concat(methods)
-            : fields;
+    const dropdownItems = useMemo(() => {
+        const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
+        
+        return filteredCompletions.filter(
+            (completion) =>
+                (completion.kind === "field" || completion.kind === "variable") &&
+                completion.label !== "self" &&
+                !excludedDescriptions.some(desc => 
+                    completion.labelDetails?.description?.includes(desc)
+                )
+        );
+    }, [filteredCompletions]);
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
@@ -351,17 +371,23 @@ export const Variables = (props: VariablesPageProps) => {
             </div>
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
-                {isLoading ? (
+                {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
                 ) : (
-                    <ExpandableList>
-                        <ExpandableListItems />
-                    </ExpandableList>
+                    <>
+                        {filteredDropDownItems.length === 0 ? (
+                            <EmptyItemsPlaceHolder message="No variables found" />
+                        ) : (
+                            <ExpandableList>
+                                <ExpandableListItems />
+                            </ExpandableList>
+                        )}
+                    </>
                 )}
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            {isInModal ? null : <div style={{ padding: '3px' }}><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
+            {isInModal ? null : <div><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
         </div>
     )
 }
