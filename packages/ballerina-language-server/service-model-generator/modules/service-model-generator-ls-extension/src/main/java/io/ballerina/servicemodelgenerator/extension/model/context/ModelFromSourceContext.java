@@ -30,6 +30,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @param project         the Ballerina project
  * @param semanticModel   the semantic model of the project
  * @param workspaceManager the workspace manager for handling workspace operations
+ * @param filePath        the path to the Ballerina file
  * @param serviceType     the type of the service (e.g., HTTP, gRPC)
  * @param orgName         name of the organization
  * @param packageName     name of the package
@@ -38,6 +39,6 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @since 1.2.0
  */
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,
-                                     WorkspaceManager workspaceManager, String serviceType,
+                                     WorkspaceManager workspaceManager, String filePath, String serviceType,
                                      String orgName, String packageName, String moduleName) {
 }

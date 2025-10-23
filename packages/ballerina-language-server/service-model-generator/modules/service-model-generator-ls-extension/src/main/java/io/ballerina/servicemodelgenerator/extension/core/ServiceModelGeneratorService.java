@@ -468,7 +468,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
             SemanticModel semanticModel = semanticModelOp.get();
             Service service = ServiceBuilderRouter.getServiceFromSource(serviceNode, project, semanticModel,
-                    workspaceManager);
+                    workspaceManager, request.filePath());
             return new ServiceFromSourceResponse(service);
         });
     }
@@ -632,10 +632,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
+                Project project = this.workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModelOp;
                 Optional<Document> document;
                 try {
-                    this.workspaceManager.loadProject(filePath);
                     semanticModelOp = this.workspaceManager.semanticModel(filePath);
                     document = this.workspaceManager.document(filePath);
                 } catch (Exception e) {
@@ -656,7 +656,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 String moduleName = codedata.getModuleName() != null ? codedata.getModuleName() : DEFAULT;
                 Map<String, List<TextEdit>> textEdits = FunctionBuilderRouter.updateFunction(moduleName, function,
-                        request.filePath(), document.get(), functionDefinitionNode, semanticModelOp.get(),
+                        request.filePath(), document.get(), functionDefinitionNode, semanticModelOp.get(), project,
                         this.workspaceManager);
                 return new CommonSourceResponse(textEdits);
             } catch (Throwable e) {
