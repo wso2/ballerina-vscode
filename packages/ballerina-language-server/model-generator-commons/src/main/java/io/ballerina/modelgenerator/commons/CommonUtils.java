@@ -1029,6 +1029,7 @@ public class CommonUtils {
     public static boolean isAiMemoryStore(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME);
+    }
 
     public static boolean isAiMcpBaseToolKit(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
