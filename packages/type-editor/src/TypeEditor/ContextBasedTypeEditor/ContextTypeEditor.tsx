@@ -39,8 +39,24 @@ namespace S {
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        padding-bottom: 0px;
+        padding-top: 8px;
     `;
 }
+
+export const ContentBody = styled.div`
+    height: 450px;
+`;
+
+export const Footer = styled.div`
+    display: flex;
+    gap: 8px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 16px;
+    flex-shrink: 0;
+`;
 
 interface ContextTypeEditorProps {
     type?: Type;
@@ -192,7 +208,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         ]}
                         currentViewId={activeTab}
                         onViewChange={handleTabChange}
-                        childrenSx={{ padding: '10px', height: '100%', overflow: 'hidden' }}
+                        childrenSx={{ height: '100%', overflow: 'hidden' }}
                     >
                         <S.TabContainer id="import" data-testid="import-tab">
                             <GenericImportTab
