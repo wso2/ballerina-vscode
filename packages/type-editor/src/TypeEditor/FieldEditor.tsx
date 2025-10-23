@@ -65,6 +65,13 @@ const CollapsibleSection = styled.div`
     border-radius: 4px;
 `;
 
+const CheckBoxGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left:5px
+`;
+
 export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
     const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation, isGraphql } = props;
     const [panelOpened, setPanelOpened] = useState<boolean>(false);
@@ -185,32 +192,31 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 <CollapsibleSection>
                     <TextField label='Default Value' value={member.defaultValue} onChange={handleMemberDefaultValueChange} style={{ width: '180px' }} />
                     <TextField label='Description' value={member.docs} onChange={handleDescriptionChange} style={{ width: '180px' }} />
-                    <CheckBox
-                        sx={{ border: 'none', padding: '5px' }}
-                        label="Readonly"
-                        checked={member.readonly}
-                        onChange={(checked: boolean) => {
-                            // Match the same pattern used in the working checkbox
-                            onChange({
-                                ...member,
-                                readonly: checked 
-                                }
-                            );
-                        }}
-                    />
-                    {isGraphql && isGraphQLScalarType(member.type) &&
-                    <CheckBox
-                        sx={{ border: 'none', padding: '5px' }}
-                        label="Is GraphQL ID"
-                        checked={member.isGraphqlId || false}
-                        onChange={(checked: boolean) => {
-                            // Match the same pattern used in the working checkbox
-                            onChange({
-                                ...member,
-                                isGraphqlId: checked
-                            });
-                        }}
-                    />}
+                    <CheckBoxGroup>
+                        <CheckBox
+                            label="Readonly"
+                            checked={member.readonly}
+                            onChange={(checked: boolean) => {
+                                onChange({
+                                    ...member,
+                                    readonly: checked
+                                    }
+                                );
+                            }}
+                        />
+                        {isGraphql && isGraphQLScalarType(member.type) &&
+                            <CheckBox
+                                label="ID Type"
+                                checked={member.isGraphqlId || false}
+                                onChange={(checked: boolean) => {
+                                    onChange({
+                                        ...member,
+                                        isGraphqlId: checked
+                                    });
+                                }}
+                            />
+                        }
+                    </CheckBoxGroup>
                 </CollapsibleSection>
             )}
             {isRecord(member.type) && typeof member.type !== 'string' && (

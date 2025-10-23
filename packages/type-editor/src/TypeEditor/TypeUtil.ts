@@ -177,20 +177,11 @@ export const isValidBallerinaIdentifier = (name: string): boolean => {
     return name.length > 0 && regex.test(name);
 };
 
-/**
- * Check if a type is a GraphQL scalar type.
- * Scalar types are primitive types that can be marked with @graphql:ID annotation.
- * In Ballerina, these include: string, int, float, decimal, boolean
- * Also handles optional types (e.g., "string?") by stripping the "?" suffix
- */
 export const isGraphQLScalarType = (type: string | Type): boolean => {
     // If type is an object (complex type), it's not a scalar
     if (typeof type !== 'string') {
         return false;
     }
-
-    // Remove optional marker and whitespace
-    const cleanType = type.trim().replace(/\?$/, '');
 
     // List of Ballerina types that can be GraphQL scalars
     const scalarTypes = [
@@ -198,10 +189,43 @@ export const isGraphQLScalarType = (type: string | Type): boolean => {
         'int',
         'float',
         'decimal',
-        'boolean',
-        'byte',
-        // Also handle any custom scalar types that might be defined
     ];
 
-    return scalarTypes.includes(cleanType.toLowerCase());
+    const isScalarOrArrayOfScalar = (t: string): boolean => {
+        let cleanType = t.trim().replace(/\?$/, '');
+
+        if (cleanType.endsWith('[]')) {
+            const baseType = cleanType.slice(0, -2).trim();
+            return isScalarOrArrayOfScalar(baseType);
+        }
+
+        if (cleanType.startsWith('(') && cleanType.endsWith(')')) {
+            cleanType = cleanType.slice(1, -1).trim();
+            if (cleanType.includes('|')) {
+                const unionParts = cleanType.split('|').map(part => part.trim());
+                return unionParts.every(part => isScalarOrArrayOfScalar(part));
+            }
+        }
+
+        return scalarTypes.includes(cleanType.toLowerCase());
+    };
+
+    let cleanType = type.trim().replace(/\?$/, '');
+
+    if (cleanType.endsWith('[]') && cleanType.includes('(') && cleanType.includes('|')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    if (cleanType.includes('|')) {
+        const unionParts = cleanType.split('|').map(part => part.trim());
+        return unionParts.every(part => isScalarOrArrayOfScalar(part));
+    }
+
+    if (cleanType.endsWith('[]')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    return isScalarOrArrayOfScalar(cleanType);
 };
