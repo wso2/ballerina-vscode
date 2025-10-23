@@ -206,7 +206,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
     const [enabledHandlers, setEnabledHandlers] = useState<FunctionModel[]>([]);
     const [unusedHandlers, setUnusedHandlers] = useState<FunctionModel[]>([]);
-
+    const [selectedHandler, setSelectedHandler] = useState<FunctionModel>(undefined);
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
 
@@ -476,6 +476,23 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setShowFunctionConfigForm(true);
     };
 
+    const onHandlerSelected = (handler: FunctionModel) => {
+        // Check if this handler is databindable
+        if (canDataBind(handler)) {
+            // For databindable functions, show DatabindForm for configuration
+            setSelectedHandler(handler);
+            setFunctionModel(handler);
+            setShowForm(true);
+            // Close the FunctionConfigForm to show the DatabindForm instead
+            setShowFunctionConfigForm(false);
+        } else {
+            // For regular functions, immediately add without showing a form
+            handler.enabled = true;
+            setShowFunctionConfigForm(false);
+            handleFunctionSubmit(handler);
+        }
+    };
+
     const onSelectAddInitFunction = async () => {
         setIsNew(false);
         const lsResponse = await rpcClient.getServiceDesignerRpcClient().getFunctionModel({
@@ -510,6 +527,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleNewFunctionClose = () => {
         setShowForm(false);
+        // If a handler was selected, also close the FunctionConfigForm
+        if (selectedHandler) {
+            setShowFunctionConfigForm(false);
+            setSelectedHandler(undefined);
+        }
     };
 
     const handleFunctionEdit = (value: FunctionModel) => {
@@ -519,27 +541,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleFunctionDelete = async (model: FunctionModel) => {
-        if (model.kind === "REMOTE") {
-            model.enabled = false;
-            await handleResourceSubmit(model);
-        } else {
-            console.log("Deleting Resource Model:", model);
-            const targetPosition: NodePosition = {
-                startLine: model.codedata.lineRange.startLine.line,
-                startColumn: model.codedata.lineRange.startLine.offset,
-                endLine: model.codedata.lineRange.endLine.line,
-                endColumn: model.codedata.lineRange.endLine.offset,
-            };
-            const component: ComponentInfo = {
-                name: model.name.value,
-                filePath: model.codedata.lineRange.fileName,
-                startLine: targetPosition.startLine,
-                startColumn: targetPosition.startColumn,
-                endLine: targetPosition.endLine,
-                endColumn: targetPosition.endColumn,
-            };
-            await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
-        }
+        console.log("Deleting Resource Model:", model);
+        const targetPosition: NodePosition = {
+            startLine: model.codedata.lineRange.startLine.line,
+            startColumn: model.codedata.lineRange.startLine.offset,
+            endLine: model.codedata.lineRange.endLine.line,
+            endColumn: model.codedata.lineRange.endLine.offset,
+        };
+        const component: ComponentInfo = {
+            name: model.name.value,
+            filePath: model.codedata.lineRange.fileName,
+            startLine: targetPosition.startLine,
+            startColumn: targetPosition.startColumn,
+            endLine: targetPosition.endLine,
+            endColumn: targetPosition.endColumn,
+        };
+        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
     };
 
     const handleResourceSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
@@ -1145,6 +1162,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 >
                                     <DatabindForm
                                         model={functionModel}
+                                        isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
                                     />
@@ -1178,6 +1196,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         serviceModel={serviceModel}
                                         onSubmit={handleFunctionSubmit}
+                                        onSelect={onHandlerSelected}
                                         onBack={handleFunctionConfigClose}
                                     />
                                 </PanelContainer>

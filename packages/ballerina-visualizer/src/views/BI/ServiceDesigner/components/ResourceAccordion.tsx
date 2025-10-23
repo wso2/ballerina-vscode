@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { Button, Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { FunctionModel } from '@wso2/ballerina-core';
+import { canDataBind } from '../utils';
 
 
 type ContainerProps = {
@@ -44,6 +45,15 @@ const AccordionContainer = styled.div<ContainerProps>`
         cursor: pointer;
     }
     border: ${(p: ContainerProps) => p.haveErrors ? "1px solid red" : "none"};
+`;
+
+const ActionButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    & > vscode-button::part(control) {
+        padding: 4px 8px;
+    }
 `;
 
 const AccordionHeader = styled.div<HeaderProps>`
@@ -182,14 +192,22 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                     <ButtonSection>
                         <>
                             {onEditResource! && (
-                                <Button appearance="icon" tooltip="Edit FunctionModel" onClick={handleEditResource}>
-                                    <Icon name="editIcon" sx={{ marginTop: 3.5 }} />
-                                </Button>
+                                <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!functionModel.editable && !canDataBind(functionModel)}>
+                                    <Icon isCodicon={true} name="settings-gear" sx={{
+                                         marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                                    Configure
+                                </ActionButton >
                             )}
                             {onDeleteResource! && (
-                                <Button appearance="icon" tooltip="Delete FunctionModel" onClick={handleDeleteResource}>
-                                    <Codicon name="trash" />
-                                </Button>
+                                <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
+                                    <Codicon
+                                        name="trash"
+                                        sx={{
+                                            cursor: functionModel.optional ? "not-allowed" : "pointer",
+                                            opacity: functionModel.optional ? 0.5 : 1,
+                                        }}
+                                    />
+                                </ActionButton >
                             )}
                         </>
                     </ButtonSection>
