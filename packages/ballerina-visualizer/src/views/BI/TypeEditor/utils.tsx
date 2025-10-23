@@ -31,6 +31,10 @@ const TYPE_CATEGORY_ORDER = [
     { label: "Behaviour Types", sortText: "5"},
     { label: "Other Types", sortText: "6"},
     { label: "Used Variable Types", sortText: "7"},
+
+    // GraphQL Specific
+    { label: "Scalar Types", sortText: "1"},
+    { label: "Enum Types", sortText: "2"},
 ] as const;
 
 /**
