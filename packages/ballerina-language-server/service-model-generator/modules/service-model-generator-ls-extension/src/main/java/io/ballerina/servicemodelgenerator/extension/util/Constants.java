@@ -34,6 +34,8 @@ public class Constants {
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
+    public static final String OPEN_PAREN = "(";
+    public static final String CLOSE_PAREN = ")";
     public static final String NEW_LINE = System.lineSeparator();
     public static final String TWO_NEW_LINES = NEW_LINE + NEW_LINE;
     public static final String NEW_LINE_WITH_TAB = NEW_LINE + TAB;
@@ -81,6 +83,7 @@ public class Constants {
     public static final String KIND_REQUIRED = "REQUIRED";
     public static final String KIND_DEFAULTABLE = "DEFAULTABLE";
     public static final String KIND_OBJECT_METHOD = "OBJECT_METHOD";
+    public static final String KIND_INCLUDED_RECORD = "INCLUDED_RECORD";
 
     public static final String PARAMETER = "parameter";
     public static final String SERVICE = "service";
@@ -92,17 +95,23 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String HTTP_SERVICE_TYPE = "http:Service";
+
     public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
     public static final String VALUE_TYPE_FORM = "FORM";
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
     public static final String VALUE_TYPE_STRING = "STRING";
-    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
-    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+    public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
+
+    public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
+    public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";
 
     public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
     public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
@@ -136,6 +145,14 @@ public class Constants {
             "entityConfig = {queueName: \"test-queue\"}, autoComplete = false)";
     public static final String SF_DEFAULT_LISTENER_EXPR = "new (auth = {username: \"\", password: \"\"})";
     public static final String GITHUB_DEFAULT_LISTENER_EXPR = "new ()";
+
+    public static final String HTTP_HEADER_PARAM_ANNOTATION = "Header";
+    public static final String HTTP_QUERY_PARAM_ANNOTATION = "Query";
+    public static final String HTTP_PAYLOAD_PARAM_ANNOTATION = "Payload";
+
+    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+    public static final String HTTP_PARAM_TYPE_HEADER = "HEADER";
+    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
 
     // file listeners
     public static final String FTP_DEFAULT_LISTENER_EXPR = "new ()";
@@ -222,6 +239,8 @@ public class Constants {
     public static final String EMPTY_ARRAY = "[]";
     public static final String PAYLOAD_FIELD_NAME_PROPERTY = "payloadFieldName";
     public static final String WRAPPER_TYPE_NAME_PROPERTY = "wrapperTypeName";
+
+    public static final String TYPES_BAL = "types.bal";
 
     private Constants() {
     }

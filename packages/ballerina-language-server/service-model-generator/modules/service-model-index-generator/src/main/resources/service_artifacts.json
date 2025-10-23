@@ -243,7 +243,7 @@
               "returnType": "",
               "returnError": 0,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "event",
@@ -370,7 +370,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "event",
@@ -491,7 +491,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "canAddParameter": 0,
               "parameters": [
                 {
@@ -694,7 +694,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -807,7 +807,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -875,7 +875,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -986,7 +986,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "messages",
@@ -1020,7 +1020,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "kafkaError",

@@ -309,6 +309,7 @@
         }
       },
       "orgName": "ballerina",
+      "packageName": "graphql",
       "moduleName": "graphql"
     },
     "properties": {

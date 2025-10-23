@@ -45,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "rabbitmq:Listener",
         "value": "rabbitmqListener",
         "values": [],
         "items": [
           "rabbitmqListener"
         ],
+        "properties": {
+          "rabbitmqListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 23
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 39
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -121,7 +142,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {

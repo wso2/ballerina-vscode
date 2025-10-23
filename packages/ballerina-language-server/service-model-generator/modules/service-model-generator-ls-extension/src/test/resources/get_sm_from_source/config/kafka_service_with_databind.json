@@ -45,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT",
+        "valueType": "SINGLE_SELECT_LISTENER",
         "valueTypeConstraint": "kafka:Listener",
         "value": "kafkaListener",
         "values": [],
         "items": [
           "kafkaListener"
         ],
+        "properties": {
+          "kafkaListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "kafka.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 24
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,

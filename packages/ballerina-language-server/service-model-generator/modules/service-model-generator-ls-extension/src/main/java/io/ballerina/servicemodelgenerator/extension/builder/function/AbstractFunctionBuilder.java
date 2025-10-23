@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+import io.ballerina.compiler.syntax.tree.IncludedRecordParameterNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -66,6 +67,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_DEFAULTABLE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_INCLUDED_RECORD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_MUTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
@@ -78,7 +80,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.CLASS;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_UPDATE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionSignatureSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
@@ -218,6 +219,10 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             returnType.setValue(returnTypeDesc.get().type().toString().trim());
         }
 
+        List<Parameter> parameterModels = new ArrayList<>();
+        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
+        functionModel.setParameters(parameterModels);
+
         boolean isInit = Utils.isInitFunction(functionDefinitionNode);
         if (isInit) {
             functionModel.setKind(KIND_DEFAULT);
@@ -232,13 +237,11 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         }
 
         SeparatedNodeList<ParameterNode> parameters = functionSignatureNode.parameters();
-        List<Parameter> parameterModels = new ArrayList<>();
+
         parameters.forEach(parameterNode -> {
             Optional<Parameter> parameterModel = getParameterModel(parameterNode);
             parameterModel.ifPresent(parameterModels::add);
         });
-        functionModel.setParameters(parameterModels);
-        functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         functionModel.setCanAddParameters(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
@@ -264,6 +267,14 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             defaultValue.setValue(parameter.expression().toString().trim());
             defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
             defaultValue.setEnabled(true);
+            return Optional.of(parameterModel);
+        } else if (parameterNode instanceof IncludedRecordParameterNode parameter) {
+            if (parameter.paramName().isEmpty()) {
+                return Optional.empty();
+            }
+            String paramName = parameter.paramName().get().text().trim();
+            String paramType = parameter.typeName().toString().trim();
+            Parameter parameterModel = createParameter(paramName, KIND_INCLUDED_RECORD, paramType);
             return Optional.of(parameterModel);
         }
         return Optional.empty();
@@ -345,8 +356,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
 
         LineRange signatureRange = context.functionNode().functionSignature().lineRange();
         List<String> newStatusCodeTypesDef = new ArrayList<>();
-        String functionSignature = generateFunctionSignatureSource(context.function(), newStatusCodeTypesDef,
-                FUNCTION_UPDATE, imports);
+        String functionSignature = generateFunctionSignatureSource(context.function(), imports);
         List<String> importStmts = new ArrayList<>();
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         imports.values().forEach(moduleId -> {

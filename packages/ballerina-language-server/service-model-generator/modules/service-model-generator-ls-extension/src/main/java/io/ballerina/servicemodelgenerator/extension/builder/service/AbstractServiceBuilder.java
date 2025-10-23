@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -109,7 +108,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotat
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpression;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpressionsLineRange;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -387,10 +386,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                     context.document(), context.document().syntaxTree().rootNode(), service.getModuleName());
 
             String listenerName = listener.getValue();
-            Optional<ExpressionNode> listenerExpression = getListenerExpression(serviceNode);
-            if (listenerExpression.isPresent()) {
-                LineRange listenerLineRange = listenerExpression.get().lineRange();
-                TextEdit listenerEdit = new TextEdit(Utils.toRange(listenerLineRange), listenerName);
+            Optional<LineRange> listenerExprsLineRange = getListenerExpressionsLineRange(serviceNode);
+            if (listenerExprsLineRange.isPresent()) {
+                TextEdit listenerEdit = new TextEdit(Utils.toRange(listenerExprsLineRange.get()), listenerName);
                 edits.add(listenerEdit);
             }
         }

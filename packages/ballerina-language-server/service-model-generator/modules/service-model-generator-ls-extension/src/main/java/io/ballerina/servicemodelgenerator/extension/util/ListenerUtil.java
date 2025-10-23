@@ -387,46 +387,114 @@ public class ListenerUtil {
         }
     }
 
-    public static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerDeclarationNode,
+    public static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerNode,
                                                            String org, SemanticModel semanticModel) {
-        if (ListenerUtil.isHttpDefaultListener(listenerDeclarationNode)) {
-            return ListenerUtil.getDefaultListenerModel(org, listenerDeclarationNode);
+        if (isHttpDefaultListener(listenerNode)) {
+            return getDefaultListenerModel(org, listenerNode);
         }
-        Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
-        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
+
+        Optional<TypeSymbol> typeSymbol = extractTypeSymbol(semanticModel, listenerNode.typeDescriptor().get());
+        if (typeSymbol.isEmpty()) {
             return Optional.empty();
         }
 
+        Optional<Listener> baseListener = createBaseListener(org, typeSymbol.get());
+        if (baseListener.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Listener listener = baseListener.get();
+        configureListenerFromDeclaration(listener, listenerNode, typeSymbol.get());
+
+        return Optional.of(listener);
+    }
+
+    public static Optional<Listener> getListenerFromSource(ExplicitNewExpressionNode newExpressionNode,
+                                                           String org, SemanticModel semanticModel) {
+        Optional<TypeSymbol> typeSymbol = extractTypeSymbol(semanticModel, newExpressionNode.typeDescriptor());
+        if (typeSymbol.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Listener> baseListener = createBaseListener(org, typeSymbol.get());
+        if (baseListener.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Listener listener = baseListener.get();
+        configureListenerFromNewExpression(listener, newExpressionNode, typeSymbol.get());
+
+        return Optional.of(listener);
+    }
+
+    private static Optional<TypeSymbol> extractTypeSymbol(SemanticModel semanticModel, Node typeNode) {
+        Optional<Symbol> symbol = semanticModel.symbol(typeNode);
+        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(typeSymbol);
+    }
+
+    private static Optional<Listener> createBaseListener(String org, TypeSymbol typeSymbol) {
         String moduleName = typeSymbol.getModule().get().id().moduleName();
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
         Optional<FunctionData> optFunctionResult = dbManager.getListener(org, moduleName);
+
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
+
         FunctionData functionData = optFunctionResult.get();
         LinkedHashMap<String, ParameterData> parameters = dbManager
                 .getFunctionParametersAsMap(functionData.functionId());
         functionData.setParameters(parameters);
 
-        Listener listener = getListenerModelWithoutParamProps(functionData);
+        return Optional.of(getListenerModelWithoutParamProps(functionData));
+    }
+
+    private static void configureListenerFromDeclaration(Listener listener,
+                                                         ListenerDeclarationNode listenerDeclarationNode,
+                                                         TypeSymbol typeSymbol) {
         Value nameProperty = listener.getVariableNameProperty();
         nameProperty.setValue(listenerDeclarationNode.variableName().text().trim());
         nameProperty.setCodedata(new Codedata(listenerDeclarationNode.variableName().lineRange()));
         nameProperty.setEditable(false);
         listener.setCodedata(new Codedata(listenerDeclarationNode.lineRange()));
+
         Node initializer = listenerDeclarationNode.initializer();
         if (initializer instanceof NewExpressionNode newExpressionNode) {
-            TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
-            if (rawType instanceof ClassSymbol classSymbol) {
-                SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
-                if (classSymbol.initMethod().isEmpty()) {
-                    return Optional.of(listener);
-                }
+            analyzeListenerArguments(listener, typeSymbol, newExpressionNode);
+        }
+    }
+
+    private static void configureListenerFromNewExpression(Listener listener,
+                                                           ExplicitNewExpressionNode newExpressionNode,
+                                                           TypeSymbol typeSymbol) {
+        listener.setCodedata(new Codedata(newExpressionNode.lineRange()));
+        analyzeListenerArguments(listener, typeSymbol, newExpressionNode);
+    }
+
+    private static void analyzeListenerArguments(Listener listener, TypeSymbol typeSymbol,
+                                                 NewExpressionNode newExpressionNode) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType instanceof ClassSymbol classSymbol && classSymbol.initMethod().isPresent()) {
+            SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+
+            // Get function data from listener properties (assuming it's stored in metadata)
+            ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
+            String moduleName = typeSymbol.getModule().get().id().moduleName();
+            Optional<FunctionData> optFunctionData = dbManager.getListener(listener.getOrgName(), moduleName);
+
+            if (optFunctionData.isPresent()) {
+                FunctionData functionData = optFunctionData.get();
+                LinkedHashMap<String, ParameterData> parameters = dbManager
+                        .getFunctionParametersAsMap(functionData.functionId());
+                functionData.setParameters(parameters);
+
                 ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties());
                 analyzer.analyze(arguments, classSymbol.initMethod().get(), functionData);
             }
         }
-        return Optional.of(listener);
     }
 
     private static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {

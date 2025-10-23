@@ -45,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "mcp:Listener",
         "value": "mcpListener",
         "values": [],
         "items": [
           "mcpListener"
         ],
+        "properties": {
+          "mcpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 11,
+                  "offset": 28
+                },
+                "endLine": {
+                  "line": 11,
+                  "offset": 39
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -121,7 +142,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {
@@ -313,7 +334,20 @@
             }
           }
         },
-        "properties": {}
+        "properties": {
+          "annotTool": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Tool",
+              "moduleName": "mcp"
+            },
+            "value": "{\n        description: string `\n            **Description**: Get current weather conditions for a location\n            **Parameters**:\n            - location (string, required): City name or coordinates (e.g., \"London\", \"40.7128,-74.0060\")\n            `\n    }",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
       },
       {
         "metadata": {

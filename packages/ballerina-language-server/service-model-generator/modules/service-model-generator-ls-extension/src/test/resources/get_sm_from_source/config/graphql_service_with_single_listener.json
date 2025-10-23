@@ -46,7 +46,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "graphql:Listener",
         "value": "graphQLListener",
         "values": [],
@@ -54,6 +54,27 @@
           "graphQLListener",
           "(+) Create and use a graphql listener with default configurations"
         ],
+        "properties": {
+          "graphQLListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 25,
+                  "offset": 20
+                },
+                "endLine": {
+                  "line": 25,
+                  "offset": 35
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -123,7 +144,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {
@@ -257,6 +278,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -584,6 +606,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -1025,6 +1048,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {
@@ -1349,6 +1373,7 @@
             }
           },
           "orgName": "ballerina",
+          "packageName": "graphql",
           "moduleName": "graphql"
         },
         "properties": {

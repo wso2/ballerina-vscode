@@ -44,7 +44,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "http:Listener",
         "value": "httpListener",
         "values": [],
@@ -52,6 +52,27 @@
           "httpListener",
           "(+) Create and use the default HTTP listener (port: 9090)"
         ],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 33
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
