@@ -35,10 +35,11 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
  * @param orgName         name of the organization
  * @param packageName     name of the package
  * @param moduleName      name of the module
+ * @param version         version of the package
  *
  * @since 1.2.0
  */
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,
                                      WorkspaceManager workspaceManager, String filePath, String serviceType,
-                                     String orgName, String packageName, String moduleName) {
+                                     String orgName, String packageName, String moduleName, String version) {
 }

@@ -28,11 +28,13 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
@@ -47,9 +49,13 @@ import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -57,13 +63,17 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DB_KIND_OPTIONAL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_ACCESSOR_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_DOCUMENTATION_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPE_SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
@@ -71,7 +81,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 public class ServiceModelUtils {
@@ -378,6 +392,19 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
+    public static Value getServiceTypeProperty(String value) {
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        valueBuilder
+                .setMetadata(new MetaData("Service Type", "The type of the service"))
+                .setCodedata(new Codedata("SERVICE_TYPE"))
+                .value(value)
+                .setItems(List.of(value))
+                .valueType("SINGLE_SELECT")
+                .enabled(true);
+
+        return valueBuilder.build();
+    }
+
     public static Value getStringLiteralProperty(String value) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
@@ -581,7 +608,7 @@ public class ServiceModelUtils {
             return new ServiceMetadata(serviceType, serviceTypeIdentifier);
         }
         ModuleID id = module.get().id();
-        return new ServiceMetadata(serviceType, serviceTypeIdentifier, id.orgName(), id.packageName(), id.moduleName());
+        return new ServiceMetadata(serviceType, serviceTypeIdentifier, id);
     }
 
     /**
@@ -657,5 +684,143 @@ public class ServiceModelUtils {
                 }
             }
         });
+    }
+
+    /**
+     * Creates a fallback service model when the service is not found in the database.
+     * This method builds a basic service model from the service declaration node.
+     *
+     * @param context the model context
+     * @return a fallback service model or null if creation fails
+     */
+    public static Service createFallbackServiceModel(ModelFromSourceContext context) {
+        ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
+
+        String protocol = getProtocol(context.moduleName());
+        String name = protocol.toUpperCase(Locale.ROOT) + SPACE + TYPE_SERVICE;
+
+        Map<String, Value> properties = new LinkedHashMap<>();
+        List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
+
+        // Set code metadata
+        Codedata codedata = new Codedata.Builder()
+                .setLineRange(serviceNode.lineRange())
+                .setOrgName(context.orgName())
+                .setPackageName(context.packageName())
+                .setModuleName(context.moduleName())
+                .build();
+
+        // Create basic service model with minimal properties
+        Service.ServiceModelBuilder serviceBuilder = new Service.ServiceModelBuilder();
+        serviceBuilder
+                .setId(context.moduleName())
+                .setName(name)
+                .setType(context.moduleName())
+                .setDisplayName(name)
+                .setOrgName(context.orgName())
+                .setPackageName(context.packageName())
+                .setModuleName(context.moduleName())
+                .setListenerProtocol(protocol)
+                .setIcon(CommonUtils.generateIcon(context.orgName(), context.packageName(), context.version()))
+                .setDocumentation(getServiceDocumentation())
+                .setCodedata(codedata)
+                .setProperties(properties)
+                .setFunctions(functionsInSource);
+
+        Service serviceModel = serviceBuilder.build();
+
+        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol, VALUE_TYPE_SINGLE_SELECT_LISTENER));
+        populateListenerInfo(serviceModel, serviceNode);
+
+        if (serviceNode.typeDescriptor().isPresent()) {
+            properties.put(PROP_KEY_SERVICE_TYPE, getServiceTypeProperty(serviceType));
+        }
+
+        extractServicePathInfo(serviceNode, serviceModel);
+
+        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
+        return serviceModel;
+    }
+
+
+    /**
+     * Extracts and configures service path information from a service declaration node.
+     * This method analyzes the absolute resource path of a service and determines whether
+     * it represents a string literal or a base path, then updates the service model accordingly.
+     *
+     *
+     * @param serviceNode the service declaration node containing path information
+     * @param serviceModel the service model to update with extracted path information
+     * @throws IllegalArgumentException if serviceNode or serviceModel is null
+     */
+    public static void extractServicePathInfo(ServiceDeclarationNode serviceNode, Service serviceModel) {
+        String attachPoint = getPath(serviceNode.absoluteResourcePath());
+
+        if (attachPoint.isEmpty()) {
+            return;
+        }
+
+        if (isStringLiteral(attachPoint)) {
+            configureStringLiteralPath(serviceModel, attachPoint);
+        } else {
+            configureBasePathProperty(serviceModel, attachPoint);
+        }
+    }
+
+    /**
+     * Determines if the given value represents a string literal by checking for double quote enclosure.
+     *
+     * @param value the value string to check
+     * @return true if the value is enclosed in double quotes, false otherwise
+     */
+    private static boolean isStringLiteral(String value) {
+        return value.startsWith(DOUBLE_QUOTE) && value.endsWith(DOUBLE_QUOTE);
+    }
+
+    /**
+     * Configures the string literal property for the service model.
+     * Updates existing string literal property or creates a new one if none exists.
+     *
+     * @param serviceModel the service model to update
+     * @param attachPoint the string literal path value
+     */
+    private static void configureStringLiteralPath(Service serviceModel, String attachPoint) {
+        Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
+        if (Objects.nonNull(stringLiteralProperty)) {
+            stringLiteralProperty.setValue(attachPoint);
+        } else {
+            serviceModel.setStringLiteral(getStringLiteralProperty(attachPoint));
+        }
+    }
+
+    /**
+     * Configures the base path property for the service model.
+     * Updates existing base path property or creates a new one if none exists.
+     *
+     * @param serviceModel the service model to update
+     * @param attachPoint the base path value
+     */
+    private static void configureBasePathProperty(Service serviceModel, String attachPoint) {
+        Value basePathProperty = serviceModel.getBasePath();
+        if (Objects.nonNull(basePathProperty)) {
+            basePathProperty.setValue(attachPoint);
+        } else {
+            serviceModel.setBasePath(getBasePathProperty(attachPoint));
+        }
+    }
+
+    /**
+     * Extracts function definitions from the service declaration node.
+     *
+     * @param serviceNode the service declaration node
+     * @return list of Function models extracted from the source
+     */
+    public static List<Function> extractFunctionsFromSource(ServiceDeclarationNode serviceNode) {
+        return serviceNode.members().stream()
+                .filter(FunctionDefinitionNode.class::isInstance)
+                .map(FunctionDefinitionNode.class::cast)
+                .map(member -> getFunctionModel(member, Map.of()))
+                .toList();
     }
 }

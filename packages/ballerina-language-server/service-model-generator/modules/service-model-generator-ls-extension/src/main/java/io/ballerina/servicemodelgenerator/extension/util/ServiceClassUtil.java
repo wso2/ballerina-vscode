@@ -151,7 +151,8 @@ public class ServiceClassUtil {
                     }
                     GraphqlFunctionBuilder gqlFunctionBuilder = new GraphqlFunctionBuilder();
                     ModelFromSourceContext gqlContext = new ModelFromSourceContext(functionDefinitionNode,
-                            null, semanticModel, null, "", Constants.GRAPHQL, null, null, GRAPHQL);
+                            null, semanticModel, null, "", Constants.GRAPHQL,
+                            null, null, GRAPHQL, null);
                     functions.add(gqlFunctionBuilder.getModelFromSource(gqlContext));
                 } else {
                     functions.add(buildMemberFunction(semanticModel, functionDefinitionNode, functionKind, context));

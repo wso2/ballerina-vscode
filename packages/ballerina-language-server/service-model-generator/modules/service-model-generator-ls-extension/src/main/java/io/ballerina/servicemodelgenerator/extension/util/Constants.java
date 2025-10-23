@@ -132,7 +132,11 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
-    public static final String VARIABLE_NAME_KEY = "variableNameKey";
+    public static final String PROP_KEY_VARIABLE_NAME = "variableNameKey";
+    public static final String PROP_KEY_LISTENER = "listener";
+    public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
+    public static final String PROP_KEY_BASE_PATH = "basePath";
+    public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";

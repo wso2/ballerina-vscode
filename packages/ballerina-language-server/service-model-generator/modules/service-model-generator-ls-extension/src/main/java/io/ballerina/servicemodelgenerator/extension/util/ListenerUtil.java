@@ -93,7 +93,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
@@ -303,7 +303,7 @@ public class ListenerUtil {
                 .setIcon(icon)
                 .setProperties(properties);
 
-        properties.put(VARIABLE_NAME_KEY, nameProperty());
+        properties.put(PROP_KEY_VARIABLE_NAME, nameProperty());
         return listenerBuilder.build();
     }
 
@@ -453,7 +453,7 @@ public class ListenerUtil {
         }
 
         Listener listenerModel = listenerModelOpt.get();
-        listenerModel.getProperties().remove(VARIABLE_NAME_KEY);
+        listenerModel.getProperties().remove(PROP_KEY_VARIABLE_NAME);
         setPropertiesAsNonAdvanced(listenerModel);
         return new ListenerFromSourceResponse(listenerModel);
     }
