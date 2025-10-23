@@ -23,6 +23,7 @@ import { Button, Codicon } from "@wso2/ui-toolkit";
 import { Spinner } from "./ProgressTextSegment";
 import { Collapse } from "react-collapse";
 import { SegmentType, splitContent } from "./AIChat";
+import { SourceFile } from "@wso2/ballerina-core";
 
 interface CodeSectionProps {
     codeSegments: CodeSegmentProps[];
@@ -31,7 +32,8 @@ interface CodeSectionProps {
     handleAddAllCodeSegmentsToWorkspace: (
         codeSegment: any,
         setIsCodeAdded: React.Dispatch<React.SetStateAction<boolean>>,
-        command: string
+        command: string,
+        fileArray: SourceFile[]
     ) => void;
     handleRevertChanges: (
         codeSegment: any,
@@ -47,6 +49,7 @@ interface CodeSectionProps {
     isPromptExecutedInCurrentWindow: boolean;
     isErrorChunkReceived: boolean;
     isAddingToWorkspace: boolean;
+    fileArray: SourceFile[];
 }
 
 const EntryContainer = styled.div<{ hasErrors: boolean; isOpen: boolean; isHovered: boolean }>(
@@ -83,7 +86,8 @@ export const CodeSection: React.FC<CodeSectionProps> = ({
     onRetryRepair = () => {},
     isPromptExecutedInCurrentWindow,
     isErrorChunkReceived,
-    isAddingToWorkspace
+    isAddingToWorkspace,
+    fileArray
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCodeAdded, setIsCodeAdded] = useState(false);
@@ -148,7 +152,7 @@ export const CodeSection: React.FC<CodeSectionProps> = ({
                                 appearance="icon"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAddAllCodeSegmentsToWorkspace(allCodeSegments, setIsCodeAdded, command);
+                                    handleAddAllCodeSegmentsToWorkspace(allCodeSegments, setIsCodeAdded, command, fileArray);
                                 }}
                                 tooltip={
                                     isSyntaxError
