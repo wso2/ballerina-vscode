@@ -258,9 +258,13 @@ import {
     onMigrationToolStateChanged,
     onMigrationToolLogs,
     GetMigrationToolsResponse,
+    ServiceModelInitResponse,
+    ServiceInitSourceRequest,
     DeleteSubMappingRequest,
     DeleteClauseRequest,
-    ClearTypeCacheResponse
+    ClearTypeCacheResponse,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -372,6 +376,7 @@ enum EXTENDED_APIS {
     BI_SIGNATURE_HELP = 'expressionEditor/signatureHelp',
     BI_VISIBLE_TYPES = 'expressionEditor/types',
     REFERENCES = 'textDocument/references',
+    BI_FORM_DIAGNOSTICS = 'flowDesignService/diagnostics',
     BI_EXPRESSION_DIAGNOSTICS = 'expressionEditor/diagnostics',
     BI_TRIGGER_MODELS = 'triggerDesignService/getTriggerModels',
     BI_TRIGGER_MODEL = 'triggerDesignService/getTriggerModel',
@@ -397,6 +402,8 @@ enum EXTENDED_APIS {
     BI_SERVICE_UPDATE_LISTENER = 'serviceDesign/updateListener',
     BI_SERVICE_GET_LISTENER_SOURCE = 'serviceDesign/getListenerFromSource',
     BI_SERVICE_GET_SERVICE = 'serviceDesign/getServiceModel',
+    BI_SERVICE_GET_SERVICE_INIT = 'serviceDesign/getServiceInitModel',
+    BI_SERVICE_CREATE_SERVICE_AND_LISTENER = 'serviceDesign/addServiceAndListener',
     BI_SERVICE_GET_FUNCTION = 'serviceDesign/getFunctionModel',
     BI_SERVICE_ADD_SERVICE = 'serviceDesign/addService',
     BI_SERVICE_UPDATE_SERVICE = 'serviceDesign/updateService',
@@ -1133,6 +1140,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async addErrorHandler(params: BIModuleNodesRequest): Promise<BISourceCodeResponse> {
         return this.sendRequest(EXTENDED_APIS.BI_GEN_ERROR_HANDLER, params);
     }
+    
+    async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this.sendRequest<FormDiagnosticsResponse>(EXTENDED_APIS.BI_FORM_DIAGNOSTICS, params);
+    }
 
     async getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
         return this.sendRequest<ExpressionDiagnosticsResponse>(EXTENDED_APIS.BI_EXPRESSION_DIAGNOSTICS, params);
@@ -1168,6 +1179,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getServiceModel(params: ServiceModelRequest): Promise<ServiceModelResponse> {
         return this.sendRequest<ServiceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_SERVICE, params);
+    }
+
+    async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return this.sendRequest<ServiceModelInitResponse>(EXTENDED_APIS.BI_SERVICE_GET_SERVICE_INIT, params);
+    }
+
+    async createServiceAndListener(params: ServiceInitSourceRequest): Promise<SourceEditResponse> {
+        return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_SERVICE_CREATE_SERVICE_AND_LISTENER, params);
     }
 
     async getFunctionModel(params: FunctionModelRequest): Promise<FunctionModelResponse> {
@@ -1210,8 +1229,8 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<HttpResourceModelResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE, params);
     }
 
-    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
-        return this.sendRequest<ResourceReturnTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
+        return this.sendRequest<VisibleTypesResponse>(EXTENDED_APIS.BI_SERVICE_GET_RESOURCE_RETURN_TYPES, params);
     }
 
     async addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<ResourceSourceCodeResponse> {

@@ -16,8 +16,23 @@
  * under the License.
  */
 
-import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Icon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from '@emotion/styled';
+
+const FooterContainer = styled.div`
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 4px;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    cursor: pointer;
+    
+    &:hover {
+        background-color: ${ThemeColors.SURFACE_DIM_2};
+    }
+`;
 
 const InvisibleButton = styled.button`
     background: none;
@@ -46,14 +61,17 @@ type FooterButtonProps = {
 const FooterButtons = (props: FooterButtonProps) => {
     const { onClick, startIcon, title, sx } = props;
     return (
-        <div style={{ display: "flex", justifyContent: "left", alignItems: "center", padding: "8px", ...sx}}>
+        <FooterContainer style={sx} onClick={onClick}>
             <InvisibleButton 
             disabled={props.disabled}
-            onClick={onClick}>
-                <Codicon name={startIcon} sx={{color: ThemeColors.PRIMARY}}/>
+            onClick={(e) => {
+                e.stopPropagation();
+                onClick?.();
+            }}>
+                <Icon name="bi-plus" sx={{color: ThemeColors.PRIMARY, fontSize: "16px"}}/>
                 <span style={{color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
             </InvisibleButton>
-        </div>
+        </FooterContainer>
     )
 }
 

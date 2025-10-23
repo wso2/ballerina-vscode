@@ -79,6 +79,7 @@ import {
     getExpressionCompletions,
     getExpressionDiagnostics,
     getFlowModel,
+    getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
     getModuleNodes,
@@ -141,6 +142,7 @@ import {
     verifyTypeDelete,
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
+    FormDiagnosticsRequest,
     addProjectToWorkspace,
     AddProjectToWorkspaceRequest
 } from "@wso2/ballerina-core";
@@ -192,6 +194,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(addBreakpointToSource, (args: BreakpointRequest) => rpcManger.addBreakpointToSource(args));
     messenger.onNotification(removeBreakpointFromSource, (args: BreakpointRequest) => rpcManger.removeBreakpointFromSource(args));
     messenger.onRequest(getBreakpointInfo, () => rpcManger.getBreakpointInfo());
+    messenger.onRequest(getFormDiagnostics, (args: FormDiagnosticsRequest) => rpcManger.getFormDiagnostics(args));
     messenger.onRequest(getExpressionDiagnostics, (args: ExpressionDiagnosticsRequest) => rpcManger.getExpressionDiagnostics(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));

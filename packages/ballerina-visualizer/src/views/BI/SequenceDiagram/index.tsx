@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { SqFlow } from "@wso2/ballerina-core";
+import { SqFlow, ParentMetadata, NodePosition } from "@wso2/ballerina-core";
 import { Diagram } from "@wso2/sequence-diagram";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
@@ -51,7 +51,7 @@ const MessageContainer = styled.div({
 
 interface BISequenceDiagramProps {
     onUpdate: () => void;
-    onReady: () => void;
+    onReady: (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
 }
 
 export function BISequenceDiagram(props: BISequenceDiagramProps) {
@@ -82,7 +82,7 @@ export function BISequenceDiagram(props: BISequenceDiagramProps) {
                 // TODO: handle SequenceModelDiagnostic
             })
             .finally(() => {
-                // onReady();
+                // onReady(undefined, undefined, undefined);
             });
     };
 

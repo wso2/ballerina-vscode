@@ -138,12 +138,13 @@ import {
     VisibleTypesResponse,
     WorkspaceFolder,
     WorkspacesResponse,
-    AddProjectToWorkspaceRequest
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
-import { parse } from 'toml';
 
 import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
@@ -1256,6 +1257,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return new Promise((resolve, reject) => {
+            console.log(">>> requesting form diagnostics from ls", params);
+            StateMachine.langClient()
+                .getFormDiagnostics(params)
+                .then((diagnostics) => {
+                    console.log(">>> form diagnostics response from ls", diagnostics);
+                    resolve(diagnostics);
+                })
+                .catch((error) => {
+                    reject("Error fetching form diagnostics from ls");
+                });
+        });
+    }
+
     async getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
         return new Promise((resolve, reject) => {
             console.log(">>> requesting expression diagnostics from ls", params);
@@ -1456,7 +1472,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .updateType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> update type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update');
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update', params.type.name);
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching types from ls", error);

@@ -26,7 +26,7 @@ import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteComman
 import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
-import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceModel } from "./service";
+import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
 import { DataMapperMetadata, SCOPE } from "../state-machine-types";
@@ -1086,6 +1086,10 @@ export interface ExpressionCompletionItem {
     insertText: string;
     insertTextFormat: number;
     additionalTextEdits?: TextEdit[];
+    labelDetails?: {
+        description?: string;
+        detail: string;
+    };
 }
 
 export type ExpressionCompletionsResponse = ExpressionCompletionItem[];
@@ -1135,6 +1139,7 @@ export interface VisibleTypeItem {
         description: string;
         detail: string;
     }
+    detail?: string;
 }
 
 export type VisibleTypesResponse = VisibleTypeItem[];
@@ -1154,6 +1159,18 @@ export interface ReferenceLSRequest {
 export interface Reference {
     uri: string;
     range: Range;
+}
+
+export interface FormDiagnosticsRequest {
+    filePath: string;
+    flowNode: FlowNode | FunctionNode;
+    isConnector?: boolean;
+    isFunctionNodeUpdate?: boolean;
+}
+
+export interface FormDiagnosticsResponse {
+    flowNode?: FlowNode | FunctionNode;
+    diagnostics?: Diagnostic[];
 }
 
 export interface ExpressionDiagnosticsRequest {
@@ -1347,6 +1364,17 @@ export interface ServiceClassModelResponse {
     model?: ServiceClassModel;
     errorMsg?: string;
     stacktrace?: string;
+}
+
+export interface ServiceModelInitResponse {
+    serviceInitModel?: ServiceInitModel;
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
+export interface ServiceInitSourceRequest {
+    filePath: string;
+    serviceInitModel: ServiceInitModel;
 }
 
 // <-------- Type Related ------->
@@ -1880,6 +1908,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getComponentsFromContent: (params: ComponentsFromContent) => Promise<BallerinaProjectComponents>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     getVisibleTypes: (params: VisibleTypesRequest) => Promise<VisibleTypesResponse>;
+    getFormDiagnostics: (params: FormDiagnosticsRequest) => Promise<FormDiagnosticsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>
 
@@ -1895,7 +1924,9 @@ export interface BIInterface extends BaseLangClientInterface {
     getHttpResourceModel: (params: HttpResourceModelRequest) => Promise<HttpResourceModelResponse>;
     addResourceSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
     addFunctionSourceCode: (params: FunctionSourceCodeRequest) => Promise<ResourceSourceCodeResponse>;
-    getResourceReturnTypes: (params: ResourceReturnTypesRequest) => Promise<ResourceReturnTypesResponse>;
+    getResourceReturnTypes: (params: ResourceReturnTypesRequest) => Promise<VisibleTypesResponse>;
+    getServiceInitModel: (params: ServiceModelRequest) => Promise<ServiceModelInitResponse>;
+    createServiceAndListener: (params: ServiceInitSourceRequest) => Promise<SourceEditResponse>;
 
     // Function APIs
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
