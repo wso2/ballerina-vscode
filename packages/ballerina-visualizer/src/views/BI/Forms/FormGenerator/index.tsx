@@ -229,6 +229,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
 
+    const skipFormValidation = useMemo(() => {
+        const isAgentNode = node && (
+            node.codedata.node === "AGENT_CALL" &&
+            node.codedata.org === "ballerina" &&
+            node.codedata.module === "ai" &&
+            node.codedata.packageName === "ai" &&
+            node.codedata.object === "Agent" &&
+            node.codedata.symbol === "run"
+        );
+        return isAgentNode;
+    }, [node]);
+
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     //stack for recursive type creation
@@ -410,7 +422,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
-        if (node && targetLineRange) {
+        if (node && targetLineRange && !skipFormValidation) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             initForm(nodeWithDiagnostics);
@@ -665,7 +677,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
-        if (node && targetLineRange) {
+        if (node && targetLineRange && !skipFormValidation) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             initForm(nodeWithDiagnostics);
