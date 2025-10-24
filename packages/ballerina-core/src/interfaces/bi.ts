@@ -113,8 +113,8 @@ export type AgentData = {
 };
 
 export type MemoryData = {
-    name: string;
     type: string;
+    size: string
 };
 
 export type Imports = {
@@ -344,6 +344,7 @@ export type NodePropertyKey =
     | "sessionId"
     | "size"
     | "statement"
+    | "store"
     | "systemPrompt"
     | "targetType"
     | "tools"
@@ -396,6 +397,8 @@ export type NodeKind =
     | "LV_EXPRESSION"
     | "MATCH"
     | "METHOD_CALL"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"

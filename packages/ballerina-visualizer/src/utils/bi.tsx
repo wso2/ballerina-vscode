@@ -218,6 +218,12 @@ export function convertChunkerCategoriesToSidePanelCategories(categories: Catego
     ));
 }
 
+export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
 export function convertNodePropertiesToFormFields(
     nodeProperties: NodeProperties,
     connections?: FlowNode[],
