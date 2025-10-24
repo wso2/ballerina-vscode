@@ -402,6 +402,7 @@ export function FunctionForm(props: FunctionFormProps) {
                         {filePath && targetLineRange && functionFields.length > 0 &&
                             <FormGeneratorNew
                                 fileName={filePath}
+                                nestedForm={true}
                                 targetLineRange={targetLineRange}
                                 fields={functionFields}
                                 isSaving={saving}
