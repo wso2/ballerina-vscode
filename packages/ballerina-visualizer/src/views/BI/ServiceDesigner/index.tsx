@@ -328,15 +328,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         // Set dropdown options
         const options: DropdownOptionProps[] = [];
-
-        if (unusedHandlers.length > 0) {
-            options.push({
-                title: "Add Handler",
-                description: "Select the handler to add",
-                value: ADD_HANDLER
-            });
-        }
-
         // if (!hasInitMethod) {
         //     options.push({
         //         title: "Add Init Function",
@@ -543,21 +534,21 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleFunctionDelete = async (model: FunctionModel) => {
         console.log("Deleting Resource Model:", model);
-        const targetPosition: NodePosition = {
+        const component: ComponentInfo = {
+            name: model.name.value,
+            filePath: model.codedata.lineRange.fileName,
             startLine: model.codedata.lineRange.startLine.line,
             startColumn: model.codedata.lineRange.startLine.offset,
             endLine: model.codedata.lineRange.endLine.line,
             endColumn: model.codedata.lineRange.endLine.offset,
         };
-        const component: ComponentInfo = {
-            name: model.name.value,
-            filePath: model.codedata.lineRange.fileName,
-            startLine: targetPosition.startLine,
-            startColumn: targetPosition.startColumn,
-            endLine: targetPosition.endLine,
-            endColumn: targetPosition.endColumn,
-        };
         await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
+        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+        const serviceArtifact = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
+        if (serviceArtifact) {
+            await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+            fetchService(serviceArtifact.position);
+        }
     };
 
     const handleResourceSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
@@ -777,7 +768,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             </>
                                         )
                                     }
-                                    {serviceModel && !isMcpService && (
+                                    {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
                                         <AddServiceElementDropdown
                                             buttonTitle="More"
                                             toolTip="More options"
@@ -989,7 +980,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <>
                                     <SectionHeader
                                         title="Event Handlers"
-                                        subtitle="Define how the service responds to events"
+                                        subtitle={enabledHandlers.length === 0 ? "" : `Define how the service responds to events`}
                                     >
                                         <ActionGroup>
                                             {enabledHandlers.length !== 0 && unusedHandlers.length > 0 && (
