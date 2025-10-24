@@ -31,7 +31,7 @@
             "org": "ballerinax",
             "module": "ai.azure",
             "packageName": "ai.azure",
-            "object": "AzureAiSearchKnowledgeBase",
+            "object": "AiSearchKnowledgeBase",
             "symbol": "init",
             "flags": 1
           },
