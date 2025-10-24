@@ -45,6 +45,7 @@ import {
     NodeMetadata,
     SearchKind,
     DataMapperDisplayMode,
+    CodeData,
 } from "@wso2/ballerina-core";
 
 import {
@@ -2006,36 +2007,84 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         closeSidePanelAndFetchUpdatedFlowModel();
     };
 
+    const deleteMcpVariableAndClass = async (tool: ToolData) => {
+        const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        const mcpVariable = variableNodes.flowModel?.variables?.find(
+            (v) => v.codedata?.node === "MCP_TOOL_KIT" && v.properties.variable?.value === tool.name
+        );
+
+        if (!mcpVariable) {
+            return;
+        }
+
+        // Delete the MCP variable node
+        const mcpVariableFilePath = await rpcClient
+            .getVisualizerRpcClient()
+            .joinProjectPath(mcpVariable.codedata.lineRange.fileName);
+
+        await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+            filePath: mcpVariableFilePath,
+            flowNode: mcpVariable,
+        });
+
+        // Delete the MCP class if it's a custom class (not the default ai:McpToolKit)
+        const isCustomMcpClass = mcpVariable?.properties?.type?.value !== "ai:McpToolKit";
+        if (!isCustomMcpClass) {
+            return;
+        }
+
+        const classDefinition = mcpVariable?.codedata?.data["mcpClassDefinition"] as CodeData;
+        const classLineRange = classDefinition?.lineRange;
+
+        if (!classLineRange) {
+            return;
+        }
+
+        const classFilePath = await rpcClient
+            .getVisualizerRpcClient()
+            .joinProjectPath(classLineRange.fileName);
+
+        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
+            filePath: classFilePath,
+            component: {
+                name: "CLASS",
+                filePath: classFilePath,
+                startLine: classLineRange.startLine.line,
+                startColumn: classLineRange.startLine.offset,
+                endLine: classLineRange.endLine.line,
+                endColumn: classLineRange.endLine.offset,
+            },
+        });
+    };
+
     const handleOnDeleteTool = async (tool: ToolData, node: FlowNode) => {
         selectedNodeRef.current = node;
         setShowProgressIndicator(true);
+
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
+            const agentFilePath = await rpcClient
+                .getVisualizerRpcClient()
+                .joinProjectPath(agentNode.codedata.lineRange.fileName);
+
+            // Remove the tool from the agent node
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
-            const agentFilePath = await getAgentFilePath(rpcClient);
-            const toolType = tool.type ?? "";
-            if (toolType.includes("MCP Server")) {
-                const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
 
-                // Delete the MCP client variable node
-                const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-                const mcpVariable = variableNodes.flowModel?.variables?.find(
-                    (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === tool.name
-                );
+            const isMcpServerTool = tool.type?.includes("MCP Server");
+            if (isMcpServerTool) {
+                // Handle MCP Server deletion: clean up variable node and class definition
+                await deleteMcpVariableAndClass(tool);
 
-                if (mcpVariable) {
-                    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-                        filePath: agentFilePath,
-                        flowNode: mcpVariable,
-                    });
-                }
-
-                const agentResponse = await rpcClient
+                // Update agent node to remove MCP server reference
+                const finalAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
+                await rpcClient
                     .getBIDiagramRpcClient()
-                    .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
+                    .getSourceCode({ filePath: agentFilePath, flowNode: finalAgentNode });
+
                 onSave?.();
             } else {
-                const agentResponse = await rpcClient
+                // Handle regular tool deletion
+                await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updatedAgentNode });
             }
