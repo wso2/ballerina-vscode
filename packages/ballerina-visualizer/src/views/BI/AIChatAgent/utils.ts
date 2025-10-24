@@ -644,9 +644,14 @@ export const findValueInConfigVariables = async (
     }
 };
 
-/**
- * Resolves a value that could be a string literal, module variable, or config variable.
- */
+export const isUrl = (value: string): boolean => {
+    const trimmed = value.trim();
+    return trimmed.startsWith('http://') || 
+           trimmed.startsWith('https://') ||
+           trimmed.startsWith('localhost:') ||
+           trimmed.includes('://');
+};
+
 export const resolveVariableValue = async (
     value: string,
     moduleVariables: FlowNode[],
@@ -659,18 +664,23 @@ export const resolveVariableValue = async (
 
     const trimmed = value.trim();
 
-    // If it's a string literal, remove quotes and return
+    // String literal - remove quotes
     if (isStringLiteral(trimmed)) {
         return removeQuotes(trimmed);
     }
 
-    // Try to find in module variables
+    // URL - return as-is to skip variable lookups
+    if (isUrl(trimmed)) {
+        return trimmed;
+    }
+
+    // Check module variables
     const moduleValue = findValueInModuleVariables(trimmed, moduleVariables);
     if (moduleValue) {
         return removeQuotes(moduleValue);
     }
 
-    // As a last resort, try config variables if rpcClient is available
+    // Check config variables
     if (rpcClient && projectPathUri) {
         const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
         if (configValue) {
@@ -678,7 +688,7 @@ export const resolveVariableValue = async (
         }
     }
 
-    // If not found anywhere, return the original value
+    // Treat as literal value
     return trimmed;
 };
 
