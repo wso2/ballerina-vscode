@@ -46,7 +46,7 @@ export function PanelOverlayProvider({ children }: PanelOverlayProviderProps) {
     const [overlays, setOverlays] = useState<PanelOverlayConfig[]>([]);
 
     const openOverlay = useCallback((config: Omit<PanelOverlayConfig, "id">) => {
-        const id = `overlay-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const id = `overlay-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
         const newOverlay: PanelOverlayConfig = { ...config, id };
 
         setOverlays((prev) => [...prev, newOverlay]);
