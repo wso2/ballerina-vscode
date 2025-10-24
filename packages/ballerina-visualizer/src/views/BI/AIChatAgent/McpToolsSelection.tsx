@@ -165,6 +165,7 @@ const ModalContainer = styled.div`
     justify-content: center;
     align-items: center;
     background-color: color-mix(in srgb, ${ThemeColors.SECONDARY_CONTAINER} 70%, transparent);
+    font-family: GilmerRegular;
 `;
 
 const ModalBox = styled.div`
@@ -318,7 +319,7 @@ const ToolsSelectionModal: React.FC<{
         <ModalContainer onClick={onClose}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <Typography variant="h2" sx={{ margin: "10px 0" }}>
+                    <Typography sx={{ margin: "10px 0" }}>
                         Select MCP Tools
                     </Typography>
                     <div onClick={onClose} style={{ cursor: 'pointer' }}>
