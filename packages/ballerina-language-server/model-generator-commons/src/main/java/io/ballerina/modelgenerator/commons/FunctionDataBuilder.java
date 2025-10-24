@@ -155,7 +155,7 @@ public class FunctionDataBuilder {
                         FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
                 StandardCharsets.UTF_8)) {
             map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             map = Map.of();
         }
         CONNECTOR_NAME_MAP = map;
