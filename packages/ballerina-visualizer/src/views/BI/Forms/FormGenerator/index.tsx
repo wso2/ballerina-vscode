@@ -373,7 +373,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     };
 
-    const initForm = () => {
+    const initForm = (node: FlowNode) => {
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
