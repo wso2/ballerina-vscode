@@ -97,6 +97,7 @@ export type ParentMetadata = {
     accessor?: string;
     parameters?: string[];
     return?: string;
+    isServiceFunction?: boolean;
 };
 
 export type ToolData = {

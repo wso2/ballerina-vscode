@@ -29,6 +29,12 @@ export const BALLERINAX = "ballerinax";
 
 export const AI = "ai";
 
+export enum TypeHelperContext {
+    GRAPHQL_FIELD_TYPE = 'GRAPHQL_FIELD_TYPE',
+    GRAPHQL_INPUT_TYPE = 'GRAPHQL_INPUT_TYPE',
+    HTTP_STATUS_CODE = 'HTTP_STATUS_CODE',
+}
+
 export const GET_DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 export const WSO2_MODEL_PROVIDER = "Default Model Provider (WSO2)";
 
