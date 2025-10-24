@@ -21,11 +21,11 @@
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
         "optionalAbsoluteResourcePath": 0,
-        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathLabel": "Base Path",
         "absoluteResourcePathDescription": "",
         "absoluteResourcePathDefaultValue": "/",
         "optionalStringLiteral": 1,
-        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralLabel": "Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/\"",
         "listenerKind": "MULTIPLE_SELECT",
@@ -174,6 +174,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "caller",
@@ -244,6 +245,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -267,6 +269,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -290,6 +293,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -371,6 +375,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "event",
@@ -492,6 +497,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "canAddParameter": 0,
               "parameters": [
                 {
@@ -695,6 +701,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -718,6 +725,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "asbErr",
@@ -808,6 +816,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -842,6 +851,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -876,6 +886,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -987,6 +998,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "messages",
@@ -1021,6 +1033,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "kafkaError",

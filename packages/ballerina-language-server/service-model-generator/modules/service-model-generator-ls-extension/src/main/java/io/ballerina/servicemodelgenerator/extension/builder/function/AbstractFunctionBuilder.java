@@ -179,7 +179,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
     static Function getServiceTypeBoundedFunctionFromSource(ServiceTypeFunction serviceTypeFunction,
                                                             FunctionDefinitionNode functionDefinitionNode,
                                                             SemanticModel semanticModel) {
-        Function function = ServiceModelUtils.getFunction(serviceTypeFunction);
+        Function function = ServiceModelUtils.getFunctionFromServiceTypeFunction(serviceTypeFunction);
         FunctionSignatureNode functionSignatureNode = functionDefinitionNode.functionSignature();
         Optional<ReturnTypeDescriptorNode> returnTypeDesc = functionSignatureNode.returnTypeDesc();
         if (returnTypeDesc.isPresent()) {
@@ -243,6 +243,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setCanAddParameters(true);
+        functionModel.setOptional(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }

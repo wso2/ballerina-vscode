@@ -262,7 +262,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": true,
         "codedata": {
@@ -590,7 +590,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
@@ -1032,7 +1032,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
@@ -1357,7 +1357,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {

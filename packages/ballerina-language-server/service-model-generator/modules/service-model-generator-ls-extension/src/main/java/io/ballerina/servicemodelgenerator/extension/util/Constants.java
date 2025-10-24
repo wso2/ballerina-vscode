@@ -97,6 +97,7 @@ public class Constants {
 
     public static final String HTTP_SERVICE_TYPE = "http:Service";
 
+    // different input boxes in the UI
     public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
     public static final String VALUE_TYPE_FORM = "FORM";
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
@@ -109,6 +110,8 @@ public class Constants {
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
     public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
+
+    public static final String DB_KIND_OPTIONAL = "OPTIONAL";
 
     public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
     public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";
@@ -129,7 +132,12 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
-    public static final String VARIABLE_NAME_KEY = "variableNameKey";
+    public static final String PROP_KEY_VARIABLE_NAME = "variableNameKey";
+    public static final String PROP_KEY_LISTENER = "listener";
+    public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
+    public static final String PROP_KEY_BASE_PATH = "basePath";
+    public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
+    public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";

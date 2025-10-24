@@ -111,7 +111,10 @@
           "line": 11,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "kafka",
+      "moduleName": "kafka"
     },
     "functions": [
       {
@@ -125,12 +128,8 @@
             "label": "onConsumerRecord",
             "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onConsumerRecord",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onConsumerRecord",
           "enabled": true,
           "editable": false,
@@ -146,7 +145,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:AnydataConsumerRecord[]",
@@ -161,9 +160,6 @@
               "metadata": {
                 "label": "messages",
                 "description": "The messages received for Kafka topic(s)"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "messages",
               "valueType": "IDENTIFIER",
@@ -201,7 +197,7 @@
             "kind": "OPTIONAL",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Caller",
@@ -216,9 +212,6 @@
               "metadata": {
                 "label": "caller",
                 "description": "The Kafka caller object to commit the offsets"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "caller",
               "valueType": "IDENTIFIER",
@@ -346,12 +339,8 @@
             "label": "onError",
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onError",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onError",
           "enabled": true,
           "editable": false,
@@ -367,7 +356,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Error",
@@ -382,9 +371,6 @@
               "metadata": {
                 "label": "kafkaError",
                 "description": "The error occurred during the message processing"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "kafkaError",
               "valueType": "IDENTIFIER",
@@ -431,7 +417,7 @@
           "advanced": false
         },
         "enabled": false,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false
       }

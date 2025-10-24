@@ -503,7 +503,7 @@ class ServiceIndexGenerator {
                 List<ServiceTypeFunctionParameter> parameters = new ArrayList<>();
                 ServiceTypeFunction function = new ServiceTypeFunction(methodName,
                         methodDescription, "", "REMOTE", returnTypeSignature,
-                        0, returnError, "", 1, parameters);
+                        0, returnError, "", 1, 0, parameters);
 
                 int functionId = DatabaseManager.insertServiceTypeFunction(serviceTypeId, function);
 
@@ -542,7 +542,7 @@ class ServiceIndexGenerator {
 
                 ServiceTypeFunction function = new ServiceTypeFunction(path,
                         methodDescription, resourceMethodSymbol.getName().orElse("get"), "RESOURCE",
-                        returnTypeSignature, 0, returnError, "", 1, parameters);
+                        returnTypeSignature, 0, returnError, "", 1, 0, parameters);
 
                 int functionId = DatabaseManager.insertServiceTypeFunction(serviceTypeId, function);
 
@@ -680,6 +680,7 @@ class ServiceIndexGenerator {
             int returnError,
             String importStatements,
             int enable,
+            int optional,
             List<ServiceTypeFunctionParameter> parameters
     ) {
     }
