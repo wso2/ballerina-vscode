@@ -143,6 +143,7 @@ public class FunctionData {
         VECTOR_KNOWLEDGE_BASE,
         DATA_LOADER,
         CHUNKER,
+        MCP_TOOL_KIT,
         REMOTE,
         RESOURCE,
         LISTENER_INIT,
@@ -156,7 +157,8 @@ public class FunctionData {
                 FunctionData.Kind.VECTOR_STORE,
                 FunctionData.Kind.DATA_LOADER,
                 FunctionData.Kind.CHUNKER,
-                FunctionData.Kind.VECTOR_KNOWLEDGE_BASE
+                FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
+                FunctionData.Kind.MCP_TOOL_KIT
         );
 
         public static boolean isAiClassKind(Kind kind) {

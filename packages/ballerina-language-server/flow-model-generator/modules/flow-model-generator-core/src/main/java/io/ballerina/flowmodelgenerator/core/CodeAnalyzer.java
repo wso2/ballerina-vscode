@@ -48,6 +48,7 @@ import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.BreakStatementNode;
 import io.ballerina.compiler.syntax.tree.ByteArrayLiteralNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ClientResourceAccessActionNode;
 import io.ballerina.compiler.syntax.tree.CommentNode;
 import io.ballerina.compiler.syntax.tree.CommitActionNode;
@@ -124,6 +125,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
+import io.ballerina.flowmodelgenerator.core.model.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -186,6 +188,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
@@ -553,9 +556,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 boolean isMcpToolKit = nodeSymbol
                         .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
                         .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
-                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
-                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
-                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .filter(typeSymbol -> isMcpToolKitAiClass(typeSymbol) || isGeneratedMcpToolKit(typeSymbol))
                         .isPresent();
                 if (isMcpToolKit) {
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
@@ -657,6 +658,18 @@ public class CodeAnalyzer extends NodeVisitor {
         AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
 
         nodeBuilder.codedata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
+    }
+
+    private boolean isMcpToolKitAiClass(TypeSymbol typeSymbol) {
+        // Enables backward-compatible rendering of the MCP tool in the UI
+        return typeSymbol.getModule().isPresent() && (typeSymbol.nameEquals(MCP_TOOL_KIT)
+                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT));
+    }
+
+    private boolean isGeneratedMcpToolKit(TypeSymbol typeSymbol) {
+        return typeSymbol instanceof TypeReferenceTypeSymbol referenceTypeSymbol
+                && referenceTypeSymbol.typeDescriptor() instanceof ClassSymbol classSymbol
+                && isAiMcpBaseToolKit(classSymbol);
     }
 
     private boolean isClassField(ExpressionNode expr) {
@@ -1480,7 +1493,19 @@ public class CodeAnalyzer extends NodeVisitor {
                     .org(org)
                     .module(packageName)
                     .object(name)
-                    .symbol(NewConnectionBuilder.INIT_SYMBOL)
+                    .symbol(NewConnectionBuilder.INIT_SYMBOL);
+
+        if (kind == NodeKind.MCP_TOOL_KIT && isAiMcpBaseToolKit(classSymbol)) {
+            Map<String, Object> classDefinitionData = getClassDefinitionCodedata(classSymbol);
+            if (classDefinitionData != null) {
+                nodeBuilder.codedata().data(McpToolKitBuilder.MCP_CLASS_DEFINITION, classDefinitionData);
+                McpToolKitBuilder.setToolKitNameProperty(nodeBuilder, name);
+                String permittedTools = getPermittedToolsFromClass(classSymbol);
+                McpToolKitBuilder.setPermittedToolsProperty(nodeBuilder, permittedTools);
+            }
+        }
+
+        nodeBuilder.codedata()
                     .stepOut()
                 .properties()
                 .scope(connectionScope)
@@ -1515,8 +1540,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             return NodeKind.NEW_CONNECTION;
         }
-        if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
-            return NodeKind.MCP_TOOLKIT;
+        if (classSymbol.nameEquals(MCP_TOOL_KIT) || isAiMcpBaseToolKit(classSymbol)) {
+            return NodeKind.MCP_TOOL_KIT;
         }
         if (isAiMemory(classSymbol)) {
             return NodeKind.MEMORY;
@@ -2530,6 +2555,114 @@ public class CodeAnalyzer extends NodeVisitor {
             return (ImplicitNewExpressionNode) expr;
         }
         throw new IllegalStateException("Implicit new expression not found");
+    }
+
+    /**
+     * Extracts class definition information for MCP toolkit classes. Returns a Map containing the class definition's
+     * codedata.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A Map containing "lineRange" if found, null otherwise
+     */
+    private Map<String, Object> getClassDefinitionCodedata(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return null;
+        }
+
+        Location location = optLocation.get();
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
+                CommonUtils.getDocument(project, location).syntaxTree());
+
+        if (optNode.isEmpty()) {
+            return null;
+        }
+
+        NonTerminalNode classNode = optNode.get();
+        Map<String, Object> classDefinitionData = new LinkedHashMap<>();
+        classDefinitionData.put("lineRange", classNode.lineRange());
+
+        return classDefinitionData;
+    }
+
+    /**
+     * Extracts the permitted tools from the `permittedTools` map in the MCP toolkit class's init method.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A list of permitted tool names, or an empty list if not found
+     */
+    private String getPermittedToolsFromClass(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return "()";
+        }
+
+        Location location = optLocation.get();
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
+                CommonUtils.getDocument(project, location).syntaxTree());
+
+        if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
+            return "()";
+        }
+
+        // Find the init method in the class
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            if (!methodNode.functionName().text().equals("init")) {
+                continue;
+            }
+
+            // Find the permittedTools variable in the init method
+            FunctionBodyNode bodyNode = methodNode.functionBody();
+            if (!(bodyNode instanceof FunctionBodyBlockNode blockNode)) {
+                continue;
+            }
+
+            for (StatementNode statement : blockNode.statements()) {
+                if (statement.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+                    continue;
+                }
+
+                VariableDeclarationNode varDecl = (VariableDeclarationNode) statement;
+                String variableName = varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+
+                if (!variableName.equals("permittedTools")) {
+                    continue;
+                }
+
+                // Extract the keys from the mapping constructor
+                Optional<ExpressionNode> optInitializer = varDecl.initializer();
+                if (optInitializer.isEmpty() ||
+                        optInitializer.get().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+
+                MappingConstructorExpressionNode mappingExpr =
+                        (MappingConstructorExpressionNode) optInitializer.get();
+
+                List<String> toolNames = new ArrayList<>();
+                for (MappingFieldNode field : mappingExpr.fields()) {
+                    if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                        SpecificFieldNode specificField = (SpecificFieldNode) field;
+                        String fieldName = specificField.fieldName().toSourceCode().trim();
+                        // Remove quotes if present
+                        if (fieldName.startsWith("\"") && fieldName.endsWith("\"")) {
+                            fieldName = fieldName.substring(1, fieldName.length() - 1);
+                        }
+                        toolNames.add(fieldName);
+                    }
+                }
+                // Convert list to JSON array string format
+                return toolNames.stream()
+                        .map(name -> "\"" + name + "\"")
+                        .collect(Collectors.joining(", ", "[", "]"));
+            }
+        }
+        return "()";
     }
 
     // Check whether a type symbol is subType of `RawTemplate`

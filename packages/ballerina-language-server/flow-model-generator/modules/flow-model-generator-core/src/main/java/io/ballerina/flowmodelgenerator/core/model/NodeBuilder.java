@@ -167,6 +167,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, VectorKnowledgeBaseCallBuilder::new);
         put(NodeKind.DATA_LOADER, DataLoaderBuilder::new);
         put(NodeKind.CHUNKER, ChunkerBuilder::new);
+        put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {
