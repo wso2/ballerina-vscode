@@ -20,6 +20,8 @@ package io.ballerina.flowmodelgenerator.core.model;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -39,6 +41,8 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.formatter.core.FormattingTreeModifier;
@@ -58,12 +62,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SourceBuilder {
 
@@ -274,26 +280,62 @@ public class SourceBuilder {
     }
 
     public Optional<String> getExpressionBodyText(String typeName, Map<String, String> imports) {
-        PackageUtil.loadProject(workspaceManager, filePath);
+        Project project = PackageUtil.loadProject(workspaceManager, filePath);
         Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+
+        // Fetch the module ids of the project and create both list and mapping
+        List<String> subModuleIds = new ArrayList<>();
+        Map<String, ModuleId> subModuleIdMap = new HashMap<>();
+        project.currentPackage().moduleIds().forEach(moduleId -> {
+            String subModuleId = moduleId.moduleName();
+            subModuleIds.add(subModuleId);
+            subModuleIdMap.put(subModuleId, moduleId);
+        });
 
         // Obtain the symbols of the imports
         Map<String, BLangPackage> packageMap = new HashMap<>();
         if (imports != null) {
             imports.values().forEach(moduleId -> {
                 ModuleInfo moduleInfo = ModuleInfo.from(moduleId);
-                PackageUtil.pullModuleAndNotify(lsClientLogger, moduleInfo).ifPresent(pkg ->
-                        packageMap.put(CommonUtils.getDefaultModulePrefix(pkg.packageName().value()),
-                                PackageUtil.getCompilation(pkg).defaultModuleBLangPackage())
-                );
+                if (!subModuleIds.contains(moduleInfo.packageName())) {
+                    PackageUtil.pullModuleAndNotify(lsClientLogger, moduleInfo).ifPresent(pkg ->
+                            packageMap.put(CommonUtils.getDefaultModulePrefix(pkg.packageName().value()),
+                                    PackageUtil.getCompilation(pkg).defaultModuleBLangPackage())
+                    );
+                }
             });
         }
-
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
         Optional<TypeSymbol> optionalType =
                 BallerinaCompilerApi.getInstance().getType(semanticModel.types(), document, typeName, packageMap);
         if (optionalType.isEmpty()) {
-            return Optional.empty();
+            // Failover mechanism: check if the type belongs to a local submodule
+            String[] typeNameParts = typeName.split(":");
+            if (typeNameParts.length == 2) {
+                String packageName = project.currentPackage().packageName().value();
+                String fullModuleName = packageName + "." + typeNameParts[0];
+                if (subModuleIdMap.containsKey(fullModuleName)) {
+                    ModuleId moduleId = subModuleIdMap.get(fullModuleName);
+                    SemanticModel localModuleSemanticModel =
+                            project.currentPackage().getCompilation().getSemanticModel(moduleId);
+                    Optional<Symbol> moduleSymbol = localModuleSemanticModel.moduleSymbols()
+                            .stream().filter(symbol -> symbol.nameEquals(typeNameParts[1])).findFirst();
+                    if (moduleSymbol.isEmpty()) {
+                        return Optional.empty();
+                    }
+                    if (moduleSymbol.get() instanceof TypeSymbol typeSymbol) {
+                        optionalType = Optional.of(typeSymbol);
+                    } else if (moduleSymbol.get() instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                        optionalType = Optional.of(typeDefinitionSymbol.typeDescriptor());
+                    } else {
+                        return Optional.empty();
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            } else {
+                return Optional.empty();
+            }
         }
         TypeSymbol typeSymbol = optionalType.get();
 
