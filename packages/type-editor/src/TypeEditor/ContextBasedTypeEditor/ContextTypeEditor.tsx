@@ -40,7 +40,7 @@ namespace S {
         display: flex;
         flex-direction: column;
         padding-bottom: 0px;
-        padding-top: 8px;
+        padding-top: 10px;
     `;
 }
 
