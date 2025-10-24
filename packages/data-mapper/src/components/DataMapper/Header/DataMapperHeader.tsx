@@ -56,7 +56,6 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 <IconButton onClick={onBack}>
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
-                {undoRedoGroup && undoRedoGroup()}
                 <VerticalDivider />
                 <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
@@ -70,6 +69,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     )}
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
+                    {undoRedoGroup && undoRedoGroup()}
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>

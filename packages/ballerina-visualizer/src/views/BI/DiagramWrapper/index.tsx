@@ -309,7 +309,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
                     ? MACHINE_VIEW.BINPFunctionForm
-                    : parentMetadata?.isServiceFunction ? 
+                    : parentMetadata?.isServiceFunction ?
                         MACHINE_VIEW.ServiceFunctionForm : MACHINE_VIEW.BIFunctionForm,
             identifier: parentMetadata?.label || "",
             documentUri: fileUri,
@@ -389,7 +389,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             return (
                 <>
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
-                        <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                        <Icon
+                            name="bi-settings"
+                            sx={{
+                                marginRight: 5,
+                                fontSize: "16px",
+                                width: "16px",
+                            }}
+                        />
                         Configure
                     </ActionButton >
                     <ActionButton
@@ -406,8 +413,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (parentMetadata && !isResource && !isRemote) {
             return (
                 <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName, currentPosition)}>
-                    <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                    Configure
+                    <Icon
+                        name="bi-settings"
+                        sx={{
+                            marginRight: 5,
+                            fontSize: "16px",
+                            width: "16px",
+                        }}
+                    /> Configure
                 </ActionButton>
             );
         }
