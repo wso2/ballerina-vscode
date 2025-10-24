@@ -137,8 +137,18 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
+    } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
+        return (
+            <ActionTypeEditor
+                field={field}
+                openRecordEditor={openRecordEditor}
+                handleOnFieldFocus={handleOnFieldFocus}
+                autoFocus={autoFocus}
+                handleOnTypeChange={handleOnTypeChange}
+                handleNewTypeSelected={handleNewTypeSelected}
+            />
+        );
     } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
-        // Type field is a type editor
         return (
             <TypeEditor
                 field={field}
@@ -148,18 +158,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 onBlur={onBlur}
-                handleOnTypeChange={handleOnTypeChange}
-                handleNewTypeSelected={handleNewTypeSelected}
-
-            />
-        );
-    } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
-        return (
-            <ActionTypeEditor
-                field={field}
-                openRecordEditor={openRecordEditor}
-                handleOnFieldFocus={handleOnFieldFocus}
-                autoFocus={autoFocus}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
 
