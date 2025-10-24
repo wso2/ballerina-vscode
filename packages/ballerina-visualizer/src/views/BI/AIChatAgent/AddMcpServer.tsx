@@ -7,7 +7,7 @@
  * You may not alter or remove any copyright or other notice from copies of this content.
  */
 
-import { FlowNode, } from "@wso2/ballerina-core";
+import { FlowNode, LineRange } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +16,7 @@ import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./McpToolsSelection";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, parseToolsString } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, parseToolsString } from "./utils";
 
 interface Tool {
     name: string;
@@ -48,6 +48,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [agentFileEndLineRange, setAgentFileEndLineRange] = useState<LineRange | undefined>(undefined);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -104,6 +105,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             setupEditMode(moduleNodes.flowModel.variables);
         } else {
             mcpToolKitNodeRef.current = template;
+            const endLineRange = await getEndOfFileLineRange(agentFilePathRef.current, rpcClient);
+            setAgentFileEndLineRange(endLineRange);
         }
 
         setIsLoading(false);
@@ -243,7 +246,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     showValidationError={isSaveDisabled}
                 />
             ),
-            index: 2
+            index: 1
         }];
     }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled]);
 
@@ -259,7 +262,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 <FormGenerator
                     ref={formRef}
                     fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFilePathRef.current}
-                    targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentCallNode.codedata?.lineRange}
+                    targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRange}
                     nodeFormTemplate={mcpToolKitNodeTemplateRef.current}
                     submitText={"Save"}
                     node={mcpToolKitNodeRef.current}
