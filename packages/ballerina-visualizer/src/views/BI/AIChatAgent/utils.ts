@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { CodeData, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
+import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";

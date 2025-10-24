@@ -59,8 +59,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const moduleVariablesRef = useRef<FlowNode[]>([]);
     const projectPathUriRef = useRef<string>("");
 
-    const fetchAgentNode = async (connections: FlowNode[]) => {
-        agentNodeRef.current = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient, connections);
+    const fetchAgentNode = async () => {
+        agentNodeRef.current = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
     };
 
     const fetchMcpToolKitTemplate = async () => {
@@ -104,7 +104,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         // Store module variables for later use
         moduleVariablesRef.current = moduleNodes.flowModel.variables || [];
 
-        await fetchAgentNode(moduleNodes.flowModel.connections);
+        await fetchAgentNode();
         const template = await fetchMcpToolKitTemplate();
 
         mcpToolKitNodeTemplateRef.current = template;
