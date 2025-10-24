@@ -137,6 +137,7 @@ interface FormProps {
     }[];
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
     fieldPriority?: Record<string, number>; // Map of field keys to priority numbers (lower = rendered first)
+    fieldOverrides?: Record<string, Partial<FormField>>;
 }
 
 // Styled component for the action button description
@@ -429,7 +430,19 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // get node properties
-        const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
+        let fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
+
+        // Apply field overrides if provided
+        if (props.fieldOverrides) {
+            fields = fields.map(field => {
+                const override = props.fieldOverrides[field.key];
+                if (override) {
+                    return { ...field, ...override };
+                }
+                return field;
+            });
+        }
+
         const sortedFields = sortFieldsByPriority(fields);
         setFields(sortedFields);
         setFormImports(getImportsForFormFields(sortedFields));
