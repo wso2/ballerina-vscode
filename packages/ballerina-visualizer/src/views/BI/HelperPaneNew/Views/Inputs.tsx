@@ -214,9 +214,11 @@ export const Inputs = (props: InputsPageProps) => {
 
                     </div>
                 )}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
-                <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
-            </div>
+            {dropdownItems.length >= 6 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
+                    <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
+                </div>
+            )}
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {isLoading || !showContent ? (
@@ -224,7 +226,7 @@ export const Inputs = (props: InputsPageProps) => {
                 ) : (
                     <>
                         {filteredDropDownItems.length === 0 ? (
-                            <EmptyItemsPlaceHolder message="No inputs found" />
+                            <EmptyItemsPlaceHolder message={searchValue ? "No inputs found for your search" : "No inputs found"} />
                         ) : (
                             <ExpandableList>
                                 <ExpandableListItems />

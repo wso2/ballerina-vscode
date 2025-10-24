@@ -211,6 +211,7 @@ export const FunctionsPage = ({
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px" }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
+            
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
@@ -218,64 +219,79 @@ export const FunctionsPage = ({
                         <HelperPaneCustom.Loader />
                     ) : (
                         <>
-                            {
-                                !functionInfo || !functionInfo.category || functionInfo.category.length === 0 ? (
-                                    <EmptyItemsPlaceHolder message="No functions found" />
-                                ) : (
-                                    functionInfo.category.map((category) => {
-                                        if (!category.subCategory) {
-                                            if (!category.items || category.items.length === 0) {
+                            {(() => {
+                                // Check if we have any functions to display
+                                const hasAnyFunctions = functionInfo?.category?.some(category => {
+                                    if (category.items && category.items.length > 0) {
+                                        return true;
+                                    }
+                                    if (category.subCategory && category.subCategory.some(sub => sub.items && sub.items.length > 0)) {
+                                        return true;
+                                    }
+                                    return false;
+                                });
+
+                                if (!functionInfo || !functionInfo.category || functionInfo.category.length === 0 || !hasAnyFunctions) {
+                                    return <EmptyItemsPlaceHolder message={searchValue ? "No functions found for your search" : "No functions found"} />;
+                                }
+
+                                return (
+                                    <>
+                                        {functionInfo.category.map((category) => {
+                                            if (!category.subCategory) {
+                                                if (!category.items || category.items.length === 0) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <ExpandableList>
+                                                        <ExpandableList.Section key={category.label} title={category.label} level={0}>
+                                                            <div style={{ marginTop: '10px' }}>
+                                                                {category.items.map((item) => (
+                                                                    <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
+                                                                        <ExpandableList.Item
+                                                                            key={item.label}
+                                                                        >
+                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                        </ExpandableList.Item>
+                                                                    </SlidingPaneNavContainer>
+                                                                ))}
+                                                            </div>
+                                                        </ExpandableList.Section>
+                                                    </ExpandableList>
+                                                )
+                                            }
+
+                                            //if sub category is empty
+                                            if (category.subCategory.length === 0) {
                                                 return null;
                                             }
 
                                             return (
                                                 <ExpandableList>
-                                                    <ExpandableList.Section key={category.label} title={category.label} level={0}>
-                                                        <div style={{ marginTop: '10px' }}>
-                                                            {category.items.map((item) => (
-                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                    <ExpandableList.Item
-                                                                        key={item.label}
-                                                                    >
-                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </ExpandableList.Item>
-                                                                </SlidingPaneNavContainer>
-                                                            ))}
-                                                        </div>
-                                                    </ExpandableList.Section>
+                                                    {category.subCategory.map((subCategory) => (
+                                                        <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
+                                                            <div style={{ marginTop: '10px' }}>
+                                                                {subCategory.items.map((item) => (
+                                                                    <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
+                                                                        <ExpandableList.Item
+                                                                            key={item.label}
+                                                                        >
+                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                        </ExpandableList.Item>
+                                                                    </SlidingPaneNavContainer>
+                                                                ))}
+                                                            </div>
+                                                        </ExpandableList.Section>
+                                                    ))}
                                                 </ExpandableList>
                                             )
-                                        }
-
-                                        //if sub category is empty
-                                        if (category.subCategory.length === 0) {
-                                            return null;
-                                        }
-
-                                        return (
-                                            <ExpandableList>
-                                                {category.subCategory.map((subCategory) => (
-                                                    <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
-                                                        <div style={{ marginTop: '10px' }}>
-                                                            {subCategory.items.map((item) => (
-                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                    <ExpandableList.Item
-                                                                        key={item.label}
-                                                                    >
-                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </ExpandableList.Item>
-                                                                </SlidingPaneNavContainer>
-                                                            ))}
-                                                        </div>
-                                                    </ExpandableList.Section>
-                                                ))}
-                                            </ExpandableList>
-                                        )
-                                    })
-                                )
-                            }
+                                        })}
+                                    </>
+                                );
+                            })()}
                         </>
                     )
                 }
