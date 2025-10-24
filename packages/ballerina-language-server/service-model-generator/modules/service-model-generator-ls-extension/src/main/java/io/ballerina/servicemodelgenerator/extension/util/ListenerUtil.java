@@ -87,6 +87,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_DEFAULT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF;
@@ -339,26 +340,6 @@ public class ListenerUtil {
         return Optional.of(listener);
     }
 
-    public static Optional<Listener> getDefaultListenerModel(String org, ListenerDeclarationNode listenerNode) {
-        ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(org, "http");
-        if (optFunctionResult.isEmpty()) {
-            return Optional.empty();
-        }
-        FunctionData functionData = optFunctionResult.get();
-        LinkedHashMap<String, ParameterData> parameters = dbManager
-                .getFunctionParametersAsMap(functionData.functionId());
-        functionData.setParameters(parameters);
-        Listener listener = createBaseListenerModel(functionData);
-        listener.getProperties().put("defaultListener", getHttpDefaultListenerValue());
-        Value nameProperty = listener.getVariableNameProperty();
-        nameProperty.setValue(listenerNode.variableName().text().trim());
-        nameProperty.setCodedata(new Codedata(listenerNode.variableName().lineRange()));
-        nameProperty.setEditable(false);
-        listener.setCodedata(new Codedata(listenerNode.lineRange()));
-        return Optional.of(listener);
-    }
-
     private static Value getHttpDefaultListenerValue() {
         return new Value.ValueBuilder()
                 .metadata("HTTP Default Listener", "The default HTTP listener")
@@ -439,7 +420,7 @@ public class ListenerUtil {
                                                        String orgName, SemanticModel semanticModel) {
 
         if (isHttpDefaultListener(listenerNode)) {
-            return getDefaultListenerModel(orgName, listenerNode).get();
+            return createHttpDefaultListenerModel(orgName, listenerNode).get();
         }
 
         Optional<Symbol> symbol = semanticModel.symbol(listenerNode.typeDescriptor().orElse(null));
@@ -448,8 +429,8 @@ public class ListenerUtil {
             return null;
         }
 
-        return getListener(listenerNode.lineRange(), (NewExpressionNode) listenerNode.initializer(),
-                semanticModel, classSymbol);
+        return createListenerModelFromNewExpressionNode(listenerNode.lineRange(),
+                (NewExpressionNode) listenerNode.initializer(), semanticModel, classSymbol);
     }
 
     private static void processListenerName(Listener listener, ListenerDeclarationNode listenerDeclarationNode) {
@@ -457,6 +438,29 @@ public class ListenerUtil {
         nameProperty.setValue(listenerDeclarationNode.variableName().text().trim());
         nameProperty.setCodedata(new Codedata(listenerDeclarationNode.variableName().lineRange()));
         nameProperty.setEditable(false);
+    }
+
+    /**
+     * Creates a default HTTP listener model from a listener declaration node that uses the default HTTP listener.
+     * This method builds a listener model specifically for HTTP default listeners (http:getDefaultListener())
+     *
+     * @param org the organization name used to look up the HTTP listener metadata from the database
+     * @param listenerNode the listener declaration node containing the default HTTP listener initialization
+     */
+    private static Optional<Listener> createHttpDefaultListenerModel(String org, ListenerDeclarationNode listenerNode) {
+        Optional<FunctionData> optionalFunctionData = ServiceDatabaseManager.getInstance().getListener(org, HTTP);
+        if (optionalFunctionData.isEmpty()) {
+            return Optional.empty();
+        }
+
+        FunctionData functionData = optionalFunctionData.get();
+        functionData.setParameters(new LinkedHashMap<>());
+
+        Listener listener = createBaseListenerModel(functionData);
+        listener.getProperties().put(PROP_KEY_DEFAULT_LISTENER, getHttpDefaultListenerValue());
+        listener.setCodedata(new Codedata(listenerNode.lineRange()));
+
+        return Optional.of(listener);
     }
 
     /**
@@ -474,14 +478,52 @@ public class ListenerUtil {
                 || !(CommonUtils.getRawType(typeSymbol)  instanceof ClassSymbol classSymbol)) {
             return null;
         }
-        Listener listenerModel = getListener(newExpressionNode.lineRange(), newExpressionNode,
-                semanticModel, classSymbol);
+        Listener listenerModel = createListenerModelFromNewExpressionNode(newExpressionNode.lineRange(),
+                newExpressionNode, semanticModel, classSymbol);
         listenerModel.getProperties().remove(PROP_KEY_VARIABLE_NAME);
         return listenerModel;
     }
 
-    private static Listener getListener(LineRange lineRange, NewExpressionNode newExpressionNode,
-                                        SemanticModel semanticModel, ClassSymbol classSymbol) {
+    /**
+     * Creates a listener model from a syntax tree node and class symbol with complete property analysis.
+     * This method constructs a comprehensive listener model by analyzing the listener's initialization
+     * arguments, setting up all properties, and configuring code metadata for UI representation.
+     *
+     * @param lineRange the line range in the source code where the listener is defined
+     * @param newExpressionNode the new expression node containing the listener initialization
+     * @param semanticModel the semantic model for symbol resolution and type analysis
+     * @param classSymbol the class symbol representing the listener type
+     * @return a fully configured {@link Listener} model with analyzed properties, code metadata,
+     *         and all properties marked as non-advanced for UI visibility
+     */
+    private static Listener createListenerModelFromNewExpressionNode(LineRange lineRange,
+                                                                     NewExpressionNode newExpressionNode,
+                                                                     SemanticModel semanticModel,
+                                                                     ClassSymbol classSymbol) {
+        FunctionData functionData = buildListenerFunctionData(classSymbol, semanticModel);
+
+        Listener listenerModel = createBaseListenerModel(functionData);
+        analyzeAndSetListenerProperties(listenerModel, functionData, newExpressionNode, classSymbol.initMethod().get());
+
+        setPropertiesAsNonAdvanced(listenerModel);
+        Codedata codedata = new Codedata.Builder()
+                .setLineRange(lineRange)
+                .build();
+        listenerModel.setCodedata(codedata);
+
+        return listenerModel;
+    }
+
+    /**
+     * Builds function data from a class symbol's initialization method.
+     * This helper method extracts the init method information to create function metadata
+     * used for property analysis and listener model construction.
+     *
+     * @param classSymbol the class symbol representing the listener type
+     * @param semanticModel the semantic model for symbol resolution
+     * @return {@link FunctionData} containing the initialization method metadata
+     */
+    private static FunctionData buildListenerFunctionData(ClassSymbol classSymbol, SemanticModel semanticModel) {
         Optional<MethodSymbol> optMethodSymbol = classSymbol.initMethod();
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
@@ -490,32 +532,28 @@ public class ListenerUtil {
                 .name("init")
                 .functionResultKind(FunctionData.Kind.CLASS_INIT);
 
-        FunctionData functionData;
-        if (optMethodSymbol.isPresent()) {
-            MethodSymbol methodSymbol = optMethodSymbol.get();
-            functionDataBuilder.functionSymbol(methodSymbol);
-            functionData = functionDataBuilder.build();
-        } else {
-            functionData = functionDataBuilder.build();
-        }
-        Listener listenerModel = createBaseListenerModel(functionData);
+        optMethodSymbol.ifPresent(functionDataBuilder::functionSymbol);
 
-        Codedata codedata = new Codedata.Builder()
-                .setLineRange(lineRange)
-                .build();
-
-        listenerModel.setCodedata(codedata);
-        analyzeListenerArguments(listenerModel, functionData, newExpressionNode, optMethodSymbol.orElse(null));
-        setPropertiesAsNonAdvanced(listenerModel);
-        return listenerModel;
+        return functionDataBuilder.build();
     }
 
-    private static void analyzeListenerArguments(Listener listener, FunctionData functionData,
-                                                 NewExpressionNode newExpressionNode,
-                                                 MethodSymbol methodSymbol) {
+    /**
+     * Analyzes listener initialization arguments and sets corresponding properties.
+     * This method extracts argument values from the new expression and maps them to
+     * listener properties using the function metadata.
+     *
+     * @param listener the listener model to populate with properties
+     * @param functionData the function metadata containing parameter information
+     * @param newExpressionNode the new expression containing initialization arguments
+     * @param initSymbol the init method symbol
+     */
+    private static void analyzeAndSetListenerProperties(Listener listener, FunctionData functionData,
+                                                        NewExpressionNode newExpressionNode,
+                                                        MethodSymbol initSymbol) {
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+
         ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties());
-        analyzer.analyze(arguments, methodSymbol, functionData);
+        analyzer.analyze(arguments, initSymbol, functionData);
     }
 
     /**

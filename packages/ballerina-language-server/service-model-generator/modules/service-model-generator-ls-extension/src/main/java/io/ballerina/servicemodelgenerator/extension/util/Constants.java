@@ -137,6 +137,7 @@ public class Constants {
     public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
     public static final String PROP_KEY_BASE_PATH = "basePath";
     public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
+    public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
