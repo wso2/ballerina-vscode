@@ -132,7 +132,6 @@ const ListenerBadge = styled.div`
 `;
 
 const PropertyInline = styled.div`
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -141,6 +140,8 @@ const PropertyInline = styled.div`
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 4px;
     font-size: 11px;
+    height: 24px;
+    pointer-events: none;
 `;
 
 const PropertyKey = styled.span`
@@ -789,7 +790,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         {listeners.length > 0 && (
                                             <>
                                                 {listeners.map((listener, index) => (
-                                                    <PropertyInline key={`${index}-listener`} onClick={() => handleOpenListener(listener)}>
+                                                    <PropertyInline key={`${index}-listener`}>
                                                         <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
                                                         <PropertyKey>Listener:</PropertyKey>
                                                         <PropertyValue>
@@ -803,7 +804,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             <>
                                                 {
                                                     Array.from(readonlyProperties).map(prop => (
-                                                        <PropertyInline key={prop.label} onClick={handleServiceEdit}>
+                                                        <PropertyInline key={prop.label}>
                                                             <PropertyKey>{prop.label}:</PropertyKey>
                                                             <PropertyValue>
                                                                 {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
