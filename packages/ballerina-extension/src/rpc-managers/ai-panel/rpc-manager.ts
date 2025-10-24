@@ -141,10 +141,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             try {
-                const workspaceFolderPath = workspace.workspaceFolders[0].uri.fsPath;
+                let projectIdentifier: string;
+                const cloudProjectId = process.env.CLOUD_INITIAL_PROJECT_ID;
+                
+                if (cloudProjectId) {
+                    projectIdentifier = cloudProjectId;
+                } else {
+                    projectIdentifier = workspace.workspaceFolders[0].uri.fsPath;
+                }
 
                 const hash = crypto.createHash('sha256')
-                    .update(workspaceFolderPath)
+                    .update(projectIdentifier)
                     .digest('hex');
 
                 resolve(hash);
