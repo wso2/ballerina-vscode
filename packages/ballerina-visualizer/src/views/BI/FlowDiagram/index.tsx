@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { removeMcpServerFromAgentNode } from "../AIChatAgent/utils";
+import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
 import { MemoizedDiagram } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -71,7 +71,6 @@ import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
-    findAgentNodeFromAgentCallNode,
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
@@ -1827,25 +1826,40 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnSelectMemoryManager = async (agentCallNode: FlowNode) => {
-        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-        const connectionValue = agentCallNode.properties.connection.value;
-        const agentNode = moduleNodes.flowModel.connections.find(
-            (node) => node.properties.variable.value === connectionValue
-        );
+        // Use the helper function to find the agent node from agent call node
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
 
         if (!agentNode) {
-            console.error(`Agent node not found for connection: ${connectionValue}`, agentCallNode);
+            console.error(`Agent node not found for agent call node`, agentCallNode);
             return;
         }
 
         // Check if agent already has a configured memory manager
         const agentMemoryValue = agentNode?.properties?.memory?.value;
 
-        // Find the existing memory manager node from module variables
-        const existingMemoryVariable = agentMemoryValue
-            ? moduleNodes.flowModel.variables.find(
-                (node) => node.properties.variable.value === agentMemoryValue.toString().trim()
-            ) : undefined;
+        // Find the existing memory manager node using searchNodes API
+        let existingMemoryVariable;
+        if (agentMemoryValue) {
+            const fileName = agentNode.codedata?.lineRange?.fileName;
+            if (fileName) {
+                const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+                const startLine = agentNode.codedata?.lineRange?.startLine;
+                const linePosition = startLine
+                    ? {
+                        line: startLine.line,
+                        offset: startLine.offset
+                    }
+                    : undefined;
+
+                const queryMap = {
+                    kind: "MEMORY" as const,
+                    exactMatch: agentMemoryValue.toString().trim()
+                };
+
+                const memoryNodes = await findFlowNode(rpcClient, filePath, linePosition, queryMap);
+                existingMemoryVariable = memoryNodes && memoryNodes.length > 0 ? memoryNodes[0] : undefined;
+            }
+        }
 
         // Initialize and sync memory metadata between nodes
         agentNode.metadata.data = agentNode.metadata.data || {} as NodeMetadata;
