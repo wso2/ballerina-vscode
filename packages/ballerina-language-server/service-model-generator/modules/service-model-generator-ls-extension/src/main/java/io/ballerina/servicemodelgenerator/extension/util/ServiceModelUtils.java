@@ -85,7 +85,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctio
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
 public class ServiceModelUtils {
@@ -738,8 +737,6 @@ public class ServiceModelUtils {
         }
 
         extractServicePathInfo(serviceNode, serviceModel);
-
-        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         return serviceModel;
     }
 

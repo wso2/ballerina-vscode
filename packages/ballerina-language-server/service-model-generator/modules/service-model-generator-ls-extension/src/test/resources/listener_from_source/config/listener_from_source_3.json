@@ -11,17 +11,16 @@
   },
   "response": {
     "listener": {
-      "id": "1",
       "name": "Http Listener",
       "type": "http",
       "displayName": "Http",
-      "description": "This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to\nremote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.",
+      "description": "Gets invoked during module initialization to initialize the listener.\n",
       "moduleName": "http",
       "orgName": "ballerina",
-      "version": "2.14.0",
+      "version": "2.14.6",
       "packageName": "http",
       "listenerProtocol": "http",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -91,7 +90,7 @@
           "typeMembers": [
             {
               "type": "ListenerConfiguration",
-              "packageInfo": "ballerina:http:2.14.0",
+              "packageInfo": "ballerina:http:2.14.6",
               "kind": "RECORD_TYPE",
               "selected": false
             }

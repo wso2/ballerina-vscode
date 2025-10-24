@@ -156,7 +156,7 @@ public class FunctionDataBuilder {
                         FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
                 StandardCharsets.UTF_8)) {
             map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
-        } catch (IOException e) {
+        } catch (Exception e) {
             map = Map.of();
         }
         CONNECTOR_NAME_MAP = map;
@@ -630,7 +630,12 @@ public class FunctionDataBuilder {
     }
 
     private Optional<FunctionData> getFunctionFromIndex() {
-        DatabaseManager dbManager = DatabaseManager.getInstance();
+        DatabaseManager dbManager;
+        try {
+            dbManager = DatabaseManager.getInstance();
+        } catch (Throwable e) {
+            return Optional.empty();
+        }
 
         // Skipping the index since we currently only index connectors with the name "Client".
         // TODO: This should be removed after the package index is revamped.
