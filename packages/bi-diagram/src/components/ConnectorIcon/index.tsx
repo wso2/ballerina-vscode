@@ -58,6 +58,11 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
+    // use custom icon for mcp
+    if (url?.includes("mcp")) {
+        return <Icon name="bi-mcp" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    }
+
     // use custom icon for ai module
     if (url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) {
         return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
