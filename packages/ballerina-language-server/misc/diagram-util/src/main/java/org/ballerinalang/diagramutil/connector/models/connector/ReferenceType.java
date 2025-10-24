@@ -320,6 +320,8 @@ public class ReferenceType {
                 tupleType.memberTypes.add(refType);
             }
             return tupleType;
+        } else if (kind == TypeDescKind.REGEXP) {
+            return new RefType("regexp:RegExp");
         }
 
         throw new UnsupportedOperationException(
@@ -327,28 +329,67 @@ public class ReferenceType {
     }
 
     private static RefType getPrimitiveType(TypeDescKind kind, String name) {
-        if (kind == TypeDescKind.INT || kind == TypeDescKind.STRING || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.NIL || kind == TypeDescKind.DECIMAL ||
-                kind == TypeDescKind.NEVER) {
-            return createPrimitiveRefType(kind, name);
+        String primitiveTypeName = getPrimitiveTypeName(kind);
+        if (primitiveTypeName == null) {
+            return null;
         }
-        return null;
+        RefType refType = new RefType(name);
+        refType.typeName = primitiveTypeName;
+        refType.name = primitiveTypeName;
+        return refType;
     }
 
-    private static RefType createPrimitiveRefType(TypeDescKind kind, String name) {
-        RefType refType = new RefType(name);
-        refType.typeName = switch (kind) {
-            case INT -> "int";
-            case STRING -> "string";
-            case FLOAT -> "float";
-            case BOOLEAN -> "boolean";
-            case NIL -> "()";
-            case DECIMAL -> "decimal";
-            case NEVER -> "never";
-            default -> throw new UnsupportedOperationException("Unsupported primitive type: " + kind);
-        };
-        refType.name = refType.typeName;
-        return refType;
+    private static String getPrimitiveTypeName(TypeDescKind kind) {
+        switch (kind) {
+            case INT -> {
+                return "int";
+            }
+            case INT_SIGNED8 -> {
+                return "int:Signed8";
+            }
+            case INT_SIGNED16 -> {
+                return "int:Signed16";
+            }
+            case INT_SIGNED32 -> {
+                return "int:Signed32";
+            }
+            case INT_UNSIGNED8 -> {
+                return "int:Unsigned8";
+            }
+            case INT_UNSIGNED16 -> {
+                return "int:Unsigned16";
+            }
+            case INT_UNSIGNED32 -> {
+                return "int:Unsigned32";
+            }
+            case STRING -> {
+                return "string";
+            }
+            case FLOAT -> {
+                return "float";
+            }
+            case BOOLEAN -> {
+                return "boolean";
+            }
+            case NIL -> {
+                return "()";
+            }
+            case DECIMAL -> {
+                return "decimal";
+            }
+            case BYTE -> {
+                return "byte";
+            }
+            case STRING_CHAR -> {
+                return "string:Char";
+            }
+            case NEVER -> {
+                return "never";
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 
 
