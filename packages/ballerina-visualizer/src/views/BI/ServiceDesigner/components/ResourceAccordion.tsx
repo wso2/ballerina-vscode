@@ -193,9 +193,14 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                         <>
                             {onEditResource! && (
                                 <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!functionModel.editable && !canDataBind(functionModel)}>
-                                    <Icon isCodicon={true} name="settings-gear" sx={{
-                                         marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                                    Configure
+                                    <Codicon
+                                        name="settings-gear"
+                                        sx={{
+                                            cursor: functionModel.optional ? "not-allowed" : "pointer",
+                                            opacity: functionModel.optional ? 0.5 : 1,
+                                            width: "16px",
+                                        }}
+                                    />
                                 </ActionButton >
                             )}
                             {onDeleteResource! && (
@@ -205,6 +210,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                                         sx={{
                                             cursor: functionModel.optional ? "not-allowed" : "pointer",
                                             opacity: functionModel.optional ? 0.5 : 1,
+                                            width: "16px",
                                         }}
                                     />
                                 </ActionButton >
