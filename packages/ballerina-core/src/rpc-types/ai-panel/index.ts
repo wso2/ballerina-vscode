@@ -82,4 +82,5 @@ export interface AIPanelAPI {
     // ==================================
     getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
+    isUserAuthenticated: () => Promise<boolean>;
 }
