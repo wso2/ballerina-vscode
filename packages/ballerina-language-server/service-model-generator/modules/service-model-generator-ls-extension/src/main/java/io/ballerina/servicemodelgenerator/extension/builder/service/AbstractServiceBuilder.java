@@ -563,20 +563,28 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         }
 
         // Extract all metadata values using the new architecture
-        Map<String, String> extractedValues = metadataManager.extractAllMetadata(serviceNode, context, customExtractor);
+        Map<String, List<String>> extractedValues = metadataManager.extractAllMetadata(serviceNode, context, customExtractor);
 
-        // Get the current value as a map (readOnly metadata uses HashMap<String, String>)
+        // Get the current value as a map (readOnly metadata uses HashMap<String, ArrayList<String>>)
         Object currentValue = currentReadOnlyMetadata.getValue();
-        HashMap<String, String> currentProps;
+        HashMap<String, ArrayList<String>> currentProps;
 
         if (currentValue instanceof HashMap<?, ?>) {
             @SuppressWarnings("unchecked")
-            HashMap<String, String> typedMap = (HashMap<String, String>) currentValue;
+            HashMap<String, ArrayList<String>> typedMap = (HashMap<String, ArrayList<String>>) currentValue;
             currentProps = typedMap;
-            currentProps.putAll(extractedValues);
         } else {
-            currentProps = new HashMap<>(extractedValues);
+            currentProps = new HashMap<>();
             currentReadOnlyMetadata.setValue(currentProps);
+        }
+
+        // Process extracted values - put all values directly into the readOnlyMetaData property
+        for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {
+            String displayName = entry.getKey();
+            List<String> values = entry.getValue();
+
+            // Convert List<String> to ArrayList<String> and put directly in readOnlyMetaData
+            currentProps.put(displayName, new ArrayList<>(values));
         }
     }
 

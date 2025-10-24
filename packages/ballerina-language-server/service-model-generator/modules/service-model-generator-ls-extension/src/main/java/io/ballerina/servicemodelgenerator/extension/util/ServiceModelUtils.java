@@ -434,7 +434,7 @@ public class ServiceModelUtils {
 
     public static Value getReadonlyMetadata(String orgName, String packageName, String serviceType) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
-        HashMap<String, String> props = new HashMap<>();
+        HashMap<String, ArrayList<String>> props = new HashMap<>();
 
         // Try to get metadata from database if service type and package info is available
         if (orgName != null && packageName != null && serviceType != null) {
@@ -445,7 +445,7 @@ public class ServiceModelUtils {
                 String displayName = metaData.displayName() != null && !metaData.displayName().isEmpty()
                         ? metaData.displayName()
                         : metaData.metadataKey();
-                props.put(displayName, "");  // Value will be populated at runtime by extractors
+                props.put(displayName, new ArrayList<>());  // Value will be populated at runtime by extractors
             }
         }
 

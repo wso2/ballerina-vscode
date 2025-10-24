@@ -23,6 +23,7 @@ import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,23 +64,33 @@ public class ReadOnlyMetadataManager {
 
     /**
      * Extracts all readOnly metadata values for a service, combining database metadata with live extracted values.
+     * Aggregates values by display name when multiple metadata items have the same display name.
      *
      * @param serviceNode The service declaration node
      * @param context The model context
      * @param customExtractor Optional custom extractor for CUSTOM kinds
-     * @return Map of display names to actual values
+     * @return Map of display names to list of values (aggregated by display name)
      */
-    public Map<String, String> extractAllMetadata(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
-                                                 Optional<CustomExtractor> customExtractor) {
-        Map<String, String> allMetadata = new HashMap<>();
+    public Map<String, List<String>> extractAllMetadata(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
+                                                        Optional<CustomExtractor> customExtractor) {
+        Map<String, List<String>> allMetadata = new HashMap<>();
 
         // Get metadata definitions from database
         List<ReadOnlyMetaData> metadataList = getMetadataFromDatabase(context);
 
         // Extract values for each metadata item
         for (ReadOnlyMetaData metadataItem : metadataList) {
-            Map<String, String> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
-            allMetadata.putAll(extractedValues);
+            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
+
+            // Aggregate values by display name - this is where the magic happens!
+            for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {
+                String displayName = entry.getKey();
+                List<String> values = entry.getValue();
+
+                // If display name already exists, add all values to existing list
+                // This handles cases where arg1 and host both map to "Host" display name
+                allMetadata.computeIfAbsent(displayName, k -> new ArrayList<>()).addAll(values);
+            }
         }
 
         return allMetadata;
@@ -92,17 +103,23 @@ public class ReadOnlyMetadataManager {
      * @param serviceNode The service declaration node
      * @param context The model context
      * @param customExtractor Optional custom extractor for CUSTOM kinds
-     * @return Map of display names to extracted values
+     * @return Map of display names to list of extracted values
      */
-    private Map<String, String> extractForMetadataItem(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                                       ModelFromSourceContext context,
-                                                       Optional<CustomExtractor> customExtractor) {
+    private Map<String, List<String>> extractForMetadataItem(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+                                                            ModelFromSourceContext context,
+                                                            Optional<CustomExtractor> customExtractor) {
         String kind = metadataItem.kind();
 
         if ("CUSTOM".equals(kind) && customExtractor.isPresent()) {
             CustomExtractor extractor = customExtractor.get();
             if (extractor.canExtractCustom(metadataItem, context)) {
-                return extractor.extractCustomValues(metadataItem, serviceNode, context);
+                // For CUSTOM extractors, convert single values to list format for consistency
+                Map<String, String> customValues = extractor.extractCustomValues(metadataItem, serviceNode, context);
+                Map<String, List<String>> result = new HashMap<>();
+                for (Map.Entry<String, String> entry : customValues.entrySet()) {
+                    result.put(entry.getKey(), List.of(entry.getValue()));
+                }
+                return result;
             }
         } else if (extractors.containsKey(kind)) {
             ReadOnlyMetadataExtractor extractor = extractors.get(kind);
@@ -133,10 +150,10 @@ public class ReadOnlyMetadataManager {
      * @param customExtractor Optional custom extractor for CUSTOM kinds
      * @return Map of display names to extracted values for the specified kind
      */
-    public Map<String, String> extractForKind(String kind, ServiceDeclarationNode serviceNode,
+    public Map<String, List<String>> extractForKind(String kind, ServiceDeclarationNode serviceNode,
                                              ModelFromSourceContext context,
                                              Optional<CustomExtractor> customExtractor) {
-        Map<String, String> result = new HashMap<>();
+        Map<String, List<String>> result = new HashMap<>();
 
         // Get metadata definitions for the specific kind
         List<ReadOnlyMetaData> metadataList = getMetadataFromDatabase(context);
@@ -146,8 +163,14 @@ public class ReadOnlyMetadataManager {
 
         // Extract values for filtered metadata
         for (ReadOnlyMetaData metadataItem : filteredMetadata) {
-            Map<String, String> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
-            result.putAll(extractedValues);
+            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
+
+            // Aggregate values by display name (same logic as extractAllMetadata)
+            for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {
+                String displayName = entry.getKey();
+                List<String> values = entry.getValue();
+                result.computeIfAbsent(displayName, k -> new ArrayList<>()).addAll(values);
+            }
         }
 
         return result;

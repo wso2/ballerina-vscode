@@ -30,6 +30,7 @@ import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -44,9 +45,9 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
     private static final String ANNOTATION_KIND = "ANNOTATION";
 
     @Override
-    public Map<String, String> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                            ModelFromSourceContext context) {
-        Map<String, String> result = new HashMap<>();
+    public Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+                                                   ModelFromSourceContext context) {
+        Map<String, List<String>> result = new HashMap<>();
 
         // Extract the parameter value from any annotation containing the parameter
         String actualValue = extractAnnotationParameterValue(serviceNode, metadataItem.metadataKey());
@@ -54,7 +55,8 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
             String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
                     ? metadataItem.displayName()
                     : metadataItem.metadataKey();
-            result.put(displayName, actualValue);
+            // Annotations typically have single values, so create a list with one element
+            result.put(displayName, List.of(actualValue));
         }
 
         return result;

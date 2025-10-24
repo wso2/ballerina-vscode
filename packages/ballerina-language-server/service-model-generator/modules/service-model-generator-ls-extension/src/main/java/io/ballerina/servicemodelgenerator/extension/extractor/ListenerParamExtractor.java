@@ -60,9 +60,9 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     private static final String LISTENER_PARAM_KIND = "LISTENER_PARAM";
 
     @Override
-    public Map<String, String> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+    public Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
                                             ModelFromSourceContext context) {
-        Map<String, String> result = new HashMap<>();
+        Map<String, List<String>> result = new HashMap<>();
 
         // Extract listener parameter values from all listeners (can be multiple)
         List<String> paramValues = extractAllListenerParameterValues(serviceNode, context.semanticModel(),
@@ -75,11 +75,11 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
 
             if (paramValues.size() == 1) {
                 // Single listener - use single value
-                result.put(displayName, paramValues.get(0));
+                result.put(displayName, paramValues);
             } else {
                 // Multiple listeners - join values with comma or use first value for backward compatibility
                 // For now, let's join with comma - this might need adjustment based on your UI requirements
-                result.put(displayName, String.join(", ", paramValues));
+                result.put(displayName, paramValues);
             }
         }
 

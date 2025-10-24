@@ -22,6 +22,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,8 +41,8 @@ public interface ReadOnlyMetadataExtractor {
      * @param context The model context containing additional information
      * @return A map of displayName to actual value, or empty map if extraction fails
      */
-    Map<String, String> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                     ModelFromSourceContext context);
+    Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+                                            ModelFromSourceContext context);
 
     /**
      * Returns the kind of metadata this extractor handles.

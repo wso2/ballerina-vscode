@@ -31,6 +31,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -45,9 +46,9 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
     private static final String SERVICE_DESCRIPTION_KIND = "SERVICE_DESCRIPTION";
 
     @Override
-    public Map<String, String> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                            ModelFromSourceContext context) {
-        Map<String, String> result = new HashMap<>();
+    public Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+                                                   ModelFromSourceContext context) {
+        Map<String, List<String>> result = new HashMap<>();
 
         // Extract service description value based on the metadata key
         String value = extractServiceDescriptionValue(serviceNode, context, metadataItem.metadataKey());
@@ -56,7 +57,8 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
             String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
                     ? metadataItem.displayName()
                     : metadataItem.metadataKey();
-            result.put(displayName, value);
+            // Service descriptions typically have single values, so create a list with one element
+            result.put(displayName, List.of(value));
         }
 
         return result;
