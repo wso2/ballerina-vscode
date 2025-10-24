@@ -243,6 +243,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             parameterModel.ifPresent(parameterModels::add);
         });
         functionModel.setCanAddParameters(true);
+        functionModel.setOptional(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }

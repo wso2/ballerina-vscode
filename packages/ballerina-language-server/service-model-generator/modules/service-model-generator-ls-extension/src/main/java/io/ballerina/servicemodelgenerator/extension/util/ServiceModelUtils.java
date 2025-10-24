@@ -111,6 +111,7 @@ public class ServiceModelUtils {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
                 serviceModel.addFunction(funcInSource);
                 funcInSource.setEditable(false);
+                funcInSource.setOptional(true);
             }
         });
     }
@@ -203,6 +204,7 @@ public class ServiceModelUtils {
                 .returnType(functionReturnType)
                 .parameters(parameters)
                 .enabled(function.enable() == 1)
+                .optional(function.optional() == 1)
                 .editable(true);
 
         configureAccessorForResourceFunction(functionBuilder, function);

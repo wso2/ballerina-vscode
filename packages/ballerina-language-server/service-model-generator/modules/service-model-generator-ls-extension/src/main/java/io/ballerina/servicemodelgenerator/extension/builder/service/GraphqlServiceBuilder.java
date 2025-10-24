@@ -110,6 +110,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
                 updateGraphqlFunctionMetaData(funcInSource);
                 serviceModel.addFunction(funcInSource);
+                funcInSource.setOptional(true);
             }
         });
     }
