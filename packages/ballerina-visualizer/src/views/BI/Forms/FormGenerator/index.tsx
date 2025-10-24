@@ -130,10 +130,11 @@ interface FormProps {
     handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
-    newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[];
-    onToolsChange?: (selectedTools: string[]) => void;
+    injectedComponents?: {
+        component: React.ReactNode;
+        index: number;
+    }[];
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
@@ -206,9 +207,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleOnFormSubmit,
         isInModal,
         scopeFieldAddon,
-        newServerUrl,
         onChange,
-        mcpTools,
+        injectedComponents,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -1364,10 +1364,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         node.codedata.node === ("ASSIGN" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
-                    newServerUrl={newServerUrl}
                     onChange={onChange}
-                    mcpTools={mcpTools}
-                    onToolsChange={props.onToolsChange}
+                    injectedComponents={injectedComponents}
                 />
             )}
             {stack.map((item, i) => (
