@@ -389,7 +389,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                             id="agent-memory-dropdown"
                             items={availableMemory.map((memory) => ({
                                 value: memory.object,
-                                content: memory.object.replace(/([A-Z])/g, ' $1').trim(), //  Convert camel case to words
+                                content: memory.object.replace(/([A-Z])/g, ' $1').trim(), // Convert camel case to words
                             }))}
                             label="Select Memory"
                             description="Available Memory"
