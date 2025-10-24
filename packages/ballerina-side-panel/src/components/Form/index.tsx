@@ -871,7 +871,7 @@ export const Form = forwardRef((props: FormProps) => {
                     {hasAdvanceFields &&
                         showAdvancedOptions &&
                         formFields.map((field) => {
-                            if (field.advanced) {
+                            if (field.advanced && !field.hidden) {
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
