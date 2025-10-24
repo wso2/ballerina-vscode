@@ -264,7 +264,9 @@ import {
     DeleteClauseRequest,
     ClearTypeCacheResponse,
     FormDiagnosticsRequest,
-    FormDiagnosticsResponse
+    FormDiagnosticsResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -440,6 +442,7 @@ enum EXTENDED_APIS {
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
     BI_SEARCH = 'flowDesignService/search',
+    BI_SEARCH_NODES = 'flowDesignService/searchNodes',
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
@@ -1140,7 +1143,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async addErrorHandler(params: BIModuleNodesRequest): Promise<BISourceCodeResponse> {
         return this.sendRequest(EXTENDED_APIS.BI_GEN_ERROR_HANDLER, params);
     }
-    
+
     async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
         return this.sendRequest<FormDiagnosticsResponse>(EXTENDED_APIS.BI_FORM_DIAGNOSTICS, params);
     }
@@ -1335,6 +1338,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return this.sendRequest<BISearchResponse>(EXTENDED_APIS.BI_SEARCH, params);
+    }
+
+    async searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return this.sendRequest<BISearchNodesResponse>(EXTENDED_APIS.BI_SEARCH_NODES, params);
     }
 
     async openApiGenerateClient(params: OpenAPIClientGenerationRequest): Promise<OpenAPIClientGenerationResponse> {

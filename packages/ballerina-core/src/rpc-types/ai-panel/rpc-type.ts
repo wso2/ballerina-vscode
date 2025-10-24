@@ -77,3 +77,4 @@ export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { m
 export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
 export const getGeneratedDocumentation: NotificationType<DocGenerationRequest> = { method: `${_preFix}/getGeneratedDocumentation` };
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
+export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
