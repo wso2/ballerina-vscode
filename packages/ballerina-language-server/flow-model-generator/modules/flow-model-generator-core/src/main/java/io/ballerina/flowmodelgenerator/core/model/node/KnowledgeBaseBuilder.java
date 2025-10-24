@@ -43,7 +43,7 @@ import java.util.Set;
 public class KnowledgeBaseBuilder extends CallBuilder {
 
     public static final String LABEL = "Knowledge Base";
-    public static final String DESCRIPTION = "knowledge bases available in the integration";
+    public static final String DESCRIPTION = "Knowledge bases available in the integration";
 
     private static final String KNOWLEDGE_BASE_NAME_LABEL = "Knowledge Base Name";
     private static final String KNOWLEDGE_BASE_NAME_LABEL_DOC = "knowledge-base instance name";

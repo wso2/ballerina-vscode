@@ -13,7 +13,7 @@
     "flowNode": {
       "id": "31",
       "metadata": {
-        "label": "Vector Knowledge Base",
+        "label": "Knowledge Base",
         "description": "Initializes a new `VectorKnowledgeBase` instance.\n",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
       },
@@ -47,8 +47,8 @@
         },
         "variable": {
           "metadata": {
-            "label": "Vector Knowledge Base Name",
-            "description": "Vector knowledge-base instance name"
+            "label": "Knowledge Base Name",
+            "description": "knowledge-base instance name"
           },
           "valueType": "IDENTIFIER",
           "value": "aiVectorknowledgebase",

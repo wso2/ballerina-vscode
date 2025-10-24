@@ -140,7 +140,7 @@
           "items": [
             {
               "metadata": {
-                "label": "Vector Knowledge Base",
+                "label": "Knowledge Base",
                 "description": "Knowledge bases available in the integration"
               },
               "codedata": {
