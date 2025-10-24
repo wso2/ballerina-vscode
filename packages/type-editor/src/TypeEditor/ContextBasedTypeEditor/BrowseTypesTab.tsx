@@ -83,7 +83,7 @@ const TypeItem = styled.div<{ isSelected?: boolean }>`
     }
 `;
 
-const TypeName = styled(Typography) <{ isSelected?: boolean }>`
+const TypeName = styled(Typography)<{ isSelected?: boolean }>`
     font-family: var(--vscode-editor-font-family);
     color: ${({ isSelected }) =>
         isSelected
