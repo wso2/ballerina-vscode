@@ -16,7 +16,7 @@ import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./McpToolsSelection";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, parseToolsString } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, parseToolsString, resolveVariableValue, resolveAuthConfig } from "./utils";
 
 interface Tool {
     name: string;
@@ -56,6 +56,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const agentFilePathRef = useRef<string>("");
     const agentFileEndLineRangeRef = useRef<LineRange | null>(null);
     const formRef = useRef<any>(null);
+    const moduleVariablesRef = useRef<FlowNode[]>([]);
+    const projectPathUriRef = useRef<string>("");
 
     const fetchAgentNode = async (connections: FlowNode[]) => {
         agentNodeRef.current = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient, connections);
@@ -94,7 +96,14 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const endLineRange = await getEndOfFileLineRange("agents.bal", rpcClient);
         agentFileEndLineRangeRef.current = endLineRange;
 
+        // Get project path URI
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+        projectPathUriRef.current = visualizerLocation.projectUri;
+
         const moduleNodes = await fetchModuleNodes();
+        // Store module variables for later use
+        moduleVariablesRef.current = moduleNodes.flowModel.variables || [];
+
         await fetchAgentNode(moduleNodes.flowModel.connections);
         const template = await fetchMcpToolKitTemplate();
 
@@ -110,7 +119,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     }, [editMode, rpcClient]);
 
     const fetchToolListFromMcpServer = useCallback(async (url: string, authValue: string = "") => {
-        const cleanUrl = cleanServerUrl(url);
+        // Resolve the URL variable if needed
+        const resolvedUrl = await resolveVariableValue(
+            url,
+            moduleVariablesRef.current,
+            rpcClient,
+            projectPathUriRef.current
+        );
+
+        const cleanUrl = cleanServerUrl(resolvedUrl);
         if (!cleanUrl) {
             return [];
         }
@@ -121,7 +138,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         setLoadingMcpTools(true);
         setMcpToolsError("");
 
-        const accessToken = extractAccessToken(authValue);
+        // Resolve auth config variables if needed
+        const resolvedAuthValue = await resolveAuthConfig(
+            authValue,
+            moduleVariablesRef.current,
+            rpcClient,
+            projectPathUriRef.current
+        );
+
+        const accessToken = extractAccessToken(resolvedAuthValue);
 
         try {
             const response = await rpcClient.getAIAgentRpcClient().getMcpTools({

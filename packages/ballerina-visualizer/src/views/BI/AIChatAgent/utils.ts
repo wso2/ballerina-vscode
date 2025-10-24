@@ -553,3 +553,178 @@ export const getEndOfFileLineRange = async (
         };
     }
 };
+
+/**
+ * Checks if a value is a string literal (enclosed in double quotes).
+ */
+export const isStringLiteral = (value: string): boolean => {
+    const trimmed = value.trim();
+    return trimmed.startsWith('"') && trimmed.endsWith('"');
+};
+
+/**
+ * Removes enclosing double quotes from a string literal.
+ */
+export const removeQuotes = (value: string): string => {
+    const trimmed = value.trim();
+    if (isStringLiteral(trimmed)) {
+        return trimmed.substring(1, trimmed.length - 1);
+    }
+    return trimmed;
+};
+
+/**
+ * Finds a variable value in module variables.
+ */
+export const findValueInModuleVariables = (
+    variableName: string,
+    moduleVariables: FlowNode[]
+): string | null => {
+    if (!moduleVariables || !Array.isArray(moduleVariables)) {
+        return null;
+    }
+
+    const variable = moduleVariables.find(
+        (varNode) => varNode.properties?.variable?.value === variableName
+    );
+
+    if (variable?.properties?.expression?.value && !variable?.codedata?.sourceCode?.includes("configurable")) {
+        return variable.properties.expression.value as string;
+    }
+
+    return null;
+};
+
+type ConfigVariablesState = {
+    [category: string]: {
+        [module: string]: ConfigVariable[];
+    };
+};
+
+/**
+ * Finds a variable value in configurable variables using the API.
+ */
+export const findValueInConfigVariables = async (
+    variableName: string,
+    rpcClient: BallerinaRpcClient,
+    projectPathUri: string
+): Promise<string | null> => {
+    try {
+        const response = await rpcClient
+            .getBIDiagramRpcClient()
+            .getConfigVariablesV2({
+                includeLibraries: false,
+                projectPath: projectPathUri
+            });
+
+        if (!response?.configVariables) {
+            return null;
+        }
+
+        const configVars = (response as any).configVariables as ConfigVariablesState;
+
+        for (const category in configVars) {
+            for (const module in configVars[category]) {
+                const variable = configVars[category][module].find(
+                    (v: ConfigVariable) => v.properties?.variable?.value === variableName
+                );
+                if (variable) {
+                    // Return the value from configValue or defaultValue
+                    const configValue = variable.properties?.configValue?.value as string;
+                    const defaultValue = variable.properties?.defaultValue?.value as string;
+                    return configValue || defaultValue || null;
+                }
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.error(`Error fetching config variables for ${variableName}:`, error);
+        return null;
+    }
+};
+
+/**
+ * Resolves a value that could be a string literal, module variable, or config variable.
+ */
+export const resolveVariableValue = async (
+    value: string,
+    moduleVariables: FlowNode[],
+    rpcClient?: BallerinaRpcClient,
+    projectPathUri?: string
+): Promise<string> => {
+    if (!value) {
+        return "";
+    }
+
+    const trimmed = value.trim();
+
+    // If it's a string literal, remove quotes and return
+    if (isStringLiteral(trimmed)) {
+        return removeQuotes(trimmed);
+    }
+
+    // Try to find in module variables
+    const moduleValue = findValueInModuleVariables(trimmed, moduleVariables);
+    if (moduleValue) {
+        return removeQuotes(moduleValue);
+    }
+
+    // As a last resort, try config variables if rpcClient is available
+    if (rpcClient && projectPathUri) {
+        const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
+        if (configValue) {
+            return removeQuotes(configValue);
+        }
+    }
+
+    // If not found anywhere, return the original value
+    return trimmed;
+};
+
+/**
+ * Extracts variable names from an auth config string and resolves them.
+ * Expected format: {token: "value"} or {token: variableName}
+ */
+export const resolveAuthConfig = async (
+    authValue: string,
+    moduleVariables: FlowNode[],
+    rpcClient?: BallerinaRpcClient,
+    projectPathUri?: string
+): Promise<string> => {
+    if (!authValue) {
+        return "";
+    }
+
+    let resolvedAuth = authValue;
+
+    // Find all variable references in the auth config
+    // Matches patterns like: token: variableName (without quotes)
+    const variablePattern = /(\w+):\s*([^",}\s]+)/g;
+    const matches = [...authValue.matchAll(variablePattern)];
+
+    for (const match of matches) {
+        const [fullMatch, key, variableOrValue] = match;
+
+        // Skip if it's already a quoted string
+        if (variableOrValue.startsWith('"') || variableOrValue.startsWith("'")) {
+            continue;
+        }
+
+        // Resolve the variable
+        const resolvedValue = await resolveVariableValue(
+            variableOrValue,
+            moduleVariables,
+            rpcClient,
+            projectPathUri
+        );
+
+        // Replace in the auth string with quoted value
+        resolvedAuth = resolvedAuth.replace(
+            fullMatch,
+            `${key}: "${resolvedValue}"`
+        );
+    }
+
+    return resolvedAuth;
+};
