@@ -29,8 +29,8 @@
           "codedata": {
             "node": "MEMORY_STORE",
             "org": "ballerinax",
-            "module": "ai.mssql",
-            "packageName": "ai.mssql",
+            "module": "ai.memory.mssql",
+            "packageName": "ai.memory.mssql",
             "object": "ShortTermMemoryStore",
             "symbol": "init",
             "flags": 1
