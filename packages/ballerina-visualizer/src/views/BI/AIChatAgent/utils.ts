@@ -646,10 +646,17 @@ export const findValueInConfigVariables = async (
 
 export const isUrl = (value: string): boolean => {
     const trimmed = value.trim();
-    return trimmed.startsWith('http://') || 
-           trimmed.startsWith('https://') ||
-           trimmed.startsWith('localhost:') ||
-           trimmed.includes('://');
+    try {
+        // Handle localhost without protocol
+        if (trimmed.startsWith('localhost:')) {
+            new URL('http://' + trimmed);
+            return true;
+        }
+        new URL(trimmed);
+        return true;
+    } catch {
+        return false;
+    }
 };
 
 export const resolveVariableValue = async (
