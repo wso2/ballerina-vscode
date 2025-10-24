@@ -208,27 +208,30 @@ export function Parameters(props: ParametersProps) {
     };
 
     const generatePayloadName = () => {
-        if (pathName) {
-            // Remove leading/trailing slashes and split by slash
-            const pathSegments = pathName.replace(/^\/|\/$/g, '').split('/');
-
-            // Filter out segments that contain brackets (parameters) and keep only valid segments
-            const validSegments = pathSegments.filter(segment => !segment.includes('[') && !segment.includes(']'));
-
-            // Join with underscores and sanitize to only allow letters, numbers, and underscores
-            const sanitizedPath = validSegments
-                .join('_')
-                .replace(/[^a-zA-Z0-9_]/g, ''); // Remove any characters that are not letters, numbers, or underscores
-
-            if (sanitizedPath) {
-                const newPayloadName = `${sanitizedPath}_payload`;
-                const capitalizedPath = newPayloadName.charAt(0).toUpperCase() + newPayloadName.slice(1);
-                return capitalizedPath;
-            } else {
-                return "PayloadType";
-            }
+        if (!pathName) {
+            return "PayloadType";
         }
-        return "PayloadType";
+
+        // Extract valid segments
+        const validSegments = pathName
+            .replace(/^\/|\/$/g, '') // Remove leading/trailing slashes
+            .split('/')
+            .filter(segment => !segment.includes('[') && !segment.includes(']')) // Filter out parameter segments
+            .map(segment => segment.replace(/[^a-zA-Z0-9]/g, '')) // Clean each segment
+            .filter(segment => segment.length > 0); // Remove empty segments
+
+        if (validSegments.length === 0) {
+            return "PayloadType";
+        }
+
+        const camelCasePath = validSegments
+            .map((segment, index) => index === 0 
+                ? segment.toLowerCase() 
+                : segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+            )
+            .join('');
+
+        return camelCasePath.charAt(0).toUpperCase() + camelCasePath.slice(1) + 'Payload';
     }
 
     const onSaveParam = (param: ParameterModel) => {

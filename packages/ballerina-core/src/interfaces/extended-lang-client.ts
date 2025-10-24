@@ -924,6 +924,22 @@ export type BISearchResponse = {
     categories: Category[];
 }
 
+export type BISearchNodesRequest = {
+    filePath: string;
+    position?: LinePosition;
+    queryMap?: SearchNodesQueryParams;
+}
+
+export type BISearchNodesResponse = {
+    output: FlowNode[];
+    error: string;
+}
+
+export type SearchNodesQueryParams = {
+    kind?: SearchKind;
+    exactMatch?: string;
+}
+
 export type BIGetEnclosedFunctionRequest = {
     filePath: string;
     position: LinePosition;
@@ -1405,6 +1421,8 @@ export interface TypeFunctionModel {
     returnType?: Type | string;
     refs: string[];
     imports?: Imports;
+    isGraphqlId?: boolean;
+    properties?: { [key: string]: any };
 }
 
 export interface TypeMetadata {
@@ -1439,6 +1457,7 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    isGraphqlId?: boolean;
 }
 
 export interface GetGraphqlTypeRequest {
@@ -1646,11 +1665,7 @@ export interface ResponseCode {
     statusCode: string;
     hasBody?: boolean;
 }
-export interface ResourceReturnTypesResponse {
-    completions: ResponseCode[];
-}
-
-
+export type ResourceReturnTypesResponse = VisibleTypeItem[];
 // <-------- Service Designer Related ------->
 
 export interface FunctionFromSourceRequest {
