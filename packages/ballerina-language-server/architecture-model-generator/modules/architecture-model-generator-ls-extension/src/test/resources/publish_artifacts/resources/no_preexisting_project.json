@@ -2,26 +2,32 @@
   "source": "old/config.bal",
   "description": "Test reload project without pre-existing artifacts",
   "output": {
-    "Variables": {
+    "Connections": {
       "additions": {
-        "menuItems": {
-          "id": "menuItems",
+        "httpEp": {
+          "id": "httpEp",
           "location": {
-            "fileName": "main.bal",
+            "fileName": "connections.bal",
             "startLine": {
-              "line": 7,
+              "line": 2,
               "offset": 0
             },
             "endLine": {
-              "line": 11,
-              "offset": 2
+              "line": 2,
+              "offset": 42
             }
           },
-          "type": "VARIABLE",
-          "name": "menuItems",
+          "type": "CONNECTION",
+          "name": "httpEp",
           "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+          "module": "http",
           "children": {}
-        },
+        }
+      }
+    },
+    "Variables": {
+      "additions": {
         "_telegramAgentAgent": {
           "id": "_telegramAgentAgent",
           "location": {
@@ -40,21 +46,39 @@
           "scope": "Global",
           "children": {}
         },
-        "orderCounter": {
-          "id": "orderCounter",
+        "menuItems": {
+          "id": "menuItems",
           "location": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 16,
+              "line": 7,
               "offset": 0
             },
             "endLine": {
-              "line": 16,
-              "offset": 21
+              "line": 11,
+              "offset": 2
             }
           },
           "type": "VARIABLE",
-          "name": "orderCounter",
+          "name": "menuItems",
+          "scope": "Global",
+          "children": {}
+        },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 87
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
           "scope": "Global",
           "children": {}
         },
@@ -76,46 +100,22 @@
           "scope": "Global",
           "children": {}
         },
-        "_telegramAgentModel": {
-          "id": "_telegramAgentModel",
+        "orderCounter": {
+          "id": "orderCounter",
           "location": {
-            "fileName": "agents.bal",
+            "fileName": "main.bal",
             "startLine": {
-              "line": 2,
+              "line": 16,
               "offset": 0
             },
             "endLine": {
-              "line": 2,
-              "offset": 87
+              "line": 16,
+              "offset": 21
             }
           },
           "type": "VARIABLE",
-          "name": "_telegramAgentModel",
+          "name": "orderCounter",
           "scope": "Global",
-          "children": {}
-        }
-      }
-    },
-    "Connections": {
-      "additions": {
-        "httpEp": {
-          "id": "httpEp",
-          "location": {
-            "fileName": "connections.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 42
-            }
-          },
-          "type": "CONNECTION",
-          "name": "httpEp",
-          "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
-          "module": "http",
           "children": {}
         }
       }
@@ -137,24 +137,6 @@
           },
           "type": "TYPE",
           "name": "Order",
-          "scope": "Global",
-          "children": {}
-        },
-        "MenuItem": {
-          "id": "MenuItem",
-          "location": {
-            "fileName": "types.bal",
-            "startLine": {
-              "line": 0,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 4,
-              "offset": 3
-            }
-          },
-          "type": "TYPE",
-          "name": "MenuItem",
           "scope": "Global",
           "children": {}
         },
@@ -191,6 +173,24 @@
           },
           "type": "TYPE",
           "name": "OrderItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "MenuItem": {
+          "id": "MenuItem",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "MenuItem",
           "scope": "Global",
           "children": {}
         }
@@ -232,7 +232,7 @@
           "type": "LISTENER",
           "name": "httpListener",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
           "module": "http",
           "children": {}
         }
@@ -294,6 +294,24 @@
           "scope": "Global",
           "children": {}
         },
+        "factorial": {
+          "id": "factorial",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 23,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "factorial",
+          "scope": "Global",
+          "children": {}
+        },
         "isPrime": {
           "id": "isPrime",
           "location": {
@@ -327,24 +345,6 @@
           },
           "type": "FUNCTION",
           "name": "findMax",
-          "scope": "Global",
-          "children": {}
-        },
-        "factorial": {
-          "id": "factorial",
-          "location": {
-            "fileName": "functions.bal",
-            "startLine": {
-              "line": 18,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 23,
-              "offset": 1
-            }
-          },
-          "type": "FUNCTION",
-          "name": "factorial",
           "scope": "Global",
           "children": {}
         }
@@ -536,7 +536,7 @@
           "type": "SERVICE",
           "name": "HTTP Service - /restaurant",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
           "module": "http",
           "children": {
             "get#menu": {
