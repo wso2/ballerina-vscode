@@ -78,8 +78,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
@@ -544,7 +544,6 @@ public class ModelGenerator {
         return codeAnalyzer.getFlowNodes().stream().findFirst();
     }
 
-
     /**
      * Gets the assignment statement node if a ClassFieldSymbol is initialized in an init() function.
      *
@@ -607,13 +606,8 @@ public class ModelGenerator {
 
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
-            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)
-<<<<<<< HEAD
-                    || isAiVectorStore(typeSymbol) || isAiVectorKnowledgeBase(typeSymbol) ||
-                    isAiMemoryStore(typeSymbol)) {
-=======
-                    || isAiVectorStore(typeSymbol) || isAiKnowledgeBase(typeSymbol)) {
->>>>>>> 7f077545cb (Rename "Vector Knowledge Base" to "Knowledge Base")
+            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol) ||
+                    isAiVectorStore(typeSymbol) || isAiKnowledgeBase(typeSymbol) || isAiMemoryStore(typeSymbol)) {
                 return true;
             }
         }
