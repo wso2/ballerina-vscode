@@ -1,59 +1,33 @@
 {
-  "source": "variable1.bal",
+  "source": "variable33.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable1.bal",
+      "fileName": "variable33.bal",
       "startLine": {
-        "line": 29,
+        "line": 12,
         "offset": 12
       },
       "endLine": {
-        "line": 29,
-        "offset": 38
+        "line": 12,
+        "offset": 41
       }
     },
     "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 29,
+    "line": 12,
     "offset": 12
   },
   "propertyKey": "expression",
-  "targetField": "student",
+  "targetField": "details",
   "model": {
-    "inputs": [
-      {
-        "name": "CONST",
-        "displayName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant"
-      },
-      {
-        "fields": [],
-        "name": "myStudent",
-        "displayName": "myStudent",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "module-variable",
-        "ref": "545732303"
-      },
-      {
-        "fields": [],
-        "name": "student",
-        "displayName": "student",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "local-variable",
-        "ref": "545732303"
-      }
-    ],
+    "inputs": [],
     "output": {
       "fields": [],
-      "name": "student",
-      "displayName": "student",
+      "name": "details",
+      "displayName": "details",
       "typeName": "PurchaseDetails",
       "kind": "record",
       "ref": "2079257237"
@@ -85,47 +59,6 @@
           }
         ],
         "typeName": "PurchaseDetails",
-        "kind": "record"
-      },
-      "545732303": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "'record",
-            "displayName": "'record",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "data",
-            "displayName": "data",
-            "typeName": "json",
-            "kind": "json",
-            "optional": false
-          },
-          {
-            "name": "info",
-            "displayName": "info",
-            "typeName": "any",
-            "kind": "any",
-            "optional": false
-          }
-        ],
-        "typeName": "Student",
         "kind": "record"
       }
     }

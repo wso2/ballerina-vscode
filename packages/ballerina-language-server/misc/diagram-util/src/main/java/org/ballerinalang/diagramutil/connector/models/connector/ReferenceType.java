@@ -112,7 +112,7 @@ public class ReferenceType {
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, ModuleID moduleID,
                                              List<Symbol> typeDefSymbols) {
         TypeDescKind kind = symbol.typeKind();
-        RefType primitiveType = getPrimitiveType(kind, name);
+        RefType primitiveType = getPrimitiveType(kind);
         if (primitiveType != null) {
             return primitiveType;
         }
@@ -328,68 +328,35 @@ public class ReferenceType {
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
 
-    private static RefType getPrimitiveType(TypeDescKind kind, String name) {
+    private static RefType getPrimitiveType(TypeDescKind kind) {
         String primitiveTypeName = getPrimitiveTypeName(kind);
         if (primitiveTypeName == null) {
             return null;
         }
-        RefType refType = new RefType(name);
+        RefType refType = new RefType(primitiveTypeName);
         refType.typeName = primitiveTypeName;
-        refType.name = primitiveTypeName;
         return refType;
     }
 
     private static String getPrimitiveTypeName(TypeDescKind kind) {
-        switch (kind) {
-            case INT -> {
-                return "int";
-            }
-            case INT_SIGNED8 -> {
-                return "int:Signed8";
-            }
-            case INT_SIGNED16 -> {
-                return "int:Signed16";
-            }
-            case INT_SIGNED32 -> {
-                return "int:Signed32";
-            }
-            case INT_UNSIGNED8 -> {
-                return "int:Unsigned8";
-            }
-            case INT_UNSIGNED16 -> {
-                return "int:Unsigned16";
-            }
-            case INT_UNSIGNED32 -> {
-                return "int:Unsigned32";
-            }
-            case STRING -> {
-                return "string";
-            }
-            case FLOAT -> {
-                return "float";
-            }
-            case BOOLEAN -> {
-                return "boolean";
-            }
-            case NIL -> {
-                return "()";
-            }
-            case DECIMAL -> {
-                return "decimal";
-            }
-            case BYTE -> {
-                return "byte";
-            }
-            case STRING_CHAR -> {
-                return "string:Char";
-            }
-            case NEVER -> {
-                return "never";
-            }
-            default -> {
-                return null;
-            }
-        }
+        return switch (kind) {
+            case INT -> "int";
+            case INT_SIGNED8 -> "int:Signed8";
+            case INT_SIGNED16 -> "int:Signed16";
+            case INT_SIGNED32 -> "int:Signed32";
+            case INT_UNSIGNED8 -> "int:Unsigned8";
+            case INT_UNSIGNED16 -> "int:Unsigned16";
+            case INT_UNSIGNED32 -> "int:Unsigned32";
+            case STRING -> "string";
+            case FLOAT -> "float";
+            case BOOLEAN -> "boolean";
+            case NIL -> "()";
+            case DECIMAL -> "decimal";
+            case BYTE -> "byte";
+            case STRING_CHAR -> "string:Char";
+            case NEVER -> "never";
+            default -> null;
+        };
     }
 
 
