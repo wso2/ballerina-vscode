@@ -1809,10 +1809,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     // AI Agent callback handlers
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
-        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-        const agentNode = moduleNodes.flowModel.connections.find((node) => node.properties.variable.value === agentCallNode.properties.connection.value);
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         if (!agentNode) {
             console.error(`Agent node not found`, agentCallNode);
+            return;
         }
 
         selectedNodeRef.current = agentNode;

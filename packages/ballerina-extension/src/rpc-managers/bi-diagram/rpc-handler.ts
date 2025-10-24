@@ -30,6 +30,7 @@ import {
     BIGetEnclosedFunctionRequest,
     BIGetVisibleVariableTypesRequest,
     BINodeTemplateRequest,
+    BISearchNodesRequest,
     BISearchRequest,
     BISourceCodeRequest,
     BreakpointRequest,
@@ -123,6 +124,7 @@ import {
     RenameIdentifierRequest,
     runProject,
     search,
+    searchNodes,
     ServiceClassSourceRequest,
     SignatureHelpRequest,
     updateClassField,
@@ -217,6 +219,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getFunctionNode, (args: FunctionNodeRequest) => rpcManger.getFunctionNode(args));
     messenger.onRequest(getEndOfFile, (args: EndOfFileRequest) => rpcManger.getEndOfFile(args));
     messenger.onRequest(search, (args: BISearchRequest) => rpcManger.search(args));
+    messenger.onRequest(searchNodes, (args: BISearchNodesRequest) => rpcManger.searchNodes(args));
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());
