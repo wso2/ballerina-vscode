@@ -283,11 +283,15 @@ public class SourceBuilder {
         Project project = PackageUtil.loadProject(workspaceManager, filePath);
         Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
 
-        // Fetch the module ids of the project and create both list and mapping
-        List<String> subModuleIds = new ArrayList<>();
+        // Fetch the module ids of the project
+        String packageName = project.currentPackage().packageName().value();
+        Set<String> subModuleIds = new HashSet<>();
         Map<String, ModuleId> subModuleIdMap = new HashMap<>();
         project.currentPackage().moduleIds().forEach(moduleId -> {
             String subModuleId = moduleId.moduleName();
+            if (subModuleId.equals(packageName)) {
+                return;
+            }
             subModuleIds.add(subModuleId);
             subModuleIdMap.put(subModuleId, moduleId);
         });
@@ -305,39 +309,49 @@ public class SourceBuilder {
                 }
             });
         }
+
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
         Optional<TypeSymbol> optionalType =
                 BallerinaCompilerApi.getInstance().getType(semanticModel.types(), document, typeName, packageMap);
-        if (optionalType.isEmpty()) {
+        TypeSymbol typeSymbol;
+        if (optionalType.isPresent()) {
+            typeSymbol = optionalType.get();
+        } else {
             // Failover mechanism: check if the type belongs to a local submodule
+            // TODO: The following implementation is a temporary workaround. We need to explore ways to enhance the
+            //  semantic APIs to properly account for submodules as well.
             String[] typeNameParts = typeName.split(":");
-            if (typeNameParts.length == 2) {
-                String packageName = project.currentPackage().packageName().value();
-                String fullModuleName = packageName + "." + typeNameParts[0];
-                if (subModuleIdMap.containsKey(fullModuleName)) {
-                    ModuleId moduleId = subModuleIdMap.get(fullModuleName);
-                    SemanticModel localModuleSemanticModel =
-                            project.currentPackage().getCompilation().getSemanticModel(moduleId);
-                    Optional<Symbol> moduleSymbol = localModuleSemanticModel.moduleSymbols()
-                            .stream().filter(symbol -> symbol.nameEquals(typeNameParts[1])).findFirst();
-                    if (moduleSymbol.isEmpty()) {
-                        return Optional.empty();
-                    }
-                    if (moduleSymbol.get() instanceof TypeSymbol typeSymbol) {
-                        optionalType = Optional.of(typeSymbol);
-                    } else if (moduleSymbol.get() instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
-                        optionalType = Optional.of(typeDefinitionSymbol.typeDescriptor());
-                    } else {
-                        return Optional.empty();
-                    }
-                } else {
-                    return Optional.empty();
-                }
+            if (typeNameParts.length != 2) {
+                return Optional.empty();
+            }
+
+            String fullModuleName = packageName + "." + typeNameParts[0];
+            ModuleId moduleId = subModuleIdMap.get(fullModuleName);
+            if (moduleId == null) {
+                return Optional.empty();
+            }
+
+            SemanticModel localModuleSemanticModel =
+                    project.currentPackage().getCompilation().getSemanticModel(moduleId);
+            Optional<Symbol> moduleSymbol = localModuleSemanticModel.moduleSymbols()
+                    .stream()
+                    .filter(symbol -> symbol.nameEquals(typeNameParts[1]))
+                    .findFirst();
+
+            if (moduleSymbol.isEmpty()) {
+                return Optional.empty();
+            }
+
+            Symbol symbol = moduleSymbol.get();
+            if (symbol instanceof TypeSymbol tSymbol) {
+                typeSymbol = tSymbol;
+            }
+            else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                typeSymbol = typeDefinitionSymbol.typeDescriptor();
             } else {
                 return Optional.empty();
             }
         }
-        TypeSymbol typeSymbol = optionalType.get();
 
         if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeDefinitionSymbol = (TypeReferenceTypeSymbol) typeSymbol;
