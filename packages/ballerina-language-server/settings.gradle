@@ -42,6 +42,7 @@ include(":langserver-core")
 include(":langserver-stdlib")
 include(':diagram-util')
 include(':bal-shell-service')
+include(':central-client')
 
 
 project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
@@ -72,3 +73,6 @@ gradleEnterprise {
         termsOfServiceAgree = 'yes'
     }
 }
+
+include 'service-template-generator'
+include 'service-template-generator'

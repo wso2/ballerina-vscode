@@ -18,12 +18,7 @@
 
 package io.ballerina.centralconnector;
 
-import io.ballerina.centralconnector.response.ConnectorResponse;
-import io.ballerina.centralconnector.response.ConnectorsResponse;
-import io.ballerina.centralconnector.response.FunctionResponse;
-import io.ballerina.centralconnector.response.FunctionsResponse;
-import io.ballerina.centralconnector.response.PackageResponse;
-import io.ballerina.centralconnector.response.SymbolResponse;
+import io.ballerina.centralconnector.response.*;
 
 import java.util.Map;
 
@@ -39,6 +34,7 @@ public interface CentralAPI {
     SymbolResponse searchSymbols(Map<String, String> queryMap);
 
     FunctionsResponse functions(String organization, String name, String version);
+    Listeners listeners(String organization, String name, String version);
 
     FunctionResponse function(String organization, String name, String version, String functionName);
 

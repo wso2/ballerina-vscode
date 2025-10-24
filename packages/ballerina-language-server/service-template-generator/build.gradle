@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.ballerina'
+version = '1.3.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":model-generator-commons")
+    implementation project(":langserver-commons")
+    implementation project(":langserver-core")
+    implementation project(":flow-model-generator:flow-model-central-client")
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
