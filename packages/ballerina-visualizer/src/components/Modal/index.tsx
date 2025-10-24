@@ -53,7 +53,7 @@ const ModalBox = styled.div<{ width?: number; height?: number }>`
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};

@@ -176,3 +176,56 @@ export const isValidBallerinaIdentifier = (name: string): boolean => {
     const regex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
     return name.length > 0 && regex.test(name);
 };
+
+export const isGraphQLScalarType = (type: string | Type): boolean => {
+    // If type is an object (complex type), it's not a scalar
+    if (typeof type !== 'string') {
+        return false;
+    }
+
+    // List of Ballerina types that can be GraphQL scalars
+    const scalarTypes = [
+        'string',
+        'int',
+        'float',
+        'decimal',
+    ];
+
+    const isScalarOrArrayOfScalar = (t: string): boolean => {
+        let cleanType = t.trim().replace(/\?$/, '');
+
+        if (cleanType.endsWith('[]')) {
+            const baseType = cleanType.slice(0, -2).trim();
+            return isScalarOrArrayOfScalar(baseType);
+        }
+
+        if (cleanType.startsWith('(') && cleanType.endsWith(')')) {
+            cleanType = cleanType.slice(1, -1).trim();
+            if (cleanType.includes('|')) {
+                const unionParts = cleanType.split('|').map(part => part.trim());
+                return unionParts.every(part => isScalarOrArrayOfScalar(part));
+            }
+        }
+
+        return scalarTypes.includes(cleanType.toLowerCase());
+    };
+
+    let cleanType = type.trim().replace(/\?$/, '');
+
+    if (cleanType.endsWith('[]') && cleanType.includes('(') && cleanType.includes('|')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    if (cleanType.includes('|')) {
+        const unionParts = cleanType.split('|').map(part => part.trim());
+        return unionParts.every(part => isScalarOrArrayOfScalar(part));
+    }
+
+    if (cleanType.endsWith('[]')) {
+        const baseType = cleanType.slice(0, -2).trim();
+        return isScalarOrArrayOfScalar(baseType);
+    }
+
+    return isScalarOrArrayOfScalar(cleanType);
+};

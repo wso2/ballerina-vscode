@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { CodeData, FlowNode, LinePosition, NodeKind } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, LinePosition, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
@@ -89,18 +89,75 @@ export const findFlowNodeByModuleVarName = async (variableName: string, rpcClien
     }
 };
 
-export const findAgentNodeFromAgentCallNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient) => {
-    if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") return null;
+export const findFlowNode = async (
+    rpcClient: BallerinaRpcClient,
+    filePath: string,
+    position?: LinePosition,
+    queryMap?: SearchNodesQueryParams
+) => {
+    try {
+        const searchResult = await rpcClient.getBIDiagramRpcClient().searchNodes({
+            filePath,
+            position,
+            queryMap
+        });
 
-    // get agent name
-    const connectionValue = agentCallNode.properties?.connection?.value;
-    if (typeof connectionValue !== "string") {
+        if (!searchResult?.output?.length) {
+            console.error("Flow node not found");
+            return null;
+        }
+
+        return searchResult.output;
+    } catch (error) {
+        console.error("Error finding flow node:", error);
+        return null;
+    }
+};
+
+export const findAgentNodeFromAgentCallNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient) => {
+    // Validate input node type
+    if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") {
+        return null;
+    }
+
+    // Extract and validate agent name from connection property
+    let agentName = agentCallNode.properties?.connection?.value;
+    if (typeof agentName !== "string") {
         console.error("Agent connection value is not a string");
         return null;
     }
 
-    // use the new function to find the node
-    return await findFlowNodeByModuleVarName(connectionValue, rpcClient);
+    // Resolve file path from agent call node location
+    const fileName = agentCallNode.codedata?.lineRange?.fileName;
+    if (!fileName) {
+        console.error("File name not found in agent call node");
+        return null;
+    }
+
+    const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+
+    // Extract line position for search context
+    const startLine = agentCallNode.codedata?.lineRange?.startLine;
+    const linePosition: LinePosition | undefined = startLine
+        ? {
+            line: startLine.line,
+            offset: startLine.offset
+        }
+        : undefined;
+
+    // Search for the agent node by name
+    const queryMap: SearchNodesQueryParams = {
+        kind: "AGENT",
+        exactMatch: agentName
+    };
+
+    const nodes = await findFlowNode(rpcClient, filePath, linePosition, queryMap);
+    console.log(">>> agent nodes found", { nodes });
+    if (nodes && nodes.length > 0) {
+        return nodes[0];
+    }
+
+    return;
 };
 
 export const removeToolFromAgentNode = async (agentNode: FlowNode, toolName: string) => {
@@ -348,39 +405,61 @@ export const removeMcpServerFromAgentNode = (
 // remove agent node, model node when removing ag
 export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient): Promise<boolean> => {
     if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") return false;
-    // get module nodes
-    const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-    // get agent name
-    const agentName = agentCallNode.properties.connection.value;
     // get agent node
-    const agentNode = moduleNodes.flowModel.connections.find((node) => node.properties.variable.value === agentName);
+    const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
     console.log(">>> agent node", agentNode);
     if (!agentNode) {
         console.error("Agent node not found", agentCallNode);
         return false;
     }
+
+    // get file path
+    const agentFileName = agentNode.codedata.lineRange.fileName;
+    const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentFileName);
+
+    // delete the agent node
+    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+        filePath: agentFilePath,
+        flowNode: agentNode,
+    });
+
     // get model name
     const modelName = agentNode?.properties.model.value;
     console.log(">>> model name", modelName);
+
+    if (typeof modelName !== "string") {
+        console.error("Model name is not a string");
+        return false;
+    }
+
     // get model node
-    const modelNode = moduleNodes.flowModel.connections.find((node) => node.properties.variable.value === modelName);
+    const startLine = agentNode.codedata?.lineRange?.startLine;
+    const linePosition: LinePosition | undefined = startLine
+        ? {
+            line: startLine.line,
+            offset: startLine.offset
+        }
+        : undefined;
+
+    const queryMap: SearchNodesQueryParams = {
+        kind: "MODEL_PROVIDER",
+        exactMatch: modelName
+    };
+    const modelNodes = await findFlowNode(rpcClient, agentFilePath, linePosition, queryMap);
+    const modelNode = modelNodes && modelNodes.length > 0 ? modelNodes[0] : null;
     console.log(">>> model node", modelNode);
     if (!modelNode) {
         console.error("Model node not found", agentCallNode);
         return false;
     }
+
     // get file path
-    const projectPath = await rpcClient.getVisualizerLocation();
-    const agentFileName = agentNode.codedata.lineRange.fileName;
-    const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentFileName);
-    // delete the agent node
-    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: filePath,
-        flowNode: agentNode,
-    });
+    const modelFileName = modelNode.codedata?.lineRange?.fileName;
+    const modelFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(modelFileName);
+
     // delete the model node
     await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: filePath,
+        filePath: modelFilePath,
         flowNode: modelNode,
     });
     return true;
