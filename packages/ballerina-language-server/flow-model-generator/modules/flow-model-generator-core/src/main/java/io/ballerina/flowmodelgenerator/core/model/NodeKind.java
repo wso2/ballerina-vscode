@@ -9,7 +9,6 @@ package io.ballerina.flowmodelgenerator.core.model;
 public enum NodeKind {
     // Flow nodes
     EVENT_START,
-    MCP_TOOLKIT,
     IF,
     REMOTE_ACTION_CALL,
     RESOURCE_ACTION_CALL,
@@ -93,5 +92,8 @@ public enum NodeKind {
     DATA_LOADERS,
     DATA_LOADER,
     CHUNKERS,
-    CHUNKER
+    CHUNKER,
+    MEMORY,
+    MEMORY_STORE,
+    MCP_TOOL_KIT
 }

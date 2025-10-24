@@ -339,6 +339,7 @@ public class AgentsGenerator {
         NodeKind nodeKind = flowNode.codedata().node();
         SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
         String path = flowNode.metadata().icon();
+        sourceBuilder.acceptImport(Constants.Ai.BALLERINA_ORG, Constants.Ai.AI_PACKAGE);
         if (nodeKind == NodeKind.FUNCTION_DEFINITION) {
             boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
@@ -576,7 +577,8 @@ public class AgentsGenerator {
                 if (property.isEmpty()) {
                     continue;
                 }
-                PropertyCodedata propCodedata = property.get().codedata();
+                PropertyCodedata propCodedata = property.get()
+                        .codedata();
                 if (propCodedata == null) {
                     continue;
                 }

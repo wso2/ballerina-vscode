@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.search;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -51,7 +52,28 @@ public class MemoryManagerSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getMemoryManagers();
+        List<Item> memoryManagers = getMemoryManagers();
+        if (memoryManagers.isEmpty() || !(memoryManagers.getFirst() instanceof Category memoryManagerCategory)) {
+            return memoryManagers;
+        }
+
+        List<Item> stores = memoryManagerCategory.items();
+        String userAiVersion = AiUtils.getBallerinaAiModuleVersion(project);
+
+        // If no AI version found, show all stores without filtering
+        if (userAiVersion == null) {
+            return List.of(memoryManagerCategory);
+        }
+
+        List<Item> compatibleStores = stores.stream()
+                .filter(item -> item instanceof AvailableNode availableNode &&
+                        isVersionCompatible(userAiVersion, getMinVersion(availableNode)))
+                .toList();
+
+        stores.clear();
+        stores.addAll(compatibleStores);
+
+        return List.of(memoryManagerCategory);
     }
 
     @Override
@@ -62,12 +84,14 @@ public class MemoryManagerSearchCommand extends SearchCommand {
         }
 
         List<Item> stores = memoryManagerCategory.items();
+        String userAiVersion = AiUtils.getBallerinaAiModuleVersion(project);
 
         List<Item> matchingStores = stores.stream()
                 .filter(item -> item instanceof AvailableNode availableNode &&
                         (orgName == null || availableNode.codedata().org().equalsIgnoreCase(orgName)) &&
                         (query == null || availableNode.metadata().label().toLowerCase(Locale.ROOT)
-                                .contains(query.toLowerCase(Locale.ROOT))))
+                                .contains(query.toLowerCase(Locale.ROOT))) &&
+                        (userAiVersion == null || isVersionCompatible(userAiVersion, getMinVersion(availableNode))))
                 .toList();
 
         stores.clear();
@@ -92,5 +116,25 @@ public class MemoryManagerSearchCommand extends SearchCommand {
             cachedMemoryManagers = List.copyOf(LocalIndexCentral.getInstance().getMemoryManagers());
         }
         return cachedMemoryManagers;
+    }
+
+    private String getMinVersion(AvailableNode node) {
+        if (node.metadata() == null || node.metadata().data() == null) {
+            return null;
+        }
+        Object minVersion = node.metadata().data().get("minVersion");
+        return minVersion != null ? minVersion.toString() : null;
+    }
+
+    private boolean isVersionCompatible(String userVersion, String requiredVersion) {
+        // If the memory manager doesn't specify a required version, allow it
+        if (requiredVersion == null) {
+            return true;
+        }
+        // userVersion should not be null when calling this method (checked before filtering)
+        if (userVersion == null) {
+            return false;
+        }
+        return AiUtils.compareSemver(userVersion, requiredVersion) >= 0;
     }
 }
