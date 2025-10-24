@@ -68,19 +68,26 @@ export const getMainFilePath = async (rpcClient: BallerinaRpcClient) => {
     return mainFilePath;
 };
 
-export const findFlowNodeByModuleVarName = async (variableName: string, rpcClient: BallerinaRpcClient, connections?: FlowNode[]) => {
+export const findFlowNodeByModuleVarName = async (variableName: string, rpcClient: BallerinaRpcClient) => {
     try {
         const sanitizedVarName = variableName.trim().replace(/\n/g, "");
 
         // Get connections either from parameter or by fetching module nodes
-        const nodeList = connections || (await rpcClient.getBIDiagramRpcClient().getModuleNodes()).flowModel.connections;
+        const nodeList = (await rpcClient.getBIDiagramRpcClient().getModuleNodes()).flowModel;
 
         // Find the node with matching variable name
-        const flowNode = nodeList.find((node) => {
+        let flowNode = nodeList?.connections.find((node) => {
             const value = node.properties?.variable?.value;
             return typeof value === "string" && value === sanitizedVarName;
         });
 
+        // If not found in connections, search in variables
+        if (!flowNode) {
+            flowNode = nodeList?.variables.find((node) => {
+                const value = node.properties?.variable?.value;
+                return typeof value === "string" && value === sanitizedVarName;
+            });
+        }
         if (!flowNode) {
             console.error(`Flow node with variable name '${variableName}' not found`);
             return null;
