@@ -26,6 +26,7 @@ import { MistralAIIcon } from "../../resources/icons/MistralAIIcon";
 import { OllamaIcon } from "../../resources/icons/OllamaIcon";
 import { Icon } from "@wso2/ui-toolkit";
 import { CodeData } from "@wso2/ballerina-core";
+import { NodeIcon } from "../NodeIcon";
 
 interface AIModelIconProps {
     type: string;
@@ -58,7 +59,16 @@ export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
         case "DeepseekProvider":
         case "ai.deepseek":
             return <DeepseekIcon />;
+        case "ai.milvus":
+            return <Icon name="bi-milvus" sx={{ width: 24, height: 24, fontSize: 24, color: "#4fc4f9" }} />;
+        case "ai.pinecone":
+            return <Icon name="bi-pinecone" sx={{ width: 24, height: 24, fontSize: 24 }} />;
+        case "ai.pgvector":
+            return <Icon name="bi-postgresql" sx={{ width: 24, height: 24, fontSize: 24 }} />;
         default:
+            if (codedata?.node) {
+                return <NodeIcon type={codedata?.node} size={24} />;
+            }
             return <DefaultLlmIcon />;
     }
 }
