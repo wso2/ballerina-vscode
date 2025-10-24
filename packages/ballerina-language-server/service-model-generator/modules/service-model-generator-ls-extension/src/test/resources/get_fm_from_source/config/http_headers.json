@@ -229,7 +229,6 @@
               "originalName": "Header",
               "moduleName": "http"
             },
-            "value": "",
             "enabled": false,
             "editable": false,
             "optional": false,
@@ -312,7 +311,6 @@
               "originalName": "Header",
               "moduleName": "http"
             },
-            "value": "",
             "enabled": false,
             "editable": false,
             "optional": false,

@@ -220,7 +220,6 @@
               "originalName": "Payload",
               "moduleName": "http"
             },
-            "value": "",
             "enabled": false,
             "editable": false,
             "optional": false,

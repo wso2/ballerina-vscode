@@ -478,6 +478,10 @@
     },
     "properties": {
       "annotdisplay": {
+        "metadata": {
+          "label": "display",
+          "description": "display"
+        },
         "codedata": {
           "type": "ANNOTATION_ATTACHMENT",
           "originalName": "display",
