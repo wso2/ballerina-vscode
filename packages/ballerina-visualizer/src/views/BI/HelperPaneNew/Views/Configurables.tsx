@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReactNode, useEffect, useState } from "react";
 import ExpandableList from "../Components/ExpandableList";
 import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { Divider } from "@wso2/ui-toolkit";
+import { Divider, SearchBox } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
@@ -69,6 +69,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const [projectPathUri, setProjectPathUri] = useState<string>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
+    const [searchValue, setSearchValue] = useState<string>("");
 
     const { addModal, closeModal } = useModalStack();
 
@@ -172,6 +173,10 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         onClose && onClose();
     }
 
+    const handleSearch = (searchText: string) => {
+        setSearchValue(searchText);
+    };
+
     const handleAddNewConfigurable = () => {
         addModal(
             <FormGenerator
@@ -197,21 +202,63 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
+            {(() => {
+                const filteredCategories = translateToArrayFormat(configVariables)
+                    .filter(category =>
+                        Array.isArray(category.items) &&
+                        category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
+                    );
+                
+                // Count total items across all categories
+                const totalItemsCount = filteredCategories.reduce((total, category) => {
+                    return total + category.items.reduce((subTotal, subCategory) => {
+                        return subTotal + (subCategory.items?.length || 0);
+                    }, 0);
+                }, 0);
+
+                return (
+                    <>
+                        {totalItemsCount >= 6 && (
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
+                                <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
+                            </div>
+                        )}
+                    </>
+                );
+            })()}
+            
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
                 ) : (
                     <>
-                        {translateToArrayFormat(configVariables).length === 0 ? (
-                            <EmptyItemsPlaceHolder message="No configurables found" />
-                        ) : (
-                            <>
-                                {translateToArrayFormat(configVariables)
-                                    .filter(category =>
-                                        Array.isArray(category.items) &&
-                                        category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
-                                    )
-                                    .map(category => (
+                        {(() => {
+                            let filteredCategories = translateToArrayFormat(configVariables)
+                                .filter(category =>
+                                    Array.isArray(category.items) &&
+                                    category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
+                                );
+
+                            // Apply search filter if search value exists
+                            if (searchValue && searchValue.trim()) {
+                                filteredCategories = filteredCategories.map(category => ({
+                                    ...category,
+                                    items: category.items.map(subCategory => ({
+                                        ...subCategory,
+                                        items: subCategory.items.filter((item: ConfigVariable) =>
+                                            (item?.properties?.variable?.value as string)?.toLowerCase().includes(searchValue.toLowerCase())
+                                        )
+                                    })).filter(subCategory => subCategory.items.length > 0)
+                                })).filter(category => category.items.length > 0);
+                            }
+                            
+                            if (filteredCategories.length === 0) {
+                                return <EmptyItemsPlaceHolder message={searchValue ? "No configurables found for your search" : "No configurables found"} />;
+                            }
+                            
+                            return (
+                                <>
+                                    {filteredCategories.map(category => (
                                         <div >
                                             {category.items
                                                 .filter(subCategory => subCategory.items && subCategory.items.length > 0)
@@ -256,8 +303,9 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                 ))}
                                         </div>
                                     ))}
-                            </>
-                        )}
+                                </>
+                            );
+                        })()}
                     </>
                 )}
             </ScrollableContainer>
