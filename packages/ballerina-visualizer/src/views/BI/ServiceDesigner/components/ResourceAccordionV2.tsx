@@ -240,11 +240,12 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 <ButtonSection>
                     <>
                         <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
-                            <Codicon
-                                name="settings-gear"
+                            <Icon
+                                name="bi-settings"
                                 sx={{
                                     cursor: readOnly ? "not-allowed" : "pointer",
                                     opacity: readOnly ? 0.5 : 1,
+                                    fontSize: "16px",
                                     width: "16px",
                                 }}
                             />
