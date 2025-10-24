@@ -31,10 +31,10 @@ import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
 const isDevantDev = process.env.CLOUD_ENV === "dev";
-export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_DEFAULT_COPLIOT_ROOT_URL;
-export const AUTH_ORG: string = config.get('authOrg') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_ORG : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_ORG;
-export const AUTH_CLIENT_ID: string = config.get('authClientID') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL : process.env.BALLERINA_DEFAULT_COPLIOT_AUTH_REDIRECT_URL;
+export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
+export const AUTH_ORG: string = config.get('authOrg') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_ORG : process.env.BALLERINA_AUTH_ORG;
+export const AUTH_CLIENT_ID: string = config.get('authClientID') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID : process.env.BALLERINA_AUTH_CLIENT_ID;
+export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL : process.env.BALLERINA_AUTH_REDIRECT_URL;
 
 export const DEVANT_API_KEY: string = config.get('devantApiKey') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_CODE_API_KEY : process.env.BALLERINA_DEFAULT_COPLIOT_CODE_API_KEY;
 export const DEVANT_API_KEY_FOR_ASK: string = config.get('devantApiKeyForAsk') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ASK_API_KEY : process.env.BALLERINA_DEFAULT_COPLIOT_ASK_API_KEY;
