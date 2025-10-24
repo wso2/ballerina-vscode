@@ -79,6 +79,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
@@ -380,11 +381,9 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
                 .setItems(items)
-                .valueType("SINGLE_SELECT")
+                .valueType(VALUE_TYPE_SINGLE_SELECT)
                 .setValueTypeConstraint("string")
                 .setPlaceholder(template.typeDescriptorDefaultValue())
-                .optional(false)
-                .setAdvanced(false)
                 .enabled(template.optionalTypeDescriptor() == 0)
                 .editable(true);
 
@@ -407,15 +406,12 @@ public class ServiceModelUtils {
     public static Value getStringLiteralProperty(String value) {
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
-                .setMetadata(new MetaData("String Literal", "The string literal of the service"))
+                .setMetadata(new MetaData("Service Identifier", "Identifier for the service"))
                 .setCodedata(new Codedata("STRING_LITERAL"))
                 .value(value)
                 .setValues(new ArrayList<>())
                 .valueType("SERVICE_PATH")
                 .setValueTypeConstraint("string")
-                .setPlaceholder("\"/path\"")
-                .optional(false)
-                .setAdvanced(false)
                 .enabled(true)
                 .editable(true);
 
@@ -450,8 +446,6 @@ public class ServiceModelUtils {
                 .valueType("SERVICE_PATH")
                 .setValueTypeConstraint("string")
                 .setPlaceholder("/")
-                .optional(false)
-                .setAdvanced(false)
                 .enabled(true)
                 .editable(true);
 
@@ -469,8 +463,6 @@ public class ServiceModelUtils {
                 .valueType("SERVICE_PATH")
                 .setValueTypeConstraint("string")
                 .setPlaceholder(template.absoluteResourcePathDefaultValue())
-                .optional(false)
-                .setAdvanced(false)
                 .enabled(true)
                 .editable(true);
 
@@ -520,8 +512,6 @@ public class ServiceModelUtils {
                 .valueType(kind)
                 .setValueTypeConstraint(protocol + ":" + "Listener")
                 .setPlaceholder("")
-                .optional(false)
-                .setAdvanced(false)
                 .enabled(true)
                 .editable(true);
 
@@ -536,7 +526,6 @@ public class ServiceModelUtils {
                 .valueType(Constants.VALUE_TYPE_STRING)
                 .setValueTypeConstraint("string")
                 .optional(true)
-                .setAdvanced(false)
                 .enabled(true)
                 .editable(true);
 
