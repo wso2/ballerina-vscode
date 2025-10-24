@@ -758,7 +758,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             actions={
                                 <>
                                     <Button appearance="secondary" tooltip="Edit Service" onClick={handleServiceEdit}>
-                                        <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
+                                        <Icon
+                                            name="bi-settings"
+                                            sx={{
+                                                marginRight: 5,
+                                                fontSize: "16px",
+                                                width: "16px",
+                                            }}
+                                        /> Configure
                                     </Button>
                                     {
                                         serviceModel && (isHttpService || isMcpService) && (
