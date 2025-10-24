@@ -300,6 +300,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     showProgressIndicator={isSaving}
                     disableSaveButton={isSaveDisabled}
                     injectedComponents={injectedComponents}
+                    fieldPriority={{ auth: 1 }}
                 />
             )}
         </Container>
