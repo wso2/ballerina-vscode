@@ -544,12 +544,16 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
      * @param serviceNode The service declaration node containing annotations
      * @param context The model context containing service information
      */
-    private void updateReadOnlyMetadataWithAnnotations(Service serviceModel, ServiceDeclarationNode serviceNode,
+    protected void updateReadOnlyMetadataWithAnnotations(Service serviceModel, ServiceDeclarationNode serviceNode,
                                                       ModelFromSourceContext context) {
         // Get the current readOnly metadata property
         Value currentReadOnlyMetadata = serviceModel.getProperty("readOnlyMetaData");
         if (currentReadOnlyMetadata == null) {
-            return;
+            // Initialize readOnly metadata property if it doesn't exist
+            // Use the same approach as the parent getModelTemplate method
+            String serviceType = serviceModel.getType(); // Use service type from model
+            currentReadOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(), serviceType);
+            serviceModel.getProperties().put("readOnlyMetaData", currentReadOnlyMetadata);
         }
 
         // Create the ReadOnlyMetadataManager
@@ -568,8 +572,10 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         Object currentValue = currentReadOnlyMetadata.getValue();
         HashMap<String, String> currentProps;
 
-        if (currentValue instanceof HashMap) {
-            currentProps = (HashMap<String, String>) currentValue;
+        if (currentValue instanceof HashMap<?, ?>) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, String> typedMap = (HashMap<String, String>) currentValue;
+            currentProps = typedMap;
             currentProps.putAll(extractedValues);
         } else {
             currentProps = new HashMap<>(extractedValues);

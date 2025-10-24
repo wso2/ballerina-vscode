@@ -82,6 +82,10 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+
+        // Add readOnly metadata extraction (same logic as parent class)
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
+
         return serviceModel;
     }
 

@@ -20,11 +20,15 @@ package io.ballerina.servicemodelgenerator.extension.extractor;
 
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,14 +72,16 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
      *
      * @param serviceNode The service declaration node
      * @param context The model context
-     * @param parameterKey The parameter key to extract (e.g., "basePath", "serviceType", "host")
+     * @param parameterKey The parameter key to extract (e.g., "basePath", "serviceType", "attachPoint")
      * @return The extracted value or null
      */
     private String extractServiceDescriptionValue(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
                                                  String parameterKey) {
         return switch (parameterKey.toLowerCase()) {
-            case "basepath", "base_path" -> extractBasePath(serviceNode);
+            case "basepath", "base_path" -> extractAttachPoint(serviceNode);
             case "servicetype", "service_type" -> extractServiceType(serviceNode);
+            case "attachpoint", "attach_point", "attach-point" -> extractAttachPoint(serviceNode);
+            case "servicename", "service_name" -> extractServiceName(serviceNode);
             default -> null;
         };
     }
@@ -87,20 +93,12 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
      * @return The base path or default "/"
      */
     private String extractBasePath(ServiceDeclarationNode serviceNode) {
-        SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
-
-        // Look for string literal expressions that might be the base path
-        for (ExpressionNode expression : expressions) {
-            if (expression.kind().equals(SyntaxKind.STRING_LITERAL)) {
-                String path = ((BasicLiteralNode) expression).literalToken().text();
-                // Remove surrounding quotes
-                if (path.startsWith("\"") && path.endsWith("\"")) {
-                    path = path.substring(1, path.length() - 1);
-                }
-                // If it looks like a path, return it
-                if (path.startsWith("/") || path.equals("")) {
-                    return path.isEmpty() ? "/" : path;
-                }
+        // Use the getPath utility method that works with the public API
+        String attachPoint = getPath(serviceNode.absoluteResourcePath());
+        if (!attachPoint.isEmpty()) {
+            // If it's not a string literal (like "/api") return it directly
+            if (!attachPoint.startsWith("\"")) {
+                return attachPoint;
             }
         }
 
@@ -126,5 +124,50 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
         }
 
         return "Service"; // Default service type
+    }
+
+    /**
+     * Extracts the attach-point from service declaration.
+     * Handles both path-based (/foobar) and string literal ("testqueue") attach points.
+     *
+     * @param serviceNode The service declaration node
+     * @return The attach-point value or null if not found
+     */
+    private String extractAttachPoint(ServiceDeclarationNode serviceNode) {
+        // Use the getPath utility method that works with the public API
+        String attachPoint = getPath(serviceNode.absoluteResourcePath());
+        if (!attachPoint.isEmpty()) {
+            if (attachPoint.startsWith("\"") && attachPoint.endsWith("\"")) {
+                // It's a string literal, remove quotes
+                attachPoint = attachPoint.substring(1, attachPoint.length() - 1);
+            }
+            return attachPoint;
+        }
+
+        return null; // No attach point found
+    }
+
+    /**
+     * Extracts the service name or identifier.
+     *
+     * @param serviceNode The service declaration node
+     * @return The service name or "Service" if none found
+     */
+    private String extractServiceName(ServiceDeclarationNode serviceNode) {
+        // Try to get service class name if available
+        Optional<io.ballerina.compiler.syntax.tree.TypeDescriptorNode> typeDescriptor = serviceNode.typeDescriptor();
+        if (typeDescriptor.isPresent()) {
+            String typeString = typeDescriptor.get().toString().trim();
+            return typeString;
+        }
+
+        // Check if there's an attach point that could serve as service identifier
+        String attachPoint = extractAttachPoint(serviceNode);
+        if (attachPoint != null && !attachPoint.isEmpty()) {
+            // Remove leading slash for better display
+            return attachPoint.startsWith("/") ? attachPoint.substring(1) : attachPoint;
+        }
+
+        return "Service"; // Default service name
     }
 }

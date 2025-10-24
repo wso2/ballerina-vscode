@@ -268,6 +268,10 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         updateListenerItems(HTTP, semanticModel, context.project(), serviceModel);
+
+        // Add readOnly metadata extraction (same logic as parent class)
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
+
         return serviceModel;
     }
 
