@@ -332,7 +332,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false,
         "codedata": {
@@ -514,7 +514,7 @@
           "advanced": false
         },
         "enabled": false,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false
       }
