@@ -195,18 +195,6 @@ export function PanelManager(props: PanelManagerProps) {
         onNavigateToPanel,
     } = props;
 
-    const handleOnAddTool = () => {
-        setSidePanelView(SidePanelView.NEW_TOOL);
-    };
-
-    const handleOnAddMcpServer = () => {
-        setSidePanelView(SidePanelView.ADD_MCP_SERVER);
-    };
-
-    const handleOnEditMcpServer = () => {
-        setSidePanelView(SidePanelView.EDIT_MCP_SERVER);
-    };
-
     const handleOnBackToAddTool = () => {
         setSidePanelView(SidePanelView.ADD_TOOL);
     };
@@ -269,7 +257,6 @@ export function PanelManager(props: PanelManagerProps) {
                     <AddMcpServer
                         agentCallNode={selectedNode}
                         name={selectedMcpToolkitName}
-                        onAddMcpServer={onClose}
                         onSave={onClose}
                         onBack={handleOnBackToAddTool}
                     />
@@ -281,7 +268,6 @@ export function PanelManager(props: PanelManagerProps) {
                         editMode={true}
                         name={selectedClientName}
                         agentCallNode={selectedNode}
-                        onAddMcpServer={handleOnEditMcpServer}
                         onSave={onClose}
                     />
                 );
