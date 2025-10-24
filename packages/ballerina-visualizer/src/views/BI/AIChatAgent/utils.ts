@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { CodeData, FlowNode, LinePosition, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
@@ -517,5 +517,39 @@ export const extractAccessToken = (authValue: string): string => {
     } catch (error) {
         console.error("Failed to parse auth token:", error);
         return "";
+    }
+};
+
+/**
+ * Gets the end of file line range for a given file.
+ * Returns a LineRange object pointing to the end of the file.
+ */
+export const getEndOfFileLineRange = async (
+    fileName: string,
+    rpcClient: BallerinaRpcClient
+): Promise<LineRange> => {
+    try {
+        // Get the full file path by joining with project path
+        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+
+        // Get the end of file position using the BIDiagram RPC client
+        const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+            filePath: filePath
+        });
+
+        // Return a LineRange object with both start and end at the file's end position
+        return {
+            fileName: fileName,
+            startLine: endPosition,
+            endLine: endPosition
+        };
+    } catch (error) {
+        console.error(`Error getting end of file line range for ${fileName}:`, error);
+        // Return a default LineRange at position 0,0 if there's an error
+        return {
+            fileName: fileName,
+            startLine: { line: 0, offset: 0 },
+            endLine: { line: 0, offset: 0 }
+        };
     }
 };
