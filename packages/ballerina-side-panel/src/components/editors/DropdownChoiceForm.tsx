@@ -91,12 +91,13 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
                 />
             </ChoiceSection>
             <FormSection>
-                {dynamicFields.map((dfield) => {
+                {dynamicFields.map((dfield, index) => {
                     if (!dfield.advanced && !dfield.optional) {
                         return (
                             <EditorFactory
                                 key={dfield.key}
                                 field={dfield}
+                                autoFocus={index === 0 ? true : false}
                             />
                         );
                     }

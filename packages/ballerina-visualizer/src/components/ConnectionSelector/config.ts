@@ -21,6 +21,7 @@ import { GET_DEFAULT_MODEL_PROVIDER, BALLERINAX } from "../../constants";
 import {
     convertChunkerCategoriesToSidePanelCategories,
     convertEmbeddingProviderCategoriesToSidePanelCategories,
+    convertMemoryStoreCategoriesToSidePanelCategories,
     convertModelProviderCategoriesToSidePanelCategories,
     convertVectorStoreCategoriesToSidePanelCategories
 } from "../../utils/bi";
@@ -53,6 +54,16 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
         valueTypeConstraint: "ai:Chunker",
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
+    },
+    MEMORY_STORE: {
+        displayName: "Memory Store",
+        valueTypeConstraint: "ai:MemoryStore",
+        nodePropertyKey: "store",
+        categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
+        searchConfig: (): ConnectionSearchConfig => ({
+            query: "",
+            searchKind: "MEMORY_STORE"
+        })
     }
 };
 
