@@ -55,3 +55,5 @@ export const METHOD_CALL = "METHOD_CALL";
 export const LOADING_MESSAGE = "Loading...";
 export const AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT = 3000; // Timeout (ms) before showing the 'fetching from Central' progress message
 export const AI_COMPONENT_PROGRESS_MESSAGE = "Fetching resources from Ballerina Central. This may take a few moments...";
+
+export const CONNECTIONS_FILE = "connections.bal";

@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { removeMcpServerFromAgentNode } from "../AIChatAgent/utils";
+import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
 import { MemoizedDiagram } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -63,13 +63,14 @@ import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
 import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
+import { PanelOverlayProvider } from "./context/PanelOverlayContext";
+import { PanelOverlayRenderer } from "./PanelOverlayRenderer";
 import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
-    findAgentNodeFromAgentCallNode,
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
@@ -140,6 +141,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     } = useDraftNodeManager(model);
 
     const selectedNodeRef = useRef<FlowNode>();
+    const parentNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
@@ -1823,8 +1825,53 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowSidePanel(true);
     };
 
-    const handleOnSelectMemoryManager = (node: FlowNode) => {
-        selectedNodeRef.current = node;
+    const handleOnSelectMemoryManager = async (agentCallNode: FlowNode) => {
+        // Use the helper function to find the agent node from agent call node
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+
+        if (!agentNode) {
+            console.error(`Agent node not found for agent call node`, agentCallNode);
+            return;
+        }
+
+        // Check if agent already has a configured memory manager
+        const agentMemoryValue = agentNode?.properties?.memory?.value;
+
+        // Find the existing memory manager node using searchNodes API
+        let existingMemoryVariable;
+        if (agentMemoryValue) {
+            const fileName = agentNode.codedata?.lineRange?.fileName;
+            if (fileName) {
+                const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+                const startLine = agentNode.codedata?.lineRange?.startLine;
+                const linePosition = startLine
+                    ? {
+                        line: startLine.line,
+                        offset: startLine.offset
+                    }
+                    : undefined;
+
+                const queryMap = {
+                    kind: "MEMORY" as const,
+                    exactMatch: agentMemoryValue.toString().trim()
+                };
+
+                const memoryNodes = await findFlowNode(rpcClient, filePath, linePosition, queryMap);
+                existingMemoryVariable = memoryNodes && memoryNodes.length > 0 ? memoryNodes[0] : undefined;
+            }
+        }
+
+        // Initialize and sync memory metadata between nodes
+        agentNode.metadata.data = agentNode.metadata.data || {} as NodeMetadata;
+        const agentCallMetadata = agentCallNode.metadata.data as NodeMetadata;
+
+        if (agentCallMetadata?.memory) {
+            (agentNode.metadata.data as NodeMetadata).memory = agentCallMetadata.memory;
+        }
+
+        // Open memory manager panel
+        selectedNodeRef.current = existingMemoryVariable;
+        parentNodeRef.current = agentNode;
         showEditForm.current = true;
         setSidePanelView(SidePanelView.AGENT_MEMORY_MANAGER);
         setShowSidePanel(true);
@@ -1835,7 +1882,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
-            const agentFilePath = await getAgentFilePath(rpcClient);
+            if (!agentNode) {
+                console.error("Agent node not found for deleting memory manager:", node);
+                return;
+            }
 
             // remove memory manager statement if any
             if (agentNode.properties.memory && agentNode.properties.memory?.value !== "()") {
@@ -1843,39 +1893,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 if (memoryVar) {
                     const memoryNode = await findFlowNodeByModuleVarName(memoryVar, rpcClient);
                     if (memoryNode) {
+                        const memoryFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(memoryNode.codedata.lineRange.fileName);
                         await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-                            filePath: agentFilePath,
+                            filePath: memoryFilePath,
                             flowNode: memoryNode,
                         });
                     }
                 }
             }
 
-            // Create a clone of the agent node to modify
-            const updatedAgentNode = cloneDeep(agentNode);
-
             // Remove memory manager from agent node
-            if (!updatedAgentNode.properties.memory) {
-                updatedAgentNode.properties.memory = {
-                    value: "",
-                    advanced: true,
-                    optional: true,
-                    editable: true,
-                    valueType: "EXPRESSION",
-                    valueTypeConstraint: "agent:MemoryManager",
-                    metadata: {
-                        label: "Memory Manager",
-                        description: "The memory manager used by the agent to store and manage conversation history",
-                    },
-                    placeholder: "object {}",
-                };
-            } else {
-                agentNode.properties.memory.value = "()";
-            }
-            // Generate the source code
-            const agentResponse = await rpcClient
+            agentNode.properties.memory.value = "()";
+            const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentNode.codedata.lineRange.fileName);
+            await rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: agentFilePath, flowNode: agentNode });
+
         } catch (error) {
             console.error("Error deleting memory manager:", error);
             alert("Failed to remove memory manager. Please try again.");
@@ -2196,7 +2229,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     );
 
     return (
-        <>
+        <PanelOverlayProvider>
             <View>
                 {(showProgressIndicator || fetchingAiSuggestions) && model && (
                     <ProgressIndicator color={ThemeColors.PRIMARY} />
@@ -2213,6 +2246,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 subPanel={subPanel}
                 categories={categories}
                 selectedNode={selectedNodeRef.current}
+                parentNode={parentNodeRef.current}
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}
                 showEditForm={showEditForm.current}
@@ -2267,6 +2301,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
             />
-        </>
+
+            <PanelOverlayRenderer />
+        </PanelOverlayProvider>
     );
 }
