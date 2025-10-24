@@ -72,37 +72,17 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
      *
      * @param serviceNode The service declaration node
      * @param context The model context
-     * @param parameterKey The parameter key to extract (e.g., "basePath", "serviceType", "attachPoint")
+     * @param parameterKey The parameter key to extract (e.g., "basePath", "serviceType", "serviceName")
      * @return The extracted value or null
      */
     private String extractServiceDescriptionValue(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
                                                  String parameterKey) {
         return switch (parameterKey.toLowerCase()) {
-            case "basepath", "base_path" -> extractAttachPoint(serviceNode);
-            case "servicetype", "service_type" -> extractServiceType(serviceNode);
-            case "attachpoint", "attach_point", "attach-point" -> extractAttachPoint(serviceNode);
-            case "servicename", "service_name" -> extractServiceName(serviceNode);
+            case "basepath", "attachpoint" -> extractAttachPoint(serviceNode);
+            case "servicetype" -> extractServiceType(serviceNode);
+            case "servicename" -> extractServiceName(serviceNode);
             default -> null;
         };
-    }
-
-    /**
-     * Extracts the base path from service declaration.
-     *
-     * @param serviceNode The service declaration node
-     * @return The base path or default "/"
-     */
-    private String extractBasePath(ServiceDeclarationNode serviceNode) {
-        // Use the getPath utility method that works with the public API
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            // If it's not a string literal (like "/api") return it directly
-            if (!attachPoint.startsWith("\"")) {
-                return attachPoint;
-            }
-        }
-
-        return "/"; // Default base path
     }
 
     /**
@@ -138,7 +118,6 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
         String attachPoint = getPath(serviceNode.absoluteResourcePath());
         if (!attachPoint.isEmpty()) {
             if (attachPoint.startsWith("\"") && attachPoint.endsWith("\"")) {
-                // It's a string literal, remove quotes
                 attachPoint = attachPoint.substring(1, attachPoint.length() - 1);
             }
             return attachPoint;

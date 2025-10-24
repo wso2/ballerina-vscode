@@ -106,7 +106,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
         List<String> allValues = new ArrayList<>();
 
         // Special handling for attach-point extraction
-        if ("attach-point".equals(parameterName) || "attachPoint".equals(parameterName)) {
+        if ("attachPoint".equals(parameterName)) {
             String attachPoint = extractAttachPoint(serviceNode);
             if (attachPoint != null) {
                 allValues.add(attachPoint);

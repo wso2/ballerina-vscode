@@ -38,6 +38,8 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -268,6 +270,13 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         }
 
         updateListenerItems(HTTP, semanticModel, context.project(), serviceModel);
+
+        // Initialize readOnly metadata if not present in template (HttpServiceBuilder uses custom template)
+        if (serviceModel.getProperty("readOnlyMetaData") == null) {
+            String serviceType = serviceModel.getType();
+            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(), serviceType);
+            serviceModel.getProperties().put("readOnlyMetaData", readOnlyMetadata);
+        }
 
         // Add readOnly metadata extraction (same logic as parent class)
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);

@@ -26,6 +26,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
@@ -40,6 +41,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
@@ -82,6 +84,13 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+
+        // Initialize readOnly metadata if not present in template (GraphqlServiceBuilder uses custom template)
+        if (serviceModel.getProperty("readOnlyMetaData") == null) {
+            String modelServiceType = serviceModel.getType();
+            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(), modelServiceType);
+            serviceModel.getProperties().put("readOnlyMetaData", readOnlyMetadata);
+        }
 
         // Add readOnly metadata extraction (same logic as parent class)
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);

@@ -963,7 +963,9 @@
         {"key": "queueName", "displayName": "Queue Name", "kind": "ANNOTATION"},
         {"key": "attachpoint", "displayName":  "Attach Point", "kind": "SERVICE_DESCRIPTION"},
         {"key": "arg1", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
-        {"key": "arg2", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
+        {"key": "arg2", "displayName": "Port Number", "kind": "LISTENER_PARAM"},
+        {"key": "host", "displayName": "Host Address", "kind": "LISTENER_PARAM"},
+        {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
       ]
     },
     {

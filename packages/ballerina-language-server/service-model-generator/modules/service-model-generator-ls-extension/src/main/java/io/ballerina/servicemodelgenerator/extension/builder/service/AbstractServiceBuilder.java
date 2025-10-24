@@ -549,11 +549,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         // Get the current readOnly metadata property
         Value currentReadOnlyMetadata = serviceModel.getProperty("readOnlyMetaData");
         if (currentReadOnlyMetadata == null) {
-            // Initialize readOnly metadata property if it doesn't exist
-            // Use the same approach as the parent getModelTemplate method
-            String serviceType = serviceModel.getType(); // Use service type from model
-            currentReadOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(), serviceType);
-            serviceModel.getProperties().put("readOnlyMetaData", currentReadOnlyMetadata);
+            // readOnlyMetaData property should be initialized by service builders before calling this method
+            return;
         }
 
         // Create the ReadOnlyMetadataManager
