@@ -43,6 +43,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -1951,6 +1953,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .catch((error) => {
                     reject(error);
                 });
+        });
+    }
+
+    async searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().searchNodes(params).then((res) => {
+                resolve(res);
+            }).catch((error) => {
+                console.log(">>> error searching", error);
+                reject(error);
+            });
         });
     }
 }
