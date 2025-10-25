@@ -14,16 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateCodeRequest, Task } from "@wso2/ballerina-core";
+import { Command, GenerateCodeRequest, Task, Plan, AIChatMachineEventType, TaskStatus } from "@wso2/ballerina-core";
 import { ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, resolveTaskApproval, TaskWriteResult } from "../libs/task_write_tool";
-
-// Re-export for RPC manager to use
-export { resolveTaskApproval as resolveApproval };
+import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
+import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 
 export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<Task[]> {
     // Populate chat history and add user message
@@ -146,6 +144,11 @@ ${params.usecase}
     // TODO: Will it call this tool multiple times?
     let finalTasks: Task[] = [];
 
+    // Emit event to state machine: AI generation started
+    AIChatStateMachine.sendEvent({
+        type: AIChatMachineEventType.PLANNING_STARTED
+    });
+
     eventHandler({ type: "start" });
 
     for await (const part of fullStream) {
@@ -197,6 +200,12 @@ ${params.usecase}
             case "finish": {
                 const finishReason = part.finishReason;
                 console.log(`[Design] Finished with reason: ${finishReason}`);
+
+                // Emit FINISH_EXECUTION event to complete workflow
+                AIChatStateMachine.sendEvent({
+                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                });
+                console.log(`[Design] Emitting FINISH_EXECUTION event`);
 
                 eventHandler({ type: "stop", command: Command.Design });
                 break;

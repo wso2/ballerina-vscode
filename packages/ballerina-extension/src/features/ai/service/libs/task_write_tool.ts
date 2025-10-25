@@ -17,7 +17,8 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
-import { Task, TaskStatus, TaskTypes } from '@wso2/ballerina-core';
+import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType } from '@wso2/ballerina-core';
+import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
@@ -36,7 +37,7 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     id: z.string().optional().describe("Task ID (required when updating existing tasks, omit when creating new tasks)"),
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
-    status: z.enum(["pending", "in_progress", "completed"]).describe("Current status of the task. Use 'pending' for new tasks, 'in_progress' when starting work, 'completed' when done."),
+    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.REVIEW]).describe("Current status of the task. Use 'pending' for tasks not started yet, 'in_progress' when actively working on a task, 'review' when task work is completed and ready for user approval. Note: 'done' and 'rejected' statuses are managed by the system after user review."),
     type: z.enum(["service_design", "connections_init", "implementation"]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
 });
 
@@ -56,19 +57,6 @@ const TaskWriteInputSchema = z.object({
  * Type for TaskWrite tool input
  */
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
-
-// Single pending approval promise (only one approval at a time)
-let pendingApprovalResolve: ((response: { approved: boolean; comment?: string }) => void) | null = null;
-
-/**
- * Function to be called when user responds to approval
- */
-export function resolveTaskApproval(response: { approved: boolean; comment?: string }) {
-    if (pendingApprovalResolve) {
-        pendingApprovalResolve(response);
-        pendingApprovalResolve = null;
-    }
-}
 
 /**
  * Factory function to create the TaskWrite tool
@@ -152,12 +140,24 @@ Rules:
                 // Tool is stateless - just process and return ALL tasks sent by LLM
                 // No IDs needed, no state management - LLM maintains the full task list
 
-                const allTasks: Task[] = input.tasks.map(task => ({
-                    id: task.id || `task_${Date.now()}_${Math.random()}`, // Generate ID only if not provided
-                    description: task.description,
-                    status: task.status as TaskStatus,
-                    type: task.type as TaskTypes
-                }));
+                // Get existing plan from state machine to preserve system-managed statuses (done/rejected)
+                const currentContext = AIChatStateMachine.context();
+                const existingPlan = currentContext.currentPlan;
+
+                const allTasks: Task[] = input.tasks.map(task => {
+                    const taskId = task.id || `task_${Date.now()}_${Math.random()}`;
+
+                    // If task exists in state machine with done/rejected status, preserve that status
+                    const existingTask = existingPlan?.tasks.find(t => t.id === taskId);
+                    const shouldPreserveStatus = existingTask && existingTask.status === TaskStatus.DONE;
+
+                    return {
+                        id: taskId,
+                        description: task.description,
+                        status: shouldPreserveStatus ? existingTask.status : (task.status as TaskStatus),
+                        type: task.type as TaskTypes
+                    };
+                });
 
                 console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
 
@@ -171,11 +171,18 @@ Rules:
                     };
                 }
 
-                // Determine if this is a new plan creation or an update
+                // Determine if this is a new plan creation, plan remodification, or task update
                 const hasNewTasks = input.tasks.some(t => !t.id);
-                const completedTasks = allTasks.filter(t => t.status === TaskStatus.COMPLETED);
+                const reviewTasks = allTasks.filter((t) => t.status === TaskStatus.REVIEW);
                 const inProgressTasks = allTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);
                 const pendingTasks = allTasks.filter(t => t.status === TaskStatus.PENDING);
+                const doneTasks = allTasks.filter(t => t.status === TaskStatus.DONE);
+
+                // Detect plan remodification: plan exists but structure changed significantly
+                const isPlanRemodification = existingPlan && (
+                    allTasks.length !== existingPlan.tasks.length || // Different number of tasks
+                    hasNewTasks // Has new tasks added
+                );
 
                 // Check if we need to request approval
                 let approvalResult: { approved: boolean; comment?: string } | undefined;
@@ -183,16 +190,26 @@ Rules:
                 let approvedTaskId: string | undefined;
 
                 if (eventHandler) {
-                    // Case 1: New plan creation (all tasks are new and pending)
-                    if (hasNewTasks && completedTasks.length === 0 && inProgressTasks.length === 0) {
-                        console.log("[TaskWrite Tool] Requesting plan approval from user");
+                    // Case 1: New plan creation OR plan remodification
+                    if ((hasNewTasks || isPlanRemodification) && reviewTasks.length === 0 && inProgressTasks.length === 0 && doneTasks.length === 0) {
+                        console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}, emitting PLAN_GENERATED event`);
                         approvalType = "plan";
 
-                        // Create promise and emit approval request
-                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve) => {
-                            pendingApprovalResolve = resolve;
+                        // Create Plan object
+                        const plan: Plan = {
+                            id: `plan-${Date.now()}`,
+                            tasks: allTasks,
+                            createdAt: Date.now(),
+                            updatedAt: Date.now(),
+                        };
+
+                        // Emit PLAN_GENERATED event to state machine (non-blocking)
+                        AIChatStateMachine.sendEvent({
+                            type: AIChatMachineEventType.PLAN_GENERATED,
+                            payload: { plan }
                         });
 
+                        // Also emit UI event for task approval display
                         eventHandler({
                             type: "task_approval_request",
                             approvalType: "plan",
@@ -200,32 +217,98 @@ Rules:
                             message: "Please review the implementation plan"
                         });
 
-                        approvalResult = await responsePromise;
-                    }
-                    // Case 2: Task just completed (no in-progress tasks means agent finished work)
-                    // If there's an in_progress task, the agent is just starting work - no approval needed
-                    else if (completedTasks.length > 0 && inProgressTasks.length === 0) {
-                        // No in-progress task means the last completed task was just finished
-                        const lastCompletedTask = completedTasks[completedTasks.length - 1];
-                        console.log(`[TaskWrite Tool] Requesting completion approval for task: ${lastCompletedTask.id}`);
-                        approvalType = "completion";
-                        approvedTaskId = lastCompletedTask.id;
+                        // Wait for user approval - state machine will transition out of PlanReview
+                        console.log("[TaskWrite Tool] Waiting for plan approval/rejection...");
+                        approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
+                            // Subscribe to state machine changes
+                            const subscription = AIChatStateMachine.service().subscribe((state) => {
+                                const currentState = state.value;
 
-                        // Create promise and emit approval request
-                        const responsePromise = new Promise<{ approved: boolean; comment?: string }>((resolve) => {
-                            pendingApprovalResolve = resolve;
+                                // If we moved from PlanReview to ApprovedPlan = approved
+                                if (currentState === 'ApprovedPlan') {
+                                    console.log("[TaskWrite Tool] Plan approved by user");
+                                    subscription.unsubscribe();
+                                    resolve({ approved: true });
+                                }
+                                // If we moved from PlanReview to GeneratingPlan = rejected
+                                else if (currentState === 'GeneratingPlan') {
+                                    // Get rejection comment from state machine context
+                                    const rejectionComment = state.context.currentApproval?.comment;
+                                    console.log(`[TaskWrite Tool] Plan rejected by user${rejectionComment ? `: "${rejectionComment}"` : ''}`);
+                                    subscription.unsubscribe();
+                                    resolve({ approved: false, comment: rejectionComment });
+                                }
+                            });
+                        });
+                    }
+                    // Case 2: Tasks completed and in review (waiting for approval)
+                    // LLM may have completed multiple tasks at once
+                    else if (reviewTasks.length > 0 && inProgressTasks.length === 0) {
+                        // Get the last task in review (most recently completed)
+                        const lastReviewTask = reviewTasks[reviewTasks.length - 1];
+                        console.log(`[TaskWrite Tool] Requesting completion approval for ${reviewTasks.length} task(s), latest: ${lastReviewTask.id}`);
+                        approvalType = "completion";
+                        approvedTaskId = lastReviewTask.id;
+
+                        // Emit TASK_COMPLETED event to state machine (non-blocking)
+                        AIChatStateMachine.sendEvent({
+                            type: AIChatMachineEventType.TASK_COMPLETED
                         });
 
+                        // Also emit UI event for task approval display
                         eventHandler({
                             type: "task_approval_request",
                             approvalType: "completion",
                             tasks: allTasks,
-                            taskId: lastCompletedTask.id,
-                            message: `Please verify the completed work for: ${lastCompletedTask.description}`
+                            taskId: lastReviewTask.id,
+                            message: `Please verify the completed work for: ${lastReviewTask.description}`
                         });
 
-                        approvalResult = await responsePromise;
+                        // Wait for user approval - state machine will transition out of TaskReview
+                        console.log("[TaskWrite Tool] Waiting for task approval/rejection...");
+
+                        approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
+                            // Subscribe to state machine changes
+                            const subscription = AIChatStateMachine.service().subscribe((state) => {
+                                const currentState = state.value;
+
+                                // If we moved from TaskReview to ApprovedTask = approved
+                                if (currentState === 'ApprovedTask') {
+                                    console.log(`[TaskWrite Tool] Task(s) approved by user (${reviewTasks.length} task(s))`);
+
+                                    // Update all review tasks to done status
+                                    reviewTasks.forEach(task => {
+                                        const taskIndex = allTasks.findIndex(t => t.id === task.id);
+                                        if (taskIndex !== -1) {
+                                            allTasks[taskIndex].status = TaskStatus.DONE;
+                                        }
+                                    });
+
+                                    subscription.unsubscribe();
+                                    resolve({ approved: true });
+                                }
+                                // If we moved from TaskReview to RejectedTask = rejected
+                                else if (currentState === 'RejectedTask') {
+                                    // Get rejection comment from state machine context
+                                    const rejectionComment = state.context.currentApproval?.comment;
+                                    console.log(`[TaskWrite Tool] Task rejected by user${rejectionComment ? `: "${rejectionComment}"` : ''}`);
+
+                                    // Update the last review task (the one being rejected) to rejected status
+                                    const taskIndex = allTasks.findIndex(t => t.id === lastReviewTask.id);
+                                    if (taskIndex !== -1) {
+                                        allTasks[taskIndex].status = TaskStatus.REJECTED;
+                                    }
+
+                                    subscription.unsubscribe();
+                                    resolve({ approved: false, comment: rejectionComment });
+                                }
+                            });
+                        });
                     } else if (inProgressTasks.length > 0) {
+                        // Emit START_TASK_EXECUTION event to state machine (non-blocking)
+                        AIChatStateMachine.sendEvent({
+                            type: AIChatMachineEventType.START_TASK_EXECUTION,
+                        });
                         console.log(`[TaskWrite Tool] Task in progress, no approval needed: ${inProgressTasks[0].description}`);
                     }
                 }
@@ -253,17 +336,17 @@ Rules:
                     // No approval needed - just status update
                     if (inProgressTasks.length > 0) {
                         message = `Started working on: ${inProgressTasks[0].description}`;
-                    } else if (completedTasks.length === allTasks.length) {
+                    } else if (doneTasks.length === allTasks.length) {
                         message = `All tasks completed!`;
-                    } else if (completedTasks.length > 0) {
-                        message = `Completed: ${completedTasks[completedTasks.length - 1].description}`;
+                    } else if (doneTasks.length > 0) {
+                        message = `Completed: ${doneTasks[doneTasks.length - 1].description}`;
                     } else {
                         message = `Successfully created ${allTasks.length} implementation tasks. Tasks are now ready for execution.`;
                     }
                 }
 
                 // ALWAYS return ALL tasks
-                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${completedTasks.length} completed, ${inProgressTasks.length} in progress, ${pendingTasks.length} pending)`);
+                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${doneTasks.length} done, ${reviewTasks.length} in review, ${inProgressTasks.length} in progress, ${pendingTasks.length} pending)`);
 
                 return {
                     success: approvalResult ? approvalResult.approved : true,
