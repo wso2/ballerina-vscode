@@ -18,8 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.core.expressioneditor.services;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
@@ -45,6 +52,7 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
     private final CompletionContext completionContext;
     private final TextDocumentService textDocumentService;
     private static final String RESERVED_VARIABLE_NAME = "__reserved__";
+    private static final Gson GSON = new Gson();
 
     public CompletionRequest(ExpressionEditorContext context, CompletionContext completionContext,
                              TextDocumentService textDocumentService) {
@@ -55,7 +63,23 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
 
     @Override
     public Either<List<CompletionItem>, CompletionList> getResponse(ExpressionEditorContext context) {
-        context.generateStatement();
+        String valueType = context.getProperty().valueType();
+        if (Property.ValueType.DATA_MAPPING_EXPRESSION.name().equals(valueType)) {
+            JsonElement lineRangeJson = context.info().codedata().get("lineRange");
+            LineRange lineRange = GSON.fromJson(lineRangeJson, LineRange.class);
+            if (lineRange == null) {
+                return Either.forLeft(new ArrayList<>());
+            }
+            NonTerminalNode node = CommonUtil.findNode(PositionUtil.toRange(lineRange),
+                    context.documentContext().document().syntaxTree());
+            if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
+                return Either.forLeft(new ArrayList<>());
+            }
+            context.generateFunctionDefinition(functionDefinitionNode.functionSignature().toString());
+        } else {
+            context.generateStatement();
+        }
+
         Position position = context.getCursorPosition();
         TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
         CompletionParams params = new CompletionParams(identifier, position, completionContext);
@@ -67,7 +91,6 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
 
         // Filter the completions if it is a lvexpr
         // TODO: Extend the implementation to a different class
-        String valueType = context.getProperty().valueType();
         if (Property.ValueType.LV_EXPRESSION.name().equals(valueType)) {
             List<CompletionItem> completionsList;
             if (completions.getLeft() != null) {
