@@ -59,7 +59,7 @@ export function ResponseEditor(props: ParamProps) {
     const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {            
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
             setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
@@ -161,13 +161,15 @@ export function ResponseEditor(props: ParamProps) {
                     setNewFields([...updatedFields]);
                 }
             });
-            fields.push({
-                ...convertPropertyToFormField(res.mediaType),
-                type: "AUTOCOMPLETE",
-                items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
-                key: `mediaType`,
-                defaultValue: res.mediaType.value,
-            });
+            if (res.mediaType) {
+                fields.push({
+                    ...convertPropertyToFormField(res.mediaType),
+                    type: "AUTOCOMPLETE",
+                    items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
+                    key: `mediaType`,
+                    defaultValue: res.mediaType.value,
+                });
+            }
             fields.push({
                 ...convertPropertyToFormField(res.headers, defaultItems),
                 key: `headers`,
@@ -365,22 +367,20 @@ export function ResponseEditor(props: ParamProps) {
     return (
         <EditorContainer>
             <EditorContent>
-                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Response Configuration</Typography>
+                <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">Response Configuration</Typography>
             </EditorContent>
             <Divider />
             {filePath && targetLineRange &&
-                <div>
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={newFields}
-                        onBack={handleOnCancel}
-                        onSubmit={handleOnNewSubmit}
-                        submitText={isEdit ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                    />
-                </div>
+                <FormGeneratorNew
+                    fileName={filePath}
+                    targetLineRange={targetLineRange}
+                    fields={newFields}
+                    onBack={handleOnCancel}
+                    onSubmit={handleOnNewSubmit}
+                    submitText={isEdit ? "Save" : "Add"}
+                    nestedForm={true}
+                    helperPaneSide='left'
+                />
             }
         </EditorContainer >
     );

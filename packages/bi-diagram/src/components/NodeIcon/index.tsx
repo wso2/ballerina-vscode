@@ -93,7 +93,8 @@ const NODE_COLOR_GROUPS = {
         "DATA_LOADER",
         "DATA_LOADERS",
         "CHUNKER",
-        "CHUNKERS"
+        "CHUNKERS",
+        "MEMORY_STORE"
     ],
     // Data related - magenta variants
     MAGENTA_DATA_GROUP: ["VARIABLE", "NEW_DATA", "UPDATE_DATA", "ASSIGN"],
@@ -239,6 +240,7 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     DATA_LOADERS: ({ size, color }) => <Icon name="bi-data-table" sx={{ fontSize: size, width: size, height: size, color }} />,
     CHUNKER: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
     CHUNKERS: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
+    MEMORY_STORE: ({ size, color }) => <Icon name="bi-memory" sx={{ fontSize: size, width: size, height: size, color }} />
     // Default case for any NodeKind not explicitly handled
 } as Record<NodeKind, React.FC<{ size: number; color: string }>>;
 
