@@ -56,7 +56,9 @@ import {
     AIChatMachineEventType,
     aiChatStateChanged,
     AIChatMachineSendableEvent,
-    AIChatMachineStateValue
+    AIChatMachineStateValue,
+    getAIChatContext,
+    AIChatMachineContext
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -206,6 +208,10 @@ export class BallerinaRpcClient {
 
     sendAIChatStateEvent(event: AIChatMachineEventType | AIChatMachineSendableEvent) {
         this.messenger.sendRequest(sendAIChatStateEvent, HOST_EXTENSION, event);
+    }
+
+    getAIChatContext(): Promise<AIChatMachineContext> {
+        return this.messenger.sendRequest(getAIChatContext, HOST_EXTENSION);
     }
 
     onProjectContentUpdated(callback: (state: boolean) => void) {

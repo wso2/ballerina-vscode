@@ -153,6 +153,7 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
+    const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
 
     // Approval dialog state
     const [approvalRequest, setApprovalRequest] = useState<{
@@ -289,6 +290,23 @@ const AIChat: React.FC = () => {
                     });
             });
     }, []);
+
+    // Initialize auto-approve state from state machine context on mount
+    useEffect(() => {
+        const initializeAutoApproveState = async () => {
+            try {
+                const context = await rpcClient.getAIChatContext();
+                if (context && context.autoApproveEnabled !== undefined) {
+                    setIsAutoApproveEnabled(context.autoApproveEnabled);
+                    console.log(`[AIChat] Initialized auto-approve state: ${context.autoApproveEnabled}`);
+                }
+            } catch (error) {
+                console.error("[AIChat] Failed to initialize auto-approve state:", error);
+            }
+        };
+
+        initializeAutoApproveState();
+    }, [rpcClient]);
 
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
@@ -1885,6 +1903,19 @@ const AIChat: React.FC = () => {
         rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
 
+    // Handle auto-approval toggle
+    const handleToggleAutoApprove = () => {
+        const newValue = !isAutoApproveEnabled;
+        setIsAutoApproveEnabled(newValue);
+
+        // Send event to state machine
+        if (newValue) {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
+        } else {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        }
+    };
+
     const questionMessages = messages.filter((message) => message.type === "question");
     if (questionMessages.length > 0) {
         localStorage.setItem(
@@ -2155,6 +2186,14 @@ const AIChat: React.FC = () => {
                         </Badge>
                         <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
+                            <Button
+                                appearance="icon"
+                                onClick={handleToggleAutoApprove}
+                                tooltip={isAutoApproveEnabled ? "Disable auto-approval" : "Enable auto-approval"}
+                            >
+                                <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
+                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: ON" : "Auto-Approve: OFF"}
+                            </Button>
                             <Button
                                 appearance="icon"
                                 onClick={() => handleClearChat()}
