@@ -293,9 +293,9 @@ export const FunctionsPage = ({
                 }
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
-            <div>
-                <FooterButtons onClick={handleNewFunctionClick} startIcon='add' title="New Function" />
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+            <div style={{ margin: '4px 0' }}>
+                <FooterButtons onClick={handleNewFunctionClick} title="New Function" />
+                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
             </div>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser
