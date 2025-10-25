@@ -85,7 +85,6 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
             context.generateStatement();
         }
 
-
         Position position = context.getCursorPosition();
         TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
         CompletionParams params = new CompletionParams(identifier, position, completionContext);
