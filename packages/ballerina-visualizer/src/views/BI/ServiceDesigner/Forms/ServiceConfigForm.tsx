@@ -230,6 +230,10 @@ function convertConfig(service: ServiceModel): FormField[] {
         if (expression.valueType === "MULTIPLE_SELECT_LISTENER" || expression.valueType === "SINGLE_SELECT_LISTENER") {
             continue
         }
+        // Skip readOnlyMetaData as it's a special property that doesn't have standard form fields
+        if (key === "readOnlyMetaData") {
+            continue;
+        }
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),

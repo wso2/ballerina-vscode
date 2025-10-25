@@ -281,17 +281,21 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             }
         }
         if (service?.properties) {
-            // iterate over each property and check if it's readonly
+            // Extract readonly properties from readOnlyMetaData if available
             const readonlyProps: Set<ReadonlyProperty> = new Set();
-            Object.keys(service.properties).forEach((key) => {
-                if (key === "listener" || service.properties[key].codedata.type === "ANNOTATION_ATTACHMENT") {
-                    return;
-                }
-                const property = service.properties[key];
-                if (property.enabled === true) {
-                    readonlyProps.add({ label: property.metadata.label, value: property.value || property.values });
-                }
-            });
+            const readOnlyMetaData = service.properties.readOnlyMetaData;
+
+            if (readOnlyMetaData?.enabled && readOnlyMetaData.value && typeof readOnlyMetaData.value === "object") {
+                Object.entries(readOnlyMetaData.value).forEach(([label, values]) => {
+                    if (Array.isArray(values) && values.length > 0) {
+                        readonlyProps.add({
+                            label,
+                            value: values.length === 1 ? values[0] : values
+                        });
+                    }
+                });
+            }
+
             setReadonlyProperties(readonlyProps);
             setIsHttpService(service.moduleName === "http");
             setIsMcpService(service.moduleName === "mcp");
