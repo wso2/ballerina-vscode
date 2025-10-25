@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { removeMcpServerFromAgentNode } from "../AIChatAgent/utils";
+import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
 import { MemoizedDiagram } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -45,6 +45,7 @@ import {
     NodeMetadata,
     SearchKind,
     DataMapperDisplayMode,
+    CodeData,
 } from "@wso2/ballerina-core";
 
 import {
@@ -62,13 +63,14 @@ import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
 import { applyModifications, textToModifications } from "../../../utils/utils";
 import { PanelManager, SidePanelView } from "./PanelManager";
 import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
+import { PanelOverlayProvider } from "./context/PanelOverlayContext";
+import { PanelOverlayRenderer } from "./PanelOverlayRenderer";
 import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
-    findAgentNodeFromAgentCallNode,
     removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
@@ -85,7 +87,7 @@ export interface BIFlowDiagramProps {
     breakpointState?: boolean;
     syntaxTree?: STNode;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
     onSave?: () => void;
 }
 
@@ -139,6 +141,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     } = useDraftNodeManager(model);
 
     const selectedNodeRef = useRef<FlowNode>();
+    const parentNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
@@ -470,7 +473,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             const parentMetadata = model.flowModel.nodes.find(
                                 (node) => node.codedata.node === "EVENT_START"
                             )?.metadata.data as ParentMetadata | undefined;
-                            onReady(model.flowModel.fileName, parentMetadata);
+
+                            // Get visualizer location and pass position to onReady
+                            rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
+                                console.log(">>> Visualizer location", location?.position);
+                                onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                            });
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
@@ -486,7 +494,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .finally(() => {
                         setShowProgressIndicator(false);
                         setShowProgressSpinner(false);
-                        onReady(undefined);
+                        onReady(undefined, undefined, undefined);
                         if (hasDraft) {
                             completeDraft();
                         }
@@ -1804,10 +1812,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     // AI Agent callback handlers
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
-        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-        const agentNode = moduleNodes.flowModel.connections.find((node) => node.properties.variable.value === agentCallNode.properties.connection.value);
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         if (!agentNode) {
             console.error(`Agent node not found`, agentCallNode);
+            return;
         }
 
         selectedNodeRef.current = agentNode;
@@ -1817,8 +1825,53 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowSidePanel(true);
     };
 
-    const handleOnSelectMemoryManager = (node: FlowNode) => {
-        selectedNodeRef.current = node;
+    const handleOnSelectMemoryManager = async (agentCallNode: FlowNode) => {
+        // Use the helper function to find the agent node from agent call node
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+
+        if (!agentNode) {
+            console.error(`Agent node not found for agent call node`, agentCallNode);
+            return;
+        }
+
+        // Check if agent already has a configured memory manager
+        const agentMemoryValue = agentNode?.properties?.memory?.value;
+
+        // Find the existing memory manager node using searchNodes API
+        let existingMemoryVariable;
+        if (agentMemoryValue) {
+            const fileName = agentNode.codedata?.lineRange?.fileName;
+            if (fileName) {
+                const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+                const startLine = agentNode.codedata?.lineRange?.startLine;
+                const linePosition = startLine
+                    ? {
+                        line: startLine.line,
+                        offset: startLine.offset
+                    }
+                    : undefined;
+
+                const queryMap = {
+                    kind: "MEMORY" as const,
+                    exactMatch: agentMemoryValue.toString().trim()
+                };
+
+                const memoryNodes = await findFlowNode(rpcClient, filePath, linePosition, queryMap);
+                existingMemoryVariable = memoryNodes && memoryNodes.length > 0 ? memoryNodes[0] : undefined;
+            }
+        }
+
+        // Initialize and sync memory metadata between nodes
+        agentNode.metadata.data = agentNode.metadata.data || {} as NodeMetadata;
+        const agentCallMetadata = agentCallNode.metadata.data as NodeMetadata;
+
+        if (agentCallMetadata?.memory) {
+            (agentNode.metadata.data as NodeMetadata).memory = agentCallMetadata.memory;
+        }
+
+        // Open memory manager panel
+        selectedNodeRef.current = existingMemoryVariable;
+        parentNodeRef.current = agentNode;
         showEditForm.current = true;
         setSidePanelView(SidePanelView.AGENT_MEMORY_MANAGER);
         setShowSidePanel(true);
@@ -1829,7 +1882,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
-            const agentFilePath = await getAgentFilePath(rpcClient);
+            if (!agentNode) {
+                console.error("Agent node not found for deleting memory manager:", node);
+                return;
+            }
 
             // remove memory manager statement if any
             if (agentNode.properties.memory && agentNode.properties.memory?.value !== "()") {
@@ -1837,39 +1893,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 if (memoryVar) {
                     const memoryNode = await findFlowNodeByModuleVarName(memoryVar, rpcClient);
                     if (memoryNode) {
+                        const memoryFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(memoryNode.codedata.lineRange.fileName);
                         await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-                            filePath: agentFilePath,
+                            filePath: memoryFilePath,
                             flowNode: memoryNode,
                         });
                     }
                 }
             }
 
-            // Create a clone of the agent node to modify
-            const updatedAgentNode = cloneDeep(agentNode);
-
             // Remove memory manager from agent node
-            if (!updatedAgentNode.properties.memory) {
-                updatedAgentNode.properties.memory = {
-                    value: "",
-                    advanced: true,
-                    optional: true,
-                    editable: true,
-                    valueType: "EXPRESSION",
-                    valueTypeConstraint: "agent:MemoryManager",
-                    metadata: {
-                        label: "Memory Manager",
-                        description: "The memory manager used by the agent to store and manage conversation history",
-                    },
-                    placeholder: "object {}",
-                };
-            } else {
-                agentNode.properties.memory.value = "()";
-            }
-            // Generate the source code
-            const agentResponse = await rpcClient
+            agentNode.properties.memory.value = "()";
+            const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentNode.codedata.lineRange.fileName);
+            await rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: agentFilePath, flowNode: agentNode });
+
         } catch (error) {
             console.error("Error deleting memory manager:", error);
             alert("Failed to remove memory manager. Please try again.");
@@ -2001,36 +2040,84 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         closeSidePanelAndFetchUpdatedFlowModel();
     };
 
+    const deleteMcpVariableAndClass = async (tool: ToolData) => {
+        const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+        const mcpVariable = variableNodes.flowModel?.variables?.find(
+            (v) => v.codedata?.node === "MCP_TOOL_KIT" && v.properties.variable?.value === tool.name
+        );
+
+        if (!mcpVariable) {
+            return;
+        }
+
+        // Delete the MCP variable node
+        const mcpVariableFilePath = await rpcClient
+            .getVisualizerRpcClient()
+            .joinProjectPath(mcpVariable.codedata.lineRange.fileName);
+
+        await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+            filePath: mcpVariableFilePath,
+            flowNode: mcpVariable,
+        });
+
+        // Delete the MCP class if it's a custom class (not the default ai:McpToolKit)
+        const isCustomMcpClass = mcpVariable?.properties?.type?.value !== "ai:McpToolKit";
+        if (!isCustomMcpClass) {
+            return;
+        }
+
+        const classDefinition = mcpVariable?.codedata?.data["mcpClassDefinition"] as CodeData;
+        const classLineRange = classDefinition?.lineRange;
+
+        if (!classLineRange) {
+            return;
+        }
+
+        const classFilePath = await rpcClient
+            .getVisualizerRpcClient()
+            .joinProjectPath(classLineRange.fileName);
+
+        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
+            filePath: classFilePath,
+            component: {
+                name: "CLASS",
+                filePath: classFilePath,
+                startLine: classLineRange.startLine.line,
+                startColumn: classLineRange.startLine.offset,
+                endLine: classLineRange.endLine.line,
+                endColumn: classLineRange.endLine.offset,
+            },
+        });
+    };
+
     const handleOnDeleteTool = async (tool: ToolData, node: FlowNode) => {
         selectedNodeRef.current = node;
         setShowProgressIndicator(true);
+
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
+            const agentFilePath = await rpcClient
+                .getVisualizerRpcClient()
+                .joinProjectPath(agentNode.codedata.lineRange.fileName);
+
+            // Remove the tool from the agent node
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
-            const agentFilePath = await getAgentFilePath(rpcClient);
-            const toolType = tool.type ?? "";
-            if (toolType.includes("MCP Server")) {
-                const updateAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
 
-                // Delete the MCP client variable node
-                const variableNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-                const mcpVariable = variableNodes.flowModel?.variables?.find(
-                    (v) => v.properties?.type?.value === "ai:McpToolKit" && v.properties.variable?.value === tool.name
-                );
+            const isMcpServerTool = tool.type?.includes("MCP Server");
+            if (isMcpServerTool) {
+                // Handle MCP Server deletion: clean up variable node and class definition
+                await deleteMcpVariableAndClass(tool);
 
-                if (mcpVariable) {
-                    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-                        filePath: agentFilePath,
-                        flowNode: mcpVariable,
-                    });
-                }
-
-                const agentResponse = await rpcClient
+                // Update agent node to remove MCP server reference
+                const finalAgentNode = removeMcpServerFromAgentNode(updatedAgentNode, tool.name);
+                await rpcClient
                     .getBIDiagramRpcClient()
-                    .getSourceCode({ filePath: agentFilePath, flowNode: updateAgentNode });
+                    .getSourceCode({ filePath: agentFilePath, flowNode: finalAgentNode });
+
                 onSave?.();
             } else {
-                const agentResponse = await rpcClient
+                // Handle regular tool deletion
+                await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updatedAgentNode });
             }
@@ -2142,7 +2229,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     );
 
     return (
-        <>
+        <PanelOverlayProvider>
             <View>
                 {(showProgressIndicator || fetchingAiSuggestions) && model && (
                     <ProgressIndicator color={ThemeColors.PRIMARY} />
@@ -2159,6 +2246,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 subPanel={subPanel}
                 categories={categories}
                 selectedNode={selectedNodeRef.current}
+                parentNode={parentNodeRef.current}
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}
                 showEditForm={showEditForm.current}
@@ -2213,6 +2301,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
             />
-        </>
+
+            <PanelOverlayRenderer />
+        </PanelOverlayProvider>
     );
 }
