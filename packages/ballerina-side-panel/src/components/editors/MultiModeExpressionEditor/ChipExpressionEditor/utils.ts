@@ -441,10 +441,8 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
 export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): number => {
     if (!model || model.length === 0) return 0;
     const active = document.activeElement as HTMLElement | null;
-    console.log("active element", active);
     if (!active) return 0;
     const elementId = active.getAttribute('data-element-id');
-    console.log("active element id", elementId);
     if (!elementId) return 0;
     const idx = model.findIndex(m => m.id === elementId);
     if (idx < 0) return 0;
@@ -922,7 +920,7 @@ export const handleKeyDownInTextElement = (
     e: React.KeyboardEvent<HTMLSpanElement>,
     expressionModel: ExpressionModel[],
     index: number,
-    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorDelta: number) => void,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void,
     host?: HTMLSpanElement | null
 ) => {
     if (!host) return;
@@ -949,7 +947,8 @@ export const handleKeyDownInTextElement = (
                     }
                     return el;
                 }).filter((_, idx) => idx !== index);
-                onExpressionChange?.(newExpressionModel, -1);
+                const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+                onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
                 return;
             }
         }
@@ -991,7 +990,8 @@ export const handleKeyDownInTextElement = (
 
                 // Trigger the expression change callback
                 if (onExpressionChange) {
-                    onExpressionChange(updatedModel, -1);
+                    const newCursorPosition = getAbsoluteCaretPositionFromModel(updatedModel);
+                    onExpressionChange(updatedModel, newCursorPosition, "#$DELETE");
                 }
                 return;
             }
@@ -1000,46 +1000,78 @@ export const handleKeyDownInTextElement = (
     }
 
     // Right arrow key at the end of current span
-    if (e.key === 'ArrowRight' && caretOffset === textLength) {
+    if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (index < 0 || index >= expressionModel.length - 1) return;
-        for (let i = index + 1; i < expressionModel.length; i++) {
-            if (!expressionModel[i].isToken) {
-                const newExpressionModel = expressionModel.map((el, idx) => {
-                    if (idx === i) {
-                        return { ...el, isFocused: true, focusOffset: 0 };
-                    } else if (idx === index) {
-                        return { ...el, isFocused: false, focusOffset: undefined };
-                    }
-                    return el;
-                });
-                onExpressionChange?.(newExpressionModel, 0);
-                return;
+        e.stopPropagation();
+        if (caretOffset === textLength) {
+            if (index < 0 || index >= expressionModel.length - 1) return;
+            for (let i = index + 1; i < expressionModel.length; i++) {
+                if (!expressionModel[i].isToken) {
+                    const newExpressionModel = expressionModel.map((el, idx) => {
+                        if (idx === i) {
+                            return { ...el, isFocused: true, focusOffset: 0 };
+                        } else if (idx === index) {
+                            return { ...el, isFocused: false, focusOffset: undefined };
+                        }
+                        return el;
+                    });
+                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+                    onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWRIGHT');
+                    return;
+                }
             }
+        }
+        else {
+            const newExpressionModel = expressionModel.map((el, idx) => {
+                if (idx === index) {
+                    return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset + 1) };
+                }
+                return el;
+            });
+            console.log("CARET OFFEST", caretOffset)
+            const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+            onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
+            return;
         }
         return;
     }
 
     // Left arrow key at the beginning of current span
-    if (e.key === 'ArrowLeft' && caretOffset === 0) {
+    if (e.key === 'ArrowLeft') {
         e.preventDefault();
         e.stopPropagation();
-        if (index <= 0 || index >= expressionModel.length) return;
-        for (let i = index - 1; i >= 0; i--) {
-            if (!expressionModel[i].isToken) {
-                const newExpressionModel = expressionModel.map((el, idx) => {
-                    if (idx === i) {
-                        return { ...el, isFocused: true, focusOffset: el.length };
-                    } else if (idx === index) {
-                        return { ...el, isFocused: false, focusOffset: undefined };
-                    }
-                    return el;
-                });
-                onExpressionChange?.(newExpressionModel, 0);
-                return;
+        if (caretOffset === 0) {
+            if (index <= 0 || index >= expressionModel.length) return;
+            for (let i = index - 1; i >= 0; i--) {
+                if (!expressionModel[i].isToken) {
+                    const newExpressionModel = expressionModel.map((el, idx) => {
+                        if (idx === i) {
+                            return { ...el, isFocused: true, focusOffset: el.length };
+                        } else if (idx === index) {
+                            return { ...el, isFocused: false, focusOffset: undefined };
+                        }
+                        return el;
+                    });
+                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+                    console.log("NEW CURSOR POS", newCursorPosition);
+                    onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
+                    return;
+                }
             }
+            return;
         }
-        return;
+        else {
+            const newExpressionModel = expressionModel.map((el, idx) => {
+                if (idx === index) {
+                    return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset - 1) };
+                }
+                return el;
+            });
+            console.log("CARET OFFEST", caretOffset)
+            const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+            onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
+            return;
+        }
     }
 };
 
@@ -1100,6 +1132,115 @@ export const preserveCursorPosition = (
     return { updatedModel, newCursorPosition };
 };
 
+export const setCursorPositionToExpressionModel = (expressionModel: ExpressionModel[], cursorPosition: number): ExpressionModel[] => {
+    const newExpressionModel = [];
+    let i = 0;
+    let foundTarget = false; // Track if we've found and set the cursor
+    
+    while (i < expressionModel.length) {
+        const element = expressionModel[i];
+        if (!foundTarget && cursorPosition <= element.length) {
+            foundTarget = true; // Mark that we've found the target
+            
+            if (element.isToken) {
+                console.log("ELM", expressionModel, i+1, element.length <= i + 1);
+                if (expressionModel.length <= i + 1) {
+                    console.log("TOKEN ELEMENT", element.length <= i + 1);
 
+                    newExpressionModel.push({
+                        id: element.id + "1",
+                        isFocused: true,
+                        focusOffset: 0,
+                        value: ' ',
+                        isToken: element.isToken,
+                        startColumn: element.startColumn,
+                        startLine: element.startLine,
+                        length: element.length,
+                        type: element.type
+                    });
+                    return newExpressionModel;
+                }
+                else {
+                    const nextElement = expressionModel[i + 1];
+                    newExpressionModel.push({
+                        ...element,
+                        isFocused: false,
+                        focusOffset: undefined
+                    });
+                    newExpressionModel.push({
+                        ...nextElement,
+                        isFocused: true,
+                        focusOffset: 0
+                    });
+                    i += 2;
+                }
+            }
+            else {
+                newExpressionModel.push({
+                    ...element,
+                    isFocused: true,
+                    focusOffset: cursorPosition
+                });
+                i += 1;
+            }
+        }
+        else {
+            newExpressionModel.push({
+                ...element,
+                isFocused: false,
+                focusOffset: undefined
+            });
+            i += 1;
+            if (!foundTarget) {
+                cursorPosition -= element.length;
+            }
+        }
+    }
+    console.log("NEW EXPR MODEL", newExpressionModel);
+    return newExpressionModel;
+};
 
+export const updateTokens = (tokens: number[], cursorPosition: number, cursorChange: number): number[] => {
+    const updatedTokens: number[] = [];
+    const tokenChunks = getTokenChunks(tokens);
 
+    let currentLine = 0;
+    let currentChar = 0;
+    let adjustedCurrentLine = false; // Track if we've adjusted this line
+
+    for (let i = 0; i < tokenChunks.length; i++) {
+        const chunk = tokenChunks[i];
+        const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
+        const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
+        const tokenLength = chunk[TOKEN_LENGTH_INDEX];
+        const tokenType = chunk[3];
+        const tokenModifiers = chunk[4];
+
+        // Reset adjustment flag when moving to a new line
+        if (deltaLine > 0) {
+            adjustedCurrentLine = false;
+        }
+
+        // Update current position
+        currentLine += deltaLine;
+        if (deltaLine === 0) {
+            currentChar += deltaStartChar;
+        } else {
+            currentChar = deltaStartChar;
+        }
+
+        // Calculate absolute offset
+        const tokenAbsoluteOffset = getAbsoluteColumnOffset('', currentLine, currentChar);
+
+        // Adjust ONLY the first token >= cursorPosition on each line
+        let adjustedDeltaStartChar = deltaStartChar;
+        if (!adjustedCurrentLine && tokenAbsoluteOffset >= cursorPosition) {
+            adjustedDeltaStartChar += cursorChange;
+            adjustedCurrentLine = true;
+        }
+
+        updatedTokens.push(deltaLine, adjustedDeltaStartChar, tokenLength, tokenType, tokenModifiers);
+    }
+
+    return updatedTokens;
+};

@@ -78,7 +78,7 @@ export type TokenizedExpressionProps = {
     onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
     onChipBlur?: () => void;
     onChipFocus?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
-    onExpressionChange?: (updatedExpressionModel: ExpressionModel[]) => void;
+    onExpressionChange?: (updatedExpression: ExpressionModel[], cursorPosition: number, lastTypedText: string) => void;
     onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }
 

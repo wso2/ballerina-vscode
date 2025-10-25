@@ -26,7 +26,7 @@ export const TextElement = (props: {
     element: ExpressionModel;
     expressionModel: ExpressionModel[];
     index: number;
-    onExpressionChange?: (updatedExpressionModel: ExpressionModel[]) => void;
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void;
     onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }) => {
     const { onExpressionChange, onTriggerRebuild } = props;
@@ -66,7 +66,8 @@ export const TextElement = (props: {
                 ? { ...el, isFocused: true, focusOffset: offset }
                 : { ...el, isFocused: false, focusOffset: undefined }
         );
-        onExpressionChange(updatedModel);
+        const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
+        onExpressionChange(updatedModel, newCursorPosition, '#$FOCUS');
     };
 
     const handleMouseUp = (e: React.MouseEvent<HTMLSpanElement>) => {
@@ -86,17 +87,18 @@ export const TextElement = (props: {
 
         const host = spanRef.current;
 
-            // Capture the raw new value from the DOM (before we may programmatically prepend a space)
-            const rawNewValue = e.currentTarget.textContent || '';
+        // Capture the raw new value from the DOM (before we may programmatically prepend a space)
+        const rawNewValue = e.currentTarget.textContent || '';
         const oldValue = lastValueRef.current;
 
         // Check if a trigger character (+, space, comma) was just typed by comparing character counts
         const triggerChars = /[\s+,]/g;
         const oldTriggerCount = (oldValue.match(triggerChars) || []).length;
-            const newTriggerCount = (rawNewValue.match(triggerChars) || []).length;
+        const newTriggerCount = (rawNewValue.match(triggerChars) || []).length;
         const wasTriggerAdded = newTriggerCount > oldTriggerCount;
 
-    const cursorDelta = rawNewValue.length - oldValue.length;
+        const cursorDelta = rawNewValue.length - oldValue.length;
+
         const currentFocusOffset = props.element.focusOffset ?? oldValue.length;
 
         // Read actual caret from DOM (more reliable than relying on model's focusOffset)
@@ -106,8 +108,8 @@ export const TextElement = (props: {
             pendingCaretOffsetRef.current = pendingOffset;
         }
 
-            // Build the final newValue possibly with a programmatic leading space
-            let newValue = rawNewValue;
+        // Build the final newValue possibly with a programmatic leading space
+        let newValue = rawNewValue;
 
         const updatedExpressionModel = [...props.expressionModel];
         let didPrependSpace = false;
@@ -134,7 +136,14 @@ export const TextElement = (props: {
             isFocused: true,
             focusOffset: newFocusOffset
         };
-                onExpressionChange(updatedExpressionModel);
+        const enteredText = newValue.substring(
+            currentFocusOffset,
+            newFocusOffset
+        );
+        const newAbsoluteCursorPosition = getAbsoluteCaretPosition(updatedExpressionModel);
+        console.log('Entered text:', enteredText);
+        lastValueRef.current = newValue;
+        onExpressionChange(updatedExpressionModel, newAbsoluteCursorPosition, enteredText);
 
         if (wasTriggerAdded && debouncedTriggerRebuild) {
             const fullValue = updatedExpressionModel.map(el => el.value).join('');
@@ -147,12 +156,12 @@ export const TextElement = (props: {
     const handleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (isProgrammaticFocusRef.current) {
             isProgrammaticFocusRef.current = false;
             return;
         }
-        
+
         if (!onExpressionChange || !props.expressionModel) return;
         const updatedModel = props.expressionModel.map((element, index) => {
             if (index === props.index) {
@@ -161,7 +170,8 @@ export const TextElement = (props: {
                 return { ...element, isFocused: false, focusOffset: undefined };
             }
         })
-        onExpressionChange(updatedModel);
+        const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
+        onExpressionChange(updatedModel, newCursorPosition, '#$FOCUS');
     }
 
     // If this element is marked as focused, focus it and set the caret to focusOffset
