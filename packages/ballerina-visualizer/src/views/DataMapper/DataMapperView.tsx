@@ -92,7 +92,8 @@ export function DataMapperView(props: DataMapperProps) {
     const {
         model,
         isFetching,
-        isError
+        isError,
+        refreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
@@ -119,10 +120,12 @@ export function DataMapperView(props: DataMapperProps) {
         const currentSignature = JSON.stringify(getModelSignature(model));
         const prevSignature = prevSignatureRef.current;
 
-        const hasInputsChanged = hasSignatureChanged(currentSignature, prevSignature, 'inputs');
-        const hasOutputChanged = hasSignatureChanged(currentSignature, prevSignature, 'output');
-        const hasSubMappingsChanged = hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
-        const hasRefsChanged = hasSignatureChanged(currentSignature, prevSignature, 'refs');
+        const triggerRefresh = model.triggerRefresh;
+
+        const hasInputsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'inputs');
+        const hasOutputChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'output');
+        const hasSubMappingsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'subMappings');
+        const hasRefsChanged = triggerRefresh || hasSignatureChanged(currentSignature, prevSignature, 'refs');
 
         // Check if it's already an ExpandedDMModel
         const isExpandedModel = !('refs' in model);
@@ -188,21 +191,6 @@ export function DataMapperView(props: DataMapperProps) {
         () => !!modelState.model?.output,
         [modelState]
     );
-
-
-    const onDMClose = () => {
-        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
-    }
-
-    const onEdit = () => {
-        const context: VisualizerLocation = {
-            view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.name,
-            documentUri: filePath,
-        };
-
-        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
-    }
 
     const updateExpression = async (outputId: string, expression: string, viewId: string, name: string) => {
         try {
@@ -537,6 +525,42 @@ export function DataMapperView(props: DataMapperProps) {
         parentField.isDeepNested = false;
     }
 
+
+
+    const onDMClose = () => {
+        onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
+    }
+
+    const onDMRefresh = async () => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .clearTypeCache();
+            console.log(">>> [Data Mapper] clearTypeCache response:", resp);
+        } catch (error) {
+            console.error(error);
+        }
+        await refreshDMModel();
+    };
+
+    const onDMReset = async () => {
+        await deleteMapping(
+            { output: name, expression: undefined },
+            name
+        );
+    };
+
+    const onEdit = () => {
+        const context: VisualizerLocation = {
+            view: MACHINE_VIEW.BIDataMapperForm,
+            identifier: modelState.model.output.name,
+            documentUri: filePath,
+        };
+
+        rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
+    }
+
+
     useEffect(() => {
         // Hack to hit the error boundary
         if (isError) {
@@ -652,6 +676,8 @@ export function DataMapperView(props: DataMapperProps) {
                             modelState={modelState}
                             name={name}
                             onClose={onDMClose}
+                            onRefresh={onDMRefresh}
+                            onReset={onDMReset}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}

@@ -93,7 +93,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	}
 
 	// extend this class to add link init, port init logics
-	abstract initPorts(): void;
+	abstract initPorts(): Promise<void> | void;
 	abstract initLinks(): void;
 
 	protected async addPortsForInputField(attributes: InputPortAttributes): Promise<number> {
