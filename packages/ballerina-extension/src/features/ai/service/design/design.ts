@@ -14,16 +14,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateCodeRequest, Task, Plan, AIChatMachineEventType, TaskStatus } from "@wso2/ballerina-core";
+import { Command, GenerateCodeRequest, ProjectSource, SourceFiles, Task, AIChatMachineEventType} from "@wso2/ballerina-core";
 import { ModelMessage, stepCountIs, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
-import { getErrorMessage, populateHistory } from "../utils";
+import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
+import { getErrorMessage, populateHistory, transformProjectSource } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
+import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+import { getLibraryProviderTool } from "../libs/libraryProviderTool";
+import { GenerationType, getAllLibraries } from "../libs/libs";
+import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 
-export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<Task[]> {
+export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    const project: ProjectSource = await getProjectSource(params.operationType);
+    const sourceFiles: SourceFiles[] = transformProjectSource(project);
+    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    let updatedFileNames: string[] = [];
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
@@ -38,16 +47,16 @@ ONLY answer Ballerina-related queries.
 # Plan Mode Approach
 
 ## Step 1: Create High-Level Design
-Create a very high-level and consise design plan for the the given user requirement. 
+Create a very high-level and consise design plan for the the given user requirement.
 
 ## Step 2: Break Down Into Tasks and Execute
 
 **REQUIRED: Use Task Management**
-You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks. 
+You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
 This plan will be visible to the user and the execution will be guided on the tasks you create.
 
 - Break down the implementation into specific, actionable tasks.
-- Each task should have a type. This type will be used to guide the user through the generation proccess. 
+- Each task should have a type. This type will be used to guide the user through the generation proccess.
 - Track each task as you work through them
 - Mark tasks as you start and complete them
 - This ensures you don't miss critical steps
@@ -55,7 +64,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 
 **Task Types**:
 1. 'service_design'
-- Responsible for creating the http listener, service, and its resource function signatures. 
+- Responsible for creating the http listener, service, and its resource function signatures.
 - The signature should only have path, query, payload, header paramters and the return types. This step should contain types relevant to the service contract as well.
 2. 'connections_init'
 - Responsible for initializing connections/clients
@@ -73,6 +82,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 - It prevents missing steps and ensures systematic implementation
 - Users get visibility into your progress
 - Do NOT mention internal tool names to the user - just naturally describe what you're doing (e.g., "I'll now break this down into implementation tasks" instead of "I'll use the ${TASK_WRITE_TOOL_NAME} tool")
+- **IMPORTANT**: When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call (see tool description for details)
 
 **Execution Conditions**:
 1. Create high-level design plan and break it into tasks using ${TASK_WRITE_TOOL_NAME}
@@ -126,9 +136,21 @@ ${params.usecase}
             },
         ];
 
-    // Create TaskWrite tool with event handler
+    // Fetch all libraries for tool description
+    const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
+    const libraryDescriptions =
+        allLibraries.length > 0
+            ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
+            : "- No libraries available";
+
+
     const tools = {
-        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler)
+        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, updatedSourceFiles, updatedFileNames),
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
     const { fullStream } = streamText({
@@ -141,15 +163,14 @@ ${params.usecase}
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
-    // TODO: Will it call this tool multiple times?
-    let finalTasks: Task[] = [];
-
     // Emit event to state machine: AI generation started
     AIChatStateMachine.sendEvent({
         type: AIChatMachineEventType.PLANNING_STARTED
     });
 
     eventHandler({ type: "start" });
+
+    let selectedLibraries: string[] = [];
 
     for await (const part of fullStream) {
         switch (part.type) {
@@ -161,9 +182,19 @@ ${params.usecase}
             case "tool-call": {
                 const toolName = part.toolName;
                 console.log(`[Design] Tool call started: ${toolName}`);
-
-                // Emit tool call event
-                eventHandler({ type: "tool_call", toolName });
+                if (toolName === "LibraryProviderTool") {
+                    selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
+                    eventHandler({ type: "tool_call", toolName });
+                }
+                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+                    const input = part.input as any;
+                    if (input && input.file_path) {
+                        let fileName = input.file_path;
+                        eventHandler({ type: "tool_call", toolName, toolInput: { fileName } });
+                    }
+                } else {
+                    eventHandler({ type: "tool_call", toolName });
+                }
                 break;
             }
             case "tool-result": {
@@ -171,7 +202,6 @@ ${params.usecase}
                 const result = part.output;
                 console.log(`[Design] Tool result received from: ${toolName}`, result);
 
-                // Emit tool result event with full task list
                 if (toolName === TASK_WRITE_TOOL_NAME && result) {
                     const taskResult = result as TaskWriteResult;
                     eventHandler({
@@ -180,10 +210,17 @@ ${params.usecase}
                         toolOutput: {
                             success: taskResult.success,
                             message: taskResult.message,
-                            allTasks: taskResult.tasks, // Tool returns complete task list
+                            allTasks: taskResult.tasks,
                         },
                     });
-                    finalTasks = taskResult.tasks;
+                }
+                else if (toolName === "LibraryProviderTool") {
+                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
+                    const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
+                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
+                }
+                else {
+                    eventHandler({ type: "tool_result", toolName });
                 }
                 break;
             }
@@ -212,14 +249,13 @@ ${params.usecase}
             }
         }
     }
-    return finalTasks;
 }
 
 // Main public function that uses the default event handler
-export async function generateDesign(params: GenerateCodeRequest): Promise<Task[]> {
+export async function generateDesign(params: GenerateCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
-        return await generateDesignCore(params, eventHandler);
+        await generateDesignCore(params, eventHandler);
     } catch (error) {
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
