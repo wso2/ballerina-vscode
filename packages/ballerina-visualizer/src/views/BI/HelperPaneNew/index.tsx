@@ -32,9 +32,9 @@ import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
-import { getDefaultValue } from './Utils/types';
+import { getDefaultValue } from './utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
-import { HelperPaneIconType, getHelperPaneIcon } from './Utils/iconUtils';
+import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
 
 const MAX_MENU_ITEM_COUNT = 5;
 

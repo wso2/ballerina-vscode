@@ -24,7 +24,6 @@ import { convertToHelperPaneFunction, extractFunctionInsertText } from "../../..
 import { CompletionInsertText, FunctionKind, LineRange } from "@wso2/ballerina-core";
 import { useMutation } from "@tanstack/react-query";
 import { ExpandableList } from "../Components/ExpandableList";
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
 import { CompletionItem, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
@@ -35,7 +34,8 @@ import FooterButtons from "../Components/FooterButtons";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
-import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
+import { HelperPaneListItem } from "../Components/HelperPaneListItem";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -248,14 +248,13 @@ export const FunctionsPage = ({
                                                         <ExpandableList.Section key={category.label} title={category.label} level={0}>
                                                             <div style={{ marginTop: '10px' }}>
                                                                 {category.items.map((item) => (
-                                                                    <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                        <ExpandableList.Item
-                                                                            key={item.label}
-                                                                        >
-                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                        </ExpandableList.Item>
-                                                                    </SlidingPaneNavContainer>
+                                                                    <HelperPaneListItem 
+                                                                        key={item.label}
+                                                                        onClick={async () => await handleFunctionItemSelect(item)}
+                                                                    >
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                    </HelperPaneListItem>
                                                                 ))}
                                                             </div>
                                                         </ExpandableList.Section>
@@ -274,14 +273,13 @@ export const FunctionsPage = ({
                                                         <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
                                                             <div style={{ marginTop: '10px' }}>
                                                                 {subCategory.items.map((item) => (
-                                                                    <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                        <ExpandableList.Item
-                                                                            key={item.label}
-                                                                        >
-                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                        </ExpandableList.Item>
-                                                                    </SlidingPaneNavContainer>
+                                                                    <HelperPaneListItem 
+                                                                        key={item.label}
+                                                                        onClick={async () => await handleFunctionItemSelect(item)}
+                                                                    >
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                    </HelperPaneListItem>
                                                                 ))}
                                                             </div>
                                                         </ExpandableList.Section>
