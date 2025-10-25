@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { CompletionItem } from "@wso2/ui-toolkit";
+
 export const DEFAULT_VALUE_MAP: Record<string, string> = {
     "struct": "{}",
     "array": "[]",
@@ -84,7 +86,8 @@ export const isPrimitiveType = (typeDetail: string): boolean => {
 };
 
 // Determines if a completion item should show the navigation arrow
-export const shouldShowNavigationArrow = (item: any): boolean => {
-    const typeDetail = item?.labelDetails?.detail;
-    return !isPrimitiveType(typeDetail);
+export const shouldShowNavigationArrow = (item: CompletionItem): boolean => {
+    const typeDetail = item?.labelDetails?.detail || item?.description;
+    const result = !isPrimitiveType(typeDetail);
+    return result;
 };
