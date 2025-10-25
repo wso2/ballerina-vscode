@@ -30,6 +30,7 @@ import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
 import { LinkConnectorNode } from '../Node/LinkConnector/LinkConnectorNode';
+import { isQueryHeaderPort } from '../utils/port-utils';
 /**
  * This state is controlling the creation of a link.
  */
@@ -68,9 +69,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 									element = portModel;
 								}
 							}
-						}
-
-						if (isInputNode(element)) {
+						} else if (isInputNode(element)) {
 							const isGoToSubMappingBtn = (actionEvent.event.target as Element)
 								.closest('div[id^="go-to-sub-mapping-btn"]');
 							const isDeleteSubMappingBtn = (actionEvent.event.target as Element)
@@ -93,15 +92,17 @@ export class CreateLinkState extends State<DiagramEngine> {
 									element = portModel;
 								}
 							}
-						}
-
-						if (isLinkModel(element) && this.sourcePort) {
+						} else if (isLinkModel(element) && this.sourcePort) {
 							// If a source port is already selected and clicked on a link,
 							// select the target port of the link to create a mapping
-							element = (element as DataMapperLinkModel).getTargetPort();
+							const targetPort = (element as DataMapperLinkModel).getTargetPort();
 
-							if (element instanceof IntermediatePortModel) {
-								const parentNode = element.getNode();
+							if (targetPort instanceof InputOutputPortModel && !isQueryHeaderPort(targetPort)) {
+								element = targetPort;
+							}
+
+							if (targetPort instanceof IntermediatePortModel) {
+								const parentNode = targetPort.getNode();
 								if (parentNode instanceof LinkConnectorNode) {
 									element = parentNode.targetMappedPort;
 								}
@@ -119,7 +120,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.clearState();
 						this.eject();
 					} else if (element instanceof PortModel && !this.sourcePort) {
-						if (element instanceof InputOutputPortModel) {
+						if (element instanceof InputOutputPortModel && !isQueryHeaderPort(element)) {
 							if (element.attributes.portType === "OUT") {
 								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
@@ -141,7 +142,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 							}
 						}
 					} else if (element instanceof PortModel && this.sourcePort && element !== this.sourcePort) {
-						if ((element instanceof InputOutputPortModel)) {
+						if ((element instanceof InputOutputPortModel && !isQueryHeaderPort(element))) {
 							if (element.attributes.portType === "IN") {
 								let isDisabled = false;
 								if (element instanceof InputOutputPortModel) {

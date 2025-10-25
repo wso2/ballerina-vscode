@@ -71,3 +71,7 @@ export function getTargetPortPrefix(node: NodeModel): string {
 			return "";
 	}
 }
+
+export function isQueryHeaderPort(port: InputOutputPortModel): boolean {
+    return port.attributes.portName.endsWith(".#");
+}

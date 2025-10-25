@@ -193,18 +193,25 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                         <>
                             {onEditResource! && (
                                 <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!functionModel.editable && !canDataBind(functionModel)}>
-                                    <Icon isCodicon={true} name="settings-gear" sx={{
-                                         marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                                    Configure
+                                    <Icon
+                                        name="bi-settings"
+                                        sx={{
+                                            cursor: !functionModel.editable ? "not-allowed" : "pointer",
+                                            opacity: !functionModel.editable ? 0.5 : 1,
+                                            fontSize: "16px",
+                                            width: "16px",
+                                        }}
+                                    />
                                 </ActionButton >
                             )}
                             {onDeleteResource! && (
-                                <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
+                                <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource} disabled={!functionModel.optional}>
                                     <Codicon
                                         name="trash"
                                         sx={{
-                                            cursor: functionModel.optional ? "not-allowed" : "pointer",
-                                            opacity: functionModel.optional ? 0.5 : 1,
+                                            cursor: !functionModel.optional ? "not-allowed" : "pointer",
+                                            opacity: !functionModel.optional ? 0.5 : 1,
+                                            width: "16px",
                                         }}
                                     />
                                 </ActionButton >
