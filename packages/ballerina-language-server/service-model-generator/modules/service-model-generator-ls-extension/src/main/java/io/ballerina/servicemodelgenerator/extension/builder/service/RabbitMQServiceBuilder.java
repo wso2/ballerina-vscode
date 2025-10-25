@@ -213,9 +213,9 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder impleme
     }
 
     @Override
-    public Map<String, String> extractCustomValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                                  ModelFromSourceContext context) {
-        Map<String, String> result = new HashMap<>();
+    public Map<String, List<String>> extractCustomValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
+                                                        ModelFromSourceContext context) {
+        Map<String, List<String>> result = new HashMap<>();
         String metadataKey = metadataItem.metadataKey();
 
         String annotationValue = extractFromServiceConfigAnnotation(serviceNode, metadataKey);
@@ -223,7 +223,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder impleme
             String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
                     ? metadataItem.displayName()
                     : metadataItem.metadataKey();
-            result.put(displayName, annotationValue);
+            result.put(displayName, List.of(annotationValue));
         }
 
         return result;

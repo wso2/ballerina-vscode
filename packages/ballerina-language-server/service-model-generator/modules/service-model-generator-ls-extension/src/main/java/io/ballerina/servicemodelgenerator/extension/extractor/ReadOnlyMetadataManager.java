@@ -113,13 +113,8 @@ public class ReadOnlyMetadataManager {
         if ("CUSTOM".equals(kind) && customExtractor.isPresent()) {
             CustomExtractor extractor = customExtractor.get();
             if (extractor.canExtractCustom(metadataItem, context)) {
-                // For CUSTOM extractors, convert single values to list format for consistency
-                Map<String, String> customValues = extractor.extractCustomValues(metadataItem, serviceNode, context);
-                Map<String, List<String>> result = new HashMap<>();
-                for (Map.Entry<String, String> entry : customValues.entrySet()) {
-                    result.put(entry.getKey(), List.of(entry.getValue()));
-                }
-                return result;
+                // For CUSTOM extractors, directly return the extracted values
+                return extractor.extractCustomValues(metadataItem, serviceNode, context);
             }
         } else if (extractors.containsKey(kind)) {
             ReadOnlyMetadataExtractor extractor = extractors.get(kind);

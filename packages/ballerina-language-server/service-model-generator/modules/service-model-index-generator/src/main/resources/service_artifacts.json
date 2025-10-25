@@ -782,7 +782,10 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "queueName", "displayName": "Queue Name", "kind": "CUSTOM"}
+      ]
     },
     {
       "name": "rabbitmq",
