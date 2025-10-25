@@ -17,16 +17,17 @@
  */
 
 import { ExpandableList } from "../Components/ExpandableList"
-import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
+import { TypeIndicator } from "../Components/TypeIndicator"
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import styled from "@emotion/styled"
-import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
+import { shouldShowNavigationArrow } from "../utils/types"
+import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 
 type InputsPageProps = {
     fileName: string;
@@ -45,46 +46,39 @@ type InputItemProps = {
 }
 
 const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
-    const [isHovered, setIsHovered] = useState(false);
+    const showArrow = shouldShowNavigationArrow(item);
+
+    const mainContent = (
+        <>
+            {getHelperPaneIcon(HelperPaneIconType.INPUT)}
+            <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
+                {item.label}
+            </Typography>
+            <Tooltip content={item.description} position="top">
+                <TypeIndicator>
+                    {item.description}
+                </TypeIndicator>
+            </Tooltip>
+        </>
+    );
+
+    const endAction = showArrow ? (
+        <Codicon 
+            name="chevron-right" 
+            onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                onMoreIconClick(item.label);
+            }}
+        />
+    ) : undefined;
 
     return (
-        <SlidingPaneNavContainer
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+        <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
-            data
-            sx={{
-                maxHeight: isHovered ? "none" : "32px"
-            }}
-            endIcon={
-                <InputsMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
-                    event.stopPropagation();
-                    onMoreIconClick(item.label);
-                }}>
-                    <Tooltip content={item.description} position="top">
-                        <VariableTypeIndicator >
-                            {item.description}
-                        </VariableTypeIndicator>
-                    </Tooltip>
-                    <Codicon name="chevron-right" />
-                </InputsMoreIconContainer>}
+            endAction={endAction}
         >
-            <ExpandableList.Item>
-                {getHelperPaneIcon(HelperPaneIconType.INPUT)}
-                <Typography
-                    variant="body3"
-                    sx={{
-                        maxWidth: isHovered ? '30ch' : '20ch',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: isHovered ? 'normal' : 'nowrap',
-                        transition: 'all 0.3s ease'
-                    }}
-                >
-                    {item.label}
-                </Typography>
-            </ExpandableList.Item>
-        </SlidingPaneNavContainer>
+            {mainContent}
+        </HelperPaneListItem>
     );
 };
 

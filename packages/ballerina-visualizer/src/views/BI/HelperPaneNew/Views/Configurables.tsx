@@ -20,14 +20,15 @@ import { CompletionInsertText, ConfigVariable, FlowNode, LineRange, TomlPackage 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReactNode, useEffect, useState } from "react";
 import ExpandableList from "../Components/ExpandableList";
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { Divider, SearchBox } from "@wso2/ui-toolkit";
+import { Divider, SearchBox, Typography } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
 import { URI, Utils } from "vscode-uri";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
-import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils";
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
+import { HelperPaneListItem } from "../Components/HelperPaneListItem";
+import { TypeIndicator } from "../Components/TypeIndicator";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import { HelperPaneCustom } from "@wso2/ui-toolkit";
 
@@ -272,30 +273,36 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                             >
                                                                 <div style={{ marginTop: '10px' }}>
                                                                     {subCategory.items.map((item: ConfigVariable) => (
-                                                                        <SlidingPaneNavContainer
+                                                                        <HelperPaneListItem
                                                                             key={item.id}
                                                                             onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
                                                                         >
-                                                                            <ExpandableList.Item
-                                                                            >
-                                                                                {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                            <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
                                                                                 {item?.properties?.variable?.value as ReactNode}
-                                                                            </ExpandableList.Item>
-                                                                        </SlidingPaneNavContainer>
+                                                                            </Typography>
+                                                                            <TypeIndicator>
+                                                                                {item?.properties?.type?.value as ReactNode}
+                                                                            </TypeIndicator>
+                                                                        </HelperPaneListItem>
                                                                     ))}
                                                                 </div>
                                                             </ExpandableList.Section>
                                                         ) : (
                                                             <div>
                                                                 {subCategory.items.map((item: ConfigVariable) => (
-                                                                    <SlidingPaneNavContainer key={item.id}
-                                                                        onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}>
-                                                                        <ExpandableList.Item
-                                                                        >
-                                                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                    <HelperPaneListItem 
+                                                                        key={item.id}
+                                                                        onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
+                                                                    >
+                                                                        {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                                                        <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
                                                                             {item?.properties?.variable?.value as ReactNode}
-                                                                        </ExpandableList.Item>
-                                                                    </SlidingPaneNavContainer>
+                                                                        </Typography>
+                                                                        <TypeIndicator>
+                                                                            {item?.properties?.type?.value as ReactNode}
+                                                                        </TypeIndicator>
+                                                                    </HelperPaneListItem>
                                                                 ))}
                                                             </div>
                                                         )}

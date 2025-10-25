@@ -17,8 +17,7 @@
  */
 
 import { ExpandableList } from "../Components/ExpandableList"
-import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
+import { TypeIndicator } from "../Components/TypeIndicator"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
@@ -31,8 +30,10 @@ import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
 import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
-import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
+import { shouldShowNavigationArrow } from "../utils/types"
+import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 
 type VariablesPageProps = {
     fileName: string;
@@ -57,46 +58,39 @@ type VariableItemProps = {
 }
 
 const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
-    const [isHovered, setIsHovered] = useState(false);
+    const showArrow = shouldShowNavigationArrow(item);
+
+    const mainContent = (
+        <>
+            {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
+            <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
+                {item.label}
+            </Typography>
+            <Tooltip content={item.description} position="top">
+                <TypeIndicator>
+                    {item.description}
+                </TypeIndicator>
+            </Tooltip>
+        </>
+    );
+
+    const endAction = showArrow ? (
+        <Codicon 
+            name="chevron-right" 
+            onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                onMoreIconClick(item.label);
+            }}
+        />
+    ) : undefined;
 
     return (
-        <SlidingPaneNavContainer
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+        <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
-            data
-            sx={{
-                maxHeight: isHovered ? "none" : "32px"
-            }}
-            endIcon={
-                <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
-                    event.stopPropagation();
-                    onMoreIconClick(item.label);
-                }}>
-                    <Tooltip content={item.description} position="top">
-                        <VariableTypeIndicator >
-                            {item.description}
-                        </VariableTypeIndicator>
-                    </Tooltip>
-                    <Codicon name="chevron-right" />
-                </VariablesMoreIconContainer>}
+            endAction={endAction}
         >
-            <ExpandableList.Item>
-                {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
-                <Typography
-                    variant="body3"
-                    sx={{
-                        maxWidth: isHovered ? '30ch' : '20ch',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: isHovered ? 'normal' : 'nowrap',
-                        transition: 'all 0.3s ease'
-                    }}
-                >
-                    {item.label}
-                </Typography>
-            </ExpandableList.Item>
-        </SlidingPaneNavContainer>
+            {mainContent}
+        </HelperPaneListItem>
     );
 };
 

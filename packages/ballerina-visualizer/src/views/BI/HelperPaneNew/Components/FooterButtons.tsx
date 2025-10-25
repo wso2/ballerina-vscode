@@ -26,11 +26,13 @@ const FooterContainer = styled.div`
     padding: 8px 12px;
     margin: 4px;
     transition: background-color 0.2s ease;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     
     &:hover {
         background-color: ${ThemeColors.SURFACE_DIM_2};
+        outline: 1px solid var(--dropdown-border);
+        outline-offset: -1px;
     }
 `;
 
