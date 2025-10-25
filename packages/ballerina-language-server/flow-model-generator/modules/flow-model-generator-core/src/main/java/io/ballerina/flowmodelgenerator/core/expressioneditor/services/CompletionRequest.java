@@ -64,21 +64,27 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
     @Override
     public Either<List<CompletionItem>, CompletionList> getResponse(ExpressionEditorContext context) {
         String valueType = context.getProperty().valueType();
+
+        // TODO: Added a special case for expressions used within the data mapper, as inputs are not provided through
+        //  the traditional method.
+        boolean generatedFunctionDefinition = false;
         if (Property.ValueType.DATA_MAPPING_EXPRESSION.name().equals(valueType)) {
             JsonElement lineRangeJson = context.info().codedata().get("lineRange");
             LineRange lineRange = GSON.fromJson(lineRangeJson, LineRange.class);
-            if (lineRange == null) {
-                return Either.forLeft(new ArrayList<>());
+
+            if (lineRange != null) {
+                NonTerminalNode node = CommonUtil.findNode(PositionUtil.toRange(lineRange),
+                        context.documentContext().document().syntaxTree());
+                if (node instanceof FunctionDefinitionNode functionDefinitionNode) {
+                    context.generateFunctionDefinition(functionDefinitionNode.functionSignature().toString());
+                    generatedFunctionDefinition = true;
+                }
             }
-            NonTerminalNode node = CommonUtil.findNode(PositionUtil.toRange(lineRange),
-                    context.documentContext().document().syntaxTree());
-            if (!(node instanceof FunctionDefinitionNode functionDefinitionNode)) {
-                return Either.forLeft(new ArrayList<>());
-            }
-            context.generateFunctionDefinition(functionDefinitionNode.functionSignature().toString());
-        } else {
+        }
+        if (!generatedFunctionDefinition) {
             context.generateStatement();
         }
+
 
         Position position = context.getCursorPosition();
         TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
