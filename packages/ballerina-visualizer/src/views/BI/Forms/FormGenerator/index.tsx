@@ -898,9 +898,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     }
 
-    const getExpressionTokens = async (expression: string): Promise<number[]> => {
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
         return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
             expression: expression,
+            filePath: filePath,
+            position: position
         })
     }
 

@@ -212,7 +212,11 @@ type FormExpressionEditorBaseProps = {
 }
 
 type ExpressionEditorRPCManager = {
-    getExpressionTokens: (id: string) => Promise<number[]>;
+    getExpressionTokens: (
+        expression: string,
+        filePath: string,
+        position: LinePosition
+    ) => Promise<number[]>;
 }
 
 type ExpressionEditorFormProps = {
