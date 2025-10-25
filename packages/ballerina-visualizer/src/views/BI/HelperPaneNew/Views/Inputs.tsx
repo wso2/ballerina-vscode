@@ -82,16 +82,6 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
     );
 };
 
-const InputsMoreIconContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-     &:hover {
-        cursor: pointer;
-    }
-`;
-
 type BreadCrumbStep = {
     label: string;
     replaceText: string

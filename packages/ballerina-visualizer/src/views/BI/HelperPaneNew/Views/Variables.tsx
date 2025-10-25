@@ -94,23 +94,13 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
     );
 };
 
-const VariablesMoreIconContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-     &:hover {
-        cursor: pointer;
-    }
-`;
-
 type BreadCrumbStep = {
     label: string;
     replaceText: string
 }
 
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
+    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(true);

@@ -52,10 +52,6 @@ type ConfigurablesPageProps = {
     onClose?: () => void;
 }
 
-type AddNewConfigFormProps = {
-    isImportEnv: boolean;
-    title: string;
-}
 
 export const Configurables = (props: ConfigurablesPageProps) => {
     const { onChange, onClose, fileName, targetLineRange } = props;

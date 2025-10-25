@@ -71,8 +71,6 @@ export const FunctionsPage = ({
 
     const { addModal , closeModal} = useModalStack();
 
-
-
     //TODO: get the correct filepath
     let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
 
@@ -124,7 +122,7 @@ export const FunctionsPage = ({
         [debounceFetchFunctionInfo, searchValue]
     );
 
-    const { mutateAsync: addFunction, isPending: isAddingFunction } = useMutation({
+    const { mutateAsync: addFunction } = useMutation({
         mutationFn: (item: HelperPaneCompletionItem) =>
             rpcClient.getBIDiagramRpcClient().addFunction({
                 filePath: fileName,
