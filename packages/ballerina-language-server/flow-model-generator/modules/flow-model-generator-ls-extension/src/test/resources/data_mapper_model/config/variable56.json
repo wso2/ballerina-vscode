@@ -1,0 +1,167 @@
+{
+  "source": "variable34.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable34.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 25,
+        "offset": 35
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 23,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "myStudent",
+        "displayName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "545732303"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "UserInfo",
+      "kind": "record",
+      "ref": "1889977605"
+    },
+    "mappings": [],
+    "refs": {
+      "-262167728": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "data",
+            "displayName": "data",
+            "typeName": "json",
+            "kind": "json",
+            "optional": false
+          },
+          {
+            "name": "info",
+            "displayName": "info",
+            "typeName": "any",
+            "kind": "any",
+            "optional": false
+          }
+        ],
+        "typeName": "Student?",
+        "kind": "record"
+      },
+      "545732303": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "data",
+            "displayName": "data",
+            "typeName": "json",
+            "kind": "json",
+            "optional": false
+          },
+          {
+            "name": "info",
+            "displayName": "info",
+            "typeName": "any",
+            "kind": "any",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "student",
+            "displayName": "student",
+            "typeName": "Student?",
+            "kind": "record",
+            "optional": false,
+            "ref": "-262167728"
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    }
+  }
+}
