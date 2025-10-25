@@ -2092,11 +2092,26 @@ const AIChat: React.FC = () => {
 
         console.log("[Approval] User approved:", comment);
 
-        // Send approval response via RPC
-        rpcClient.getAiPanelRpcClient().submitTaskApproval({
-            approved: true,
-            comment,
-        });
+        // Send approval event to state machine based on approval type
+        if (approvalRequest.approvalType === "plan") {
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.APPROVE_PLAN,
+                payload: { comment }
+            });
+        } else if (approvalRequest.approvalType === "completion") {
+            // Find the index of the last task in review status
+            const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
+            const lastReviewTask = reviewTasks[reviewTasks.length - 1];
+            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.id === lastReviewTask?.id);
+
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.APPROVE_TASK,
+                payload: {
+                    comment,
+                    lastApprovedTaskIndex: lastApprovedTaskIndex >= 0 ? lastApprovedTaskIndex : undefined
+                }
+            });
+        }
 
         // Show tasks in the top panel after approval (for both plan and completion)
         setActiveTasks(approvalRequest.tasks);
@@ -2112,11 +2127,18 @@ const AIChat: React.FC = () => {
 
         console.log("[Approval] User rejected:", comment);
 
-        // Send rejection response via RPC
-        rpcClient.getAiPanelRpcClient().submitTaskApproval({
-            approved: false,
-            comment,
-        });
+        // Send rejection event to state machine based on approval type
+        if (approvalRequest.approvalType === "plan") {
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.REJECT_PLAN,
+                payload: { comment }
+            });
+        } else if (approvalRequest.approvalType === "completion") {
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.REJECT_TASK,
+                payload: { comment }
+            });
+        }
 
         // Close dialog
         setApprovalRequest(null);
