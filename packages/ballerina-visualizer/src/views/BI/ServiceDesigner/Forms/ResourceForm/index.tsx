@@ -113,7 +113,7 @@ export function ResourceForm(props: ResourceFormProps) {
 
 		const updatedResponse = {
 			...model.returnType.responses[0],
-			statusCode: { value: defaultStatusCode }
+			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
 		const updatedFunctionModel = {
@@ -248,7 +248,7 @@ export function ResourceForm(props: ResourceFormProps) {
 								}}
 							/>
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+							<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 							<Divider sx={{ marginBottom: 30 }} />
 							<Tooltip content='Keep adding more resources' containerSx={{ position: "fixed", width: "180px", marginLeft: 1 }}>
 								<CheckBoxGroup columns={2}>
@@ -257,7 +257,7 @@ export function ResourceForm(props: ResourceFormProps) {
 							</Tooltip>
 							<ActionButtons
 								primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
-								secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
+								secondaryButton={{ text: "Cancel", onClick: closeMethod, tooltip: "Cancel", disabled: isSaving }}
 								sx={{ justifyContent: "flex-end" }}
 							/>
 						</SidePanelBody>
