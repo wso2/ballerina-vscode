@@ -268,7 +268,7 @@ export const FunctionsPage = ({
                                             return (
                                                 <ExpandableList>
                                                     {category.subCategory.map((subCategory) => (
-                                                        <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
+                                                        <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={0}>
                                                             <div style={{ marginTop: '10px' }}>
                                                                 {subCategory.items.map((item) => (
                                                                     <HelperPaneListItem 
