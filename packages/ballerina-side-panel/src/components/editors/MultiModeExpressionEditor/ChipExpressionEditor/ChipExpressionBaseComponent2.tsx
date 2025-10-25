@@ -22,10 +22,10 @@ import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue, getAbsoluteCaretPositionFromModel, getWordBeforeCursor, filterCompletionsByPrefix } from "./utils";
+import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue, getAbsoluteCaretPositionFromModel, getWordBeforeCursor, filterCompletionsByPrefix, setCursorPositionToExpressionModel, updateTokens } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { DATA_ELEMENT_ID_ATTRIBUTE } from "./constants"; // Import the constant
+import { CHIP_EXPRESSION_EDITOR_HEIGHT, DATA_ELEMENT_ID_ATTRIBUTE } from "./constants"; // Import the constant
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -45,7 +45,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const [expressionModel, setExpressionModel] = useState<ExpressionModel[]>();
     const [selectedCompletionItem, setSelectedCompletionItem] = useState<number>(0);
     const [isCompletionsOpen, setIsCompletionsOpen] = useState<boolean>(false);
-    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: CHIP_EXPRESSION_EDITOR_HEIGHT, left: 0 });
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
     const [isEditableSpanFocused, setIsEditableSpanFocused] = useState(false);
@@ -56,6 +56,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const fetchedInitialTokensRef = useRef<boolean>(false);
+    const pendingCursorPositionUpdateRef = useRef<number>(0);
+    const pendingForceSetTokensRef = useRef<number[] | null>(null);
+    const fetchnewTokensRef = useRef<boolean>(true);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -72,68 +75,114 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         return filterTokens(response || []);
     }, [expressionEditorRpcManager]);
 
+    const fetchInitialTokens = async (value: string) => {
+        let updatedTokens = tokens;
+        if (pendingForceSetTokensRef.current) {
+            setTokens(pendingForceSetTokensRef.current);
+            updatedTokens = pendingForceSetTokensRef.current;
+            pendingForceSetTokensRef.current = null;
+        }
+        if (fetchnewTokensRef.current) {
+            const filteredTokens = await fetchUpdatedFilteredTokens(value);
+            setTokens(filteredTokens);
+            updatedTokens = filteredTokens;
+            fetchnewTokensRef.current = false;
+        }
+
+        fetchedInitialTokensRef.current = true;
+        let exprModel = createExpressionModelFromTokens(value, updatedTokens);
+        console.log("getting here", pendingCursorPositionUpdateRef.current)
+        if (pendingCursorPositionUpdateRef.current !== null) {
+            exprModel = setCursorPositionToExpressionModel(exprModel, pendingCursorPositionUpdateRef.current);
+            pendingCursorPositionUpdateRef.current = null;
+        }
+
+        setExpressionModel(exprModel);
+    };
+
+    useEffect(()=>{
+        console.log("MODEL CHANGED", expressionModel)
+    }, [expressionModel])
+
     useEffect(() => {
         if (!props.value) return;
-        if (fetchedInitialTokensRef.current) return;
-        const fetchInitialTokens = async () => {
-            const filteredTokens = await fetchUpdatedFilteredTokens(props.value);
-            setTokens(filteredTokens);
-            fetchedInitialTokensRef.current = true;
+        fetchInitialTokens(props.value);
+    }, [props.value]);
 
-            //fetch and recreate model on props.value change 
-            //only when expressionModel is not set
-            //which means this is the initial load of the expression editor
-            //never recreate the expression model on props.value 
-            //it will recreate the model on every keystroke
-            //since we are using onChange to update the props.value on keystrokes
-            if (!expressionModel) {
-                const exprModel = createExpressionModelFromTokens(props.value, filteredTokens);
-                setExpressionModel(exprModel);
-            }
-        };
-        fetchInitialTokens();
-    }, [props.value, fetchUpdatedFilteredTokens]);
-
-    const handleExpressionChange = (updatedModel: ExpressionModel[]) => {
+    const handleExpressionChange = async (updatedModel: ExpressionModel[], cursorPosition: number, lastTypedText?: string) => {
+        const cursorPositionBeforeUpdate = getAbsoluteCaretPositionFromModel(expressionModel);
+        const cursorPositionAfterUpdate = getAbsoluteCaretPositionFromModel(updatedModel);
+        console.log("CURSOR POSITION BEFORE UPDATE", cursorPositionBeforeUpdate)
+        console.log("CURSOR POSITION AFTER UPDATE", cursorPositionAfterUpdate)
+        const cursorDelta = cursorPositionAfterUpdate - cursorPositionBeforeUpdate;
+        const updatedTokens = updateTokens(tokens, cursorPositionBeforeUpdate, cursorDelta);
+        console.log("token update:",tokens, updatedTokens)
+        if ((!lastTypedText.startsWith('#$') || lastTypedText === '#$BACKSPACE') && JSON.stringify(updatedTokens) !== JSON.stringify(tokens)) {
+            console.log("token update:",tokens, updatedTokens)
+            pendingForceSetTokensRef.current = updatedTokens;
+        }
         const updatedValue = getTextValueFromExpressionModel(updatedModel);
+        console.log("Updated Value:", lastTypedText);
+        console.log("Cursor Position:", cursorPosition);
+        if (
+            lastTypedText === '#$ARROWLEFT' ||
+            lastTypedText === '#$ARROWRIGHT' ||
+            lastTypedText === '#$FOCUS'
+        ) {
+            pendingCursorPositionUpdateRef.current = cursorPosition;
+            fetchInitialTokens(props.value);
+            return;
+        }
+        if (
+            (
+                lastTypedText && lastTypedText.length > 0 &&
+                (lastTypedText.endsWith('+') || lastTypedText.endsWith(' '))
+
+            )
+            ||
+            (lastTypedText === '#$BACKSPACE') ||
+            (lastTypedText === '#$COMPLETIONS') ||
+            (lastTypedText === '#$HELPER')
+        ) {
+            fetchnewTokensRef.current = true;
+            // setExpressionModel(exprModel);
+        }
+        pendingCursorPositionUpdateRef.current = cursorPosition;
         props.onChange(updatedValue, updatedValue.length);
-
-        setExpressionModel(updatedModel);
-
         // Mark that user has typed since focus
         // this reset to false each time user focus editable element
         setHasTypedSinceFocus(true);
     }
 
     const handleTriggerRebuild = (value: string, caretPosition?: number) => {
-        const textValue = value;
-        let exprModel = createExpressionModelFromTokens(textValue, tokens);
+        // const textValue = value;
+        // let exprModel = createExpressionModelFromTokens(textValue, tokens);
 
-        // Map caretPosition into new model
-        if (caretPosition !== undefined) {
-            const mapped = mapAbsoluteToModel(exprModel, caretPosition);
-            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-        }
+        // // Map caretPosition into new model
+        // if (caretPosition !== undefined) {
+        //     const mapped = mapAbsoluteToModel(exprModel, caretPosition);
+        //     exprModel = setFocusInExpressionModel(exprModel, mapped, true);
+        // }
 
-        setExpressionModel(exprModel);
+        // setExpressionModel(exprModel);
     }
 
     const handleEditorKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === '+' ) {
+        // if (e.key === '+') {
 
-            const absolutePos = getAbsoluteCaretPosition(expressionModel);
-            const textValue = getTextValueFromExpressionModel(expressionModel || []);
+        //     const absolutePos = getAbsoluteCaretPosition(expressionModel);
+        //     const textValue = getTextValueFromExpressionModel(expressionModel || []);
 
-            const updatedValue = textValue.slice(0, absolutePos) + e.key + textValue.slice(absolutePos);
+        //     const updatedValue = textValue.slice(0, absolutePos) + e.key + textValue.slice(absolutePos);
 
-              const filteredTokens = await fetchUpdatedFilteredTokens(updatedValue);
-            let exprModel = createExpressionModelFromTokens(updatedValue, filteredTokens);
+        //     const filteredTokens = await fetchUpdatedFilteredTokens(updatedValue);
+        //     let exprModel = createExpressionModelFromTokens(updatedValue, filteredTokens);
 
-            // Map absolute position into new model and set focus flags
-            const mapped = mapAbsoluteToModel(exprModel, absolutePos + 1);
-            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-            setExpressionModel(exprModel);
-        }
+        //     // Map absolute position into new model and set focus flags
+        //     const mapped = mapAbsoluteToModel(exprModel, absolutePos + 1);
+        //     exprModel = setFocusInExpressionModel(exprModel, mapped, true);
+        //     setExpressionModel(exprModel);
+        // }
     }
 
     const handleCompletionSelect = async (item: CompletionItem) => {
@@ -143,20 +192,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         console.log("#HA", updatedExpressionModelInfo)
 
         if (updatedExpressionModelInfo) {
-            const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
-
-            const textValue = getTextValueFromExpressionModel(updatedModel || []);
-            const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
-
-            let exprModel = createExpressionModelFromTokens(textValue, updatedTokens);
-
-            // Map absolute position into new model and set focus flags
-            const mapped = mapAbsoluteToModel(exprModel, newCursorPosition);
-            exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-            props.onChange(updatedValue, newCursorPosition);
-            setExpressionModel(exprModel);
+            const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
+            handleExpressionChange(updatedModel, newCursorPosition, '#$COMPLETIONS');
         }
-
         setIsCompletionsOpen(false);
     };
 
@@ -184,8 +222,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 // Map absolute position into new model and set focus flags
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
                 exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-                props.onChange(updatedValue, absoluteCaretPosition + value.length);
-                setExpressionModel(exprModel);
+                handleExpressionChange(exprModel, newCursorPosition, '#$HELPER');
             }
         }
         else {
@@ -205,8 +242,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 // Map absolute position into new model and set focus flags
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
                 exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-                props.onChange(updatedValue, absoluteCaretPosition + value.length);
-                setExpressionModel(exprModel);
+                handleExpressionChange(exprModel, newCursorPosition, '#$HELPER');
             }
         }
         setIsHelperPaneOpen(false);
@@ -340,7 +376,8 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                     // If focus left the editor, clear model focus flags
                     if (!focused && expressionModel) {
                         const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
-                        setExpressionModel(cleared);
+                        handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), '#$FOCUS');
+                        // setExpressionModel(cleared);
                     }
                 }}
                 onKeyDown={handleKeyDown}
@@ -376,6 +413,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             <pre>IS ANY FOCUSED:{isAnyElementFocused ? "true" : "false"}</pre>
             <pre>HAS TYPED SINCE FOCUS:{hasTypedSinceFocus ? "true" : "false"}</pre>
             <pre>IS EDITABLE SPAN FOCUS:{isEditableSpanFocused ? "true" : "false"}</pre>
+            <pre>ABSOLUTE CURSOR:{getAbsoluteCaretPosition(expressionModel)}</pre>
         </>
     )
 }
