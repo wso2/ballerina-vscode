@@ -78,10 +78,6 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
     const endAction = showArrow ? (
         <Codicon 
             name="chevron-right" 
-            onClick={(event: React.MouseEvent) => {
-                event.stopPropagation();
-                onMoreIconClick(item.label);
-            }}
         />
     ) : undefined;
 
@@ -89,6 +85,7 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
         <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
             endAction={endAction}
+            onClickEndAction={() => onMoreIconClick(item.label)}
         >
             {mainContent}
         </HelperPaneListItem>
