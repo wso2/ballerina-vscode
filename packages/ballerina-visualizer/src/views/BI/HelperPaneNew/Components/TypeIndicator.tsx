@@ -17,23 +17,17 @@
  */
 
 import styled from "@emotion/styled";
-import { VSCodeTag } from "@vscode/webview-ui-toolkit/react";
-import { ThemeColors } from "@wso2/ui-toolkit";
 
-export const VariableTypeIndicator = styled(VSCodeTag)`
-    ::part(control) {
-        text-transform: none;
-        font-size: 10px;
-        height: 11px;
-        max-width: 60px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 0px 2px 5px 2px;
-    }
-
-    &:hover::part(control) {
-        background-color: ${ThemeColors.PRIMARY};
-        cursor: pointer;
-    }
+export const TypeIndicator = styled.div`
+    text-transform: none;
+    font-size: 10px;
+    max-width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 16px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--vscode-chat-slashCommandBackground);
+    color: var(--vscode-chat-slashCommandForeground);
 `;
