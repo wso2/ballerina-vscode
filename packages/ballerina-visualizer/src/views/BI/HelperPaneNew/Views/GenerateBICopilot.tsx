@@ -35,15 +35,6 @@ const PromptBox = styled.div`
     position: relative;
 `
 
-const StyledTextArea = styled(AutoResizeTextArea)`
-    ::part(control) {
-        font-family: monospace;
-        font-size: 12px;
-        min-height: 20px;
-        padding: 5px 8px;
-    }
-`;
-
 const GenerateButton = styled.button`
     width: 30px;
     height: 30px;
