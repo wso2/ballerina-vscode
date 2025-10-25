@@ -65,10 +65,6 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
     const endAction = showArrow ? (
         <Codicon 
             name="chevron-right" 
-            onClick={(event: React.MouseEvent) => {
-                event.stopPropagation();
-                onMoreIconClick(item.label);
-            }}
         />
     ) : undefined;
 
@@ -76,6 +72,7 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
         <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
             endAction={endAction}
+            onClickEndAction={() => onMoreIconClick(item.label)}
         >
             {mainContent}
         </HelperPaneListItem>
