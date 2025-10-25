@@ -231,12 +231,13 @@ export interface ChatError {
 export interface ToolCall {
     type: "tool_call";
     toolName: string;
+    toolInput?: any;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
-    toolOutput: any;
+    toolOutput?: any;
 }
 
 export interface EvalsToolResult {

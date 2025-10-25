@@ -194,15 +194,16 @@ export function sendIntermidateStateNotification(intermediaryState: TestGenerato
     sendAIPanelNotification(msg);
 }
 
-export function sendToolCallNotification(toolName: string): void {
+export function sendToolCallNotification(toolName: string, toolInput?: any): void {
     const msg: ToolCall = {
         type: "tool_call",
         toolName: toolName,
+        toolInput: toolInput,
     };
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput: any): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any): void {
     const msg: ToolResult = {
         type: "tool_result",
         toolName: toolName,

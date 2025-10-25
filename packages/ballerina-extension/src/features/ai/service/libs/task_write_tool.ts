@@ -17,8 +17,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
-import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType } from '@wso2/ballerina-core';
+import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, SourceFiles } from '@wso2/ballerina-core';
 import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
+import { integrateCodeToWorkspace } from '../design/utils';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
@@ -65,9 +66,11 @@ export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
  * No IDs needed since we're always replacing the entire task list
  *
  * @param eventHandler Event handler for emitting approval requests to the UI
+ * @param updatedSourceFiles Updated source files from the code generation
+ * @param updatedFileNames Updated file names from the code generation
  * @returns The TaskWrite tool
  */
-export function createTaskWriteTool(eventHandler?: CopilotEventHandler) {
+export function createTaskWriteTool(eventHandler?: CopilotEventHandler, updatedSourceFiles?: SourceFiles[], updatedFileNames?: string[]) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
@@ -77,10 +80,26 @@ export function createTaskWriteTool(eventHandler?: CopilotEventHandler) {
 ## CRITICAL RULE - ALWAYS SEND ALL TASKS:
 This tool is STATELESS. Every call MUST include ALL tasks.
 
+**Why This Matters:**
+The tool replaces the entire task list on each call. If you omit tasks, they will be permanently lost from the plan.
+
+**Rules:**
 - Have 5 tasks? Send all 5 EVERY time
 - Updating 1 task? Send ALL tasks with the update
 - NEVER send just 1 task - the tool will reject it
+- NEVER omit completed tasks when moving to next task
 - Think: You're replacing the entire list, not editing one item
+
+**Validation:**
+- Tool will ERROR if you send only 1 task with an ID
+- Tool will ERROR if you're missing tasks from the previous plan
+- Error message will list exactly which tasks are missing
+
+**Example - Correct Behavior:**
+If you have 5 tasks and updating task 3:
+- WRONG: Send only task 3
+- WRONG: Send only tasks 3, 4, 5 (missing completed tasks 1-2)
+- CORRECT: Send all 5 tasks (tasks 1-2 as completed, task 3 as in_progress, tasks 4-5 as pending)
 
 ## USER APPROVAL REQUIRED:
 1. **Plan Approval**: User approves/rejects initial task list
@@ -166,9 +185,30 @@ Rules:
                     console.error(`[TaskWrite Tool] ❌ ERROR: Received only 1 task with ID. This violates the tool requirement. You MUST send ALL tasks on every call, not just the one being updated!`);
                     return {
                         success: false,
-                        message: "ERROR: You sent only 1 task. You MUST send ALL tasks with their current statuses on every call. This is a strict requirement - the tool cannot process partial task lists. Please retry with the COMPLETE task list including all tasks (pending, in_progress, and completed).",
+                        message: "ERROR: You sent only 1 task. You MUST send ALL tasks with their current statuses on every call. This is a strict requirement - the tool cannot process partial task lists. Please retry with the COMPLETE task list including all tasks (pending, in_progress, completed, and done).",
                         tasks: []
                     };
+                }
+
+                // STRICTLY ENFORCE: If plan exists and tasks are being updated, verify ALL previous tasks are included
+                if (existingPlan && existingPlan.tasks.length > 0 && input.tasks.some(t => t.id)) {
+                    const existingTaskIds = new Set(existingPlan.tasks.map(t => t.id));
+                    const receivedTaskIds = new Set(input.tasks.filter(t => t.id).map(t => t.id));
+
+                    // Find missing tasks (tasks from existing plan that weren't sent)
+                    const missingTaskIds = [...existingTaskIds].filter(id => !receivedTaskIds.has(id));
+
+                    if (missingTaskIds.length > 0) {
+                        const missingTasks = existingPlan.tasks.filter(t => missingTaskIds.includes(t.id));
+                        console.error(`[TaskWrite Tool] ❌ ERROR: Missing ${missingTaskIds.length} task(s) from previous plan. You MUST include ALL tasks!`);
+                        console.error(`Missing tasks:`, missingTasks.map(t => `${t.id}: ${t.description} (${t.status})`));
+
+                        return {
+                            success: false,
+                            message: `ERROR: You are missing ${missingTaskIds.length} task(s) from the previous plan. You MUST send ALL tasks on every call, including completed ones. Missing: ${missingTasks.map(t => `"${t.description}" (${t.status})`).join(', ')}. Please retry with the COMPLETE task list.`,
+                            tasks: existingPlan.tasks // Return existing tasks to help AI recover
+                        };
+                    }
                 }
 
                 // Determine if this is a new plan creation, plan remodification, or task update
@@ -246,13 +286,20 @@ Rules:
                     else if (reviewTasks.length > 0 && inProgressTasks.length === 0) {
                         // Get the last task in review (most recently completed)
                         const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-                        console.log(`[TaskWrite Tool] Requesting completion approval for ${reviewTasks.length} task(s), latest: ${lastReviewTask.id}`);
+                        console.log(
+                            `[TaskWrite Tool] Requesting completion approval for ${reviewTasks.length} task(s), latest: ${lastReviewTask.id}`
+                        );
                         approvalType = "completion";
                         approvedTaskId = lastReviewTask.id;
 
-                        // Emit TASK_COMPLETED event to state machine (non-blocking)
+                        // Integrate code to workspace before task completion
+                        if (updatedSourceFiles && updatedFileNames) {
+                            await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
+                        }
+
+                        // Emit TASK_COMPLETED event to state machine
                         AIChatStateMachine.sendEvent({
-                            type: AIChatMachineEventType.TASK_COMPLETED
+                            type: AIChatMachineEventType.TASK_COMPLETED,
                         });
 
                         // Also emit UI event for task approval display
