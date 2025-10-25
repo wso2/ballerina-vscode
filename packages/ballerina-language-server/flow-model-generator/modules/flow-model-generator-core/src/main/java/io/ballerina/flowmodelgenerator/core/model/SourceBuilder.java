@@ -62,14 +62,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SourceBuilder {
 
@@ -345,8 +343,7 @@ public class SourceBuilder {
             Symbol symbol = moduleSymbol.get();
             if (symbol instanceof TypeSymbol tSymbol) {
                 typeSymbol = tSymbol;
-            }
-            else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+            } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
                 typeSymbol = typeDefinitionSymbol.typeDescriptor();
             } else {
                 return Optional.empty();

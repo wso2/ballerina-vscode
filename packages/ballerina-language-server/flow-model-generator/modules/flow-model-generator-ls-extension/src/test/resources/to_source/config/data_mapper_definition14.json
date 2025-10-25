@@ -1,11 +1,11 @@
 {
   "source": "nested_editing/data_mappings.bal",
-  "description": "Edit existing function with local module - change return type from mod:Person to mod:Employee",
+  "description": "Edit existing function with local module - add local module type parameter (mod:Address)",
   "diagram": {
-    "id": "99315",
+    "id": "99316",
     "metadata": {
       "label": "Data Mapper",
-      "description": "Edit data mapper with local module return type"
+      "description": "Edit data mapper to add local module parameter"
     },
     "codedata": {
       "node": "DATA_MAPPER_DEFINITION",
@@ -56,7 +56,7 @@
         },
         "valueType": "TYPE",
         "valueTypeConstraint": "record",
-        "value": "mod:Employee",
+        "value": "mod:Person",
         "imports": {
           "mod": "wso2/nested_editing.mod:0.1.0"
         },
@@ -160,6 +160,47 @@
             "editable": false,
             "advanced": false,
             "hidden": false
+          },
+          "address": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "valueTypeConstraint": "record",
+                "value": "mod:Address",
+                "imports": {
+                  "mod": "wso2/nested_editing.mod:0.1.0"
+                },
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "address",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
           }
         },
         "optional": false,
@@ -183,7 +224,7 @@
             "character": 2
           }
         },
-        "newText": "function transform( string username) returns mod:Employee"
+        "newText": "function transform( string username, mod:Address address) returns mod:Person"
       }
     ]
   }
