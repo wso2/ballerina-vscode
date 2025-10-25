@@ -37,14 +37,6 @@ export const Description = styled.div({
     color: 'var(--vscode-list-deemphasizedForeground)',
 });
 
-const Label = styled.div<{}>`
-    font-size: 14px;
-    font-family: GilmerBold;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    text-wrap: nowrap;
-`;
-
 export const PanelBody = styled.div`
     height: 100vh;
 `;
