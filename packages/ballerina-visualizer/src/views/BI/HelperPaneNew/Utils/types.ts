@@ -88,6 +88,5 @@ export const isPrimitiveType = (typeDetail: string): boolean => {
 // Determines if a completion item should show the navigation arrow
 export const shouldShowNavigationArrow = (item: CompletionItem): boolean => {
     const typeDetail = item?.labelDetails?.detail || item?.description;
-    const result = !isPrimitiveType(typeDetail);
-    return result;
+    return !isPrimitiveType(typeDetail);
 };
