@@ -321,7 +321,9 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            <FooterButtons onClick={handleAddNewConfigurable} startIcon='add' title="New Configurable" />
+            <div style={{ margin: '4px 0' }}>
+                <FooterButtons onClick={handleAddNewConfigurable} title="New Configurable" />
+            </div>
         </div>
     )
 }

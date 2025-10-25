@@ -24,9 +24,10 @@ const FooterContainer = styled.div`
     justify-content: left;
     align-items: center;
     padding: 8px 12px;
-    margin: 4px;
+    margin-inline: 4px;
     transition: background-color 0.2s ease;
     border-radius: 6px;
+    height: 36px;
     cursor: pointer;
     
     &:hover {
@@ -53,9 +54,9 @@ const InvisibleButton = styled.button`
 `;
 
 type FooterButtonProps = {
-    onClick?: () => void;
-    startIcon: string;
     title: string;
+    onClick: () => void;
+    startIcon?: string;
     sx?: React.CSSProperties;
     disabled?:boolean;
 }
@@ -70,7 +71,7 @@ const FooterButtons = (props: FooterButtonProps) => {
                 e.stopPropagation();
                 onClick?.();
             }}>
-                <Icon name="bi-plus" sx={{color: ThemeColors.PRIMARY, fontSize: "16px"}}/>
+                <Icon name={startIcon || "bi-plus"} sx={{color: ThemeColors.PRIMARY, fontSize: "16px"}}/>
                 <span style={{color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
             </InvisibleButton>
         </FooterContainer>

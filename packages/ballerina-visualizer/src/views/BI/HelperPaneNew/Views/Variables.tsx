@@ -344,7 +344,11 @@ export const Variables = (props: VariablesPageProps) => {
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            {isInModal ? null : <div><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
+            {!isInModal && (
+                <div style={{ margin: '4px 0' }}>
+                    <FooterButtons onClick={handleAddNewVariable} title="New Variable" />
+                </div>
+            )}
         </div>
     )
 }
