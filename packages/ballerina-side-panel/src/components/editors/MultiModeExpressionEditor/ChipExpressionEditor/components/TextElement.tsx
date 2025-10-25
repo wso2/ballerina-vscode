@@ -26,13 +26,14 @@ export const TextElement = (props: {
     element: ExpressionModel;
     expressionModel: ExpressionModel[];
     index: number;
-    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorDelta: number) => void;
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[]) => void;
     onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }) => {
     const { onExpressionChange, onTriggerRebuild } = props;
     const spanRef = useRef<HTMLSpanElement | null>(null);
     const pendingCaretOffsetRef = useRef<number | null>(null);
     const lastValueRef = useRef<string>(props.element.value);
+    const isProgrammaticFocusRef = useRef<boolean>(false);
 
     const debouncedTriggerRebuild = useMemo(() => {
         if (!onTriggerRebuild) return null;
@@ -43,9 +44,19 @@ export const TextElement = (props: {
     }, [onTriggerRebuild]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
-        console.log("called this")
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
     };
+
+    // Restore caret position after a value update if we captured a pending position during input
+    useLayoutEffect(() => {
+        const host = spanRef.current;
+        const pending = pendingCaretOffsetRef.current;
+        // Only restore caret if we have a pending position and the element is the active element
+        if (host && pending !== null && document.activeElement === host) {
+            setCaretPosition(host, pending);
+            pendingCaretOffsetRef.current = null;
+        }
+    }, [props.element.value]);
 
     const updateFocusOffset = (host: HTMLSpanElement) => {
         if (!onExpressionChange) return;
@@ -55,99 +66,75 @@ export const TextElement = (props: {
                 ? { ...el, isFocused: true, focusOffset: offset }
                 : { ...el, isFocused: false, focusOffset: undefined }
         );
-        onExpressionChange(updatedModel, 0);
-    };
-
-    const handleKeyUp = (e: React.KeyboardEvent<HTMLSpanElement>) => {
-        const host = spanRef.current;
-        if (!host) return;
-        // Sync caret after navigation keys or any keyup
-        updateFocusOffset(host);
+        onExpressionChange(updatedModel);
     };
 
     const handleMouseUp = (e: React.MouseEvent<HTMLSpanElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
         const host = spanRef.current;
         if (!host) return;
         // Sync caret after mouse placement
         updateFocusOffset(host);
     };
 
-    const restoreCaret = (el: HTMLSpanElement, offset: number) => {
-        if (!el.firstChild) {
-            el.appendChild(document.createTextNode(""));
-        }
-        let remaining = Math.max(0, offset);
-        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
-        let textNode: Text | null = null;
-        let posInNode = 0;
-        let node = walker.nextNode() as Text | null;
-        while (node) {
-            const len = node.textContent ? node.textContent.length : 0;
-            if (remaining <= len) {
-                textNode = node;
-                posInNode = remaining;
-                break;
-            }
-            remaining -= len;
-            node = walker.nextNode() as Text | null;
-        }
-        if (!textNode) {
-            const last = el.lastChild as Text | null;
-            if (last && last.nodeType === Node.TEXT_NODE) {
-                textNode = last;
-                posInNode = (last.textContent || "").length;
-            } else {
-                textNode = el.firstChild as Text;
-                posInNode = (textNode.textContent || "").length;
-            }
-        }
-        const range = document.createRange();
-        range.setStart(textNode, Math.max(0, Math.min(posInNode, (textNode.textContent || "").length)));
-        range.collapse(true);
-        const sel = window.getSelection();
-        if (sel) {
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    };
-
     const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!onExpressionChange) return;
-
         if (!props.expressionModel) return;
 
-
         const host = spanRef.current;
-        if (host) {
-            pendingCaretOffsetRef.current = getCaretOffsetWithin(host);
-        }
-        let newValue = e.currentTarget.textContent || '';
+
+            // Capture the raw new value from the DOM (before we may programmatically prepend a space)
+            const rawNewValue = e.currentTarget.textContent || '';
         const oldValue = lastValueRef.current;
 
         // Check if a trigger character (+, space, comma) was just typed by comparing character counts
         const triggerChars = /[\s+,]/g;
         const oldTriggerCount = (oldValue.match(triggerChars) || []).length;
-        const newTriggerCount = (newValue.match(triggerChars) || []).length;
+            const newTriggerCount = (rawNewValue.match(triggerChars) || []).length;
         const wasTriggerAdded = newTriggerCount > oldTriggerCount;
 
-        lastValueRef.current = newValue;
+    const cursorDelta = rawNewValue.length - oldValue.length;
+        const currentFocusOffset = props.element.focusOffset ?? oldValue.length;
+
+        // Read actual caret from DOM (more reliable than relying on model's focusOffset)
+        let pendingOffset: number | null = null;
+        if (host) {
+            pendingOffset = getCaretOffsetWithin(host);
+            pendingCaretOffsetRef.current = pendingOffset;
+        }
+
+            // Build the final newValue possibly with a programmatic leading space
+            let newValue = rawNewValue;
 
         const updatedExpressionModel = [...props.expressionModel];
+        let didPrependSpace = false;
         if (props.index > 0) {
             const previousModelElement = props.expressionModel[props.index - 1];
             if (previousModelElement.isToken && !newValue.startsWith(" ")) {
                 newValue = " " + newValue;
+                didPrependSpace = true;
             }
         }
-        const cursorDelta = newValue.length - props.element.length;
+
+        // If we programmatically added a leading space, the caret (measured before update)
+        // must be shifted right by one to remain at the user's intended position.
+        const newFocusOffset = pendingOffset !== null
+            ? pendingOffset + (didPrependSpace ? 1 : 0)
+            : (currentFocusOffset + cursorDelta + (didPrependSpace ? 1 : 0));
+        if (pendingCaretOffsetRef.current !== null) {
+            pendingCaretOffsetRef.current = pendingCaretOffsetRef.current + (didPrependSpace ? 1 : 0);
+        }
         updatedExpressionModel[props.index] = {
             ...props.element,
             value: newValue,
             length: newValue.length,
             isFocused: true,
-            focusOffset: props.element.focusOffset + cursorDelta
+            focusOffset: newFocusOffset
         };
-        onExpressionChange(updatedExpressionModel, cursorDelta);
+                onExpressionChange(updatedExpressionModel);
 
         if (wasTriggerAdded && debouncedTriggerRebuild) {
             const fullValue = updatedExpressionModel.map(el => el.value).join('');
@@ -158,6 +145,14 @@ export const TextElement = (props: {
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (isProgrammaticFocusRef.current) {
+            isProgrammaticFocusRef.current = false;
+            return;
+        }
+        
         if (!onExpressionChange || !props.expressionModel) return;
         const updatedModel = props.expressionModel.map((element, index) => {
             if (index === props.index) {
@@ -166,24 +161,14 @@ export const TextElement = (props: {
                 return { ...element, isFocused: false, focusOffset: undefined };
             }
         })
-        onExpressionChange(updatedModel, 0);
+        onExpressionChange(updatedModel);
     }
-
-    useLayoutEffect(() => {
-        const host = spanRef.current;
-        const pending = pendingCaretOffsetRef.current;
-
-        // Only restore caret if we have a pending position and the element is focused
-        if (host && pending !== null && document.activeElement === host) {
-            restoreCaret(host, pending);
-            pendingCaretOffsetRef.current = null;
-        }
-    }, [props.element.value]);
 
     // If this element is marked as focused, focus it and set the caret to focusOffset
     useEffect(() => {
         if (props.element.isFocused && spanRef.current) {
             const host = spanRef.current;
+            isProgrammaticFocusRef.current = true;
             host.focus();
             const offset = props.element.focusOffset ?? (host.textContent?.length || 0);
             setCaretPosition(host, offset);
@@ -205,7 +190,6 @@ export const TextElement = (props: {
             data-element-id={props.element.id}
             onInput={handleInput}
             onFocus={handleFocus}
-            onKeyUp={handleKeyUp}
             onMouseUp={handleMouseUp}
             onKeyDown={handleKeyDown}
             contentEditable

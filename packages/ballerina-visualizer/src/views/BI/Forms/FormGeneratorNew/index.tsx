@@ -807,9 +807,11 @@ export function FormGeneratorNew(props: FormProps) {
         return await convertToFnSignature(signatureHelp);
     };
 
-    const getExpressionTokens = async (expression: string): Promise<number[]> => {
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
         return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
             expression: expression,
+            filePath: filePath,
+            position: position
         })
     }
 

@@ -19,13 +19,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ChipEditorField } from "../styles"
 import { useFormContext } from "../../../../../context";
-import { ThemeColors, CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { ContextMenuContainer, Completions, FloatingButtonContainer, ExpandedPopupContainer, COMPLETIONS_WIDTH } from "../styles";
+import {  CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
-import { ExpandButton, GetHelperButton } from "./FloatingButtonIcons";
-import { DATA_CHIP_ATTRIBUTE, DATA_MENU_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
-import { getTextValueFromExpressionModel } from "../utils";
+import { GetHelperButton } from "./FloatingButtonIcons";
+import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
 
 export type AutoExpandingEditableDivProps = {
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
@@ -168,23 +167,38 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         }
     }, [fieldContainerRef]); // Remove props.onFocusChange from dependencies
 
+    const debounce = (func: Function, delay: number) => {
+        let timer: ReturnType<typeof setTimeout>;
+        return (...args: any[]) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => func(...args), delay);
+        };
+    };
+
+    const debouncedCheckFocusState = debounce(checkFocusState, 100);
+
     useEffect(() => {
         const handleFocusChange = () => {
-            checkFocusState();
+            debouncedCheckFocusState();
         };
         document.addEventListener('focusin', handleFocusChange);
+        document.addEventListener('focusout', handleFocusChange);
         checkFocusState();
 
         return () => {
             document.removeEventListener('focusin', handleFocusChange);
+            document.removeEventListener('focusout', handleFocusChange);
         };
-    }, [checkFocusState]);
+    }, [debouncedCheckFocusState]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                props.onCloseCompletions?.();
-                props.onHelperPaneClose?.();
+                // Add a slight delay before closing the helper pane
+                setTimeout(() => {
+                    props.onCloseCompletions?.();
+                    props.onHelperPaneClose?.();
+                }, 100);
             }
         };
 
@@ -197,47 +211,47 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         };
     }, [props.isCompletionsOpen, props.isHelperPaneOpen, props.onCloseCompletions, props.onHelperPaneClose]);
 
-    useEffect(() => {
-        if (isExpanded) {
-            popupManager.closePopup("chip-expression-editor-expanded");
-            popupManager.addPopup(
-                <ExpandedPopupContainer style={style}>
-                    <ChipEditorField
-                        ref={fieldContainerRef}
-                        style={{
-                            ...style,
-                            flex: 1,
-                            position: 'absolute',
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: ThemeColors.SURFACE_DIM_2
-                        }}
-                        onKeyDown={onKeyDown}
-                    >
-                        {children}
-                        <FloatingButtonContainer>
+    // useEffect(() => {
+    //     if (isExpanded) {
+    //         popupManager.closePopup("chip-expression-editor-expanded");
+    //         popupManager.addPopup(
+    //             <ExpandedPopupContainer style={style}>
+    //                 <ChipEditorField
+    //                     ref={fieldContainerRef}
+    //                     style={{
+    //                         ...style,
+    //                         flex: 1,
+    //                         position: 'absolute',
+    //                         width: '100%',
+    //                         height: '100%',
+    //                         backgroundColor: ThemeColors.SURFACE_DIM_2
+    //                     }}
+    //                     onKeyDown={onKeyDown}
+    //                 >
+    //                     {children}
+    //                     <FloatingButtonContainer>
 
 
-                            <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
-                                <ExpandButton />
-                            </FloatingToggleButton>
-                            <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
-                                <GetHelperButton />
-                            </FloatingToggleButton>
-                        </FloatingButtonContainer>
-                        {renderCompletionsMenu()}
-                    </ChipEditorField>
-                </ExpandedPopupContainer>,
-                "chip-expression-editor-expanded", "Expression Editor",
-                700, 800,
-                () => {
-                    setIsExpanded && setIsExpanded(false);
-                }
-            )
-        } else {
-            popupManager.closePopup("chip-expression-editor-expanded");
-        }
-    }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem, props.isHelperPaneOpen])
+    //                         <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
+    //                             <ExpandButton />
+    //                         </FloatingToggleButton>
+    //                         <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
+    //                             <GetHelperButton />
+    //                         </FloatingToggleButton>
+    //                     </FloatingButtonContainer>
+    //                     {renderCompletionsMenu()}
+    //                 </ChipEditorField>
+    //             </ExpandedPopupContainer>,
+    //             "chip-expression-editor-expanded", "Expression Editor",
+    //             700, 800,
+    //             () => {
+    //                 setIsExpanded && setIsExpanded(false);
+    //             }
+    //         )
+    //     } else {
+    //         popupManager.closePopup("chip-expression-editor-expanded");
+    //     }
+    // }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem, props.isHelperPaneOpen])
 
     return (
         <>
@@ -269,9 +283,9 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                         <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
                             <GetHelperButton />
                         </FloatingToggleButton>
-                        <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
+                        {/* <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
                             <ExpandButton />
-                        </FloatingToggleButton>
+                        </FloatingToggleButton> */}
                     </FloatingButtonContainer>
                     {renderCompletionsMenu()}
                     {renderHelperPane()}
