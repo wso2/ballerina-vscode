@@ -80,10 +80,10 @@ export const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
         <div style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '6px 12px',
+            padding: '6px 8px',
             backgroundColor: ThemeColors.SURFACE_DIM_2,
             borderRadius: '6px',
-            margin: '8px 12px 0 12px',
+            margin: '0px 8px 4px',
             gap: '2px',
             fontSize: '12px',
         }}>
