@@ -345,10 +345,7 @@ export interface FormProps {
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
-    newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[];
-    onToolsChange?: (selectedTools: string[]) => void;
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
@@ -391,9 +388,6 @@ export const Form = forwardRef((props: FormProps) => {
         preserveOrder = false,
         handleSelectedTypeChange,
         scopeFieldAddon,
-        newServerUrl,
-        mcpTools,
-        onToolsChange,
         injectedComponents,
         hideSaveButton = false,
         onValidityChange,
@@ -767,25 +761,35 @@ export const Form = forwardRef((props: FormProps) => {
                             .sort((a, b) => b.groupNo - a.groupNo)
                             .filter((field) => field.type !== "VIEW");
 
-                        const renderedComponents = fieldsToRender.reduce<React.ReactNode[]>((acc, field, index) => {
+                        const renderedComponents: React.ReactNode[] = [];
+                        let renderedFieldCount = 0;
+                        const injectedIndices = new Set<number>(); // Track which injections have been added
+
+                        fieldsToRender.forEach((field) => {
+                            // Check if we need to inject components before this field
                             if (injectedComponents) {
                                 injectedComponents.forEach((injected) => {
-                                    if (injected.index === index) {
-                                        acc.push(injected.component);
+                                    if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                        renderedComponents.push(
+                                            <React.Fragment key={`injected-${injected.index}`}>
+                                                {injected.component}
+                                            </React.Fragment>
+                                        );
+                                        injectedIndices.add(injected.index);
                                     }
                                 });
                             }
 
                             if (field.advanced || field.hidden) {
-                                return acc;
+                                return;
                             }
                             // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
                             if (!preserveOrder && isPrioritizedField(field)) {
-                                return acc;
+                                return;
                             }
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
-                            acc.push(
+                            renderedComponents.push(
                                 <S.Row key={updatedField.key}>
                                     <EditorFactory
                                         field={updatedField}
@@ -803,9 +807,6 @@ export const Form = forwardRef((props: FormProps) => {
                                         handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
                                         handleNewTypeSelected={handleNewTypeSelected}
-                                        newServerUrl={newServerUrl}
-                                        mcpTools={mcpTools}
-                                        onToolsChange={onToolsChange}
                                         onBlur={handleOnBlur}
                                         isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
                                         openFormTypeEditor={
@@ -816,13 +817,19 @@ export const Form = forwardRef((props: FormProps) => {
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
-                            return acc;
-                        }, []);
+                            renderedFieldCount++;
+                        });
 
+                        // Check if we need to inject components after all fields
                         if (injectedComponents) {
                             injectedComponents.forEach((injected) => {
-                                if (injected.index >= fieldsToRender.length) {
-                                    renderedComponents.push(injected.component);
+                                if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                    renderedComponents.push(
+                                        <React.Fragment key={`injected-${injected.index}`}>
+                                            {injected.component}
+                                        </React.Fragment>
+                                    );
+                                    injectedIndices.add(injected.index);
                                 }
                             });
                         }
@@ -864,7 +871,7 @@ export const Form = forwardRef((props: FormProps) => {
                     {hasAdvanceFields &&
                         showAdvancedOptions &&
                         formFields.map((field) => {
-                            if (field.advanced) {
+                            if (field.advanced && !field.hidden) {
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
