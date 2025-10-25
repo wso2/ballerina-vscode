@@ -18,13 +18,6 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -43,7 +36,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
@@ -62,7 +54,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  *
  * @since 1.2.0
  */
-public final class RabbitMQServiceBuilder extends AbstractServiceBuilder{
+public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
     private static final String ON_MESSAGE = "onMessage";
     private static final String ON_REQUEST = "onRequest";
@@ -206,55 +198,6 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder{
     @Override
     public String kind() {
         return RABBITMQ;
-    }
-
-    private String extractFromServiceConfigAnnotation(ServiceDeclarationNode serviceNode, String parameterName) {
-        if (serviceNode.metadata().isEmpty()) {
-            return null;
-        }
-
-        Optional<AnnotationNode> rabbitMQAnnotation = serviceNode.metadata().get().annotations().stream()
-                .filter(annotation -> annotation.annotReference().toString().trim().equals("rabbitmq:ServiceConfig"))
-                .findFirst();
-
-        if (rabbitMQAnnotation.isEmpty()) {
-            return null;
-        }
-
-        Optional<MappingConstructorExpressionNode> annotationValue = rabbitMQAnnotation.get().annotValue();
-        if (annotationValue.isEmpty()) {
-            return null;
-        }
-
-        Optional<SpecificFieldNode> parameterField = annotationValue.get().fields().stream()
-                .filter(fieldNode -> fieldNode.kind().equals(SyntaxKind.SPECIFIC_FIELD))
-                .map(fieldNode -> (SpecificFieldNode) fieldNode)
-                .filter(fieldNode -> fieldNode.fieldName().toString().trim().equals(parameterName))
-                .findFirst();
-
-        if (parameterField.isEmpty()) {
-            return null;
-        }
-
-        return extractValueFromField(parameterField.get());
-    }
-
-    private String extractValueFromField(SpecificFieldNode fieldNode) {
-        if (fieldNode.valueExpr().isEmpty()) {
-            return null;
-        }
-
-        ExpressionNode expression = fieldNode.valueExpr().get();
-
-        if (expression.kind().equals(SyntaxKind.STRING_LITERAL)) {
-            String value = ((BasicLiteralNode) expression).literalToken().text();
-            return value.substring(1, value.length() - 1);
-        } else if (expression.kind().equals(SyntaxKind.BOOLEAN_LITERAL) ||
-                   expression.kind().equals(SyntaxKind.NUMERIC_LITERAL)) {
-            return ((BasicLiteralNode) expression).literalToken().text();
-        } else {
-            return expression.toSourceCode().trim();
-        }
     }
 }
 
