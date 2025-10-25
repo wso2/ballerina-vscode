@@ -22,21 +22,19 @@ import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
 import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
-import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, ThemeColors, Typography } from '@wso2/ui-toolkit';
+import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
 import { Configurables } from './Views/Configurables';
 import styled from '@emotion/styled';
-import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ConfigureRecordPage } from './Views/RecordConfigModal';
 import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
 
-const MAX_MENU_ITEM_COUNT = 5;
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -97,7 +95,6 @@ const HelperPaneNewEl = ({
     handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ? 5 : 4
@@ -108,8 +105,6 @@ const HelperPaneNewEl = ({
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     const rect = exprRef.current?.parentElement?.getBoundingClientRect();
-
-    const { rpcClient } = useRpcContext();
 
     useLayoutEffect(() => {
         const trySetWidth = () => {
@@ -184,7 +179,6 @@ const HelperPaneNewEl = ({
         }
     };
 
-
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             event?.key && handleKeyPress(event);
@@ -232,16 +226,6 @@ const HelperPaneNewEl = ({
             onClose();
         }
     };
-
-    const isItemSelected = (currentCount: number, itemIndex: number) => {
-        const trueItemIndex = currentCount - MAX_MENU_ITEM_COUNT + itemIndex;
-        return (trueItemIndex >= 0) && (selectedItem === trueItemIndex);
-    }
-
-    const getMenuItemColor = (currentCount: number, itemIndex: number) => {
-        return isItemSelected(currentCount, itemIndex) ? ThemeColors.SURFACE_DIM_2 : "transparent";
-    }
-
 
     // Scroll selected item into view when selection changes
     useEffect(() => {
@@ -349,7 +333,6 @@ const HelperPaneNewEl = ({
                                                     ref={el => menuItemRefs.current[0] = el}
                                                     to="CREATE_VALUE"
                                                     data={recordTypeField}
-                                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 0) }}
                                                 >
                                                     <ExpandableList.Item>
                                                         {getHelperPaneIcon(HelperPaneIconType.VALUE)}
@@ -363,7 +346,6 @@ const HelperPaneNewEl = ({
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[2] = el}
                                     to="INPUTS"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 2) }}
                                 >
                                     <ExpandableList.Item>
                                         {getHelperPaneIcon(HelperPaneIconType.INPUT)}
@@ -375,7 +357,6 @@ const HelperPaneNewEl = ({
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[1] = el}
                                     to="VARIABLES"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 1) }}
                                 >
                                     <ExpandableList.Item>
                                         {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
@@ -387,7 +368,6 @@ const HelperPaneNewEl = ({
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
                                     to="CONFIGURABLES"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 3) }}
                                 >
                                     <ExpandableList.Item>
                                         <TitleContainer>
@@ -401,7 +381,6 @@ const HelperPaneNewEl = ({
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[4] = el}
                                     to="FUNCTIONS"
-                                    sx={{ backgroundColor: getMenuItemColor(currentMenuItemCount, 4) }}
                                 >
                                     <ExpandableList.Item>
                                         {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
