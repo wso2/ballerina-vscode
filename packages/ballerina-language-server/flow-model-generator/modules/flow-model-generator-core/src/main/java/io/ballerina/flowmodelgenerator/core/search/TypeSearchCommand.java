@@ -42,8 +42,10 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -214,6 +216,10 @@ class TypeSearchCommand extends SearchCommand {
             String orgName = module.packageInstance().packageOrg().toString();
             String packageName = module.packageInstance().packageName().toString();
             String version = module.packageInstance().packageVersion().toString();
+
+            // Collect all types with their scores for ranking
+            List<ScoredType> scoredTypes = new ArrayList<>();
+
             for (Symbol symbol : symbols) {
                 if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
                     if (typeDefinitionSymbol.getName().isEmpty()) {
@@ -224,24 +230,229 @@ class TypeSearchCommand extends SearchCommand {
                             .orElse(null);
                     String description = documentation != null ? documentation.description().orElse("") : "";
 
-                    Metadata metadata = new Metadata.Builder<>(null)
-                            .label(typeName)
-                            .description(description)
-                            .build();
+                    // Calculate fuzzy relevance score
+                    int score = calculateFuzzyRelevanceScore(typeName, description, query);
 
-                    Codedata codedata = new Codedata.Builder<>(null)
-                            .org(orgName)
-                            .module(moduleName)
-                            .packageName(packageName)
-                            .symbol(typeName)
-                            .version(version)
-                            .build();
-
-                    moduleBuilder.stepIn(moduleName, "", List.of())
-                            .node(new AvailableNode(metadata, codedata, true));
+                    // Filter out types with score 0 (no match)
+                    if (score > 0) {
+                        scoredTypes.add(new ScoredType(typeDefinitionSymbol, typeName, description, score));
+                    }
                 }
             }
 
+            // Sort by score in descending order (highest score first)
+            scoredTypes.sort(Comparator.comparingInt(ScoredType::getScore).reversed());
+
+            // Build nodes from sorted list
+            for (ScoredType scoredType : scoredTypes) {
+                Metadata metadata = new Metadata.Builder<>(null)
+                        .label(scoredType.getTypeName())
+                        .description(scoredType.getDescription())
+                        .build();
+
+                Codedata codedata = new Codedata.Builder<>(null)
+                        .org(orgName)
+                        .module(moduleName)
+                        .packageName(packageName)
+                        .symbol(scoredType.getTypeName())
+                        .version(version)
+                        .build();
+
+                moduleBuilder.stepIn(moduleName, "", List.of())
+                        .node(new AvailableNode(metadata, codedata, true));
+            }
         }
+    }
+
+    /**
+     * Helper class to store type symbols along with their relevance scores for ranking.
+     */
+    private static class ScoredType {
+        private final TypeDefinitionSymbol symbol;
+        private final String typeName;
+        private final String description;
+        private final int score;
+
+        ScoredType(TypeDefinitionSymbol symbol, String typeName, String description, int score) {
+            this.symbol = symbol;
+            this.typeName = typeName;
+            this.description = description;
+            this.score = score;
+        }
+
+        TypeDefinitionSymbol getSymbol() {
+            return symbol;
+        }
+
+        String getTypeName() {
+            return typeName;
+        }
+
+        String getDescription() {
+            return description;
+        }
+
+        int getScore() {
+            return score;
+        }
+    }
+
+    /**
+     * Calculates the Levenshtein distance between two strings.
+     * This is the minimum number of single-character edits (insertions, deletions, or substitutions)
+     * required to change one string into the other.
+     *
+     * @param s1 First string
+     * @param s2 Second string
+     * @return The edit distance between the two strings
+     */
+    private int levenshteinDistance(String s1, String s2) {
+        int len1 = s1.length();
+        int len2 = s2.length();
+
+        // Create a matrix to store distances
+        int[][] dp = new int[len1 + 1][len2 + 1];
+
+        // Initialize first column (distance from empty string)
+        for (int i = 0; i <= len1; i++) {
+            dp[i][0] = i;
+        }
+
+        // Initialize first row (distance from empty string)
+        for (int j = 0; j <= len2; j++) {
+            dp[0][j] = j;
+        }
+
+        // Fill the matrix
+        for (int i = 1; i <= len1; i++) {
+            for (int j = 1; j <= len2; j++) {
+                int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+
+                dp[i][j] = Math.min(
+                        Math.min(
+                                dp[i - 1][j] + 1,      // deletion
+                                dp[i][j - 1] + 1       // insertion
+                        ),
+                        dp[i - 1][j - 1] + cost        // substitution
+                );
+            }
+        }
+
+        return dp[len1][len2];
+    }
+
+    /**
+     * Calculates a fuzzy match relevance score for a type based on its name and description.
+     * Higher scores indicate better matches. The algorithm combines multiple matching strategies:
+     * 1. Exact matching (highest priority)
+     * 2. Prefix matching (high priority)
+     * 3. Substring matching (medium priority)
+     * 4. Fuzzy matching using Levenshtein distance (lower priority)
+     * 5. Description matching (bonus points)
+     *
+     * TypeName matching is weighted higher than description matching.
+     *
+     * @param typeName    The name of the type to score
+     * @param description The description of the type (can be null or empty)
+     * @param query       The search query to match against
+     * @return A relevance score (0 = no match, higher = better match)
+     */
+    private int calculateFuzzyRelevanceScore(String typeName, String description, String query) {
+        if (query == null || query.isEmpty()) {
+            return 1;  // No query means everything matches with minimal score
+        }
+
+        String lowerTypeName = typeName.toLowerCase(Locale.ROOT);
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        String lowerDescription = (description != null && !description.isEmpty())
+                ? description.toLowerCase(Locale.ROOT)
+                : "";
+
+        int score = 0;
+
+        // --- TYPE NAME MATCHING (Weighted Higher) ---
+
+        // 1. Exact match (highest priority)
+        if (lowerTypeName.equals(lowerQuery)) {
+            score += 10000;
+        }
+        // 2. Starts with query (prefix match - high priority)
+        else if (lowerTypeName.startsWith(lowerQuery)) {
+            score += 5000;
+        }
+        // 3. Contains query (substring match - medium priority)
+        else {
+            int nameIndex = lowerTypeName.indexOf(lowerQuery);
+            if (nameIndex >= 0) {
+                // Earlier matches score higher
+                // Score range: 1000 to 999 (assuming names < 1000 chars)
+                score += Math.max(1, 1000 - nameIndex);
+            } else {
+                // 4. Fuzzy matching using Levenshtein distance
+                int distance = levenshteinDistance(lowerTypeName, lowerQuery);
+                int maxLen = Math.max(lowerTypeName.length(), lowerQuery.length());
+
+                // Only consider fuzzy matches if distance is reasonable (< 50% of max length)
+                if (distance <= maxLen / 2) {
+                    // Score range: 500 to 1 (higher similarity = higher score)
+                    int fuzzyScore = 500 * (maxLen - distance) / maxLen;
+                    score += fuzzyScore;
+                }
+
+                // Also check if query is an abbreviation (matches first letters)
+                if (matchesAbbreviation(lowerTypeName, lowerQuery)) {
+                    score += 300;
+                }
+            }
+        }
+
+        // --- DESCRIPTION MATCHING (Bonus Points - Lower Weight) ---
+        if (!lowerDescription.isEmpty() && lowerDescription.contains(lowerQuery)) {
+            // Description match adds bonus points
+            score += 200;
+
+            // Extra bonus if description starts with query
+            if (lowerDescription.startsWith(lowerQuery)) {
+                score += 100;
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * Checks if the query could be an abbreviation of the type name.
+     * For example, "HC" could match "HttpClient", "AC" could match "ApplicationConfig".
+     *
+     * @param typeName The type name to check against
+     * @param query    The potential abbreviation
+     * @return true if query matches the first letters of words in typeName
+     */
+    private boolean matchesAbbreviation(String typeName, String query) {
+        if (query.length() > typeName.length()) {
+            return false;
+        }
+
+        int queryIndex = 0;
+        boolean lastWasUpper = true;  // Start of string counts as word boundary
+
+        for (int i = 0; i < typeName.length() && queryIndex < query.length(); i++) {
+            char typeChar = typeName.charAt(i);
+            boolean isUpper = Character.isUpperCase(typeChar);
+
+            // Check if this is the start of a new word (uppercase after lowercase, or first char)
+            if (isUpper && !lastWasUpper) {
+                if (Character.toLowerCase(typeChar) == query.charAt(queryIndex)) {
+                    queryIndex++;
+                }
+            } else if (i == 0 && Character.toLowerCase(typeChar) == query.charAt(queryIndex)) {
+                // First character match
+                queryIndex++;
+            }
+
+            lastWasUpper = isUpper;
+        }
+
+        return queryIndex == query.length();
     }
 }
