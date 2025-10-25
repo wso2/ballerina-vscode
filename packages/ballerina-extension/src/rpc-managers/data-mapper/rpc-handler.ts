@@ -25,6 +25,7 @@ import {
     addSubMapping,
     AddSubMappingRequest,
     AllDataMapperSourceRequest,
+    clearTypeCache,
     convertToQuery,
     ConvertToQueryRequest,
     DataMapperModelRequest,
@@ -80,4 +81,5 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
     messenger.onRequest(getExpandedDMFromDMModel, (args: DMModelRequest) => rpcManger.getExpandedDMFromDMModel(args));
     messenger.onRequest(getProcessTypeReference, (args: ProcessTypeReferenceRequest) => rpcManger.getProcessTypeReference(args));
+    messenger.onRequest(clearTypeCache, () => rpcManger.clearTypeCache());
 }
