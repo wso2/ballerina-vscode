@@ -28,6 +28,7 @@ import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
+import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
 
 type InputsPageProps = {
     fileName: string;
@@ -174,20 +175,10 @@ export const Inputs = (props: InputsPageProps) => {
             overflow: "hidden"
         }}>
 
-            {
-                breadCrumbSteps.length > 1 && (
-                    <div style={{ display: "flex", gap: '8px', padding: '5px 8px', backgroundColor: ThemeColors.SURFACE_DIM_2 }}>
-                        {breadCrumbSteps.map((step, index) => (
-                            <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
-                                <span onClick={() => handleBreadCrumbItemClicked(step)}>
-                                    {step.label}
-                                </span>
-                                {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
-                            </span>
-                        ))}
-
-                    </div>
-                )}
+            <BreadcrumbNavigation
+                breadCrumbSteps={breadCrumbSteps}
+                onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
+            />
             {dropdownItems.length >= 6 && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
                     <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
