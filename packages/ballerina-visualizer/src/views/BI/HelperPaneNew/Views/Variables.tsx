@@ -28,12 +28,13 @@ import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
-import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
+import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
+import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
 
 type VariablesPageProps = {
     fileName: string;
@@ -94,11 +95,6 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
     );
 };
 
-type BreadCrumbStep = {
-    label: string;
-    replaceText: string
-}
-
 export const Variables = (props: VariablesPageProps) => {
     const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
@@ -107,10 +103,7 @@ export const Variables = (props: VariablesPageProps) => {
     const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
-        label: "Variables",
-        replaceText: ""
-    }]);
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Variables");
     const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
@@ -209,20 +202,11 @@ export const Variables = (props: VariablesPageProps) => {
         onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {
-        const newBreadCrumSteps = [...breadCrumbSteps, {
-            label: value,
-            replaceText: currentValue + value
-        }];
-        setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(value + '.', false, true);
+        navigateToNext(value, currentValue, onChange);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
-        onChange(replaceText, true);
-        const index = breadCrumbSteps.findIndex(item => item.label === step.label);
-        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
-        setBreadCrumbSteps(newSteps);
+        navigateToBreadcrumb(step, onChange);
     }
 
     const ExpandableListItems = () => {
@@ -336,20 +320,10 @@ export const Variables = (props: VariablesPageProps) => {
             overflow: "hidden"
         }}>
 
-            {
-                breadCrumbSteps.length > 1 && (
-                    <div style={{ display: "flex", gap: '8px', padding: '5px 8px', backgroundColor: ThemeColors.SURFACE_DIM_2 }}>
-                        {breadCrumbSteps.map((step, index) => (
-                            <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
-                                <span onClick={() => handleBreadCrumbItemClicked(step)}>
-                                    {step.label}
-                                </span>
-                                {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
-                            </span>
-                        ))}
-
-                    </div>
-                )}
+            <BreadcrumbNavigation
+                breadCrumbSteps={breadCrumbSteps}
+                onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
+            />
             {dropdownItems.length >= 6 && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
                     <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
