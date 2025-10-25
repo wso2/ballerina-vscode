@@ -1,0 +1,640 @@
+{
+  "description": "Test queries with numbers and special characters",
+  "kind": "TYPE",
+  "source": "proj2/automation.bal",
+  "queryMap": {
+    "q": "200",
+    "limit": "30"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "mod1.Weather",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "InlineResponse200",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse200",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2001",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2001",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2003",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2003",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2002",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2002",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "InlineResponse2004",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "InlineResponse2004",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Inline_response_200",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "discord",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_5",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_6",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_6",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_1",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_2",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_3",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_3",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_4",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "discord",
+                "packageName": "discord",
+                "symbol": "inline_response_200_4",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "stripe",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_5",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_1",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_2",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_3",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_3",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_4",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_4",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "zendesk",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_5",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_6",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_6",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_3",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_3",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_4",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_4",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_1",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200_2",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "asana",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_9",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_9",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_8",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_8",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_5",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_6",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_6",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_3",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_3",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_4",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_4",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_1",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Inline_response_200_2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "asana",
+                "packageName": "asana",
+                "symbol": "Inline_response_200_2",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
