@@ -83,8 +83,23 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         sessionId: undefined,
         projectId: undefined,
         currentApproval: undefined,
-    },
+        autoApproveEnabled: false,
+    } as AIChatMachineContext,
     on: {
+        [AIChatMachineEventType.ENABLE_AUTO_APPROVE]: {
+            actions: assign({
+                autoApproveEnabled: (_ctx) => true,
+                chatHistory: (ctx) =>
+                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval enabled for tasks'),
+            }),
+        },
+        [AIChatMachineEventType.DISABLE_AUTO_APPROVE]: {
+            actions: assign({
+                autoApproveEnabled: (_ctx) => false,
+                chatHistory: (ctx) =>
+                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval disabled for tasks'),
+            }),
+        },
         [AIChatMachineEventType.RESET]: {
             target: 'Idle',
             actions: [
