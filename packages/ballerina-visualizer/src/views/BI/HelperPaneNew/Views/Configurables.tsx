@@ -31,6 +31,8 @@ import { HelperPaneListItem } from "../Components/HelperPaneListItem";
 import { TypeIndicator } from "../Components/TypeIndicator";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import { HelperPaneCustom } from "@wso2/ui-toolkit";
+import { useHelperPaneNavigation } from "../hooks/useHelperPaneNavigation";
+import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -57,6 +59,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     const { onChange, onClose, fileName, targetLineRange } = props;
 
     const { rpcClient } = useRpcContext();
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Configurables");
     const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [configVarNode, setCofigVarNode] = useState<FlowNode>();
@@ -199,6 +202,10 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             height: "100%",
             overflow: "hidden"
         }}>
+            <BreadcrumbNavigation
+                breadCrumbSteps={breadCrumbSteps}
+                onNavigateToBreadcrumb={(step) => navigateToBreadcrumb(step, onChange)}
+            />
             {(() => {
                 const filteredCategories = translateToArrayFormat(configVariables)
                     .filter(category =>

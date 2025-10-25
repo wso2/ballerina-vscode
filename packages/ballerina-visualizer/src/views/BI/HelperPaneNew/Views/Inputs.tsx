@@ -23,11 +23,11 @@ import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tool
 import { useEffect, useMemo, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
-import styled from "@emotion/styled"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
+import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 
 type InputsPageProps = {
     fileName: string;
@@ -82,20 +82,12 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
     );
 };
 
-type BreadCrumbStep = {
-    label: string;
-    replaceText: string
-}
-
 export const Inputs = (props: InputsPageProps) => {
     const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
-        label: "Inputs",
-        replaceText: ""
-    }]);
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Inputs");
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -120,12 +112,22 @@ export const Inputs = (props: InputsPageProps) => {
     }, [targetLineRange])
 
     const dropdownItems = useMemo(() => {
+        // If we're at the root level, only show parameters
+        if (isAtRoot()) {
+            return filteredCompletions.filter(
+                (completion) =>
+                completion.kind === "variable" &&
+                completion.labelDetails?.description?.includes("Parameter")
+            );
+        }
+        
+        // If we're navigating inside an object, show all fields and variables
         return filteredCompletions.filter(
             (completion) =>
-            completion.kind === "variable" &&
-            completion.labelDetails?.description?.includes("Parameter")
+                (completion.kind === "field" || completion.kind === "variable") &&
+                completion.label !== "self"
         );
-    }, [filteredCompletions]);
+    }, [filteredCompletions, isAtRoot]);
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
@@ -143,20 +145,11 @@ export const Inputs = (props: InputsPageProps) => {
     }
 
     const handleInputsMoreIconClick = (value: string) => {
-        const newBreadCrumSteps = [...breadCrumbSteps, {
-            label: value,
-            replaceText: currentValue + value
-        }];
-        setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(value + '.', false, true);
+        navigateToNext(value, currentValue, onChange);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
-        onChange(replaceText, true);
-        const index = breadCrumbSteps.findIndex(item => item.label === step.label);
-        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
-        setBreadCrumbSteps(newSteps);
+        navigateToBreadcrumb(step, onChange);
     }
 
     const ExpandableListItems = () => {
