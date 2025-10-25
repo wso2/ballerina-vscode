@@ -22,13 +22,10 @@ import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
-import io.ballerina.servicemodelgenerator.extension.extractor.CustomExtractor;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -43,7 +40,6 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +62,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  *
  * @since 1.2.0
  */
-public final class RabbitMQServiceBuilder extends AbstractServiceBuilder implements CustomExtractor {
+public final class RabbitMQServiceBuilder extends AbstractServiceBuilder{
 
     private static final String ON_MESSAGE = "onMessage";
     private static final String ON_REQUEST = "onRequest";
@@ -210,29 +206,6 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder impleme
     @Override
     public String kind() {
         return RABBITMQ;
-    }
-
-    @Override
-    public Map<String, List<String>> extractCustomValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                                        ModelFromSourceContext context) {
-        Map<String, List<String>> result = new HashMap<>();
-        String metadataKey = metadataItem.metadataKey();
-
-        String annotationValue = extractFromServiceConfigAnnotation(serviceNode, metadataKey);
-        if (annotationValue != null) {
-            String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
-                    ? metadataItem.displayName()
-                    : metadataItem.metadataKey();
-            result.put(displayName, List.of(annotationValue));
-        }
-
-        return result;
-    }
-
-    @Override
-    public boolean canExtractCustom(ReadOnlyMetaData metadataItem, ModelFromSourceContext context) {
-        return "CUSTOM".equals(metadataItem.kind()) &&
-               context.moduleName().contains("rabbitmq");
     }
 
     private String extractFromServiceConfigAnnotation(ServiceDeclarationNode serviceNode, String parameterName) {
