@@ -1,43 +1,43 @@
 {
-  "source": "data_mapper/main.bal",
+  "source": "local_connector/main.bal",
   "position": {
     "line": 14,
     "offset": 0
   },
-  "description": "",
+  "description": "Sample diagram node",
   "codedata": {
     "node": "NEW_CONNECTION",
-    "org": "ballerinax",
-    "module": "mysql",
-    "packageName": "mysql",
+    "org": "nipunaf",
+    "module": "mod",
+    "packageName": "new_connection1",
     "object": "Client",
     "symbol": "init",
-    "version": "1.15.0",
-    "isNew": true
+    "version": "0.1.0",
+    "isGenerated": true
   },
   "output": {
     "id": "31",
     "metadata": {
       "label": "New Connection",
-      "description": "Represents a MySQL database client.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
-      "org": "ballerinax",
-      "module": "mysql",
-      "packageName": "mysql",
+      "org": "nipunaf",
+      "module": "mod",
+      "packageName": "new_connection1",
       "object": "Client",
       "symbol": "init",
-      "version": "1.15.0",
-      "isNew": true
+      "version": "0.1.0",
+      "isNew": true,
+      "isGenerated": true
     },
     "returning": false,
     "properties": {
-      "host": {
+      "serviceUrl": {
         "metadata": {
-          "label": "Host",
-          "description": "Hostname of the MySQL server"
+          "label": "Service Url"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
@@ -48,7 +48,7 @@
         "hidden": false,
         "codedata": {
           "kind": "DEFAULTABLE",
-          "originalName": "host"
+          "originalName": "serviceUrl"
         },
         "typeMembers": [
           {
@@ -61,202 +61,167 @@
         ],
         "defaultValue": "\"\""
       },
-      "user": {
+      "allowHeaders": {
         "metadata": {
-          "label": "User",
-          "description": "If the MySQL server is secured, the username"
+          "label": "Allow Headers",
+          "description": "The array of allowed headers by the service"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
+        "valueTypeConstraint": "string[]",
+        "placeholder": "[]",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "user"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowHeaders"
         },
         "typeMembers": [
           {
             "type": "string",
             "packageInfo": "",
             "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
+            "kind": "ARRAY_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "[]"
       },
-      "password": {
+      "allowMethods": {
         "metadata": {
-          "label": "Password",
-          "description": "The password of the MySQL server for the provided username"
+          "label": "Allow Methods",
+          "description": "The array of allowed methods by the service"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
+        "valueTypeConstraint": "string[]",
+        "placeholder": "[]",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "password"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowMethods"
         },
         "typeMembers": [
           {
             "type": "string",
             "packageInfo": "",
             "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
+            "kind": "ARRAY_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "[]"
       },
-      "database": {
+      "allowOrigins": {
         "metadata": {
-          "label": "Database",
-          "description": "The name of the database"
+          "label": "Allow Origins",
+          "description": "The array of origins with which the response is shared by the service"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
-        "placeholder": "()",
+        "valueTypeConstraint": "string[]",
+        "placeholder": "[]",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "database"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowOrigins"
         },
         "typeMembers": [
           {
             "type": "string",
             "packageInfo": "",
             "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
+            "kind": "ARRAY_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "[]"
       },
-      "port": {
+      "exposeHeaders": {
         "metadata": {
-          "label": "Port",
-          "description": "Port number of the MySQL server"
+          "label": "Expose Headers",
+          "description": "The allowlisted headers, which clients are allowed to access"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
-        "placeholder": "0",
+        "valueTypeConstraint": "string[]",
+        "placeholder": "[]",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "port"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "exposeHeaders"
         },
         "typeMembers": [
           {
-            "type": "int",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
-            "kind": "BASIC_TYPE",
+            "kind": "ARRAY_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "0"
+        "defaultValue": "[]"
       },
-      "options": {
+      "allowCredentials": {
         "metadata": {
-          "label": "Options",
-          "description": "MySQL database options"
+          "label": "Allow Credentials",
+          "description": "Specifies whether credentials are required to access the service"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "mysql:Options|()",
-        "placeholder": "()",
+        "valueTypeConstraint": "boolean",
+        "placeholder": "false",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "options"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowCredentials"
         },
         "typeMembers": [
           {
-            "type": "Options",
-            "packageInfo": "ballerinax:mysql:1.15.0",
-            "packageName": "mysql",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
+            "type": "boolean",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "false"
       },
-      "connectionPool": {
+      "maxAge": {
         "metadata": {
-          "label": "Connection Pool",
-          "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
+          "label": "Max Age",
+          "description": "The maximum duration to cache the preflight from client side"
         },
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "sql:ConnectionPool|()",
-        "placeholder": "()",
+        "valueTypeConstraint": "decimal",
+        "placeholder": "0.0d",
         "optional": true,
         "editable": true,
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "connectionPool"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "maxAge"
         },
         "typeMembers": [
           {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.16.0",
-            "packageName": "sql",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
+            "type": "decimal",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
-        "defaultValue": "()"
+        "defaultValue": "0.0d"
       },
       "type": {
         "metadata": {
@@ -264,7 +229,7 @@
           "description": "Type of the variable"
         },
         "valueType": "TYPE",
-        "value": "mysql:Client",
+        "value": "mod:Client",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -272,7 +237,7 @@
         "hidden": true,
         "codedata": {},
         "imports": {
-          "mysql": "ballerinax/mysql"
+          "mod": "nipunaf/new_connection1.mod"
         }
       },
       "variable": {
@@ -281,7 +246,7 @@
           "description": "Name of the connection"
         },
         "valueType": "IDENTIFIER",
-        "value": "mysqlClient",
+        "value": "modClient",
         "optional": false,
         "editable": true,
         "advanced": false,

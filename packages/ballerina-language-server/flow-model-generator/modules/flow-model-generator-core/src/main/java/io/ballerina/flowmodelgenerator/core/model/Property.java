@@ -406,7 +406,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             if (this.imports == null) {
                 this.imports = new HashMap<>();
             }
-            String[] importList = importStatements.split(";");
+            String[] importList = importStatements.split(",");
             for (String importStatement : importList) {
                 if (importStatement.trim().isEmpty()) {
                     continue;

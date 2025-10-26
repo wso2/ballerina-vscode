@@ -85,9 +85,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{token: \"\"}"
       },
       "httpVersion": {
@@ -115,9 +112,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "\"2.0\""
       },
       "http1Settings": {
@@ -172,9 +166,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "timeout": {
@@ -256,9 +247,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "cache": {
@@ -286,9 +274,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "compression": {
@@ -316,9 +301,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "\"AUTO\""
       },
       "circuitBreaker": {
@@ -346,9 +328,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "retryConfig": {
@@ -376,9 +355,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "responseLimits": {
@@ -406,9 +382,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "secureSocket": {
@@ -436,9 +409,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "proxy": {
@@ -466,9 +436,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "http": "ballerina/http"
-        },
         "defaultValue": "{}"
       },
       "validation": {
