@@ -106,7 +106,7 @@ public class Listener {
                 .append(" = new ");
 
         appendListenerConstructorCall(declaration);
-        declaration.append(");");
+        declaration.append(";");
 
         return declaration.toString();
     }
