@@ -526,9 +526,12 @@ class TypeInfoVisitorImpl implements TypeInfoVisitor {
         context.isRecord = true;
 
         const fieldName = getBalRecFieldName(field.name);
+        if (field.typeInfo && field.typeInfo.name.endsWith("?")) {
+            context.isNullable = true;
+        }
         context.recordFields[fieldName] = temporaryRecord.recordFields;
         context.recordFieldsMetadata[fieldName] = {
-            nullable: context.isNill,
+            nullable: context.isNullable,
             optional: field.optional,
             type: "record",
             typeInstance: fieldName,
