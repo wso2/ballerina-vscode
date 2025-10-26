@@ -237,13 +237,19 @@ public class ReferenceType {
             return arrayType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
+            List<TypeSymbol> typeSymbols = filterNilOrError(unionTypeSymbol);
+            if (typeSymbols.size() == 1) {
+                TypeSymbol soleTypeSymbol = typeSymbols.getFirst();
+                ModuleID soleModuleId = getModuleID(soleTypeSymbol, moduleID);
+                return fromSemanticSymbol(soleTypeSymbol, unionTypeSymbol.signature(), soleModuleId, typeDefSymbols);
+            }
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
             unionType.key = typeKey;
             unionType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             visitedTypeMap.put(typeKey, unionType);
 
-            for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
+            for (TypeSymbol memberTypeSymbol : typeSymbols) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
                 ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
@@ -327,6 +333,16 @@ public class ReferenceType {
 
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
+    }
+
+    private static List<TypeSymbol> filterNilOrError(UnionTypeSymbol unionTypeSymbol) {
+        List<TypeSymbol> filteredMembers = new ArrayList<>();
+        for (TypeSymbol member : unionTypeSymbol.memberTypeDescriptors()) {
+            if (member.typeKind() != TypeDescKind.NIL && member.typeKind() != TypeDescKind.ERROR) {
+                filteredMembers.add(member);
+            }
+        }
+        return filteredMembers;
     }
 
     private static RefType getPrimitiveType(TypeDescKind kind) {
