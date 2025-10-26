@@ -178,7 +178,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     const defaultMenuItems: Item[] = [
         {
             id: "a2a-direct",
-            label: getItemElement("direct", "Map directly"),
+            label: getItemElement("direct", "Map Anyway"),
             onClick: wrapWithProgress(onClickMapDirectly)
         }
     ];
