@@ -2640,9 +2640,9 @@ public class DataMapManager {
             String source = node.toSourceCode().trim();
             String[] split = source.split("\\[");
             if (split.length > 1) {
-                inputs.add(split[0]);
+                addInput(split[0]);
             } else {
-                inputs.add(source);
+                addInput(source);
             }
         }
 
@@ -2659,7 +2659,7 @@ public class DataMapManager {
                     }
                 }
             }
-            inputs.add(source);
+            addInput(source);
         }
 
         @Override
@@ -2688,12 +2688,14 @@ public class DataMapManager {
         @Override
         public void visit(IndexedExpressionNode node) {
             String source = node.toSourceCode().trim();
-            inputs.add(source.replace("[", ".").substring(0, source.length() - 1));
+            source = source.replace("[", ".");
+            source = source.replace("][", ".");
+            addInput(source.substring(0, source.length() - 1));
         }
 
         @Override
         public void visit(QueryExpressionNode node) {
-            inputs.add(node.queryPipeline().fromClause().expression().toSourceCode().trim());
+            addInput(node.queryPipeline().fromClause().expression().toSourceCode().trim());
         }
 
         @Override
@@ -2726,7 +2728,11 @@ public class DataMapManager {
 
         @Override
         public void visit(OptionalFieldAccessExpressionNode node) {
-            inputs.add(node.toSourceCode().trim().replace("?", ""));
+            addInput(node.toSourceCode());
+        }
+
+        private void addInput(String input) {
+            inputs.add(input.trim().replace("?", ""));
         }
     }
 }
