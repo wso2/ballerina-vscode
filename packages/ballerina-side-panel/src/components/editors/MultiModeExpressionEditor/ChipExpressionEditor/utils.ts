@@ -1084,6 +1084,7 @@ export const handleKeyDownInTextElement = (
  */
 export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string => {
     // Find the element with the cursor (isFocused: true)
+    console.log("GET WORD BEFORE CURSOR", expressionModel);
     const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(expressionModel);
     const fullText = getTextValueFromExpressionModel(expressionModel);
     const fullTextUpToCursor = fullText.slice(0, absoluteCaretPosition);
