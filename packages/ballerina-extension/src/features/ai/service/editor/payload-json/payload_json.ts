@@ -29,7 +29,7 @@ import { getPayloadGenerationSystemPrompt, getPayloadGenerationUserPrompt } from
  * @throws Error if generation fails or response cannot be parsed
  */
 export async function generateExamplePayload(context: PayloadContext): Promise<object> {
-    const systemPrompt = getPayloadGenerationSystemPrompt();
+    const systemPrompt = getPayloadGenerationSystemPrompt(context);
     const userPrompt = getPayloadGenerationUserPrompt(context);
 
     try {

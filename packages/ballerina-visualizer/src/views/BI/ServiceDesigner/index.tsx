@@ -212,7 +212,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
 
-
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
     };
@@ -1123,6 +1122,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1145,6 +1145,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1165,6 +1166,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
+                                        payloadContext={{
+                                            protocol: "MESSAGE_BROKER",
+                                            serviceName: serviceModel.name || '',
+                                            messageDocumentation: functionModel?.metadata?.description || ''
+                                        }}
+                                        serviceProperties={serviceModel.properties}
+                                        serviceModuleName={serviceModel.moduleName}
                                     />
                                 </PanelContainer>
                             )}
