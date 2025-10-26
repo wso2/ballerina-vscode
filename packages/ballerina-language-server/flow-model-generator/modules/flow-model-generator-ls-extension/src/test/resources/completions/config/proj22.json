@@ -473,6 +473,10 @@
     },
     {
       "label": "admission",
+      "labelDetails": {
+        "detail": " Admission",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "Admission",
       "sortText": "F",
@@ -529,6 +533,10 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " Person",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "F",
@@ -575,6 +583,9 @@
     },
     {
       "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
