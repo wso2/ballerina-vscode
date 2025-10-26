@@ -22,10 +22,26 @@ import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
-import { getAbsoluteCaretPosition, mapAbsoluteToModel, filterTokens, createExpressionModelFromTokens, getTextValueFromExpressionModel, updateExpressionModelWithCompletion, handleCompletionNavigation, calculateCompletionsMenuPosition, setFocusInExpressionModel, updateExpressionModelWithHelperValue, getAbsoluteCaretPositionFromModel, getWordBeforeCursor, filterCompletionsByPrefix, setCursorPositionToExpressionModel, updateTokens } from "./utils";
+import {
+    getAbsoluteCaretPosition,
+    mapAbsoluteToModel,
+    filterTokens,
+    createExpressionModelFromTokens,
+    getTextValueFromExpressionModel,
+    updateExpressionModelWithCompletion,
+    handleCompletionNavigation,
+    calculateCompletionsMenuPosition,
+    setFocusInExpressionModel,
+    updateExpressionModelWithHelperValue,
+    getAbsoluteCaretPositionFromModel,
+    getWordBeforeCursor,
+    filterCompletionsByPrefix,
+    setCursorPositionToExpressionModel,
+    updateTokens
+} from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { CHIP_EXPRESSION_EDITOR_HEIGHT, DATA_ELEMENT_ID_ATTRIBUTE } from "./constants"; // Import the constant
+import { CHIP_EXPRESSION_EDITOR_HEIGHT, DATA_ELEMENT_ID_ATTRIBUTE } from "./constants";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -100,7 +116,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         setExpressionModel(exprModel);
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         console.log("MODEL CHANGED", expressionModel)
     }, [expressionModel])
 
@@ -116,14 +132,38 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         console.log("CURSOR POSITION AFTER UPDATE", cursorPositionAfterUpdate)
         const cursorDelta = cursorPositionAfterUpdate - cursorPositionBeforeUpdate;
         const updatedTokens = updateTokens(tokens, cursorPositionBeforeUpdate, cursorDelta);
-        console.log("token update:",tokens, updatedTokens)
+        console.log("token update:", tokens, updatedTokens)
         if ((!lastTypedText.startsWith('#$') || lastTypedText === '#$BACKSPACE') && JSON.stringify(updatedTokens) !== JSON.stringify(tokens)) {
-            console.log("token update:",tokens, updatedTokens)
+            console.log("token update:", tokens, updatedTokens)
             pendingForceSetTokensRef.current = updatedTokens;
         }
         const updatedValue = getTextValueFromExpressionModel(updatedModel);
         console.log("Updated Value:", lastTypedText);
         console.log("Cursor Position:", cursorPosition);
+
+        const wordBeforeCursor = getWordBeforeCursor(updatedModel);
+        console.log("DDD", updatedValue, lastTypedText === ' ' && updatedValue.trim().endsWith('+'))
+        if (updatedValue.trim().endsWith('+')) {
+            setIsHelperPaneOpen(true);
+        }
+        else if (updatedValue === '' || !wordBeforeCursor || wordBeforeCursor.trim() === '') {
+            setIsHelperPaneOpen(false);
+            setIsCompletionsOpen(false);
+        }
+        else {
+            console.log("WORD_BEFORE_CURSOR:", wordBeforeCursor)
+            const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
+            setFilteredCompletions(newFilteredCompletions);
+            if (newFilteredCompletions.length > 0) {
+                setIsHelperPaneOpen(false)
+                setIsCompletionsOpen(true)
+            }
+            else {
+                console.log("NO COMPLETIONS")
+                setIsHelperPaneOpen(false)
+                setIsCompletionsOpen(false);
+            }
+        }
         if (
             lastTypedText === '#$ARROWLEFT' ||
             lastTypedText === '#$ARROWRIGHT' ||
@@ -131,6 +171,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         ) {
             pendingCursorPositionUpdateRef.current = cursorPosition;
             fetchInitialTokens(props.value);
+            if (lastTypedText === '#$FOCUS') {
+                setIsHelperPaneOpen(true)
+            }
             return;
         }
         if (
@@ -327,42 +370,42 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         setIsHelperPaneOpen(prev => !prev);
     }, []);
 
-    useEffect(() => {
-        if (chipClicked) {
-            setIsHelperPaneOpen(true);
-            setIsCompletionsOpen(false);
-            return;
-        }
-        const fullText = getTextValueFromExpressionModel(expressionModel);
-        if (fullText.length === 0) {
-            setIsCompletionsOpen(false);
-            setIsHelperPaneOpen(true);
-            return;
-        }
-        const focusedElement = expressionModel?.find(el => el.isFocused);
-        calculateCompletionsMenuPosition(fieldContainerRef, setMenuPosition);
-        if (!focusedElement) {
-            setIsCompletionsOpen(false);
-            setIsHelperPaneOpen(false);
-            return;
-        }
-        const wordBeforeCursor = getWordBeforeCursor(expressionModel);
-        const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
-        setFilteredCompletions(newFilteredCompletions);
-        if (!wordBeforeCursor || wordBeforeCursor.trim() === '') {
-            setIsCompletionsOpen(false);
-            setIsHelperPaneOpen(true);
-        }
-        else if (filteredCompletions.length > 0) {
-            setIsCompletionsOpen(true);
-            setIsHelperPaneOpen(false);
-        }
-        else {
-            setIsCompletionsOpen(false);
-            setIsHelperPaneOpen(true);
-        }
+    // useEffect(() => {
+    //     if (chipClicked) {
+    //         setIsHelperPaneOpen(true);
+    //         setIsCompletionsOpen(false);
+    //         return;
+    //     }
+    //     const fullText = getTextValueFromExpressionModel(expressionModel);
+    //     if (fullText.length === 0) {
+    //         setIsCompletionsOpen(false);
+    //         setIsHelperPaneOpen(true);
+    //         return;
+    //     }
+    //     const focusedElement = expressionModel?.find(el => el.isFocused);
+    //     calculateCompletionsMenuPosition(fieldContainerRef, setMenuPosition);
+    //     if (!focusedElement) {
+    //         setIsCompletionsOpen(false);
+    //         setIsHelperPaneOpen(false);
+    //         return;
+    //     }
+    //     const wordBeforeCursor = getWordBeforeCursor(expressionModel);
+    //     const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
+    //     setFilteredCompletions(newFilteredCompletions);
+    //     if (!wordBeforeCursor || wordBeforeCursor.trim() === '') {
+    //         setIsCompletionsOpen(false);
+    //         setIsHelperPaneOpen(true);
+    //     }
+    //     else if (filteredCompletions.length > 0) {
+    //         setIsCompletionsOpen(true);
+    //         setIsHelperPaneOpen(false);
+    //     }
+    //     else {
+    //         setIsCompletionsOpen(false);
+    //         setIsHelperPaneOpen(true);
+    //     }
 
-    }, [expressionModel])
+    // }, [expressionModel])
 
     return (
         <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative' }}>
