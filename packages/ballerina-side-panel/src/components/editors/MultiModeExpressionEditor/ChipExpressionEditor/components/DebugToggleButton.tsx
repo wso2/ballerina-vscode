@@ -16,12 +16,30 @@
  * under the License.
  */
 
-export enum InputMode {
-    TEXT = "Text",
-    EXP = "Expression"
-}
+import React from "react";
+import { FloatingToggleButton } from "./FloatingToggleButton";
 
-export const INPUT_MODE_MAP = {
-  string: InputMode.TEXT,
-  //later add more when needed
+export type DebugToggleButtonProps = {
+    isActive: boolean;
+    onToggle: () => void;
+};
+
+export const DebugToggleButton: React.FC<DebugToggleButtonProps> = ({ 
+    isActive, 
+    onToggle 
+}) => {
+    const handleClick = () => {
+        console.log("Debug toggle button clicked - Active state:", !isActive);
+        onToggle();
+    };
+
+    return (
+        <FloatingToggleButton
+            isActive={isActive}
+            onClick={handleClick}
+            title="Debug Mode"
+        >
+            D
+        </FloatingToggleButton>
+    );
 };

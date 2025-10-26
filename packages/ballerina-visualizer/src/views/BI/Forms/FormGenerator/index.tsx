@@ -97,6 +97,7 @@ import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getImportedTypes } from "../../TypeEditor/utils";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -230,6 +231,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
 
+    const { addModal, closeModal, popModal } = useModalStack()
+
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
 
     const skipFormValidation = useMemo(() => {
@@ -340,6 +343,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node.codedata.node === "IF") {
             return;
         }
+        initForm(node);
         initForm(node);
         handleFormOpen();
 
@@ -881,7 +885,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,
@@ -946,6 +949,20 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     }
 
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: filePath,
+            position: position
+        })
+    }
+
+    const popupManager = {
+        addPopup: addModal,
+        removeLastPopup: popModal,
+        closePopup: closeModal
+    }
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -954,6 +971,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,
@@ -1383,6 +1403,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
+                    popupManager={popupManager}
                     onSubmit={handleOnSubmit}
                     onBlur={handleOnBlur}
                     openView={handleOpenView}
