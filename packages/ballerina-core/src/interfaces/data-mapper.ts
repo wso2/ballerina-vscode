@@ -115,6 +115,7 @@ export interface ExpandedDMModel {
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface DMModel {
@@ -127,6 +128,7 @@ export interface DMModel {
     query?: Query;
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface ModelState {
