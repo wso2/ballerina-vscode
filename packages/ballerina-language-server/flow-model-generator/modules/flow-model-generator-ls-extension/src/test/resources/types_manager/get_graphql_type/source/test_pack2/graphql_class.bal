@@ -48,3 +48,21 @@ service /graphql/api on new graphql:Listener(9090) {
         return [new Teacher("Walter White", "Chemistry"), new Student("Jesse Pinkman")];
     }
 }
+
+service class UndergraduateStudent1 {
+    resource function get name() returns @graphql:ID string {
+        return "Jesse Pinkman";
+    }
+}
+
+service class UndergraduateStudent2 {
+    resource function get name(@graphql:ID string username, string lastName) returns string {
+        return username + "aka" + lastName;
+    }
+}
+
+service class UndergraduateStudent3 {
+    resource function get name(@graphql:ID string username, string lastName) returns @graphql:ID string {
+        return username + "aka" + lastName;
+    }
+}

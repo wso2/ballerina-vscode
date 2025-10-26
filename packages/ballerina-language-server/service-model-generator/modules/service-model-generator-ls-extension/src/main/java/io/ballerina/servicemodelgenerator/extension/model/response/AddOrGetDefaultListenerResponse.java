@@ -20,7 +20,6 @@ package io.ballerina.servicemodelgenerator.extension.model.response;
 
 import org.eclipse.lsp4j.TextEdit;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,9 +28,7 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-public class AddOrGetDefaultListenerResponse {
-    private String errorMsg;
-    private String stacktrace;
+public class AddOrGetDefaultListenerResponse extends AbstractServiceModelResponse {
     private String defaultListenerRef;
     private Map<String, List<TextEdit>> textEdits;
 
@@ -39,24 +36,7 @@ public class AddOrGetDefaultListenerResponse {
     }
 
     public AddOrGetDefaultListenerResponse(Throwable e) {
-        this.errorMsg = e.toString();
-        this.stacktrace = Arrays.toString(e.getStackTrace());
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
-    }
-
-    public void setErrorMsg(String errorMsg) {
-        this.errorMsg = errorMsg;
-    }
-
-    public String getStacktrace() {
-        return stacktrace;
-    }
-
-    public void setStacktrace(String stacktrace) {
-        this.stacktrace = stacktrace;
+        super.setError(e);
     }
 
     public String getDefaultListenerRef() {

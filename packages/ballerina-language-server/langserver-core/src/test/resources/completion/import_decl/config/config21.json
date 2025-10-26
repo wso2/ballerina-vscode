@@ -1022,6 +1022,9 @@
     },
     {
       "label": "module1:GLOBAL_VAR",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -1210,6 +1213,9 @@
     },
     {
       "label": "module1:TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "B",
@@ -1229,6 +1235,10 @@
     },
     {
       "label": "module1:listener1",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "B",

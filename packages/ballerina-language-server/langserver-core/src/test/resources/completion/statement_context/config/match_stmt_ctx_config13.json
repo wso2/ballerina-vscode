@@ -372,6 +372,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -402,6 +405,9 @@
     },
     {
       "label": "r1",
+      "labelDetails": {
+        "detail": " MyRecord"
+      },
       "kind": "Variable",
       "detail": "MyRecord",
       "sortText": "AB",

@@ -53,6 +53,7 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -80,6 +81,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.ballerina.openapi.core.generators.common.GeneratorConstants.DEFAULT_FILE_HEADER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
@@ -93,8 +95,6 @@ public class OpenApiServiceGenerator {
     private final WorkspaceManager workspaceManager;
     private final Path openAPIContractPath;
     private final Path projectPath;
-    public static final List<String> SUPPORTED_OPENAPI_VERSIONS = List.of("2.0", "3.0.0", "3.0.1", "3.0.2", "3.0.3",
-            "3.1.0");
     public static final String LS = System.lineSeparator();
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -114,15 +114,29 @@ public class OpenApiServiceGenerator {
         this.workspaceManager = workspaceManager;
     }
 
-    public Map<String, List<TextEdit>> generateService(Service service, ListenerUtil.DefaultListener
-            defaultListener)
+    public Map<String, List<TextEdit>> generateService(Service service, ListenerUtil.DefaultListener defaultListener)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
+        String typeName = service.getServiceContractTypeName();
+        String listeners = service.getListener().getValue();
+        String listenerDeclaration = null;
+        if (Objects.nonNull(defaultListener)) {
+            listenerDeclaration = ListenerUtil.getDefaultListenerDeclarationStmt(defaultListener);
+        }
+        return generateService(typeName, listeners, listenerDeclaration);
+    }
+
+    public Map<String, List<TextEdit>> generateService(ServiceInitModel service, String listeners,
+                                                       String listenerDeclaration) throws WorkspaceDocumentException,
+            FormatterException, IOException, BallerinaOpenApiException, EventSyncException {
+        String typeName = service.getServiceContractTypeName();
+        return generateService(typeName, listeners, listenerDeclaration);
+    }
+
+    private Map<String, List<TextEdit>> generateService(String typeName, String listeners, String listenerDeclaration)
             throws IOException,
             BallerinaOpenApiException, FormatterException, WorkspaceDocumentException, EventSyncException {
         Filter filter = new Filter(new ArrayList<>(), new ArrayList<>());
-
-        String typeName = service.getServiceContractTypeName();
-        String listeners = service.getListener().getValue();
-
 
         List<Diagnostic> diagnostics = new ArrayList<>();
         GenSrcFile serviceTypeFile = generateServiceType(openAPIContractPath, typeName, filter, diagnostics);
@@ -158,19 +172,14 @@ public class OpenApiServiceGenerator {
                 String importText = Utils.getImportStmt("ballerina", "http");
                 textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
-
-            if (Objects.nonNull(defaultListener)) {
-                String stmt = ListenerUtil.getDefaultListenerDeclarationStmt(defaultListener);
-                textEdits.add(new TextEdit(Utils.toRange(defaultListener.linePosition()), stmt));
-            }
-
-            StringBuilder serviceBuilder = new StringBuilder();
-
             String serviceImplContent = genServiceImplementation(serviceTypeFile, typeName, listeners, project,
                     mainFile);
-            serviceBuilder.append(serviceImplContent);
-
-            textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceBuilder.toString()));
+            StringBuilder builder = new StringBuilder(NEW_LINE);
+            if (Objects.nonNull(listenerDeclaration)) {
+                builder.append(listenerDeclaration).append(NEW_LINE);
+            }
+            builder.append(serviceImplContent);
+            textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
             textEditsMap.put(mainFile.toAbsolutePath().toString(), textEdits);
         }
         textEditsMap.put(projectPath.resolve(serviceTypeFile.getFileName()).toAbsolutePath().toString(),
@@ -185,8 +194,6 @@ public class OpenApiServiceGenerator {
             throw new BallerinaOpenApiException("Info section of the definition file cannot be empty/null: " +
                     openAPI);
         }
-
-        checkOpenAPIVersion(openAPIDef);
 
         // Validate the service generation
         List<String> complexPaths = GeneratorUtils.getComplexPaths(openAPIDef);
@@ -333,16 +340,16 @@ public class OpenApiServiceGenerator {
             if (!typeStr.contains(BALLERINA_HTTP)) {
                 return "";
             }
-            if (typeStr.contains("InternalServerError")) {
+            if (typeStr.contains("http:InternalServerError")) {
                 return "http:INTERNAL_SERVER_ERROR";
             }
-            if (typeStr.contains("NotFound")) {
+            if (typeStr.contains("http:NotFound")) {
                 return "http:NOT_FOUND";
             }
-            if (typeStr.contains("MethodNotAllowed")) {
+            if (typeStr.contains("http:MethodNotAllowed")) {
                 return "http:METHOD_NOT_ALLOWED";
             }
-            if (typeStr.contains("BadRequest")) {
+            if (typeStr.contains("http:BadRequest")) {
                 return "http:BAD_REQUEST";
             }
             // TODO: Add more possible status codes
@@ -423,13 +430,5 @@ public class OpenApiServiceGenerator {
         Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+\\.\\d+\\.\\d+):");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll("$2");
-    }
-
-    private void checkOpenAPIVersion(OpenAPI openAPIDef) throws BallerinaOpenApiException {
-        if (!SUPPORTED_OPENAPI_VERSIONS.contains(openAPIDef.getOpenapi())) {
-            String sb = String.format("WARNING: The tool has not been tested with OpenAPI version %s. The generated " +
-                    "code may potentially contain errors.", openAPIDef.getOpenapi()) + System.lineSeparator();
-            throw new BallerinaOpenApiException(sb);
-        }
     }
 }

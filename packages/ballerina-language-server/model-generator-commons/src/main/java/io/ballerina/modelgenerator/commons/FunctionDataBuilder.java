@@ -81,7 +81,6 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -156,7 +155,7 @@ public class FunctionDataBuilder {
                         FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
                 StandardCharsets.UTF_8)) {
             map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             map = Map.of();
         }
         CONNECTOR_NAME_MAP = map;
@@ -641,7 +640,12 @@ public class FunctionDataBuilder {
     }
 
     private Optional<FunctionData> getFunctionFromIndex() {
-        DatabaseManager dbManager = DatabaseManager.getInstance();
+        DatabaseManager dbManager;
+        try {
+            dbManager = DatabaseManager.getInstance();
+        } catch (Throwable e) {
+            return Optional.empty();
+        }
 
         // Skipping the index since we currently only index connectors with the name "Client".
         // TODO: This should be removed after the package index is revamped.

@@ -510,6 +510,10 @@
     },
     {
       "label": "lst",
+      "labelDetails": {
+        "detail": " module1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "module1:Listener",
       "sortText": "B",
@@ -533,6 +537,9 @@
     },
     {
       "label": "self",
+      "labelDetails": {
+        "detail": " isolated service object {resource function name . () returns ();}"
+      },
       "kind": "Variable",
       "detail": "isolated service object {resource function name . () returns ();}",
       "sortText": "B",

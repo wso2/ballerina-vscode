@@ -100,6 +100,7 @@
         "name": "profile21",
         "description": "",
         "returnType": "AbstractProfile",
+        "isGraphqlId": false,
         "refs": [
           "AbstractProfile"
         ],
@@ -152,6 +153,7 @@
         "name": "profile",
         "description": "",
         "returnType": "UserProfile",
+        "isGraphqlId": false,
         "refs": [
           "UserProfile"
         ],
@@ -207,13 +209,15 @@
             "type": "UserName",
             "name": "userName",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "REMOTE",
         "name": "updateName",
         "description": "",
         "returnType": "UserProfile",
+        "isGraphqlId": false,
         "refs": [
           "UserProfile"
         ],
@@ -351,6 +355,7 @@
           "name": "number",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -360,6 +365,7 @@
           "name": "street",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -369,6 +375,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -520,6 +527,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -529,6 +537,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -544,6 +553,7 @@
           "name": "name",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -594,6 +604,7 @@
           "name": "age",
           "description": "",
           "returnType": "int",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -644,6 +655,7 @@
           "name": "isAdult",
           "description": "",
           "returnType": "boolean",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -778,6 +790,7 @@
           "name": "name",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -787,6 +800,7 @@
           "name": "age",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -798,6 +812,7 @@
           "name": "address",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

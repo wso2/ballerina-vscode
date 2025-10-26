@@ -114,6 +114,7 @@
         "name": "getUuid",
         "description": "",
         "returnType": "int",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {

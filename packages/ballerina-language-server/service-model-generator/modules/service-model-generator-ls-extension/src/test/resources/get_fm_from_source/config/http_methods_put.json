@@ -1,0 +1,641 @@
+{
+  "filePath": "http_service/basic_http_methods.bal",
+  "description": "",
+  "codedata": {
+    "lineRange": {
+      "fileName": "basic_http_methods.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 5
+      }
+    }
+  },
+  "response": {
+    "kind": "RESOURCE",
+    "accessor": {
+      "metadata": {
+        "label": "Resource Accessor",
+        "description": "The resource accessor"
+      },
+      "placeholder": "GET",
+      "valueType": "SINGLE_SELECT",
+      "valueTypeConstraint": "http:Method",
+      "value": "put",
+      "items": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD",
+        "DEFAULT"
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Resource Path",
+        "description": "The resource path"
+      },
+      "placeholder": "",
+      "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "string",
+      "value": "users/[string id]",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "Request",
+          "description": "The HTTP Request"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "http:Request",
+          "value": "http:Request",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "request",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "Caller",
+          "description": "The HTTP Caller"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "http:Caller",
+          "value": "http:Caller",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "caller",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "Headers",
+          "description": "The HTTP Headers"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "http:Headers",
+          "value": "http:Headers",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "headers",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "payload",
+          "description": "payload"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "json",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "payload",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD",
+        "properties": {
+          "annotPayload": {
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Payload",
+              "moduleName": "http"
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      }
+    ],
+    "schema": {
+      "query": {
+        "metadata": {
+          "label": "Query",
+          "description": "The Query Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "anydata",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value"
+          },
+          "placeholder": "",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
+      },
+      "header": {
+        "metadata": {
+          "label": "Header",
+          "description": "The Header Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "anydata",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "name",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value"
+          },
+          "placeholder": "",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "anydata",
+          "value": "",
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER"
+      },
+      "payload": {
+        "metadata": {
+          "label": "Payload",
+          "description": "The Payload Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "",
+          "valueType": "TYPE",
+          "valueTypeConstraint": "anydata",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
+      }
+    },
+    "returnType": {
+      "responses": [
+        {
+          "statusCode": {
+            "valueType": "SINGLE_SELECT",
+            "value": "200",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "valueType": "TYPE",
+            "value": "json",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "application/json",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "valueType": "IDENTIFIER",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "valueType": "TYPE",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "valueType": "SINGLE_SELECT",
+            "value": "404",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "valueType": "TYPE",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "valueType": "IDENTIFIER",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "valueType": "TYPE",
+            "value": "http:NotFound",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "valueType": "HEADER_SET",
+            "value": "",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
+        }
+      ],
+      "schema": {
+        "statusCodeResponse": {
+          "statusCode": {
+            "metadata": {
+              "label": "Status Code",
+              "description": "HTTP status code for the response"
+            },
+            "placeholder": "",
+            "valueType": "SINGLE_SELECT",
+            "valueTypeConstraint": "",
+            "value": "",
+            "items": [],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "Response Body Schema",
+              "description": "Schema of the response body or data type of the response body"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "metadata": {
+              "label": "Content Type",
+              "description": "Value for the Content-Type header in the response"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "name": {
+            "metadata": {
+              "label": "Response Definition Name",
+              "description": "Define a name for the response definition"
+            },
+            "valueType": "OPTIONAL_IDENTIFIER",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "type": {
+            "metadata": {
+              "label": "Response Type",
+              "description": "Select a response type"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "headers": {
+            "metadata": {
+              "label": "Headers",
+              "description": "Add mandatory or optional headers to the response"
+            },
+            "valueType": "HEADER_SET",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        }
+      },
+      "hasError": false,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return type",
+        "description": "Return type of the function"
+      },
+      "placeholder": "",
+      "valueType": "TYPE",
+      "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
+      "value": "json|http:NotFound",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "basic_http_methods.bal",
+        "startLine": {
+          "line": 25,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 27,
+          "offset": 5
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
+    },
+    "properties": {
+      "annotResourceConfig": {
+        "metadata": {
+          "label": "Resource Configuration",
+          "description": "Define advanced configurations like resource level media types, security, etc."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "http"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "http:HttpResourceConfig",
+        "typeMembers": [
+          {
+            "type": "HttpResourceConfig",
+            "packageInfo": "ballerina:http:2.14.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    }
+  }
+}

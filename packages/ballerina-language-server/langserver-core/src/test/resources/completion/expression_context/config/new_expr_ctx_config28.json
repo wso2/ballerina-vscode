@@ -643,6 +643,9 @@
     },
     {
       "label": "cl",
+      "labelDetails": {
+        "detail": " MyClass"
+      },
       "kind": "Variable",
       "detail": "MyClass",
       "sortText": "CB",

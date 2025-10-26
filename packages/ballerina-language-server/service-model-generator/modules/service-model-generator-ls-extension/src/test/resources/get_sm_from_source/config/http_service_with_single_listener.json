@@ -19,6 +19,21 @@
     "packageName": "http",
     "listenerProtocol": "http",
     "icon": "http://localhost:8080/icons/http.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the service"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -29,7 +44,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "http:Listener",
         "value": "httpListener",
         "values": [],
@@ -38,6 +53,27 @@
           "githubListener",
           "(+) Create and use the default HTTP listener (port: 9090)"
         ],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 8,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 8,
+                  "offset": 33
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -45,7 +81,7 @@
       },
       "basePath": {
         "metadata": {
-          "label": "Service Base Path",
+          "label": "Base Path",
           "description": ""
         },
         "codedata": {
@@ -84,7 +120,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {

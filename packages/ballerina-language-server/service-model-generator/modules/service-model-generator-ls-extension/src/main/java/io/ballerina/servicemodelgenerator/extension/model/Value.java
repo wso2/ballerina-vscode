@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
+
 /**
  * Represents model to show input field in the UI.
  *
@@ -132,10 +134,21 @@ public class Value {
         if (value instanceof String) {
             return (String) value;
         }
+        if (value instanceof Boolean) {
+            return String.valueOf(value);
+        }
         if (value instanceof JsonPrimitive) {
             return ((JsonPrimitive) value).getAsString();
         }
         return null;
+    }
+
+    public String getLiteralValue() {
+        String valueStr = getValue();
+        if (valueStr != null && valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE)) {
+            return valueStr;
+        }
+        return DOUBLE_QUOTE + valueStr + DOUBLE_QUOTE;
     }
 
     public Object getValueAsObject() {

@@ -20,22 +20,41 @@ package io.ballerina.designmodelgenerator.core;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassFieldSymbol;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.designmodelgenerator.core.model.Connection;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +92,7 @@ public class ConnectionFinder {
                 intermediateModel.connectionMap.put(refLocation, connection);
                 intermediateModel.uuidToConnectionMap.put(connection.getUuid(), connection);
             }
+            return;
         }
         if (symbol instanceof ClassFieldSymbol classFieldSymbol) {
             if (classFieldSymbol.hasDefaultValue()) {
@@ -116,6 +136,21 @@ public class ConnectionFinder {
                                 intermediateModel.connectionMap.put(String.valueOf(refLocation), connection);
                                 intermediateModel.uuidToConnectionMap.put(connection.getUuid(), connection);
                             }
+                            // Process constructor arguments to find dependent connections
+                            TypeSymbol rawType = CommonUtils.getRawType(classFieldSymbol.typeDescriptor());
+                            if (rawType instanceof ClassSymbol) {
+                                ExpressionNode expressionNode = assignmentStatementNode.expression();
+                                if (expressionNode instanceof CheckExpressionNode checkExpressionNode) {
+                                    expressionNode = checkExpressionNode.expression();
+                                }
+                                if (expressionNode instanceof NewExpressionNode newExpressionNode) {
+                                    SeparatedNodeList<FunctionArgumentNode> argList = getArgList(newExpressionNode);
+                                    List<ExpressionNode> argExprs = getInitMethodArgExprs(argList);
+                                    for (ExpressionNode argExpr : argExprs) {
+                                        handleInitMethodArgs(connection, argExpr);
+                                    }
+                                }
+                            }
                         } else {
                             Optional<Symbol> valueSymbol = semanticModel.symbol(assignmentStatementNode.expression());
                             if (valueSymbol.isPresent()) { // TODO: handle for function calls
@@ -140,6 +175,12 @@ public class ConnectionFinder {
                     if (node instanceof VariableDeclarationNode variableDeclarationNode) {
                         if (variableDeclarationNode.initializer().isEmpty()) {
                             continue;
+                        }
+                        TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+                        if (typeSymbol instanceof ObjectTypeSymbol objectTypeSymbol) {
+                            if (!objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                                continue;
+                            }
                         }
                         if (isNewConnection(variableDeclarationNode.initializer().get())) {
                             LineRange lineRange = node.lineRange();
@@ -196,5 +237,71 @@ public class ConnectionFinder {
         return new io.ballerina.designmodelgenerator.core.model.Location(
                 filePath.toAbsolutePath().toString(), lineRange.startLine(),
                 lineRange.endLine());
+    }
+
+    public SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
+        if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+            return explicitNewExpressionNode.parenthesizedArgList().arguments();
+        } else {
+            Optional<ParenthesizedArgList> parenthesizedArgList = ((ImplicitNewExpressionNode) newExpressionNode)
+                    .parenthesizedArgList();
+            return parenthesizedArgList.map(ParenthesizedArgList::arguments)
+                    .orElse(NodeFactory.createSeparatedNodeList());
+        }
+    }
+
+    public List<ExpressionNode> getInitMethodArgExprs(SeparatedNodeList<FunctionArgumentNode> argumentNodes) {
+        List<ExpressionNode> arguments = new ArrayList<>();
+
+        for (int argIdx = 0; argIdx < argumentNodes.size(); argIdx++) {
+            Node argument = argumentNodes.get(argIdx);
+            if (argument == null) {
+                continue;
+            }
+            SyntaxKind argKind = argument.kind();
+            if (argKind == SyntaxKind.NAMED_ARG) {
+                arguments.add(((NamedArgumentNode) argument).expression());
+            } else if (argKind == SyntaxKind.POSITIONAL_ARG) {
+                arguments.add(((PositionalArgumentNode) argument).expression());
+            }
+        }
+        return arguments;
+    }
+
+    public void handleInitMethodArgs(Connection connection, ExpressionNode expressionNode) {
+        if (expressionNode instanceof ListConstructorExpressionNode listConstructorExpressionNode) {
+            for (Node expr : listConstructorExpressionNode.expressions()) {
+                Optional<Symbol> symbol = this.semanticModel.symbol(expr);
+                if (symbol.isEmpty()) {
+                    continue;
+                }
+                if (symbol.get() instanceof FunctionSymbol functionSymbol) {
+                    connection.addDependentFunction(functionSymbol.getName().orElse(""));
+                }
+            }
+        } else if (expressionNode instanceof MappingConstructorExpressionNode mappingConstructorExpressionNode) {
+            for (Node expr : mappingConstructorExpressionNode.fields()) {
+                if (expr instanceof SpecificFieldNode specificFieldNode) {
+                    if (specificFieldNode.valueExpr().isPresent()) {
+                        handleInitMethodArgs(connection, specificFieldNode.valueExpr().get());
+                    }
+                }
+            }
+        } else if (expressionNode instanceof SimpleNameReferenceNode varRef) {
+            Optional<Symbol> symbol = this.semanticModel.symbol(varRef);
+            if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol &&
+                    symbol.get().getLocation().isPresent()) {
+                TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+                if (rawType instanceof ClassSymbol classSymbol) {
+                    if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                        String hashCode = String.valueOf(symbol.get().getLocation().get().hashCode());
+                        if (intermediateModel.connectionMap.containsKey(hashCode)) {
+                            Connection dependentConnection = intermediateModel.connectionMap.get(hashCode);
+                            connection.addDependentConnection(dependentConnection.getUuid());
+                        }
+                    }
+                }
+            }
+        }
     }
 }

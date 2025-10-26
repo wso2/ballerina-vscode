@@ -96,6 +96,7 @@
         "name": "'order",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],

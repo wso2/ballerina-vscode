@@ -1,0 +1,4 @@
+[package]
+org = "mcp"
+name = "service_designer"
+version = "0.1.0"

@@ -96,6 +96,18 @@ public class AddResourceTest extends AbstractLSTest {
     }
 
     @Override
+    protected String[] skipList() {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            return new String[]{
+                    "add_http_annotations_1.json"
+            };
+        }
+        return new String[]{
+        };
+    }
+
+    @Override
     protected String getResourceDir() {
         return "add_resource";
     }

@@ -1,3 +1,4 @@
+# This is a sample Ballerina service class definition
 public service class Book {
     private final string id;
     private final string name;
@@ -28,6 +29,8 @@ public service class Book {
         }
     }
 
+    # Remote method to add an author
+    # + author - Author ID
     remote function addAuthor(Author author) {
         do {
             self.authors.push(author);

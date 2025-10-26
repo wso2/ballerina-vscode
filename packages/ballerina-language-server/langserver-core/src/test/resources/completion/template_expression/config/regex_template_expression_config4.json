@@ -524,6 +524,9 @@
     },
     {
       "label": "regex1",
+      "labelDetails": {
+        "detail": " string:RegExp"
+      },
       "kind": "Variable",
       "detail": "string:RegExp",
       "sortText": "ACB",
@@ -557,6 +560,9 @@
     },
     {
       "label": "intVal",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "ACB",

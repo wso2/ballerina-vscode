@@ -487,6 +487,10 @@
     },
     {
       "label": "validator1",
+      "labelDetails": {
+        "detail": " boolean",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "B",
@@ -514,6 +518,10 @@
     },
     {
       "label": "validator2",
+      "labelDetails": {
+        "detail": " boolean",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "B",

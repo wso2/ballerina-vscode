@@ -96,6 +96,7 @@
         "name": "houseNo",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -105,6 +106,7 @@
         "name": "line1",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -114,6 +116,7 @@
         "name": "line2",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -123,6 +126,7 @@
         "name": "city",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -132,6 +136,7 @@
         "name": "country",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],

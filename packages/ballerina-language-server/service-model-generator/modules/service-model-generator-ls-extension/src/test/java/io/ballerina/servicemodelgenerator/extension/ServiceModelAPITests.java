@@ -163,7 +163,7 @@ public class ServiceModelAPITests {
         ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
         Listener listener = modelResponse.listener();
 
-        Value name = listener.getProperty("name");
+        Value name = listener.getVariableNameProperty();
         name.setValue("httpListener");
         Value port = listener.getProperty("port");
         port.setValue("9999");
@@ -187,7 +187,7 @@ public class ServiceModelAPITests {
         ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
         Listener listener = modelResponse.listener();
 
-        Value name = listener.getProperty("name");
+        Value name = listener.getVariableNameProperty();
         name.setValue("agentListener");
         Value listenOn = listener.getProperty("listenOn");
         listenOn.setValue("check http:getDefaultListener()");
@@ -470,7 +470,7 @@ public class ServiceModelAPITests {
         Listener listener = modelResponse.listener();
         Assert.assertTrue(Objects.nonNull(listener));
 
-        Value name = listener.getProperty("name");
+        Value name = listener.getVariableNameProperty();
         name.setValue("githubTestListener");
         Value listenerConfig = listener.getProperty("listenerConfig");
         listenerConfig.setValue("{webhookSecret: \"secret\"}");
@@ -616,7 +616,7 @@ public class ServiceModelAPITests {
         ListenerFromSourceResponse sourceResponse = (ListenerFromSourceResponse) sourceResult.get();
         Listener listener = sourceResponse.listener();
         Assert.assertTrue(Objects.nonNull(listener));
-        Value name = listener.getProperty("name");
+        Value name = listener.getVariableNameProperty();
         name.setValue("newHttpListener");
         Value port = listener.getProperty("port");
         port.setValue("8080");

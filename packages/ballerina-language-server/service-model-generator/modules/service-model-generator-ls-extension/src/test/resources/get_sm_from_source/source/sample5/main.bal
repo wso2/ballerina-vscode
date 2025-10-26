@@ -15,6 +15,11 @@ table<Profile> key(id) profiles = table [
         {id: 2, name: "Jesse Pinkman", age: 25}
     ];
 
+# This GraphQL service demonstrates the use of queries, mutations, and subscriptions.
+# It consists of:
+# A query to return a greeting message.
+# A mutation to update a profile's name.
+# A subscription to stream names from a predefined list.
 @graphql:ServiceConfig {
     introspection: false
 }

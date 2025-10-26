@@ -91,5 +91,14 @@
       "service",
       "event"
     ]
+  },
+  "10": {
+    "name": "mcp",
+    "orgName": "ballerina",
+    "packageName": "mcp",
+    "keywords": [
+      "mcp"
+    ]
   }
 }
+ 

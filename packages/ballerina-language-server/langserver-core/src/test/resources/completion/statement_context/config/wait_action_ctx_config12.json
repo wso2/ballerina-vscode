@@ -369,6 +369,9 @@
     },
     {
       "label": "fs",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "B",
@@ -385,6 +388,9 @@
     },
     {
       "label": "fs2",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "B",

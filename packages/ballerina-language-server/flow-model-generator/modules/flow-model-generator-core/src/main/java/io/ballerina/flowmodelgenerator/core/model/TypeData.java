@@ -26,16 +26,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @param name          type Symbol Name
- * @param editable      is editable type
- * @param metadata      type symbol short display details
- * @param codedata      codedata of the type
- * @param properties    properties of the type
- * @param members       members of the type
- * @param restMember    rest member of the type
- * @param includes      type inclusions of the type
- * @param functions     functions of a class or object
- * @param annotations   annotations of the type
+ * @param name                  type Symbol Name
+ * @param editable              is editable type
+ * @param metadata              type symbol short display details
+ * @param codedata              codedata of the type
+ * @param properties            properties of the type
+ * @param members               members of the type
+ * @param restMember            rest member of the type
+ * @param includes              type inclusions of the type
+ * @param functions             functions of a class or object
+ * @param annotationAttachments annotations of the type
  * @param allowAdditionalFields allow additional fields
  */
 public record TypeData(
@@ -48,7 +48,7 @@ public record TypeData(
         Member restMember,
         List<String> includes,
         List<Function> functions,
-        List<Annotation> annotations,
+        List<AnnotationAttachment> annotationAttachments,
         boolean allowAdditionalFields
 ) {
 
@@ -60,7 +60,7 @@ public record TypeData(
         private Member restMember;
         private List<Function> functions;
         private List<String> includes;
-        private List<TypeData.Annotation> annotations;
+        private List<AnnotationAttachment> annotationAttachments;
         protected Metadata.Builder<TypeDataBuilder> metadataBuilder;
         protected Codedata.Builder<TypeDataBuilder> codedataBuilder;
         protected FormBuilder<TypeDataBuilder> formBuilder;
@@ -127,8 +127,8 @@ public record TypeData(
             return this;
         }
 
-        public TypeDataBuilder annotations(List<TypeData.Annotation> annotations) {
-            this.annotations = annotations;
+        public TypeDataBuilder annotationAttachments(List<AnnotationAttachment> annotationAttachments) {
+            this.annotationAttachments = annotationAttachments;
             return this;
         }
 
@@ -163,12 +163,25 @@ public record TypeData(
                     restMember,
                     includes,
                     functions,
-                    annotations,
+                    annotationAttachments,
                     allowAdditionalFields
             );
         }
     }
 
-    public record Annotation(String name, Map<String, Property> properties) {
+    public record AnnotationAttachment(String modulePrefix, String name, Map<String, Property> properties) {
+
+        @Override
+        public String toString() {
+            if (name == null || name.isEmpty()) {
+                return "";
+            }
+
+            if (modulePrefix == null || modulePrefix.isEmpty()) {
+                return "@" + name;
+            }
+
+            return "@" + modulePrefix + ":" + name;
+        }
     }
 }

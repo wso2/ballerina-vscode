@@ -1,6 +1,6 @@
 {
   "description": "Combined orgName and query search test for memory managers",
-  "kind": "MEMORY_MANAGER",
+  "kind": "MEMORY",
   "source": "empty.bal",
   "queryMap": {
     "orgName": "ballerina",
@@ -9,16 +9,16 @@
   "categories": [
     {
       "metadata": {
-        "label": "Memory Managers"
+        "label": "Memory"
       },
       "items": [
         {
           "metadata": {
             "label": "Message Window Chat Memory",
-            "description": "A memory manager that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+            "description": "A memory implementation that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
           },
           "codedata": {
-            "node": "CLASS_INIT",
+            "node": "MEMORY",
             "org": "ballerina",
             "module": "ai",
             "packageName": "ai",

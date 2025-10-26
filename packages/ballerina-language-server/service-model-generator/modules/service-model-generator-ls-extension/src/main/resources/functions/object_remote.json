@@ -5,6 +5,19 @@
   },
   "qualifiers": [],
   "kind": "REMOTE",
+  "documentation": {
+    "metadata": {
+      "label": "Description",
+      "description": "The description of the resource"
+    },
+    "valueType": "STRING",
+    "enabled": true,
+    "editable": true,
+    "isType": false,
+    "optional": true,
+    "advanced": false,
+    "addNewButton": false
+  },
   "accessor": {
     "metadata": {
       "label": "Accessor",
@@ -72,6 +85,19 @@
         "editable": true,
         "isType": false,
         "optional": false,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the parameter"
+        },
+        "valueType": "STRING",
+        "enabled": true,
+        "editable": true,
+        "isType": false,
+        "optional": true,
         "advanced": false,
         "addNewButton": false
       },

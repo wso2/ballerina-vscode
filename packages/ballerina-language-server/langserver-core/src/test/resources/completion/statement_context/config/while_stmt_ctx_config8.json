@@ -483,6 +483,9 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -510,6 +513,9 @@
     },
     {
       "label": "z",
+      "labelDetails": {
+        "detail": " boolean"
+      },
       "kind": "Variable",
       "detail": "boolean",
       "sortText": "AB",

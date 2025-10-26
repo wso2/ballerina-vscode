@@ -689,6 +689,9 @@
     },
     {
       "label": "orders",
+      "labelDetails": {
+        "detail": " [record {|string buyer; int price;|}, record {|string buyer; int price;|}, record {|string buyer; int price;|}, record {|string buyer; int price;|}]"
+      },
       "kind": "Variable",
       "detail": "[record {|string buyer; int price;|}, record {|string buyer; int price;|}, record {|string buyer; int price;|}, record {|string buyer; int price;|}]",
       "sortText": "D",
@@ -697,6 +700,9 @@
     },
     {
       "label": "price",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "D",
@@ -705,6 +711,9 @@
     },
     {
       "label": "buyer",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "D",
@@ -713,6 +722,9 @@
     },
     {
       "label": "buyers",
+      "labelDetails": {
+        "detail": " []"
+      },
       "kind": "Variable",
       "detail": "[]",
       "sortText": "D",

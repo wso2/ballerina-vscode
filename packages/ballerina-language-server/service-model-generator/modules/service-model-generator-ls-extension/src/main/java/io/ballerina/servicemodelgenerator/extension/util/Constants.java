@@ -30,15 +30,19 @@ public class Constants {
     public static final String CAPABILITY_NAME = "serviceModel";
     public static final String DOUBLE_QUOTE = "\"";
     public static final String TAB = "\t";
+    public static final String TWO_TABS = TAB + TAB;
     public static final String SPACE = " ";
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
+    public static final String OPEN_PAREN = "(";
+    public static final String CLOSE_PAREN = ")";
     public static final String NEW_LINE = System.lineSeparator();
     public static final String TWO_NEW_LINES = NEW_LINE + NEW_LINE;
     public static final String NEW_LINE_WITH_TAB = NEW_LINE + TAB;
     public static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
     public static final String AT = "@";
     public static final String COLON = ":";
+    public static final String COMMA = ",";
 
     public static final String SINGLE_SELECT_VALUE = "SINGLE_SELECT";
     public static final String MULTIPLE_SELECT_VALUE = "MULTIPLE_SELECT";
@@ -47,11 +51,13 @@ public class Constants {
     public static final String DEFAULT_LISTENER_ITEM_LABEL = "(+) Create and use a %s listener with " +
             "default configurations";
     public static final String DEFAULT_LISTENER_VAR_NAME = "%sDefaultListener";
+    public static final String LISTENER_VAR_NAME = "%sListener";
 
     public static final String HTTP = "http";
     public static final String GRAPHQL = "graphql";
     public static final String TCP = "tcp";
     public static final String AI = "ai";
+    public static final String MCP = "mcp";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -66,6 +72,7 @@ public class Constants {
     public static final String PROPERTY_REQUIRED_FUNCTIONS = "requiredFunctions";
     public static final String PROPERTY_DESIGN_APPROACH = "designApproach";
     public static final String PROPERTY_NAME = "name";
+    public static final String PROPERTY_BASE_PATH = "basePath";
 
     public static final String KIND_QUERY = "QUERY";
     public static final String KIND_MUTATION = "MUTATION";
@@ -76,6 +83,7 @@ public class Constants {
     public static final String KIND_REQUIRED = "REQUIRED";
     public static final String KIND_DEFAULTABLE = "DEFAULTABLE";
     public static final String KIND_OBJECT_METHOD = "OBJECT_METHOD";
+    public static final String KIND_INCLUDED_RECORD = "INCLUDED_RECORD";
 
     public static final String PARAMETER = "parameter";
     public static final String SERVICE = "service";
@@ -87,13 +95,36 @@ public class Constants {
     public static final String GET = "get";
     public static final String INIT = "init";
 
+    public static final String HTTP_SERVICE_TYPE = "http:Service";
+
+    // different input boxes in the UI
+    public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
+    public static final String VALUE_TYPE_FORM = "FORM";
+    public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
-    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
-    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+    public static final String VALUE_TYPE_STRING = "STRING";
+    public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
+    public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
+
+    public static final String DB_KIND_OPTIONAL = "OPTIONAL";
+
+    public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
+    public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";
+
+    public static final String ARG_TYPE_LISTENER_VAR_NAME = "LISTENER_VAR_NAME";
+    public static final String ARG_TYPE_LISTENER_PARAM_REQUIRED = "LISTENER_PARAM_REQUIRED";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD = "LISTENER_PARAM_INCLUDED_FIELD";
+    public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD =
+            "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
+    public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
+    public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+
+    public static final String TYPE_SERVICE = "Service";
 
     public static final String CLASS_TYPE_SERVICE = "service";
     public static final String CLASS_TYPE_CLIENT = "client";
@@ -101,6 +132,12 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
+    public static final String PROP_KEY_VARIABLE_NAME = "variableNameKey";
+    public static final String PROP_KEY_LISTENER = "listener";
+    public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
+    public static final String PROP_KEY_BASE_PATH = "basePath";
+    public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
+    public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
@@ -117,6 +154,14 @@ public class Constants {
     public static final String SF_DEFAULT_LISTENER_EXPR = "new (auth = {username: \"\", password: \"\"})";
     public static final String GITHUB_DEFAULT_LISTENER_EXPR = "new ()";
 
+    public static final String HTTP_HEADER_PARAM_ANNOTATION = "Header";
+    public static final String HTTP_QUERY_PARAM_ANNOTATION = "Query";
+    public static final String HTTP_PAYLOAD_PARAM_ANNOTATION = "Payload";
+
+    public static final String HTTP_PARAM_TYPE_PAYLOAD = "PAYLOAD";
+    public static final String HTTP_PARAM_TYPE_HEADER = "HEADER";
+    public static final String HTTP_PARAM_TYPE_QUERY = "QUERY";
+
     // file listeners
     public static final String FTP_DEFAULT_LISTENER_EXPR = "new ()";
     public static final String FILE_DEFAULT_LISTENER_EXPR = "new (path = \"\")";
@@ -131,16 +176,22 @@ public class Constants {
             "The name of the argument");
     public static final MetaData ARGUMENT_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the argument");
+    public static final MetaData ARGUMENT_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the argument");
     public static final MetaData PARAMETER_TYPE_METADATA = new MetaData("Parameter Type",
             "The type of the parameter");
     public static final MetaData PARAMETER_NAME_METADATA = new MetaData("Parameter Name",
             "The name of the parameter");
     public static final MetaData PARAMETER_DEFAULT_VALUE_METADATA = new MetaData("Default Value",
             "The default value of the parameter");
+    public static final MetaData PARAMETER_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the parameter");
     public static final MetaData FIELD_TYPE_METADATA = new MetaData("Field Type",
             "The type of the field");
     public static final MetaData FIELD_NAME_METADATA = new MetaData("Field Name",
             "The name of the field");
+    public static final MetaData FIELD_DOCUMENTAION_METADATA = new MetaData("Description",
+            "The description of the field");
     public static final MetaData FIELD_DEFAULT_VALUE_METADATA = new MetaData("Initial Value",
             "The initial value of the filed");
     public static final MetaData FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
@@ -153,9 +204,17 @@ public class Constants {
             "The resource path");
     public static final MetaData RESOURCE_FUNCTION_RETURN_TYPE_METADATA = new MetaData("Return Type",
             "The return type of the resource");
+    public static final MetaData RESOURCE_FUNCTION_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the resource");
+    public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
+            "description of the object");
 
     // organization names
     public static final String BALLERINA = "ballerina";
+
+    // types
+    public static final String USER_DEFINED_TYPE = "User-Defined";
+    public static final String ERROR_TYPE = "Error Types";
 
     // annotation attachment points
     public static final String OBJECT_METHOD = "OBJECT_METHOD";
@@ -172,6 +231,24 @@ public class Constants {
     public static final String GRAPHQL_CONTEXT_KEY = "paramContext";
     public static final String GRAPHQL_FIELD_KEY = "paramField";
     public static final String VALUE_FIELD = "value";
+
+    // Type API contexts
+    public static final String GRAPHQL_FIELD_TYPE = "GRAPHQL_FIELD_TYPE";
+    public static final String GRAPHQL_INPUT_TYPE = "GRAPHQL_INPUT_TYPE";
+
+    // GraphQL types
+    public static final String GRAPHQL_SCALAR_TYPE = "Scalar Types";
+    public static final String GRAPHQL_ENUM_TYPE = "Enum Types";
+
+    // Data binding
+    public static final String DATA_BINDING = "DATA_BINDING";
+    public static final String DATA_BINDING_PROPERTY = "canDataBind";
+    public static final String DATA_BINDING_TEMPLATE = "record {|*%s; %s %s;|}%s";
+    public static final String EMPTY_ARRAY = "[]";
+    public static final String PAYLOAD_FIELD_NAME_PROPERTY = "payloadFieldName";
+    public static final String WRAPPER_TYPE_NAME_PROPERTY = "wrapperTypeName";
+
+    public static final String TYPES_BAL = "types.bal";
 
     private Constants() {
     }

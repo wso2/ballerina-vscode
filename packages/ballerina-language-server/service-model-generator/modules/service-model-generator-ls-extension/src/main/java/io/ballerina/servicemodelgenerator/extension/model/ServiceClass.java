@@ -27,6 +27,7 @@ import java.util.Map;
  * @param id service class id
  * @param name service class name
  * @param type service class type
+ * @param documentation service class documentation
  * @param properties service class properties
  * @param codedata service class codedata
  * @param functions service class functions
@@ -34,7 +35,7 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-public record ServiceClass(String id, String name, String type, Map<String, Value> properties,
+public record ServiceClass(String id, String name, String type, Value documentation, Map<String, Value> properties,
                           Codedata codedata, List<Function> functions, List<Field> fields) {
 
     public Value className() {
@@ -44,6 +45,7 @@ public record ServiceClass(String id, String name, String type, Map<String, Valu
     public static class ServiceClassBuilder {
         private String name;
         private String type;
+        private Value documentation;
         private Map<String, Value> properties;
         private Codedata codedata;
         private List<Function> functions;
@@ -56,6 +58,11 @@ public record ServiceClass(String id, String name, String type, Map<String, Valu
 
         public ServiceClassBuilder type(String type) {
             this.type = type;
+            return this;
+        }
+
+        public ServiceClassBuilder documentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -81,7 +88,7 @@ public record ServiceClass(String id, String name, String type, Map<String, Valu
 
         public ServiceClass build() {
             String id = "0";
-            return new ServiceClass(id, name, type, properties, codedata, functions, fields);
+            return new ServiceClass(id, name, type, documentation, properties, codedata, functions, fields);
         }
     }
 }

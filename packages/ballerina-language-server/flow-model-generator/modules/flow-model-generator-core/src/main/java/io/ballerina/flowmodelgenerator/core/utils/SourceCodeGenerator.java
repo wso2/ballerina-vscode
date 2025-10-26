@@ -27,7 +27,9 @@ import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -131,6 +133,16 @@ public class SourceCodeGenerator {
         return template.formatted(docs, typeData.name(), typeDescriptor);
     }
 
+    private String generateAnnotatedTypeDescriptor(Object typeData,
+                                                   List<TypeData.AnnotationAttachment> annotAttachments) {
+        StringBuilder annotationsBuilder = new StringBuilder();
+        for (TypeData.AnnotationAttachment annot : annotAttachments) {
+            annotationsBuilder.append(annot.toString()).append(" ");
+        }
+
+        return annotationsBuilder + generateTypeDescriptor(typeData);
+    }
+
     private String generateTypeDescriptor(Object typeDescriptor) {
         if (typeDescriptor instanceof String) { // Type reference or in-line type as string
             return (String) typeDescriptor;
@@ -182,7 +194,7 @@ public class SourceCodeGenerator {
         // Build the fields.
         StringBuilder fieldsBuilder = new StringBuilder();
         for (Member member : typeData.members()) {
-            fieldsBuilder.append(generateFieldMember(member, true));
+            fieldsBuilder.append(generateAnnotatedFieldMember(member, true));
         }
 
         boolean isOpenRecord = typeData.allowAdditionalFields();
@@ -212,6 +224,9 @@ public class SourceCodeGenerator {
     }
 
     private String generateFieldMember(Member member, boolean withDefaultValue) {
+        // Add the imports
+        addMemberImports(member);
+
         StringBuilder stringBuilder = new StringBuilder();
         String docs = generateDocs(member.docs(), "\t");
         stringBuilder
@@ -220,6 +235,24 @@ public class SourceCodeGenerator {
                 .append(generateMember(member, withDefaultValue))
                 .append(";");
         return stringBuilder.toString();
+    }
+
+    private String generateAnnotatedFieldMember(Member member, boolean withDefaultValue) {
+        // Add the imports
+        addMemberImports(member);
+
+        // Docs
+        String docs = generateDocs(member.docs(), "\t");
+
+        // Annotation
+        StringBuilder annotationsBuilder = new StringBuilder();
+        for (TypeData.AnnotationAttachment annot : getAnnotationAttachments(member)) {
+            annotationsBuilder.append("\t").append(annot.toString()).append(LS);
+        }
+
+        return docs +
+                annotationsBuilder +
+                "\t" + generateMember(member, withDefaultValue) + ";";
     }
 
     private String generateTableTypeDescriptor(TypeData typeData) {
@@ -376,9 +409,7 @@ public class SourceCodeGenerator {
 
     private String generateTypeFromMember(Member member) {
         // Add the imports
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
+        addMemberImports(member);
 
         // Generate the type descriptor
         return generateTypeDescriptor(member.type());
@@ -388,6 +419,46 @@ public class SourceCodeGenerator {
         return (docs != null && !docs.isEmpty())
                 ? LS + indent + CommonUtils.convertToBalDocs(docs)
                 : LS;
+    }
+
+    private String generateFunctionParameter(Member member, boolean withDefaultValue) {
+        // Add the imports
+        addMemberImports(member);
+
+        // Annotation and type descriptor
+        List<TypeData.AnnotationAttachment> copyOfAnnotAttachments = getAnnotationAttachments(member);
+        String annotatedTypeDesc = generateAnnotatedTypeDescriptor(member.type(), copyOfAnnotAttachments);
+
+        // Param name
+        String paramName = CommonUtil.escapeReservedKeyword(member.name());
+        if (member.optional()) {
+            paramName = paramName + "?";
+        }
+
+        // Default value
+        String defaultValue = (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty())
+                ? " = " + member.defaultValue() : "";
+
+        String template = "%s %s%s"; // <type descriptor> <identifier>[ = <default value>]
+        return template.formatted(annotatedTypeDesc, paramName, defaultValue);
+    }
+
+    private static List<TypeData.AnnotationAttachment> getAnnotationAttachments(Member member) {
+        List<TypeData.AnnotationAttachment> copyOfAnnotAttachments;
+        if (Objects.nonNull(member.annotationAttachments())) {
+            copyOfAnnotAttachments = new ArrayList<>(member.annotationAttachments());
+        } else {
+            copyOfAnnotAttachments = new ArrayList<>();
+        }
+
+        if (member.isGraphqlId()) {
+            copyOfAnnotAttachments.add(new TypeData.AnnotationAttachment(
+                    TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                    TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
+                    null
+            ));
+        }
+        return copyOfAnnotAttachments;
     }
 
     private String generateMember(Member member, boolean withDefaultValue) {
@@ -412,17 +483,25 @@ public class SourceCodeGenerator {
 
     private String generateResourceFunction(Function function) {
         // Add the imports
-        if (Objects.nonNull(function.imports())) {
-            function.imports().forEach(this.imports::putIfAbsent);
-        }
+        addFunctionImports(function);
 
         String docs = generateDocs(function.description(), "\t");
 
         StringJoiner paramJoiner = new StringJoiner(", ");
         for (Member param : function.parameters()) {
-            String genParam = generateMember(param, true);
+            String genParam = generateFunctionParameter(param, true);
             paramJoiner.add(genParam);
         }
+
+        List<TypeData.AnnotationAttachment> returnTypeAnnotAttachments = new ArrayList<>();
+        if (function.isGraphqlId()) {
+            returnTypeAnnotAttachments.add(new TypeData.AnnotationAttachment(
+                    TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                    TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
+                    null
+            ));
+        }
+        String returnTypeDesc = generateAnnotatedTypeDescriptor(function.returnType(), returnTypeAnnotAttachments);
 
         String template = "%s\tresource function %s %s(%s) returns %s {" +
                 "%n\t\tdo {" +
@@ -438,7 +517,7 @@ public class SourceCodeGenerator {
                 function.accessor(),
                 function.name(),
                 paramJoiner.toString(),
-                generateTypeDescriptor(function.returnType()),
+                returnTypeDesc,
                 function.name()
         );
     }
@@ -457,5 +536,27 @@ public class SourceCodeGenerator {
     private boolean isReadonlyFlagOn(Map<String, Property> properties) {
         Property readonlyProperty = properties.get(Property.IS_READ_ONLY_KEY);
         return readonlyProperty != null && readonlyProperty.value().equals("true");
+    }
+
+    /**
+     * Helper method to add imports from a member to the imports map.
+     *
+     * @param member The member whose imports need to be added
+     */
+    private void addMemberImports(Member member) {
+        if (Objects.nonNull(member.imports())) {
+            member.imports().forEach(this.imports::putIfAbsent);
+        }
+    }
+
+    /**
+     * Helper method to add imports from a function to the imports map.
+     *
+     * @param function The function whose imports need to be added
+     */
+    private void addFunctionImports(Function function) {
+        if (Objects.nonNull(function.imports())) {
+            function.imports().forEach(this.imports::putIfAbsent);
+        }
     }
 }

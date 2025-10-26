@@ -1,0 +1,120 @@
+{
+  "filePath": "test_pack2/types.bal",
+  "position": {
+    "line": 8,
+    "offset": 5
+  },
+  "description": "Get a record type data with graphql id field",
+  "type": {
+    "name": "Employee",
+    "editable": true,
+    "metadata": {
+      "label": "Employee",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD",
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 8,
+          "offset": 5
+        },
+        "endLine": {
+          "line": 8,
+          "offset": 13
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "Employee",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "name",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": ""
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "name": "id",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": true,
+        "docs": "",
+        "imports": {
+          "graphql": "ballerina/graphql"
+        }
+      }
+    ],
+    "includes": [],
+    "allowAdditionalFields": false
+  },
+  "refs": []
+}

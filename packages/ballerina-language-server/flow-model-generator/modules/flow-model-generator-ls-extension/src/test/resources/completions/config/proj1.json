@@ -578,6 +578,9 @@
     },
     {
       "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

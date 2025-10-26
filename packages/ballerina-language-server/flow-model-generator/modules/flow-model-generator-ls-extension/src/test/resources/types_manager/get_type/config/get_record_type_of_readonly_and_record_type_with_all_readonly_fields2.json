@@ -108,6 +108,7 @@
         "name": "id",
         "optional": false,
         "readonly": true,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -117,6 +118,7 @@
         "name": "name",
         "optional": false,
         "readonly": true,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -126,6 +128,7 @@
         "name": "length",
         "optional": true,
         "readonly": true,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],

@@ -36,13 +36,15 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.serviceTypeWithoutPrefix;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServiceDocs;
 
 /**
  * Builder class for GraphQL service.
@@ -56,7 +58,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = serviceTypeWithoutPrefix(context.serviceType());
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
         Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
         if (service.isEmpty()) {
             return null;
@@ -64,7 +66,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         Service serviceModel = service.get();
         int packageId = Integer.parseInt(serviceModel.getId());
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
+                .forEach(function -> serviceModel.getFunctions().add(getFunctionFromServiceTypeFunction(function)));
         serviceModel.getServiceType().setValue(serviceType);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
@@ -78,6 +80,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange(), serviceModel.getModuleName(),
                 serviceModel.getOrgName()));
         populateListenerInfo(serviceModel, serviceNode);
+        updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
         return serviceModel;
@@ -107,6 +110,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
                 updateGraphqlFunctionMetaData(funcInSource);
                 serviceModel.addFunction(funcInSource);
+                funcInSource.setOptional(true);
             }
         });
     }

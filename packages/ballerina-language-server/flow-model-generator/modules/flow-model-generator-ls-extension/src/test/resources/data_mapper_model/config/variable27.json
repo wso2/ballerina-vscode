@@ -68,7 +68,10 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0"
+                ]
               }
             ]
           },
@@ -83,7 +86,10 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "1"
+                ]
               }
             ]
           },
@@ -98,7 +104,10 @@
                 "diagnostics": [],
                 "elements": [],
                 "isQueryExpression": false,
-                "isFunctionCall": false
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "2"
+                ]
               }
             ]
           }

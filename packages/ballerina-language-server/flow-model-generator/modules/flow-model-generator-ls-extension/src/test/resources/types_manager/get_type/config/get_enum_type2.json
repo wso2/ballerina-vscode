@@ -84,7 +84,8 @@
         "name": "MALE",
         "defaultValue": "\"male\"",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       },
       {
         "kind": "NAME",
@@ -93,7 +94,8 @@
         "name": "FEMALE",
         "defaultValue": "\"female\"",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false

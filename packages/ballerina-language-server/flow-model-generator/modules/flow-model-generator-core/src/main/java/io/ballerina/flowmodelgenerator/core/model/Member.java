@@ -25,16 +25,17 @@ import java.util.Map;
 /**
  * Represents a member of a type construct.
  *
- * @param kind          Kind of the member.
- * @param refs          References to the type descriptor.
- * @param type          Display name for the type.
- * @param name          Name of the member.
- * @param defaultValue  Default value of the member.
- * @param optional      Whether the member is optional.
- * @param readonly      Whether the member is readonly.
- * @param docs          Documentation of the member
- * @param annotations   Annotations of the member.
- * @param imports       Imports of the member.
+ * @param kind                  Kind of the member.
+ * @param refs                  References to the type descriptor.
+ * @param type                  Display name for the type.
+ * @param name                  Name of the member.
+ * @param defaultValue          Default value of the member.
+ * @param optional              Whether the member is optional.
+ * @param readonly              Whether the member is readonly.
+ * @param isGraphqlId           Whether the member is a graphql ID
+ * @param docs                  Documentation of the member
+ * @param annotationAttachments Annotations of the member.
+ * @param imports               Imports of the member.
  * @since 1.0.0
  */
 public record Member(
@@ -45,8 +46,9 @@ public record Member(
         String defaultValue,
         boolean optional,
         boolean readonly,
+        boolean isGraphqlId,
         String docs,
-        List<TypeData.Annotation> annotations,
+        List<TypeData.AnnotationAttachment> annotationAttachments,
         Map<String, String> imports
 ) {
     public static class MemberBuilder {
@@ -57,8 +59,9 @@ public record Member(
         private String defaultValue;
         private boolean optional = false;
         private boolean readonly = false;
+        private boolean isGraphqlId = false;
         private String docs;
-        private List<TypeData.Annotation> annotations;
+        private List<TypeData.AnnotationAttachment> annotationAttachments;
         private Map<String, String> imports;
 
         public MemberBuilder() {
@@ -99,13 +102,18 @@ public record Member(
             return this;
         }
 
+        public MemberBuilder isGraphqlId(boolean isGraphqlId) {
+            this.isGraphqlId = isGraphqlId;
+            return this;
+        }
+
         public MemberBuilder docs(String docs) {
             this.docs = docs;
             return this;
         }
 
-        public MemberBuilder annotations(List<TypeData.Annotation> annotations) {
-            this.annotations = annotations;
+        public MemberBuilder annotationAttachments(List<TypeData.AnnotationAttachment> annotationAttachments) {
+            this.annotationAttachments = annotationAttachments;
             return this;
         }
 
@@ -117,8 +125,8 @@ public record Member(
         public Member build() {
             Member member = new Member(
                     kind, refs != null ? List.copyOf(refs) : null,
-                    type, name, defaultValue, optional, readonly, docs,
-                    annotations != null ? List.copyOf(annotations) : null,
+                    type, name, defaultValue, optional, readonly, isGraphqlId, docs,
+                    annotationAttachments != null ? List.copyOf(annotationAttachments) : null,
                     imports != null ? Map.copyOf(imports) : null
             );
             this.kind = null;
@@ -128,8 +136,9 @@ public record Member(
             this.defaultValue = null;
             this.optional = false;
             this.readonly = false;
+            this.isGraphqlId = false;
             this.docs = null;
-            this.annotations = null;
+            this.annotationAttachments = null;
             this.imports = null;
             return member;
         }

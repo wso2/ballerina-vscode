@@ -8,6 +8,9 @@
   "items": [
     {
       "label": "rec3",
+      "labelDetails": {
+        "detail": " module1:TestRecord1"
+      },
       "kind": "Variable",
       "detail": "module1:TestRecord1",
       "sortText": "AB",
@@ -16,6 +19,9 @@
     },
     {
       "label": "rec2",
+      "labelDetails": {
+        "detail": " TestRecord2"
+      },
       "kind": "Variable",
       "detail": "TestRecord2",
       "sortText": "AB",
@@ -24,6 +30,9 @@
     },
     {
       "label": "mapVar2",
+      "labelDetails": {
+        "detail": " map<string>"
+      },
       "kind": "Variable",
       "detail": "map<string>",
       "sortText": "AB",
@@ -32,6 +41,9 @@
     },
     {
       "label": "mapVar1",
+      "labelDetails": {
+        "detail": " map<string>"
+      },
       "kind": "Variable",
       "detail": "map<string>",
       "sortText": "AB",
@@ -40,6 +52,9 @@
     },
     {
       "label": "rec1",
+      "labelDetails": {
+        "detail": " TestRecord"
+      },
       "kind": "Variable",
       "detail": "TestRecord",
       "sortText": "AB",
@@ -397,6 +412,9 @@
     },
     {
       "label": "intVar1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",
@@ -413,6 +431,9 @@
     },
     {
       "label": "stringVar1",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -507,6 +528,9 @@
     },
     {
       "label": "anIntVar",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "BB",

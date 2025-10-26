@@ -452,6 +452,9 @@
     },
     {
       "label": "str",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -487,6 +490,9 @@
     },
     {
       "label": "obj2",
+      "labelDetails": {
+        "detail": " TestObject2"
+      },
       "kind": "Variable",
       "detail": "TestObject2",
       "sortText": "F",

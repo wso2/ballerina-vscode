@@ -101,6 +101,9 @@ public class CommonUtils {
     private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
     private static final String DATA_LOADER_TYPE_NAME = "DataLoader";
     private static final String CHUNKER_TYPE_NAME = "Chunker";
+    private static final String MEMORY_TYPE_NAME = "Memory";
+    private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
+    private static final String MCP_BASE_TOOL_KIT_TYPE_NAME = "McpBaseToolKit";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -264,6 +267,19 @@ public class CommonUtils {
     }
 
     /**
+     * Converts a LineRange to a TextRange using the provided TextDocument.
+     *
+     * @param textDocument the text document
+     * @param lineRange    the line range to convert
+     * @return the corresponding TextRange
+     */
+    public static TextRange toTextRange(TextDocument textDocument, LineRange lineRange) {
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        return TextRange.from(start, end - start);
+    }
+
+    /**
      * Convert the syntax-node line range into a lsp4j range.
      *
      * @param lineRange line range
@@ -298,7 +314,7 @@ public class CommonUtils {
      * Converts syntax-node line position into a lsp4j position.
      *
      * @param start start line position
-     * @param end end line position
+     * @param end   end line position
      * @return {@link Range} converted range
      */
     public static Range toRange(LinePosition start, LinePosition end) {
@@ -794,7 +810,7 @@ public class CommonUtils {
 
         // Add "#" before each line and append to the result
         for (String line : lines) {
-            formattedComment.append("# ").append(line).append("\n");
+            formattedComment.append("# ").append(line).append(System.lineSeparator());
         }
 
         // Convert StringBuilder to String and return
@@ -1004,6 +1020,22 @@ public class CommonUtils {
         return classSymbol != null && hasAiTypeInclusion(classSymbol, CHUNKER_TYPE_NAME);
     }
 
+    public static boolean isAiMemory(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && (hasAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME) ||
+                hasBallerinaxAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME));
+    }
+
+    public static boolean isAiMemoryStore(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME);
+    }
+
+    public static boolean isAiMcpBaseToolKit(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, MCP_BASE_TOOL_KIT_TYPE_NAME);
+    }
+
     private static ClassSymbol getClassSymbol(Symbol symbol) {
         if (symbol instanceof ClassSymbol) {
             return (ClassSymbol) symbol;
@@ -1027,7 +1059,19 @@ public class CommonUtils {
                 .map(TypeSymbol::getModule)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
+                .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName())) &&
+                        AI.equals(moduleId.id().moduleName()));
+    }
+
+    private static boolean hasBallerinaxAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleId -> BALLERINAX_ORG_NAME.equals(moduleId.id().orgName()) &&
                         AI.equals(moduleId.id().moduleName()));
     }
 
@@ -1045,5 +1089,18 @@ public class CommonUtils {
             return moduleName.substring(lastDot + 1);
         }
         return moduleName;
+    }
+
+    /**
+     * Checks if the given node is a Markdown documentation line.
+     *
+     * @param node the node to check
+     * @return true if the node is a Markdown documentation line, false otherwise
+     */
+    public static boolean isMarkdownDocumentationLine(Node node) {
+        SyntaxKind nodeKind = node.kind();
+        return nodeKind == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_REFERENCE_DOCUMENTATION_LINE ||
+                nodeKind == SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE;
     }
 }

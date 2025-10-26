@@ -104,7 +104,8 @@
             "type": "graphql:Context",
             "name": "context",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "RESOURCE",
@@ -150,7 +151,8 @@
               "type": "ProfileType",
               "name": "ProfileType",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             },
             {
               "kind": "TYPE",
@@ -158,11 +160,13 @@
               "type": "string",
               "name": "string",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "allowAdditionalFields": false
         },
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -286,7 +290,8 @@
           "name": "TEACHER",
           "defaultValue": "\"teacher\"",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         },
         {
           "kind": "NAME",
@@ -294,7 +299,8 @@
           "type": "\"STUDENT\"",
           "name": "STUDENT",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false

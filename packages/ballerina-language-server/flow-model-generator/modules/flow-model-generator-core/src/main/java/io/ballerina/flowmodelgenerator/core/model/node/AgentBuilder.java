@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -65,9 +66,16 @@ public class AgentBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder
-                .token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut()
-                .newVariable();
+        Optional<Property> scopeOpt = sourceBuilder.flowNode.getProperty(Property.SCOPE_KEY);
+        boolean isServiceInitScope = scopeOpt.isPresent() && scopeOpt.get().value().equals(Property.SERVICE_INIT_SCOPE);
+
+        if (isServiceInitScope) {
+            Optional<Property> variable = sourceBuilder.getProperty(Property.VARIABLE_KEY);
+            variable.ifPresent(property -> sourceBuilder.token().name(property).keyword(SyntaxKind.EQUAL_TOKEN));
+        } else {
+            sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD);
+            sourceBuilder.newVariable();
+        }
 
         sourceBuilder.token()
                 .keyword(SyntaxKind.CHECK_KEYWORD)
@@ -88,6 +96,7 @@ public class AgentBuilder extends CallBuilder {
             functionKind = FunctionData.Kind.CLASS_INIT;
         }
         super.setConcreteTemplateData(context);
+        properties().scope(Property.GLOBAL_SCOPE);
 
         metadata().addData(PARAMS_TO_HIDE, List.of(MODEL, TOOLS, TYPE));
     }

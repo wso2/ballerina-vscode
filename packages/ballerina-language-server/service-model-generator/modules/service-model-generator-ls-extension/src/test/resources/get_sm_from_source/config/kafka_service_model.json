@@ -10,17 +10,31 @@
     "offset": 0
   },
   "response": {
-    "id": "10",
+    "id": "11",
     "name": "Kafka Event Handler",
     "type": "kafka",
     "displayName": "Kafka Event Handler",
-    "description": "Add the service documentation",
     "moduleName": "kafka",
     "orgName": "ballerinax",
     "version": "4.5.0",
     "packageName": "kafka",
     "listenerProtocol": "kafka",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -31,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT",
+        "valueType": "SINGLE_SELECT_LISTENER",
         "valueTypeConstraint": "kafka:Listener",
         "value": "kafkaListener",
         "values": [],
         "items": [
           "kafkaListener"
         ],
+        "properties": {
+          "kafkaListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 24
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -60,7 +95,7 @@
           "Service"
         ],
         "enabled": false,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       }
@@ -76,7 +111,10 @@
           "line": 11,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "kafka",
+      "moduleName": "kafka"
     },
     "functions": [
       {
@@ -90,12 +128,8 @@
             "label": "onConsumerRecord",
             "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onConsumerRecord",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onConsumerRecord",
           "enabled": true,
           "editable": false,
@@ -105,13 +139,13 @@
         "parameters": [
           {
             "metadata": {
-              "label": "records",
-              "description": "The records received for Kafka topic(s)"
+              "label": "messages",
+              "description": "The messages received for Kafka topic(s)"
             },
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:AnydataConsumerRecord[]",
@@ -124,13 +158,10 @@
             },
             "name": {
               "metadata": {
-                "label": "records",
-                "description": "The records received for Kafka topic(s)"
+                "label": "messages",
+                "description": "The messages received for Kafka topic(s)"
               },
-              "codedata": {
-                "type": "PARAMETER_NAME"
-              },
-              "placeholder": "records",
+              "placeholder": "messages",
               "valueType": "IDENTIFIER",
               "value": "records",
               "enabled": true,
@@ -155,7 +186,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -165,7 +197,7 @@
             "kind": "OPTIONAL",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Caller",
@@ -180,9 +212,6 @@
               "metadata": {
                 "label": "caller",
                 "description": "The Kafka caller object to commit the offsets"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "caller",
               "valueType": "IDENTIFIER",
@@ -209,11 +238,42 @@
             "editable": true,
             "optional": true,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "Data Binding",
+              "description": "Data binding parameter"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "valueType": "TYPE",
+              "value": "",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "valueType": "IDENTIFIER",
+              "value": "records",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -241,6 +301,30 @@
               "line": 10,
               "offset": 5
             }
+          },
+          "moduleName": "kafka"
+        },
+        "properties": {
+          "wrapperTypeName": {
+            "value": "KafkaAnydataConsumer",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "payloadFieldName": {
+            "value": "value",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -255,12 +339,8 @@
             "label": "onError",
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onError",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onError",
           "enabled": true,
           "editable": false,
@@ -276,7 +356,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Error",
@@ -291,9 +371,6 @@
               "metadata": {
                 "label": "kafkaError",
                 "description": "The error occurred during the message processing"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "kafkaError",
               "valueType": "IDENTIFIER",
@@ -320,11 +397,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -338,7 +417,7 @@
           "advanced": false
         },
         "enabled": false,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false
       }

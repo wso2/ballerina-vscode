@@ -448,7 +448,22 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "host",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Configurable"
+      },
+      "kind": "Variable",
+      "detail": "string",
+      "sortText": "F",
+      "insertText": "host",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "localVar",
+      "labelDetails": {
+        "detail": " float"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "F",
@@ -457,6 +472,9 @@
     },
     {
       "label": "moduleVar",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -464,7 +482,22 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "port",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Configurable"
+      },
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "AB",
+      "insertText": "port",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "self",
+      "labelDetails": {
+        "detail": " service object {int classVar; resource function get test () returns ();}"
+      },
       "kind": "Variable",
       "detail": "service object {int classVar; resource function get test () returns ();}",
       "sortText": "F",

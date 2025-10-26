@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
+import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.ElseBlockNode;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -30,9 +31,11 @@ import io.ballerina.compiler.syntax.tree.ImportPrefixNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.DiagnosticResult;
@@ -83,13 +86,24 @@ public class DeleteNodeHandler {
 
     @Deprecated
     public JsonElement getTextEditsToDeletedNode(Document document, Project project) {
+        if ((nodeToDelete.codedata() != null && nodeToDelete.codedata().node() == NodeKind.ERROR_HANDLER)) {
+            return handleErrorHandlerDeletion(nodeToDelete.codedata().lineRange(), filePath, document, project);
+        }
+
         LineRange lineRange = nodeToDelete.codedata().lineRange();
         return getTextEditsToDeletedNode(lineRange, filePath, document, project);
     }
 
     public static JsonElement getTextEditsToDeletedNode(JsonElement node, Path filePath,
                                                         Document document, Project project) {
-        return getTextEditsToDeletedNode(getNodeLineRange(node), filePath, document, project);
+        FlowNode flowNode = gson.fromJson(node, FlowNode.class);
+        LineRange lineRange = getNodeLineRange(node);
+
+        if (flowNode.codedata() != null && flowNode.codedata().node() == NodeKind.ERROR_HANDLER) {
+            return handleErrorHandlerDeletion(lineRange, filePath, document, project);
+        }
+
+        return getTextEditsToDeletedNode(lineRange, filePath, document, project);
     }
 
     private static JsonElement getTextEditsToDeletedNode(LineRange lineRange, Path filePath,
@@ -206,4 +220,43 @@ public class DeleteNodeHandler {
         }
         return null;
     }
+
+    /**
+     * Handles deletion of ERROR_HANDLER nodes by replacing the do-on-fail block with just the body statements.
+     *
+     * @param lineRange the line range of the ERROR_HANDLER node
+     * @param filePath  the file path
+     * @param document  the document
+     * @param project   the project
+     * @return the text edits to replace the do-on-fail block with just the body statements
+     */
+    private static JsonElement handleErrorHandlerDeletion(LineRange lineRange, Path filePath,
+                                                          Document document, Project project) {
+        TextDocument textDocument = document.textDocument();
+        int startTextPosition = textDocument.textPositionFrom(lineRange.startLine());
+        int endTextPosition = textDocument.textPositionFrom(lineRange.endLine());
+        ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+        NonTerminalNode foundNode = modulePartNode.findNode(TextRange.from(startTextPosition,
+                endTextPosition - startTextPosition));
+
+        if (foundNode == null || foundNode.kind() != SyntaxKind.DO_STATEMENT) {
+            return getTextEditsToDeletedNode(lineRange, filePath, document, project);
+        }
+
+        DoStatementNode doStatementNode = (DoStatementNode) foundNode;
+        BlockStatementNode blockStatement = doStatementNode.blockStatement();
+        StringBuilder bodyStatements = new StringBuilder();
+        NodeList<StatementNode> statements = blockStatement.statements();
+        for (StatementNode statement : statements) {
+            bodyStatements.append(statement.toSourceCode());
+        }
+
+        List<TextEdit> textEdits = new ArrayList<>();
+        TextEdit textEdit = new TextEdit(CommonUtils.toRange(lineRange), bodyStatements.toString().trim());
+        textEdits.add(textEdit);
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        textEditsMap.put(filePath, textEdits);
+        return gson.toJsonTree(textEditsMap);
+    }
 }
+

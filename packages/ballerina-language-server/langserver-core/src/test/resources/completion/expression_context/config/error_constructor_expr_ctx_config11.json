@@ -372,6 +372,9 @@
     },
     {
       "label": "msg",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -407,6 +410,10 @@
     },
     {
       "label": "param1",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -437,6 +444,9 @@
     },
     {
       "label": "err1",
+      "labelDetails": {
+        "detail": " Error1"
+      },
       "kind": "Variable",
       "detail": "Error1",
       "sortText": "F",

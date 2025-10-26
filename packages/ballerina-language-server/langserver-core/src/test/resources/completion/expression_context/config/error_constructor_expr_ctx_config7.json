@@ -387,6 +387,9 @@
     },
     {
       "label": "err",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "F",

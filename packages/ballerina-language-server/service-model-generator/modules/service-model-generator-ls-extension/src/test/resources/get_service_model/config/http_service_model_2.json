@@ -15,6 +15,21 @@
       "packageName": "http",
       "listenerProtocol": "http",
       "icon": "http://localhost:8080/icons/http.png",
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the service"
+        },
+        "codedata": {
+          "type": "DOCUMENTATION"
+        },
+        "valueType": "STRING",
+        "valueTypeConstraint": "string",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
       "properties": {
         "listener": {
           "metadata": {
@@ -25,7 +40,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
           "valueTypeConstraint": "http:Listener",
           "value": "",
           "values": [],
@@ -57,7 +72,7 @@
               "properties": {
                 "basePath": {
                   "metadata": {
-                    "label": "Service Base Path",
+                    "label": "Base Path",
                     "description": ""
                   },
                   "codedata": {
@@ -235,7 +250,8 @@
               "editable": true,
               "optional": true,
               "advanced": true,
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false
             },
             {
               "metadata": {
@@ -267,7 +283,8 @@
               "editable": true,
               "optional": true,
               "advanced": true,
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false
             },
             {
               "metadata": {
@@ -299,7 +316,8 @@
               "editable": true,
               "optional": true,
               "advanced": true,
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false
             }
           ],
           "schema": {
@@ -333,8 +351,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "PAYLOAD",
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false,
+              "httpParamType": "PAYLOAD"
             },
             "query": {
               "metadata": {
@@ -366,8 +385,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "QUERY",
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false,
+              "httpParamType": "QUERY"
             },
             "header": {
               "metadata": {
@@ -399,8 +419,9 @@
               "editable": true,
               "optional": false,
               "advanced": false,
-              "httpParamType": "Header",
-              "hidden": false
+              "hidden": false,
+              "isGraphqlId": false,
+              "httpParamType": "Header"
             }
           },
           "returnType": {
@@ -446,10 +467,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               },
               {
                 "statusCode": {
@@ -492,10 +512,9 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             ],
             "schema": {
@@ -574,13 +593,13 @@
                   "optional": true,
                   "advanced": false
                 },
-                "enabled": true,
+                "enabled": false,
                 "editable": false,
-                "advanced": false,
-                "isHttpResponseType": false
+                "advanced": false
               }
             },
             "hasError": false,
+            "isGraphqlId": false,
             "metadata": {
               "label": "Return type",
               "description": "Return type of the function"

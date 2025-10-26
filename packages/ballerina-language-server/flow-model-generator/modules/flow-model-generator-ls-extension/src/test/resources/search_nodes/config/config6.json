@@ -1,0 +1,9 @@
+{
+  "source": "proj/connections.bal",
+  "description": "Non-existent symbol exactMatch returns empty",
+  "position": null,
+  "queryMap": {
+    "exactMatch": "nonExistentSymbol"
+  },
+  "output": []
+}

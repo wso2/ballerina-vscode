@@ -28,26 +28,43 @@
       "valueType": "IDENTIFIER",
       "value": "init",
       "enabled": true,
-      "editable": true,
+      "editable": false,
       "optional": false,
       "advanced": false
     },
     "parameters": [],
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
       },
       "valueType": "TYPE",
-      "enabled": true,
-      "editable": true,
+      "enabled": false,
+      "editable": false,
       "optional": true,
       "advanced": false
     },
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "service.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 3
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 4
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
+    }
   }
 }

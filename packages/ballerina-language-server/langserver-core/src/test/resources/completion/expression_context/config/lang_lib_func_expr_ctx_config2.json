@@ -635,6 +635,9 @@
     },
     {
       "label": "arr",
+      "labelDetails": {
+        "detail": " string[]"
+      },
       "kind": "Variable",
       "detail": "string[]",
       "sortText": "CD",

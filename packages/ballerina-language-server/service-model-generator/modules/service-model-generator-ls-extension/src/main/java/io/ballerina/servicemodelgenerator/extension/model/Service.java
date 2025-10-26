@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -36,32 +40,31 @@ public class Service {
     private final String name;
     private final String type;
     private final String displayName;
-    private final String description;
     private final String moduleName;
     private final String orgName;
     private final String version;
     private final String packageName;
     private final String listenerProtocol;
     private final String icon;
+    private Value documentation;
     private Map<String, Value> properties;
     private Codedata codedata;
     private List<Function> functions;
 
-    public Service(String id, String name, String type, String displayName, String description,
-                   String moduleName, String orgName, String version,
-                   String packageName, String listenerProtocol, String icon, Map<String, Value> properties,
-                   Codedata codedata, List<Function> functions) {
+    public Service(String id, String name, String type, String displayName, String moduleName, String orgName,
+                   String version, String packageName, String listenerProtocol, String icon, Value documentation,
+                   Map<String, Value> properties, Codedata codedata, List<Function> functions) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.displayName = displayName;
-        this.description = description;
         this.moduleName = moduleName;
         this.orgName = orgName;
         this.version = version;
         this.packageName = packageName;
         this.listenerProtocol = listenerProtocol;
         this.icon = icon;
+        this.documentation = documentation;
         this.properties = properties;
         this.functions = functions;
         this.codedata = codedata;
@@ -87,8 +90,12 @@ public class Service {
         this.codedata = codedata;
     }
 
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
+    }
+
     public Value getListener() {
-        return properties.get("listener");
+        return properties.get(PROP_KEY_LISTENER);
     }
 
     public Value getProperty(String key) {
@@ -96,15 +103,15 @@ public class Service {
     }
 
     public void setServiceType(Value serviceType) {
-        properties.put("serviceType", serviceType);
+        properties.put(PROP_KEY_SERVICE_TYPE, serviceType);
     }
 
     public Value getServiceType() {
-        return properties.get("serviceType");
+        return properties.get(PROP_KEY_SERVICE_TYPE);
     }
 
     public String getServiceTypeName() {
-        Value serviceType = properties.get("serviceType");
+        Value serviceType = properties.get(PROP_KEY_SERVICE_TYPE);
         if (Objects.isNull(serviceType)) {
             return null;
         }
@@ -112,19 +119,19 @@ public class Service {
     }
 
     public Value getBasePath() {
-        return properties.get("basePath");
+        return properties.get(PROP_KEY_BASE_PATH);
     }
 
     public Value getStringLiteralProperty() {
-        return properties.get("stringLiteral");
+        return properties.get(PROP_KEY_STRING_LITERAL);
     }
 
     public void setBasePath(Value basePath) {
-        properties.put("basePath", basePath);
+        properties.put(PROP_KEY_BASE_PATH, basePath);
     }
 
     public void setStringLiteral(Value basePath) {
-        properties.put("stringLiteral", basePath);
+        properties.put(PROP_KEY_STRING_LITERAL, basePath);
     }
 
     public Value getOpenAPISpec() {
@@ -187,8 +194,8 @@ public class Service {
         return displayName;
     }
 
-    public String getDescription() {
-        return description;
+    public Value getDocumentation() {
+        return documentation;
     }
 
     public String getVersion() {
@@ -222,13 +229,13 @@ public class Service {
         private String name;
         private String type;
         private String displayName;
-        private String description;
         private String moduleName;
         private String orgName;
         private String version;
         private String packageName;
         private String listenerProtocol;
         private String icon;
+        private Value documentation;
         private Map<String, Value> properties;
         private Codedata codedata;
         private List<Function> functions;
@@ -258,8 +265,8 @@ public class Service {
             return this;
         }
 
-        public ServiceModelBuilder setDescription(String description) {
-            this.description = description;
+        public ServiceModelBuilder setDocumentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -309,8 +316,8 @@ public class Service {
         }
 
         public Service build() {
-            return new Service(id, name, type, displayName, description, moduleName, orgName,
-                    version, packageName, listenerProtocol, icon, properties, codedata, functions);
+            return new Service(id, name, type, displayName, moduleName, orgName, version, packageName,
+                    listenerProtocol, icon, documentation, properties, codedata, functions);
         }
     }
 }

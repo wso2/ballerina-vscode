@@ -1,10 +1,11 @@
-import ballerina/http;
+import ballerina/graphql;
 
-listener http:Listener httpListener = new (port = 9090);
+listener graphql:Listener graphqlListener = new (port = 9090);
 
-@http:ServiceConfig {
-    host: "localhost"
+# This is a GraphQL service.
+@graphql:ServiceConfig {
+    corsConfig: {}
 }
-service /api/test on httpListener {
+service /graphql on graphqlListener {
 
 }

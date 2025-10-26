@@ -382,6 +382,9 @@
     },
     {
       "label": "c1",
+      "labelDetails": {
+        "detail": " MyClass"
+      },
       "kind": "Variable",
       "detail": "MyClass",
       "sortText": "F",

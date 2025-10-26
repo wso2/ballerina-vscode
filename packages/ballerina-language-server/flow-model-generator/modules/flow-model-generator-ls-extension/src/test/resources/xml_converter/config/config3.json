@@ -1,0 +1,8 @@
+{
+  "filePath": "proj2/main.bal",
+  "xmlString": "<?xml version=\"1.0\"?>\n<library>\n    <book>\n        <title>XML Developer's Guide</title>\n        <author>\n            <name>Gambardella, Matthew</name>\n            <country>USA</country>\n        </author>\n        <price>44.95</price>\n    </book>\n</library>\n",
+  "prefix": "",
+  "isClosed": false,
+  "isRecordTypeDesc": true,
+  "records": "\ntype Author_01 record {\n\tstring name;\n\tstring country;\n};\n\ntype Book_01 record {\n\tstring title;\n\tAuthor_01 author;\n\tdecimal price;\n};\n\ntype Library record {\n\tBook_01 book;\n};\n"
+}

@@ -44,6 +44,17 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the field"
+      },
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
       {
         "metadata": {
@@ -78,7 +89,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -113,7 +125,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -156,11 +169,23 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the argument"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -170,7 +195,7 @@
             "label": "Argument Type",
             "description": "The type of the argument"
           },
-          "valueType": "TYPE",
+          "valueType": "ACTION_TYPE",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -199,21 +224,68 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the argument"
+          },
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     },
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Field Type",
         "description": "The type of the field"
       },
-      "valueType": "TYPE",
+      "valueType": "ACTION_TYPE",
       "value": "string",
+      "properties": {
+        "nullableAction": {
+          "properties": {
+            "true": {
+              "metadata": {
+                "label": "Action Nullable True",
+                "description": "The field returns a nullable value"
+              },
+              "valueType": "STRING",
+              "value": "",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "false": {
+              "metadata": {
+                "label": "Action Nullable False",
+                "description": "The field returns a non-nullable value"
+              },
+              "valueType": "STRING",
+              "value": "Mark type as nullable",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          },
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -236,6 +308,7 @@
         }
       },
       "orgName": "ballerina",
+      "packageName": "graphql",
       "moduleName": "graphql"
     },
     "properties": {

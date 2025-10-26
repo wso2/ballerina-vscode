@@ -540,6 +540,10 @@
     },
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -586,6 +590,9 @@
     },
     {
       "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

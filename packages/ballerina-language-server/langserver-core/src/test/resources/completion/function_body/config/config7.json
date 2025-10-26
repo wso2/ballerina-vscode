@@ -384,6 +384,9 @@
     },
     {
       "label": "'if",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -400,6 +403,10 @@
     },
     {
       "label": "'from",
+      "labelDetails": {
+        "detail": " Currency",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "Currency",
       "sortText": "AB",
@@ -427,6 +434,9 @@
     },
     {
       "label": "fromCurrency",
+      "labelDetails": {
+        "detail": " Currency"
+      },
       "kind": "Variable",
       "detail": "Currency",
       "sortText": "AB",
@@ -469,6 +479,10 @@
     },
     {
       "label": "'to",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",

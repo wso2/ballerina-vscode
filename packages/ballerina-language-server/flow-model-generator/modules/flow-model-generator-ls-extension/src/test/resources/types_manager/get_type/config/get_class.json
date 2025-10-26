@@ -154,6 +154,7 @@
         "name": "year",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": "Year of manufacturing."
       },
       {
@@ -163,6 +164,7 @@
         "name": "make",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       },
       {
@@ -172,6 +174,7 @@
         "name": "model",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],
@@ -190,6 +193,7 @@
         "name": "[int id]/country",
         "description": "",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -242,13 +246,15 @@
             "type": "string",
             "name": "time",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "FUNCTION",
         "name": "getYear",
         "description": "",
         "returnType": "int",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -301,13 +307,15 @@
             "type": "int",
             "name": "year",
             "optional": false,
-            "readonly": false
+            "readonly": false,
+            "isGraphqlId": false
           }
         ],
         "kind": "FUNCTION",
         "name": "setYear",
         "description": "",
         "returnType": "()",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -358,6 +366,7 @@
         "name": "getMake",
         "description": "",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -497,6 +506,7 @@
           "name": "make",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -506,6 +516,7 @@
           "name": "model",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],
@@ -521,6 +532,7 @@
           "name": "getMake",
           "description": "Get the make of the vehicle",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
@@ -573,13 +585,15 @@
               "type": "int",
               "name": "year",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "kind": "FUNCTION",
           "name": "setYear",
           "description": "",
           "returnType": "()",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {

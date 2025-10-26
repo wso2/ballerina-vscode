@@ -109,7 +109,8 @@
         "type": "User1",
         "name": "User1",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false
@@ -206,6 +207,7 @@
           "name": "uuid",
           "optional": false,
           "readonly": true,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -215,6 +217,7 @@
           "name": "name",
           "optional": false,
           "readonly": true,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

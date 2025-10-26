@@ -132,14 +132,16 @@
               "type": "time:Utc",
               "name": "time:Utc",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "allowAdditionalFields": false
         },
         "name": "time:Utc[]",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false
@@ -247,7 +249,8 @@
           "type": "int",
           "name": "int",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         },
         {
           "kind": "TYPE",
@@ -255,7 +258,8 @@
           "type": "decimal",
           "name": "decimal",
           "optional": false,
-          "readonly": false
+          "readonly": false,
+          "isGraphqlId": false
         }
       ],
       "allowAdditionalFields": false

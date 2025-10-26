@@ -3,391 +3,582 @@
   "description": "Get the list of http status code types",
   "context": "HTTP_STATUS_CODE",
   "result": {
-    "completions": [
-      {
-        "category": "1XX",
-        "label": "Continue",
-        "type": "http:Continue",
-        "statusCode": "100"
+    "left": [ {
+      "label" : "Continue",
+      "labelDetails" : {
+        "detail" : "100",
+        "description" : "1XX"
       },
-      {
-        "category": "1XX",
-        "label": "Switching Protocols",
-        "type": "http:SwitchingProtocols",
-        "statusCode": "101"
+      "kind" : "Class",
+      "detail" : "http:Continue",
+      "insertText" : "Continue"
+    }, {
+      "label" : "Switching Protocols",
+      "labelDetails" : {
+        "detail" : "101",
+        "description" : "1XX"
       },
-      {
-        "category": "1XX",
-        "label": "Processing",
-        "type": "http:Processing",
-        "statusCode": "102"
+      "kind" : "Class",
+      "detail" : "http:SwitchingProtocols",
+      "insertText" : "Switching Protocols"
+    }, {
+      "label" : "Processing",
+      "labelDetails" : {
+        "detail" : "102",
+        "description" : "1XX"
       },
-      {
-        "category": "1XX",
-        "label": "Early Hints",
-        "type": "http:EarlyHints",
-        "statusCode": "103"
+      "kind" : "Class",
+      "detail" : "http:Processing",
+      "insertText" : "Processing"
+    }, {
+      "label" : "Early Hints",
+      "labelDetails" : {
+        "detail" : "103",
+        "description" : "1XX"
       },
-      {
-        "category": "2XX",
-        "label": "Ok",
-        "type": "http:Ok",
-        "statusCode": "200"
+      "kind" : "Class",
+      "detail" : "http:EarlyHints",
+      "insertText" : "Early Hints"
+    }, {
+      "label" : "Ok",
+      "labelDetails" : {
+        "detail" : "200",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Created",
-        "type": "http:Created",
-        "statusCode": "201"
+      "kind" : "Class",
+      "detail" : "http:Ok",
+      "insertText" : "Ok"
+    }, {
+      "label" : "Created",
+      "labelDetails" : {
+        "detail" : "201",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Accepted",
-        "type": "http:Accepted",
-        "statusCode": "202"
+      "kind" : "Class",
+      "detail" : "http:Created",
+      "insertText" : "Created"
+    }, {
+      "label" : "Accepted",
+      "labelDetails" : {
+        "detail" : "202",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Non Authoritative Information",
-        "type": "http:NonAuthoritativeInformation",
-        "statusCode": "203"
+      "kind" : "Class",
+      "detail" : "http:Accepted",
+      "insertText" : "Accepted"
+    }, {
+      "label" : "Non Authoritative Information",
+      "labelDetails" : {
+        "detail" : "203",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "No Content",
-        "type": "http:NoContent",
-        "statusCode": "204"
+      "kind" : "Class",
+      "detail" : "http:NonAuthoritativeInformation",
+      "insertText" : "Non Authoritative Information"
+    }, {
+      "label" : "No Content",
+      "labelDetails" : {
+        "detail" : "204",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Reset Content",
-        "type": "http:ResetContent",
-        "statusCode": "205"
+      "kind" : "Class",
+      "detail" : "http:NoContent",
+      "insertText" : "No Content"
+    }, {
+      "label" : "Reset Content",
+      "labelDetails" : {
+        "detail" : "205",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Partial Content",
-        "type": "http:PartialContent",
-        "statusCode": "206"
+      "kind" : "Class",
+      "detail" : "http:ResetContent",
+      "insertText" : "Reset Content"
+    }, {
+      "label" : "Partial Content",
+      "labelDetails" : {
+        "detail" : "206",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Multi Status",
-        "type": "http:MultiStatus",
-        "statusCode": "207"
+      "kind" : "Class",
+      "detail" : "http:PartialContent",
+      "insertText" : "Partial Content"
+    }, {
+      "label" : "Multi Status",
+      "labelDetails" : {
+        "detail" : "207",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "Already Reported",
-        "type": "http:AlreadyReported",
-        "statusCode": "208"
+      "kind" : "Class",
+      "detail" : "http:MultiStatus",
+      "insertText" : "Multi Status"
+    }, {
+      "label" : "Already Reported",
+      "labelDetails" : {
+        "detail" : "208",
+        "description" : "2XX"
       },
-      {
-        "category": "2XX",
-        "label": "IM Used",
-        "type": "http:IMUsed",
-        "statusCode": "226"
+      "kind" : "Class",
+      "detail" : "http:AlreadyReported",
+      "insertText" : "Already Reported"
+    }, {
+      "label" : "IM Used",
+      "labelDetails" : {
+        "detail" : "226",
+        "description" : "2XX"
       },
-      {
-        "category": "3XX",
-        "label": "Multiple Choices",
-        "type": "http:MultipleChoices",
-        "statusCode": "300"
+      "kind" : "Class",
+      "detail" : "http:IMUsed",
+      "insertText" : "IM Used"
+    }, {
+      "label" : "Multiple Choices",
+      "labelDetails" : {
+        "detail" : "300",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Moved Permanently",
-        "type": "http:MovedPermanently",
-        "statusCode": "301"
+      "kind" : "Class",
+      "detail" : "http:MultipleChoices",
+      "insertText" : "Multiple Choices"
+    }, {
+      "label" : "Moved Permanently",
+      "labelDetails" : {
+        "detail" : "301",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Found",
-        "type": "http:Found",
-        "statusCode": "302"
+      "kind" : "Class",
+      "detail" : "http:MovedPermanently",
+      "insertText" : "Moved Permanently"
+    }, {
+      "label" : "Found",
+      "labelDetails" : {
+        "detail" : "302",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "See Other",
-        "type": "http:SeeOther",
-        "statusCode": "303"
+      "kind" : "Class",
+      "detail" : "http:Found",
+      "insertText" : "Found"
+    }, {
+      "label" : "See Other",
+      "labelDetails" : {
+        "detail" : "303",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Not Modified",
-        "type": "http:NotModified",
-        "statusCode": "304"
+      "kind" : "Class",
+      "detail" : "http:SeeOther",
+      "insertText" : "See Other"
+    }, {
+      "label" : "Not Modified",
+      "labelDetails" : {
+        "detail" : "304",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Use Proxy",
-        "type": "http:UseProxy",
-        "statusCode": "305"
+      "kind" : "Class",
+      "detail" : "http:NotModified",
+      "insertText" : "Not Modified"
+    }, {
+      "label" : "Use Proxy",
+      "labelDetails" : {
+        "detail" : "305",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Temporary Redirect",
-        "type": "http:TemporaryRedirect",
-        "statusCode": "307"
+      "kind" : "Class",
+      "detail" : "http:UseProxy",
+      "insertText" : "Use Proxy"
+    }, {
+      "label" : "Temporary Redirect",
+      "labelDetails" : {
+        "detail" : "307",
+        "description" : "3XX"
       },
-      {
-        "category": "3XX",
-        "label": "Permanent Redirect",
-        "type": "http:PermanentRedirect",
-        "statusCode": "308"
+      "kind" : "Class",
+      "detail" : "http:TemporaryRedirect",
+      "insertText" : "Temporary Redirect"
+    }, {
+      "label" : "Permanent Redirect",
+      "labelDetails" : {
+        "detail" : "308",
+        "description" : "3XX"
       },
-      {
-        "category": "4XX",
-        "label": "Bad Request",
-        "type": "http:BadRequest",
-        "statusCode": "400"
+      "kind" : "Class",
+      "detail" : "http:PermanentRedirect",
+      "insertText" : "Permanent Redirect"
+    }, {
+      "label" : "Bad Request",
+      "labelDetails" : {
+        "detail" : "400",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Unauthorized",
-        "type": "http:Unauthorized",
-        "statusCode": "401"
+      "kind" : "Class",
+      "detail" : "http:BadRequest",
+      "insertText" : "Bad Request"
+    }, {
+      "label" : "Unauthorized",
+      "labelDetails" : {
+        "detail" : "401",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Payment Required",
-        "type": "http:PaymentRequired",
-        "statusCode": "402"
+      "kind" : "Class",
+      "detail" : "http:Unauthorized",
+      "insertText" : "Unauthorized"
+    }, {
+      "label" : "Payment Required",
+      "labelDetails" : {
+        "detail" : "402",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Forbidden",
-        "type": "http:Forbidden",
-        "statusCode": "403"
+      "kind" : "Class",
+      "detail" : "http:PaymentRequired",
+      "insertText" : "Payment Required"
+    }, {
+      "label" : "Forbidden",
+      "labelDetails" : {
+        "detail" : "403",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Not Found",
-        "type": "http:NotFound",
-        "statusCode": "404"
+      "kind" : "Class",
+      "detail" : "http:Forbidden",
+      "insertText" : "Forbidden"
+    }, {
+      "label" : "Not Found",
+      "labelDetails" : {
+        "detail" : "404",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Method Not Allowed",
-        "type": "http:MethodNotAllowed",
-        "statusCode": "405"
+      "kind" : "Class",
+      "detail" : "http:NotFound",
+      "insertText" : "Not Found"
+    }, {
+      "label" : "Method Not Allowed",
+      "labelDetails" : {
+        "detail" : "405",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Not Acceptable",
-        "type": "http:NotAcceptable",
-        "statusCode": "406"
+      "kind" : "Class",
+      "detail" : "http:MethodNotAllowed",
+      "insertText" : "Method Not Allowed"
+    }, {
+      "label" : "Not Acceptable",
+      "labelDetails" : {
+        "detail" : "406",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Proxy Authentication Required",
-        "type": "http:ProxyAuthenticationRequired",
-        "statusCode": "407"
+      "kind" : "Class",
+      "detail" : "http:NotAcceptable",
+      "insertText" : "Not Acceptable"
+    }, {
+      "label" : "Proxy Authentication Required",
+      "labelDetails" : {
+        "detail" : "407",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Request Time Out",
-        "type": "http:RequestTimeOut",
-        "statusCode": "408"
+      "kind" : "Class",
+      "detail" : "http:ProxyAuthenticationRequired",
+      "insertText" : "Proxy Authentication Required"
+    }, {
+      "label" : "Request Time Out",
+      "labelDetails" : {
+        "detail" : "408",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Conflict",
-        "type": "http:Conflict",
-        "statusCode": "409"
+      "kind" : "Class",
+      "detail" : "http:RequestTimeOut",
+      "insertText" : "Request Time Out"
+    }, {
+      "label" : "Conflict",
+      "labelDetails" : {
+        "detail" : "409",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Gone",
-        "type": "http:Gone",
-        "statusCode": "410"
+      "kind" : "Class",
+      "detail" : "http:Conflict",
+      "insertText" : "Conflict"
+    }, {
+      "label" : "Gone",
+      "labelDetails" : {
+        "detail" : "410",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Length Required",
-        "type": "http:LengthRequired",
-        "statusCode": "411"
+      "kind" : "Class",
+      "detail" : "http:Gone",
+      "insertText" : "Gone"
+    }, {
+      "label" : "Length Required",
+      "labelDetails" : {
+        "detail" : "411",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Precondition Failed",
-        "type": "http:PreconditionFailed",
-        "statusCode": "412"
+      "kind" : "Class",
+      "detail" : "http:LengthRequired",
+      "insertText" : "Length Required"
+    }, {
+      "label" : "Precondition Failed",
+      "labelDetails" : {
+        "detail" : "412",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Payload Too Large",
-        "type": "http:PayloadTooLarge",
-        "statusCode": "413"
+      "kind" : "Class",
+      "detail" : "http:PreconditionFailed",
+      "insertText" : "Precondition Failed"
+    }, {
+      "label" : "Payload Too Large",
+      "labelDetails" : {
+        "detail" : "413",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "URI Too Long",
-        "type": "http:UriTooLong",
-        "statusCode": "414"
+      "kind" : "Class",
+      "detail" : "http:PayloadTooLarge",
+      "insertText" : "Payload Too Large"
+    }, {
+      "label" : "URI Too Long",
+      "labelDetails" : {
+        "detail" : "414",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Unsupported Media Type",
-        "type": "http:UnsupportedMediaType",
-        "statusCode": "415"
+      "kind" : "Class",
+      "detail" : "http:UriTooLong",
+      "insertText" : "URI Too Long"
+    }, {
+      "label" : "Unsupported Media Type",
+      "labelDetails" : {
+        "detail" : "415",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Range Not Satisfiable",
-        "type": "http:RangeNotSatisfiable",
-        "statusCode": "416"
+      "kind" : "Class",
+      "detail" : "http:UnsupportedMediaType",
+      "insertText" : "Unsupported Media Type"
+    }, {
+      "label" : "Range Not Satisfiable",
+      "labelDetails" : {
+        "detail" : "416",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Expectation Failed",
-        "type": "http:ExpectationFailed",
-        "statusCode": "417"
+      "kind" : "Class",
+      "detail" : "http:RangeNotSatisfiable",
+      "insertText" : "Range Not Satisfiable"
+    }, {
+      "label" : "Expectation Failed",
+      "labelDetails" : {
+        "detail" : "417",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Misdirected Request",
-        "type": "http:MisdirectedRequest",
-        "statusCode": "421"
+      "kind" : "Class",
+      "detail" : "http:ExpectationFailed",
+      "insertText" : "Expectation Failed"
+    }, {
+      "label" : "Misdirected Request",
+      "labelDetails" : {
+        "detail" : "421",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Unprocessable Entity",
-        "type": "http:UnprocessableEntity",
-        "statusCode": "422"
+      "kind" : "Class",
+      "detail" : "http:MisdirectedRequest",
+      "insertText" : "Misdirected Request"
+    }, {
+      "label" : "Unprocessable Entity",
+      "labelDetails" : {
+        "detail" : "422",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Locked",
-        "type": "http:Locked",
-        "statusCode": "423"
+      "kind" : "Class",
+      "detail" : "http:UnprocessableEntity",
+      "insertText" : "Unprocessable Entity"
+    }, {
+      "label" : "Locked",
+      "labelDetails" : {
+        "detail" : "423",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Failed Dependency",
-        "type": "http:FailedDependency",
-        "statusCode": "424"
+      "kind" : "Class",
+      "detail" : "http:Locked",
+      "insertText" : "Locked"
+    }, {
+      "label" : "Failed Dependency",
+      "labelDetails" : {
+        "detail" : "424",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Too Early",
-        "type": "http:TooEarly",
-        "statusCode": "425"
+      "kind" : "Class",
+      "detail" : "http:FailedDependency",
+      "insertText" : "Failed Dependency"
+    }, {
+      "label" : "Too Early",
+      "labelDetails" : {
+        "detail" : "425",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Upgrade Required",
-        "type": "http:UpgradeRequired",
-        "statusCode": "426"
+      "kind" : "Class",
+      "detail" : "http:TooEarly",
+      "insertText" : "Too Early"
+    }, {
+      "label" : "Upgrade Required",
+      "labelDetails" : {
+        "detail" : "426",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Precondition Required",
-        "type": "http:PreconditionRequired",
-        "statusCode": "428"
+      "kind" : "Class",
+      "detail" : "http:UpgradeRequired",
+      "insertText" : "Upgrade Required"
+    }, {
+      "label" : "Precondition Required",
+      "labelDetails" : {
+        "detail" : "428",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Too Many Requests",
-        "type": "http:TooManyRequests",
-        "statusCode": "429"
+      "kind" : "Class",
+      "detail" : "http:PreconditionRequired",
+      "insertText" : "Precondition Required"
+    }, {
+      "label" : "Too Many Requests",
+      "labelDetails" : {
+        "detail" : "429",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Request Header Fields Too Large",
-        "type": "http:RequestHeaderFieldsTooLarge",
-        "statusCode": "431"
+      "kind" : "Class",
+      "detail" : "http:TooManyRequests",
+      "insertText" : "Too Many Requests"
+    }, {
+      "label" : "Request Header Fields Too Large",
+      "labelDetails" : {
+        "detail" : "431",
+        "description" : "4XX"
       },
-      {
-        "category": "4XX",
-        "label": "Unavailable Due to Legal Reasons",
-        "type": "http:UnavailableDueToLegalReasons",
-        "statusCode": "451"
+      "kind" : "Class",
+      "detail" : "http:RequestHeaderFieldsTooLarge",
+      "insertText" : "Request Header Fields Too Large"
+    }, {
+      "label" : "Unavailable Due to Legal Reasons",
+      "labelDetails" : {
+        "detail" : "451",
+        "description" : "4XX"
       },
-      {
-        "category": "5XX",
-        "label": "Internal Server Error",
-        "type": "http:InternalServerError",
-        "statusCode": "500"
+      "kind" : "Class",
+      "detail" : "http:UnavailableDueToLegalReasons",
+      "insertText" : "Unavailable Due to Legal Reasons"
+    }, {
+      "label" : "Internal Server Error",
+      "labelDetails" : {
+        "detail" : "500",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Not Implemented",
-        "type": "http:NotImplemented",
-        "statusCode": "501"
+      "kind" : "Class",
+      "detail" : "http:InternalServerError",
+      "insertText" : "Internal Server Error"
+    }, {
+      "label" : "Not Implemented",
+      "labelDetails" : {
+        "detail" : "501",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Bad Gateway",
-        "type": "http:BadGateway",
-        "statusCode": "502"
+      "kind" : "Class",
+      "detail" : "http:NotImplemented",
+      "insertText" : "Not Implemented"
+    }, {
+      "label" : "Bad Gateway",
+      "labelDetails" : {
+        "detail" : "502",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Service Unavailable",
-        "type": "http:ServiceUnavailable",
-        "statusCode": "503"
+      "kind" : "Class",
+      "detail" : "http:BadGateway",
+      "insertText" : "Bad Gateway"
+    }, {
+      "label" : "Service Unavailable",
+      "labelDetails" : {
+        "detail" : "503",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Gateway Timeout",
-        "type": "http:GatewayTimeout",
-        "statusCode": "504"
+      "kind" : "Class",
+      "detail" : "http:ServiceUnavailable",
+      "insertText" : "Service Unavailable"
+    }, {
+      "label" : "Gateway Timeout",
+      "labelDetails" : {
+        "detail" : "504",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "HTTP Version Not Supported",
-        "type": "http:HttpVersionNotSupported",
-        "statusCode": "505"
+      "kind" : "Class",
+      "detail" : "http:GatewayTimeout",
+      "insertText" : "Gateway Timeout"
+    }, {
+      "label" : "HTTP Version Not Supported",
+      "labelDetails" : {
+        "detail" : "505",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Variant Also Negotiates",
-        "type": "http:VariantAlsoNegotiates",
-        "statusCode": "506"
+      "kind" : "Class",
+      "detail" : "http:HttpVersionNotSupported",
+      "insertText" : "HTTP Version Not Supported"
+    }, {
+      "label" : "Variant Also Negotiates",
+      "labelDetails" : {
+        "detail" : "506",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Insufficient Storage",
-        "type": "http:InsufficientStorage",
-        "statusCode": "507"
+      "kind" : "Class",
+      "detail" : "http:VariantAlsoNegotiates",
+      "insertText" : "Variant Also Negotiates"
+    }, {
+      "label" : "Insufficient Storage",
+      "labelDetails" : {
+        "detail" : "507",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Loop Detected",
-        "type": "http:LoopDetected",
-        "statusCode": "508"
+      "kind" : "Class",
+      "detail" : "http:InsufficientStorage",
+      "insertText" : "Insufficient Storage"
+    }, {
+      "label" : "Loop Detected",
+      "labelDetails" : {
+        "detail" : "508",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Not Extended",
-        "type": "http:NotExtended",
-        "statusCode": "510"
+      "kind" : "Class",
+      "detail" : "http:LoopDetected",
+      "insertText" : "Loop Detected"
+    }, {
+      "label" : "Not Extended",
+      "labelDetails" : {
+        "detail" : "510",
+        "description" : "5XX"
       },
-      {
-        "category": "5XX",
-        "label": "Network Authentication Required",
-        "type": "http:NetworkAuthenticationRequired",
-        "statusCode": "511"
+      "kind" : "Class",
+      "detail" : "http:NotExtended",
+      "insertText" : "Not Extended"
+    }, {
+      "label" : "Network Authentication Required",
+      "labelDetails" : {
+        "detail" : "511",
+        "description" : "5XX"
       },
-      {
-        "category": "User Defined",
-        "label": "Json202Accepted",
-        "type": "Json202Accepted",
-        "statusCode": "202"
+      "kind" : "Class",
+      "detail" : "http:NetworkAuthenticationRequired",
+      "insertText" : "Network Authentication Required"
+    }, {
+      "label" : "Json202Accepted",
+      "labelDetails" : {
+        "detail" : "202",
+        "description" : "User-Defined"
       },
-      {
-        "category": "Dynamic",
-        "label": "Response",
-        "type": "http:Response",
-        "statusCode": "Dynamic"
+      "kind" : "Interface",
+      "detail" : "Json202Accepted",
+      "insertText" : "Json202Accepted"
+    }, {
+      "label" : "Response",
+      "labelDetails" : {
+        "detail" : "Dynamic",
+        "description" : "Dynamic"
       },
-      {
-        "category": "Error Type",
-        "label": "error",
-        "type": "error",
-        "statusCode": "500"
-      }
-    ]
+      "kind" : "Class",
+      "detail" : "http:Response",
+      "insertText" : "Response"
+    }, {
+      "label" : "error",
+      "labelDetails" : {
+        "detail" : "500",
+        "description" : "Error Type"
+      },
+      "kind" : "Class",
+      "detail" : "error",
+      "insertText" : "error"
+    } ]
   }
 }

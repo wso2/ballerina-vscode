@@ -10,17 +10,31 @@
     "offset": 0
   },
   "response": {
-    "id": "12",
+    "id": "13",
     "name": "GitHub Event Handler",
     "type": "trigger.github",
     "displayName": "GitHub Event Handler",
-    "description": "Add the service documentation",
     "moduleName": "trigger.github",
     "orgName": "ballerinax",
     "version": "0.10.0",
     "packageName": "trigger.github",
     "listenerProtocol": "github",
     "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.github_0.10.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "properties": {
       "listener": {
         "metadata": {
@@ -31,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "github:Listener",
         "value": "githubDefaultListener",
         "values": [],
         "items": [
           "githubDefaultListener"
         ],
+        "properties": {
+          "githubDefaultListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 32
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 53
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -69,7 +104,7 @@
           "ProjectCardService"
         ],
         "enabled": true,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       }
@@ -85,7 +120,10 @@
           "line": 60,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "trigger.github",
+      "moduleName": "trigger.github"
     },
     "functions": [
       {
@@ -99,12 +137,8 @@
             "label": "onOpened",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onOpened",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onOpened",
           "enabled": true,
           "editable": false,
@@ -120,7 +154,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -135,9 +169,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -164,11 +195,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -210,12 +243,8 @@
             "label": "onClosed",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onClosed",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onClosed",
           "enabled": true,
           "editable": false,
@@ -231,7 +260,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -246,9 +275,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -275,11 +301,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -321,12 +349,8 @@
             "label": "onReopened",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onReopened",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onReopened",
           "enabled": true,
           "editable": false,
@@ -342,7 +366,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -357,9 +381,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -386,11 +407,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -432,12 +455,8 @@
             "label": "onAssigned",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onAssigned",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onAssigned",
           "enabled": true,
           "editable": false,
@@ -453,7 +472,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -468,9 +487,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -497,11 +513,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -543,12 +561,8 @@
             "label": "onUnassigned",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onUnassigned",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onUnassigned",
           "enabled": true,
           "editable": false,
@@ -564,7 +578,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -579,9 +593,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -608,11 +619,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -654,12 +667,8 @@
             "label": "onLabeled",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onLabeled",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onLabeled",
           "enabled": true,
           "editable": false,
@@ -675,7 +684,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -690,9 +699,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -719,11 +725,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -765,12 +773,8 @@
             "label": "onUnlabeled",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onUnlabeled",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onUnlabeled",
           "enabled": true,
           "editable": false,
@@ -786,7 +790,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -801,9 +805,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -830,11 +831,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "returnType": {
           "hasError": true,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"

@@ -97,7 +97,8 @@
         "type": "Address",
         "name": "rowType",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       },
       {
         "kind": "TYPE",
@@ -140,7 +141,8 @@
               "type": "string",
               "name": "string",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             },
             {
               "kind": "TYPE",
@@ -148,14 +150,16 @@
               "type": "int",
               "name": "int",
               "optional": false,
-              "readonly": false
+              "readonly": false,
+              "isGraphqlId": false
             }
           ],
           "allowAdditionalFields": false
         },
         "name": "keyConstraintType",
         "optional": false,
-        "readonly": false
+        "readonly": false,
+        "isGraphqlId": false
       }
     ],
     "allowAdditionalFields": false
@@ -252,6 +256,7 @@
           "name": "houseNo",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -261,6 +266,7 @@
           "name": "line1",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -270,6 +276,7 @@
           "name": "line2",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -279,6 +286,7 @@
           "name": "city",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         },
         {
@@ -288,6 +296,7 @@
           "name": "country",
           "optional": false,
           "readonly": false,
+          "isGraphqlId": false,
           "docs": ""
         }
       ],

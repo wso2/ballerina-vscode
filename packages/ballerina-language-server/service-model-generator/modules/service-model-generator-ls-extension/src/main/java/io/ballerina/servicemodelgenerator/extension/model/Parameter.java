@@ -23,16 +23,19 @@ import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
-import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARGUMENT_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_DEFAULT_VALUE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FIELD_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_TYPE_METADATA;
 
@@ -47,31 +50,40 @@ public class Parameter {
     private Value type;
     private Value name;
     private Value defaultValue;
+    private Value documentation;
+    private Value headerName;
     private boolean enabled;
     private boolean editable;
     private boolean optional;
     private boolean advanced;
-    private String httpParamType;
     private boolean hidden;
+    private boolean isGraphqlId;
+    private String httpParamType;
+    private Map<String, Value> properties;
 
-    public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, boolean enabled,
-                     boolean editable, boolean optional, boolean advanced, String httpParamType, boolean hidden) {
+    public Parameter(MetaData metadata, String kind, Value type, Value name, Value defaultValue, Value documentation,
+                     boolean enabled, boolean editable, boolean optional, boolean advanced, String httpParamType,
+                     boolean hidden, Map<String, Value> properties, boolean isGraphqlId) {
         this.metadata = metadata;
         this.kind = kind;
         this.type = type;
         this.name = name;
         this.defaultValue = defaultValue;
+        this.documentation = documentation;
         this.enabled = enabled;
         this.editable = editable;
         this.optional = optional;
         this.advanced = advanced;
         this.httpParamType = httpParamType;
         this.hidden = hidden;
+        this.properties = properties;
+        this.isGraphqlId = isGraphqlId;
     }
 
     public Parameter(Parameter parameter) {
         this.metadata = parameter.metadata;
         this.kind = parameter.kind;
+        this.documentation = parameter.documentation;
         this.type = parameter.type;
         this.name = parameter.name;
         this.defaultValue = parameter.defaultValue;
@@ -81,6 +93,9 @@ public class Parameter {
         this.advanced = parameter.advanced;
         this.httpParamType = parameter.httpParamType;
         this.hidden = parameter.hidden;
+        this.headerName = parameter.headerName;
+        this.properties = parameter.properties;
+        this.isGraphqlId = parameter.isGraphqlId;
     }
 
     public MetaData getMetadata() {
@@ -97,6 +112,22 @@ public class Parameter {
 
     public void setKind(String kind) {
         this.kind = kind;
+    }
+
+    public Value getDocumentation() {
+        if (Objects.isNull(documentation)) {
+            documentation = new Value.ValueBuilder()
+                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .enabled(true)
+                    .optional(true)
+                    .editable(true)
+                    .build();
+        }
+        return documentation;
+    }
+
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
     }
 
     public Value getType() {
@@ -156,10 +187,7 @@ public class Parameter {
     }
 
     public String getHttpParamType() {
-        if (Objects.isNull(httpParamType)) {
-            return null;
-        }
-        return httpParamType.charAt(0) + httpParamType.substring(1).toLowerCase(Locale.ROOT);
+        return httpParamType;
     }
 
     public void setHttpParamType(String httpParamType) {
@@ -172,6 +200,33 @@ public class Parameter {
 
     public boolean isHidden() {
         return hidden;
+    }
+
+    public Value getHeaderName() {
+        return headerName;
+    }
+
+    public void setHeaderName(Value headerName) {
+        this.headerName = headerName;
+    }
+
+    public Map<String, Value> getProperties() {
+        if (Objects.isNull(properties)) {
+            properties = new LinkedHashMap<>();
+        }
+        return properties;
+    }
+
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
+    }
+
+    public boolean isGraphqlId() {
+        return isGraphqlId;
+    }
+
+    public void setIsGraphqlId(boolean isGraphqlId) {
+        this.isGraphqlId = isGraphqlId;
     }
 
     private static Value name(MetaData metadata) {
@@ -202,11 +257,23 @@ public class Parameter {
                 .build();
     }
 
+    private static Value documentation(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_STRING)
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build();
+    }
+
     public static Parameter getNewField() {
-        return new Parameter.Builder()
+        return new Builder()
                 .type(type(FIELD_TYPE_METADATA))
                 .name(name(FIELD_NAME_METADATA))
                 .defaultValue(defaultValue(FIELD_DEFAULT_VALUE_METADATA))
+                .editable(true)
+                .optional(true)
                 .build();
     }
 
@@ -215,6 +282,7 @@ public class Parameter {
                 .type(type(ARGUMENT_TYPE_METADATA))
                 .name(name(ARGUMENT_NAME_METADATA))
                 .defaultValue(defaultValue(ARGUMENT_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(ARGUMENT_DOCUMENTATION_METADATA))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -225,6 +293,7 @@ public class Parameter {
                 .type(type(PARAMETER_TYPE_METADATA))
                 .name(name(PARAMETER_NAME_METADATA))
                 .defaultValue(defaultValue(PARAMETER_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(PARAMETER_DOCUMENTATION_METADATA))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -275,12 +344,16 @@ public class Parameter {
         private Value type;
         private Value name;
         private Value defaultValue;
+        private Value documentation;
         private boolean enabled;
         private boolean editable;
         private boolean optional;
         private boolean advanced;
-        private String httpParamType;
         private boolean hidden;
+        private boolean isGraphqlId;
+        private String httpParamType;
+        private Map<String, Value> properties;
+
 
         public Builder metadata(MetaData metadata) {
             this.metadata = metadata;
@@ -289,6 +362,11 @@ public class Parameter {
 
         public Builder kind(String kind) {
             this.kind = kind;
+            return this;
+        }
+
+        public Builder documentation(Value documentation) {
+            this.documentation = documentation;
             return this;
         }
 
@@ -337,9 +415,27 @@ public class Parameter {
             return this;
         }
 
+        public Builder properties(Map<String, Value> properties) {
+            this.properties = properties;
+            return this;
+        }
+
+        public Builder addProperty(String key, Value value) {
+            if (this.properties == null) {
+                this.properties = new LinkedHashMap<>();
+            }
+            this.properties.put(key, value);
+            return this;
+        }
+
+        public Builder isGraphqlId(boolean isGraphqlId) {
+            this.isGraphqlId = isGraphqlId;
+            return this;
+        }
+
         public Parameter build() {
-            return new Parameter(metadata, kind, type, name, defaultValue, enabled, editable, optional, advanced,
-                    httpParamType, hidden);
+            return new Parameter(metadata, kind, type, name, defaultValue, documentation, enabled, editable, optional,
+                    advanced, httpParamType, hidden, properties, isGraphqlId);
         }
     }
 }

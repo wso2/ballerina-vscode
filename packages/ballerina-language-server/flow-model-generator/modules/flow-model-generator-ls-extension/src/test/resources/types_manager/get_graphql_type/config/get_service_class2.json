@@ -151,6 +151,7 @@
         "name": "name",
         "optional": false,
         "readonly": false,
+        "isGraphqlId": false,
         "docs": ""
       }
     ],
@@ -168,6 +169,7 @@
         "name": "name",
         "description": "",
         "returnType": "string",
+        "isGraphqlId": false,
         "refs": [],
         "properties": {
           "isPrivate": {
@@ -312,6 +314,7 @@
           "name": "name",
           "description": "",
           "returnType": "string",
+          "isGraphqlId": false,
           "refs": [],
           "properties": {
             "isPrivate": {
