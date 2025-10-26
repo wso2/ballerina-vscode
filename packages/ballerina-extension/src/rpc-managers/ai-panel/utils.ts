@@ -73,8 +73,17 @@ export function handleStop() {
     AIPanelAbortController.getInstance().abort();
 }
 
+// Normalize int subtypes (int:Signed32, int:Unsigned16, etc.) to base type "int"
+const normalizeIntSubtype = (type: string): string => {
+    if (type.startsWith("int:")) {
+        return "int";
+    }
+    return type;
+};
+
 const isPrimitiveType = (type: string): boolean => {
-    return Object.values(PrimitiveType).includes(type as PrimitiveType);
+    const normalizedType = normalizeIntSubtype(type);
+    return Object.values(PrimitiveType).includes(normalizedType as PrimitiveType);
 };
 
 const isUnionEnumIntersectionType = (type: string): boolean => {
@@ -364,10 +373,16 @@ async function getMappingString(mapping: MappingData, parameterDefinitions: Para
         const isStringInput = ["string", "string|()"].includes(inputTypeName);
         const isStringTarget = ["string", "string|()"].includes(targetType);
         if (isPrimitiveType(baseTargetType) && isPrimitiveType(baseType)) {
-            if (inputTypeName === targetType || inputTypeName === baseTargetType) {
+            // Normalize int subtypes for comparison
+            const normalizedInputTypeName = normalizeIntSubtype(inputTypeName);
+            const normalizedTargetType = normalizeIntSubtype(targetType);
+            const normalizedBaseTargetType = normalizeIntSubtype(baseTargetType);
+            const normalizedBaseType = normalizeIntSubtype(baseType);
+
+            if (normalizedInputTypeName === normalizedTargetType || normalizedInputTypeName === normalizedBaseTargetType) {
                 path = `${path}`;
             } else if (isStringInput) {
-                const conversion = stringConversions[baseTargetType];
+                const conversion = stringConversions[normalizedBaseTargetType];
                 if (conversion) {
                     path = `${conversion}(${path})`;
                 } else if (!isStringTarget) {
@@ -376,12 +391,12 @@ async function getMappingString(mapping: MappingData, parameterDefinitions: Para
             } else if (isStringTarget) {
                 path = `(${path}).toString()`;
             } else {
-                const conversion = numericConversions[inputTypeName]?.[targetType];
-                if (conversion && baseTargetType !== PrimitiveType.BOOLEAN) {
+                const conversion = numericConversions[normalizedInputTypeName]?.[normalizedTargetType];
+                if (conversion && normalizedBaseTargetType !== PrimitiveType.BOOLEAN) {
                     path = conversion;
-                } else if (baseType === baseTargetType) {
+                } else if (normalizedBaseType === normalizedBaseTargetType) {
                     path = `${path}`;
-                } else if ((targetType.includes("|()") && inputTypeName !== baseTargetType) || inputTypeName.includes("|()") && baseTargetType !== PrimitiveType.BOOLEAN) {
+                } else if ((targetType.includes("|()") && normalizedInputTypeName !== normalizedBaseTargetType) || inputTypeName.includes("|()") && normalizedBaseTargetType !== PrimitiveType.BOOLEAN) {
                     path = `check (${path}).ensureType()`;
                 } else {
                     return "";
@@ -1318,6 +1333,12 @@ async function getDefaultValue(dataType: string): Promise<string> {
         case "string":
             return "\"\"";
         case "int":
+        case "int:Signed8":
+        case "int:Signed16":
+        case "int:Signed32":
+        case "int:Unsigned8":
+        case "int:Unsigned16":
+        case "int:Unsigned32":
             return "0";
         case "decimal":
             return "0.0";
