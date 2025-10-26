@@ -22,6 +22,7 @@ import {
     AddClausesRequest,
     AddSubMappingRequest,
     AllDataMapperSourceRequest,
+    ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -406,6 +407,17 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     .then(() => {
                         resolve({ textEdits: resp.textEdits });
                     });
+                });
+        });
+    }
+
+    async clearTypeCache(): Promise<ClearTypeCacheResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .clearTypeCache()
+                .then((resp) => {
+                    resolve(resp);
                 });
         });
     }
