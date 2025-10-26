@@ -32,7 +32,10 @@ import {
     ToolCall,
     ToolResult,
     Command,
-    DocumentationGeneratorIntermediaryState
+    DocumentationGeneratorIntermediaryState,
+    PayloadContext,
+    HttpPayloadContext,
+    MessageQueuePayloadContext
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
@@ -258,4 +261,12 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {
+    return context.protocol === "HTTP";
+}
+
+export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
+    return context.protocol === "MESSAGE_BROKER";
 }

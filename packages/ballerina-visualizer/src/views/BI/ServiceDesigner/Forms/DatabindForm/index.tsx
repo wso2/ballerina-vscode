@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { FunctionModel, ParameterModel, Type } from "@wso2/ballerina-core";
+import { ConfigProperties, FunctionModel, ParameterModel, MessageQueuePayloadContext, Type } from "@wso2/ballerina-core";
 import {
     ActionButtons,
     CheckBox,
@@ -101,10 +101,13 @@ export interface DatabindFormProps {
     isSaving?: boolean;
     onSave: (functionModel: FunctionModel) => void;
     onClose: () => void;
+    payloadContext?: MessageQueuePayloadContext;
+    serviceProperties?: ConfigProperties;
+    serviceModuleName?: string;
 }
 
 export function DatabindForm(props: DatabindFormProps) {
-    const { model, isSaving = false, onSave, onClose } = props;
+    const { model, isSaving = false, onSave, onClose, payloadContext, serviceProperties, serviceModuleName } = props;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
@@ -139,6 +142,31 @@ export function DatabindForm(props: DatabindFormProps) {
         const moduleName = functionModel?.codedata?.moduleName || "";
         const key = `${moduleName}-${parameterName}`.toLowerCase();
         return parameterDescriptionMap[key] || "";
+    };
+
+    /**
+     * Gets the queue name description string based on module name
+     * @param moduleName - The module name (e.g., "rabbitmq", "kafka")
+     * @returns Description string about where the payload comes from
+     */
+    const getQueueDescriptionByModule = (moduleName: string): string => {
+        if (!moduleName) {
+            return "";
+        }
+        const lowerModuleName = moduleName.toLowerCase();
+        if (lowerModuleName === "rabbitmq") {
+            return serviceProperties.stringLiteral?.value;
+        } else if (lowerModuleName === "kafka") {
+            const metaValue = serviceProperties?.readOnlyMetaData?.value;
+            if (metaValue && typeof metaValue === "object") {
+                for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
+                    if (key === "Topics" && Array.isArray(val) && val.length > 0) {
+                        return String(val[0]);
+                    }
+                }
+            }
+        }
+        return "";
     };
 
     const handleParamChange = (params: ParameterModel[]) => {
@@ -541,6 +569,10 @@ export function DatabindForm(props: DatabindFormProps) {
                 initialTypeName={generatePayloadTypeName()}
                 editMode={false}
                 modalTitle={"Define " + payloadFieldName + " Schema"}
+                payloadContext={{
+                    ...payloadContext,
+                    queueOrTopic: getQueueDescriptionByModule(serviceModuleName)
+                }}
                 modalWidth={650}
                 modalHeight={600}
             />
