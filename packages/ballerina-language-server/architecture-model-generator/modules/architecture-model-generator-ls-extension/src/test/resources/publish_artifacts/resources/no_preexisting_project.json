@@ -2,100 +2,6 @@
   "source": "old/config.bal",
   "description": "Test reload project without pre-existing artifacts",
   "output": {
-    "Variables": {
-      "additions": {
-        "menuItems": {
-          "id": "menuItems",
-          "location": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 7,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 11,
-              "offset": 2
-            }
-          },
-          "type": "VARIABLE",
-          "name": "menuItems",
-          "scope": "Global",
-          "children": {}
-        },
-        "_telegramAgentAgent": {
-          "id": "_telegramAgentAgent",
-          "location": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 3,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 6,
-              "offset": 44
-            }
-          },
-          "type": "VARIABLE",
-          "name": "_telegramAgentAgent",
-          "scope": "Global",
-          "children": {}
-        },
-        "orderCounter": {
-          "id": "orderCounter",
-          "location": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 16,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 16,
-              "offset": 21
-            }
-          },
-          "type": "VARIABLE",
-          "name": "orderCounter",
-          "scope": "Global",
-          "children": {}
-        },
-        "orders": {
-          "id": "orders",
-          "location": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 13,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 13,
-              "offset": 44
-            }
-          },
-          "type": "VARIABLE",
-          "name": "orders",
-          "scope": "Global",
-          "children": {}
-        },
-        "_telegramAgentModel": {
-          "id": "_telegramAgentModel",
-          "location": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 87
-            }
-          },
-          "type": "VARIABLE",
-          "name": "_telegramAgentModel",
-          "scope": "Global",
-          "children": {}
-        }
-      }
-    },
     "Connections": {
       "additions": {
         "httpEp": {
@@ -120,6 +26,100 @@
         }
       }
     },
+    "Variables": {
+      "additions": {
+        "_telegramAgentAgent": {
+          "id": "_telegramAgentAgent",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 6,
+              "offset": 44
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentAgent",
+          "scope": "Global",
+          "children": {}
+        },
+        "menuItems": {
+          "id": "menuItems",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 7,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 11,
+              "offset": 2
+            }
+          },
+          "type": "VARIABLE",
+          "name": "menuItems",
+          "scope": "Global",
+          "children": {}
+        },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 87
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
+          "scope": "Global",
+          "children": {}
+        },
+        "orders": {
+          "id": "orders",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 13,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 13,
+              "offset": 44
+            }
+          },
+          "type": "VARIABLE",
+          "name": "orders",
+          "scope": "Global",
+          "children": {}
+        },
+        "orderCounter": {
+          "id": "orderCounter",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 21
+            }
+          },
+          "type": "VARIABLE",
+          "name": "orderCounter",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
     "Types": {
       "additions": {
         "Order": {
@@ -137,24 +137,6 @@
           },
           "type": "TYPE",
           "name": "Order",
-          "scope": "Global",
-          "children": {}
-        },
-        "MenuItem": {
-          "id": "MenuItem",
-          "location": {
-            "fileName": "types.bal",
-            "startLine": {
-              "line": 0,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 4,
-              "offset": 3
-            }
-          },
-          "type": "TYPE",
-          "name": "MenuItem",
           "scope": "Global",
           "children": {}
         },
@@ -191,6 +173,24 @@
           },
           "type": "TYPE",
           "name": "OrderItem",
+          "scope": "Global",
+          "children": {}
+        },
+        "MenuItem": {
+          "id": "MenuItem",
+          "location": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 3
+            }
+          },
+          "type": "TYPE",
+          "name": "MenuItem",
           "scope": "Global",
           "children": {}
         }
@@ -294,6 +294,24 @@
           "scope": "Global",
           "children": {}
         },
+        "factorial": {
+          "id": "factorial",
+          "location": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 23,
+              "offset": 1
+            }
+          },
+          "type": "FUNCTION",
+          "name": "factorial",
+          "scope": "Global",
+          "children": {}
+        },
         "isPrime": {
           "id": "isPrime",
           "location": {
@@ -327,24 +345,6 @@
           },
           "type": "FUNCTION",
           "name": "findMax",
-          "scope": "Global",
-          "children": {}
-        },
-        "factorial": {
-          "id": "factorial",
-          "location": {
-            "fileName": "functions.bal",
-            "startLine": {
-              "line": 18,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 23,
-              "offset": 1
-            }
-          },
-          "type": "FUNCTION",
-          "name": "factorial",
           "scope": "Global",
           "children": {}
         }
