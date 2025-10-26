@@ -266,7 +266,9 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    ExpressionTokensRequest,
+    ExpressionTokensResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -429,6 +431,7 @@ enum EXTENDED_APIS {
     BI_ADD_TEST_FUNCTION = 'testManagerService/addTestFunction',
     BI_UPDATE_TEST_FUNCTION = 'testManagerService/updateTestFunction',
     BI_EDIT_FUNCTION_NODE = 'flowDesignService/functionDefinition',
+    BI_GET_EXPRESSION_TOKENS = 'expressionEditor/semanticTokens',
     BI_AI_AGENT_ORG = 'agentManager/getAiModuleOrg',
     BI_AI_ALL_AGENTS = 'agentManager/getAllAgents',
     BI_AI_ALL_MODELS = 'agentManager/getAllModels',
@@ -1162,6 +1165,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getFunctionNode(params: FunctionNodeRequest): Promise<FunctionNodeResponse> {
         return this.sendRequest<FunctionNodeResponse>(EXTENDED_APIS.BI_EDIT_FUNCTION_NODE, params);
+    }
+
+    async getExpressionTokens(params: ExpressionTokensRequest): Promise<ExpressionTokensResponse> {
+        return this.sendRequest<ExpressionTokensResponse>(EXTENDED_APIS.BI_GET_EXPRESSION_TOKENS, params);
     }
 
     async getListenerModel(params: ListenerModelRequest): Promise<ListenerModelResponse> {

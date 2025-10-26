@@ -111,6 +111,7 @@ export const Variables = (props: VariablesPageProps) => {
 
     useEffect(() => {
         setIsLoading(true);
+        setIsLoading(true);
         const triggerCharacter =
             currentValue.length > 0
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
@@ -127,6 +128,7 @@ export const Variables = (props: VariablesPageProps) => {
             setIsLoading(false);
             setShowContent(true);
         });
+
     }, [targetLineRange])
 
     const getProjectInfo = async () => {

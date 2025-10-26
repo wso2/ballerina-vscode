@@ -68,6 +68,7 @@ import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../For
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -162,6 +163,9 @@ export function FormGeneratorNew(props: FormProps) {
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
+
+    const { addModal, closeModal, popModal } = useModalStack();
+
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
@@ -290,6 +294,17 @@ export function FormGeneratorNew(props: FormProps) {
             }
         }
         setValueTypeConstraints(valueTypeConstraint);
+    }
+
+    const addPopupTester = (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => {
+        console.log("#AAA")
+        addModal(modal, id, title, height, width, onClose);
+    }
+
+    const popupManager = {
+        addPopup: addPopupTester,
+        removeLastPopup: popModal,
+        closePopup: closeModal
     }
 
     const defaultType = (): Type => {
@@ -659,7 +674,6 @@ export function FormGeneratorNew(props: FormProps) {
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,
@@ -852,6 +866,14 @@ export function FormGeneratorNew(props: FormProps) {
         return await convertToFnSignature(signatureHelp);
     };
 
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: filePath,
+            position: position
+        })
+    }
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -860,6 +882,9 @@ export function FormGeneratorNew(props: FormProps) {
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,
@@ -898,6 +923,7 @@ export function FormGeneratorNew(props: FormProps) {
                     openRecordEditor={handleOpenTypeEditor}
                     openFormTypeEditor={handleOpenFormTypeEditor}
                     onCancelForm={onBack || onCancel}
+                    popupManager={popupManager}
                     submitText={submitText}
                     cancelText={cancelText}
                     onSubmit={handleSubmit}
