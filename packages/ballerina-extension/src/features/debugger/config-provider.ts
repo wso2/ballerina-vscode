@@ -114,7 +114,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 async function handleMainFunctionParams(config: DebugConfiguration) {
     const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
-            uri: "file://" + StateMachine.context().projectUri
+            uri: Uri.file(StateMachine.context().projectPath).toString()
         }
     }) as MainFunctionParamsResponse;
     if (res.hasMain) {
@@ -467,7 +467,7 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                         BreakpointManager.getInstance().setActiveBreakpoint(clientBreakpoint);
 
                         if (isWebviewPresent) {
-                            await handleBreakpointVisualization(uri, clientBreakpoint);
+                            await handleDebugHitVisualization(uri, clientBreakpoint);
                         }
                     } else if (msg.command === "continue" || msg.command === "next" || msg.command === "stepIn" || msg.command === "stepOut") {
                         // clear the active breakpoint
@@ -516,13 +516,13 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
     }
 }
 
-async function handleBreakpointVisualization(uri: Uri, clientBreakpoint: DebugProtocol.StackFrame) {
+async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProtocol.StackFrame) {
     const newContext = StateMachine.context();
 
-    // Check if breakpoint is in a different project
-    if (!uri.fsPath.startsWith(newContext.projectUri)) {
-        console.log("Breakpoint is in a different project");
-        window.showInformationMessage("Cannot visualize breakpoint since it belongs to a different project");
+    // Check if breakpoint is in a different package
+    if (!uri.fsPath.startsWith(newContext.projectPath)) {
+        console.log("Debug hit in a different package");
+        window.showInformationMessage("Cannot visualize debug hit since it belongs to a different integration");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);
         notifyBreakpointChange();
         return;
@@ -540,7 +540,7 @@ async function handleBreakpointVisualization(uri: Uri, clientBreakpoint: DebugPr
     const res = await StateMachine.langClient().getEnclosedFunctionDef(req);
 
     if (!res?.startLine || !res?.endLine) {
-        window.showInformationMessage("Failed to open the respective view for the breakpoint. Please manually navigate to the respective view.");
+        window.showInformationMessage("Failed to open the respective view for the debug hit. Please manually navigate to the respective view.");
         notifyBreakpointChange();
         return;
     }
