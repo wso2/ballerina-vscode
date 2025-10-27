@@ -1432,8 +1432,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 );
                 setCategories([]);
                 setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
-            }
-            else if (sidePanelView === SidePanelView.CHUNKERS) {
+            } else if (sidePanelView === SidePanelView.CHUNKERS) {
                 handleOnSelectNode(
                     selectedNodeMetadata.current.nodeId,
                     selectedNodeMetadata.current.metadata,
