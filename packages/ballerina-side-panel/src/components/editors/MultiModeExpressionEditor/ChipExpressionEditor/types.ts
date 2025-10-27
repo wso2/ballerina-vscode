@@ -50,7 +50,7 @@ export type ExpressionModel = {
   startColumn: number,
   startLine: number,
   length: number,
-  type: 'variable' | 'function' | 'literal',
+  type: 'variable' | 'function' | 'literal' | 'parameter',
   isFocused?: boolean
   focusOffset?: number
 }

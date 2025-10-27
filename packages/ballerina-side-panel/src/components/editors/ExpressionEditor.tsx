@@ -451,7 +451,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleGetHelperPane = (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => {
         return getHelperPane?.(
@@ -566,6 +566,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 name={name}
                                 value={value}
                                 completions={completions}
+                                fileName={effectiveFileName}
+                                targetLineRange={effectiveTargetLineRange}
                                 autoFocus={autoFocus}
                                 sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}

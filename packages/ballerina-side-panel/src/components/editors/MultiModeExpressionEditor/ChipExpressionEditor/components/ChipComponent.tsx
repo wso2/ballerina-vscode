@@ -19,6 +19,7 @@
 import React, { useRef } from "react";
 import { Chip } from "../styles";
 import { CHIP_TRUE_VALUE } from '../constants';
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 export type ChipProps = {
     type: 'variable' | 'property' | 'parameter';
@@ -55,6 +56,22 @@ export const ChipComponent = (props: ChipProps) => {
     } else if (type === 'property') {
         return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onFocus={handleFocus} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
     } else {
-        return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onFocus={handleFocus} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
+        return (
+            <Chip
+                ref={chipRef}
+                contentEditable={false}
+                tabIndex={0}
+                onClick={handleClick}
+                onMouseDown={handleMouseDown}
+                onFocus={handleFocus}
+                onBlur={onBlur}
+                data-chip={CHIP_TRUE_VALUE}
+                data-element-id={dataElementId}
+                style={{backgroundColor: ThemeColors.SURFACE_DIM_2}}
+            >
+               {text}
+            </Chip>
+        );
+
     }
 }

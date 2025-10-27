@@ -18,7 +18,7 @@
 
 import React, { useRef } from "react";
 import { createPortal } from "react-dom";
-import { CompletionItem, getIcon } from "@wso2/ui-toolkit";
+import { CompletionItem, getIcon, ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionsItemEl, CompletionsTag, DescriptionWrapper } from "../styles";
 
 interface CompletionsProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -44,6 +44,7 @@ export const CompletionsItem = (props: CompletionsProps) => {
     return (
         <>
             <CompletionsItemEl
+                style={{color: props.isSelected? ThemeColors.ON_PRIMARY : undefined}}
                 ref={completionItemRef}
                 {...divProps}
             >

@@ -27,18 +27,23 @@ export const ChipEditorField = styled.div`
     min-height: ${CHIP_EXPRESSION_EDITOR_HEIGHT}px;
     height: 100%;
     width: 100%;
-    padding: 2px 8px;
-    background-color: ${ThemeColors.OUTLINE_VARIANT};
+    padding: 1px 25px 1px 8px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground, #000000); /* Added text color with fallback */
     white-space: pre-wrap;
     outline: none;
-    border: none;
+    border: 1px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
+
+    &:focus {
+        outline: 1px solid var(--vscode-focusBorder, #0078d4); /* Added fallback color */
+    }
 `;
 
 export const ChipEditorContainer = styled.div`
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
@@ -47,14 +52,17 @@ export const ChipEditorContainer = styled.div`
 export const Chip = styled.div`
     border-radius: 4px;
     background-color: rgba(0, 122, 204, 0.3);
-    color: white;
+    color: var(--vscode-input-foreground, white); /* Updated text color */
     cursor: pointer;
     margin: 2px 4px;
     font-size: 12px;
     padding: 2px 10px;
     display: inline-block;
+    min-height: 20px;
+    min-wdith: 25px;
     transition: all 0.2s ease;
     outline: none;
+    vertical-align: middle;
     user-select: none;
     -webkit-user-select: none;
 
@@ -64,6 +72,7 @@ export const Chip = styled.div`
 
     &:active {
         box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.8);
+        background-color: ${ThemeColors.PRIMARY};
     }
 `;
 
@@ -74,9 +83,8 @@ export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
     top: ${props => props.top}px;
     left: ${props => props.left}px;
     background-color: ${ThemeColors.SURFACE_CONTAINER};
-    border: 1px solid ${ThemeColors.ON_SURFACE};
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     z-index: 1000;
     min-width: 120px;
     width: ${COMPLETIONS_WIDTH}px;
@@ -96,12 +104,14 @@ export const ChipMenuItem = styled.div`
 
 export const InvisibleSpan = styled.span`
     min-height: 20px;
+    min-width: 15px;
     border: none;
     outline: none;
     background: transparent;
     box-shadow: none;
-    padding: 0;
+    padding: 3px 3px 0 0;
     margin: 0;
+    padding-top: 3px;
     border-radius: 0;
     background-color: transparent;
     color: inherit;
@@ -170,7 +180,7 @@ export const DescriptionWrapper = styled.div`
     left: 0;
     z-index: 2001;
     background-color: ${ThemeColors.SURFACE_BRIGHT};
-    color: white;
+    color: var(--vscode-input-foreground, white);
     width: fit-content;
     height: fit-content;
     padding: 4px 8px; 
@@ -179,6 +189,7 @@ export const DescriptionWrapper = styled.div`
     font-size: 14px;
     pointer-events: none; 
     transform: translateX(-100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); 
 `;
 
 export const CompletionsItemEl = styled.div<CompletionsItemElProps>`
@@ -191,6 +202,8 @@ export const CompletionsItemEl = styled.div<CompletionsItemElProps>`
         props.isSelected
             ? 'var(--vscode-list-activeSelectionBackground)'
             : ThemeColors.SURFACE_BRIGHT};
+    color: var(--vscode-input-foreground, #000000); /* Updated text color */
+
     &:hover {
         background-color: ${ThemeColors.OUTLINE_VARIANT};
         cursor: pointer;

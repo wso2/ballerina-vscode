@@ -19,12 +19,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ChipEditorField } from "../styles"
 import { useFormContext } from "../../../../../context";
-import {  CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
 import { GetHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
+import { getCompletionsMenuPosition } from "../utils";
 
 export type AutoExpandingEditableDivProps = {
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
@@ -42,20 +43,20 @@ export type AutoExpandingEditableDivProps = {
     isCompletionsOpen?: boolean;
     completions?: CompletionItem[];
     selectedCompletionItem?: number;
-    menuPosition?: { top: number; left: number };
+    menuPosition2?: { top: number; left: number };
     onCompletionSelect?: (item: CompletionItem) => void;
     onCompletionHover?: (index: number) => void;
     onCloseCompletions?: () => void;
     //helperpane
     getHelperPane?: (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string) => void;
+    handleHelperPaneValueChange?: (value: string, closeHelperPane: boolean) => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -79,16 +80,19 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     const { popupManager } = useFormContext();
 
     const renderCompletionsMenu = () => {
-        if (!props.isCompletionsOpen || !props.completions || !props.menuPosition) return null;
+        if (!props.isCompletionsOpen || !props.completions || !fieldContainerRef?.current) return null;
+
+        const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
+
 
         const menuWidth = COMPLETIONS_WIDTH; // Use the constant from styles
         const viewportWidth = document.documentElement.clientWidth; // Use clientWidth to account for scrollbars
-        const adjustedLeft = Math.max(0, Math.min(props.menuPosition.left, viewportWidth - menuWidth - 10)); // Ensure menu stays within viewport bounds
+        const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10)); // Ensure menu stays within viewport bounds
 
         return (
             <ContextMenuContainer
                 ref={menuRef}
-                top={props.menuPosition.top}
+                top={menuPosition.top}
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
                 onMouseDown={(e) => e.preventDefault()}
@@ -109,24 +113,26 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     };
 
     const renderHelperPane = () => {
-        if (!props.getHelperPane || !props.isHelperPaneOpen) return null;
+        if (!props.getHelperPane || !props.isHelperPaneOpen || !fieldContainerRef?.current) return null;
 
-        const menuWidth = COMPLETIONS_WIDTH; 
-        const viewportWidth = document.documentElement.clientWidth; 
-        const adjustedLeft = Math.max(0, Math.min(props.menuPosition.left, viewportWidth - menuWidth - 10));
+        const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
+        const menuWidth = COMPLETIONS_WIDTH;
+        console.log("MENU POSITION:", menuPosition, fieldContainerRef?.current.getBoundingClientRect());
+        const viewportWidth = document.documentElement.clientWidth;
+        const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10));
         return (
             <ContextMenuContainer
                 ref={menuRef}
-                top={props.menuPosition.top}
+                top={menuPosition.top}
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
                 onMouseDown={(e) => e.preventDefault()}
             >
-               {props.getHelperPane(
+                {props.getHelperPane(
                     "var",
-                    props.handleHelperPaneValueChange ? props.handleHelperPaneValueChange : () => {},
+                    props.handleHelperPaneValueChange ? props.handleHelperPaneValueChange : () => { },
                     "3/4"
-               )}
+                )}
             </ContextMenuContainer>
         );
     };
@@ -153,14 +159,14 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         const isEditableSpan = activeElement?.hasAttribute('contenteditable');
 
         const newFocusState = isWithinContainer && isEditableOrChip;
-        
+
         // Only update and call callback if the state actually changed
         const lastState = lastFocusStateRef.current;
         if (lastState.focused !== newFocusState || lastState.isEditable !== isEditableSpan) {
             console.log('Focus check:', { activeElement: activeElement?.tagName, isWithinContainer, isEditableOrChip, isEditableSpan, newFocusState });
             setIsAnyElementFocused(newFocusState);
             lastFocusStateRef.current = { focused: newFocusState, isEditable: isEditableSpan };
-            
+
             if (props.onFocusChange) {
                 props.onFocusChange(newFocusState, isEditableSpan);
             }
@@ -210,48 +216,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [props.isCompletionsOpen, props.isHelperPaneOpen, props.onCloseCompletions, props.onHelperPaneClose]);
-
-    // useEffect(() => {
-    //     if (isExpanded) {
-    //         popupManager.closePopup("chip-expression-editor-expanded");
-    //         popupManager.addPopup(
-    //             <ExpandedPopupContainer style={style}>
-    //                 <ChipEditorField
-    //                     ref={fieldContainerRef}
-    //                     style={{
-    //                         ...style,
-    //                         flex: 1,
-    //                         position: 'absolute',
-    //                         width: '100%',
-    //                         height: '100%',
-    //                         backgroundColor: ThemeColors.SURFACE_DIM_2
-    //                     }}
-    //                     onKeyDown={onKeyDown}
-    //                 >
-    //                     {children}
-    //                     <FloatingButtonContainer>
-
-
-    //                         <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
-    //                             <ExpandButton />
-    //                         </FloatingToggleButton>
-    //                         <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
-    //                             <GetHelperButton />
-    //                         </FloatingToggleButton>
-    //                     </FloatingButtonContainer>
-    //                     {renderCompletionsMenu()}
-    //                 </ChipEditorField>
-    //             </ExpandedPopupContainer>,
-    //             "chip-expression-editor-expanded", "Expression Editor",
-    //             700, 800,
-    //             () => {
-    //                 setIsExpanded && setIsExpanded(false);
-    //             }
-    //         )
-    //     } else {
-    //         popupManager.closePopup("chip-expression-editor-expanded");
-    //     }
-    // }, [isExpanded, props.isCompletionsOpen, props.selectedCompletionItem, props.isHelperPaneOpen])
 
     return (
         <>
