@@ -55,7 +55,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendTaskApprovalRequestNotification(
                     event.approvalType,
                     event.tasks,
-                    event.taskId,
+                    event.taskDescription,
                     event.message
                 );
                 break;

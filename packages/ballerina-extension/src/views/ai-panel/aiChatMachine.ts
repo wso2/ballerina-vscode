@@ -117,7 +117,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             ],
         },
         [AIChatMachineEventType.RESTORE_STATE]: {
-            target: 'PlanReview',
+            target: 'Idle',
             actions: assign({
                 initialPrompt: (_ctx, event) => event.payload.state.initialPrompt,
                 chatHistory: (_ctx, event) => event.payload.state.chatHistory,

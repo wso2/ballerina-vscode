@@ -502,7 +502,7 @@ const AIChat: React.FC = () => {
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
-                taskId: response.taskId,
+                taskDescription: response.taskDescription,
                 message: response.message,
             });
         } else if (type === "intermediary_state") {
@@ -2130,7 +2130,7 @@ const AIChat: React.FC = () => {
             // Find the index of the last task in review status
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.id === lastReviewTask?.id);
+            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.description === lastReviewTask?.description);
 
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_TASK,

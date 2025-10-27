@@ -261,7 +261,7 @@ export interface TaskApprovalRequest {
     type: "task_approval_request";
     approvalType: "plan" | "completion";
     tasks: Task[];
-    taskId?: string;
+    taskDescription?: string;
     message?: string;
 }
 
@@ -394,7 +394,6 @@ export enum TaskTypes {
  * Task interface representing a single implementation task
  */
 export interface Task {
-    id: string;
     description: string;
     status: TaskStatus;
     type : TaskTypes;
