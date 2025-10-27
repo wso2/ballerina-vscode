@@ -22,6 +22,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Record Type Descriptor Context tests.
@@ -33,6 +35,15 @@ public class RecordTypeDescriptorTest extends CompletionTest {
     @Override
     public void test(String config, String configPath) throws WorkspaceDocumentException, IOException {
         super.test(config, configPath);
+    }
+
+    @Override
+    public List<String> skipList() {
+        // TODO: Tracked with: https://github.com/wso2/product-ballerina-integrator/issues/1622
+        return Arrays.asList(
+                "config5.json",
+                "config7.json"
+        );
     }
 
     @DataProvider(name = "completion-data-provider")

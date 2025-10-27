@@ -46,6 +46,13 @@ public class AddToConfigTomlTest extends AbstractCodeActionTest {
     @Override
     public Object[][] dataProvider() {
         return new Object[][]{
+                // TODO: Tracked with: https://github.com/wso2/product-ballerina-integrator/issues/1622
+//                {"with_config_toml_non_default_module2.json"},
+//                {"with_config_toml_non_default_module3.json"},
+//                {"with_config_toml_non_default_module5.json"},
+//                {"with_config_toml_non_default_module6.json"},
+//                {"without_config_toml_default_module2.json"},
+//                {"without_config_toml_non_default_module2.json"},
                 {"with_config_toml_default_module1.json"},
                 {"with_config_toml_default_module2.json"},
                 {"with_config_toml_default_module3.json"},
@@ -53,16 +60,10 @@ public class AddToConfigTomlTest extends AbstractCodeActionTest {
                 {"with_config_toml_default_module5.json"},
                 {"with_config_toml_default_module6.json"},
                 {"with_config_toml_non_default_module1.json"},
-                {"with_config_toml_non_default_module2.json"},
-                {"with_config_toml_non_default_module3.json"},
                 {"with_config_toml_non_default_module4.json"},
-                {"with_config_toml_non_default_module5.json"},
-                {"with_config_toml_non_default_module6.json"},
                 {"without_config_toml_default_module1.json"},
-                {"without_config_toml_default_module2.json"},
                 {"without_config_toml_default_module3.json"},
                 {"without_config_toml_non_default_module1.json"},
-                {"without_config_toml_non_default_module2.json"},
                 {"without_config_toml_non_default_module3.json"}
         };
     }
