@@ -3,78 +3,87 @@
   "description": "Get the list of GraphQL input types",
   "context": "GRAPHQL_INPUT_TYPE",
   "result": {
-    "left": [{
-      "label" : "int",
-      "labelDetails" : {
-        "detail" : "Scalar Types",
-        "description" : "Scalar Types"
+    "left": [
+      {
+        "label": "int",
+        "labelDetails": {
+          "detail": "Scalar Types",
+          "description": "Scalar Types"
+        },
+        "kind": "TypeParameter",
+        "detail": "int",
+        "insertText": "int"
       },
-      "kind" : "TypeParameter",
-      "detail" : "int",
-      "insertText" : "int"
-    }, {
-      "label" : "string",
-      "labelDetails" : {
-        "detail" : "Scalar Types",
-        "description" : "Scalar Types"
+      {
+        "label": "string",
+        "labelDetails": {
+          "detail": "Scalar Types",
+          "description": "Scalar Types"
+        },
+        "kind": "TypeParameter",
+        "detail": "string",
+        "insertText": "string"
       },
-      "kind" : "TypeParameter",
-      "detail" : "string",
-      "insertText" : "string"
-    }, {
-      "label" : "boolean",
-      "labelDetails" : {
-        "detail" : "Scalar Types",
-        "description" : "Scalar Types"
+      {
+        "label": "boolean",
+        "labelDetails": {
+          "detail": "Scalar Types",
+          "description": "Scalar Types"
+        },
+        "kind": "TypeParameter",
+        "detail": "boolean",
+        "insertText": "boolean"
       },
-      "kind" : "TypeParameter",
-      "detail" : "boolean",
-      "insertText" : "boolean"
-    }, {
-      "label" : "decimal",
-      "labelDetails" : {
-        "detail" : "Scalar Types",
-        "description" : "Scalar Types"
+      {
+        "label": "decimal",
+        "labelDetails": {
+          "detail": "Scalar Types",
+          "description": "Scalar Types"
+        },
+        "kind": "TypeParameter",
+        "detail": "decimal",
+        "insertText": "decimal"
       },
-      "kind" : "TypeParameter",
-      "detail" : "decimal",
-      "insertText" : "decimal"
-    }, {
-      "label" : "float",
-      "labelDetails" : {
-        "detail" : "Scalar Types",
-        "description" : "Scalar Types"
+      {
+        "label": "float",
+        "labelDetails": {
+          "detail": "Scalar Types",
+          "description": "Scalar Types"
+        },
+        "kind": "TypeParameter",
+        "detail": "float",
+        "insertText": "float"
       },
-      "kind" : "TypeParameter",
-      "detail" : "float",
-      "insertText" : "float"
-    }, {
-      "label" : "TeacherRecord",
-      "labelDetails" : {
-        "detail" : "User-Defined",
-        "description" : "User-Defined"
+      {
+        "label": "TeacherRecord",
+        "labelDetails": {
+          "detail": "User-Defined",
+          "description": "User-Defined"
+        },
+        "kind": "Interface",
+        "detail": "TeacherRecord",
+        "insertText": "TeacherRecord"
       },
-      "kind" : "Interface",
-      "detail" : "TeacherRecord",
-      "insertText" : "TeacherRecord"
-    }, {
-      "label" : "StudentRecord",
-      "labelDetails" : {
-        "detail" : "User-Defined",
-        "description" : "User-Defined"
+      {
+        "label": "StudentRecord",
+        "labelDetails": {
+          "detail": "User-Defined",
+          "description": "User-Defined"
+        },
+        "kind": "Interface",
+        "detail": "StudentRecord",
+        "insertText": "StudentRecord"
       },
-      "kind" : "Interface",
-      "detail" : "StudentRecord",
-      "insertText" : "StudentRecord"
-    }, {
-      "label" : "Color",
-      "labelDetails" : {
-        "detail" : "Enum Types",
-        "description" : "Enum Types"
-      },
-      "kind" : "Enum",
-      "detail" : "Color",
-      "insertText" : "Color"
-    }]
+      {
+        "label": "Color",
+        "labelDetails": {
+          "detail": "Enum Types",
+          "description": "Enum Types"
+        },
+        "kind": "Enum",
+        "detail": "Color",
+        "insertText": "Color"
+      }
+    ]
   }
 }

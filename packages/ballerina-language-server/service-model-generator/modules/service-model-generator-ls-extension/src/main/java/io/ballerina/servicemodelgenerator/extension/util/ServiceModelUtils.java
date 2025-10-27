@@ -35,6 +35,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.AnnotationAttachment;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
@@ -52,6 +53,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -256,7 +258,7 @@ public class ServiceModelUtils {
      * Configures the accessor for resource functions. Only applies to functions with KIND_RESOURCE.
      *
      * @param functionBuilder the Function.FunctionBuilder to configure
-     * @param function the ServiceTypeFunction containing accessor information
+     * @param function        the ServiceTypeFunction containing accessor information
      */
     private static void configureAccessorForResourceFunction(Function.FunctionBuilder functionBuilder,
                                                              ServiceTypeFunction function) {
@@ -531,6 +533,34 @@ public class ServiceModelUtils {
                 .optional(true)
                 .enabled(true)
                 .editable(true);
+        return valueBuilder.build();
+    }
+
+    public static Value getReadonlyMetadata(String orgName, String packageName, String serviceType) {
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        HashMap<String, ArrayList<String>> props = new HashMap<>();
+
+        // Try to get metadata from database if service type and package info is available
+        if (orgName != null && packageName != null && serviceType != null) {
+            List<ReadOnlyMetaData> metaDataList =
+                    ServiceDatabaseManager.getInstance().getReadOnlyMetaData(orgName, packageName, serviceType);
+
+            for (ReadOnlyMetaData metaData : metaDataList) {
+                String displayName = metaData.displayName() != null && !metaData.displayName().isEmpty()
+                        ? metaData.displayName()
+                        : metaData.metadataKey();
+                props.put(displayName, new ArrayList<>());  // Value will be populated at runtime by extractors
+            }
+        }
+
+        valueBuilder.setCodedata(new Codedata("READONLY"))
+                .value(props)
+                .valueType("SINGLE_SELECT")
+                .setPlaceholder("false")
+                .optional(false)
+                .setAdvanced(false)
+                .enabled(true)
+                .editable(true);
 
         return valueBuilder.build();
     }
@@ -620,7 +650,7 @@ public class ServiceModelUtils {
     /**
      * Check and set the GraphQL ID annotation on a parameter by examining its annotations.
      *
-     * @param parameter the parameter model to update
+     * @param parameter     the parameter model to update
      * @param parameterNode the parameter syntax node
      * @param semanticModel the semantic model to resolve annotations
      */
@@ -648,8 +678,8 @@ public class ServiceModelUtils {
     /**
      * Check and set the GraphQL ID annotation on a function return type.
      *
-     * @param returnType the return type model to update
-     * @param functionNode the function definition node
+     * @param returnType    the return type model to update
+     * @param functionNode  the function definition node
      * @param semanticModel the semantic model to resolve annotations
      */
     public static void setGraphqlIdForReturnType(FunctionReturnType returnType,
@@ -739,8 +769,7 @@ public class ServiceModelUtils {
      * This method analyzes the absolute resource path of a service and determines whether
      * it represents a string literal or a base path, then updates the service model accordingly.
      *
-     *
-     * @param serviceNode the service declaration node containing path information
+     * @param serviceNode  the service declaration node containing path information
      * @param serviceModel the service model to update with extracted path information
      * @throws IllegalArgumentException if serviceNode or serviceModel is null
      */
@@ -773,7 +802,7 @@ public class ServiceModelUtils {
      * Updates existing string literal property or creates a new one if none exists.
      *
      * @param serviceModel the service model to update
-     * @param attachPoint the string literal path value
+     * @param attachPoint  the string literal path value
      */
     private static void configureStringLiteralPath(Service serviceModel, String attachPoint) {
         Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
@@ -789,7 +818,7 @@ public class ServiceModelUtils {
      * Updates existing base path property or creates a new one if none exists.
      *
      * @param serviceModel the service model to update
-     * @param attachPoint the base path value
+     * @param attachPoint  the base path value
      */
     private static void configureBasePathProperty(Service serviceModel, String attachPoint) {
         Value basePathProperty = serviceModel.getBasePath();

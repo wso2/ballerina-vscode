@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
@@ -54,6 +55,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
@@ -77,6 +79,7 @@ public class ServiceBuilderRouter {
         put(GRAPHQL, GraphqlServiceBuilder::new);
         put(MCP, McpServiceBuilder::new);
         put(KAFKA, KafkaServiceBuilder::new);
+        put(ASB, AsbServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {
@@ -108,7 +111,9 @@ public class ServiceBuilderRouter {
                 workspaceManager, filePath, serviceMetadata.serviceType(), moduleID.orgName(),
                 moduleID.packageName(), moduleID.moduleName(), moduleID.version());
         Service service = serviceBuilder.getModelFromSource(context);
-        service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        if (service != null) {
+            service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        }
         return service;
     }
 

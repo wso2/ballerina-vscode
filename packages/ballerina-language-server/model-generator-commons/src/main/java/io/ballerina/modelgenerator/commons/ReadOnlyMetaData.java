@@ -16,17 +16,20 @@
  *  under the License.
  */
 
-package io.ballerina.servicemodelgenerator.extension.model.request;
-
-import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.Field;
+package io.ballerina.modelgenerator.commons;
 
 /**
- * Request to add a field to a class or a service declaration.
+ * Represents read-only metadata for a service.
  *
- * @param filePath The path of the file to which the field should be added.
- * @param field    The field to be added.
- * @param codedata The code data of the field.
+ * @param metadataKey The key/name of the metadata field
+ * @param displayName The display name for the metadata field
+ * @param kind The kind/category of the metadata field (e.g., ANNOTATION, SERVICE_DESCRIPTION, LISTENER_PARAM)
+ *
+ * @since 1.3.0
  */
-public record AddFieldRequest(String filePath, Field field, Codedata codedata) {
+public record ReadOnlyMetaData(
+        String metadataKey,
+        String displayName,
+        String kind
+) {
 }

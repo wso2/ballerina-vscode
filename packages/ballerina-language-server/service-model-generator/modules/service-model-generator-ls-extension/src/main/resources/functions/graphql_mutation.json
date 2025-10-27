@@ -121,7 +121,7 @@
       "hidden": true
     }
   ],
-  "schema" : {
+  "schema": {
     "parameter": {
       "type": {
         "metadata": {

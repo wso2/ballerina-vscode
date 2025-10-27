@@ -70,6 +70,13 @@ public class Service {
         this.codedata = codedata;
     }
 
+    public static Service getEmptyServiceModel() {
+        return new Service.ServiceModelBuilder()
+                .setFunctions(new ArrayList<>())
+                .setProperties(new HashMap<>())
+                .build();
+    }
+
     public List<Function> getFunctions() {
         return functions;
     }
@@ -90,10 +97,6 @@ public class Service {
         this.codedata = codedata;
     }
 
-    public void setDocumentation(Value documentation) {
-        this.documentation = documentation;
-    }
-
     public Value getListener() {
         return properties.get(PROP_KEY_LISTENER);
     }
@@ -102,12 +105,12 @@ public class Service {
         return properties.get(key);
     }
 
-    public void setServiceType(Value serviceType) {
-        properties.put(PROP_KEY_SERVICE_TYPE, serviceType);
-    }
-
     public Value getServiceType() {
         return properties.get(PROP_KEY_SERVICE_TYPE);
+    }
+
+    public void setServiceType(Value serviceType) {
+        properties.put(PROP_KEY_SERVICE_TYPE, serviceType);
     }
 
     public String getServiceTypeName() {
@@ -122,12 +125,12 @@ public class Service {
         return properties.get(PROP_KEY_BASE_PATH);
     }
 
-    public Value getStringLiteralProperty() {
-        return properties.get(PROP_KEY_STRING_LITERAL);
-    }
-
     public void setBasePath(Value basePath) {
         properties.put(PROP_KEY_BASE_PATH, basePath);
+    }
+
+    public Value getStringLiteralProperty() {
+        return properties.get(PROP_KEY_STRING_LITERAL);
     }
 
     public void setStringLiteral(Value basePath) {
@@ -198,6 +201,10 @@ public class Service {
         return documentation;
     }
 
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
+    }
+
     public String getVersion() {
         return version;
     }
@@ -215,13 +222,6 @@ public class Service {
         } else {
             this.properties = properties;
         }
-    }
-
-    public static Service getEmptyServiceModel() {
-        return new Service.ServiceModelBuilder()
-                .setFunctions(new ArrayList<>())
-                .setProperties(new HashMap<>())
-                .build();
     }
 
     public static class ServiceModelBuilder {

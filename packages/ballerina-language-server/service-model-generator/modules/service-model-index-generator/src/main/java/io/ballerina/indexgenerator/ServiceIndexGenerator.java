@@ -123,10 +123,17 @@ class ServiceIndexGenerator {
                                        PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(buildProject, org,
-                    packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
+            Optional<Package> packageOpt = PackageUtil.getModulePackage(buildProject, org,
+
+                    packageMetadataInfo.name(), packageMetadataInfo.version());
+            if (packageOpt.isEmpty()) {
+                LOGGER.warning("Package not found: " + org + "/" + packageMetadataInfo.name() + ":" +
+                        packageMetadataInfo.version());
+                return;
+            }
+            resolvedPackage = packageOpt.get();
         } catch (Throwable e) {
-            LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + e.getMessage());
+            LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + " - " + e.getMessage());
             return;
         }
         PackageDescriptor descriptor = resolvedPackage.descriptor();
@@ -191,7 +198,7 @@ class ServiceIndexGenerator {
         // insert hardcoded service types
         for (Map.Entry<String, ServiceType> entry : serviceTypes.entrySet()) {
             ServiceType serviceType = entry.getValue();
-            int serviceTypeId =  DatabaseManager.insertServiceType(packageId, serviceType);
+            int serviceTypeId = DatabaseManager.insertServiceType(packageId, serviceType);
             for (ServiceTypeFunction function : serviceType.functions()) {
                 int functionId = DatabaseManager.insertServiceTypeFunction(serviceTypeId, function);
                 for (ServiceTypeFunctionParameter parameter : function.parameters()) {
@@ -212,6 +219,16 @@ class ServiceIndexGenerator {
 
                 DatabaseManager.insertAnnotation(packageId, annotationName, attachPoints, annotation.displayName(),
                         annotation.description(), annotation.typeConstraint(), pkgInfo);
+            }
+        }
+
+        // readonly metadata
+        if (Objects.nonNull(packageMetadataInfo.readOnlyMetaData())) {
+            List<MetadataItem> metadataItems = packageMetadataInfo.readOnlyMetaData();
+            for (MetadataItem item : metadataItems) {
+                // Insert metadata with the kind field
+                DatabaseManager.insertServiceReadOnlyMetaData(packageId, item.key(),
+                        item.displayName(), item.kind());
             }
         }
 
@@ -564,26 +581,6 @@ class ServiceIndexGenerator {
         });
     }
 
-    enum FunctionParameterKind {
-        REQUIRED,
-        DEFAULTABLE,
-        INCLUDED_RECORD,
-        REST_PARAMETER,
-        INCLUDED_FIELD,
-        PARAM_FOR_TYPE_INFER,
-        INCLUDED_RECORD_REST,
-        PATH_PARAM,
-        PATH_REST_PARAM;
-
-        // need to have a fromString logic here
-        public static FunctionParameterKind fromString(String value) {
-            if (value.equals("REST")) {
-                return REST_PARAMETER;
-            }
-            return FunctionParameterKind.valueOf(value);
-        }
-    }
-
     private static String getParamDefaultValue(ModulePartNode rootNode, Location location, String module) {
         NonTerminalNode node = rootNode.findNode(TextRange.from(location.textRange().startOffset(),
                 location.textRange().length()));
@@ -633,13 +630,60 @@ class ServiceIndexGenerator {
         }
     }
 
+    private static String getPath(ResourceMethodSymbol resourceMethodSymbol, SemanticModel semanticModel) {
+        ResourcePath resourcePath = resourceMethodSymbol.resourcePath();
+        List<String> paths = new ArrayList<>();
+        switch (resourcePath.kind()) {
+            case PATH_SEGMENT_LIST -> {
+                PathSegmentList pathSegmentList = (PathSegmentList) resourcePath;
+                for (Symbol pathSegment : pathSegmentList.list()) {
+                    if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
+                        String type = CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
+                                true);
+                        String paramName = pathParameterSymbol.getName().orElse("");
+                        paths.add("[%s %s]".formatted(type, paramName));
+                    } else {
+                        paths.add(pathSegment.getName().orElse(""));
+                    }
+                }
+            }
+            case DOT_RESOURCE_PATH -> paths.add(".");
+            default -> paths.add("");
+        }
+        return String.join("/", paths);
+    }
+
+    enum FunctionParameterKind {
+        REQUIRED,
+        DEFAULTABLE,
+        INCLUDED_RECORD,
+        REST_PARAMETER,
+        INCLUDED_FIELD,
+        PARAM_FOR_TYPE_INFER,
+        INCLUDED_RECORD_REST,
+        PATH_PARAM,
+        PATH_REST_PARAM;
+
+        // need to have a fromString logic here
+        public static FunctionParameterKind fromString(String value) {
+            if (value.equals("REST")) {
+                return REST_PARAMETER;
+            }
+            return FunctionParameterKind.valueOf(value);
+        }
+    }
+
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
     }
 
     private record PackageMetadataInfo(String name, String version, List<String> serviceTypeSkipList,
                                        ServiceDeclaration serviceDeclaration,
                                        Map<String, ServiceType> serviceTypes, Map<String, Annotation> annotations,
-                                       Map<String, ServiceInitializerProperty> initForm) {
+                                       Map<String, ServiceInitializerProperty> initForm,
+                                       List<MetadataItem> readOnlyMetaData) {
+    }
+
+    private record MetadataItem(String key, String displayName, String kind) {
     }
 
     record ServiceDeclaration(int optionalTypeDescriptor, String displayName, String description,
@@ -696,28 +740,5 @@ class ServiceIndexGenerator {
             int nameEditable,
             int typeEditable
     ) {
-    }
-
-    private static String getPath(ResourceMethodSymbol resourceMethodSymbol, SemanticModel semanticModel) {
-        ResourcePath resourcePath = resourceMethodSymbol.resourcePath();
-        List<String> paths = new ArrayList<>();
-        switch (resourcePath.kind()) {
-            case PATH_SEGMENT_LIST -> {
-                PathSegmentList pathSegmentList = (PathSegmentList) resourcePath;
-                for (Symbol pathSegment : pathSegmentList.list()) {
-                    if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
-                        String type = CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
-                                true);
-                        String paramName = pathParameterSymbol.getName().orElse("");
-                        paths.add("[%s %s]".formatted(type, paramName));
-                    } else {
-                        paths.add(pathSegment.getName().orElse(""));
-                    }
-                }
-            }
-            case DOT_RESOURCE_PATH -> paths.add(".");
-            default -> paths.add("");
-        }
-        return String.join("/", paths);
     }
 }

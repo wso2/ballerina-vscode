@@ -730,60 +730,6 @@ public final class DatabindUtil {
     }
 
     /**
-     * Record to hold context for type definition edits operations.
-     *
-     * @param typesDocument   The types.bal Document
-     * @param modulePartNode  The ModulePartNode from the document's syntax tree
-     * @param requiredImports Set of import statements needed for the type definition
-     * @param project         The Ballerina project
-     */
-    private record TypeDefinitionEditContext(
-            Document typesDocument,
-            ModulePartNode modulePartNode,
-            Set<String> requiredImports,
-            Project project
-    ) { }
-
-    /**
-     * Record to hold matching function references from service and source.
-     *
-     * @param targetFunction     The function from the service model
-     * @param sourceFunction     The function parsed from source code
-     * @param sourceFunctionNode The FunctionDefinitionNode from source
-     */
-    public record FunctionMatch(
-            Function targetFunction,
-            Function sourceFunction,
-            FunctionDefinitionNode sourceFunctionNode
-    ) { }
-
-    /**
-     * Record to hold data binding configuration information.
-     *
-     * @param enabled   Whether data binding should be enabled
-     * @param paramType The parameter type to use
-     * @param paramName The parameter name to use
-     * @param editable  Whether the data binding parameter should be editable
-     */
-    public record DataBindingInfo(
-            boolean enabled,
-            String paramType,
-            String paramName,
-            boolean editable
-    ) { }
-
-    /**
-     * Record to hold extracted data binding type information.
-     *
-     * @param typeName The data binding type name (e.g., "Order")
-     * @param editable Whether the data binding parameter should be editable
-     */
-    private record DataBindingTypeInfo(
-            String typeName,
-            boolean editable
-    ) { }
-
-    /**
      * Validates a custom wrapper type name to ensure it doesn't conflict with Ballerina keywords or existing symbols in
      * the semantic model.
      *
@@ -1202,5 +1148,63 @@ public final class DatabindUtil {
             return Map.of();
         }
         return Map.of(typesFilePath.toString(), edits);
+    }
+
+    /**
+     * Record to hold context for type definition edits operations.
+     *
+     * @param typesDocument   The types.bal Document
+     * @param modulePartNode  The ModulePartNode from the document's syntax tree
+     * @param requiredImports Set of import statements needed for the type definition
+     * @param project         The Ballerina project
+     */
+    private record TypeDefinitionEditContext(
+            Document typesDocument,
+            ModulePartNode modulePartNode,
+            Set<String> requiredImports,
+            Project project
+    ) {
+    }
+
+    /**
+     * Record to hold matching function references from service and source.
+     *
+     * @param targetFunction     The function from the service model
+     * @param sourceFunction     The function parsed from source code
+     * @param sourceFunctionNode The FunctionDefinitionNode from source
+     */
+    public record FunctionMatch(
+            Function targetFunction,
+            Function sourceFunction,
+            FunctionDefinitionNode sourceFunctionNode
+    ) {
+    }
+
+    /**
+     * Record to hold data binding configuration information.
+     *
+     * @param enabled   Whether data binding should be enabled
+     * @param paramType The parameter type to use
+     * @param paramName The parameter name to use
+     * @param editable  Whether the data binding parameter should be editable
+     */
+    public record DataBindingInfo(
+            boolean enabled,
+            String paramType,
+            String paramName,
+            boolean editable
+    ) {
+    }
+
+    /**
+     * Record to hold extracted data binding type information.
+     *
+     * @param typeName The data binding type name (e.g., "Order")
+     * @param editable Whether the data binding parameter should be editable
+     */
+    private record DataBindingTypeInfo(
+            String typeName,
+            boolean editable
+    ) {
     }
 }

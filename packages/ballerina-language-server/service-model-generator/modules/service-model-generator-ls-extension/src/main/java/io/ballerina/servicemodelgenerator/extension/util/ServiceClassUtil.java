@@ -59,11 +59,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder.getGraphqlParameterModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CLASS_NAME_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -338,25 +338,10 @@ public class ServiceClassUtil {
                 "}%n%n";
     }
 
-    public enum FunctionKind {
-        INIT,
-        REMOTE,
-        RESOURCE,
-        DEFAULT
-    }
-
-    public enum ServiceClassContext {
-        TYPE_DIAGRAM,
-        GRAPHQL_DIAGRAM,
-        SERVICE_DIAGRAM,
-        HTTP_DIAGRAM,
-        CLASS
-    }
-
     public static void addServiceClassDocTextEdits(ServiceClass serviceClass, ClassDefinitionNode classDef,
                                                    List<TextEdit> edits) {
         String docEdit = getDocumentationEdits(serviceClass);
-        Optional<MetadataNode> metadata =  classDef.metadata();
+        Optional<MetadataNode> metadata = classDef.metadata();
         if (metadata.isEmpty()) { // metadata is empty and the service has documentation
             if (!docEdit.isEmpty()) {
                 docEdit += NEW_LINE;
@@ -400,5 +385,20 @@ public class ServiceClassUtil {
         }
         serviceClassDoc.setValue(serviceDoc.toString().stripTrailing());
         return serviceClassDoc;
+    }
+
+    public enum FunctionKind {
+        INIT,
+        REMOTE,
+        RESOURCE,
+        DEFAULT
+    }
+
+    public enum ServiceClassContext {
+        TYPE_DIAGRAM,
+        GRAPHQL_DIAGRAM,
+        SERVICE_DIAGRAM,
+        HTTP_DIAGRAM,
+        CLASS
     }
 }

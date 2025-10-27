@@ -32,6 +32,8 @@ import io.ballerina.modelgenerator.commons.ServiceInitProperty;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceNodeBuilder;
+import io.ballerina.servicemodelgenerator.extension.extractor.CustomExtractor;
+import io.ballerina.servicemodelgenerator.extension.extractor.ReadOnlyMetadataManager;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
@@ -80,6 +82,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_K
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
@@ -94,6 +97,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
@@ -126,6 +130,154 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServ
  * @since 1.2.0
  */
 public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
+
+    static Map<String, List<TextEdit>> getServiceDeclarationEdits(AddServiceInitModelContext context,
+                                                                  ListenerDTO result) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
+
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(result.listenerDeclaration())
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(result.listenerProtocol()))
+                .append(SPACE).append(ON).append(SPACE).append(result.listenerVarName()).append(SPACE)
+                .append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        List<TextEdit> edits = new ArrayList<>();
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+
+        return Map.of(context.filePath(), edits);
+    }
+
+    protected static ListenerDTO buildListenerDTO(AddServiceInitModelContext context) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
+        List<String> requiredParams = new ArrayList<>();
+        List<String> includedParams = new ArrayList<>();
+        for (Map.Entry<String, Value> entry : properties.entrySet()) {
+            Value value = entry.getValue();
+            Codedata codedata = value.getCodedata();
+            String argType = codedata.getArgType();
+            if (Objects.isNull(argType) || argType.isEmpty()) {
+                continue;
+            }
+            if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
+                requiredParams.add(value.getValue());
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
+                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
+                includedParams.add(entry.getKey() + " = " + value.getValue());
+            }
+        }
+        String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
+        String listenerVarName = properties.get(KEY_LISTENER_VAR_NAME).getValue();
+        requiredParams.addAll(includedParams);
+        String args = String.join(", ", requiredParams);
+        String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
+                listenerProtocol, "Listener", listenerVarName, args);
+        return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
+    }
+
+    /**
+     * Builds the service node string representation.
+     * `service <serviceType> <serviceContractTypeName>|<basePath>|<stringLiteral> on <listener> {`
+     *
+     * @param service the service model
+     * @param builder the StringBuilder to append the service node string
+     */
+    static void buildServiceNodeStr(Service service, StringBuilder builder) {
+        String docEdits = getDocumentationEdits(service);
+        if (!docEdits.isEmpty()) {
+            builder.append(docEdits).append(NEW_LINE);
+        }
+
+        List<String> annotationEdits = getAnnotationEdits(service);
+        if (!annotationEdits.isEmpty()) {
+            builder.append(String.join(NEW_LINE, annotationEdits)).append(NEW_LINE);
+        }
+
+        builder.append(SERVICE).append(SPACE);
+        if (Objects.nonNull(service.getServiceType()) && service.getServiceType().isEnabledWithValue()) {
+            builder.append(service.getServiceTypeName()).append(SPACE);
+        }
+        Value serviceContract = service.getServiceContractTypeNameValue();
+        Value serviceBasePath = service.getBasePath();
+        Value stringLiteralProperty = service.getStringLiteralProperty();
+        if (Objects.nonNull(serviceContract) && serviceContract.isEnabledWithValue()) {
+            builder.append(service.getServiceContractTypeName()).append(SPACE);
+        } else if (Objects.nonNull(serviceBasePath) && serviceBasePath.isEnabledWithValue()) {
+            builder.append(getValueString(serviceBasePath)).append(SPACE);
+        } else if (Objects.nonNull(stringLiteralProperty) && stringLiteralProperty.isEnabledWithValue()) {
+            builder.append(getValueString(stringLiteralProperty)).append(SPACE);
+        }
+
+        builder.append(ON).append(SPACE);
+        if (Objects.nonNull(service.getListener()) && service.getListener().isEnabledWithValue()) {
+            builder.append(service.getListener().getValue());
+        }
+        builder.append(SPACE).append(OPEN_BRACE).append(NEW_LINE);
+    }
+
+    /**
+     * Return a list of required method definitions for the service.
+     *
+     * @param serviceFunctions the list of functions in the service model
+     * @param context          the function-add context
+     * @param imports          a map of imports to be used in the function definitions
+     * @return a list of method definitions as strings
+     */
+    static List<String> buildMethodDefinitions(List<Function> serviceFunctions, Utils.FunctionAddContext context,
+                                               Map<String, String> imports) {
+        List<String> functions = new ArrayList<>();
+        serviceFunctions.forEach(function -> {
+            if (function.isEnabled()) {
+                String functionNode = TAB;
+                functionNode += generateFunctionDefSource(function, new ArrayList<>(), context, FUNCTION_ADD, imports)
+                        .replace(NEW_LINE, NEW_LINE_WITH_TAB);
+                functions.add(functionNode);
+            }
+        });
+        return functions;
+    }
+
+    /**
+     * Append the function definitions to the service node body and close the service node with a brace.
+     *
+     * @param functions the list of function definitions
+     * @param builder   the StringBuilder to append the service node body
+     */
+    static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
+        builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
+    }
+
+    protected static Value listenerNameProperty(GetServiceInitModelContext context) {
+
+        String listenerName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                context.document().syntaxTree().rootNode().lineRange().endLine(),
+                LISTENER_VAR_NAME.formatted(getProtocol(context.moduleName())));
+
+        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
+        valueBuilder
+                .setMetadata(new MetaData("Listener Name", "Provide a name for the listener being created"))
+                .setCodedata(new Codedata(ARG_TYPE_LISTENER_VAR_NAME))
+                .value(listenerName)
+                .valueType(VALUE_TYPE_IDENTIFIER)
+                .setValueTypeConstraint("Global")
+                .editable(true)
+                .enabled(true)
+                .optional(false)
+                .setAdvanced(true);
+
+        return valueBuilder.build();
+    }
 
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
@@ -181,64 +333,6 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         return getServiceDeclarationEdits(context, buildListenerDTO(context));
     }
 
-    static Map<String, List<TextEdit>> getServiceDeclarationEdits(AddServiceInitModelContext context,
-                                                                  ListenerDTO result) {
-        ServiceInitModel serviceInitModel = context.serviceInitModel();
-        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
-        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
-
-        StringBuilder builder = new StringBuilder(NEW_LINE)
-                .append(result.listenerDeclaration())
-                .append(NEW_LINE)
-                .append(SERVICE).append(SPACE).append(serviceInitModel.getBasePath(result.listenerProtocol()))
-                .append(SPACE).append(ON).append(SPACE).append(result.listenerVarName()).append(SPACE)
-                .append(OPEN_BRACE)
-                .append(NEW_LINE)
-                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
-                .append(CLOSE_BRACE).append(NEW_LINE);
-
-        List<TextEdit> edits = new ArrayList<>();
-        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
-            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
-            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
-        }
-        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
-
-        return Map.of(context.filePath(), edits);
-    }
-
-    protected static ListenerDTO buildListenerDTO(AddServiceInitModelContext context) {
-        ServiceInitModel serviceInitModel = context.serviceInitModel();
-        Map<String, Value> properties = serviceInitModel.getProperties();
-        List<String> requiredParams = new ArrayList<>();
-        List<String> includedParams = new ArrayList<>();
-        for (Map.Entry<String, Value> entry : properties.entrySet()) {
-            Value value = entry.getValue();
-            Codedata codedata = value.getCodedata();
-            String argType = codedata.getArgType();
-            if (Objects.isNull(argType) || argType.isEmpty()) {
-                continue;
-            }
-            if (argType.equals(ARG_TYPE_LISTENER_PARAM_REQUIRED)) {
-                requiredParams.add(value.getValue());
-            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
-                    || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
-                includedParams.add(entry.getKey() + " = " +  value.getValue());
-            }
-        }
-        String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-        String listenerVarName = properties.get(KEY_LISTENER_VAR_NAME).getValue();
-        requiredParams.addAll(includedParams);
-        String args = String.join(", ", requiredParams);
-        String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
-                listenerProtocol, "Listener", listenerVarName, args);
-        return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
-    }
-
-    protected record ListenerDTO(String listenerProtocol, String listenerVarName, String listenerDeclaration) {
-    }
-
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         Optional<ServiceDeclaration> serviceDeclaration = ServiceDatabaseManager.getInstance()
@@ -288,7 +382,10 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         if (serviceTemplate.optionalStringLiteral() == 0) {
             properties.put(PROP_KEY_STRING_LITERAL, getStringLiteral(serviceTemplate));
         }
-
+        // Get the service type for metadata retrieval
+        List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(pkg.packageId());
+        String serviceType = serviceTypes.isEmpty() ? null : serviceTypes.getFirst();
+        properties.put(PROP_READONLY_METADATA_KEY, getReadonlyMetadata(pkg.org(), pkg.name(), serviceType));
         List<AnnotationAttachment> annotationAttachments = ServiceDatabaseManager.getInstance()
                 .getAnnotationAttachments(pkg.packageId());
         for (AnnotationAttachment annotationAttachment : annotationAttachments) {
@@ -446,8 +543,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
      * Populates the service model with information extracted from the source.
      *
      * @param serviceModel the service model to populate
-     * @param serviceNode the service declaration node from source
-     * @param context the model context
+     * @param serviceNode  the service declaration node from source
+     * @param context      the model context
      */
     private void populateServiceModelFromSource(Service serviceModel, ServiceDeclarationNode serviceNode,
                                                 ModelFromSourceContext context) {
@@ -470,13 +567,14 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
     }
 
     /**
      * Configures the service type property in the service model.
      *
      * @param serviceModel the service model
-     * @param serviceType the service type identifier
+     * @param serviceType  the service type identifier
      */
     private void configureServiceType(Service serviceModel, String serviceType) {
         serviceModel.getServiceType().setValue(serviceType);
@@ -487,7 +585,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
      * Populates the service model with functions from the service type definition.
      *
      * @param serviceModel the service model
-     * @param serviceType the service type identifier
+     * @param serviceType  the service type identifier
      */
     private void populateServiceTypeFunctions(Service serviceModel, String serviceType) {
         int packageId = Integer.parseInt(serviceModel.getId());
@@ -497,98 +595,63 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     }
 
     /**
-     * Builds the service node string representation.
-     * `service <serviceType> <serviceContractTypeName>|<basePath>|<stringLiteral> on <listener> {`
+     * Updates the readOnly metadata in the service model using the new extraction architecture.
+     * This method uses the ReadOnlyMetadataManager to extract values from different sources
+     * based on the metadata kind (ANNOTATION, LISTENER_PARAM, SERVICE_DESCRIPTION, CUSTOM).
      *
-     * @param service the service model
-     * @param builder the StringBuilder to append the service node string
+     * @param serviceModel The service model to update
+     * @param serviceNode  The service declaration node containing annotations
+     * @param context      The model context containing service information
      */
-    static void buildServiceNodeStr(Service service, StringBuilder builder) {
-        String docEdits = getDocumentationEdits(service);
-        if (!docEdits.isEmpty()) {
-            builder.append(docEdits).append(NEW_LINE);
+    protected void updateReadOnlyMetadataWithAnnotations(Service serviceModel, ServiceDeclarationNode serviceNode,
+                                                         ModelFromSourceContext context) {
+        // Get the current readOnly metadata property
+        Value currentReadOnlyMetadata = serviceModel.getProperty(PROP_READONLY_METADATA_KEY);
+        if (currentReadOnlyMetadata == null) {
+            // readOnlyMetaData property should be initialized by service builders before calling this method
+            return;
         }
 
-        List<String> annotationEdits = getAnnotationEdits(service);
-        if (!annotationEdits.isEmpty()) {
-            builder.append(String.join(NEW_LINE, annotationEdits)).append(NEW_LINE);
+        // Create the ReadOnlyMetadataManager
+        ReadOnlyMetadataManager metadataManager = new ReadOnlyMetadataManager();
+
+        // Check if the current service builder supports custom extraction
+        Optional<CustomExtractor> customExtractor = Optional.empty();
+        if (this instanceof CustomExtractor customServiceBuilder) {
+            customExtractor = Optional.of(customServiceBuilder);
         }
 
-        builder.append(SERVICE).append(SPACE);
-        if (Objects.nonNull(service.getServiceType()) && service.getServiceType().isEnabledWithValue()) {
-            builder.append(service.getServiceTypeName()).append(SPACE);
-        }
-        Value serviceContract = service.getServiceContractTypeNameValue();
-        Value serviceBasePath = service.getBasePath();
-        Value stringLiteralProperty = service.getStringLiteralProperty();
-        if (Objects.nonNull(serviceContract) && serviceContract.isEnabledWithValue()) {
-            builder.append(service.getServiceContractTypeName()).append(SPACE);
-        } else if (Objects.nonNull(serviceBasePath) && serviceBasePath.isEnabledWithValue()) {
-            builder.append(getValueString(serviceBasePath)).append(SPACE);
-        } else if (Objects.nonNull(stringLiteralProperty) && stringLiteralProperty.isEnabledWithValue()) {
-            builder.append(getValueString(stringLiteralProperty)).append(SPACE);
-        }
+        // Extract all metadata values using the new architecture
+        Map<String, List<String>> extractedValues = metadataManager.extractAllMetadata(serviceNode, context,
+                customExtractor);
 
-        builder.append(ON).append(SPACE);
-        if (Objects.nonNull(service.getListener()) && service.getListener().isEnabledWithValue()) {
-            builder.append(service.getListener().getValue());
-        }
-        builder.append(SPACE).append(OPEN_BRACE).append(NEW_LINE);
-    }
-
-    /**
-     * Return a list of required method definitions for the service.
-     *
-     * @param serviceFunctions the list of functions in the service model
-     * @param context the function-add context
-     * @param imports a map of imports to be used in the function definitions
-     * @return a list of method definitions as strings
-     */
-    static List<String> buildMethodDefinitions(List<Function> serviceFunctions, Utils.FunctionAddContext context,
-                                               Map<String, String> imports) {
-        List<String> functions = new ArrayList<>();
-        serviceFunctions.forEach(function -> {
-            if (function.isEnabled()) {
-                String functionNode = TAB;
-                functionNode += generateFunctionDefSource(function, new ArrayList<>(), context, FUNCTION_ADD, imports)
-                        .replace(NEW_LINE, NEW_LINE_WITH_TAB);
-                functions.add(functionNode);
+        // Get or initialize the metadata map
+        HashMap<String, List<String>> currentProps;
+        try {
+            currentProps = (HashMap<String, List<String>>) currentReadOnlyMetadata.getValueAsObject();
+            if (currentProps == null) {
+                currentProps = new HashMap<>();
+                currentReadOnlyMetadata.setValue(currentProps);
             }
-        });
-        return functions;
-    }
+        } catch (ClassCastException e) {
+            // Value is not the expected type, reinitialize
+            currentProps = new HashMap<>();
+            currentReadOnlyMetadata.setValue(currentProps);
+        }
 
-    /**
-     * Append the function definitions to the service node body and close the service node with a brace.
-     *
-     * @param functions the list of function definitions
-     * @param builder   the StringBuilder to append the service node body
-     */
-    static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
-        builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
+        // Process extracted values - put all values directly into the readOnlyMetaData property
+        for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {
+            String displayName = entry.getKey();
+            List<String> values = entry.getValue();
+
+            // Convert List<String> to ArrayList<String> and put directly in readOnlyMetaData
+            currentProps.put(displayName, new ArrayList<>(values));
+        }
     }
 
     public abstract String kind();
 
-    protected static Value listenerNameProperty(GetServiceInitModelContext context) {
-
-        String listenerName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
-                context.document().syntaxTree().rootNode().lineRange().endLine(),
-                LISTENER_VAR_NAME.formatted(getProtocol(context.moduleName())));
-
-        Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
-        valueBuilder
-                .setMetadata(new MetaData("Listener Name", "Provide a name for the listener being created"))
-                .setCodedata(new Codedata(ARG_TYPE_LISTENER_VAR_NAME))
-                .value(listenerName)
-                .valueType(VALUE_TYPE_IDENTIFIER)
-                .setValueTypeConstraint("Global")
-                .editable(true)
-                .enabled(true)
-                .optional(false)
-                .setAdvanced(true);
-
-        return valueBuilder.build();
+    protected record ListenerDTO(String listenerProtocol, String listenerVarName, String listenerDeclaration) {
     }
 }
 

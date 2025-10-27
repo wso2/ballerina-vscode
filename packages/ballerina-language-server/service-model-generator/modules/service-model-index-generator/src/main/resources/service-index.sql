@@ -1,6 +1,7 @@
 -- Drop tables if they already exist to prevent conflicts
 DROP TABLE IF EXISTS ServiceInitializerPropertyMemberType;
 DROP TABLE IF EXISTS ServiceInitializerProperty;
+DROP TABLE IF EXISTS ServiceReadOnlyMetaData;
 DROP TABLE IF EXISTS ServiceTypeFunctionParameter;
 DROP TABLE IF EXISTS ServiceTypeFunction;
 DROP TABLE IF EXISTS ServiceType;
@@ -146,6 +147,16 @@ CREATE TABLE ServiceInitializerProperty (
     source_kind TEXT CHECK(source_kind IN ('SERVICE_TYPE_DESCRIPTOR', 'SERVICE_BASE_PATH', 'LISTENER_PARAM_REQUIRED',
     'LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD', 'LISTENER_PARAM_INCLUDED_FIELD', 'SOURCE_ANNOTATION')),
     selections TEXT, -- Comma-separated values for selection options
+    FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
+);
+
+-- Create ServiceReadOnlyMetaData table
+CREATE TABLE ServiceReadOnlyMetaData (
+    metadata_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    package_id INTEGER,
+    metadata_key TEXT NOT NULL,
+    display_name TEXT,
+    kind TEXT NOT NULL,
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
 
