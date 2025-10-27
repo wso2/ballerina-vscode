@@ -39,7 +39,7 @@ import {
 } from "./utils";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { DATA_ELEMENT_ID_ATTRIBUTE } from "./constants";
+import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 export type ChipExpressionBaseComponentProps = {
@@ -65,7 +65,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     const [isCompletionsOpen, setIsCompletionsOpen] = useState<boolean>(false);
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
-    const [isEditableSpanFocused, setIsEditableSpanFocused] = useState(false);
     const [chipClicked, setChipClicked] = useState<ExpressionModel | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState(false);
@@ -122,76 +121,117 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         fetchInitialTokens(props.value);
     }, [props.value]);
 
-    const handleExpressionChange = async (updatedModel: ExpressionModel[], cursorPosition: number, lastTypedText?: string) => {
+    const handleExpressionChange = async (
+        updatedModel: ExpressionModel[],
+        cursorPosition: number,
+        lastTypedText?: string
+    ) => {
+        // Calculate cursor movement
         const cursorPositionBeforeUpdate = getAbsoluteCaretPositionFromModel(expressionModel);
         const cursorPositionAfterUpdate = getAbsoluteCaretPositionFromModel(updatedModel);
         const cursorDelta = cursorPositionAfterUpdate - cursorPositionBeforeUpdate;
+
+        // Update tokens based on cursor movement
         const previousFullText = getTextValueFromExpressionModel(expressionModel);
         const updatedTokens = updateTokens(tokens, cursorPositionBeforeUpdate, cursorDelta, previousFullText);
-        if ((!lastTypedText.startsWith('#$') || lastTypedText === '#$BACKSPACE') && JSON.stringify(updatedTokens) !== JSON.stringify(tokens)) {
+
+        const shouldUpdateTokens = (!lastTypedText?.startsWith('#$') || lastTypedText === BACKSPACE_MARKER)
+            && JSON.stringify(updatedTokens) !== JSON.stringify(tokens);
+
+        if (shouldUpdateTokens) {
             pendingForceSetTokensRef.current = updatedTokens;
         }
-        const updatedValue = getTextValueFromExpressionModel(updatedModel);
 
+        // Get updated values
+        const updatedValue = getTextValueFromExpressionModel(updatedModel);
         const wordBeforeCursor = getWordBeforeCursor(updatedModel);
-        if (lastTypedText === '#$FOCUS') {
+        const valueBeforeCursor = updatedValue.substring(0, cursorPositionAfterUpdate);
+
+        // Handle chip click reset on focus
+        if (lastTypedText === FOCUS_MARKER) {
             setChipClicked(null);
         }
-        const valueBeforeCursor = updatedValue.substring(0, cursorPositionAfterUpdate);
-        if (valueBeforeCursor.trim().endsWith('+') || valueBeforeCursor.trim().endsWith(':')) {
-            setIsHelperPaneOpen(true);
-        }
-        else if (updatedValue === '' || !wordBeforeCursor || wordBeforeCursor.trim() === '') {
-            setIsHelperPaneOpen(false);
-            setIsCompletionsOpen(false);
-        }
-        else {
-            const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
-            setFilteredCompletions(newFilteredCompletions);
-            if (newFilteredCompletions.length > 0) {
-                setIsHelperPaneOpen(false)
-                setIsCompletionsOpen(true)
-            }
-            else {
-                setIsHelperPaneOpen(false)
-                setIsCompletionsOpen(false);
-            }
-        }
-        if (
-            lastTypedText === '#$ARROWLEFT' ||
-            lastTypedText === '#$ARROWRIGHT' ||
-            lastTypedText === '#$FOCUS'
-        ) {
-            pendingCursorPositionUpdateRef.current = cursorPosition;
-            fetchInitialTokens(props.value);
-            if (lastTypedText === '#$FOCUS') {
-                setIsHelperPaneOpen(true)
-            }
+
+        // Handle helper pane and completions visibility
+        handleHelperPaneVisibility(updatedValue, valueBeforeCursor, wordBeforeCursor);
+
+        // Handle navigation keys
+        if (isNavigationKey(lastTypedText)) {
+            handleNavigationKey(cursorPosition, lastTypedText);
             return;
         }
-        if (
-            (
-                lastTypedText && lastTypedText.length > 0 &&
-                (lastTypedText.endsWith('+') || lastTypedText.endsWith(' ') || lastTypedText.endsWith(','))
 
-            )
-            ||
-            (lastTypedText === '#$BACKSPACE') ||
-            (lastTypedText === '#$COMPLETIONS') ||
-            (lastTypedText === '#$HELPER')
-        ) {
+        // Determine if we need to fetch new tokens
+        if (shouldFetchNewTokens(lastTypedText)) {
             fetchnewTokensRef.current = true;
         }
+
+        // Update cursor and value
         pendingCursorPositionUpdateRef.current = cursorPosition;
         props.onChange(updatedValue, updatedValue.length);
         setHasTypedSinceFocus(true);
-    }
+    };
 
-    const handleTriggerRebuild = (value: string, caretPosition?: number) => {
-    }
+    const handleHelperPaneVisibility = (
+        updatedValue: string,
+        valueBeforeCursor: string,
+        wordBeforeCursor: string | null
+    ) => {
+        const trimmedValueBeforeCursor = valueBeforeCursor.trim();
 
-    const handleEditorKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-    }
+        if (trimmedValueBeforeCursor.endsWith('+') || trimmedValueBeforeCursor.endsWith(':')) {
+            setIsHelperPaneOpen(true);
+            return;
+        }
+
+        if (valueBeforeCursor === '' || !wordBeforeCursor || wordBeforeCursor.trim() === '') {
+            setIsHelperPaneOpen(true);
+            setIsCompletionsOpen(false);
+            return;
+        }
+
+        const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
+        setFilteredCompletions(newFilteredCompletions);
+
+        if (newFilteredCompletions.length > 0) {
+            setIsHelperPaneOpen(false);
+            setIsCompletionsOpen(true);
+        } else {
+            setIsHelperPaneOpen(false);
+            setIsCompletionsOpen(false);
+        }
+    };
+
+    const isNavigationKey = (lastTypedText?: string): boolean => {
+        return lastTypedText === ARROW_LEFT_MARKER
+            || lastTypedText === ARROW_RIGHT_MARKER
+            || lastTypedText === FOCUS_MARKER;
+    };
+
+    const handleNavigationKey = (cursorPosition: number, lastTypedText?: string) => {
+        pendingCursorPositionUpdateRef.current = cursorPosition;
+        fetchInitialTokens(props.value);
+
+        if (lastTypedText === FOCUS_MARKER) {
+            setIsHelperPaneOpen(true);
+        }
+    };
+
+    const shouldFetchNewTokens = (lastTypedText?: string): boolean => {
+        if (!lastTypedText || lastTypedText.length === 0) {
+            return false;
+        }
+
+        const isSpecialKey = lastTypedText === BACKSPACE_MARKER
+            || lastTypedText === COMPLETIONS_MARKER
+            || lastTypedText === HELPER_MARKER;
+
+        const endsWithTriggerChar = lastTypedText.endsWith('+')
+            || lastTypedText.endsWith(' ')
+            || lastTypedText.endsWith(',');
+
+        return endsWithTriggerChar || isSpecialKey;
+    };
 
     const handleCompletionSelect = async (item: CompletionItem) => {
         const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
@@ -199,7 +239,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
         if (updatedExpressionModelInfo) {
             const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
-            handleExpressionChange(updatedModel, newCursorPosition, '#$COMPLETIONS');
+            handleExpressionChange(updatedModel, newCursorPosition, COMPLETIONS_MARKER);
         }
         setIsCompletionsOpen(false);
     };
@@ -232,7 +272,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
                 exprModel = setFocusInExpressionModel(exprModel, mapped, true);
                 setChipClicked(null);
-                handleExpressionChange(exprModel, newCursorPosition, '#$HELPER');
+                handleExpressionChange(exprModel, newCursorPosition, HELPER_MARKER);
             }
         }
         else {
@@ -249,7 +289,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 // Map absolute position into new model and set focus flags
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
                 exprModel = setFocusInExpressionModel(exprModel, mapped, true);
-                handleExpressionChange(exprModel, newCursorPosition, '#$HELPER');
+                handleExpressionChange(exprModel, newCursorPosition, HELPER_MARKER);
             }
         }
         if (closeHelperpane) {
@@ -275,7 +315,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     }, [isCompletionsOpen, selectedCompletionItem, filteredCompletions]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-        handleEditorKeyDown(e);
         if (isCompletionsOpen) {
             handleCompletionKeyDown(e);
         }
@@ -348,10 +387,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 fieldContainerRef={fieldContainerRef}
                 onFocusChange={(focused, isEditableSpan) => {
                     setIsAnyElementFocused(focused);
-                    setIsEditableSpanFocused(isEditableSpan);
                     if (!focused && expressionModel) {
                         const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
-                        handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), '#$FOCUS');
+                        handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
                     }
                 }}
                 onKeyDown={handleKeyDown}
@@ -372,7 +410,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 <TokenizedExpression
                     expressionModel={expressionModel || []}
                     onExpressionChange={handleExpressionChange}
-                    onTriggerRebuild={handleTriggerRebuild}
                     onChipClick={handleChipClick}
                     onTextFocus={handleTextFocus}
                     onChipFocus={handleChipFocus}

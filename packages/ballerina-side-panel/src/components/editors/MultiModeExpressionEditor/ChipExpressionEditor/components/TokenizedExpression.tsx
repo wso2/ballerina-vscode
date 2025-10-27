@@ -41,37 +41,26 @@ export const getTokenChip = (
     chipId?: string
 ): ReactNode => {
     const handleClick = (element: HTMLElement) => {
-        console.log(`Clicked on ${type}: ${value}`);
         if (onChipClick) {
             onChipClick(element, value, type, chipId);
         }
     };
 
     const handleBlur = () => {
-        console.log(`Blurred from ${type}: ${value}`);
         if (onChipBlur) {
             onChipBlur();
         }
     };
 
     const handleFocus = (element: HTMLElement) => {
-        console.log(`Focused on ${type}: ${value}`);
         if (onChipFocus) {
             onChipFocus(element, value, type, absoluteOffset);
         }
     };
 
     console.log(`Rendering chip for ${type}: ${value} with id: ${chipId}`);
-    switch (type) {
-        case "variable":
-            return <ChipComponent type="variable" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
-        case "parameter":
-            return <ChipComponent type="parameter" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
-        case "property":
-            return <ChipComponent type="property" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
-        default:
-            return <ChipComponent type="property" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
-    }
+    return <ChipComponent type={type as 'variable' | 'property' | 'parameter'} dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
+
 }
 
 export type TokenizedExpressionProps = {
@@ -81,11 +70,10 @@ export type TokenizedExpressionProps = {
     onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onChipFocus?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
     onExpressionChange?: (updatedExpression: ExpressionModel[], cursorPosition: number, lastTypedText: string) => void;
-    onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }
 
 export const TokenizedExpression = (props: TokenizedExpressionProps) => {
-    const { expressionModel, onExpressionChange, onTriggerRebuild } = props;
+    const { expressionModel, onExpressionChange } = props;
 
     return (
         expressionModel.length === 0 ? (
@@ -122,7 +110,6 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                             onTextFocus={props.onTextFocus}
                             index={index}
                             onExpressionChange={onExpressionChange}
-                            onTriggerRebuild={onTriggerRebuild}
                         />;
                     }
                 })}

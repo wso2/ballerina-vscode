@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useEffect, useLayoutEffect, useRef, useMemo } from "react";
-import { debounce } from "lodash";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel } from "../utils";
 import { ExpressionModel } from "../types";
 import { InvisibleSpan } from "../styles";
+import { FOCUS_MARKER } from "../constants";
 
 export const TextElement = (props: {
     element: ExpressionModel;
@@ -28,21 +28,12 @@ export const TextElement = (props: {
     index: number;
     onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void;
-    onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }) => {
-    const { onExpressionChange, onTriggerRebuild } = props;
+    const { onExpressionChange } = props;
     const spanRef = useRef<HTMLSpanElement | null>(null);
     const pendingCaretOffsetRef = useRef<number | null>(null);
     const lastValueRef = useRef<string>(props.element.value);
     const isProgrammaticFocusRef = useRef<boolean>(false);
-
-    const debouncedTriggerRebuild = useMemo(() => {
-        if (!onTriggerRebuild) return null;
-
-        return debounce((fullValue: string, absoluteCaretPosition: number) => {
-            onTriggerRebuild(fullValue, absoluteCaretPosition);
-        }, 300);
-    }, [onTriggerRebuild]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
@@ -68,7 +59,7 @@ export const TextElement = (props: {
                 : { ...el, isFocused: false, focusOffset: undefined }
         );
         const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
-        onExpressionChange(updatedModel, newCursorPosition, '#$FOCUS');
+        onExpressionChange(updatedModel, newCursorPosition, FOCUS_MARKER);
     };
 
     const handleMouseUp = (e: React.MouseEvent<HTMLSpanElement>) => {
@@ -88,28 +79,19 @@ export const TextElement = (props: {
 
         const host = spanRef.current;
 
-        // Capture the raw new value from the DOM (before we may programmatically prepend a space)
         const rawNewValue = e.currentTarget.textContent || '';
         const oldValue = lastValueRef.current;
-
-        // Check if a trigger character (+, space, comma) was just typed by comparing character counts
-        const triggerChars = /[\s+,]/g;
-        const oldTriggerCount = (oldValue.match(triggerChars) || []).length;
-        const newTriggerCount = (rawNewValue.match(triggerChars) || []).length;
-        const wasTriggerAdded = newTriggerCount > oldTriggerCount;
 
         const cursorDelta = rawNewValue.length - oldValue.length;
 
         const currentFocusOffset = props.element.focusOffset ?? oldValue.length;
 
-        // Read actual caret from DOM (more reliable than relying on model's focusOffset)
         let pendingOffset: number | null = null;
         if (host) {
             pendingOffset = getCaretOffsetWithin(host);
             pendingCaretOffsetRef.current = pendingOffset;
         }
 
-        // Build the final newValue possibly with a programmatic leading space
         let newValue = rawNewValue;
 
         const updatedExpressionModel = [...props.expressionModel];
@@ -137,14 +119,11 @@ export const TextElement = (props: {
             isFocused: true,
             focusOffset: newFocusOffset
         };
-        console.log("CURRENT FOCUS OFFSET", currentFocusOffset);
-        console.log("NEW FOCUS OFFSET", newFocusOffset);
         const enteredText = newValue.substring(
             currentFocusOffset,
             newFocusOffset
         );
         const newAbsoluteCursorPosition = getAbsoluteCaretPositionFromModel(updatedExpressionModel);
-        console.log('Entered text:', enteredText);
         lastValueRef.current = newValue;
         onExpressionChange(updatedExpressionModel, newAbsoluteCursorPosition, enteredText);
     };
@@ -168,7 +147,7 @@ export const TextElement = (props: {
             }
         })
         const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
-        onExpressionChange(updatedModel, newCursorPosition, '#$FOCUS');
+        onExpressionChange(updatedModel, newCursorPosition, FOCUS_MARKER);
     }
 
     // If this element is marked as focused, focus it and set the caret to focusOffset
@@ -181,15 +160,6 @@ export const TextElement = (props: {
             setCaretPosition(host, offset);
         }
     }, [props.element.isFocused, props.element.focusOffset]);
-
-    // Cleanup debounced function on unmount
-    useEffect(() => {
-        return () => {
-            if (debouncedTriggerRebuild) {
-                debouncedTriggerRebuild.cancel();
-            }
-        };
-    }, [debouncedTriggerRebuild]);
 
     return (
         <InvisibleSpan
