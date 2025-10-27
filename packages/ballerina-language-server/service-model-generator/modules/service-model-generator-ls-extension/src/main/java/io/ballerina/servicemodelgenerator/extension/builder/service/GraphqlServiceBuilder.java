@@ -37,6 +37,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;

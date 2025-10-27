@@ -50,7 +50,7 @@ import java.util.Optional;
  * Extractor for LISTENER_PARAM kind readOnly metadata.
  * Extracts parameter values from listener declarations in service expressions.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
 

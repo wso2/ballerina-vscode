@@ -34,7 +34,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
  * Extractor for SERVICE_DESCRIPTION kind readOnly metadata.
  * Extracts values from service declaration structure like base path, service type, etc.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
 

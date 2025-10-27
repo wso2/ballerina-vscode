@@ -29,7 +29,7 @@ import java.util.Map;
  * Interface for concrete service builders to implement custom readOnly metadata extraction.
  * This allows each service builder to define its own extraction logic for CUSTOM kind metadata.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public interface CustomExtractor {
 

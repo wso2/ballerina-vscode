@@ -25,7 +25,7 @@ package io.ballerina.modelgenerator.commons;
  * @param displayName The display name for the metadata field
  * @param kind The kind/category of the metadata field (e.g., ANNOTATION, SERVICE_DESCRIPTION, LISTENER_PARAM)
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public record ReadOnlyMetaData(
         String metadataKey,

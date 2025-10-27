@@ -33,7 +33,7 @@ import java.util.Optional;
  * Central manager for orchestrating readOnly metadata extraction using different strategies.
  * Implements the Strategy pattern to delegate extraction to appropriate extractors.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public class ReadOnlyMetadataManager {
 

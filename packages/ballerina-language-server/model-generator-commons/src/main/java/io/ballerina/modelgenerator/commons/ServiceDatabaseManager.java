@@ -668,7 +668,6 @@ public class ServiceDatabaseManager {
                         rs.getString("kind")
                 ));
             }
-            conn.close();
             return metaDataList;
         } catch (SQLException e) {
             Logger.getGlobal().severe("Error executing query: " + e.getMessage());

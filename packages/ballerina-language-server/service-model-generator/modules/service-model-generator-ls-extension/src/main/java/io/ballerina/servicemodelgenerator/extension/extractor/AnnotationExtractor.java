@@ -38,7 +38,7 @@ import java.util.Optional;
  * Extractor for ANNOTATION kind readOnly metadata.
  * Extracts parameter values from service annotations.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
 

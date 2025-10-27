@@ -47,7 +47,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
-import io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -74,7 +73,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
@@ -93,6 +91,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.createFallbackServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
@@ -257,28 +256,6 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
      */
     static void buildServiceNodeBody(List<String> functions, StringBuilder builder) {
         builder.append(String.join(TWO_NEW_LINES, functions)).append(NEW_LINE).append(CLOSE_BRACE);
-    }
-
-    public static void extractServicePathInfo(ServiceDeclarationNode serviceNode, Service serviceModel) {
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            boolean isStringLiteral = attachPoint.startsWith(DOUBLE_QUOTE) && attachPoint.endsWith(DOUBLE_QUOTE);
-            if (isStringLiteral) {
-                Value stringLiteralProperty = serviceModel.getStringLiteralProperty();
-                if (Objects.nonNull(stringLiteralProperty)) {
-                    stringLiteralProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setStringLiteral(ServiceModelUtils.getStringLiteralProperty(attachPoint));
-                }
-            } else {
-                Value basePathProperty = serviceModel.getBasePath();
-                if (Objects.nonNull(basePathProperty)) {
-                    basePathProperty.setValue(attachPoint);
-                } else {
-                    serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
-                }
-            }
-        }
     }
 
     protected static Value listenerNameProperty(GetServiceInitModelContext context) {

@@ -29,7 +29,7 @@ import java.util.Map;
  * Strategy interface for extracting readOnly metadata values from different sources.
  * Each extractor is responsible for extracting values for a specific kind of metadata.
  *
- * @since 1.0.0
+ * @since 1.3.0
  */
 public interface ReadOnlyMetadataExtractor {
 
