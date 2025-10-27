@@ -32,8 +32,6 @@ import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectPaths;
 import org.ballerinalang.annotation.JavaSPIService;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,23 +96,6 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
         List<BuildProject> buildProjects = workspaceProject.getResolution().dependencyGraph()
                 .toTopologicallySortedList();
         return new java.util.ArrayList<>(buildProjects);
-    }
-
-    /**
-     * Check if a Ballerina.toml file defines a workspace (contains [workspace] section).
-     *
-     * @param tomlPath Path to the Ballerina.toml file
-     * @return true if the file contains a [workspace] section, false otherwise
-     */
-    private boolean isWorkspaceToml(Path tomlPath) {
-        try {
-            String content = Files.readString(tomlPath);
-            // Simple check for [workspace] section
-            // This could be improved with proper TOML parsing if needed
-            return content.contains("[workspace]");
-        } catch (IOException e) {
-            return false;
-        }
     }
 
     @Override
