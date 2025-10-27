@@ -609,7 +609,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isNew) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value });
+                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
