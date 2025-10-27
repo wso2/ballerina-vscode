@@ -808,7 +808,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
-                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
+                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
