@@ -18,7 +18,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ChipEditorField } from "../styles"
-import { useFormContext } from "../../../../../context";
 import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
@@ -39,7 +38,6 @@ export type AutoExpandingEditableDivProps = {
     onFocusChange?: (isFocused: boolean, isEditableSpan: boolean) => void;
     isExpanded?: boolean;
     setIsExpanded?: (isExpanded: boolean) => void;
-    // Completions props
     isCompletionsOpen?: boolean;
     completions?: CompletionItem[];
     selectedCompletionItem?: number;
@@ -47,7 +45,6 @@ export type AutoExpandingEditableDivProps = {
     onCompletionSelect?: (item: CompletionItem) => void;
     onCompletionHover?: (index: number) => void;
     onCloseCompletions?: () => void;
-    //helperpane
     getHelperPane?: (
         value: string,
         onChange: (value: string, closeHelperPane: boolean) => void,
@@ -77,17 +74,15 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     const menuRef = useRef<HTMLDivElement>(null);
     const lastFocusStateRef = useRef<{ focused: boolean; isEditable: boolean }>({ focused: false, isEditable: false });
 
-    const { popupManager } = useFormContext();
-
     const renderCompletionsMenu = () => {
         if (!props.isCompletionsOpen || !props.completions || !fieldContainerRef?.current) return null;
 
         const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
 
 
-        const menuWidth = COMPLETIONS_WIDTH; // Use the constant from styles
-        const viewportWidth = document.documentElement.clientWidth; // Use clientWidth to account for scrollbars
-        const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10)); // Ensure menu stays within viewport bounds
+        const menuWidth = COMPLETIONS_WIDTH;
+        const viewportWidth = document.documentElement.clientWidth;
+        const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10));
 
         return (
             <ContextMenuContainer
@@ -117,7 +112,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
 
         const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
         const menuWidth = COMPLETIONS_WIDTH;
-        console.log("MENU POSITION:", menuPosition, fieldContainerRef?.current.getBoundingClientRect());
         const viewportWidth = document.documentElement.clientWidth;
         const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10));
         return (
@@ -146,24 +140,20 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
 
         const activeElement = document.activeElement as HTMLElement;
 
-        // Check if focused element is within our container
         const isWithinContainer = container.contains(activeElement);
 
-        // Check if it's an editable span (contenteditable), a chip, or a floating toggle button
         const isEditableOrChip =
             activeElement?.hasAttribute('contenteditable') ||
             activeElement?.getAttribute(DATA_CHIP_ATTRIBUTE) === CHIP_TRUE_VALUE ||
             activeElement?.hasAttribute(DATA_ELEMENT_ID_ATTRIBUTE) ||
-            activeElement?.getAttribute(ARIA_PRESSED_ATTRIBUTE) !== null; // Floating toggle buttons
+            activeElement?.getAttribute(ARIA_PRESSED_ATTRIBUTE) !== null;
 
         const isEditableSpan = activeElement?.hasAttribute('contenteditable');
 
         const newFocusState = isWithinContainer && isEditableOrChip;
 
-        // Only update and call callback if the state actually changed
         const lastState = lastFocusStateRef.current;
         if (lastState.focused !== newFocusState || lastState.isEditable !== isEditableSpan) {
-            console.log('Focus check:', { activeElement: activeElement?.tagName, isWithinContainer, isEditableOrChip, isEditableSpan, newFocusState });
             setIsAnyElementFocused(newFocusState);
             lastFocusStateRef.current = { focused: newFocusState, isEditable: isEditableSpan };
 
@@ -171,7 +161,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 props.onFocusChange(newFocusState, isEditableSpan);
             }
         }
-    }, [fieldContainerRef]); // Remove props.onFocusChange from dependencies
+    }, [fieldContainerRef]);
 
     const debounce = (func: Function, delay: number) => {
         let timer: ReturnType<typeof setTimeout>;
@@ -200,7 +190,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                // Add a slight delay before closing the helper pane
                 setTimeout(() => {
                     props.onCloseCompletions?.();
                     props.onHelperPaneClose?.();
@@ -247,9 +236,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                         <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
                             <GetHelperButton />
                         </FloatingToggleButton>
-                        {/* <FloatingToggleButton isActive={isExpanded} onClick={() => setIsExpanded && setIsExpanded(!isExpanded)} title="Expanded Mode">
-                            <ExpandButton />
-                        </FloatingToggleButton> */}
                     </FloatingButtonContainer>
                     {renderCompletionsMenu()}
                     {renderHelperPane()}
