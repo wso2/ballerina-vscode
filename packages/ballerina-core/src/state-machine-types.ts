@@ -260,7 +260,7 @@ export interface UsageMetricsEvent {
 export interface TaskApprovalRequest {
     type: "task_approval_request";
     approvalType: "plan" | "completion";
-    tasks: any[];
+    tasks: Task[];
     taskId?: string;
     message?: string;
 }
@@ -380,9 +380,8 @@ export interface ChatMessage {
 export enum TaskStatus {
     PENDING = "pending",
     IN_PROGRESS = "in_progress",
-    REVIEW = "review",
-    DONE = "done",
-    REJECTED = "rejected"
+    COMPLETED = "completed",
+    REVIEW = "review"
 }
 
 export enum TaskTypes {

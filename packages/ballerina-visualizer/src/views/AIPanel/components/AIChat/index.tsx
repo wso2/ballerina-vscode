@@ -60,7 +60,7 @@ import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import RoleContainer from "../RoleContainter";
-import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, Task, TaskApprovalRequest } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, TodoPanel } from "../../styles";
@@ -156,15 +156,10 @@ const AIChat: React.FC = () => {
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
 
     // Approval dialog state
-    const [approvalRequest, setApprovalRequest] = useState<{
-        approvalType: "plan" | "completion";
-        tasks: any[];
-        taskId?: string;
-        message?: string;
-    } | null>(null);
+    const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
     // Top-level tasks state for the todo panel
-    const [todoTasks, setTodoTasks] = useState<any[] | null>(null);
+    const [todoTasks, setTodoTasks] = useState<Task[] | null>(null);
     const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
