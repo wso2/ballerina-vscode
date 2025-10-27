@@ -82,7 +82,6 @@ const ModalHeaderSection = styled.header`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-inline: 16px;
 `;
 
 type TriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
