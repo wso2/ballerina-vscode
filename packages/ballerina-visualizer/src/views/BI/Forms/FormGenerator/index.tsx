@@ -90,7 +90,7 @@ import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
-import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
+import KnowledgeBaseForm from "../KnowledgeBaseForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import React from "react";
@@ -1255,9 +1255,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     // handle vector knowledge base form
-    if (node?.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+    if (node?.codedata.node === "KNOWLEDGE_BASE") {
         return (
-            <VectorKnowledgeBaseForm
+            <KnowledgeBaseForm
                 fileName={fileName}
                 node={node}
                 targetLineRange={targetLineRange}
