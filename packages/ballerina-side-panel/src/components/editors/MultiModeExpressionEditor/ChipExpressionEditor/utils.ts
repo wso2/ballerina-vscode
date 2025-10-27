@@ -18,6 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, ExpressionModel } from "./types";
+import { BACKSPACE_MARKER, DELETE_MARKER, ARROW_RIGHT_MARKER, ARROW_LEFT_MARKER } from "./constants";
 
 const TOKEN_LINE_OFFSET_INDEX = 0;
 const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -652,172 +653,294 @@ export const handleKeyDownInTextElement = (
     const caretOffset = getCaretOffsetWithin(host);
     const textLength = host.textContent?.length || 0;
 
-    if (e.key === 'Backspace') {
-        if (caretOffset === 0) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (index === 0 || index >= expressionModel.length) return;
+    switch (e.key) {
+        case 'Backspace':
+            handleBackspace(e, expressionModel, index, caretOffset, onExpressionChange);
+            break;
+        case 'Delete':
+            handleDelete(e, expressionModel, index, caretOffset, textLength, onExpressionChange);
+            break;
+        case 'ArrowRight':
+            handleArrowRight(e, expressionModel, index, caretOffset, textLength, onExpressionChange);
+            break;
+        case 'ArrowLeft':
+            handleArrowLeft(e, expressionModel, index, caretOffset, onExpressionChange);
+            break;
+    }
+};
 
-            let newExpressionModel = [...expressionModel];
-            const tokensToRemove: number[] = [];
+const handleBackspace = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    if (caretOffset === 0) {
+        handleBackspaceAtStart(e, expressionModel, index, onExpressionChange);
+    } else {
+        handleBackspaceInMiddle(e, expressionModel, index, caretOffset);
+    }
+};
 
-            for (let i = index - 1; i >= 0; i--) {
-                if (newExpressionModel[i].isToken) {
-                    tokensToRemove.push(i);
-                } else {
-                    const currentElement = expressionModel[index];
-                    const shouldRemoveCurrent = currentElement.length === 0;
+const handleBackspaceAtStart = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (index === 0 || index >= expressionModel.length) return;
 
-                    newExpressionModel = newExpressionModel
-                        .map((el, idx) => {
-                            if (idx === i) {
-                                return { ...el, isFocused: true, focusOffset: el.length };
-                            }
-                            return el;
-                        })
-                        .filter((_, idx) => {
-                            if (idx === index) return !shouldRemoveCurrent;
-                            return !tokensToRemove.includes(idx);
-                        });
+    let newExpressionModel = [...expressionModel];
+    const tokensToRemove: number[] = [];
 
-                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-                    onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
-                    return;
-                }
-            }
-
-            if (tokensToRemove.length > 0) {
-                newExpressionModel = newExpressionModel.filter(
-                    (_, idx) => !tokensToRemove.includes(idx)
-                );
-                const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-                onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
-            }
-        }
-        else {
-            let newExpressionModel = [...expressionModel];
-            if (
-                caretOffset === 1 &&
-                index - 1 >= 0 &&
-                newExpressionModel[index - 1].isToken &&
-                newExpressionModel[index - 1].type === 'parameter'
-            ) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+    // Scan backwards to find first non-token or collect all tokens
+    for (let i = index - 1; i >= 0; i--) {
+        if (newExpressionModel[i].isToken) {
+            tokensToRemove.push(i);
+        } else {
+            mergeWithPreviousElement(
+                expressionModel,
+                index,
+                i,
+                tokensToRemove,
+                onExpressionChange
+            );
+            return;
         }
     }
 
-    if (e.key === 'Delete' && caretOffset === textLength) {
-        const currentElement = expressionModel[index];
-        if (!currentElement) return;
-        if (index === expressionModel.length - 1) return;
-
-        for (let i = index + 1; i < expressionModel.length; i++) {
-            if (!expressionModel[i].isToken) {
-                const nextElement = expressionModel[i];
-
-                const updatedValue = currentElement.value + nextElement.value.slice(1);
-                const updatedModel = expressionModel.map((el, idx) => {
-                    if (idx === index) {
-                        return {
-                            ...currentElement,
-                            value: updatedValue,
-                            length: updatedValue.length,
-                            isFocused: true,
-                            focusOffset: currentElement.value.length
-                        };
-                    } else if (idx === i) {
-                        return {
-                            ...nextElement,
-                            value: nextElement.value.slice(1),
-                            length: nextElement.value.length - 1,
-                            isFocused: false,
-                            focusOffset: undefined
-                        };
-                    }
-                    return el;
-                });
-
-                if (onExpressionChange) {
-                    const newCursorPosition = getAbsoluteCaretPositionFromModel(updatedModel);
-                    onExpressionChange(updatedModel, newCursorPosition, "#$DELETE");
-                }
-                return;
-            }
-        }
-        return;
+    // If we only found tokens, remove them
+    if (tokensToRemove.length > 0) {
+        newExpressionModel = newExpressionModel.filter(
+            (_, idx) => !tokensToRemove.includes(idx)
+        );
+        const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+        onExpressionChange?.(newExpressionModel, newCursorPosition, BACKSPACE_MARKER);
     }
+};
 
-    if (e.key === 'ArrowRight') {
+const mergeWithPreviousElement = (
+    expressionModel: ExpressionModel[],
+    currentIndex: number,
+    previousIndex: number,
+    tokensToRemove: number[],
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    const currentElement = expressionModel[currentIndex];
+    const shouldRemoveCurrent = currentElement.length === 0;
+
+    const newExpressionModel = expressionModel
+        .map((el, idx) => {
+            if (idx === previousIndex) {
+                return { ...el, isFocused: true, focusOffset: el.length };
+            }
+            return el;
+        })
+        .filter((_, idx) => {
+            if (idx === currentIndex) return !shouldRemoveCurrent;
+            return !tokensToRemove.includes(idx);
+        });
+
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+    onExpressionChange?.(newExpressionModel, newCursorPosition, BACKSPACE_MARKER);
+};
+
+const handleBackspaceInMiddle = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number
+) => {
+    const hasPreviousParameterToken = 
+        caretOffset === 1 &&
+        index - 1 >= 0 &&
+        expressionModel[index - 1].isToken &&
+        expressionModel[index - 1].type === 'parameter';
+
+    if (hasPreviousParameterToken) {
         e.preventDefault();
         e.stopPropagation();
-        if (caretOffset === textLength) {
-            if (index < 0 || index >= expressionModel.length - 1) return;
-            for (let i = index + 1; i < expressionModel.length; i++) {
-                if (!expressionModel[i].isToken) {
-                    const newExpressionModel = expressionModel.map((el, idx) => {
-                        if (idx === i) {
-                            return { ...el, isFocused: true, focusOffset: 0 };
-                        } else if (idx === index) {
-                            return { ...el, isFocused: false, focusOffset: undefined };
-                        }
-                        return el;
-                    });
-                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-                    onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWRIGHT');
-                    return;
-                }
-            }
+    }
+};
+
+const handleDelete = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    textLength: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    if (caretOffset !== textLength) return;
+
+    const currentElement = expressionModel[index];
+    if (!currentElement || index === expressionModel.length - 1) return;
+
+    for (let i = index + 1; i < expressionModel.length; i++) {
+        if (!expressionModel[i].isToken) {
+            mergeWithNextElement(expressionModel, index, i, currentElement, onExpressionChange);
+            return;
         }
-        else {
+    }
+};
+
+const mergeWithNextElement = (
+    expressionModel: ExpressionModel[],
+    currentIndex: number,
+    nextIndex: number,
+    currentElement: ExpressionModel,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    const nextElement = expressionModel[nextIndex];
+    const updatedValue = currentElement.value + nextElement.value.slice(1);
+
+    const updatedModel = expressionModel.map((el, idx) => {
+        if (idx === currentIndex) {
+            return {
+                ...currentElement,
+                value: updatedValue,
+                length: updatedValue.length,
+                isFocused: true,
+                focusOffset: currentElement.value.length
+            };
+        } else if (idx === nextIndex) {
+            return {
+                ...nextElement,
+                value: nextElement.value.slice(1),
+                length: nextElement.value.length - 1,
+                isFocused: false,
+                focusOffset: undefined
+            };
+        }
+        return el;
+    });
+
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(updatedModel);
+    onExpressionChange?.(updatedModel, newCursorPosition, DELETE_MARKER);
+};
+
+const handleArrowRight = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    textLength: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (caretOffset === textLength) {
+        moveToNextElement(expressionModel, index, onExpressionChange);
+    } else {
+        moveCaretForward(expressionModel, index, caretOffset, onExpressionChange);
+    }
+};
+
+const moveToNextElement = (
+    expressionModel: ExpressionModel[],
+    index: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    if (index < 0 || index >= expressionModel.length - 1) return;
+
+    for (let i = index + 1; i < expressionModel.length; i++) {
+        if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
-                if (idx === index) {
-                    return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset + 1) };
+                if (idx === i) {
+                    return { ...el, isFocused: true, focusOffset: 0 };
+                } else if (idx === index) {
+                    return { ...el, isFocused: false, focusOffset: undefined };
                 }
                 return el;
             });
+            
             const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-            onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
+            onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_RIGHT_MARKER);
             return;
         }
-        return;
     }
+};
 
-    if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (caretOffset === 0) {
-            if (index <= 0 || index >= expressionModel.length) return;
-            for (let i = index - 1; i >= 0; i--) {
-                if (!expressionModel[i].isToken) {
-                    const newExpressionModel = expressionModel.map((el, idx) => {
-                        if (idx === i) {
-                            return { ...el, isFocused: true, focusOffset: el.length };
-                        } else if (idx === index) {
-                            return { ...el, isFocused: false, focusOffset: undefined };
-                        }
-                        return el;
-                    });
-                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-                    onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
-                    return;
-                }
-            }
-            return;
+const moveCaretForward = (
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    const newExpressionModel = expressionModel.map((el, idx) => {
+        if (idx === index) {
+            return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset + 1) };
         }
-        else {
+        return el;
+    });
+    
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+    onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
+};
+
+const handleArrowLeft = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (caretOffset === 0) {
+        moveToPreviousElement(expressionModel, index, onExpressionChange);
+    } else {
+        moveCaretBackward(expressionModel, index, caretOffset, onExpressionChange);
+    }
+};
+
+const moveToPreviousElement = (
+    expressionModel: ExpressionModel[],
+    index: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    if (index <= 0 || index >= expressionModel.length) return;
+
+    // Find previous non-token element
+    for (let i = index - 1; i >= 0; i--) {
+        if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
-                if (idx === index) {
-                    return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset - 1) };
+                if (idx === i) {
+                    return { ...el, isFocused: true, focusOffset: el.length };
+                } else if (idx === index) {
+                    return { ...el, isFocused: false, focusOffset: undefined };
                 }
                 return el;
             });
+            
             const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
-            onExpressionChange?.(newExpressionModel, newCursorPosition, '#$ARROWLEFT');
+            onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
             return;
         }
     }
+};
+
+const moveCaretBackward = (
+    expressionModel: ExpressionModel[],
+    index: number,
+    caretOffset: number,
+    onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
+) => {
+    const newExpressionModel = expressionModel.map((el, idx) => {
+        if (idx === index) {
+            return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset - 1) };
+        }
+        return el;
+    });
+    
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+    onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
 };
 
 export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string => {

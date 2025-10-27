@@ -27,3 +27,12 @@ export const ARIA_PRESSED_ATTRIBUTE = 'aria-pressed';
 // Attribute values
 export const CHIP_MENU_VALUE = 'chip-menu';
 export const CHIP_TRUE_VALUE = 'true';
+
+// Special text markers for expression changes
+export const BACKSPACE_MARKER = '#$BACKSPACE';
+export const DELETE_MARKER = '#$DELETE';
+export const ARROW_RIGHT_MARKER = '#$ARROWRIGHT';
+export const ARROW_LEFT_MARKER = '#$ARROWLEFT';
+export const FOCUS_MARKER = '#$FOCUS';
+export const COMPLETIONS_MARKER = '#$COMPLETIONS';
+export const HELPER_MARKER = '#$HELPER';

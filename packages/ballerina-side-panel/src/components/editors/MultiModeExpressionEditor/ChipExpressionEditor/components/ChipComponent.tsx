@@ -67,7 +67,7 @@ export const ChipComponent = (props: ChipProps) => {
                 onBlur={onBlur}
                 data-chip={CHIP_TRUE_VALUE}
                 data-element-id={dataElementId}
-                style={{backgroundColor: ThemeColors.SURFACE_DIM_2}}
+                style={{backgroundColor: '#70c995', color: ThemeColors.SURFACE_DIM}}
             >
                {text}
             </Chip>
