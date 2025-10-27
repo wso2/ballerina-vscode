@@ -504,6 +504,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     <ResourceForm
                         model={functionModel}
                         isSaving={isSaving}
+                        filePath={filePath}
                         onSave={handleResourceSubmit}
                         onClose={handleFunctionClose}
                     />
