@@ -44,9 +44,9 @@ import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
-import io.ballerina.flowmodelgenerator.core.model.node.VectorKnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
@@ -71,7 +71,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 
 /**
  * Generates available nodes for a given position in the diagram.
@@ -134,7 +134,7 @@ public class AvailableNodesGenerator {
     }
 
     public JsonArray getAvailableVectorKnowledgeBases(LinePosition position) {
-        return this.getAvailableItemsByCategory(position, Category.Name.VECTOR_KNOWLEDGE_BASE, this::getKnowledgeBase);
+        return this.getAvailableItemsByCategory(position, Category.Name.KNOWLEDGE_BASE, this::getKnowledgeBase);
     }
 
     public JsonArray getAvailableDataLoaders(LinePosition position) {
@@ -268,13 +268,13 @@ public class AvailableNodesGenerator {
         Category directLlmCategory = new Category.Builder(null).name(Category.Name.DIRECT_LLM)
                 .items(List.of(modelProvider, npFunction)).build();
 
-        AvailableNode vectorKnowledgeBase = new AvailableNode(
-                new Metadata.Builder<>(null).label(VectorKnowledgeBaseBuilder.LABEL)
-                        .description(VectorKnowledgeBaseBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.VECTOR_KNOWLEDGE_BASES).org(Ai.BALLERINA_ORG)
+        AvailableNode knowledgeBase = new AvailableNode(
+                new Metadata.Builder<>(null).label(KnowledgeBaseBuilder.LABEL)
+                        .description(KnowledgeBaseBuilder.DESCRIPTION).build(),
+                new Codedata.Builder<>(null).node(NodeKind.KNOWLEDGE_BASES).org(Ai.BALLERINA_ORG)
                         .module(Ai.AI_PACKAGE).packageName(Ai.AI_PACKAGE)
-                        .object(Ai.VECTOR_KNOWLEDGE_BASE_TYPE_NAME).symbol("init").version(aiPackageVersion).build(),
-                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.VECTOR_KNOWLEDGE_BASES));
+                        .object(Ai.KNOWLEDGE_BASE_TYPE_NAME).symbol("init").version(aiPackageVersion).build(),
+                !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.KNOWLEDGE_BASES));
 
         AvailableNode recursiveDocumentChunker = new AvailableNode(new Metadata.Builder<>(null)
                 .label(Ai.RECURSIVE_DOCUMENT_CHUNKER_LABEL).build(), new Codedata.Builder<>(null)
@@ -312,7 +312,7 @@ public class AvailableNodesGenerator {
                 !disableBallerinaAiNodes && supportedFeatures.contains(NodeKind.DATA_LOADERS));
 
         Category ragCategory = new Category.Builder(null).name(Category.Name.RAG)
-                .items(List.of(vectorKnowledgeBase, dataLoaders, recursiveDocumentChunker, chunkers, augmentUserQuery,
+                .items(List.of(knowledgeBase, dataLoaders, recursiveDocumentChunker, chunkers, augmentUserQuery,
                         vectorStore, embeddingProvider)).build();
 
         AvailableNode agentCall = new AvailableNode(
@@ -410,8 +410,8 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
-                    } else if (kind == FunctionData.Kind.FUNCTION && isAiVectorKnowledgeBase(classSymbol)) {
-                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL);
+                    } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
+                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.KNOWLEDGE_BASE_CALL);
                     } else if (kind == FunctionData.Kind.FUNCTION) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.METHOD_CALL);
                     } else {
@@ -461,7 +461,7 @@ public class AvailableNodesGenerator {
     }
 
     private Optional<Category> getKnowledgeBase(Symbol symbol) {
-        return getCategory(symbol, CommonUtils::isAiVectorKnowledgeBase);
+        return getCategory(symbol, CommonUtils::isAiKnowledgeBase);
     }
 
     private Optional<Category> getVectorStore(Symbol symbol) {

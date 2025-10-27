@@ -1,7 +1,7 @@
 {
   "source": "knowledge_base/connections.bal",
   "codedata": {
-    "node": "VECTOR_KNOWLEDGE_BASE",
+    "node": "KNOWLEDGE_BASE",
     "org": "ballerina",
     "module": "ai",
     "packageName": "ai",
@@ -13,12 +13,12 @@
     "flowNode": {
       "id": "31",
       "metadata": {
-        "label": "Vector Knowledge Base",
+        "label": "Knowledge Base",
         "description": "Initializes a new `VectorKnowledgeBase` instance.\n",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
       },
       "codedata": {
-        "node": "VECTOR_KNOWLEDGE_BASE",
+        "node": "KNOWLEDGE_BASE",
         "org": "ballerina",
         "module": "ai",
         "packageName": "ai",
@@ -47,8 +47,8 @@
         },
         "variable": {
           "metadata": {
-            "label": "Vector Knowledge Base Name",
-            "description": "Vector knowledge-base instance name"
+            "label": "Knowledge Base Name",
+            "description": "Name of the knowledge base instance"
           },
           "valueType": "IDENTIFIER",
           "value": "aiVectorknowledgebase",

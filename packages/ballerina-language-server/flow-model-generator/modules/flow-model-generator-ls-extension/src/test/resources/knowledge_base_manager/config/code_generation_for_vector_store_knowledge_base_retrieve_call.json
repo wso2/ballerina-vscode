@@ -8,7 +8,7 @@
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.2.png"
     },
     "codedata": {
-      "node": "VECTOR_KNOWLEDGE_BASE_CALL",
+      "node": "KNOWLEDGE_BASE_CALL",
       "org": "ballerina",
       "module": "ai",
       "packageName": "ai",

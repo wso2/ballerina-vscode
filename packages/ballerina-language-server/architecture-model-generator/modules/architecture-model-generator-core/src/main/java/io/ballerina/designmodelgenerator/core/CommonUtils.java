@@ -62,6 +62,7 @@ public class CommonUtils {
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
     private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
+
     private static final String WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
     private static final String WSO2_EMBEDDING_PROVIDER = "Wso2EmbeddingProvider";
     private static final String WSO2_ICON_SUFFIX = "?wso2_icon";

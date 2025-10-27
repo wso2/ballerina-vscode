@@ -186,12 +186,12 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
@@ -1522,8 +1522,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAiEmbeddingProvider(classSymbol)) {
             return NodeKind.EMBEDDING_PROVIDER;
         }
-        if (isAiVectorKnowledgeBase(classSymbol)) {
-            return NodeKind.VECTOR_KNOWLEDGE_BASE;
+        if (isAiKnowledgeBase(classSymbol)) {
+            return NodeKind.KNOWLEDGE_BASE;
         }
         if (isAiVectorStore(classSymbol)) {
             return NodeKind.VECTOR_STORE;
@@ -1556,7 +1556,7 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<Predicate<ClassSymbol>, FunctionData.Kind> kindMappings = Map.of(
                 CommonUtils::isAiModelProvider, FunctionData.Kind.MODEL_PROVIDER,
                 CommonUtils::isAiEmbeddingProvider, FunctionData.Kind.EMBEDDING_PROVIDER,
-                CommonUtils::isAiVectorKnowledgeBase, FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
+                CommonUtils::isAiKnowledgeBase, FunctionData.Kind.KNOWLEDGE_BASE,
                 CommonUtils::isAiVectorStore, FunctionData.Kind.VECTOR_STORE,
                 CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
                 CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER,
@@ -1809,8 +1809,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
-        } else if (isAiVectorKnowledgeBase(classSymbol)) {
-            startNode(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, expressionNode.parent());
+        } else if (isAiKnowledgeBase(classSymbol)) {
+            startNode(NodeKind.KNOWLEDGE_BASE_CALL, expressionNode.parent());
         } else {
             startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         }

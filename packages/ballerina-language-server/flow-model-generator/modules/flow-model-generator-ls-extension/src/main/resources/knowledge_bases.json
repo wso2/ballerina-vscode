@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "label": "Knowledge Bases"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Vector Knowledge Base",
+            "description": "An AI knowledge base that manages document embeddings in a vector store for efficient semantic retrieval and RAG workflows."
+          },
+          "codedata": {
+            "node": "KNOWLEDGE_BASE",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "VectorKnowledgeBase",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure AI Search Knowledge Base",
+            "description": "An AI knowledge base powered by Azure AI Search, supporting document ingestion, and semantic retrieval for RAG workflows."
+          },
+          "codedata": {
+            "node": "KNOWLEDGE_BASE",
+            "org": "ballerinax",
+            "module": "ai.azure",
+            "packageName": "ai.azure",
+            "object": "AiSearchKnowledgeBase",
+            "symbol": "init",
+            "flags": 1
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
