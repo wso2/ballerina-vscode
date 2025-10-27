@@ -19,6 +19,7 @@
 import { keyframes } from "@emotion/css";
 import styled from "@emotion/styled";
 import React, { useState, useEffect, useRef } from "react";
+import { Task } from "@wso2/ballerina-core";
 
 const spin = keyframes`
     from { transform: rotate(0deg); }
@@ -222,12 +223,6 @@ const CommentLabel = styled.label`
     font-weight: 500;
 `;
 
-export interface Task {
-    id: string;
-    description: string;
-    status: "pending" | "in_progress" | "review" | "done" | "rejected";
-}
-
 interface TodoSectionProps {
     tasks: Task[];
     message?: string;
@@ -242,10 +237,8 @@ const getStatusIcon = (status: string): { className: string; icon: string } => {
             return { className: "in_progress", icon: "codicon-sync" };
         case "review":
             return { className: "review", icon: "codicon-eye" };
-        case "done":
-            return { className: "done", icon: "codicon-check" };
-        case "rejected":
-            return { className: "rejected", icon: "codicon-close" };
+        case "completed":
+            return { className: "completed", icon: "codicon-check" };
         case "pending":
         default:
             return { className: "pending", icon: "codicon-circle-outline" };
@@ -261,7 +254,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
     const inProgressRef = useRef<HTMLDivElement>(null);
     const todoListRef = useRef<HTMLDivElement>(null);
     const scrollTimeoutRef = useRef<number | null>(null);
-    const completedCount = tasks.filter((t) => t.status === "done").length;
+    const completedCount = tasks.filter((t) => t.status === "completed").length;
     const inProgressTask = tasks.find((t) => t.status === "in_progress");
     const allCompleted = completedCount === tasks.length;
     const hasInProgress = !!inProgressTask;

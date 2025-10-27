@@ -307,9 +307,9 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             return {
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) => {
-                                    // Mark all REVIEW tasks up to and including lastApprovedIndex as DONE
+                                    // Mark all REVIEW tasks up to and including lastApprovedIndex as COMPLETED
                                     if (task.status === TaskStatus.REVIEW && index <= lastApprovedIndex) {
-                                        return { ...task, status: TaskStatus.DONE };
+                                        return { ...task, status: TaskStatus.COMPLETED };
                                     }
                                     return task;
                                 }),
@@ -337,7 +337,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
                                     index === ctx.currentTaskIndex
-                                        ? { ...task, status: TaskStatus.REJECTED }
+                                        ? { ...task, status: TaskStatus.COMPLETED }
                                         : task
                                 ),
                                 updatedAt: Date.now(),

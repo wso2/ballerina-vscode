@@ -38,7 +38,7 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     id: z.string().optional().describe("Task ID (required when updating existing tasks, omit when creating new tasks)"),
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
-    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.REVIEW]).describe("Current status of the task. Use 'pending' for tasks not started yet, 'in_progress' when actively working on a task, 'review' when task work is completed and ready for user approval. Note: 'done' and 'rejected' statuses are managed by the system after user review."),
+    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished. Note: 'rejected' status is managed by the system after user review."),
     type: z.enum(["service_design", "connections_init", "implementation"]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
 });
 
@@ -121,9 +121,9 @@ Workflow per task (after plan approval):
 1. Mark in_progress → Send ALL tasks
 2. Do the work immediately
 3. Mark completed → Send ALL tasks
-4. Wait for user approval of the completed task
-5. If approved → Start next task (repeat from step 1)
-6. If rejected → Redo the task based on feedback
+4. Tool will request user approval (or auto-approve if enabled)
+5. If approved → Tool returns tasks with 'completed' status, start next task (repeat from step 1)
+6. If rejected → Tool returns task with 'rejected' status, redo the task based on feedback
 
 Example (3 tasks total):
 Start task 1 - Send ALL:
@@ -135,14 +135,14 @@ Start task 1 - Send ALL:
 
 Complete task 1 - Send ALL:
 [
-  {"id": "1", "description": "Create the HTTP service contract", "status": "complete", "type": "service_design"},
+  {"id": "1", "description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
   {"id": "2", "description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
   {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
-Start task 2 - Send ALL:
+After approval, start task 2 - Send ALL:
 [
-  {"id": "1", "description": "Create the HTTP service contract", "status": "complete", "type": "service_design"},
+  {"id": "1", "description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
   {"id": "2", "description": "Create the MYSQL Connection", "status": "in_progress", "type": "connections_init"},
   {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
@@ -156,24 +156,17 @@ Rules:
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                // Tool is stateless - just process and return ALL tasks sent by LLM
-                // No IDs needed, no state management - LLM maintains the full task list
-
-                // Get existing plan from state machine to preserve system-managed statuses (done/rejected)
+                // Get existing plan from state machine to detect status changes
                 const currentContext = AIChatStateMachine.context();
                 const existingPlan = currentContext.currentPlan;
 
                 const allTasks: Task[] = input.tasks.map(task => {
                     const taskId = task.id || `task_${Date.now()}_${Math.random()}`;
 
-                    // If task exists in state machine with done/rejected status, preserve that status
-                    const existingTask = existingPlan?.tasks.find(t => t.id === taskId);
-                    const shouldPreserveStatus = existingTask && existingTask.status === TaskStatus.DONE;
-
                     return {
                         id: taskId,
                         description: task.description,
-                        status: shouldPreserveStatus ? existingTask.status : (task.status as TaskStatus),
+                        status: task.status as TaskStatus,
                         type: task.type as TaskTypes
                     };
                 });
@@ -213,10 +206,9 @@ Rules:
 
                 // Determine if this is a new plan creation, plan remodification, or task update
                 const hasNewTasks = input.tasks.some(t => !t.id);
-                const reviewTasks = allTasks.filter((t) => t.status === TaskStatus.REVIEW);
+                const completedTasks = allTasks.filter((t) => t.status === TaskStatus.COMPLETED);
                 const inProgressTasks = allTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);
                 const pendingTasks = allTasks.filter(t => t.status === TaskStatus.PENDING);
-                const doneTasks = allTasks.filter(t => t.status === TaskStatus.DONE);
 
                 // Detect plan remodification: plan exists but structure changed significantly
                 const isPlanRemodification = existingPlan && (
@@ -231,7 +223,7 @@ Rules:
 
                 if (eventHandler) {
                     // Case 1: New plan creation OR plan remodification
-                    if ((hasNewTasks || isPlanRemodification) && reviewTasks.length === 0 && inProgressTasks.length === 0 && doneTasks.length === 0) {
+                    if ((hasNewTasks || isPlanRemodification) && completedTasks.length === 0 && inProgressTasks.length === 0) {
                         console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}, emitting PLAN_GENERATED event`);
                         approvalType = "plan";
 
@@ -281,110 +273,110 @@ Rules:
                             });
                         });
                     }
-                    // Case 2: Tasks completed and in review (waiting for approval)
+                    // Case 2: Tasks completed (waiting for approval)
                     // LLM may have completed multiple tasks at once
-                    else if (reviewTasks.length > 0 && inProgressTasks.length === 0) {
-                        // Get the last task in review (most recently completed)
-                        const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-                        console.log(
-                            `[TaskWrite Tool] Requesting completion approval for ${reviewTasks.length} task(s), latest: ${lastReviewTask.id}`
-                        );
-                        approvalType = "completion";
-                        approvedTaskId = lastReviewTask.id;
+                    else if (completedTasks.length > 0 && inProgressTasks.length === 0) {
+                        // Detect newly completed tasks that need approval
+                        const newlyCompletedTasks = existingPlan ? completedTasks.filter(task => {
+                            const existingTask = existingPlan.tasks.find(t => t.id === task.id);
+                            // Task is newly completed if it wasn't COMPLETED before
+                            return existingTask && existingTask.status !== TaskStatus.COMPLETED;
+                        }) : completedTasks;
 
-                        // Integrate code to workspace before task completion
-                        if (updatedSourceFiles && updatedFileNames) {
-                            await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
-                        }
-
-                        // Emit TASK_COMPLETED event to state machine
-                        AIChatStateMachine.sendEvent({
-                            type: AIChatMachineEventType.TASK_COMPLETED,
-                        });
-
-                        // Check if auto-approval is enabled
-                        const isAutoApproveEnabled = currentContext.autoApproveEnabled === true;
-
-                        if (isAutoApproveEnabled) {
-                            // Auto-approval mode: automatically approve the task
+                        if (newlyCompletedTasks.length > 0) {
+                            // Get the last task completed (most recently)
+                            const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
                             console.log(
-                                `[TaskWrite Tool] Auto-approval enabled, auto-approving task: ${lastReviewTask.id}`
+                                `[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s), latest: ${lastCompletedTask.id}`
                             );
+                            approvalType = "completion";
+                            approvedTaskId = lastCompletedTask.id;
 
-                            // Immediately emit APPROVE_TASK event to auto-approve without waiting for user
+                            // Integrate code to workspace before task completion
+                            if (updatedSourceFiles && updatedFileNames) {
+                                await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
+                            }
+
+                            // Emit TASK_COMPLETED event to state machine
                             AIChatStateMachine.sendEvent({
-                                type: AIChatMachineEventType.APPROVE_TASK,
+                                type: AIChatMachineEventType.TASK_COMPLETED,
                             });
 
-                            // Update all review tasks to done status immediately
-                            reviewTasks.forEach((task) => {
-                                const taskIndex = allTasks.findIndex((t) => t.id === task.id);
-                                if (taskIndex !== -1) {
-                                    allTasks[taskIndex].status = TaskStatus.DONE;
-                                }
-                            });
+                            // Check if auto-approval is enabled
+                            const isAutoApproveEnabled = currentContext.autoApproveEnabled === true;
 
-                            // Set approval result without waiting
-                            approvalResult = { approved: true };
-                        } else {
-                            // Manual approval mode: emit event and wait for user approval
-                            console.log(`[TaskWrite Tool] Manual approval mode, waiting for user approval`);
+                            if (isAutoApproveEnabled) {
+                                // Auto-approval mode: automatically approve the task
+                                console.log(
+                                    `[TaskWrite Tool] Auto-approval enabled, auto-approving task: ${lastCompletedTask.id}`
+                                );
 
-                            // Also emit UI event for task approval display
-                            eventHandler({
-                                type: "task_approval_request",
-                                approvalType: "completion",
-                                tasks: allTasks,
-                                taskId: lastReviewTask.id,
-                                message: `Please verify the completed work for: ${lastReviewTask.description}`,
-                            });
-
-                            // Wait for user approval - state machine will transition out of TaskReview
-                            console.log("[TaskWrite Tool] Waiting for task approval/rejection...");
-
-                            approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
-                                // Subscribe to state machine changes
-                                const subscription = AIChatStateMachine.service().subscribe((state) => {
-                                    const currentState = state.value;
-
-                                    // If we moved from TaskReview to ApprovedTask = approved
-                                    if (currentState === "ApprovedTask") {
-                                        console.log(
-                                            `[TaskWrite Tool] Task(s) approved by user (${reviewTasks.length} task(s))`
-                                        );
-
-                                        // Update all review tasks to done status
-                                        reviewTasks.forEach((task) => {
-                                            const taskIndex = allTasks.findIndex((t) => t.id === task.id);
-                                            if (taskIndex !== -1) {
-                                                allTasks[taskIndex].status = TaskStatus.DONE;
-                                            }
-                                        });
-
-                                        subscription.unsubscribe();
-                                        resolve({ approved: true });
-                                    }
-                                    // If we moved from TaskReview to RejectedTask = rejected
-                                    else if (currentState === "RejectedTask") {
-                                        // Get rejection comment from state machine context
-                                        const rejectionComment = state.context.currentApproval?.comment;
-                                        console.log(
-                                            `[TaskWrite Tool] Task rejected by user${
-                                                rejectionComment ? `: "${rejectionComment}"` : ""
-                                            }`
-                                        );
-
-                                        // Update the last review task (the one being rejected) to rejected status
-                                        const taskIndex = allTasks.findIndex((t) => t.id === lastReviewTask.id);
-                                        if (taskIndex !== -1) {
-                                            allTasks[taskIndex].status = TaskStatus.REJECTED;
-                                        }
-
-                                        subscription.unsubscribe();
-                                        resolve({ approved: false, comment: rejectionComment });
-                                    }
+                                // Immediately emit APPROVE_TASK event to auto-approve without waiting for user
+                                AIChatStateMachine.sendEvent({
+                                    type: AIChatMachineEventType.APPROVE_TASK,
                                 });
-                            });
+
+                                // Tasks remain COMPLETED (no status change needed)
+                                // Set approval result without waiting
+                                approvalResult = { approved: true };
+                            } else {
+                                // Manual approval mode: create copy with REVIEW status for UI, keep original as COMPLETED
+                                console.log(`[TaskWrite Tool] Manual approval mode, waiting for user approval`);
+
+                                // Create a copy of allTasks with REVIEW status for newly completed tasks (for UI display)
+                                const tasksForUI = allTasks.map(task => {
+                                    const isNewlyCompleted = newlyCompletedTasks.some(t => t.id === task.id);
+                                    if (isNewlyCompleted) {
+                                        return { ...task, status: TaskStatus.REVIEW };
+                                    }
+                                    return { ...task };
+                                });
+
+                                // Emit UI event for task approval display (send copy with REVIEW status)
+                                eventHandler({
+                                    type: "task_approval_request",
+                                    approvalType: "completion",
+                                    tasks: tasksForUI,
+                                    taskId: lastCompletedTask.id,
+                                    message: `Please verify the completed work for: ${lastCompletedTask.description}`,
+                                });
+
+                                // Wait for user approval - state machine will transition out of TaskReview
+                                console.log("[TaskWrite Tool] Waiting for task approval/rejection...");
+
+                                approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
+                                    // Subscribe to state machine changes
+                                    const subscription = AIChatStateMachine.service().subscribe((state) => {
+                                        const currentState = state.value;
+
+                                        // If we moved from TaskReview to ApprovedTask = approved
+                                        if (currentState === "ApprovedTask") {
+                                            console.log(
+                                                `[TaskWrite Tool] Task(s) approved by user (${newlyCompletedTasks.length} task(s))`
+                                            );
+
+                                            // Keep allTasks as-is (COMPLETED status unchanged)
+                                            subscription.unsubscribe();
+                                            resolve({ approved: true });
+                                        }
+                                        // If we moved from TaskReview to RejectedTask = rejected
+                                        else if (currentState === "RejectedTask") {
+                                            // Get rejection comment from state machine context
+                                            const rejectionComment = state.context.currentApproval?.comment;
+                                            console.log(
+                                                `[TaskWrite Tool] Task rejected by user${
+                                                    rejectionComment ? `: "${rejectionComment}"` : ""
+                                                }`
+                                            );
+
+                                            // Keep allTasks as-is (COMPLETED status unchanged)
+                                            // Agent will see rejection via success: false and comment
+                                            subscription.unsubscribe();
+                                            resolve({ approved: false, comment: rejectionComment });
+                                        }
+                                    });
+                                });
+                            }
                         }
                     } else if (inProgressTasks.length > 0) {
                         // Emit START_TASK_EXECUTION event to state machine (non-blocking)
@@ -404,9 +396,6 @@ Rules:
                         } else {
                             message = `Work approved! Task completed successfully. ${approvedTaskId ? `Task: ${allTasks.find(t => t.id === approvedTaskId)?.description}` : ''}`;
                         }
-                        if (approvalResult.comment) {
-                            message += ` User comment: "${approvalResult.comment}"`;
-                        }
                     } else {
                         if (approvalType === "plan") {
                             message = `Plan not approved. Please revise the plan based on feedback.${approvalResult.comment ? ` User comment: "${approvalResult.comment}"` : ''}`;
@@ -418,17 +407,16 @@ Rules:
                     // No approval needed - just status update
                     if (inProgressTasks.length > 0) {
                         message = `Started working on: ${inProgressTasks[0].description}`;
-                    } else if (doneTasks.length === allTasks.length) {
+                    } else if (completedTasks.length === allTasks.length) {
                         message = `All tasks completed!`;
-                    } else if (doneTasks.length > 0) {
-                        message = `Completed: ${doneTasks[doneTasks.length - 1].description}`;
+                    } else if (completedTasks.length > 0) {
+                        message = `Completed: ${completedTasks[completedTasks.length - 1].description}`;
                     } else {
                         message = `Successfully created ${allTasks.length} implementation tasks. Tasks are now ready for execution.`;
                     }
                 }
 
-                // ALWAYS return ALL tasks
-                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${doneTasks.length} done, ${reviewTasks.length} in review, ${inProgressTasks.length} in progress, ${pendingTasks.length} pending)`);
+                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${completedTasks.length} completed, ${inProgressTasks.length} in progress, ${pendingTasks.length} pending)`);
 
                 return {
                     success: approvalResult ? approvalResult.approved : true,
