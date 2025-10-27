@@ -134,7 +134,10 @@
           "line": 60,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "trigger.github",
+      "moduleName": "trigger.github"
     },
     "functions": [
       {
@@ -148,12 +151,8 @@
             "label": "onOpened",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onOpened",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onOpened",
           "enabled": true,
           "editable": false,
@@ -169,7 +168,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -184,9 +183,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -261,12 +257,8 @@
             "label": "onClosed",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onClosed",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onClosed",
           "enabled": true,
           "editable": false,
@@ -282,7 +274,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -297,9 +289,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -374,12 +363,8 @@
             "label": "onReopened",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onReopened",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onReopened",
           "enabled": true,
           "editable": false,
@@ -395,7 +380,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -410,9 +395,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -487,12 +469,8 @@
             "label": "onAssigned",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onAssigned",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onAssigned",
           "enabled": true,
           "editable": false,
@@ -508,7 +486,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -523,9 +501,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -600,12 +575,8 @@
             "label": "onUnassigned",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onUnassigned",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onUnassigned",
           "enabled": true,
           "editable": false,
@@ -621,7 +592,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -636,9 +607,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -713,12 +681,8 @@
             "label": "onLabeled",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onLabeled",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onLabeled",
           "enabled": true,
           "editable": false,
@@ -734,7 +698,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -749,9 +713,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",
@@ -826,12 +787,8 @@
             "label": "onUnlabeled",
             "description": ""
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onUnlabeled",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onUnlabeled",
           "enabled": true,
           "editable": false,
@@ -847,7 +804,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "github:IssuesEvent",
@@ -862,9 +819,6 @@
               "metadata": {
                 "label": "payload",
                 "description": ""
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "payload",
               "valueType": "IDENTIFIER",

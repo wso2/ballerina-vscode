@@ -67,6 +67,7 @@ public abstract class CallBuilder extends NodeBuilder {
                         codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
+                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
                 .userModuleInfo(moduleInfo);
 
         NodeKind functionNodeKind = getFunctionNodeKind();

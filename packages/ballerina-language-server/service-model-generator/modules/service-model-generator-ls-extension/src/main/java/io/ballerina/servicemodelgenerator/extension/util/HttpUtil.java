@@ -79,9 +79,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_P
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
@@ -274,17 +274,7 @@ public final class HttpUtil {
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-
-        // handle base path and string literal
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            Value basePathProperty = serviceModel.getBasePath();
-            if (Objects.nonNull(basePathProperty)) {
-                basePathProperty.setValue(attachPoint);
-            } else {
-                serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
-            }
-        }
+        extractServicePathInfo(serviceNode, serviceModel);
     }
 
     private static void updateServiceInfo(Service serviceModel, Service commonSvcModel) {

@@ -58,9 +58,9 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASES;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDERS;
-import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_KNOWLEDGE_BASES;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 
@@ -94,7 +94,7 @@ public class AiUtils {
 
     static {
         versionToFeatures.put("1.0.0",
-                Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, VECTOR_KNOWLEDGE_BASES));
+                Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, KNOWLEDGE_BASES));
         versionToFeatures.put("1.3.0", Set.of(CHUNKERS, DATA_LOADERS));
 
         dependentModules.put("1.0.0", List.of(
@@ -139,6 +139,10 @@ public class AiUtils {
                 new Module("ballerinax", "ai.milvus", "1.0.0"),
                 new Module("ballerinax", "ai.pgvector", "1.0.0"),
                 new Module("ballerinax", "ai.weaviate", "1.0.0")
+        ));
+
+        dependentModules.put("1.6.0", List.of(
+                new Module("ballerinax", "ai.azure", "1.2.0")
         ));
     }
 

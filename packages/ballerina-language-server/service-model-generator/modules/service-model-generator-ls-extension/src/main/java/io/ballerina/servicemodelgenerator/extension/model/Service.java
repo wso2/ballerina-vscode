@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -91,7 +95,7 @@ public class Service {
     }
 
     public Value getListener() {
-        return properties.get("listener");
+        return properties.get(PROP_KEY_LISTENER);
     }
 
     public Value getProperty(String key) {
@@ -99,15 +103,15 @@ public class Service {
     }
 
     public void setServiceType(Value serviceType) {
-        properties.put("serviceType", serviceType);
+        properties.put(PROP_KEY_SERVICE_TYPE, serviceType);
     }
 
     public Value getServiceType() {
-        return properties.get("serviceType");
+        return properties.get(PROP_KEY_SERVICE_TYPE);
     }
 
     public String getServiceTypeName() {
-        Value serviceType = properties.get("serviceType");
+        Value serviceType = properties.get(PROP_KEY_SERVICE_TYPE);
         if (Objects.isNull(serviceType)) {
             return null;
         }
@@ -115,19 +119,19 @@ public class Service {
     }
 
     public Value getBasePath() {
-        return properties.get("basePath");
+        return properties.get(PROP_KEY_BASE_PATH);
     }
 
     public Value getStringLiteralProperty() {
-        return properties.get("stringLiteral");
+        return properties.get(PROP_KEY_STRING_LITERAL);
     }
 
     public void setBasePath(Value basePath) {
-        properties.put("basePath", basePath);
+        properties.put(PROP_KEY_BASE_PATH, basePath);
     }
 
     public void setStringLiteral(Value basePath) {
-        properties.put("stringLiteral", basePath);
+        properties.put(PROP_KEY_STRING_LITERAL, basePath);
     }
 
     public Value getOpenAPISpec() {

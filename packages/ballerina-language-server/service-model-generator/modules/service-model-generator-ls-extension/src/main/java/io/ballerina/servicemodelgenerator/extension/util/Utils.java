@@ -534,16 +534,13 @@ public final class Utils {
         }
 
         metadata.get().annotations().forEach(annotationNode -> {
-            if (annotationNode.annotValue().isEmpty()) {
-                return;
-            }
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (service.getProperties().containsKey(propertyName)) {
                 Value property = service.getProperties().get(propertyName);
-                property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setValue(getAnnotationValue(annotationNode));
             } else {
                 Codedata codedata = new Codedata.Builder()
                         .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
@@ -552,6 +549,7 @@ public final class Utils {
                         .build();
 
                 Value value = new Value.ValueBuilder()
+                        .metadata(annotName, annotName)
                         .setCodedata(codedata)
                         .value(getAnnotationValue(annotationNode))
                         .build();
@@ -568,16 +566,13 @@ public final class Utils {
         }
 
         metadata.get().annotations().forEach(annotationNode -> {
-            if (annotationNode.annotValue().isEmpty()) {
-                return;
-            }
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(COLON);
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
-                property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setValue(getAnnotationValue(annotationNode));
             } else {
                 if (!function.getProperties().containsKey(propertyName)) {
                     Codedata codedata = new Codedata.Builder()
@@ -587,6 +582,7 @@ public final class Utils {
                             .build();
 
                     Value value = new Value.ValueBuilder()
+                            .metadata(annotName, annotName)
                             .setCodedata(codedata)
                             .value(getAnnotationValue(annotationNode))
                             .build();
@@ -656,6 +652,10 @@ public final class Utils {
     }
 
     private static String getAnnotationValue(AnnotationNode annotationNode) {
+        if (annotationNode.annotValue().isEmpty()) {
+            return null;
+        }
+
         if (annotationNode.annotValue().isEmpty()) {
             return "";
         }

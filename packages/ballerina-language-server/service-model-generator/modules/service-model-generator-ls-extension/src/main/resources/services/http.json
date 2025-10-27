@@ -79,7 +79,7 @@
           "properties": {
             "basePath": {
               "metadata": {
-                "label": "Service Base Path",
+                "label": "Base Path",
                 "description": ""
               },
               "enabled": true,

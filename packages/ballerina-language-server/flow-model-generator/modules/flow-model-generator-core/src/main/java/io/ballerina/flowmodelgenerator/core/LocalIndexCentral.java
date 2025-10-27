@@ -62,6 +62,7 @@ public class LocalIndexCentral {
     private static final String CLASS_INITS_JSON = "class_inits.json";
     private static final String MEMORY_MANAGERS_JSON = "memory_managers.json";
     private static final String MEMORY_STORES_JSON = "memory_stores.json";
+    private static final String KNOWLEDGE_BASES_JSON = "knowledge_bases.json";
 
     private static final class CentralProxyHolder {
 
@@ -114,6 +115,11 @@ public class LocalIndexCentral {
     public List<Item> getMemoryStores() {
         Category memoryStores = readJsonResource(MEMORY_STORES_JSON, Category.class);
         return memoryStores.items();
+    }
+
+    public List<Item> getKnowledgeBases() {
+        Category knowledgeBases = readJsonResource(KNOWLEDGE_BASES_JSON, Category.class);
+        return knowledgeBases.items();
     }
 
     public List<Item> getConnectorActions(Codedata codedata) {

@@ -170,7 +170,10 @@
           "line": 11,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "rabbitmq",
+      "moduleName": "rabbitmq"
     },
     "functions": [
       {
@@ -184,12 +187,8 @@
             "label": "onMessage",
             "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onMessage",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onMessage",
           "enabled": true,
           "editable": false,
@@ -205,7 +204,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:AnydataMessage",
@@ -220,9 +219,6 @@
               "metadata": {
                 "label": "message",
                 "description": "The message received from the RabbitMQ queue"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "message",
               "valueType": "IDENTIFIER",
@@ -260,7 +256,7 @@
             "kind": "OPTIONAL",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:Caller",
@@ -275,9 +271,6 @@
               "metadata": {
                 "label": "caller",
                 "description": "The RabbitMQ caller object to acknowledge the message"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "caller",
               "valueType": "IDENTIFIER",
@@ -353,7 +346,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false,
         "codedata": {
@@ -405,12 +398,8 @@
             "label": "onError",
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
-          "codedata": {
-            "type": "FUNCTION_NAME"
-          },
           "placeholder": "onError",
           "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "onError",
           "enabled": true,
           "editable": false,
@@ -426,7 +415,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:AnydataMessage",
@@ -441,9 +430,6 @@
               "metadata": {
                 "label": "message",
                 "description": "The message received from the RabbitMQ queue"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "message",
               "valueType": "IDENTIFIER",
@@ -481,7 +467,7 @@
             "kind": "REQUIRED",
             "type": {
               "metadata": {
-                "label": "Type",
+                "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:Error",
@@ -496,9 +482,6 @@
               "metadata": {
                 "label": "rabbitmqError",
                 "description": "The error occurred during the message processing"
-              },
-              "codedata": {
-                "type": "PARAMETER_NAME"
               },
               "placeholder": "rabbitmqError",
               "valueType": "IDENTIFIER",
@@ -545,7 +528,7 @@
           "advanced": false
         },
         "enabled": false,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": false
       }

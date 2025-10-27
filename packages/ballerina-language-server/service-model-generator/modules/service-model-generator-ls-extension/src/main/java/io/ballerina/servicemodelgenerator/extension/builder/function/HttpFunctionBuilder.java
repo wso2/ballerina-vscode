@@ -235,6 +235,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         functionModel.setParameters(parameterModels);
         functionModel.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         functionModel.setCanAddParameters(true);
+        functionModel.setOptional(true);
         updateAnnotationAttachmentProperty(functionDefinitionNode, functionModel);
         return functionModel;
     }

@@ -81,7 +81,7 @@
       },
       "basePath": {
         "metadata": {
-          "label": "Service Base Path",
+          "label": "Base Path",
           "description": ""
         },
         "codedata": {

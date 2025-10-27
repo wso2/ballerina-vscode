@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.compiler.api.symbols.AnnotationAttachPoint;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -81,24 +80,31 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.createFallbackServiceModel;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getBasePathProperty;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getListenersProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getStringLiteral;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getTypeDescriptorProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateServiceInfoNew;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
@@ -109,7 +115,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.deserializ
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getListenerExpressionsLineRange;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
@@ -274,19 +279,19 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                 .setFunctions(new ArrayList<>());
 
         Service service = serviceBuilder.build();
-        properties.put("listener", getListenersProperty(protocol, serviceTemplate.listenerKind()));
+        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol, serviceTemplate.listenerKind()));
 
         // type descriptor
-        properties.put("serviceType", getTypeDescriptorProperty(serviceTemplate, pkg.packageId()));
+        properties.put(PROP_KEY_SERVICE_TYPE, getTypeDescriptorProperty(serviceTemplate, pkg.packageId()));
 
         // base path
         if (serviceTemplate.optionalAbsoluteResourcePath() == 0) {
-            properties.put("basePath", getBasePathProperty(serviceTemplate));
+            properties.put(PROP_KEY_BASE_PATH, getBasePathProperty(serviceTemplate));
         }
 
         // string literal
         if (serviceTemplate.optionalStringLiteral() == 0) {
-            properties.put("stringLiteral", getStringLiteral(serviceTemplate));
+            properties.put(PROP_KEY_STRING_LITERAL, getStringLiteral(serviceTemplate));
         }
         // Get the service type for metadata retrieval
         List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(pkg.packageId());
@@ -411,34 +416,93 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         if (Objects.isNull(context.moduleName())) {
             return null;
         }
-        String serviceType = getServiceTypeIdentifier(context.serviceType());
-        Optional<Service> service = ServiceBuilderRouter.getModelTemplate(context.orgName(), context.moduleName());
-        if (service.isEmpty()) {
-            return null;
+
+        Service serviceModel = createBaseServiceModel(context);
+        if (Objects.isNull(serviceModel)) {
+            return createFallbackServiceModel(context);
         }
-        Service serviceModel = service.get();
-        int packageId = Integer.parseInt(serviceModel.getId());
-        ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
-        serviceModel.getServiceType().setValue(serviceType);
-        serviceModel.getServiceType().setEditable(false);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
+        populateServiceModelFromSource(serviceModel, serviceNode, context);
+
+        return serviceModel;
+    }
+
+    /**
+     * Creates the base service model from the service template.
+     *
+     * @param context the model context
+     * @return the base service model or null if template not found
+     */
+    private Service createBaseServiceModel(ModelFromSourceContext context) {
+        String serviceType = getServiceTypeIdentifier(context.serviceType());
+        Optional<Service> serviceTemplate = ServiceBuilderRouter.getModelTemplate(
+                context.orgName(), context.moduleName());
+
+        if (serviceTemplate.isEmpty()) {
+            return null;
+        }
+
+        Service serviceModel = serviceTemplate.get();
+        populateServiceTypeFunctions(serviceModel, serviceType);
+        configureServiceType(serviceModel, serviceType);
+
+        return serviceModel;
+    }
+
+    /**
+     * Populates the service model with information extracted from the source.
+     *
+     * @param serviceModel the service model to populate
+     * @param serviceNode the service declaration node from source
+     * @param context the model context
+     */
+    private void populateServiceModelFromSource(Service serviceModel, ServiceDeclarationNode serviceNode,
+                                                ModelFromSourceContext context) {
         extractServicePathInfo(serviceNode, serviceModel);
 
-        List<Function> functionsInSource = serviceNode.members().stream()
-                .filter(member -> member instanceof FunctionDefinitionNode)
-                .map(member -> getFunctionModel((FunctionDefinitionNode) member, Map.of()))
-                .toList();
-
+        List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
         updateServiceInfoNew(serviceModel, functionsInSource);
-        serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
+
+        // Set code metadata
+        Codedata codedata = new Codedata.Builder()
+                .setLineRange(serviceNode.lineRange())
+                .setOrgName(context.orgName())
+                .setPackageName(context.packageName())
+                .setModuleName(context.moduleName())
+                .build();
+        serviceModel.setCodedata(codedata);
+
+        // Populate additional service properties
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
-        return serviceModel;
+    }
+
+    /**
+     * Configures the service type property in the service model.
+     *
+     * @param serviceModel the service model
+     * @param serviceType the service type identifier
+     */
+    private void configureServiceType(Service serviceModel, String serviceType) {
+        serviceModel.getServiceType().setValue(serviceType);
+        serviceModel.getServiceType().setEditable(false);
+    }
+
+    /**
+     * Populates the service model with functions from the service type definition.
+     *
+     * @param serviceModel the service model
+     * @param serviceType the service type identifier
+     */
+    private void populateServiceTypeFunctions(Service serviceModel, String serviceType) {
+        int packageId = Integer.parseInt(serviceModel.getId());
+        ServiceDatabaseManager.getInstance()
+                .getMatchingServiceTypeFunctions(packageId, serviceType)
+                .forEach(funInDb -> serviceModel.getFunctions().add(getFunctionFromServiceTypeFunction(funInDb)));
     }
 
     /**

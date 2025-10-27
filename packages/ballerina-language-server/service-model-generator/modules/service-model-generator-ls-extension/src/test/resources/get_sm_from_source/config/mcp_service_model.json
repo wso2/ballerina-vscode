@@ -168,7 +168,10 @@
           "line": 36,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "mcp",
+      "moduleName": "mcp"
     },
     "functions": [
       {
@@ -330,7 +333,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {
@@ -348,6 +351,10 @@
         },
         "properties": {
           "annotTool": {
+            "metadata": {
+              "label": "Tool",
+              "description": "Tool"
+            },
             "codedata": {
               "type": "ANNOTATION_ATTACHMENT",
               "originalName": "Tool",
@@ -589,7 +596,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {

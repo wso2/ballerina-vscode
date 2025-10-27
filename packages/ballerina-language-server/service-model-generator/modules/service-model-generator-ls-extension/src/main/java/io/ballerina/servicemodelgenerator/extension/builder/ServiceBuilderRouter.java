@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -100,13 +101,15 @@ public class ServiceBuilderRouter {
                                                WorkspaceManager workspaceManager, String filePath) {
         ServiceMetadata serviceMetadata = ServiceModelUtils.deriveServiceType(
                 (ServiceDeclarationNode) node, semanticModel);
-        if (Objects.isNull(serviceMetadata.orgName()) || Objects.isNull(serviceMetadata.packageName())) {
+        if (Objects.isNull(serviceMetadata.moduleId())) {
             return null;
         }
-        NodeBuilder<Service> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
+        ModuleID moduleID = serviceMetadata.moduleId();
+
+        NodeBuilder<Service> serviceBuilder = getServiceBuilder(moduleID.moduleName());
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
-                workspaceManager, filePath, serviceMetadata.serviceType(), serviceMetadata.orgName(),
-                serviceMetadata.packageName(), serviceMetadata.moduleName());
+                workspaceManager, filePath, serviceMetadata.serviceType(), moduleID.orgName(),
+                moduleID.packageName(), moduleID.moduleName(), moduleID.version());
         Service service = serviceBuilder.getModelFromSource(context);
         if (service != null) {
             service.getProperties().forEach((k, v) -> v.setAdvanced(false));

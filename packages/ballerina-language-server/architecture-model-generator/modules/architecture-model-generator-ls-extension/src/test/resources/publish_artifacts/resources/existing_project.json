@@ -40,6 +40,24 @@
           "scope": "Global",
           "children": {}
         },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 87
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
+          "scope": "Global",
+          "children": {}
+        },
         "orders": {
           "id": "orders",
           "location": {
@@ -73,24 +91,6 @@
           },
           "type": "VARIABLE",
           "name": "orderCounter",
-          "scope": "Global",
-          "children": {}
-        },
-        "_telegramAgentModel": {
-          "id": "_telegramAgentModel",
-          "location": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 87
-            }
-          },
-          "type": "VARIABLE",
-          "name": "_telegramAgentModel",
           "scope": "Global",
           "children": {}
         }

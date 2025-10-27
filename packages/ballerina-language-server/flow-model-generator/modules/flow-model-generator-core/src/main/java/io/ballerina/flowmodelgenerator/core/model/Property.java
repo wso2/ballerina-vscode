@@ -267,7 +267,8 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         RAW_TEMPLATE,
         REPEATABLE_PROPERTY,
         ACTION_PATH,
-        ACTION_TYPE
+        ACTION_TYPE,
+        DATA_MAPPING_EXPRESSION
     }
 
     public static ValueType valueTypeFrom(String s) {
@@ -407,7 +408,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             if (this.imports == null) {
                 this.imports = new HashMap<>();
             }
-            String[] importList = importStatements.split(";");
+            String[] importList = importStatements.split(",");
             for (String importStatement : importList) {
                 if (importStatement.trim().isEmpty()) {
                     continue;

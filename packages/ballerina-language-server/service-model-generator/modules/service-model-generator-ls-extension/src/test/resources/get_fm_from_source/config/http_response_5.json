@@ -348,9 +348,9 @@
             "valueType": "HEADER_SET",
             "value": [
               {
-                "type": "string",
+                "name": "x\\-path",
                 "optional": false,
-                "name": "x\\-path"
+                "type": "string"
               }
             ],
             "imports": {},
@@ -462,7 +462,7 @@
       "advanced": false
     },
     "enabled": true,
-    "optional": false,
+    "optional": true,
     "editable": true,
     "canAddParameters": true,
     "codedata": {

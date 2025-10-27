@@ -113,6 +113,7 @@ CREATE TABLE ServiceTypeFunction (
     return_error INTEGER CHECK(return_error IN (0, 1)),
     import_statements TEXT, -- Import statements for the return type
     enable INT CHECK(enable IN (0, 1)),
+    optional INT CHECK(enable IN (0, 1)),
     service_type_id INTEGER,
     FOREIGN KEY (service_type_id) REFERENCES ServiceType(service_type_id) ON DELETE CASCADE
 );

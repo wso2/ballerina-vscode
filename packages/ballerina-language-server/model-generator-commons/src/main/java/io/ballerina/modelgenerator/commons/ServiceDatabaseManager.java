@@ -466,7 +466,8 @@ public class ServiceDatabaseManager {
         sql.append("f.return_error, ");
         sql.append("f.return_type_editable, ");
         sql.append("f.import_statements, ");
-        sql.append("f.enable ");
+        sql.append("f.enable, ");
+        sql.append("f.optional ");
         sql.append("FROM ServiceTypeFunction f ");
         sql.append("JOIN ServiceType st ON f.service_type_id = st.service_type_id ");
         sql.append("JOIN Package p ON st.package_id = p.package_id ");
@@ -498,6 +499,7 @@ public class ServiceDatabaseManager {
                         rs.getInt("return_type_editable"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
+                        rs.getInt("optional"),
                         params
                 );
                 conn.close();
@@ -523,7 +525,8 @@ public class ServiceDatabaseManager {
                 "f.return_error, " +
                 "f.return_type_editable, " +
                 "f.import_statements, " +
-                "f.enable " +
+                "f.enable, " +
+                "f.optional " +
                 "FROM ServiceTypeFunction f " +
                 "JOIN ServiceType st ON f.service_type_id = st.service_type_id " +
                 "WHERE st.package_id = ? AND st.name = ?";
@@ -549,6 +552,7 @@ public class ServiceDatabaseManager {
                         rs.getInt("return_type_editable"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
+                        rs.getInt("optional"),
                         params
                 ));
             }

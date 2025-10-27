@@ -42,6 +42,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,7 +198,7 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-    private void buildImportedLocalModules() {
+     private void buildImportedLocalModules() {
         Iterable<Module> modules = project.currentPackage().modules();
         for (Module module : modules) {
             if (module.isDefaultModule()) {
@@ -214,6 +215,10 @@ class TypeSearchCommand extends SearchCommand {
             String orgName = module.packageInstance().packageOrg().toString();
             String packageName = module.packageInstance().packageName().toString();
             String version = module.packageInstance().packageVersion().toString();
+
+            // Collect all types with their scores for ranking
+            List<ScoredType> scoredTypes = new ArrayList<>();
+
             for (Symbol symbol : symbols) {
                 if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
                     if (typeDefinitionSymbol.getName().isEmpty()) {
@@ -224,24 +229,71 @@ class TypeSearchCommand extends SearchCommand {
                             .orElse(null);
                     String description = documentation != null ? documentation.description().orElse("") : "";
 
-                    Metadata metadata = new Metadata.Builder<>(null)
-                            .label(typeName)
-                            .description(description)
-                            .build();
 
-                    Codedata codedata = new Codedata.Builder<>(null)
-                            .org(orgName)
-                            .module(moduleName)
-                            .packageName(packageName)
-                            .symbol(typeName)
-                            .version(version)
-                            .build();
-
-                    moduleBuilder.stepIn(moduleName, "", List.of())
-                            .node(new AvailableNode(metadata, codedata, true));
+                    // Calculate the relevance score, and filter out types with score 0 (no match)
+                    int score = RelevanceCalculator.calculateFuzzyRelevanceScore(typeName, description, query);
+                    if (score > 0) {
+                        scoredTypes.add(new ScoredType(typeDefinitionSymbol, typeName, description, score));
+                    }
                 }
             }
 
+            // Sort by score in descending order (highest score first)
+            scoredTypes.sort(Comparator.comparingInt(ScoredType::getScore).reversed());
+
+            // Build nodes from sorted list
+            for (ScoredType scoredType : scoredTypes) {
+                Metadata metadata = new Metadata.Builder<>(null)
+                        .label(scoredType.getTypeName())
+                        .description(scoredType.getDescription())
+                        .build();
+
+                Codedata codedata = new Codedata.Builder<>(null)
+                        .org(orgName)
+                        .module(moduleName)
+                        .packageName(packageName)
+                        .symbol(scoredType.getTypeName())
+                        .version(version)
+                        .build();
+
+                moduleBuilder.stepIn(moduleName, "", List.of())
+                        .node(new AvailableNode(metadata, codedata, true));
+            }
         }
     }
+
+    /**
+     * Helper class to store type symbols along with their relevance scores for ranking.
+     */
+    private static class ScoredType {
+        private final TypeDefinitionSymbol symbol;
+        private final String typeName;
+        private final String description;
+        private final int score;
+
+        ScoredType(TypeDefinitionSymbol symbol, String typeName, String description, int score) {
+            this.symbol = symbol;
+            this.typeName = typeName;
+            this.description = description;
+            this.score = score;
+        }
+
+        TypeDefinitionSymbol getSymbol() {
+            return symbol;
+        }
+
+        String getTypeName() {
+            return typeName;
+        }
+
+        String getDescription() {
+            return description;
+        }
+
+        int getScore() {
+            return score;
+        }
+    }
+
+
 }
