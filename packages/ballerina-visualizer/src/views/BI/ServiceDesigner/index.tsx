@@ -281,12 +281,12 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             }
         }
         if (service?.properties) {
-            // Extract readonly properties from readOnlyMetaData if available
+            // Extract readonly properties from readOnlyMetadata if available
             const readonlyProps: Set<ReadonlyProperty> = new Set();
-            const readOnlyMetaData = service.properties.readOnlyMetaData;
+            const readOnlyMetadata = service.properties.readOnlyMetadata;
 
-            if (readOnlyMetaData?.enabled && readOnlyMetaData.value && typeof readOnlyMetaData.value === "object") {
-                Object.entries(readOnlyMetaData.value).forEach(([label, values]) => {
+            if (readOnlyMetadata?.enabled && readOnlyMetadata.value && typeof readOnlyMetadata.value === "object") {
+                Object.entries(readOnlyMetadata.value).forEach(([label, values]) => {
                     if (Array.isArray(values) && values.length > 0) {
                         readonlyProps.add({
                             label,

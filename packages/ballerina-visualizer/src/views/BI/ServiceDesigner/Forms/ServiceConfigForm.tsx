@@ -230,8 +230,8 @@ function convertConfig(service: ServiceModel): FormField[] {
         if (expression.valueType === "MULTIPLE_SELECT_LISTENER" || expression.valueType === "SINGLE_SELECT_LISTENER") {
             continue
         }
-        // Skip readOnlyMetaData as it's a special property that doesn't have standard form fields
-        if (key === "readOnlyMetaData") {
+        // Skip readOnlyMetadata as it's a special property that doesn't have standard form fields
+        if (key === "readOnlyMetadata") {
             continue;
         }
         const formField: FormField = {
