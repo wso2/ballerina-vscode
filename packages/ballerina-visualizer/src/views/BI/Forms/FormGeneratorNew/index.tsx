@@ -301,7 +301,6 @@ export function FormGeneratorNew(props: FormProps) {
     }
 
     const addPopupTester = (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => {
-        console.log("#AAA")
         addModal(modal, id, title, height, width, onClose);
     }
 

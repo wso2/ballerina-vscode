@@ -29,7 +29,6 @@ export const ExpressionToggleButton: React.FC<ExpressionToggleButtonProps> = ({
     onToggle 
 }) => {
     const handleClick = () => {
-        console.log("Expression toggle button clicked - Active state:", !isActive);
         onToggle();
     };
 

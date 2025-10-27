@@ -65,7 +65,6 @@ const FooterButtons = (props: FooterButtonProps) => {
     const { onClick, startIcon, title, sx } = props;
     return (
         <FooterContainer style={sx} onClick={onClick}>
-        <FooterContainer style={sx} onClick={onClick}>
             <InvisibleButton 
             disabled={props.disabled}
             onClick={(e) => {
@@ -75,7 +74,6 @@ const FooterButtons = (props: FooterButtonProps) => {
                 <Icon name={startIcon || "bi-plus"} sx={{color: ThemeColors.PRIMARY, fontSize: "16px"}}/>
                 <span style={{color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
             </InvisibleButton>
-        </FooterContainer>
         </FooterContainer>
     )
 }

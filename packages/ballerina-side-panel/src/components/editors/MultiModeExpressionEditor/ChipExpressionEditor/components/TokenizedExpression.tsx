@@ -58,7 +58,6 @@ export const getTokenChip = (
         }
     };
 
-    console.log(`Rendering chip for ${type}: ${value} with id: ${chipId}`);
     return <ChipComponent type={type as 'variable' | 'property' | 'parameter'} dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
 
 }

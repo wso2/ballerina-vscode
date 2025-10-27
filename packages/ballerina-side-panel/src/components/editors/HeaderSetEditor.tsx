@@ -122,7 +122,6 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
     const [headerSetToEdit, setHeaderSetToEdit] = useState<HeaderSet | null>(null);
     const [headerSetIndexToEdit, setHeaderSetIndexToEdit] = useState<number | null>(null);
 
-
     const onAddAnother = () => {
         setFormOpen(true);
     };
