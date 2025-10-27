@@ -223,3 +223,7 @@ export function createToolParameters(): ToolParameters {
         hidden: false
     };
 }
+
+export const cleanServerUrl = (url: string): string => {
+    return url.replace(/^"|"$/g, '').trim();
+};

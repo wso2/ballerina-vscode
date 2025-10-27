@@ -16,7 +16,11 @@
  * under the License.
  */
 
-export const EmptyItemsPlaceHolder = () => {
+type EmptyItemsPlaceHolderProps = {
+    message?: string;
+}
+
+export const EmptyItemsPlaceHolder = ({ message = "No items found" }: EmptyItemsPlaceHolderProps) => {
     return (
         <div style={{
             display: 'flex',
@@ -25,7 +29,7 @@ export const EmptyItemsPlaceHolder = () => {
             height: '100%',
             width: '100%'
         }}>
-            <span>No items found</span>
+            <span>{message}</span>
         </div>
     )
 }

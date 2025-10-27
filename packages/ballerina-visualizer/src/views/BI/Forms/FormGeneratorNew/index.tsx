@@ -61,12 +61,13 @@ import {
 import { debounce } from "lodash";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
-import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -105,6 +106,7 @@ interface FormProps {
         component: ReactNode;
         index: number;
     }[];
+    changeOptionalFieldTitle?: string;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -134,6 +136,7 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
+        changeOptionalFieldTitle
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -148,6 +151,7 @@ export function FormGeneratorNew(props: FormProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
+    const typesCache = useRef<Map<string, CompletionItem[]>>(new Map());
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
@@ -163,6 +167,36 @@ export function FormGeneratorNew(props: FormProps) {
         isDirty: false,
         type: undefined
     }]);
+
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
+
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
+        setIsTypeEditorOpen(open);
+        if (typeName) {
+            setEditingTypeName(typeName);
+        } else {
+            setEditingTypeName("");
+        }
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+        if (type) {
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            setFields(fields.map((field) => {
+                if (field.key === 'type') {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            }));
+        }
+    };
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
@@ -247,8 +281,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
-                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+            if (matchedReferenceType.labelDetails.detail === "Structural Types"
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
             ) {
                 setValueTypeConstraints('');
@@ -462,26 +496,45 @@ export function FormGeneratorNew(props: FormProps) {
         }
     }, [debouncedRetrieveCompletions]);
 
+    /**
+     * Debounced function that fetches and filters visible types based on user input, with caching support and special handling for GraphQL contexts.
+     */
     const debouncedGetVisibleTypes = useCallback(
         debounce(
             async (
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                valueTypeConstraint?: string
+                valueTypeConstraint?: string,
+                fieldKey?: string
             ) => {
-                let visibleTypes: CompletionItem[] = types;
-                if (!types.length) {
-                    const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
-                        filePath: fileName,
-                        position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                        ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
-                    });
+                let context: TypeHelperContext | undefined;
+                if (isGraphqlEditor) {
+                    context = fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE : TypeHelperContext.GRAPHQL_INPUT_TYPE;
+                }
+                let typesCacheKey = fieldKey || 'default';
+                let visibleTypes = typesCache.current.get(typesCacheKey);
+
+                if (!visibleTypes) {
+                    let types;
+                    if (isGraphqlEditor && fieldKey && context) {
+                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                            filePath: fileName,
+                            context: context,
+                        });
+                    } else {
+                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                            filePath: fileName,
+                            position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
+                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                        });
+                    }
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
                     visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
-                    setTypes(visibleTypes);
+                    typesCache.current.set(typesCacheKey, visibleTypes);
                 }
+                setTypes(visibleTypes);
 
                 if (!fetchReferenceTypes) {
                     const effectiveText = value.slice(0, cursorPosition);
@@ -496,12 +549,12 @@ export function FormGeneratorNew(props: FormProps) {
             },
             250
         ),
-        [rpcClient, types, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, isGraphqlEditor]
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string, fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -655,6 +708,11 @@ export function FormGeneratorNew(props: FormProps) {
             handleExpressionEditorCancel();
         }
 
+        const typeHelperContext = isGraphqlEditor ?
+            (fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE
+                : TypeHelperContext.GRAPHQL_INPUT_TYPE)
+            : TypeHelperContext.HTTP_STATUS_CODE;
+
         return getTypeHelper({
             fieldKey: fieldKey,
             valueTypeConstraint: valueTypeConstraint,
@@ -671,6 +729,7 @@ export function FormGeneratorNew(props: FormProps) {
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
+            typeHelperContext: typeHelperContext,
         });
     }
 
@@ -764,7 +823,7 @@ export function FormGeneratorNew(props: FormProps) {
         })
     }
 
-    const onSaveType = (type: Type) => {
+    const onSaveType = () => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -837,6 +896,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     onCancelForm={onBack || onCancel}
                     submitText={submitText}
                     cancelText={cancelText}
@@ -859,6 +919,7 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
+                    changeOptionalFieldTitle={changeOptionalFieldTitle}
                 />
             )}
             {
@@ -898,6 +959,16 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            <ContextBasedFormTypeEditor
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "PayloadType"}
+                editMode={!!editingTypeName}
+                modalTitle={"Define Payload"}
+                modalWidth={650}
+                modalHeight={600}
+            />
         </EditorContext.Provider>
     );
 }

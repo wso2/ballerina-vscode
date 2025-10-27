@@ -299,6 +299,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     documentUri: type.codedata.lineRange?.fileName
                 },
             });
+            return;
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
