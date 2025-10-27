@@ -107,6 +107,8 @@ interface FormProps {
         index: number;
     }[];
     changeOptionalFieldTitle?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    hideSaveButton?: boolean;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -136,7 +138,9 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
-        changeOptionalFieldTitle
+        changeOptionalFieldTitle,
+        onChange,
+        hideSaveButton
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -920,6 +924,8 @@ export function FormGeneratorNew(props: FormProps) {
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
                     changeOptionalFieldTitle={changeOptionalFieldTitle}
+                    onChange={onChange}
+                    hideSaveButton={hideSaveButton}
                 />
             )}
             {
