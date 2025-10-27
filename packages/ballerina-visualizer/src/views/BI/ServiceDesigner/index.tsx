@@ -1141,6 +1141,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     <ResourceForm
                                         model={functionModel}
                                         isSaving={isSaving}
+                                        filePath={filePath}
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         payloadContext={{
