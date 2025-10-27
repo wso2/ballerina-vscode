@@ -2667,9 +2667,9 @@ public class DataMapManager {
             String source = node.toSourceCode().trim();
             String[] split = source.split("\\[");
             if (split.length > 1) {
-                inputs.add(split[0]);
+                addInput(split[0]);
             } else {
-                inputs.add(source);
+                addInput(source);
             }
         }
 
@@ -2686,7 +2686,7 @@ public class DataMapManager {
                     }
                 }
             }
-            inputs.add(source);
+            addInput(source);
         }
 
         @Override
@@ -2716,8 +2716,9 @@ public class DataMapManager {
         public void visit(IndexedExpressionNode node) {
             String source = node.toSourceCode().trim();
             String openBraceRemoved = source.replace("[", ".");
-            String closedBraceRemoved = openBraceRemoved.replace("]", "");
-            inputs.add(closedBraceRemoved);
+            String middleBracesRemoved = openBraceRemoved.replace("][", ".");
+            String closedBraceRemoved = middleBracesRemoved.replace("]", "");
+            addInput(closedBraceRemoved);
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
@@ -2727,7 +2728,7 @@ public class DataMapManager {
 
         @Override
         public void visit(QueryExpressionNode node) {
-            inputs.add(node.queryPipeline().fromClause().expression().toSourceCode().trim());
+            addInput(node.queryPipeline().fromClause().expression().toSourceCode().trim());
         }
 
         @Override
@@ -2760,7 +2761,11 @@ public class DataMapManager {
 
         @Override
         public void visit(OptionalFieldAccessExpressionNode node) {
-            inputs.add(node.toSourceCode().trim().replace("?", ""));
+            addInput(node.toSourceCode());
+        }
+
+        private void addInput(String input) {
+            inputs.add(input.trim().replace("?", ""));
         }
     }
 
