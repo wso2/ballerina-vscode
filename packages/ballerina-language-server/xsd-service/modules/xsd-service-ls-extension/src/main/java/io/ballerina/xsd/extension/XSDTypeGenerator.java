@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -110,18 +111,124 @@ public class XSDTypeGenerator {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         Optional<Document> documentOpt = this.workspaceManager.document(targetFilePath);
 
+        SeparatedContent separatedContent = separateImportsAndTypes(generatedTypes);
         if (documentOpt.isPresent()) {
             Document document = documentOpt.get();
             ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            List<TextEdit> textEdits = new java.util.ArrayList<>();
+
+            String newImports = filterExistingImports(separatedContent.imports, modulePartNode);
+            if (!newImports.isEmpty()) {
+                LinePosition importPos = getImportInsertPosition(modulePartNode);
+                textEdits.add(new TextEdit(CommonUtils.toRange(importPos), newImports));
+            }
+
+            // Text edit for type definitions at the end of file
             LinePosition endPos = LinePosition.from(modulePartNode.lineRange().endLine().line() + 1, 0);
-            String contentToAppend = LS + LS + generatedTypes;
-            textEditsMap.put(targetFilePath, List.of(new TextEdit(CommonUtils.toRange(endPos), contentToAppend)));
+            String contentToAppend = LS + LS + separatedContent.types;
+            textEdits.add(new TextEdit(CommonUtils.toRange(endPos), contentToAppend));
+
+            textEditsMap.put(targetFilePath, textEdits);
         } else {
+            // Create new file - separate text edits for imports and types
+            List<TextEdit> textEdits = new java.util.ArrayList<>();
             LinePosition startPos = LinePosition.from(0, 0);
-            textEditsMap.put(targetFilePath, List.of(new TextEdit(CommonUtils.toRange(startPos), generatedTypes)));
+
+            // Text edit for imports
+            if (!separatedContent.imports.isEmpty()) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(startPos), separatedContent.imports + LS + LS));
+            }
+
+            // Text edit for types (after imports if any)
+            int typesStartLine = separatedContent.imports.isEmpty() ? 0 :
+                    (int) separatedContent.imports.lines().count() + 2;
+            LinePosition typesPos = LinePosition.from(typesStartLine, 0);
+            textEdits.add(new TextEdit(CommonUtils.toRange(typesPos), separatedContent.types));
+
+            textEditsMap.put(targetFilePath, textEdits);
         }
 
         return gson.toJsonTree(textEditsMap);
+    }
+
+    /**
+     * Separates imports from type definitions in the generated content.
+     *
+     * @param generatedTypes The generated Ballerina types including imports
+     * @return SeparatedContent containing imports and types separately
+     */
+    private SeparatedContent separateImportsAndTypes(String generatedTypes) {
+        String[] lines = generatedTypes.split(LS);
+        StringBuilder imports = new StringBuilder();
+        StringBuilder types = new StringBuilder();
+
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            if (trimmedLine.startsWith("import ") && trimmedLine.endsWith(";")) {
+                imports.append(line).append(LS);
+            } else if (!trimmedLine.isEmpty() || !types.isEmpty()) {
+                types.append(line).append(LS);
+            }
+        }
+
+        return new SeparatedContent(imports.toString().trim(), types.toString().trim());
+    }
+
+    /**
+     * Filters out imports that already exist in the target file.
+     *
+     * @param imports         The import statements to filter
+     * @param modulePartNode  The syntax tree of the existing file
+     * @return Import statements that don't already exist in the file
+     */
+    private String filterExistingImports(String imports, ModulePartNode modulePartNode) {
+        if (imports.isEmpty()) {
+            return "";
+        }
+
+        String[] lines = imports.split(LS);
+        StringBuilder result = new StringBuilder();
+
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            if (trimmedLine.startsWith("import ") && trimmedLine.endsWith(";")) {
+                String importPart = trimmedLine.substring(7, trimmedLine.length() - 1).trim();
+                String[] parts = importPart.split("/");
+                if (parts.length == 2) {
+                    String org = parts[0];
+                    String module = parts[1];
+                    if (CommonUtils.importExists(modulePartNode, org, module)) {
+                        continue;
+                    }
+                }
+            }
+            result.append(line).append(LS);
+        }
+
+        return result.toString().trim();
+    }
+
+    /**
+     * Determines the position where new imports should be inserted.
+     * Returns position after the last existing import or at the beginning if no imports exist.
+     *
+     * @param modulePartNode The syntax tree of the existing file
+     * @return LinePosition where imports should be inserted
+     */
+    private LinePosition getImportInsertPosition(ModulePartNode modulePartNode) {
+        if (!modulePartNode.imports().isEmpty()) {
+            int lastImportLine = modulePartNode.imports().get(modulePartNode.imports().size() - 1)
+                    .lineRange().endLine().line();
+            return LinePosition.from(lastImportLine + 1, 0);
+        }
+
+        return LinePosition.from(0, 0);
+    }
+
+    /**
+    * Record class to hold separated imports and type definitions.
+     */
+    private record SeparatedContent(String imports, String types) {
     }
 
     /**

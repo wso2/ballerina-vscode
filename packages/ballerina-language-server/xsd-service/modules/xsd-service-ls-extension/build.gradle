@@ -107,9 +107,10 @@ task copyStdlibs() {
 }
 
 test {
-    // Skip ballerina stdlib setup if dependencies are not available
-    // The test works with basic LS infrastructure without full Ballerina runtime
-    systemProperty "ballerina.home", "$buildDir"
+    dependsOn {
+        copyStdlibs
+    }
+    systemProperty "ballerina.home", balDistribution
 
     useTestNG() {
         suites "src/test/resources/testng.xml"

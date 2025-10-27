@@ -60,6 +60,7 @@ public class XSDConverterService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             XSDConverterResponse response = new XSDConverterResponse();
             try {
+                this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
                 if (request.getXsdContent() == null || request.getXsdContent().isEmpty()) {
                     response.setError("XSD content cannot be null or empty");
                     return response;
