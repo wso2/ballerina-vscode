@@ -211,7 +211,7 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "arg1", "displayName": "Port Number", "kind": "LISTENER_PARAM"}
+        {"key": "attachpoint", "displayName": "Service Name", "kind": "SERVICE_DESCRIPTION"}
       ]
     },
     {
@@ -788,8 +788,7 @@
       },
       "readOnlyMetaData": [
         {"key": "queueName", "displayName": "Queue Name", "kind": "CUSTOM"},
-        {"key": "topicName", "displayName": "Topic Name", "kind": "CUSTOM"},
-        {"key": "connectionString", "displayName": "Connectio  String", "kind": "LISTENER_PARAM"}
+        {"key": "topicName", "displayName": "Topic Name", "kind": "CUSTOM"}
       ]
     },
     {

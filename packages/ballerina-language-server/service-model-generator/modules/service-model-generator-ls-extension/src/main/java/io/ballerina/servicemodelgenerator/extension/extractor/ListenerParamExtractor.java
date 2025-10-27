@@ -129,11 +129,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             // Handle path-based attach point like /foobar
             return attachPoint.toString().trim();
         }
-
-        // Check for string literal attach point - this would be part of the service declaration syntax
-        // For now, we'll skip this and focus on the working path-based extraction
-        // TODO: Enhance to handle string literal attach points based on service syntax tree structure
-
         return null;
     }
 
@@ -238,7 +233,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Implements the working approach from the debug implementation.
      *
      * @param variableSymbol The variable symbol representing the listener
-     * @param semanticModel The semantic model for the module where the symbol belongs
      * @param context The model from source context with access to workspace manager
      * @return The ListenerDeclarationNode if found
      */
@@ -395,7 +389,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Finds the default value of a configurable variable.
      *
      * @param variableSymbol The variable symbol
-     * @param semanticModel The semantic model
      * @param context The model from source context
      * @return The default value if found
      */

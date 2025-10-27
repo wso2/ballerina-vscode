@@ -105,7 +105,7 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
             return typeString;
         }
 
-        return "Service"; // Default service type
+        return null;
     }
 
     /**
@@ -149,6 +149,6 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
             return attachPoint.startsWith("/") ? attachPoint.substring(1) : attachPoint;
         }
 
-        return "Service"; // Default service name
+        return null;
     }
 }

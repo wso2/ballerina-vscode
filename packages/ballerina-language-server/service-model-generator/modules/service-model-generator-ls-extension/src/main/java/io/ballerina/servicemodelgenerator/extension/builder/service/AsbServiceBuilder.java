@@ -56,6 +56,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
  */
 public final class AsbServiceBuilder extends AbstractServiceBuilder implements CustomExtractor {
 
+    private String currentMetadataKey;
+
     @Override
     public String kind() {
         return ASB;
@@ -68,13 +70,13 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
 
         // Handle ASB-specific nested parameter extraction
         if (("queueName".equals(metadataItem.metadataKey())|| "topicName".equals(metadataItem.metadataKey()))) {
-            List<String> queueNames = extractQueueNameFromEntityConfig(serviceNode, context);
-            if (!queueNames.isEmpty()) {
+            this.currentMetadataKey = metadataItem.metadataKey();
+            List<String> extractedValues = extractEntityValueFromConfig(serviceNode, context);
+            if (!extractedValues.isEmpty()) {
                 String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
                         ? metadataItem.displayName()
                         : metadataItem.metadataKey();
-                // Return the list of queue names directly
-                result.put(displayName, queueNames);
+                result.put(displayName, extractedValues);
             }
         }
 
@@ -82,15 +84,15 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     }
 
     /**
-     * Extracts queueName from the nested entityConfig structure in ASB listeners.
+     * Extracts entity values (queueName or topicName) from the nested entityConfig structure in ASB listeners.
      * Uses the existing ListenerParamExtractor infrastructure for proper listener resolution.
      *
      * @param serviceNode The service declaration node
      * @param context The model from source context
-     * @return List of queue names found
+     * @return List of entity values found
      */
-    private List<String> extractQueueNameFromEntityConfig(ServiceDeclarationNode serviceNode, ModelFromSourceContext context) {
-        List<String> queueNames = new ArrayList<>();
+    private List<String> extractEntityValueFromConfig(ServiceDeclarationNode serviceNode, ModelFromSourceContext context) {
+        List<String> entityValues = new ArrayList<>();
 
         // Use ListenerParamExtractor's listener resolution logic
         ListenerParamExtractor listenerExtractor = new ListenerParamExtractor();
@@ -98,39 +100,39 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
         // Extract from each listener expression in the service
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         for (ExpressionNode expression : expressions) {
-            List<String> extractedQueues = extractQueueNameFromListenerExpression(expression, context, listenerExtractor);
-            queueNames.addAll(extractedQueues);
+            List<String> extractedValues = extractEntityValueFromListenerExpression(expression, context, listenerExtractor);
+            entityValues.addAll(extractedValues);
         }
 
-        return queueNames;
+        return entityValues;
     }
 
     /**
-     * Extracts queueName from a single listener expression using ListenerParamExtractor's logic.
+     * Extracts entity values from a single listener expression using ListenerParamExtractor's logic.
      *
      * @param expression The listener expression to analyze
      * @param context The model from source context
      * @param listenerExtractor The listener extractor instance for reusing resolution logic
-     * @return List of queue names from this expression
+     * @return List of entity values from this expression
      */
-    private List<String> extractQueueNameFromListenerExpression(ExpressionNode expression, ModelFromSourceContext context,
+    private List<String> extractEntityValueFromListenerExpression(ExpressionNode expression, ModelFromSourceContext context,
                                                                ListenerParamExtractor listenerExtractor) {
-        List<String> queueNames = new ArrayList<>();
+        List<String> entityValues = new ArrayList<>();
 
         if (expression instanceof ExplicitNewExpressionNode explicitNew) {
-            queueNames.addAll(extractFromAsbListenerConstructor(explicitNew, context));
+            entityValues.addAll(extractFromAsbListenerConstructor(explicitNew));
         } else if (expression instanceof NameReferenceNode nameRef) {
-            queueNames.addAll(extractFromAsbVariableReference(nameRef, context, listenerExtractor));
+            entityValues.addAll(extractFromAsbVariableReference(nameRef, context, listenerExtractor));
         }
 
-        return queueNames;
+        return entityValues;
     }
 
     /**
-     * Extracts queueName from ASB listener constructor arguments.
-     * Looks for entityConfig parameter and extracts queueName from it.
+     * Extracts entity values from ASB listener constructor arguments.
+     * Looks for entityConfig parameter and extracts the specified metadata key from it.
      */
-    private List<String> extractFromAsbListenerConstructor(ExplicitNewExpressionNode constructorNode, ModelFromSourceContext context) {
+    private List<String> extractFromAsbListenerConstructor(ExplicitNewExpressionNode constructorNode) {
         SeparatedNodeList<FunctionArgumentNode> arguments = constructorNode.parenthesizedArgList().arguments();
         if (arguments.isEmpty()) {
             return List.of();
@@ -140,7 +142,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
             if (argument instanceof NamedArgumentNode namedArg) {
                 String argName = namedArg.argumentName().name().text();
                 if ("entityConfig".equals(argName)) {
-                    return extractQueueNameFromEntityConfigExpression(namedArg.expression());
+                    return extractEntityValueFromEntityConfigExpression(namedArg.expression());
                 }
             }
         }
@@ -149,7 +151,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     }
 
     /**
-     * Extracts queueName from variable reference using ListenerParamExtractor's resolution logic.
+     * Extracts entity values from variable reference using ListenerParamExtractor's resolution logic.
      */
     private List<String> extractFromAsbVariableReference(NameReferenceNode nameRef, ModelFromSourceContext context,
                                                         ListenerParamExtractor listenerExtractor) {
@@ -159,9 +161,9 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
             if (listenerNode.isPresent()) {
                 Node initializer = listenerNode.get().initializer();
                 if (initializer instanceof ExplicitNewExpressionNode explicitNew) {
-                    return extractFromAsbListenerConstructor(explicitNew, context);
+                    return extractFromAsbListenerConstructor(explicitNew);
                 } else if (initializer instanceof ImplicitNewExpressionNode implicitNew) {
-                    return extractFromAsbImplicitListenerConstructor(implicitNew, context);
+                    return extractFromAsbImplicitListenerConstructor(implicitNew);
                 }
             }
         }
@@ -217,7 +219,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     /**
      * Extracts from implicit listener constructor (similar to ListenerParamExtractor logic).
      */
-    private List<String> extractFromAsbImplicitListenerConstructor(ImplicitNewExpressionNode constructorNode, ModelFromSourceContext context) {
+    private List<String> extractFromAsbImplicitListenerConstructor(ImplicitNewExpressionNode constructorNode) {
         var parenthesizedArgList = constructorNode.parenthesizedArgList();
         if (parenthesizedArgList.isEmpty()) {
             return List.of();
@@ -232,7 +234,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
             if (argument instanceof NamedArgumentNode namedArg) {
                 String argName = namedArg.argumentName().name().text();
                 if ("entityConfig".equals(argName)) {
-                    return extractQueueNameFromEntityConfigExpression(namedArg.expression());
+                    return extractEntityValueFromEntityConfigExpression(namedArg.expression());
                 }
             }
         }
@@ -241,10 +243,10 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     }
 
     /**
-     * Extracts queueName from entityConfig expression (mapping constructor).
+     * Extracts entity values from entityConfig expression (mapping constructor).
      * This is the ASB-specific nested parameter extraction logic.
      */
-    private List<String> extractQueueNameFromEntityConfigExpression(ExpressionNode expression) {
+    private List<String> extractEntityValueFromEntityConfigExpression(ExpressionNode expression) {
         if (!(expression instanceof MappingConstructorExpressionNode mappingNode)) {
             return List.of();
         }
@@ -254,7 +256,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
                 SpecificFieldNode specificField = (SpecificFieldNode) field;
                 String fieldName = specificField.fieldName().toString().trim();
 
-                if (("queueName".equals(fieldName) || "topicName".equals(fieldName)) && specificField.valueExpr().isPresent()) {
+                if (this.currentMetadataKey.equals(fieldName) && specificField.valueExpr().isPresent()) {
                     ExpressionNode valueExpr = specificField.valueExpr().get();
                     if (valueExpr.kind().equals(SyntaxKind.STRING_LITERAL)) {
                         String value = ((BasicLiteralNode) valueExpr).literalToken().text();
