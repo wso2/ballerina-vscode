@@ -114,7 +114,7 @@
           "type": "CONNECTION",
           "name": "httpEp",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
           "module": "http",
           "children": {}
         }
@@ -232,7 +232,7 @@
           "type": "LISTENER",
           "name": "httpListener",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
           "module": "http",
           "children": {}
         }
@@ -536,7 +536,7 @@
           "type": "SERVICE",
           "name": "HTTP Service - /restaurant",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
           "module": "http",
           "children": {
             "get#menu": {
