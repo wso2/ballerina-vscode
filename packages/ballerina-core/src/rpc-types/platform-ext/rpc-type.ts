@@ -18,11 +18,11 @@
 
 import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { RequestType } from "vscode-messenger-common";
-import { CreateDevantConnectionReq } from "./interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "./interfaces";
 
 const _preFix = "platform-ext";
 // BI ext handlers
-export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  ConnectionDetailed> = { method: `${_preFix}/createDevantComponentConnection` };
+export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/createDevantComponentConnection` };
 // Platform ext proxies
 export const isLoggedIn: RequestType<void, boolean> = { method: `${_preFix}/isLoggedIn` };
 export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };

@@ -30,3 +30,7 @@ export interface CreateDevantConnectionReq {
     componentDir: string;
     marketplaceItem: MarketplaceItem;
 }
+
+export interface CreateDevantConnectionResp {
+    connectionName: string;
+}

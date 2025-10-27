@@ -34,7 +34,7 @@ import {
     MarketplaceListResp,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
-import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -111,8 +111,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<string> {
+    async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
         try {
+            StateMachine.setEditMode();
             const platformExt = await this.getPlatformExt();
 
             const createdConnection = await platformExt.createComponentConnection({
@@ -150,14 +151,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
 
             if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
-                const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content)
+                const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content);
                 fs.writeFileSync(filePath, updatedDef, "utf8");
             } else {
                 // todo: show button to open up devant connection documentation UI
                 window.showErrorMessage(
                     "Client creation for connection is only supported for REST APIs with valid openAPI spec"
                 );
-                return "";
+                return { connectionName: params?.params?.name };
             }
 
             // Generate Bal client
@@ -189,9 +190,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const connectionKeys =
                 createdConnection.configurations[Object.keys(createdConnection.configurations)?.[0]]?.entries;
 
-            interface IkeyVal { keyname: string; envName: string }
-            interface Ikeys { ChoreoAPIKey?: IkeyVal, ServiceURL?: IkeyVal}
-            const keys: Ikeys = {}
+            interface IkeyVal { keyname: string; envName: string; }
+            interface Ikeys { ChoreoAPIKey?: IkeyVal; ServiceURL?: IkeyVal;}
+            const keys: Ikeys = {};
             const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
                 documentIdentifier: { uri: configFileUri.toString() },
             })) as SyntaxTree;
@@ -218,12 +219,16 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             );
 
             if(keys?.ChoreoAPIKey && keys?.ServiceURL){
-                await addConnection(moduleName, {apiKeyVarName: keys?.ChoreoAPIKey?.keyname, svsUrlVarName: keys?.ServiceURL?.keyname})
+                const resp = await addConnection(moduleName, {apiKeyVarName: keys?.ChoreoAPIKey?.keyname, svsUrlVarName: keys?.ServiceURL?.keyname});
+
+                StateMachine.setReadyMode();
+                return { connectionName: resp.connName };
             }
 
-            return "";
+            return { connectionName: "" };
         } catch (err) {
-            window.showErrorMessage("Failed to created Devant connection");
+            StateMachine.setReadyMode();
+            window.showErrorMessage("Failed to create Devant connection");
             log(`Failed to invoke createDevantComponentConnection: ${err}`);
         }
     }
@@ -268,8 +273,8 @@ const addConfigurable = async (configBalFileUri: Uri, params: { configName: stri
     await workspace.applyEdit(configBalEdits);
 };
 
-const addConnection = async (moduleName: string, configs: {apiKeyVarName: string, svsUrlVarName: string}) => {
-    const packageName = StateMachine.context().package
+const addConnection = async (moduleName: string, configs: {apiKeyVarName: string, svsUrlVarName: string}): Promise<{connName: string, connFileUri: Uri}> => {
+    const packageName = StateMachine.context().package;
     const connectionBalFile = path.join(StateMachine.context().projectUri, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
     if (!fs.existsSync(connectionBalFile)) {
@@ -317,6 +322,7 @@ const addConnection = async (moduleName: string, configs: {apiKeyVarName: string
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
     await workspace.applyEdit(connBalEdits);
+    return {connName: candidate, connFileUri: connectionBalFileUri};
 };
 
 export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
@@ -341,20 +347,22 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
             name: 'Choreo-API-Key'
         };
 
-        if(!openApiDefinition.security){
-            openApiDefinition.security = []
+        if(openApiDefinition.security && openApiDefinition.security.length > 0){
+            openApiDefinition.security.push({ApiKeyAuth: []});
         }
-
-        openApiDefinition.security.push({ApiKeyAuth: []})
 
         if(openApiDefinition.paths){
             for(const path in openApiDefinition.paths){
                 for(const method in openApiDefinition.paths[path]){
                     if(openApiDefinition.paths[path]?.[method]?.security){
-                        openApiDefinition.paths[path]?.[method]?.security?.push({ApiKeyAuth: []})
+                        openApiDefinition.paths[path]?.[method]?.security?.push({ApiKeyAuth: []});
                     }
                 }
             }
+        }
+
+        if(!openApiDefinition.servers || openApiDefinition.servers.length === 0){
+            openApiDefinition.servers = [{url: "http://localhost:8080"}];
         }
         
         return yaml.dump(openApiDefinition);
@@ -381,6 +389,9 @@ const Templates = {
         return template(params);
     },
     newConnectionWithApiKey: (params: { MODULE_NAME: string, CONNECTION_NAME: string; SERVICE_URL_VAR_NAME: string, API_KEY_VAR_NAME: string }) => {
-        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new ({Choreo\\-API\\-Key: ${params.API_KEY_VAR_NAME}}, ${params.SERVICE_URL_VAR_NAME});\n`;
+        // check new (apiKeyConfig = {choreoAPIKey: ""},config = {},serviceUrl = "")
+        // const template = Handlebars.compile(`final {{MODULE_NAME}}:Client {{CONNECTION_NAME}} = check new (apiKeyConfig = {choreoAPIKey: {{API_KEY_VAR_NAME}}},config = {},serviceUrl = {{SERVICE_URL_VAR_NAME}})l;\n`);
+        // return template(params);
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = {choreoAPIKey: ${params.API_KEY_VAR_NAME}},config = {},serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },
 };
